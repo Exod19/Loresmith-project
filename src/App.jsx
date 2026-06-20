@@ -3130,6 +3130,143 @@ const STYLE = `
   min-height:130px;
 }
 
+.universe-builder-layout{
+  display:grid;
+  grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr);
+  gap:16px;
+  align-items:start;
+}
+
+.universe-builder-main,
+.universe-builder-side{
+  min-width:0;
+}
+
+.ai-suggestion-stack{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.ai-suggestion-card{
+  border:1px solid rgba(201,162,74,.24);
+  background:linear-gradient(180deg,#120d07,#080604);
+  border-radius:8px;
+  padding:12px;
+}
+
+.ai-suggestion-card b{
+  display:block;
+  color:var(--gold-lt);
+  font-family:'Cinzel',serif;
+  font-size:13px;
+  line-height:1.25;
+  margin-bottom:5px;
+}
+
+.ai-suggestion-card p{
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.45;
+  margin:0 0 10px;
+}
+
+.ai-suggestion-meta{
+  display:inline-flex;
+  border:1px solid rgba(201,162,74,.28);
+  color:var(--gold);
+  border-radius:999px;
+  padding:2px 7px;
+  font-family:'Cinzel',serif;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  margin-bottom:7px;
+}
+
+.ai-question-card{
+  border:1px solid rgba(84,216,198,.22);
+  background:rgba(84,216,198,.045);
+  border-radius:8px;
+  padding:11px;
+}
+
+.ai-question-card p{
+  color:#bfeee7;
+  font-size:13px;
+  line-height:1.45;
+  margin:0 0 8px;
+}
+
+.ai-question-card textarea{
+  min-height:62px;
+  font-size:13px;
+}
+
+.ai-entity-grid{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+}
+
+.ai-entity-chip{
+  border:1px solid rgba(201,162,74,.28);
+  background:#0b0804;
+  color:var(--muted);
+  border-radius:999px;
+  padding:5px 9px;
+  font-size:12px;
+  line-height:1.25;
+}
+
+.ai-entity-chip b{
+  color:var(--gold-lt);
+  font-family:'Cinzel',serif;
+  font-size:10.5px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  margin-right:5px;
+}
+
+.ai-empty-box{
+  border:1px dashed rgba(201,162,74,.32);
+  color:var(--muted);
+  border-radius:8px;
+  padding:14px;
+  font-size:13px;
+  line-height:1.45;
+  text-align:center;
+}
+
+.lore-section-preview{
+  border:1px solid rgba(201,162,74,.2);
+  background:rgba(0,0,0,.14);
+  border-radius:8px;
+  padding:10px;
+  margin-top:10px;
+}
+
+.lore-section-preview b{
+  display:block;
+  color:var(--gold-lt);
+  font-family:'Cinzel',serif;
+  font-size:12px;
+  margin-bottom:4px;
+}
+
+.lore-section-preview p{
+  color:var(--muted);
+  font-size:12.5px;
+  line-height:1.45;
+  margin:0;
+}
+
+@media (max-width:1000px){
+  .universe-builder-layout{
+    grid-template-columns:1fr;
+  }
+}
+
 .memory-list{
   display:flex;
   flex-direction:column;
@@ -5563,8 +5700,164 @@ function Dashboard({
 }
 function UniverseBrainPanel({ universe, campaigns, dispatch, flash }) {
   const { ai } = useContext(AIContext);
+
   const [notes, setNotes] = useState(universe.brainScratch || '');
   const [busy, setBusy] = useState(false);
+  const [answers, setAnswers] = useState({});
+
+  const suggestions = universe.loreSuggestions || {
+    questions: [],
+    loreBlocks: [],
+    detectedEntities: [],
+    missingAreas: [],
+    structuredSections: [],
+  };
+
+  useEffect(() => {
+    setNotes(universe.brainScratch || '');
+  }, [universe.id]);
+
+  function patchUniverse(patch) {
+    dispatch({
+      type: 'UPDATE_UNIVERSE',
+      id: universe.id,
+      patch,
+    });
+  }
+
+  function saveScratch() {
+    patchUniverse({
+      brainScratch: notes,
+    });
+
+    flash('Mind dump sauvegardé.');
+  }
+
+  function deleteMemory(memoryId) {
+    if (!confirm('Supprimer cette mémoire ?')) return;
+  
+    dispatch({
+      type: 'UPDATE_UNIVERSE',
+      id: universe.id,
+      patch: {
+        memoryLog: (universe.memoryLog || []).filter((m) => m.id !== memoryId),
+      },
+    });
+  
+    flash('Mémoire supprimée.');
+  }
+
+  async function analyzeUniverseMindDump(mode = 'full') {
+    if (!notes.trim() && !universe.lore?.trim()) {
+      flash('Ajoute du lore ou un mind dump à analyser.');
+      return;
+    }
+
+    setBusy(true);
+
+    try {
+      const data = await callAI(ai, {
+        system: `Tu es l'architecte de lore principal de Loresmith.
+
+Réponds uniquement en JSON valide.
+
+Tu aides un maître de jeu à bâtir un univers de fiction jouable.
+Tu ne dois pas écrire une campagne. Tu dois aider à structurer l'univers.
+
+Langue: français.
+Style: clair, inspirant, utile pour un créateur d'univers.
+Ne contredis pas le canon existant. Si quelque chose est flou, pose des questions.`,
+        prompt: `Univers: ${universe.name}
+
+Ton:
+${universe.tone || ''}
+
+Canon actuel:
+${universe.lore || ''}
+
+Mémoires récentes:
+${
+  (universe.memoryLog || [])
+    .slice(0, 10)
+    .map((m) => `- ${m.title}: ${m.summary}`)
+    .join('\n') || 'Aucune mémoire enregistrée.'
+}
+
+Campagnes existantes:
+${
+  campaigns
+    .map((c) => `- ${c.title}: ${c.premise || ''}`)
+    .join('\n') || 'Aucune campagne.'
+}
+
+Mind dump à analyser:
+${notes || ''}
+
+Mode demandé:
+${mode}
+
+Retourne exactement:
+{
+  "questions": [
+    {
+      "id": "court-id",
+      "question": "Question utile à répondre",
+      "why": "Pourquoi cette question aide à bâtir l'univers"
+    }
+  ],
+  "loreBlocks": [
+    {
+      "id": "court-id",
+      "title": "Titre du bloc",
+      "category": "Cosmologie|Géographie|Peuples|Histoire|Magie|Religion|Conflits|Mystères|Vie quotidienne|Autre",
+      "text": "Bloc de lore prêt à intégrer, 1 à 3 paragraphes"
+    }
+  ],
+  "detectedEntities": [
+    {
+      "name": "Nom détecté",
+      "suggestedType": "person|place|artifact|event|faction|mystery|document|creature|concept",
+      "context": "Pourquoi cette entité semble importante"
+    }
+  ],
+  "missingAreas": [
+    "Aspect de l'univers qui mériterait d'être clarifié"
+  ],
+  "structuredSections": [
+    {
+      "title": "Nom de section",
+      "summary": "Résumé court de ce qui existe déjà ou devrait être développé"
+    }
+  ],
+  "canonPatch": "Optionnel: court texte de synthèse à ajouter au canon si le mind dump contient déjà des faits solides."
+}`,
+      });
+
+      const normalized = {
+        questions: Array.isArray(data.questions) ? data.questions : [],
+        loreBlocks: Array.isArray(data.loreBlocks) ? data.loreBlocks : [],
+        detectedEntities: Array.isArray(data.detectedEntities)
+          ? data.detectedEntities
+          : [],
+        missingAreas: Array.isArray(data.missingAreas) ? data.missingAreas : [],
+        structuredSections: Array.isArray(data.structuredSections)
+          ? data.structuredSections
+          : [],
+        updatedAt: now(),
+      };
+
+      patchUniverse({
+        brainScratch: notes,
+        loreSuggestions: normalized,
+      });
+
+      flash('Suggestions de lore générées.');
+    } catch (e) {
+      flash(e.message);
+    }
+
+    setBusy(false);
+  }
 
   async function assimilate() {
     if (!notes.trim()) {
@@ -5577,34 +5870,35 @@ function UniverseBrainPanel({ universe, campaigns, dispatch, flash }) {
     try {
       const data = await callAI(ai, {
         system: `Tu es l'archiviste principal d'un univers de campagne TTRPG.
-  
-  Réponds uniquement en JSON valide.
-  
-  Tu dois transformer des notes décousues en mémoire exploitable pour un univers vivant.
-  Le résultat doit préserver les faits, les conséquences, les mystères, les rappels possibles, les seeds futurs et les éléments nostalgiques.
-  
-  Langue: français.
-  Ton: littéraire, utile pour un maître de jeu, cohérent avec le lore existant.`,
+
+Réponds uniquement en JSON valide.
+
+Tu dois transformer des notes décousues en mémoire exploitable pour un univers vivant.
+Le résultat doit préserver les faits, les conséquences, les mystères, les rappels possibles, les seeds futurs et les éléments nostalgiques.
+
+Langue: français.
+Ton: littéraire, utile pour un maître de jeu, cohérent avec le lore existant.`,
         prompt: `Univers: ${universe.name}
-  Ton: ${universe.tone}
-  Canon actuel:
-  ${universe.lore || ''}
-  
-  Campagnes existantes:
-  ${campaigns.map((c) => `- ${c.title}: ${c.premise || ''}`).join('\n')}
-  
-  Notes décousues à assimiler:
-  ${notes}
-  
-  Retourne:
-  {
-    "canonPatch": "Texte court à ajouter au canon de l'univers, en prose claire.",
-    "memoryTitle": "Titre court de cette mémoire",
-    "memorySummary": "Résumé utilisable plus tard par le MJ",
-    "consequences": ["conséquence 1", "conséquence 2"],
-    "futureSeeds": ["seed futur 1", "seed futur 2"],
-    "nostalgicEchoes": ["rappel possible 1", "rappel possible 2"]
-  }`,
+Ton: ${universe.tone}
+
+Canon actuel:
+${universe.lore || ''}
+
+Campagnes existantes:
+${campaigns.map((c) => `- ${c.title}: ${c.premise || ''}`).join('\n')}
+
+Notes décousues à assimiler:
+${notes}
+
+Retourne:
+{
+  "canonPatch": "Texte court à ajouter au canon de l'univers, en prose claire.",
+  "memoryTitle": "Titre court de cette mémoire",
+  "memorySummary": "Résumé utilisable plus tard par le MJ",
+  "consequences": ["conséquence 1", "conséquence 2"],
+  "futureSeeds": ["seed futur 1", "seed futur 2"],
+  "nostalgicEchoes": ["rappel possible 1", "rappel possible 2"]
+}`,
       });
 
       const memory = {
@@ -5617,19 +5911,15 @@ function UniverseBrainPanel({ universe, campaigns, dispatch, flash }) {
         nostalgicEchoes: data.nostalgicEchoes || [],
       };
 
-      dispatch({
-        type: 'UPDATE_UNIVERSE',
-        id: universe.id,
-        patch: {
-          lore: [
-            universe.lore || '',
-            data.canonPatch ? `\n\n${data.canonPatch}` : '',
-          ]
-            .join('')
-            .trim(),
-          brainScratch: '',
-          memoryLog: [memory, ...(universe.memoryLog || [])].slice(0, 80),
-        },
+      patchUniverse({
+        lore: [
+          universe.lore || '',
+          data.canonPatch ? `\n\n${data.canonPatch}` : '',
+        ]
+          .join('')
+          .trim(),
+        brainScratch: '',
+        memoryLog: [memory, ...(universe.memoryLog || [])].slice(0, 80),
       });
 
       setNotes('');
@@ -5641,83 +5931,361 @@ function UniverseBrainPanel({ universe, campaigns, dispatch, flash }) {
     setBusy(false);
   }
 
-  function saveScratch() {
-    dispatch({
-      type: 'UPDATE_UNIVERSE',
-      id: universe.id,
-      patch: {
-        brainScratch: notes,
+  function integrateLoreBlock(block, index) {
+    const text = String(block?.text || '').trim();
+
+    if (!text) {
+      flash('Ce bloc est vide.');
+      return;
+    }
+
+    const heading = block.title ? `### ${block.title}` : '### Bloc de lore';
+
+    const nextLore = [universe.lore || '', `${heading}\n${text}`]
+      .filter(Boolean)
+      .join('\n\n')
+      .trim();
+
+    const nextBlocks = (suggestions.loreBlocks || []).filter(
+      (_, i) => i !== index
+    );
+
+    patchUniverse({
+      lore: nextLore,
+      loreSuggestions: {
+        ...suggestions,
+        loreBlocks: nextBlocks,
       },
     });
 
-    flash('Notes sauvegardées dans le brain.');
+    flash('Bloc intégré au canon.');
+  }
+
+  function removeLoreBlock(index) {
+    patchUniverse({
+      loreSuggestions: {
+        ...suggestions,
+        loreBlocks: (suggestions.loreBlocks || []).filter((_, i) => i !== index),
+      },
+    });
+  }
+
+  function addAnswerToMindDump(question, i) {
+    const answer = String(answers[i] || '').trim();
+
+    if (!answer) {
+      flash('Écris une réponse avant de l’ajouter.');
+      return;
+    }
+
+    const addition = `Question de lore: ${question.question}\nRéponse: ${answer}`;
+
+    const nextNotes = [notes, addition].filter(Boolean).join('\n\n');
+
+    setNotes(nextNotes);
+
+    patchUniverse({
+      brainScratch: nextNotes,
+    });
+
+    setAnswers((prev) => ({ ...prev, [i]: '' }));
+
+    flash('Réponse ajoutée au mind dump.');
   }
 
   return (
     <>
-      <div className="eyebrow">Brain d’univers</div>
+      <div className="eyebrow">Créateur d’univers</div>
 
-      <div className="panel brain-panel">
-        <p
-          className="muted"
-          style={{ fontSize: 13.5, lineHeight: 1.55, marginTop: 0 }}
-        >
-          Dépose ici des notes décousues : événements joués, idées de lore,
-          conséquences, rumeurs, détails de personnages, objets aperçus, lieux
-          visités, promesses oubliées. L’IA peut ensuite les transformer en
-          mémoire exploitable pour nourrir les prochaines campagnes.
-        </p>
+      <div className="universe-builder-layout">
+        <div className="universe-builder-main">
+          <div className="panel brain-panel">
+            <p
+              className="muted"
+              style={{ fontSize: 13.5, lineHeight: 1.55, marginTop: 0 }}
+            >
+              Dépose ici tes idées décousues : cosmologie, peuples, lieux,
+              magie, religion, conflits, mythes, personnages, secrets ou images
+              mentales. L’IA peut ensuite poser des questions, proposer des
+              blocs de lore, détecter des entités importantes et t’aider à
+              construire un canon cohérent.
+            </p>
 
-        <Field label="Notes décousues à assimiler">
-          <textarea
-            className="in"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Ex. Les joueurs ont laissé vivre le vieux prêtre. L'épée noire a réagi au nom d'Aamôs. Jeanne a promis de revenir au village. Le marchand mentait peut-être..."
-          />
-        </Field>
+            <Field label="Mind dump d’univers">
+              <textarea
+                className="in"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Ex. Les cités sont suspendues entre des stalactites. La magie vient d'anciens fils tissés dans la pierre. Les rois ne meurent jamais vraiment..."
+                style={{ minHeight: 220 }}
+              />
+            </Field>
 
-        <div className="row">
-          <button
-            className="btn primary"
-            style={{ flex: 'none' }}
-            disabled={busy}
-            onClick={assimilate}
-          >
-            {busy ? (
-              <>
-                <Spin /> Assimilation…
-              </>
-            ) : (
-              'Assimiler au canon'
-            )}
-          </button>
+            <div className="row">
+              <button
+                className="btn primary"
+                style={{ flex: 'none' }}
+                disabled={busy}
+                onClick={() => analyzeUniverseMindDump('full')}
+              >
+                {busy ? (
+                  <>
+                    <Spin /> Analyse…
+                  </>
+                ) : (
+                  'Générer questions et blocs'
+                )}
+              </button>
 
-          <button
-            className="btn"
-            style={{ flex: 'none' }}
-            onClick={saveScratch}
-          >
-            Sauvegarder sans assimiler
-          </button>
+              <button
+                className="btn"
+                style={{ flex: 'none' }}
+                disabled={busy}
+                onClick={() => analyzeUniverseMindDump('more-lore-blocks')}
+              >
+                Autres blocs de lore
+              </button>
+
+              <button
+  className="btn primary"
+  style={{ flex: 'none' }}
+  disabled={busy}
+  onClick={() => {
+    flash('Prochaine étape : génération AI des questions et blocs.');
+  }}
+>
+  Générer questions et blocs
+</button>
+
+              <button
+                className="btn"
+                style={{ flex: 'none' }}
+                disabled={busy}
+                onClick={assimilate}
+              >
+                Assimiler directement au canon
+              </button>
+
+              <button
+                className="btn ghost"
+                style={{ flex: 'none' }}
+                onClick={saveScratch}
+              >
+                Sauvegarder
+              </button>
+            </div>
+          </div>
+
+          {(suggestions.structuredSections || []).length > 0 && (
+            <>
+              <div className="eyebrow">Structure suggérée</div>
+
+              <div className="grid cols-2">
+                {suggestions.structuredSections.map((section, i) => (
+                  <div className="lore-section-preview" key={i}>
+                    <b>{section.title || 'Section'}</b>
+                    <p>{section.summary || 'Aucun résumé.'}</p>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+<div className="grid cols-3" style={{ marginTop: 16 }}>
+          <div className="panel">
+            <h3 style={{ marginTop: 0 }}>Questions AI</h3>
+            <p className="muted" style={{ fontSize: 13 }}>
+              Les questions suggérées apparaîtront ici après l’analyse du mind
+              dump.
+            </p>
+          </div>
+
+          <div className="panel">
+            <h3 style={{ marginTop: 0 }}>Blocs de lore proposés</h3>
+            <p className="muted" style={{ fontSize: 13 }}>
+              Les blocs intégrables au canon apparaîtront ici.
+            </p>
+          </div>
+
+          <div className="panel">
+            <h3 style={{ marginTop: 0 }}>Entités détectées</h3>
+            <p className="muted" style={{ fontSize: 13 }}>
+              Personnages, lieux, artefacts, factions, mystères et documents
+              détectés apparaîtront ici.
+            </p>
+          </div>
         </div>
 
-        {(universe.memoryLog || []).length > 0 && (
-          <>
-            <div className="eyebrow" style={{ marginTop: 18 }}>
-              Mémoires récentes
-            </div>
+          {(universe.memoryLog || []).length > 0 && (
+            <>
+              <div className="eyebrow">Mémoires récentes</div>
 
-            <div className="memory-list">
-              {(universe.memoryLog || []).slice(0, 5).map((m) => (
-                <div className="memory-item" key={m.id}>
-                  <b>{m.title}</b>
+              <div className="memory-list">
+                {(universe.memoryLog || []).slice(0, 5).map((m) => (
+                  <div className="memory-item" key={m.id}>
+                  <div className="card-h">
+                    <b>{m.title}</b>
+                
+                    <button
+                      className="btn ghost sm danger"
+                      style={{ flex: 'none' }}
+                      onClick={() => deleteMemory(m.id)}
+                      title="Supprimer cette mémoire"
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                
                   <p>{m.summary}</p>
                 </div>
-              ))}
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="universe-builder-side">
+          <div className="panel">
+            <div className="card-h">
+              <div>
+                <h3 style={{ margin: 0 }}>Questions AI</h3>
+                <p className="muted" style={{ fontSize: 12.5, marginTop: 4 }}>
+                  Réponds seulement aux questions utiles. Tes réponses
+                  retourneront dans le mind dump.
+                </p>
+              </div>
             </div>
-          </>
-        )}
+
+            <div className="ai-suggestion-stack">
+              {(suggestions.questions || []).length === 0 ? (
+                <div className="ai-empty-box">
+                  Aucune question générée pour le moment.
+                </div>
+              ) : (
+                suggestions.questions.map((q, i) => (
+                  <div className="ai-question-card" key={q.id || i}>
+                    <p>{q.question}</p>
+
+                    {q.why && (
+                      <div
+                        className="faint"
+                        style={{ fontSize: 12, lineHeight: 1.35, marginBottom: 8 }}
+                      >
+                        {q.why}
+                      </div>
+                    )}
+
+                    <textarea
+                      className="in"
+                      value={answers[i] || ''}
+                      onChange={(e) =>
+                        setAnswers((prev) => ({
+                          ...prev,
+                          [i]: e.target.value,
+                        }))
+                      }
+                      placeholder="Ta réponse..."
+                    />
+
+                    <button
+                      className="btn sm"
+                      style={{ flex: 'none', marginTop: 8 }}
+                      onClick={() => addAnswerToMindDump(q, i)}
+                    >
+                      Ajouter au mind dump
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="panel" style={{ marginTop: 16 }}>
+            <h3 style={{ margin: 0 }}>Blocs de lore proposés</h3>
+            <p className="muted" style={{ fontSize: 12.5, marginTop: 4 }}>
+              Intègre seulement les blocs que tu veux rendre canoniques.
+            </p>
+
+            <div className="ai-suggestion-stack">
+              {(suggestions.loreBlocks || []).length === 0 ? (
+                <div className="ai-empty-box">
+                  Aucun bloc de lore généré pour le moment.
+                </div>
+              ) : (
+                suggestions.loreBlocks.map((block, i) => (
+                  <div className="ai-suggestion-card" key={block.id || i}>
+                    <div className="ai-suggestion-meta">
+                      {block.category || 'Lore'}
+                    </div>
+
+                    <b>{block.title || 'Bloc de lore'}</b>
+
+                    <p>{block.text || 'Aucun texte.'}</p>
+
+                    <div className="row">
+                      <button
+                        className="btn sm primary"
+                        style={{ flex: 'none' }}
+                        onClick={() => integrateLoreBlock(block, i)}
+                      >
+                        Intégrer
+                      </button>
+
+                      <button
+                        className="btn sm ghost"
+                        style={{ flex: 'none' }}
+                        onClick={() => removeLoreBlock(i)}
+                      >
+                        Ignorer
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="panel" style={{ marginTop: 16 }}>
+            <h3 style={{ margin: 0 }}>Entités détectées</h3>
+            <p className="muted" style={{ fontSize: 12.5, marginTop: 4 }}>
+              À la prochaine étape, ces éléments pourront créer des fiches de
+              bibliothèque en un clic.
+            </p>
+
+            {(suggestions.detectedEntities || []).length === 0 ? (
+              <div className="ai-empty-box">
+                Aucune entité détectée pour le moment.
+              </div>
+            ) : (
+              <div className="ai-entity-grid">
+                {suggestions.detectedEntities.map((entity, i) => (
+                  <span className="ai-entity-chip" key={i}>
+                    <b>{entity.suggestedType || 'entité'}</b>
+                    {entity.name}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="panel" style={{ marginTop: 16 }}>
+            <h3 style={{ margin: 0 }}>Zones à clarifier</h3>
+
+            <div className="ai-suggestion-stack" style={{ marginTop: 10 }}>
+              {(suggestions.missingAreas || []).length === 0 ? (
+                <div className="ai-empty-box">
+                  Aucune zone floue détectée.
+                </div>
+              ) : (
+                suggestions.missingAreas.map((item, i) => (
+                  <div className="ai-suggestion-card" key={i}>
+                    <p>{item}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </>
   );
@@ -7675,9 +8243,21 @@ function CampaignCard({
               <div className="memory-list">
                 {(camp.memoryLog || []).slice(0, 4).map((m) => (
                   <div className="memory-item" key={m.id}>
+                  <div className="card-h">
                     <b>{m.title}</b>
-                    <p>{m.summary}</p>
+                
+                    <button
+                      className="btn ghost sm danger"
+                      style={{ flex: 'none' }}
+                      onClick={() => deleteMemory(m.id)}
+                      title="Supprimer cette mémoire"
+                    >
+                      Supprimer
+                    </button>
                   </div>
+                
+                  <p>{m.summary}</p>
+                </div>
                 ))}
               </div>
             )}
