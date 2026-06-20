@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none">
+  <title>Antique compass rose</title>
+  <defs>
+    <style>
+      .gold{stroke:#C8A25A}.brown{stroke:#8E6A34}.fillgold{fill:#C8A25A}.fillpale{fill:#D9B56B}.fillbrown{fill:#8E6A34}.soft{opacity:.72}.faint{opacity:.42}
+      text{font-family:Georgia, 'Times New Roman', serif;font-weight:700;fill:#C8A25A;letter-spacing:1px}
+    </style>
+  </defs>
+
+  <!-- generous transparent margin: artwork stays roughly inside x/y 52-460 -->
+  <g transform="translate(256 256)">
+    <!-- outer circles -->
+    <circle r="176" class="gold" stroke-width="2.2"/>
+    <circle r="157" class="brown soft" stroke-width="1.2"/>
+    <circle r="130" class="gold faint" stroke-width="1"/>
+    <circle r="78" class="brown faint" stroke-width="1"/>
+
+    <!-- tick marks every 15 degrees -->
+    <g class="brown soft" stroke-width="1.1" stroke-linecap="round">
+      <path d="M0,-176 V-166"/>
+      <path d="M0,-176 V-169" transform="rotate(15)"/>
+      <path d="M0,-176 V-169" transform="rotate(30)"/>
+      <path d="M0,-176 V-166" transform="rotate(45)"/>
+      <path d="M0,-176 V-169" transform="rotate(60)"/>
+      <path d="M0,-176 V-169" transform="rotate(75)"/>
+      <path d="M0,-176 V-166" transform="rotate(90)"/>
+      <path d="M0,-176 V-169" transform="rotate(105)"/>
+      <path d="M0,-176 V-169" transform="rotate(120)"/>
+      <path d="M0,-176 V-166" transform="rotate(135)"/>
+      <path d="M0,-176 V-169" transform="rotate(150)"/>
+      <path d="M0,-176 V-169" transform="rotate(165)"/>
+      <path d="M0,-176 V-166" transform="rotate(180)"/>
+      <path d="M0,-176 V-169" transform="rotate(195)"/>
+      <path d="M0,-176 V-169" transform="rotate(210)"/>
+      <path d="M0,-176 V-166" transform="rotate(225)"/>
+      <path d="M0,-176 V-169" transform="rotate(240)"/>
+      <path d="M0,-176 V-169" transform="rotate(255)"/>
+      <path d="M0,-176 V-166" transform="rotate(270)"/>
+      <path d="M0,-176 V-169" transform="rotate(285)"/>
+      <path d="M0,-176 V-169" transform="rotate(300)"/>
+      <path d="M0,-176 V-166" transform="rotate(315)"/>
+      <path d="M0,-176 V-169" transform="rotate(330)"/>
+      <path d="M0,-176 V-169" transform="rotate(345)"/>
+    </g>
+
+    <!-- eight long direction rays -->
+    <g stroke-linejoin="round" stroke-linecap="round">
+      <path d="M0,-142 L18,-24 L0,-42 L-18,-24 Z" fill="#D9B56B" class="brown" stroke-width="1.4"/>
+      <path d="M0,-142 L0,-42 L18,-24 Z" fill="#C8A25A" opacity=".65"/>
+      <path d="M0,142 L18,24 L0,42 L-18,24 Z" fill="#D9B56B" class="brown" stroke-width="1.4"/>
+      <path d="M142,0 L24,18 L42,0 L24,-18 Z" fill="#D9B56B" class="brown" stroke-width="1.4"/>
+      <path d="M-142,0 L-24,18 L-42,0 L-24,-18 Z" fill="#D9B56B" class="brown" stroke-width="1.4"/>
+
+      <path d="M100,-100 L30,-6 L29,-30 L6,-30 Z" fill="#C8A25A" opacity=".86" class="brown" stroke-width="1.2"/>
+      <path d="M100,100 L6,30 L30,29 L30,6 Z" fill="#C8A25A" opacity=".86" class="brown" stroke-width="1.2"/>
+      <path d="M-100,100 L-30,6 L-29,30 L-6,30 Z" fill="#C8A25A" opacity=".86" class="brown" stroke-width="1.2"/>
+      <path d="M-100,-100 L-6,-30 L-30,-29 L-30,-6 Z" fill="#C8A25A" opacity=".86" class="brown" stroke-width="1.2"/>
+    </g>
+
+    <!-- sixteen fine secondary points -->
+    <g class="gold soft" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M0,-108 L7,-16 L0,-28 L-7,-16 Z" transform="rotate(22.5)" fill="#8E6A34" opacity=".38"/>
+      <path d="M0,-108 L7,-16 L0,-28 L-7,-16 Z" transform="rotate(67.5)" fill="#8E6A34" opacity=".38"/>
+      <path d="M0,-108 L7,-16 L0,-28 L-7,-16 Z" transform="rotate(112.5)" fill="#8E6A34" opacity=".38"/>
+      <path d="M0,-108 L7,-16 L0,-28 L-7,-16 Z" transform="rotate(157.5)" fill="#8E6A34" opacity=".38"/>
+      <path d="M0,-108 L7,-16 L0,-28 L-7,-16 Z" transform="rotate(202.5)" fill="#8E6A34" opacity=".38"/>
+      <path d="M0,-108 L7,-16 L0,-28 L-7,-16 Z" transform="rotate(247.5)" fill="#8E6A34" opacity=".38"/>
+      <path d="M0,-108 L7,-16 L0,-28 L-7,-16 Z" transform="rotate(292.5)" fill="#8E6A34" opacity=".38"/>
+      <path d="M0,-108 L7,-16 L0,-28 L-7,-16 Z" transform="rotate(337.5)" fill="#8E6A34" opacity=".38"/>
+    </g>
+
+    <!-- compass construction lines -->
+    <g class="brown faint" stroke-width="1">
+      <path d="M0,-150 V150"/>
+      <path d="M-150,0 H150"/>
+      <path d="M-106,-106 L106,106"/>
+      <path d="M106,-106 L-106,106"/>
+    </g>
+
+    <!-- central medallion -->
+    <circle r="31" fill="none" class="gold" stroke-width="2"/>
+    <circle r="20" fill="none" class="brown soft" stroke-width="1.1"/>
+    <path d="M0,-18 L5,-5 L18,0 L5,5 L0,18 L-5,5 L-18,0 L-5,-5 Z" fill="#C8A25A" opacity=".75" stroke="#8E6A34" stroke-width="1"/>
+
+    <!-- small ornamental curls around circle -->
+    <g class="gold soft" stroke-width="1.3" stroke-linecap="round">
+      <path d="M-45,-45 C-58,-40 -60,-25 -49,-20 C-39,-15 -33,-24 -40,-30"/>
+      <path d="M45,-45 C58,-40 60,-25 49,-20 C39,-15 33,-24 40,-30"/>
+      <path d="M-45,45 C-58,40 -60,25 -49,20 C-39,15 -33,24 -40,30"/>
+      <path d="M45,45 C58,40 60,25 49,20 C39,15 33,24 40,30"/>
+    </g>
+  </g>
+
+  <!-- cardinal letters inside safe margin -->
+  <text x="256" y="75" text-anchor="middle" font-size="32">N</text>
+  <text x="437" y="266" text-anchor="middle" font-size="27">E</text>
+  <text x="256" y="459" text-anchor="middle" font-size="27">S</text>
+  <text x="75" y="266" text-anchor="middle" font-size="27">W</text>
+</svg>
