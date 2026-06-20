@@ -5703,7 +5703,7 @@ function UniverseBrainPanel({ universe, campaigns, dispatch, flash }) {
 
   const [notes, setNotes] = useState(universe.brainScratch || '');
   const [busy, setBusy] = useState(false);
-  const [answers, setAnswers] = useState({});
+  const [questionAnswers, setQuestionAnswers] = useState({});
 
   const suggestions = universe.loreSuggestions || {
     questions: [],
@@ -5735,15 +5735,11 @@ function UniverseBrainPanel({ universe, campaigns, dispatch, flash }) {
 
   function deleteMemory(memoryId) {
     if (!confirm('Supprimer cette mémoire ?')) return;
-  
-    dispatch({
-      type: 'UPDATE_UNIVERSE',
-      id: universe.id,
-      patch: {
-        memoryLog: (universe.memoryLog || []).filter((m) => m.id !== memoryId),
-      },
+
+    patchUniverse({
+      memoryLog: (universe.memoryLog || []).filter((m) => m.id !== memoryId),
     });
-  
+
     flash('Mémoire supprimée.');
   }
 
@@ -5762,7 +5758,8 @@ function UniverseBrainPanel({ universe, campaigns, dispatch, flash }) {
 Réponds uniquement en JSON valide.
 
 Tu aides un maître de jeu à bâtir un univers de fiction jouable.
-Tu ne dois pas écrire une campagne. Tu dois aider à structurer l'univers.
+Tu ne dois pas écrire une campagne.
+Tu dois aider à structurer l'univers, poser les bonnes questions, proposer des blocs de lore et détecter les entités importantes.
 
 Langue: français.
 Style: clair, inspirant, utile pour un créateur d'univers.
@@ -5828,8 +5825,7 @@ Retourne exactement:
       "title": "Nom de section",
       "summary": "Résumé court de ce qui existe déjà ou devrait être développé"
     }
-  ],
-  "canonPatch": "Optionnel: court texte de synthèse à ajouter au canon si le mind dump contient déjà des faits solides."
+  ]
 }`,
       });
 
@@ -5851,7 +5847,7 @@ Retourne exactement:
         loreSuggestions: normalized,
       });
 
-      flash('Suggestions de lore générées.');
+      flash('Questions et blocs générés.');
     } catch (e) {
       flash(e.message);
     }
@@ -5906,9 +5902,11 @@ Retourne:
         createdAt: now(),
         title: data.memoryTitle || 'Mémoire assimilée',
         summary: data.memorySummary || notes,
-        consequences: data.consequences || [],
-        futureSeeds: data.futureSeeds || [],
-        nostalgicEchoes: data.nostalgicEchoes || [],
+        consequences: Array.isArray(data.consequences) ? data.consequences : [],
+        futureSeeds: Array.isArray(data.futureSeeds) ? data.futureSeeds : [],
+        nostalgicEchoes: Array.isArray(data.nostalgicEchoes)
+          ? data.nostalgicEchoes
+          : [],
       };
 
       patchUniverse({
@@ -5946,32 +5944,34 @@ Retourne:
       .join('\n\n')
       .trim();
 
-    const nextBlocks = (suggestions.loreBlocks || []).filter(
-      (_, i) => i !== index
-    );
-
     patchUniverse({
       lore: nextLore,
       loreSuggestions: {
         ...suggestions,
-        loreBlocks: nextBlocks,
+        loreBlocks: (suggestions.loreBlocks || []).filter(
+          (_, i) => i !== index
+        ),
       },
     });
 
     flash('Bloc intégré au canon.');
   }
 
-  function removeLoreBlock(index) {
+  function dismissLoreBlock(index) {
     patchUniverse({
       loreSuggestions: {
         ...suggestions,
-        loreBlocks: (suggestions.loreBlocks || []).filter((_, i) => i !== index),
+        loreBlocks: (suggestions.loreBlocks || []).filter(
+          (_, i) => i !== index
+        ),
       },
     });
+
+    flash('Bloc ignoré.');
   }
 
-  function addAnswerToMindDump(question, i) {
-    const answer = String(answers[i] || '').trim();
+  function addQuestionAnswer(question, index) {
+    const answer = String(questionAnswers[index] || '').trim();
 
     if (!answer) {
       flash('Écris une réponse avant de l’ajouter.');
@@ -5988,7 +5988,10 @@ Retourne:
       brainScratch: nextNotes,
     });
 
-    setAnswers((prev) => ({ ...prev, [i]: '' }));
+    setQuestionAnswers((prev) => ({
+      ...prev,
+      [index]: '',
+    }));
 
     flash('Réponse ajoutée au mind dump.');
   }
@@ -6047,17 +6050,6 @@ Retourne:
               </button>
 
               <button
-  className="btn primary"
-  style={{ flex: 'none' }}
-  disabled={busy}
-  onClick={() => {
-    flash('Prochaine étape : génération AI des questions et blocs.');
-  }}
->
-  Générer questions et blocs
-</button>
-
-              <button
                 className="btn"
                 style={{ flex: 'none' }}
                 disabled={busy}
@@ -6069,6 +6061,7 @@ Retourne:
               <button
                 className="btn ghost"
                 style={{ flex: 'none' }}
+                disabled={busy}
                 onClick={saveScratch}
               >
                 Sauvegarder
@@ -6091,31 +6084,6 @@ Retourne:
             </>
           )}
 
-<div className="grid cols-3" style={{ marginTop: 16 }}>
-          <div className="panel">
-            <h3 style={{ marginTop: 0 }}>Questions AI</h3>
-            <p className="muted" style={{ fontSize: 13 }}>
-              Les questions suggérées apparaîtront ici après l’analyse du mind
-              dump.
-            </p>
-          </div>
-
-          <div className="panel">
-            <h3 style={{ marginTop: 0 }}>Blocs de lore proposés</h3>
-            <p className="muted" style={{ fontSize: 13 }}>
-              Les blocs intégrables au canon apparaîtront ici.
-            </p>
-          </div>
-
-          <div className="panel">
-            <h3 style={{ marginTop: 0 }}>Entités détectées</h3>
-            <p className="muted" style={{ fontSize: 13 }}>
-              Personnages, lieux, artefacts, factions, mystères et documents
-              détectés apparaîtront ici.
-            </p>
-          </div>
-        </div>
-
           {(universe.memoryLog || []).length > 0 && (
             <>
               <div className="eyebrow">Mémoires récentes</div>
@@ -6123,21 +6091,21 @@ Retourne:
               <div className="memory-list">
                 {(universe.memoryLog || []).slice(0, 5).map((m) => (
                   <div className="memory-item" key={m.id}>
-                  <div className="card-h">
-                    <b>{m.title}</b>
-                
-                    <button
-                      className="btn ghost sm danger"
-                      style={{ flex: 'none' }}
-                      onClick={() => deleteMemory(m.id)}
-                      title="Supprimer cette mémoire"
-                    >
-                      Supprimer
-                    </button>
+                    <div className="card-h">
+                      <b>{m.title}</b>
+
+                      <button
+                        className="btn ghost sm danger"
+                        style={{ flex: 'none' }}
+                        onClick={() => deleteMemory(m.id)}
+                        title="Supprimer cette mémoire"
+                      >
+                        Supprimer
+                      </button>
+                    </div>
+
+                    <p>{m.summary}</p>
                   </div>
-                
-                  <p>{m.summary}</p>
-                </div>
                 ))}
               </div>
             </>
@@ -6169,7 +6137,11 @@ Retourne:
                     {q.why && (
                       <div
                         className="faint"
-                        style={{ fontSize: 12, lineHeight: 1.35, marginBottom: 8 }}
+                        style={{
+                          fontSize: 12,
+                          lineHeight: 1.35,
+                          marginBottom: 8,
+                        }}
                       >
                         {q.why}
                       </div>
@@ -6177,9 +6149,9 @@ Retourne:
 
                     <textarea
                       className="in"
-                      value={answers[i] || ''}
+                      value={questionAnswers[i] || ''}
                       onChange={(e) =>
-                        setAnswers((prev) => ({
+                        setQuestionAnswers((prev) => ({
                           ...prev,
                           [i]: e.target.value,
                         }))
@@ -6190,7 +6162,7 @@ Retourne:
                     <button
                       className="btn sm"
                       style={{ flex: 'none', marginTop: 8 }}
-                      onClick={() => addAnswerToMindDump(q, i)}
+                      onClick={() => addQuestionAnswer(q, i)}
                     >
                       Ajouter au mind dump
                     </button>
@@ -6234,7 +6206,7 @@ Retourne:
                       <button
                         className="btn sm ghost"
                         style={{ flex: 'none' }}
-                        onClick={() => removeLoreBlock(i)}
+                        onClick={() => dismissLoreBlock(i)}
                       >
                         Ignorer
                       </button>
