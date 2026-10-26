@@ -4426,7 +4426,7 @@ const AI_PRESETS = {
   groq: {
     label: 'Groq (gratuit · très rapide)',
     baseUrl: 'https://api.groq.com/openai/v1',
-    model: 'llama-3.3-70b-versatile',
+    model: 'openai/gpt-oss-120b',
     help: 'Clé gratuite : console.groq.com.',
   },
   openai: {
