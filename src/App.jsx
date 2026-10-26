@@ -7824,215 +7824,230 @@ function CampaignCard({
   const [brainNotes, setBrainNotes] = useState(camp.brainScratch || '');
   const [brainBusy, setBrainBusy] = useState(false);
 
+  async function enrichLongCampaign() {
+    setBrainBusy(true);
+
+    try {
+      const data = await callAI(ai, {
+        system: `Tu es l’architecte narratif de Loresmith.
+  
+  Réponds uniquement en JSON valide.
+  Tu dois étoffer une campagne longue existante sans détruire sa structure.
+  Ajoute du lore, du flux narratif, des détails de séances, des liens entre scènes,
+  des conséquences, des secrets, des rappels, des seeds, des suggestions de bibliothèque.
+  Langue: français.
+  Style: riche, utile au MJ, immersif, mais organisé.`,
+        prompt: `Univers: ${universe.name}
+  Ton:
+  ${universe.tone || ''}
+  
+  Canon:
+  ${universe.lore || ''}
+  
+  Mémoire vivante:
+  ${
+    (universe.memoryLog || [])
+      .slice(0, 12)
+      .map((m) => `- ${m.title}: ${m.summary}`)
+      .join('\n') || 'Aucune'
+  }
+  
+  Campagne actuelle:
+  Titre: ${camp.title}
+  Prémisse: ${camp.premise}
+  Hook: ${camp.hook}
+  Canon de campagne:
+  ${camp.campaignCanon || ''}
+  
+  Actes:
+  ${(camp.acts || [])
+    .map((a) => `- ${a.title}: ${a.summary || ''}`)
+    .join('\n')}
+  
+  Séances:
+  ${(camp.sessions || [])
+    .map((s) => `- Séance ${s.sessionNumber}: ${s.title} — ${s.summary}`)
+    .join('\n')}
+  
+  Scènes:
+  ${(camp.scenes || [])
+    .map(
+      (sc, i) => `
+  ${i + 1}. ${sc.title}
+  Type: ${sc.type}
+  Résumé: ${sc.summary}
+  Lore actuel: ${sc.expanded?.lore || ''}
+  Notes MJ: ${sc.expanded?.dmNotes || ''}
+  `
+    )
+    .join('\n')}
+  
+  Retourne:
+  {
+    "campaignCanon": "Version enrichie du canon de campagne, 8 à 15 paragraphes.",
+    "dmOverview": "Brief MJ complet, dense et structuré.",
+    "acts": [
+      {
+        "title": str,
+        "summary": str,
+        "purpose": str,
+        "lore": "Lore enrichi de l’acte.",
+        "openingBeat": str,
+        "turningPoint": str,
+        "finale": str,
+        "secrets": [str],
+        "seeds": [str],
+        "consequences": [str]
+      }
+    ],
+    "sessions": [
+      {
+        "title": str,
+        "sessionNumber": num,
+        "act": str,
+        "summary": str,
+        "dmBrief": str,
+        "openingImage": str,
+        "mainGoal": str,
+        "dramaticQuestion": str,
+        "loreToReveal": [str],
+        "importantChoices": [str],
+        "expectedScenes": [str],
+        "possibleEndings": [str]
+      }
+    ],
+    "librarySuggestions": [
+      {
+        "title": str,
+        "archiveType": "artifact|person|place|event|faction|mystery|document",
+        "shortSummary": str,
+        "body": "Fiche riche, 2 à 5 paragraphes.",
+        "origin": str,
+        "historicalContext": str,
+        "currentLocation": str,
+        "owner": str,
+        "campaignUse": str,
+        "secrets": str,
+        "tags": [str],
+        "imagePrompt": str
+      }
+    ],
+    "scenes": [
+      {
+        "idHint": "titre exact de la scène à enrichir",
+        "title": str,
+        "summary": str,
+        "readAloud": str,
+        "purpose": str,
+        "location": str,
+        "lore": "Lore enrichi, 3 à 7 paragraphes.",
+        "dmNotes": "Notes MJ riches.",
+        "sensoryDetails": str,
+        "hiddenTruth": str,
+        "playerChoices": [str],
+        "consequences": [str],
+        "seeds": [str],
+        "callbacks": [str],
+        "questions": [str],
+        "loot": [str],
+        "libraryLinksToCreate": [
+          {
+            "title": str,
+            "archiveType": "artifact|person|place|event|faction|mystery|document",
+            "shortSummary": str,
+            "body": str,
+            "campaignUse": str,
+            "secrets": str,
+            "tags": [str],
+            "imagePrompt": str
+          }
+        ]
+      }
+    ]
+  }`,
+      });
+
+      const enrichedScenes = (camp.scenes || []).map((scene) => {
+        const match = (data.scenes || []).find(
+          (s) =>
+            normalizeName(s.idHint || s.title) === normalizeName(scene.title)
+        );
+
+        if (!match) return scene;
+
+        return {
+          ...scene,
+          title: match.title || scene.title,
+          summary: match.summary || scene.summary,
+          expanded: {
+            ...(scene.expanded || {}),
+            setting: match.location || scene.expanded?.setting || '',
+            readAloud: match.readAloud || scene.expanded?.readAloud || '',
+            purpose: match.purpose || scene.expanded?.purpose || '',
+            lore: match.lore || scene.expanded?.lore || '',
+            dmNotes: match.dmNotes || scene.expanded?.dmNotes || '',
+            sensoryDetails:
+              match.sensoryDetails || scene.expanded?.sensoryDetails || '',
+            hiddenTruth:
+              match.hiddenTruth || scene.expanded?.hiddenTruth || '',
+            playerChoices:
+              match.playerChoices || scene.expanded?.playerChoices || [],
+            consequences:
+              match.consequences || scene.expanded?.consequences || [],
+            seeds: match.seeds || scene.expanded?.seeds || [],
+            callbacks: match.callbacks || scene.expanded?.callbacks || [],
+            questions: match.questions || scene.expanded?.questions || [],
+            loot: match.loot || scene.expanded?.loot || [],
+            libraryLinksToCreate: [
+              ...(scene.expanded?.libraryLinksToCreate || []),
+              ...(match.libraryLinksToCreate || []),
+            ],
+          },
+        };
+      });
+
+      dispatch({
+        type: 'UPDATE_CAMPAIGN',
+        id: camp.id,
+        patch: {
+          campaignCanon: data.campaignCanon || camp.campaignCanon || '',
+          dmOverview: data.dmOverview || camp.dmOverview || '',
+          acts: data.acts || camp.acts || [],
+          sessions: data.sessions || camp.sessions || [],
+          librarySuggestions: [
+            ...(camp.librarySuggestions || []),
+            ...(data.librarySuggestions || []),
+          ],
+          scenes: enrichedScenes,
+        },
+      });
+
+      flash('Campagne étoffée.');
+    } catch (e) {
+      flash(e.message);
+    }
+
+    setBrainBusy(false);
+  }
+
+  function deleteCampaignMemory(memoryId) {
+    if (!confirm('Supprimer cette mémoire ?')) return;
+
+    dispatch({
+      type: 'UPDATE_CAMPAIGN',
+      id: camp.id,
+      patch: {
+        memoryLog: (camp.memoryLog || []).filter((m) => m.id !== memoryId),
+      },
+    });
+
+    flash('Mémoire supprimée.');
+  }
+
   async function assimilateCampaignMemory() {
     if (!brainNotes.trim()) {
       flash('Ajoute des notes de campagne à assimiler.');
       return;
-    }
-    async function enrichLongCampaign() {
-      setBrainBusy(true);
-
-      try {
-        const data = await callAI(ai, {
-          system: `Tu es l’architecte narratif de Loresmith.
-    
-    Réponds uniquement en JSON valide.
-    Tu dois étoffer une campagne longue existante sans détruire sa structure.
-    Ajoute du lore, du flux narratif, des détails de séances, des liens entre scènes,
-    des conséquences, des secrets, des rappels, des seeds, des suggestions de bibliothèque.
-    Langue: français.
-    Style: riche, utile au MJ, immersif, mais organisé.`,
-          prompt: `Univers: ${universe.name}
-    Ton:
-    ${universe.tone || ''}
-    
-    Canon:
-    ${universe.lore || ''}
-    
-    Mémoire vivante:
-    ${
-      (universe.memoryLog || [])
-        .slice(0, 12)
-        .map((m) => `- ${m.title}: ${m.summary}`)
-        .join('\n') || 'Aucune'
-    }
-    
-    Campagne actuelle:
-    Titre: ${camp.title}
-    Prémisse: ${camp.premise}
-    Hook: ${camp.hook}
-    Canon de campagne:
-    ${camp.campaignCanon || ''}
-    
-    Actes:
-    ${(camp.acts || [])
-      .map((a) => `- ${a.title}: ${a.summary || ''}`)
-      .join('\n')}
-    
-    Séances:
-    ${(camp.sessions || [])
-      .map((s) => `- Séance ${s.sessionNumber}: ${s.title} — ${s.summary}`)
-      .join('\n')}
-    
-    Scènes:
-    ${(camp.scenes || [])
-      .map(
-        (sc, i) => `
-    ${i + 1}. ${sc.title}
-    Type: ${sc.type}
-    Résumé: ${sc.summary}
-    Lore actuel: ${sc.expanded?.lore || ''}
-    Notes MJ: ${sc.expanded?.dmNotes || ''}
-    `
-      )
-      .join('\n')}
-    
-    Retourne:
-    {
-      "campaignCanon": "Version enrichie du canon de campagne, 8 à 15 paragraphes.",
-      "dmOverview": "Brief MJ complet, dense et structuré.",
-      "acts": [
-        {
-          "title": str,
-          "summary": str,
-          "purpose": str,
-          "lore": "Lore enrichi de l’acte.",
-          "openingBeat": str,
-          "turningPoint": str,
-          "finale": str,
-          "secrets": [str],
-          "seeds": [str],
-          "consequences": [str]
-        }
-      ],
-      "sessions": [
-        {
-          "title": str,
-          "sessionNumber": num,
-          "act": str,
-          "summary": str,
-          "dmBrief": str,
-          "openingImage": str,
-          "mainGoal": str,
-          "dramaticQuestion": str,
-          "loreToReveal": [str],
-          "importantChoices": [str],
-          "expectedScenes": [str],
-          "possibleEndings": [str]
-        }
-      ],
-      "librarySuggestions": [
-        {
-          "title": str,
-          "archiveType": "artifact|person|place|event|faction|mystery|document",
-          "shortSummary": str,
-          "body": "Fiche riche, 2 à 5 paragraphes.",
-          "origin": str,
-          "historicalContext": str,
-          "currentLocation": str,
-          "owner": str,
-          "campaignUse": str,
-          "secrets": str,
-          "tags": [str],
-          "imagePrompt": str
-        }
-      ],
-      "scenes": [
-        {
-          "idHint": "titre exact de la scène à enrichir",
-          "title": str,
-          "summary": str,
-          "readAloud": str,
-          "purpose": str,
-          "location": str,
-          "lore": "Lore enrichi, 3 à 7 paragraphes.",
-          "dmNotes": "Notes MJ riches.",
-          "sensoryDetails": str,
-          "hiddenTruth": str,
-          "playerChoices": [str],
-          "consequences": [str],
-          "seeds": [str],
-          "callbacks": [str],
-          "questions": [str],
-          "loot": [str],
-          "libraryLinksToCreate": [
-            {
-              "title": str,
-              "archiveType": "artifact|person|place|event|faction|mystery|document",
-              "shortSummary": str,
-              "body": str,
-              "campaignUse": str,
-              "secrets": str,
-              "tags": [str],
-              "imagePrompt": str
-            }
-          ]
-        }
-      ]
-    }`,
-        });
-
-        const enrichedScenes = (camp.scenes || []).map((scene) => {
-          const match = (data.scenes || []).find(
-            (s) =>
-              normalizeName(s.idHint || s.title) === normalizeName(scene.title)
-          );
-
-          if (!match) return scene;
-
-          return {
-            ...scene,
-            title: match.title || scene.title,
-            summary: match.summary || scene.summary,
-            expanded: {
-              ...(scene.expanded || {}),
-              setting: match.location || scene.expanded?.setting || '',
-              readAloud: match.readAloud || scene.expanded?.readAloud || '',
-              purpose: match.purpose || scene.expanded?.purpose || '',
-              lore: match.lore || scene.expanded?.lore || '',
-              dmNotes: match.dmNotes || scene.expanded?.dmNotes || '',
-              sensoryDetails:
-                match.sensoryDetails || scene.expanded?.sensoryDetails || '',
-              hiddenTruth:
-                match.hiddenTruth || scene.expanded?.hiddenTruth || '',
-              playerChoices:
-                match.playerChoices || scene.expanded?.playerChoices || [],
-              consequences:
-                match.consequences || scene.expanded?.consequences || [],
-              seeds: match.seeds || scene.expanded?.seeds || [],
-              callbacks: match.callbacks || scene.expanded?.callbacks || [],
-              questions: match.questions || scene.expanded?.questions || [],
-              loot: match.loot || scene.expanded?.loot || [],
-              libraryLinksToCreate: [
-                ...(scene.expanded?.libraryLinksToCreate || []),
-                ...(match.libraryLinksToCreate || []),
-              ],
-            },
-          };
-        });
-
-        dispatch({
-          type: 'UPDATE_CAMPAIGN',
-          id: camp.id,
-          patch: {
-            campaignCanon: data.campaignCanon || camp.campaignCanon || '',
-            dmOverview: data.dmOverview || camp.dmOverview || '',
-            acts: data.acts || camp.acts || [],
-            sessions: data.sessions || camp.sessions || [],
-            librarySuggestions: [
-              ...(camp.librarySuggestions || []),
-              ...(data.librarySuggestions || []),
-            ],
-            scenes: enrichedScenes,
-          },
-        });
-
-        flash('Campagne étoffée.');
-      } catch (e) {
-        flash(e.message);
-      }
-
-      setBrainBusy(false);
     }
     setBrainBusy(true);
 
@@ -8237,7 +8252,7 @@ function CampaignCard({
                     <button
                       className="btn ghost sm danger"
                       style={{ flex: 'none' }}
-                      onClick={() => deleteMemory(m.id)}
+                      onClick={() => deleteCampaignMemory(m.id)}
                       title="Supprimer cette mémoire"
                     >
                       Supprimer
