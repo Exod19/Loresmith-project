@@ -4453,6 +4453,9 @@ const AIContext = createContext({ ai: defaultAI(), setAI: () => {} });
 async function callAIMessages(ai, messages, json) {
   if (!ai || !ai.apiKey)
     throw new Error("Configure l'IA dans Réglages (clé API manquante).");
+  // Le modèle est facultatif : à défaut, on prend celui du fournisseur choisi.
+  const model = (ai.model || '').trim() || AI_PRESETS[ai.provider]?.model;
+  if (!model) throw new Error('Indique le nom du modèle dans Réglages.');
   const url = (ai.baseUrl || '').replace(/\/$/, '') + '/chat/completions';
   const headers = {
     'Content-Type': 'application/json',
@@ -4466,7 +4469,7 @@ async function callAIMessages(ai, messages, json) {
     method: 'POST',
     headers,
     body: JSON.stringify({
-      model: ai.model,
+      model,
       messages: json
         ? [
             ...messages.slice(0, -1),
@@ -5408,7 +5411,7 @@ function SettingsModal({ onClose, flash }) {
             className="in"
             value={ai.model}
             onChange={(e) => setAI({ model: e.target.value })}
-            placeholder="ex. gemini-2.5-flash"
+            placeholder={`Facultatif — par défaut : ${AI_PRESETS[ai.provider].model || 'à saisir'}`}
           />
         </Field>
       </div>
