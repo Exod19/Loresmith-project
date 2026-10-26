@@ -18,6 +18,7 @@ import React, {
   useContext,
   createContext,
 } from 'react';
+import MapsPage from './maps/MapsPage';
 
 /* ----------------------------- styles (gold / ornate) ------------------- */
 const STYLE = `
@@ -4721,6 +4722,18 @@ function reducer(s, a) {
   if (!s) return seedUniverse();
   const U = s.activeUniverseId;
   switch (a.type) {
+    case 'ADD_MAP':
+      return { ...s, maps: { ...(s.maps || {}), [a.map.id]: a.map } };
+    case 'UPDATE_MAP':
+      return {
+        ...s,
+        maps: { ...(s.maps || {}), [a.id]: { ...s.maps[a.id], ...a.patch } },
+      };
+    case 'DELETE_MAP': {
+      const maps = { ...(s.maps || {}) };
+      delete maps[a.id];
+      return { ...s, maps };
+    }
     case 'ADD_UNIVERSE':
       return {
         ...s,
@@ -5121,6 +5134,7 @@ export default function App() {
     ['scene', 'Scene Runner'],
     ['encounter', 'Combat'],
     ['quests', 'Quest Log'],
+    ['maps', 'Cartes'],
     ['bestiary', 'NPCs & Monsters'],
     ['party', 'Party'],
     ['assets', 'Images'],
@@ -5305,6 +5319,8 @@ export default function App() {
               />
             ) : view === 'encounter' ? (
               <Encounter {...{ dispatch, state, party, npcs, flash }} />
+            ) : view === 'maps' ? (
+              <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} />
             ) : view === 'quests' ? (
               <Quests {...{ dispatch, quests, campaigns, flash }} />
             ) : (

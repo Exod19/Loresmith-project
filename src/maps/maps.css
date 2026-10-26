@@ -1,0 +1,50 @@
+/* Module Cartes (Loresmith). Les styles du moteur d'Atlas viennent de ./atlas/atlas.css. */
+.maps-page { color: #e4e2dc; font-family: var(--font-ui, system-ui, sans-serif); padding: 16px; max-width: 1280px; margin: 0 auto; }
+.maps-head h2 { margin: 0 0 4px; font: 500 1.4rem/1.2 Georgia, serif; }
+.maps-sub { color: #a9aaa5; font-size: .85rem; margin: 2px 0 8px; }
+.maps-hint { color: #a9aaa5; }
+.maps-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.maps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin-top: 18px; }
+.maps-card { background: #11181b; border: 1px solid #3f4b4d; border-radius: 4px; padding: 12px; }
+.maps-card h3 { margin: 0 0 6px; font-size: 1rem; }
+.maps-card-head { display: flex; justify-content: space-between; align-items: center; font-size: .8rem; color: #a9aaa5; }
+.maps-btn { font: inherit; font-size: .85rem; padding: 6px 10px; border: 1px solid #3f4b4d; background: #182023; color: #d6d7d1; border-radius: 3px; cursor: pointer; }
+.maps-btn:hover:not(:disabled) { border-color: #bea27b; }
+.maps-btn:disabled { opacity: .5; cursor: default; }
+.maps-btn.gold { border-color: #bea27b; color: #e9d7b4; }
+.maps-btn.on, .maps-seg button.on { background: #bea27b; color: #080c0e; }
+.maps-seg { display: inline-flex; }
+.maps-seg button { font: inherit; font-size: .85rem; padding: 6px 12px; border: 1px solid #3f4b4d; background: #182023; color: #d6d7d1; cursor: pointer; }
+.maps-seg button:first-child { border-radius: 3px 0 0 3px; }
+.maps-seg button:last-child { border-radius: 0 3px 3px 0; border-left: 0; }
+.maps-viewer { height: calc(100vh - 170px); min-height: 520px; }
+.maps-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid #2e373a; }
+.maps-title { font-size: 1rem; }
+.maps-spacer { flex: 1; }
+.maps-body { display: grid; grid-template-columns: minmax(0, 1fr) 320px; flex: 1; min-height: 0; }
+.maps-canvas { position: relative; min-height: 0; min-width: 0; }
+.maps-panel { border-left: 1px solid #2e373a; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+.maps-panel .maps-card h3 { font-size: 1.05rem; }
+.maps-block h4 { margin: 10px 0 4px; font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: #bea27b; }
+.maps-block ul { margin: 0; padding-left: 18px; }
+.maps-tip { font-style: italic; color: #a9aaa5; font-size: .85rem; }
+.maps-enc-ctrl { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; margin-top: 10px; }
+.maps-enc-ctrl label { display: flex; flex-direction: column; font-size: .8rem; color: #a9aaa5; gap: 4px; }
+.maps-enc-ctrl input { width: 70px; }
+.maps-enc .maps-group { margin-top: 8px; padding-top: 6px; border-top: 1px solid #2e373a; }
+.maps-form { display: flex; flex-direction: column; gap: 6px; }
+.maps-form textarea { min-height: 54px; resize: vertical; }
+.maps-row { display: flex; gap: 8px; align-items: center; }
+.maps-row label { display: flex; align-items: center; gap: 4px; font-size: .8rem; color: #a9aaa5; }
+.maps-row input[type=number] { width: 70px; }
+.maps-list { list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-direction: column; gap: 6px; }
+.maps-list li { display: flex; gap: 6px; align-items: center; }
+.maps-list li[data-on="1"] .maps-link { color: #bea27b; }
+.maps-link { background: none; border: 0; color: #d6d7d1; cursor: pointer; font: inherit; text-align: left; padding: 0; flex: 1; }
+.maps-footer { font-size: .75rem; color: #7e898a; padding: 6px 10px; margin: 0; }
+@media (max-width: 760px) {
+  .maps-viewer { height: auto; min-height: 0; }
+  .maps-body { grid-template-columns: 1fr; }
+  .maps-canvas { height: 60vh; }
+  .maps-panel { border-left: 0; border-top: 1px solid #2e373a; }
+}

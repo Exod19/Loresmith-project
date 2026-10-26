@@ -1,0 +1,141 @@
+/**
+ * Fiches de statistiques D&D 5e utilisées par les rencontres aléatoires de l'Atlas.
+ *
+ * Contenu traduit et adapté du System Reference Document 5.1 (SRD 5.1) de Wizards of the Coast LLC,
+ * publié sous licence Creative Commons Attribution 4.0 (https://creativecommons.org/licenses/by/4.0/).
+ * Les noms entre parenthèses (« contremaître », « prêtresse ») sont des habillages propres à l'univers ;
+ * les statistiques restent celles du SRD.
+ */
+export type Stat = {
+  id: string; name: string; meta: string; ac: string; hp: string; speed: string;
+  abil: [number, number, number, number, number, number];
+  saves?: string; skills?: string; resist?: string; immune?: string; condImmune?: string; vuln?: string;
+  senses: string; languages: string; cr: string;
+  traits?: [string, string][]; actions: [string, string][]; reactions?: [string, string][];
+};
+
+export const SRD_CREDIT = 'Statistiques tirées du SRD 5.1 (Wizards of the Coast LLC), licence CC BY 4.0.';
+
+const S: Stat[] = [
+  /* ——— Peuples de l'Outreterre ——— */
+  { id: 'duergar', name: 'Duergar', meta: 'Humanoïde (nain) de taille M, loyal mauvais', ac: '16 (armure d’écailles, bouclier)', hp: '26 (4d8 + 8)', speed: '7,5 m',
+    abil: [14, 11, 14, 11, 10, 9], resist: 'poison', senses: 'vision dans le noir 36 m, Perception passive 10', languages: 'nain, commun des profondeurs', cr: '1 (200 PX)',
+    traits: [['Résilience duergar', 'Avantage aux sauvegardes contre le poison, les sorts et les illusions, et pour ne pas être charmé ou paralysé.'], ['Sensibilité au soleil', 'Désavantage aux jets d’attaque et aux tests de Sagesse (Perception) basés sur la vue en plein soleil.']],
+    actions: [['Agrandissement (se recharge après un repos court ou long)', 'Pendant 1 minute, le duergar devient de taille G avec son équipement. Ses attaques avec une arme infligent 1d4 dégâts supplémentaires (inclus ci-dessous) et il a l’avantage aux tests et sauvegardes de Force.'],
+      ['Invisibilité (se recharge après un repos court ou long)', 'Le duergar devient invisible jusqu’à ce qu’il attaque, lance un sort, utilise Agrandissement, ou qu’il perde sa concentration (comme un sort), pendant 1 heure au plus.'],
+      ['Pic de guerre', 'Attaque d’arme au corps à corps : +4 au toucher, allonge 1,5 m. Touché : 6 (1d8 + 2) perforants, ou 11 (2d8 + 2) agrandi.'],
+      ['Javeline', 'Attaque d’arme au corps à corps ou à distance : +4 au toucher, allonge 1,5 m ou portée 9/36 m. Touché : 5 (1d6 + 2) perforants, ou 9 (2d6 + 2) agrandi.']] },
+  { id: 'drow', name: 'Drow', meta: 'Humanoïde (elfe) de taille M, neutre mauvais', ac: '15 (chemise de mailles)', hp: '13 (3d8)', speed: '9 m',
+    abil: [10, 14, 10, 11, 11, 12], skills: 'Perception +2, Discrétion +4', senses: 'vision dans le noir 36 m, Perception passive 12', languages: 'elfique, commun des profondeurs', cr: '1/4 (50 PX)',
+    traits: [['Ascendance féerique', 'Avantage aux sauvegardes pour ne pas être charmé ; la magie ne peut pas l’endormir.'], ['Incantation innée', 'Caractéristique : Charisme (DD 11), sans composante matérielle. À volonté : lumières dansantes. 1/jour chacun : ténèbres, lueurs féeriques.'], ['Sensibilité au soleil', 'Désavantage aux jets d’attaque et aux tests de Sagesse (Perception) basés sur la vue en plein soleil.']],
+    actions: [['Épée courte', 'Attaque d’arme au corps à corps : +4 au toucher, allonge 1,5 m. Touché : 5 (1d6 + 2) perforants.'],
+      ['Arbalète de poing', 'Attaque d’arme à distance : +4 au toucher, portée 9/36 m. Touché : 5 (1d6 + 2) perforants ; la cible réussit une sauvegarde de Constitution DD 13 ou est empoisonnée 1 heure. Si elle échoue de 5 ou plus, elle est aussi inconsciente tant qu’elle est empoisonnée (réveillée si elle subit des dégâts ou si on la secoue avec une action).']] },
+  { id: 'svirfneblin', name: 'Gnome des profondeurs (svirfnebelin)', meta: 'Humanoïde (gnome) de taille P, neutre bon', ac: '15 (chemise de mailles)', hp: '16 (3d6 + 6)', speed: '6 m',
+    abil: [15, 14, 14, 12, 10, 9], skills: 'Investigation +3, Perception +2, Discrétion +4', senses: 'vision dans le noir 36 m, Perception passive 12', languages: 'gnome, terreux, commun des profondeurs', cr: '1/2 (100 PX)',
+    traits: [['Camouflage minéral', 'Avantage aux tests de Dextérité (Discrétion) pour se cacher en terrain rocheux.'], ['Ruse gnome', 'Avantage aux sauvegardes d’Intelligence, de Sagesse et de Charisme contre la magie.'], ['Incantation innée', 'Caractéristique : Intelligence (DD 11), sans composante matérielle. À volonté : antidétection (sur lui-même). 1/jour chacun : cécité/surdité, flou, déguisement.']],
+    actions: [['Pic de guerre', 'Attaque d’arme au corps à corps : +4 au toucher, allonge 1,5 m. Touché : 6 (1d8 + 2) perforants.'],
+      ['Fléchette empoisonnée', 'Attaque d’arme à distance : +4 au toucher, portée 9/36 m. Touché : 4 (1d4 + 2) perforants ; sauvegarde de Constitution DD 12 ou empoisonné 1 minute (nouvelle sauvegarde à la fin de chacun de ses tours).']] },
+
+  /* ——— PNJ génériques ——— */
+  { id: 'commoner', name: 'Roturier', meta: 'Humanoïde (toute race) de taille M, tout alignement', ac: '10', hp: '4 (1d8)', speed: '9 m', abil: [10, 10, 10, 10, 10, 10],
+    senses: 'Perception passive 10', languages: 'une langue (souvent le commun des profondeurs)', cr: '0 (10 PX)', actions: [['Gourdin', 'Attaque d’arme au corps à corps : +2 au toucher, allonge 1,5 m. Touché : 2 (1d4) contondants.']] },
+  { id: 'guard', name: 'Garde', meta: 'Humanoïde (toute race) de taille M, tout alignement', ac: '16 (chemise de mailles, bouclier)', hp: '11 (2d8 + 2)', speed: '9 m', abil: [13, 12, 12, 10, 11, 10],
+    skills: 'Perception +2', senses: 'Perception passive 12', languages: 'une langue', cr: '1/8 (25 PX)',
+    actions: [['Lance', 'Attaque d’arme au corps à corps ou à distance : +3 au toucher, allonge 1,5 m ou portée 6/18 m. Touché : 4 (1d6 + 1) perforants, ou 5 (1d8 + 1) à deux mains au corps à corps.']] },
+  { id: 'bandit', name: 'Bandit', meta: 'Humanoïde (toute race) de taille M, tout alignement non loyal', ac: '12 (armure de cuir)', hp: '11 (2d8 + 2)', speed: '9 m', abil: [11, 12, 12, 10, 10, 10],
+    senses: 'Perception passive 10', languages: 'une langue', cr: '1/8 (25 PX)',
+    actions: [['Cimeterre', 'Attaque d’arme au corps à corps : +3 au toucher, allonge 1,5 m. Touché : 4 (1d6 + 1) tranchants.'], ['Arbalète légère', 'Attaque d’arme à distance : +3 au toucher, portée 24/96 m. Touché : 5 (1d8 + 1) perforants.']] },
+  { id: 'thug', name: 'Brute', meta: 'Humanoïde (toute race) de taille M, tout alignement non bon', ac: '11 (armure de cuir)', hp: '32 (5d8 + 10)', speed: '9 m', abil: [15, 11, 14, 10, 10, 11],
+    skills: 'Intimidation +2', senses: 'Perception passive 10', languages: 'une langue', cr: '1/2 (100 PX)',
+    traits: [['Tactique de groupe', 'Avantage aux jets d’attaque contre une créature si un allié non neutralisé se trouve à 1,5 m d’elle.']],
+    actions: [['Attaques multiples', 'Deux attaques de corps à corps.'], ['Masse d’armes', 'Attaque d’arme au corps à corps : +4 au toucher, allonge 1,5 m. Touché : 5 (1d6 + 2) contondants.'], ['Arbalète lourde', 'Attaque d’arme à distance : +2 au toucher, portée 30/120 m. Touché : 5 (1d10) perforants.']] },
+  { id: 'scout', name: 'Éclaireur', meta: 'Humanoïde (toute race) de taille M, tout alignement', ac: '13 (armure de cuir)', hp: '16 (3d8 + 3)', speed: '9 m', abil: [11, 14, 12, 11, 13, 11],
+    skills: 'Nature +4, Perception +5, Discrétion +6, Survie +5', senses: 'Perception passive 15', languages: 'une langue', cr: '1/2 (100 PX)',
+    traits: [['Ouïe et vue aiguisées', 'Avantage aux tests de Sagesse (Perception) basés sur l’ouïe ou la vue.']],
+    actions: [['Attaques multiples', 'Deux attaques de corps à corps ou deux attaques à distance.'], ['Épée courte', 'Attaque d’arme au corps à corps : +4 au toucher, allonge 1,5 m. Touché : 5 (1d6 + 2) perforants.'], ['Arc long', 'Attaque d’arme à distance : +4 au toucher, portée 45/180 m. Touché : 6 (1d8 + 2) perforants.']] },
+  { id: 'veteran', name: 'Vétéran', meta: 'Humanoïde (toute race) de taille M, tout alignement', ac: '17 (clibanion)', hp: '58 (9d8 + 18)', speed: '9 m', abil: [16, 13, 14, 10, 11, 10],
+    skills: 'Athlétisme +5, Perception +2', senses: 'Perception passive 12', languages: 'une langue', cr: '3 (700 PX)',
+    actions: [['Attaques multiples', 'Deux attaques d’épée longue. S’il a dégainé son épée courte, il peut aussi faire une attaque d’épée courte.'], ['Épée longue', 'Attaque d’arme au corps à corps : +5 au toucher, allonge 1,5 m. Touché : 7 (1d8 + 3) tranchants, ou 8 (1d10 + 3) à deux mains.'], ['Épée courte', 'Attaque d’arme au corps à corps : +5 au toucher, allonge 1,5 m. Touché : 6 (1d6 + 3) perforants.'], ['Arbalète lourde', 'Attaque d’arme à distance : +3 au toucher, portée 30/120 m. Touché : 6 (1d10 + 1) perforants.']] },
+  { id: 'priest', name: 'Prêtre', meta: 'Humanoïde (toute race) de taille M, tout alignement', ac: '13 (chemise de mailles)', hp: '27 (5d8 + 5)', speed: '7,5 m', abil: [10, 10, 12, 13, 16, 13],
+    skills: 'Médecine +7, Persuasion +3, Religion +4', senses: 'Perception passive 13', languages: 'deux langues', cr: '2 (450 PX)',
+    traits: [['Éminence divine', 'Par une action bonus, en dépensant un emplacement de sort, ses attaques au corps à corps infligent 10 (3d6) dégâts radiants supplémentaires jusqu’à la fin du tour (+1d6 par niveau d’emplacement au-delà du 1er).'],
+      ['Incantation', 'Lanceur de niveau 5, Sagesse (DD 13, +5 au toucher). Tours de magie : lumière, flamme sacrée, thaumaturgie. Niv. 1 (4) : soins, éclair traçant, sanctuaire. Niv. 2 (3) : restauration partielle, arme spirituelle. Niv. 3 (2) : dissipation de la magie, gardiens spirituels.']],
+    actions: [['Masse d’armes', 'Attaque d’arme au corps à corps : +2 au toucher, allonge 1,5 m. Touché : 3 (1d6) contondants.']] },
+  { id: 'spy', name: 'Espion', meta: 'Humanoïde (toute race) de taille M, tout alignement', ac: '12', hp: '27 (6d8)', speed: '9 m', abil: [10, 15, 10, 12, 14, 16],
+    skills: 'Tromperie +5, Perspicacité +4, Investigation +5, Perception +6, Persuasion +5, Escamotage +4, Discrétion +4', senses: 'Perception passive 16', languages: 'deux langues', cr: '1 (200 PX)',
+    traits: [['Ruse', 'Par une action bonus à chacun de ses tours : Foncer, Se désengager ou Se cacher.'], ['Attaque sournoise (1/tour)', '7 (2d6) dégâts supplémentaires quand il touche avec l’avantage, ou si un allié non neutralisé est à 1,5 m de la cible et qu’il n’a pas le désavantage.']],
+    actions: [['Attaques multiples', 'Deux attaques de corps à corps.'], ['Épée courte', 'Attaque d’arme au corps à corps : +4 au toucher, allonge 1,5 m. Touché : 5 (1d6 + 2) perforants.'], ['Arbalète de poing', 'Attaque d’arme à distance : +4 au toucher, portée 9/36 m. Touché : 5 (1d6 + 2) perforants.']] },
+
+  /* ——— Bêtes et monstres ——— */
+  { id: 'giant-lizard', name: 'Lézard géant', meta: 'Bête de taille G, sans alignement', ac: '12 (armure naturelle)', hp: '19 (3d10 + 3)', speed: '9 m, escalade 9 m', abil: [15, 12, 13, 2, 10, 5],
+    senses: 'vision dans le noir 9 m, Perception passive 10', languages: '—', cr: '1/4 (50 PX)', actions: [['Morsure', 'Attaque d’arme au corps à corps : +4 au toucher, allonge 1,5 m. Touché : 6 (1d8 + 2) perforants.']] },
+  { id: 'bat-swarm', name: 'Nuée de chauves-souris', meta: 'Nuée de bêtes TP de taille M, sans alignement', ac: '12', hp: '22 (5d8)', speed: '0 m, vol 9 m', abil: [5, 15, 10, 2, 12, 4],
+    resist: 'contondants, perforants, tranchants', condImmune: 'agrippé, charmé, effrayé, entravé, étourdi, à terre, paralysé, pétrifié', senses: 'vision aveugle 18 m, Perception passive 11', languages: '—', cr: '1/4 (50 PX)',
+    traits: [['Écholocalisation', 'Pas de vision aveugle si elle est assourdie.'], ['Ouïe aiguisée', 'Avantage aux tests de Sagesse (Perception) basés sur l’ouïe.'], ['Nuée', 'Peut occuper l’espace d’une autre créature et passer par une ouverture de chauve-souris. Ne regagne pas de points de vie ni de points de vie temporaires.']],
+    actions: [['Morsures', 'Attaque d’arme au corps à corps : +4 au toucher, allonge 0 m, une créature dans l’espace de la nuée. Touché : 5 (2d4) perforants, ou 2 (1d4) si la nuée a la moitié de ses points de vie ou moins.']] },
+  { id: 'giant-centipede', name: 'Mille-pattes géant', meta: 'Bête de taille P, sans alignement', ac: '13 (armure naturelle)', hp: '4 (1d6 + 1)', speed: '9 m, escalade 9 m', abil: [5, 14, 12, 1, 7, 3],
+    senses: 'vision aveugle 9 m, Perception passive 8', languages: '—', cr: '1/4 (50 PX)',
+    actions: [['Morsure', 'Attaque d’arme au corps à corps : +4 au toucher, allonge 1,5 m. Touché : 4 (1d4 + 2) perforants ; sauvegarde de Constitution DD 11 ou 10 (3d6) dégâts de poison. Réduite à 0 point de vie par ce poison, la cible est stable mais empoisonnée 1 heure, et paralysée tant qu’elle l’est.']] },
+  { id: 'giant-spider', name: 'Araignée géante', meta: 'Bête de taille G, sans alignement', ac: '14 (armure naturelle)', hp: '26 (4d10 + 4)', speed: '9 m, escalade 9 m', abil: [14, 16, 12, 2, 11, 4],
+    skills: 'Discrétion +7', senses: 'vision aveugle 3 m, vision dans le noir 18 m, Perception passive 10', languages: '—', cr: '1 (200 PX)',
+    traits: [['Pattes d’araignée', 'Escalade les surfaces difficiles, plafonds compris, sans test.'], ['Perception des toiles', 'Au contact d’une toile, connaît l’emplacement de toute créature qui la touche.'], ['Marche sur les toiles', 'Ignore les restrictions de mouvement dues aux toiles.']],
+    actions: [['Morsure', 'Attaque d’arme au corps à corps : +5 au toucher, allonge 1,5 m. Touché : 7 (1d8 + 3) perforants ; sauvegarde de Constitution DD 11 : 9 (2d8) dégâts de poison, moitié en cas de réussite. Réduite à 0 point de vie par ce poison, la cible est stable mais empoisonnée 1 heure, et paralysée tant qu’elle l’est.'],
+      ['Toile (recharge 5–6)', 'Attaque d’arme à distance : +5 au toucher, portée 9/18 m. Touché : la cible est entravée. Action : Force DD 12 pour se libérer. La toile (CA 10, 5 pv) est vulnérable au feu et immunisée contre les dégâts contondants, de poison et psychiques.']] },
+  { id: 'violet-fungus', name: 'Champignon violet', meta: 'Plante de taille M, sans alignement', ac: '5', hp: '18 (4d8)', speed: '1,5 m', abil: [3, 1, 10, 1, 3, 1],
+    condImmune: 'assourdi, aveuglé, effrayé', senses: 'vision aveugle 9 m (aveugle au-delà), Perception passive 6', languages: '—', cr: '1/4 (50 PX)',
+    traits: [['Apparence trompeuse', 'Immobile, il est indiscernable d’un champignon ordinaire.']],
+    actions: [['Attaques multiples', '1d4 attaques de Toucher pourrissant.'], ['Toucher pourrissant', 'Attaque d’arme au corps à corps : +2 au toucher, allonge 3 m. Touché : 4 (1d8) nécrotiques.']] },
+  { id: 'shrieker', name: 'Criard', meta: 'Plante de taille M, sans alignement', ac: '5', hp: '13 (3d8)', speed: '0 m', abil: [1, 1, 10, 1, 3, 1],
+    condImmune: 'assourdi, aveuglé, effrayé', senses: 'vision aveugle 9 m (aveugle au-delà), Perception passive 6', languages: '—', cr: '0 (10 PX)',
+    traits: [['Apparence trompeuse', 'Immobile, il est indiscernable d’un champignon ordinaire.']], actions: [],
+    reactions: [['Cri', 'Quand une lumière vive ou une créature arrive à 9 m, il pousse un cri audible à 90 m, jusqu’à ce que la cause s’éloigne et pendant 1d4 de ses tours ensuite.']] },
+  { id: 'gray-ooze', name: 'Vase grise', meta: 'Vase de taille M, sans alignement', ac: '8', hp: '22 (3d8 + 9)', speed: '3 m, escalade 3 m', abil: [12, 6, 16, 1, 6, 2],
+    skills: 'Discrétion +2', resist: 'acide, froid, feu', condImmune: 'assourdi, aveuglé, charmé, épuisement, effrayé, à terre', senses: 'vision aveugle 18 m (aveugle au-delà), Perception passive 8', languages: '—', cr: '1/2 (100 PX)',
+    traits: [['Amorphe', 'Peut passer par un espace large de 2,5 cm sans se faufiler.'], ['Corrosion du métal', 'Une arme non magique en métal qui la touche se corrode (−1 cumulatif aux dégâts, détruite à −5). Les munitions en métal sont détruites.'], ['Apparence trompeuse', 'Immobile, elle est indiscernable d’une flaque huileuse ou d’une roche humide.']],
+    actions: [['Pseudopode', 'Attaque d’arme au corps à corps : +3 au toucher, allonge 1,5 m. Touché : 4 (1d6 + 1) contondants plus 7 (2d6) d’acide ; une armure métallique non magique portée perd 1 point de CA (détruite à CA 10).']] },
+  { id: 'grick', name: 'Grick', meta: 'Créature monstrueuse de taille M, neutre', ac: '14 (armure naturelle)', hp: '27 (6d8)', speed: '9 m, escalade 9 m', abil: [14, 14, 11, 3, 14, 5],
+    resist: 'contondants, perforants et tranchants d’attaques non magiques', senses: 'vision dans le noir 18 m, Perception passive 12', languages: '—', cr: '2 (450 PX)',
+    traits: [['Camouflage minéral', 'Avantage aux tests de Dextérité (Discrétion) pour se cacher en terrain rocheux.']],
+    actions: [['Attaques multiples', 'Une attaque de tentacules ; si elle touche, une attaque de bec contre la même cible.'], ['Tentacules', 'Attaque d’arme au corps à corps : +4 au toucher, allonge 1,5 m. Touché : 9 (2d6 + 2) tranchants.'], ['Bec', 'Attaque d’arme au corps à corps : +4 au toucher, allonge 1,5 m. Touché : 5 (1d6 + 2) perforants.']] },
+  { id: 'darkmantle', name: 'Manteau noir', meta: 'Créature monstrueuse de taille P, sans alignement', ac: '11', hp: '22 (5d6 + 5)', speed: '3 m, vol 9 m', abil: [16, 12, 13, 2, 10, 5],
+    skills: 'Discrétion +3', senses: 'vision aveugle 18 m, Perception passive 10', languages: '—', cr: '1/2 (100 PX)',
+    traits: [['Écholocalisation', 'Pas de vision aveugle s’il est assourdi.'], ['Apparence trompeuse', 'Immobile, il est indiscernable d’une formation rocheuse (stalactite, stalagmite).']],
+    actions: [['Écrasement', 'Attaque d’arme au corps à corps : +5 au toucher, allonge 1,5 m. Touché : 6 (1d6 + 3) contondants ; il s’attache à la tête de la cible (si elle est de taille P ou plus et qu’il peut le faire) : elle est aveuglée et ne peut plus respirer. Il réinflige ses dégâts au début de chacun de ses tours. Action : Force DD 13 pour l’arracher.'],
+      ['Aura de ténèbres (1/jour)', 'Ténèbres magiques de 4,5 m de rayon centrées sur lui, pendant 10 minutes (concentration). La vision dans le noir n’y voit rien.']] },
+  { id: 'ochre-jelly', name: 'Gelée ocre', meta: 'Vase de taille G, sans alignement', ac: '8', hp: '45 (6d10 + 12)', speed: '3 m, escalade 3 m', abil: [15, 6, 14, 2, 6, 1],
+    resist: 'acide', immune: 'foudre, tranchants', condImmune: 'assourdi, aveuglé, charmé, épuisement, effrayé, à terre', senses: 'vision aveugle 18 m (aveugle au-delà), Perception passive 8', languages: '—', cr: '2 (450 PX)',
+    traits: [['Amorphe', 'Peut passer par un espace large de 2,5 cm sans se faufiler.'], ['Pattes d’araignée', 'Escalade les surfaces difficiles, plafonds compris, sans test.']],
+    actions: [['Pseudopode', 'Attaque d’arme au corps à corps : +4 au toucher, allonge 1,5 m. Touché : 9 (2d6 + 2) contondants plus 3 (1d6) d’acide.']],
+    reactions: [['Division', 'Quand une gelée de taille M ou plus subit des dégâts de foudre ou tranchants, elle se divise en deux gelées si elle a au moins 10 points de vie ; chacune a la moitié de ses points de vie et est d’une taille plus petite.']] },
+  { id: 'gelatinous-cube', name: 'Cube gélatineux', meta: 'Vase de taille G, sans alignement', ac: '6', hp: '84 (8d10 + 40)', speed: '4,5 m', abil: [14, 3, 20, 1, 6, 1],
+    condImmune: 'assourdi, aveuglé, charmé, épuisement, effrayé, à terre', senses: 'vision aveugle 18 m (aveugle au-delà), Perception passive 8', languages: '—', cr: '2 (450 PX)',
+    traits: [['Cube de vase', 'Remplit tout son espace ; d’autres créatures peuvent y entrer mais sont alors englouties. Une créature à l’intérieur est visible mais a un abri total.'], ['Transparent', 'Immobile, il faut réussir un test de Sagesse (Perception) DD 15 pour le repérer. Une créature qui entre dans son espace sans le savoir est surprise.']],
+    actions: [['Pseudopode', 'Attaque d’arme au corps à corps : +4 au toucher, allonge 1,5 m. Touché : 10 (3d6) d’acide.'],
+      ['Engloutissement', 'Il se déplace de sa vitesse dans l’espace de créatures de taille G ou moins : sauvegarde de Dextérité DD 12. Échec : engloutie, 10 (3d6) d’acide puis 21 (6d6) d’acide au début de chacun des tours du cube ; elle ne respire plus et est entravée. Réussite : repoussée à côté. Action : Force DD 12 pour se dégager.']] },
+  { id: 'ghoul', name: 'Goule', meta: 'Mort-vivant de taille M, chaotique mauvais', ac: '12', hp: '22 (5d8)', speed: '9 m', abil: [13, 15, 10, 7, 10, 6],
+    immune: 'poison', condImmune: 'charmé, épuisement, empoisonné', senses: 'vision dans le noir 18 m, Perception passive 10', languages: 'commun', cr: '1 (200 PX)',
+    actions: [['Morsure', 'Attaque d’arme au corps à corps : +2 au toucher, allonge 1,5 m. Touché : 9 (2d6 + 2) perforants.'], ['Griffes', 'Attaque d’arme au corps à corps : +4 au toucher, allonge 1,5 m. Touché : 7 (2d4 + 2) tranchants ; une créature qui n’est ni elfe ni mort-vivant réussit une sauvegarde de Constitution DD 10 ou est paralysée 1 minute (nouvelle sauvegarde à la fin de chacun de ses tours).']] },
+  { id: 'shadow', name: 'Ombre', meta: 'Mort-vivant de taille M, chaotique mauvais', ac: '12', hp: '16 (3d8 + 3)', speed: '12 m', abil: [6, 14, 13, 6, 10, 8],
+    skills: 'Discrétion +4 (+6 en lumière faible ou dans les ténèbres)', vuln: 'radiants', resist: 'acide, froid, feu, foudre, tonnerre ; contondants, perforants et tranchants d’attaques non magiques', immune: 'nécrotiques, poison',
+    condImmune: 'agrippé, effrayé, empoisonné, entravé, épuisement, à terre, paralysé, pétrifié', senses: 'vision dans le noir 18 m, Perception passive 10', languages: '—', cr: '1/2 (100 PX)',
+    traits: [['Amorphe', 'Peut passer par un espace large de 2,5 cm sans se faufiler.'], ['Furtivité de l’ombre', 'En lumière faible ou dans les ténèbres, peut Se cacher par une action bonus.'], ['Faiblesse au soleil', 'En plein soleil, désavantage aux jets d’attaque, tests et sauvegardes.']],
+    actions: [['Absorption de force', 'Attaque d’arme au corps à corps : +4 au toucher, allonge 1,5 m. Touché : 9 (2d6 + 2) nécrotiques et la Force de la cible baisse de 1d4 jusqu’à un repos court ou long. À 0 de Force, elle meurt. Un humanoïde tué ainsi se relève en ombre 1d4 heures plus tard.']] },
+  { id: 'otyugh', name: 'Otyugh', meta: 'Aberration de taille G, neutre', ac: '14 (armure naturelle)', hp: '114 (12d10 + 48)', speed: '9 m', abil: [16, 11, 19, 6, 13, 6],
+    saves: 'Con +7', senses: 'vision dans le noir 36 m, Perception passive 11', languages: 'otyugh', cr: '5 (1 800 PX)',
+    traits: [['Télépathie limitée', 'Transmet des messages et images simples à une créature à 36 m qui comprend un langage ; pas de réponse télépathique.']],
+    actions: [['Attaques multiples', 'Une morsure et deux attaques de tentacule.'], ['Morsure', 'Attaque d’arme au corps à corps : +6 au toucher, allonge 1,5 m. Touché : 12 (2d8 + 3) perforants ; sauvegarde de Constitution DD 15 contre la maladie ou empoisonné jusqu’à guérison ; toutes les 24 heures, nouvelle sauvegarde : échec, ses pv max baissent de 5 (1d10) ; réussite, guéri.'],
+      ['Tentacule', 'Attaque d’arme au corps à corps : +6 au toucher, allonge 3 m. Touché : 7 (1d8 + 3) contondants plus 4 (1d8) perforants ; la cible de taille M ou moins est agrippée (évasion DD 13) et entravée. Deux tentacules, chacun ne retient qu’une cible.'],
+      ['Coup de tentacules', 'Il cogne les créatures qu’il agrippe l’une contre l’autre ou contre une surface : sauvegarde de Constitution DD 14 ou 10 (2d6 + 3) contondants et étourdi jusqu’à la fin du prochain tour de l’otyugh ; réussite : moitié des dégâts, pas étourdi.']] },
+  { id: 'umber-hulk', name: 'Mastodonte des ténèbres', meta: 'Créature monstrueuse de taille G, chaotique mauvais', ac: '18 (armure naturelle)', hp: '93 (11d10 + 33)', speed: '9 m, creusement 6 m', abil: [20, 13, 16, 9, 10, 10],
+    senses: 'vision dans le noir 36 m, perception des vibrations 18 m, Perception passive 10', languages: 'mastodonte des ténèbres', cr: '5 (1 800 PX)',
+    traits: [['Regard déroutant', 'Une créature qui commence son tour à 9 m et voit ses yeux réussit une sauvegarde de Charisme DD 15 ou ne peut pas réagir et lance 1d8 : 1–4 elle ne fait rien ; 5–6 elle ne fait rien d’autre que se déplacer au hasard ; 7–8 elle attaque au corps à corps une créature au hasard. On peut détourner les yeux (désavantage pour le voir) .'], ['Fouisseur', 'Creuse la roche non magique en laissant un tunnel de 1,5 m de diamètre.']],
+    actions: [['Attaques multiples', 'Deux attaques de griffes et une de mandibules.'], ['Griffe', 'Attaque d’arme au corps à corps : +8 au toucher, allonge 1,5 m. Touché : 9 (1d8 + 5) tranchants.'], ['Mandibules', 'Attaque d’arme au corps à corps : +8 au toucher, allonge 1,5 m. Touché : 14 (2d8 + 5) tranchants.']] },
+  { id: 'roper', name: 'Enlaceur', meta: 'Créature monstrueuse de taille G, neutre mauvais', ac: '20 (armure naturelle)', hp: '93 (11d10 + 33)', speed: '3 m, escalade 3 m', abil: [18, 8, 17, 7, 16, 6],
+    skills: 'Perception +6, Discrétion +5', senses: 'vision dans le noir 18 m, Perception passive 16', languages: '—', cr: '5 (1 800 PX)',
+    traits: [['Apparence trompeuse', 'Immobile, il est indiscernable d’une formation rocheuse.'], ['Vrilles préhensiles', 'Jusqu’à six vrilles (CA 20, 10 pv, immunisées contre le poison et les dégâts psychiques) ; en détruire une n’endommage pas l’enlaceur, qui la fait repousser à son prochain repos.'], ['Pattes d’araignée', 'Escalade les surfaces difficiles, plafonds compris, sans test.']],
+    actions: [['Attaques multiples', 'Quatre attaques de vrille, Rembobinage, puis une morsure.'], ['Morsure', 'Attaque d’arme au corps à corps : +7 au toucher, allonge 1,5 m. Touché : 22 (4d8 + 4) perforants.'],
+      ['Vrille', 'Attaque d’arme au corps à corps : +7 au toucher, allonge 15 m. Touché : agrippée (évasion DD 15), entravée, désavantage aux tests et sauvegardes de Force.'], ['Rembobinage', 'Tire chaque créature agrippée de 7,5 m vers lui.']] },
+];
+
+export const STATS: Record<string, Stat> = Object.fromEntries(S.map((s) => [s.id, s]));
+export const mod = (v: number) => { const m = Math.floor((v - 10) / 2); return `${v} (${m >= 0 ? '+' : '−'}${Math.abs(m)})`; };
