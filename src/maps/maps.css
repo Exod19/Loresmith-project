@@ -1,5 +1,5 @@
 /* Module Cartes (Loresmith). Les styles du moteur d'Atlas viennent de ./atlas/atlas.css. */
-.maps-page { color: #e4e2dc; font-family: var(--font-ui, system-ui, sans-serif); padding: 16px; max-width: 1280px; margin: 0 auto; }
+.maps-page { color: #e4e2dc; font-family: var(--font-ui, system-ui, sans-serif); padding: 16px; max-width: 1280px; margin: 0 auto; min-height: calc(100vh - 110px); }
 .maps-head h2 { margin: 0 0 4px; font: 500 1.4rem/1.2 Georgia, serif; }
 .maps-sub { color: #a9aaa5; font-size: .85rem; margin: 2px 0 8px; }
 .maps-hint { color: #a9aaa5; }
@@ -48,3 +48,16 @@
   .maps-canvas { height: 60vh; }
   .maps-panel { border-left: 0; border-top: 1px solid #2e373a; }
 }
+
+/* Fil d'Ariane, collections et tableau : mêmes repères que les Archives. */
+.maps-crumbs { font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: #7e898a; margin-bottom: 8px; }
+.maps-crumbs span:last-child { color: #bea27b; }
+.maps-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0 12px; }
+.maps-head h2 + .maps-viewtoggle { margin-left: auto; }
+.maps-head .maps-sub { flex-basis: 100%; }
+.collection { margin-top: 22px; }
+.collection-head h2 { margin: 0; font: 500 1.1rem/1.2 Georgia, serif; color: #e4e2dc; }
+.collection-head .maps-sub { margin: 2px 0 0; }
+.maps-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: .9rem; }
+.maps-table th, .maps-table td { text-align: left; padding: 7px 8px; border-bottom: 1px solid #2e373a; }
+.maps-table th { color: #7e898a; font-weight: 500; font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; }

@@ -71,6 +71,16 @@ export default function MapViewer({ rec, dm, onDm, onUpdate, onBack }: {
             />
           )}
           {!feature && <p className="maps-hint">Touche un repère pour le lire. {dm ? 'Mode MJ : conseils et rencontres disponibles.' : 'Mode joueurs : seules les informations partagées sont visibles.'}</p>}
+          {!feature && rec.kind === 'custom' && (
+            <div className="maps-card">
+              <h3>Index des lieux</h3>
+              <ul className="maps-list">
+                {(rec.points ?? []).filter((p) => dm || !p.secret).map((p) => (
+                  <li key={p.id}><button className="maps-link" onClick={() => setSelectedId(p.id)}>{p.title}{dm && p.secret ? ' (secret)' : ''}</button></li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {dm && enc && <EncounterBox enc={enc} onRoll={(force) => roll(enc.ctx, force)} />}
 

@@ -45,7 +45,7 @@ const BASE: AtlasData = {
     })),
   ],
   maps: [
-    ...[1, 2, 3, 4, 5].map((i) => plan(`carte-n1-s${i}`, `Plan · Strate I-${i}`, { kind: 'strate', id: `n1-strate-${i}` }, `images/archives/atlas/carte-niveau-1-strate-${i}.webp`)),
+    ...[1, 2, 3, 4, 5].map((i) => plan(`carte-n1-s${i}`, `Plan · Strate I-${i}`, { kind: 'strate', id: `n1-strate-${i}` })),
     plan('carte-entre-i3-i4', 'Mini-plan · Entre-strate I-3 / I-4', { kind: 'espace', id: 'entre-i3-i4' }),
     ...[1, 2, 3].map((k) => plan(`carte-site-p${k}`, `Site d’essai · Palier ${k}`, { kind: 'site', id: 'site-essai', floorId: `site-essai-p${k}` })),
   ],

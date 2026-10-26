@@ -22,6 +22,7 @@ export default function MapsPage({ universe, maps, dispatch, flash }: Props) {
   const [dm, setDm] = useState(true);
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  const [view, setView] = useState<'rayons' | 'liste'>('rayons');
 
   if (!universe) return <div className="maps-page"><p>Aucun univers actif.</p></div>;
 
@@ -79,8 +80,13 @@ export default function MapsPage({ universe, maps, dispatch, flash }: Props) {
 
   return (
     <div className="maps-page">
+      <nav className="maps-crumbs"><span>{universe.name}</span> › <span>Cartes</span></nav>
       <header className="maps-head">
-        <h2>Cartes · {universe.name}</h2>
+        <h2>Cartes</h2>
+        <div className="maps-seg maps-viewtoggle" role="group" aria-label="Présentation">
+          <button className={view === 'rayons' ? 'on' : ''} onClick={() => setView('rayons')}>Rayons</button>
+          <button className={view === 'liste' ? 'on' : ''} onClick={() => setView('liste')}>Liste</button>
+        </div>
         <p className="maps-sub">Cartes interactives à montrer aux joueurs. Les repères, les conseils et les rencontres aléatoires restent réservés au mode MJ.</p>
         <div className="maps-actions">
           <button className="maps-btn gold" onClick={newBlank}>+ Carte vierge</button>
@@ -92,21 +98,44 @@ export default function MapsPage({ universe, maps, dispatch, flash }: Props) {
 
       {mine.length === 0 && <p className="maps-hint">Aucune carte pour cet univers. Crée une carte vierge, importe une image, ou ajoute l’Atlas des profondeurs.</p>}
 
-      <div className="maps-grid">
-        {mine.map((m) => (
-          <article key={m.id} className="maps-card">
-            <h3>{m.title}</h3>
-            <p className="maps-sub">
-              {m.kind === 'atlas' ? 'Atlas intégré' : `${m.points?.length ?? 0} repère(s)`} · modifiée {new Date(m.updatedAt).toLocaleDateString('fr-CA')}
-            </p>
-            {m.description && <p>{m.description}</p>}
-            <div className="maps-actions">
-              <button className="maps-btn gold" onClick={() => setOpenId(m.id)}>Ouvrir</button>
-              <button className="maps-btn" onClick={() => { if (window.confirm(`Supprimer « ${m.title} » ?`)) dispatch({ type: 'DELETE_MAP', id: m.id }); }}>Supprimer</button>
+      {[
+        { id: 'Atlas intégré', description: 'Cartes fournies avec le projet.', docs: mine.filter((m) => m.kind === 'atlas') },
+        { id: 'Cartes de l’univers', description: 'Cartes créées ou importées pour cet univers.', docs: mine.filter((m) => m.kind === 'custom') },
+      ].filter((g) => g.docs.length > 0).map((g) => (
+        <section key={g.id} className="collection">
+          <div className="collection-head">
+            <h2>{g.id}</h2>
+            <p className="maps-sub">{g.description} · {g.docs.length} carte{g.docs.length > 1 ? 's' : ''}</p>
+          </div>
+          {view === 'rayons' ? (
+            <div className="maps-grid">
+              {g.docs.map((m) => (
+                <article key={m.id} className="maps-card">
+                  <h3>{m.title}</h3>
+                  <p className="maps-sub">{m.kind === 'atlas' ? 'Atlas' : `${m.points?.length ?? 0} repère(s)`} · modifiée {new Date(m.updatedAt).toLocaleDateString('fr-CA')}</p>
+                  {m.description && <p>{m.description}</p>}
+                  <div className="maps-actions">
+                    <button className="maps-btn gold" onClick={() => setOpenId(m.id)}>Ouvrir</button>
+                    <button className="maps-btn" onClick={() => { if (window.confirm(`Supprimer « ${m.title} » ?`)) dispatch({ type: 'DELETE_MAP', id: m.id }); }}>Supprimer</button>
+                  </div>
+                </article>
+              ))}
             </div>
-          </article>
-        ))}
-      </div>
+          ) : (
+            <table className="maps-table">
+              <thead><tr><th>Titre</th><th>Repères</th><th>Modifiée</th><th></th></tr></thead>
+              <tbody>{g.docs.map((m) => (
+                <tr key={m.id}>
+                  <td><button className="maps-link" onClick={() => setOpenId(m.id)}>{m.title}</button></td>
+                  <td>{m.kind === 'atlas' ? '—' : m.points?.length ?? 0}</td>
+                  <td>{new Date(m.updatedAt).toLocaleDateString('fr-CA')}</td>
+                  <td><button className="maps-btn" onClick={() => { if (window.confirm(`Supprimer « ${m.title} » ?`)) dispatch({ type: 'DELETE_MAP', id: m.id }); }}>Supprimer</button></td>
+                </tr>
+              ))}</tbody>
+            </table>
+          )}
+        </section>
+      ))}
     </div>
   );
 }
