@@ -7,7 +7,6 @@
  *
  * Les cartes personnalisées sont converties en `AtlasData` pour être rendues par le même moteur (MapCanvas).
  */
-import { ATLAS as ATLAS_BUILTIN } from './atlas/data';
 import { setAtlasData } from './atlas/model';
 import type { AtlasData, AtlasFeature, AtlasGeometry, FeatureCategory, Importance } from './atlas/types';
 
@@ -88,9 +87,9 @@ let activeKey = '';
  * Active le jeu de données d'une carte avant son rendu. Ne reconstruit les index que si la carte change.
  * Le moteur d'Atlas lit des index partagés : une seule carte est active à la fois.
  */
-export function activateMap(rec: MapRecord, dm: boolean): AtlasData {
+export function activateMap(rec: MapRecord, dm: boolean, atlas: AtlasData): AtlasData {
   const key = rec.kind === 'atlas' ? 'atlas' : `${rec.id}:${rec.updatedAt}:${dm}`;
-  const data = rec.kind === 'atlas' ? ATLAS_BUILTIN : buildCustomAtlas(rec, dm);
+  const data = rec.kind === 'atlas' ? atlas : buildCustomAtlas(rec, dm);
   if (key !== activeKey) {
     setAtlasData(data);
     activeKey = key;

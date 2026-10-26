@@ -8,18 +8,17 @@ import { CATEGORIES } from './atlas/model';
 import { describe as describeFeature, dmFeature } from './atlas/lore';
 import { rollEncounter, type EncCtx, type Encounter, type Zone } from './atlas/encounters';
 import { STATS, SRD_CREDIT, mod, type Stat } from './atlas/statblocks';
-import type { AtlasFeature, FeatureCategory } from './atlas/types';
+import type { AtlasData, AtlasFeature, FeatureCategory } from './atlas/types';
 import { activateMap, ATLAS_DEFAULT_PLAN, mapIdOf, type MapRecord, type PointRecord } from './mapStore';
-import { ATLAS as ATLAS_BUILTIN } from './atlas/data';
 
 const LAYERS: Layers = { points: true, etiquettes: true, galeries: true, connexions: true, ambiance: true };
 const ZONES: { v: Zone; l: string }[] = [{ v: 'sauvage', l: 'Sauvage' }, { v: 'transit', l: 'Transit' }, { v: 'cite', l: 'Cité' }];
 
-export default function MapViewer({ rec, dm, onDm, onUpdate, onBack }: {
-  rec: MapRecord; dm: boolean; onDm: (v: boolean) => void;
+export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
+  rec: MapRecord; atlas: AtlasData; dm: boolean; onDm: (v: boolean) => void;
   onUpdate: (patch: Partial<MapRecord>) => void; onBack: () => void;
 }) {
-  const data = activateMap(rec, dm);
+  const data = activateMap(rec, dm, atlas);
   const [planId, setPlanId] = useState(rec.kind === 'atlas' ? ATLAS_DEFAULT_PLAN : mapIdOf(rec));
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [enc, setEnc] = useState<{ ctx: EncCtx; e: Encounter } | null>(null);
@@ -37,7 +36,7 @@ export default function MapViewer({ rec, dm, onDm, onUpdate, onBack }: {
         <strong className="maps-title">{rec.title}</strong>
         {rec.kind === 'atlas' && (
           <select className="maps-btn" value={planId} onChange={(e) => { setPlanId(e.target.value); setSelectedId(null); }}>
-            {ATLAS_BUILTIN.maps.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
+            {atlas.maps.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
           </select>
         )}
         <div className="maps-spacer" />

@@ -1,5 +1,4 @@
 /** Accès, catégories, routage, sens de circulation et validation des données de l'Atlas. */
-import { ATLAS as BUILTIN } from './data';
 import type {
   AtlasAnchor, AtlasConnection, AtlasData, AtlasLevel, AtlasMap, AtlasSpace, AtlasStratum, Cavity, ConnectionKind, FeatureCategory, PlacementStatus,
 } from './types';
@@ -35,13 +34,15 @@ export const densityOf = (zoom: number) => [...DENSITY].reverse().find((d) => zo
 
 const byId = <T extends { id: string }>(list: T[]) => new Map(list.map((x) => [x.id, x]));
 /** Jeu de données actif (Atlas intégré ou carte personnalisée). Les index suivent via `setAtlasData`. */
-export let ATLAS: AtlasData = BUILTIN;
-export let levels = byId(ATLAS.levels);
-export let strata = byId(ATLAS.strata);
-export let spaces = byId(ATLAS.spaces);
-export let maps = byId(ATLAS.maps);
-export let features = byId(ATLAS.features);
-export let anchors = byId(ATLAS.anchors);
+/** Vide tant que le fichier des Archives n'est pas chargé (voir feeds/underdark.ts, setAtlasData). */
+const EMPTY: AtlasData = { version: '', levels: [], strata: [], spaces: [], maps: [], cavities: {}, features: [], geometries: [], anchors: [], connections: [] };
+export let ATLAS: AtlasData = EMPTY;
+export let levels = byId(EMPTY.levels);
+export let strata = byId(EMPTY.strata);
+export let spaces = byId(EMPTY.spaces);
+export let maps = byId(EMPTY.maps);
+export let features = byId(EMPTY.features);
+export let anchors = byId(EMPTY.anchors);
 /** Bascule vers un autre jeu de données, avant le rendu d'une carte. */
 export function setAtlasData(d: AtlasData) {
   ATLAS = d; levels = byId(d.levels); strata = byId(d.strata); spaces = byId(d.spaces);

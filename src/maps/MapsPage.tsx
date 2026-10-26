@@ -4,7 +4,9 @@
  */
 import { useRef, useState } from 'react';
 import MapViewer from './MapViewer';
+import { useUnderdarkFeed } from '../feeds/underdark';
 import { ATLAS_MAP_ID, imageFileToDataUrl, type MapRecord } from './mapStore';
+import type { AtlasData } from './atlas/types';
 import './maps.css';
 import './atlas/atlas.css';
 
@@ -23,6 +25,7 @@ export default function MapsPage({ universe, maps, dispatch, flash }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [view, setView] = useState<'rayons' | 'liste'>('rayons');
+  const { feed, error } = useUnderdarkFeed();
 
   if (!universe) return <div className="maps-page"><p>Aucun univers actif.</p></div>;
 
@@ -65,10 +68,13 @@ export default function MapsPage({ universe, maps, dispatch, flash }: Props) {
   };
 
   if (open) {
+    // L'Atlas vient du fichier des Archives : on attend son chargement. Les cartes personnalisées n'en ont pas besoin.
+    if (open.kind === 'atlas' && !feed) return <div className="maps-page"><p className="maps-hint">{error ?? 'Chargement des Archives…'}</p></div>;
     return (
       <div className="maps-page">
         <MapViewer
           rec={open}
+          atlas={feed?.atlas as AtlasData}
           dm={dm}
           onDm={setDm}
           onBack={() => setOpenId(null)}

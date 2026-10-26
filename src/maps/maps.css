@@ -61,3 +61,18 @@
 .maps-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: .9rem; }
 .maps-table th, .maps-table td { text-align: left; padding: 7px 8px; border-bottom: 1px solid #2e373a; }
 .maps-table th { color: #7e898a; font-weight: 500; font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; }
+
+/* Archives (pont Fl-au-Bestiaire) : deux colonnes, liste des fiches et lecture. */
+.archives-body { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 16px; margin-top: 14px; align-items: start; }
+.archives-body > .maps-panel { border: 1px solid #2e373a; border-radius: 4px; max-height: calc(100vh - 170px); position: sticky; top: 8px; }
+.archives-search { width: 100%; max-width: 420px; margin-top: 10px; }
+.archives-list { list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 6px; }
+.archives-list li { display: flex; flex-direction: column; gap: 1px; }
+.archives-figure { margin: 12px 0; }
+.archives-figure img { width: 100%; height: auto; border-radius: 3px; border: 1px solid #2e373a; }
+.archives-figure figcaption { margin-top: 4px; }
+.archives-text { white-space: pre-line; line-height: 1.5; }
+@media (max-width: 900px) {
+  .archives-body { grid-template-columns: 1fr; }
+  .archives-body > .maps-panel { position: static; max-height: none; }
+}

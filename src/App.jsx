@@ -19,6 +19,7 @@ import React, {
   createContext,
 } from 'react';
 import MapsPage from './maps/MapsPage';
+import ArchivesPage from './feeds/ArchivesPage';
 
 /* ----------------------------- styles (gold / ornate) ------------------- */
 const STYLE = `
@@ -5138,6 +5139,7 @@ export default function App() {
     ['encounter', 'Combat'],
     ['quests', 'Quest Log'],
     ['maps', 'Cartes'],
+    ['archives', 'Archives'],
     ['bestiary', 'NPCs & Monsters'],
     ['party', 'Party'],
     ['assets', 'Images'],
@@ -5322,6 +5324,8 @@ export default function App() {
               />
             ) : view === 'encounter' ? (
               <Encounter {...{ dispatch, state, party, npcs, flash }} />
+            ) : view === 'archives' ? (
+              <ArchivesPage universe={universe} dispatch={dispatch} flash={flash} />
             ) : view === 'maps' ? (
               <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} />
             ) : view === 'quests' ? (
