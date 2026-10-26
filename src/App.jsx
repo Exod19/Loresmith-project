@@ -8137,24 +8137,6 @@ function CampaignCard({
             {open ? 'Hide' : 'Open'}
           </button>
           <button
-            className="btn ghost sm"
-            style={{ flex: 'none' }}
-            onClick={() => setEditing(true)}
-          >
-            Edit Scene
-          </button>
-          {editing && (
-            <SceneEditModal
-              scene={scene}
-              camp={camp}
-              universe={universe}
-              state={state}
-              dispatch={dispatch}
-              onClose={() => setEditing(false)}
-              flash={flash}
-            />
-          )}
-          <button
             className="btn ghost sm danger"
             onClick={() => {
               if (confirm('Delete campaign?')) {
