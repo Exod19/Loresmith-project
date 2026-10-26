@@ -29,6 +29,9 @@ export const FEED_TYPE_LABEL: Record<string, string> = {
   cycle: 'Cycles', composante: 'Composantes', concept: 'Concepts', rituel: 'Rituels', objet: 'Objets', source: 'Sources',
 };
 
+/** Identifiant de la liaison d'un univers aux Archives de l'Underdark (champ `archives` de l'univers). */
+export const UNDERDARK_LINK = 'underdark';
+
 const URL_PATH = `${import.meta.env.BASE_URL}feeds/underdark.json`;
 let cache: Promise<UnderdarkFeed> | null = null;
 

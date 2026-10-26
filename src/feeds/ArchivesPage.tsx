@@ -4,10 +4,11 @@
  */
 import { useMemo, useState } from 'react';
 import '../maps/maps.css';
-import { FEED_TYPE_LABEL, toLibraryEntry, useUnderdarkFeed, type FeedEntry } from './underdark';
+import { FEED_TYPE_LABEL, UNDERDARK_LINK, toLibraryEntry, useUnderdarkFeed, type FeedEntry } from './underdark';
+import { setArchivesLink } from './ArchivesLink';
 
 type Props = {
-  universe: { id: string; name: string } | null;
+  universe: { id: string; name: string; archives?: string } | null;
   dispatch: (a: { type: string; [k: string]: unknown }) => void;
   flash: (m: string) => void;
 };
@@ -31,6 +32,12 @@ export default function ArchivesPage({ universe, dispatch, flash }: Props) {
   }, [feed, query]);
 
   if (!universe) return <div className="maps-page"><p>Aucun univers actif.</p></div>;
+  if (universe.archives !== UNDERDARK_LINK) return (
+    <div className="maps-page">
+      <p className="maps-hint">Cet univers n’est pas lié aux Archives de l’Underdark.</p>
+      <button className="maps-btn gold" onClick={() => { setArchivesLink(universe, dispatch, true); flash('Univers lié aux Archives'); }}>Lier cet univers</button>
+    </div>
+  );
   if (error && !feed) return <div className="maps-page"><p className="maps-hint">Archives indisponibles : {error}</p></div>;
   if (!feed) return <div className="maps-page"><p className="maps-hint">Chargement des Archives…</p></div>;
 

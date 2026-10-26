@@ -11,7 +11,7 @@ import './maps.css';
 import './atlas/atlas.css';
 
 type Props = {
-  universe: { id: string; name: string } | null;
+  universe: { id: string; name: string; archives?: string } | null;
   maps: Record<string, MapRecord>;
   dispatch: (a: { type: string; [k: string]: unknown }) => void;
   flash: (m: string) => void;
@@ -32,7 +32,7 @@ export default function MapsPage({ universe, maps, dispatch, flash }: Props) {
   const mine = Object.values(maps).filter((m) => m.universeId === universe.id).sort((a, b) => b.updatedAt - a.updatedAt);
   const hasAtlas = mine.some((m) => m.kind === 'atlas');
   /** L'Atlas des profondeurs est le contenu de l'Underdark : il ne s'ajoute qu'à cet univers. */
-  const isUnderdark = /underdark/i.test(universe.name);
+  const isUnderdark = universe.archives === 'underdark';
   const open = openId ? maps[openId] : null;
 
   const create = (partial: Partial<MapRecord>) => {

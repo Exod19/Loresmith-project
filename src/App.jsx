@@ -20,6 +20,8 @@ import React, {
 } from 'react';
 import MapsPage from './maps/MapsPage';
 import ArchivesPage from './feeds/ArchivesPage';
+import ArchivesLinkPanel from './feeds/ArchivesLink';
+import { UNDERDARK_LINK } from './feeds/underdark';
 
 /* ----------------------------- styles (gold / ornate) ------------------- */
 const STYLE = `
@@ -5030,6 +5032,14 @@ export default function App() {
     []
   );
 
+  // Liaison permanente : l'univers Underdark est relié aux Archives dès qu'il est ouvert.
+  useEffect(() => {
+    const u = state?.universes?.[state.activeUniverseId];
+    if (u && /underdark/i.test(u.name) && !u.archives) {
+      dispatch({ type: 'UPDATE_UNIVERSE', id: u.id, patch: { archives: UNDERDARK_LINK } });
+    }
+  }, [state]);
+
   useEffect(() => {
     (async () => {
       try {
@@ -5600,6 +5610,7 @@ function Dashboard({
         dispatch={dispatch}
         flash={flash}
       />
+      <ArchivesLinkPanel universe={universe} dispatch={dispatch} flash={flash} setView={setView} />
       <div className="eyebrow">Universe canon</div>
       <div className="panel">
         <Field label="Name">
