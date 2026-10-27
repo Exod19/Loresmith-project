@@ -2,7 +2,7 @@
  * Plateau de combat sur grille (5 pieds par case). Sert à la console MJ (interactif) et à l'écran joueur (lecture seule).
  * Le terrain est dessiné avec de vraies textures (SVG), les lieux et créatures avec des icônes.
  */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type MouseEvent as ReactMouseEvent } from 'react';
 import type { PlayerElement, PlayerToken } from '../../present/stage';
 import type { TerrainKind } from './terrain';
 import { CATEGORY_IMG, vignette } from './vignettes';
@@ -31,7 +31,8 @@ type Props = {
   onToken?: (id: string) => void;
   onCell?: (x: number, y: number) => void;
   onHover?: (x: number, y: number) => void;
-  onElement?: (id: string) => void;
+  /** `at` : la case cliquée, pour déplacer un jeton jusqu'à l'endroit visé. */
+  onElement?: (id: string, at?: { x: number; y: number }) => void;
   /** Cases survolées pendant un tracé (MJ, mode construction). */
   preview?: number[];
 };
@@ -111,9 +112,9 @@ const cellPath = (cells: number[], cols: number) =>
 /** Portes, pièges et eau : le terrain et les tracés les montrent déjà, pas de cercle sur le plateau. */
 const NO_MARK = new Set(['voie', 'danger', 'eau']);
 
-function pointMark(e: BoardElement, cell: number, cols: number, onElement?: (id: string) => void) {
+function pointMark(e: BoardElement, cell: number, cols: number, pick?: (id: string) => (ev: ReactMouseEvent<SVGElement>) => void) {
   const cx = (cell % cols) + 0.5, cy = Math.floor(cell / cols) + 0.5;
-  const click = onElement ? () => onElement(e.id) : undefined;
+  const click = pick ? pick(e.id) : undefined;
   if (!e.image && NO_MARK.has(e.category)) return null;
   if (e.image) {
     // Objet déposé : son image remplit la case ; en pointillé et estompé pour le MJ quand il est caché.
@@ -146,6 +147,18 @@ function pointMark(e: BoardElement, cell: number, cols: number, onElement?: (id:
   );
 }
 
+/** Case du plateau sous un clic, à partir des coordonnées écran (le SVG peut être mis à l'échelle). */
+function cellUnder(ev: ReactMouseEvent<SVGElement>, cols: number, rows: number) {
+  const svg = ev.currentTarget.ownerSVGElement;
+  const ctm = svg?.getScreenCTM();
+  if (!svg || !ctm) return undefined;
+  const pt = svg.createSVGPoint();
+  pt.x = ev.clientX; pt.y = ev.clientY;
+  const p = pt.matrixTransform(ctm.inverse());
+  const x = Math.floor(p.x), y = Math.floor(p.y);
+  return x >= 0 && y >= 0 && x < cols && y < rows ? { x, y } : undefined;
+}
+
 export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview }: Props) {
   const lines: string[] = [];
   for (let x = 0; x <= cols; x++) lines.push(`M${x} 0V${rows}`);
@@ -156,6 +169,8 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
   useEffect(() => {
     if (canvasRef.current) void paintTerrain(canvasRef.current, cols, rows, terrain);
   }, [cols, rows, terrain]);
+
+  const pick = (id: string) => (ev: ReactMouseEvent<SVGElement>) => onElement?.(id, cellUnder(ev, cols, rows));
 
   return (
     <div className="battle-stack">
@@ -200,21 +215,21 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
           // Passage secret non découvert (MJ seulement) : contour pointillé sur ses cases.
           if (e.ghost) return <path key={`g-${e.id}`} d={cellPath(e.cells, cols)} fill="rgba(236,210,137,0.16)" stroke="#ecd289" strokeWidth={0.07} strokeDasharray="0.15 0.1" opacity={0.95} pointerEvents="none"><title>{`${e.title} (secret, visible du MJ seulement)`}</title></path>;
           // Passage visible : zone cliquable, et teinte violette s'il était secret. Pas de marque : il y en a des milliers.
-          const hit = onElement ? { className: 'battle-hit', onClick: () => onElement(e.id), cursor: 'pointer' } : { pointerEvents: 'none' as const };
+          const hit = onElement ? { className: 'battle-hit', onClick: pick(e.id), cursor: 'pointer' } : { pointerEvents: 'none' as const };
           const zone = e.secret
             ? <path d={cellPath(e.cells, cols)} fill="rgba(156,123,214,0.32)" stroke="#9c7bd6" strokeWidth={0.05} {...hit}><title>{`${e.title} (passage secret)`}</title></path>
             : <path d={cellPath(e.cells, cols)} fill="transparent" {...hit}><title>{e.title}</title></path>;
           return <g key={`p-${e.id}`}>{zone}</g>;
         }
         if (e.cell === undefined) return null;
-        return pointMark(e, e.cell, cols, onElement);
+        return pointMark(e, e.cell, cols, pick);
       })}
 
       {tokens.map((t) => {
         const r = t.size * 0.42;
         const cx = t.x + t.size / 2, cy = t.y + t.size / 2;
         return (
-          <g key={t.id} className="battle-token" opacity={t.hidden ? 0.4 : 1} onClick={interactive && onToken ? (e) => { e.stopPropagation(); onToken(t.id); } : onElement ? () => onElement(t.id) : undefined}>
+          <g key={t.id} className="battle-token" opacity={t.hidden ? 0.4 : 1} onClick={interactive && onToken ? (e) => { e.stopPropagation(); onToken(t.id); } : onElement ? pick(t.id) : undefined}>
             {t.image ? (
               <>
                 <clipPath id={`clip-${t.id}`}><circle cx={cx} cy={cy} r={r} /></clipPath>

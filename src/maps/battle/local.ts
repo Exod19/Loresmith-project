@@ -121,6 +121,20 @@ export function buildLocalMap(p: {
     });
   }
 
+  // Lieux de l'Atlas (corde, piton, carcasse…) : des points nommés, sur la case où ils se trouvent.
+  for (const g of onPlan) {
+    if (g.type !== 'point' || g.featureId.startsWith('mk-')) continue;
+    const f = byId.get(g.featureId);
+    if (!f || f.area || !f.category) continue;
+    const [px, py] = g.coordinates as [number, number];
+    const c = toCell(px, py);
+    if (!inside(c)) continue;
+    elements.push({
+      id: f.id, kind: 'point', secret: false, title: f.title, category: f.category, subtitle: f.subtitle, summary: f.summary,
+      cell: c.y * cols + c.x,
+    });
+  }
+
   // Les plus proches du centre d'abord ; on garde une lisibilité raisonnable.
   const centre = toCell(cx, cy);
   const dist = (e: LocalElement) => {

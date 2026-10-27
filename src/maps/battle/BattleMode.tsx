@@ -158,7 +158,7 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
     }
     set({
       terrain: { source, seed, grid: local.base },
-      local: { source, planId: plan.id, window: local.window, elements: local.elements, discovered: previous },
+      local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous },
       tokens,
       encounterOf: groups?.length ? source : b.encounterOf,
       build: undefined,
@@ -269,12 +269,11 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
     setSelectedId(null);
   }
   /** Clic sur un élément : déplace le jeton sélectionné là où il est, sinon ouvre sa fiche. */
-  function onElementClick(id: string) {
+  function onElementClick(id: string, at?: { x: number; y: number }) {
     const el = boardElements.find((e) => e.id === id);
     if (!el) return;
     if (selected) {
-      const cell = el.kind === 'passage' ? el.cells?.[0] : el.cell;
-      if (cell !== undefined) moveTo(cell % b.cols, Math.floor(cell / b.cols));
+      if (at) moveTo(at.x, at.y);
       return;
     }
     setInfoId(id);
@@ -308,6 +307,10 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
     ...(b.local?.elements ?? []).filter((e) => e.kind === 'passage').map((e) => ({
       id: e.id, kind: 'passage' as const, title: e.title, category: e.category, cells: e.cells,
       ghost: e.secret && !discovered.includes(e.id), dc: e.dc, info: { subtitle: e.subtitle, text: e.summary },
+    })),
+    ...(b.local?.elements ?? []).filter((e) => e.kind === 'point' && e.cell !== undefined).map((e) => ({
+      id: e.id, kind: 'point' as const, title: e.title, category: e.category, cell: e.cell,
+      ghost: !discovered.includes(e.id), info: { subtitle: e.subtitle, text: e.summary },
     })),
     ...(b.local?.window && plan
       ? markers.filter((m) => m.planId === plan.id && (m.kind === 'objet' || m.kind === 'repere')).flatMap((m) => {
@@ -373,11 +376,15 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
       <div className="maps-canvas battle-canvas">
         <div className="battle-bar">
           <span className="battle-round">Round {b.round}</span>
-          {context && <span className="battle-place">{context.title}</span>}
+          {(context?.title ?? b.local?.place) && <span className="battle-place">{context?.title ?? b.local?.place}</span>}
           <button className="maps-btn gold" onClick={() => set({ round: b.round + 1 })}>Round suivant</button>
           <button className="maps-btn" onClick={() => { if (window.confirm('Retirer tous les jetons du plateau ?')) set({ tokens: [], round: 1 }); }}>Vider le plateau</button>
           {b.terrain && (
-            <button className="maps-btn" title="Propose une autre disposition de terrain pour le même lieu" onClick={() => generate(context ?? { title: 'Caverne' }, b.terrain!.source, (b.terrain!.seed & 0xff) + 1, undefined)}>
+            <button
+              className="maps-btn" disabled={!!b.local}
+              title={b.local ? 'Le terrain suit la carte de navigation : il ne change pas tant que le lieu ne change pas.' : 'Propose une autre disposition de terrain pour le même lieu'}
+              onClick={() => generate(context ?? { title: 'Caverne' }, b.terrain!.source, (b.terrain!.seed & 0xff) + 1, undefined)}
+            >
               ↻ Régénérer le terrain
             </button>
           )}

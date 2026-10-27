@@ -36,6 +36,10 @@ export function battleBoard(rec: MapRecord): PlayerBoard {
   const passages: PlayerElement[] = (local?.elements ?? [])
     .filter((e) => e.kind === 'passage' && (!e.secret || revealed.includes(e.id)))
     .map((e) => ({ id: e.id, kind: 'passage', title: e.title, category: e.category, cells: e.cells, secret: e.secret, info: { subtitle: e.subtitle, text: e.summary } }));
+  // Lieux de l'Atlas : visibles une fois révélés sur la carte de navigation, comme les autres repères de l'Atlas.
+  const places: PlayerElement[] = (local?.elements ?? [])
+    .filter((e) => e.kind === 'point' && e.cell !== undefined && revealed.includes(e.id))
+    .map((e) => ({ id: e.id, kind: 'point', title: e.title, category: e.category, cell: e.cell, info: { subtitle: e.subtitle, text: e.summary } }));
   const objects: PlayerElement[] = local?.window
     ? (rec.overlay?.markers ?? [])
       .filter((m) => m.revealed && (m.kind === 'objet' || m.kind === 'repere') && m.planId === local.planId)
@@ -52,12 +56,12 @@ export function battleBoard(rec: MapRecord): PlayerBoard {
       id: `pr-${p.id}`, kind: 'point', title: PROP_BY_KEY[p.key]?.label ?? p.key, category: 'indetermine', cell: p.cell, image: propUrl(p.key),
       info: { subtitle: 'Objet', text: PROP_BY_KEY[p.key]?.text, image: propUrl(p.key) },
     }));
-  const elements: PlayerElement[] = [...passages, ...objects, ...props];
+  const elements: PlayerElement[] = [...passages, ...places, ...objects, ...props];
   const terrain = b.terrain
     ? applyBuild(effectiveGrid(b.terrain.grid, local?.elements ?? [], revealed, (local?.elements ?? []).map((e) => e.id)), b.build)
     : undefined;
   return {
-    mode: 'battle', title: rec.title, backdrop: rec.image, cols: b.cols, rows: b.rows,
+    mode: 'battle', title: local?.place ?? rec.title, backdrop: rec.image, cols: b.cols, rows: b.rows,
     feetPerCell: b.feetPerCell, round: b.round, tokens, terrain, elements,
   };
 }
