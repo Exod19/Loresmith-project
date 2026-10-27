@@ -22,6 +22,7 @@ import { Download, Upload, Settings, ExternalLink } from 'lucide-react';
 import MapsPage from './maps/MapsPage';
 import ArchivesPage from './feeds/ArchivesPage';
 import ArchivesLinkPanel from './feeds/ArchivesLink';
+import StageControl from './present/StageControl';
 import { UNDERDARK_LINK } from './feeds/underdark';
 
 /* ----------------------------- styles (gold / ornate) ------------------- */
@@ -5193,6 +5194,7 @@ export default function App() {
     [
       'Jouer',
       [
+        ['present', 'Écran joueur'],
         ['scene', 'Table de jeu'],
         ['encounter', 'Combat'],
         ['quests', 'Quêtes'],
@@ -5396,6 +5398,8 @@ export default function App() {
               <ArchivesPage universe={universe} dispatch={dispatch} flash={flash} />
             ) : view === 'maps' ? (
               <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} />
+            ) : view === 'present' ? (
+              <StageControl {...{ universe, state, flash }} />
             ) : view === 'quests' ? (
               <Quests {...{ dispatch, quests, campaigns, flash }} />
             ) : (
