@@ -26,6 +26,10 @@ const DICE_THEMES = [
   { id: 'arcane', label: 'Arcane', themeColor: '#ffffff' },
   { id: 'magma', label: 'Magma', themeColor: '#ffffff' },
   { id: 'foret', label: 'Forêt', themeColor: '#ffffff' },
+  { id: 'orage', label: 'Orage', themeColor: '#ffffff' },
+  { id: 'abysse', label: 'Abysse', themeColor: '#ffffff' },
+  { id: 'alchimie', label: 'Alchimie', themeColor: '#ffffff' },
+  { id: 'sang', label: 'Sang', themeColor: '#ffffff' },
 ] as const;
 type DiceTheme = (typeof DICE_THEMES)[number];
 
@@ -39,6 +43,7 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [theme, setTheme] = useState<DiceTheme>(DICE_THEMES[0]);
+  const [themeLoading, setThemeLoading] = useState(false);
   // Thème actuellement chargé dans le moteur (roll() ne charge pas de nouveau thème).
   const loadedThemeRef = useRef<string>(DICE_THEMES[0].id);
 
@@ -83,8 +88,13 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
     try {
       if (loadedThemeRef.current !== theme.id) {
         // Charge la texture choisie avant de lancer (le thème doit être chargé dans le moteur).
-        await box.updateConfig({ theme: theme.id, themeColor: theme.themeColor });
-        loadedThemeRef.current = theme.id;
+        setThemeLoading(true);
+        try {
+          await box.updateConfig({ theme: theme.id, themeColor: theme.themeColor });
+          loadedThemeRef.current = theme.id;
+        } finally {
+          setThemeLoading(false);
+        }
       }
       // roll() vide la table avant de lancer : pas besoin d'appeler clear().
       box.roll(f);
@@ -98,7 +108,7 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
     <div className="flex flex-col items-center bg-[#16110a] border border-[#c9a24a]/40 p-4 rounded-2xl shadow-2xl w-full text-white">
       <h2 className="text-xl font-black font-['Cinzel'] text-[#c9a24a] mb-3">🎲 Lanceur de dés 3D RPG</h2>
 
-      <div className="grid grid-cols-3 gap-2 w-full mb-3" role="radiogroup" aria-label="Texture des dés">
+      <div className="grid grid-cols-5 gap-2 w-full mb-1" role="radiogroup" aria-label="Texture des dés">
         {DICE_THEMES.map((t) => (
           <button
             key={t.id}
@@ -106,7 +116,8 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
             role="radio"
             aria-checked={theme.id === t.id}
             onClick={() => setTheme(t)}
-            className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all ${
+            disabled={themeLoading}
+            className={`flex flex-col items-center gap-1 p-1.5 rounded-lg border transition-all hover:-translate-y-0.5 disabled:opacity-60 ${
               theme.id === t.id
                 ? 'border-[#c9a24a] bg-[#c9a24a]/10'
                 : 'border-[#c9a24a]/20 bg-[#1c150c] hover:border-[#c9a24a]/60'
@@ -115,14 +126,17 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
             <img
               src={`/assets/dice-box/thumbs/${t.id}.png`}
               alt=""
-              width={56}
-              height={56}
-              className="w-14 h-14 rounded-md object-contain"
+              width={48}
+              height={48}
+              className="w-12 h-12 rounded-md object-contain"
             />
-            <span className="text-xs font-['Cinzel'] text-[#f3e6c0]">{t.label}</span>
+            <span className="text-[11px] font-['Cinzel'] text-[#f3e6c0]">{t.label}</span>
           </button>
         ))}
       </div>
+      <p className="text-xs text-[#c9a24a]/80 font-['Cinzel'] mb-3 h-4" aria-live="polite">
+        {themeLoading ? 'Chargement de la texture…' : `Texture : ${theme.label}`}
+      </p>
 
       <div
         id="dice-box"
@@ -135,7 +149,7 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
             key={d}
             type="button"
             onClick={() => roll(d)}
-            disabled={!ready}
+            disabled={!ready || themeLoading}
             className="px-2.5 py-1 rounded-md bg-[#1c150c] border border-[#c9a24a]/30 hover:border-[#c9a24a] text-sm font-mono disabled:opacity-40"
           >
             {d}
@@ -159,7 +173,7 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
         />
         <button
           type="submit"
-          disabled={!ready}
+          disabled={!ready || themeLoading}
           className="px-6 py-2 bg-[#7d6128] hover:bg-[#c9a24a] hover:text-[#0b0906] active:scale-95 text-[#f3e6c0] font-bold rounded-lg shadow-lg shadow-[#c9a24a]/20 transition-all disabled:opacity-40"
         >
           Lancer !
