@@ -32,6 +32,7 @@ import { Sidebar, Topbar, MobileBar, CommandPalette, NAV } from './shell/Shell';
 import UniverseHome from './shell/Home';
 import { askPersistence, loadState, saveState as persistState } from './store/persist';
 import { repairJson } from './ai/json';
+import { SceneLore, SessionLore, createCreatureSheet } from './forge/LoreEditor';
 import { atlasPlaces, buildLoreContext, feedFor, norm as normName } from './ai/loreContext';
 import {
   BRIEF_FIELDS,
@@ -7464,8 +7465,28 @@ function CampaignCard({
                         />
                       </Block>
                     )}
+                    <details className="lore-details">
+                      <summary>Lore de la séance : brief, PNJ, rencontres, fils, ajouter une scène</summary>
+                      <SessionLore
+                        camp={camp}
+                        session={s}
+                        universe={universe}
+                        state={state}
+                        party={party}
+                        feed={feed}
+                        call={(o) => callAI(ai, o)}
+                        dispatch={dispatch}
+                        flash={flash}
+                        onAddScene={(sc) => {
+                          const next = toScene(sc, s);
+                          dispatch({ type: 'UPDATE_CAMPAIGN', id: camp.id, patch: { scenes: [...camp.scenes, next] } });
+                          flash(`Scène ajoutée : ${next.title}`);
+                        }}
+                        onCreatureSheet={(c) => createCreatureSheet({ call: (o) => callAI(ai, o), creature: c, universe, state, feed, party, camp, dispatch, flash })}
+                      />
+                    </details>
                     {scenes.map((sc, i) => (
-                      <SceneRow key={sc.id} scene={sc} idx={i} camp={camp} {...{ state, dispatch, universe, party, flash, setView }} />
+                      <SceneRow key={sc.id} scene={sc} idx={i} camp={camp} session={s} feed={feed} {...{ state, dispatch, universe, party, flash, setView }} />
                     ))}
                     {s.cliffhanger && (
                       <div className="muted" style={{ fontSize: 13.5, margin: '6px 0' }}>
@@ -7918,8 +7939,11 @@ function SceneRow({
   party,
   flash,
   setView,
+  feed,
+  session,
 }) {
   const { ai } = useContext(AIContext);
+  const call = (o) => callAI(ai, o);
   const [busy, setBusy] = useState(false);
   const [show, setShow] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -8251,6 +8275,22 @@ JSON: {
           )}
         </div>
       )}
+      <details className="lore-details">
+        <summary>Lore : PNJ, rencontres, DD, environnement, dialogues</summary>
+        <SceneLore
+          camp={camp}
+          scene={scene}
+          session={session}
+          universe={universe}
+          state={state}
+          party={party}
+          feed={feed}
+          call={call}
+          dispatch={dispatch}
+          flash={flash}
+          onCreatureSheet={(c) => createCreatureSheet({ call, creature: c, universe, state, feed, party, camp, dispatch, flash })}
+        />
+      </details>
     </div>
   );
 }
