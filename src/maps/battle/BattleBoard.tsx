@@ -144,8 +144,10 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
           // Passage secret non découvert (MJ seulement) : contour pointillé sur ses cases.
           if (e.ghost) return <path key={`g-${e.id}`} d={cellPath(e.cells, cols)} fill="rgba(236,210,137,0.16)" stroke="#ecd289" strokeWidth={0.07} strokeDasharray="0.15 0.1" opacity={0.95} pointerEvents="none"><title>{`${e.title} (secret, visible du MJ seulement)`}</title></path>;
           // Passage secret découvert : teinte violette, distincte des chemins ordinaires.
-          if (e.secret) return <path key={`s-${e.id}`} d={cellPath(e.cells, cols)} fill="rgba(156,123,214,0.32)" stroke="#9c7bd6" strokeWidth={0.05} pointerEvents="none"><title>{`${e.title} (passage secret)`}</title></path>;
-          return null;
+          // Les passages ouverts ont une zone cliquable (écran joueur) : leur texte s'affiche dans un encadré.
+          const hit = onElement ? { className: 'battle-hit', onClick: () => onElement(e.id), cursor: 'pointer' } : { pointerEvents: 'none' as const };
+          if (e.secret) return <path key={`s-${e.id}`} d={cellPath(e.cells, cols)} fill="rgba(156,123,214,0.32)" stroke="#9c7bd6" strokeWidth={0.05} {...hit}><title>{`${e.title} (passage secret)`}</title></path>;
+          return onElement ? <path key={`h-${e.id}`} d={cellPath(e.cells, cols)} fill="transparent" {...hit}><title>{e.title}</title></path> : null;
         }
         if (e.cell === undefined) return null;
         const cx = (e.cell % cols) + 0.5, cy = Math.floor(e.cell / cols) + 0.5;

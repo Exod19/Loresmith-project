@@ -27,13 +27,14 @@ export function battleBoard(rec: MapRecord): PlayerBoard {
   // et un objet n'apparaît que lorsque le MJ le révèle.
   const passages: PlayerElement[] = (local?.elements ?? [])
     .filter((e) => e.kind === 'passage' && (!e.secret || revealed.includes(e.id)))
-    .map((e) => ({ id: e.id, kind: 'passage', title: e.title, category: e.category, cells: e.cells, secret: e.secret }));
+    .map((e) => ({ id: e.id, kind: 'passage', title: e.title, category: e.category, cells: e.cells, secret: e.secret, info: { subtitle: e.subtitle, text: e.summary } }));
   const objects: PlayerElement[] = local?.window
     ? (rec.overlay?.markers ?? [])
       .filter((m) => m.revealed && m.kind !== 'rencontre' && m.planId === local.planId)
       .flatMap((m) => {
         const cell = cellIn(local.window, b.cols, b.rows, m.x, m.y);
-        return cell === undefined ? [] : [{ id: `mk-${m.id}`, kind: 'point' as const, title: m.title, category: m.kind === 'passage' ? 'voie' : 'indetermine', cell }];
+        const text = [m.reading, m.summary].filter(Boolean).join('\n\n');
+        return cell === undefined ? [] : [{ id: `mk-${m.id}`, kind: 'point' as const, title: m.title, category: m.kind === 'passage' ? 'voie' : 'indetermine', cell, info: { text } }];
       })
     : [];
   // Objets déposés à la main par le MJ : seuls les visibles sont envoyés.
