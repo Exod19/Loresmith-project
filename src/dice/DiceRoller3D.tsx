@@ -9,11 +9,22 @@ type DieRoll = { value: number };
 type DieGroup = { groupId: string; value: number; rolls?: DieRoll[] };
 interface DiceBoxInstance {
   init(): Promise<unknown>;
+  updateConfig(config: { theme: string; themeColor: string }): Promise<unknown>;
   roll(notation: string): unknown;
 }
 type DiceBoxCtor = new (config: Record<string, unknown>) => DiceBoxInstance;
 
 const QUICK_DICE = ['1d4', '1d6', '1d8', '1d10', '1d12', '1d20', '1d100'];
+
+/**
+ * Textures disponibles : un dossier par thème dans public/assets/dice-box/themes/<id>/,
+ * et une vignette (d20) dans public/assets/dice-box/thumbs/<id>.png.
+ */
+const DICE_THEMES = [
+  { id: 'loresmith-cosmic', label: 'Cosmique', themeColor: '#ffffff' },
+  { id: 'default', label: 'Or classique', themeColor: '#c9a24a' },
+] as const;
+type DiceTheme = (typeof DICE_THEMES)[number];
 
 export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
   const boxRef = useRef<DiceBoxInstance | null>(null);
@@ -24,6 +35,9 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
   const [groups, setGroups] = useState<DieGroup[]>([]);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [theme, setTheme] = useState<DiceTheme>(DICE_THEMES[0]);
+  // Thème actuellement chargé dans le moteur (roll() ne charge pas de nouveau thème).
+  const loadedThemeRef = useRef<string>(DICE_THEMES[0].id);
 
   useEffect(() => {
     // Un seul moteur : le drapeau est posé avant l'import asynchrone (StrictMode monte deux fois).
@@ -36,8 +50,8 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
           container: '#dice-box',
           id: 'dice-canvas',
           assetPath: '/assets/dice-box/',
-          theme: 'loresmith-cosmic',
-          themeColor: '#ffffff',
+          theme: DICE_THEMES[0].id,
+          themeColor: DICE_THEMES[0].themeColor,
           scale: 7,
           offscreen: false,
           // Appelé dès que les dés sont immobiles. `value` = total du groupe (ex. 2d6 → somme).
@@ -55,7 +69,7 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
     })();
   }, [active]);
 
-  const roll = (formula: string) => {
+  const roll = async (formula: string) => {
     const f = formula.trim();
     const box = boxRef.current;
     if (!box || !ready || !f) return;
@@ -64,9 +78,15 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
     setTotal(null);
     setGroups([]);
     try {
+      if (loadedThemeRef.current !== theme.id) {
+        // Charge la texture choisie avant de lancer (le thème doit être chargé dans le moteur).
+        await box.updateConfig({ theme: theme.id, themeColor: theme.themeColor });
+        loadedThemeRef.current = theme.id;
+      }
       // roll() vide la table avant de lancer : pas besoin d'appeler clear().
       box.roll(f);
-    } catch {
+    } catch (err) {
+      console.error('Dice-Box roll a échoué :', err);
       setError(`Notation invalide : ${f}`);
     }
   };
@@ -74,6 +94,32 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
   return (
     <div className="flex flex-col items-center bg-[#16110a] border border-[#c9a24a]/40 p-4 rounded-2xl shadow-2xl w-full text-white">
       <h2 className="text-xl font-black font-['Cinzel'] text-[#c9a24a] mb-3">🎲 Lanceur de dés 3D RPG</h2>
+
+      <div className="flex gap-2 w-full mb-3" role="radiogroup" aria-label="Texture des dés">
+        {DICE_THEMES.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="radio"
+            aria-checked={theme.id === t.id}
+            onClick={() => setTheme(t)}
+            className={`flex-1 flex flex-col items-center gap-1 p-2 rounded-lg border transition-all ${
+              theme.id === t.id
+                ? 'border-[#c9a24a] bg-[#c9a24a]/10'
+                : 'border-[#c9a24a]/20 bg-[#1c150c] hover:border-[#c9a24a]/60'
+            }`}
+          >
+            <img
+              src={`/assets/dice-box/thumbs/${t.id}.png`}
+              alt=""
+              width={56}
+              height={56}
+              className="w-14 h-14 rounded-md object-contain"
+            />
+            <span className="text-xs font-['Cinzel'] text-[#f3e6c0]">{t.label}</span>
+          </button>
+        ))}
+      </div>
 
       <div
         id="dice-box"
