@@ -22,7 +22,11 @@ const QUICK_DICE = ['1d4', '1d6', '1d8', '1d10', '1d12', '1d20', '1d100'];
  */
 const DICE_THEMES = [
   { id: 'loresmith-cosmic', label: 'Cosmique', themeColor: '#ffffff' },
-  { id: 'default', label: 'Or classique', themeColor: '#c9a24a' },
+  { id: 'glace', label: 'Glace', themeColor: '#ffffff' },
+  { id: 'arcane', label: 'Arcane', themeColor: '#ffffff' },
+  { id: 'magma', label: 'Magma', themeColor: '#ffffff' },
+  { id: 'parchemin', label: 'Parchemin', themeColor: '#ffffff' },
+  { id: 'foret', label: 'Forêt', themeColor: '#ffffff' },
 ] as const;
 type DiceTheme = (typeof DICE_THEMES)[number];
 
@@ -95,7 +99,7 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
     <div className="flex flex-col items-center bg-[#16110a] border border-[#c9a24a]/40 p-4 rounded-2xl shadow-2xl w-full text-white">
       <h2 className="text-xl font-black font-['Cinzel'] text-[#c9a24a] mb-3">🎲 Lanceur de dés 3D RPG</h2>
 
-      <div className="flex gap-2 w-full mb-3" role="radiogroup" aria-label="Texture des dés">
+      <div className="grid grid-cols-3 gap-2 w-full mb-3" role="radiogroup" aria-label="Texture des dés">
         {DICE_THEMES.map((t) => (
           <button
             key={t.id}
@@ -103,7 +107,7 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
             role="radio"
             aria-checked={theme.id === t.id}
             onClick={() => setTheme(t)}
-            className={`flex-1 flex flex-col items-center gap-1 p-2 rounded-lg border transition-all ${
+            className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all ${
               theme.id === t.id
                 ? 'border-[#c9a24a] bg-[#c9a24a]/10'
                 : 'border-[#c9a24a]/20 bg-[#1c150c] hover:border-[#c9a24a]/60'
