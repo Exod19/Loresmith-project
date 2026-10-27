@@ -10,6 +10,7 @@ import { tokenImage } from './battle/vignettes';
 import { applyBuild, PROP_BY_KEY, propUrl } from './battle/build';
 import { CREATURE_LORE, KIND_LORE } from './battle/lore';
 import { isSearchable } from './battle/search';
+import { describeLite } from './atlas/lore';
 import { STATS } from './atlas/statblocks';
 import type { PlayerBoard, PlayerElement, PlayerToken } from '../present/stage';
 
@@ -36,11 +37,11 @@ export function battleBoard(rec: MapRecord): PlayerBoard {
   // et un objet n'apparaît que lorsque le MJ le révèle.
   const passages: PlayerElement[] = (local?.elements ?? [])
     .filter((e) => e.kind === 'passage' && (!e.secret || revealed.includes(e.id)))
-    .map((e) => ({ id: e.id, kind: 'passage', title: e.title, category: e.category, cells: e.cells, secret: e.secret, info: { subtitle: e.subtitle, text: e.summary } }));
+    .map((e) => ({ id: e.id, kind: 'passage', title: e.title, category: e.category, cells: e.cells, secret: e.secret, info: { subtitle: e.subtitle, text: describeLite(e) } }));
   // Lieux de l'Atlas : visibles une fois révélés sur la carte de navigation, comme les autres repères de l'Atlas.
   const places: PlayerElement[] = (local?.elements ?? [])
     .filter((e) => e.kind === 'point' && e.cell !== undefined && revealed.includes(e.id) && isSearchable(e.title))
-    .map((e) => ({ id: e.id, kind: 'point', title: e.title, category: e.category, cell: e.cell, info: { subtitle: e.subtitle, text: e.summary } }));
+    .map((e) => ({ id: e.id, kind: 'point', title: e.title, category: e.category, cell: e.cell, info: { subtitle: e.subtitle, text: describeLite(e) } }));
   const objects: PlayerElement[] = local?.window
     ? (rec.overlay?.markers ?? [])
       .filter((m) => m.revealed && (m.kind === 'objet' || m.kind === 'repere') && m.planId === local.planId)

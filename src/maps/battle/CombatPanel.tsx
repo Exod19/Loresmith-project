@@ -2,20 +2,26 @@
  * Combat, dans le panneau de la carte de combat : initiative, tour courant, PV, états, attaques à lancer,
  * journal des jets, et conseils tactiques (calculés sur le plateau, ou demandés à l'IA).
  */
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { STATS } from '../atlas/statblocks';
 import type { Battle, BattleToken } from '../mapStore';
 import { askAI, aiReady } from '../../ai/client';
 import {
-  attacksOf, combatBrief, CONDITIONS, critical, initiativeOrder, initModOf, isOut, nextTurn, paceHints, previousTurn,
-  roll, statOf, turnHints, type Attack, type Hint,
+  advanceBattle, attacksOf, combatBrief, CONDITIONS, critical, initiativeOrder, initModOf, isOut, paceHints, passiveOfToken,
+  roll, sightFor, sightOf, statOf, turnHints, type Attack, type Hint,
 } from './combat';
+import { passiveOf } from '../atlas/trails';
 import { speedCells } from './ranges';
 import { tokenImage } from './vignettes';
 import { iconFor } from './encounter';
 
 /** Personnage du groupe (fiche de l'application) : seuls les champs utiles au combat. */
-export type Hero = { id: string; name: string; hp?: number | string; maxHp?: number | string; ac?: number | string; dex?: number | string; cls?: string; race?: string; level?: number | string };
+export type Hero = {
+  id: string; name: string; hp?: number | string; maxHp?: number | string; ac?: number | string; dex?: number | string; wis?: number | string;
+  /** Bonus de Perception au-delà de la Sagesse (maîtrise, talents). */
+  perceptionBonus?: number | string;
+  cls?: string; race?: string; level?: number | string;
+};
 
 type Props = {
   b: Battle;
@@ -39,7 +45,8 @@ const signed = (n: number) => (n >= 0 ? `+${n}` : `−${-n}`);
 
 export default function CombatPanel({ b, grid, place, selectedId, onSelect, set, heroes, onPlace, onRemove }: Props) {
   const [amount, setAmount] = useState<Record<string, string>>({});
-  const [last, setLast] = useState<{ from: string; dmg: number; label: string } | null>(null);
+  const [last, setLast] = useState<{ from: string; dmg: number; label: string; reach: number } | null>(null);
+  const listRef = useRef<HTMLOListElement>(null);
   const [ai, setAi] = useState<{ busy: boolean; text?: string; error?: string }>({ busy: false });
   const [addStat, setAddStat] = useState('');
   const [addCount, setAddCount] = useState(1);
@@ -66,12 +73,22 @@ export default function CombatPanel({ b, grid, place, selectedId, onSelect, set,
   }
 
   function advance(dir: 1 | -1) {
-    const next = dir > 0 ? nextTurn(b) : previousTurn(b);
-    const who = b.tokens.find((t) => t.id === next.turn);
-    set({ ...next, log: who ? log(`${next.round !== b.round ? `Round ${next.round} · ` : ''}Tour de ${who.name}`, 'info') : b.log });
-    if (who) onSelect(who.id);
+    const patch = advanceBattle(b, dir);
+    set(patch);
+    if (patch.turn) onSelect(patch.turn);
     setLast(null);
   }
+
+  /** Fin du combat : on garde les jetons et leurs PV, on efface l'initiative. */
+  function endCombat() {
+    set({ turn: undefined, round: 1, tokens: b.tokens.map((t) => ({ ...t, init: undefined, spent: undefined })), log: log('Fin du combat', 'info') });
+    setLast(null);
+  }
+
+  // La ligne du combattant actif reste visible dans la liste.
+  useEffect(() => {
+    listRef.current?.querySelector('.is-turn')?.scrollIntoView({ block: 'nearest' });
+  }, [b.turn]);
 
   function changeHp(t: BattleToken, delta: number) {
     if (t.hp === undefined || !delta) return;
@@ -97,7 +114,7 @@ export default function CombatPanel({ b, grid, place, selectedId, onSelect, set,
     if (!fumble && touches.length) text += ` · touche ${touches.join(', ')}`;
     const spent = a.limited ? [...new Set([...(t.spent ?? []), a.name])] : t.spent;
     set({ tokens: a.limited ? b.tokens.map((x) => (x.id === t.id ? { ...x, spent } : x)) : b.tokens, log: log(text, crit ? 'crit' : fumble ? 'miss' : 'hit') });
-    setLast(dmg !== null ? { from: t.id, dmg, label: `${a.name} de ${t.name}` } : null);
+    setLast(dmg !== null ? { from: t.id, dmg, label: `${a.name} de ${t.name}`, reach: a.reach ?? 1 } : null);
   }
 
   async function askTactics() {
@@ -122,6 +139,7 @@ export default function CombatPanel({ b, grid, place, selectedId, onSelect, set,
       return {
         id: uid(), name: h.name, kind: 'pc', size: 1, visible: true, heroId: h.id,
         hp, maxHp: leadingInt(h.maxHp) ?? hp, ac: leadingInt(h.ac) ?? 14, initMod: dex !== undefined ? Math.floor((dex - 10) / 2) : 0,
+        sight: sightFor(h.race), passive: passiveOf(leadingInt(h.wis), leadingInt(h.perceptionBonus) ?? 0),
       };
     }));
   }
@@ -152,14 +170,24 @@ export default function CombatPanel({ b, grid, place, selectedId, onSelect, set,
           <span className="combat-now">{active ? <>Tour de <b>{active.name}</b></> : 'Initiative non lancée'}</span>
         </div>
         <div className="combat-turn-ctrl">
-          <button className="maps-btn" onClick={() => advance(-1)} disabled={!b.turn} aria-label="Tour précédent">◀</button>
-          <button className="maps-btn gold combat-next" onClick={() => advance(1)} disabled={!order.some((t) => t.init !== undefined)}>Tour suivant ▶</button>
-          <button className="maps-btn" onClick={() => rollInitiative(false)} title="Tire l’initiative des créatures qui n’en ont pas">🎲 Initiative</button>
-          <button className="maps-btn" onClick={() => rollInitiative(true)} title="Tire aussi celle des joueurs">Tous</button>
+          {b.turn ? (
+            <>
+              <button className="maps-btn" onClick={() => advance(-1)} aria-label="Tour précédent" title="Tour précédent (B)">◀</button>
+              <button className="maps-btn gold combat-next" onClick={() => advance(1)} title="Tour suivant (N ou Espace)">Tour suivant ▶</button>
+              <button className="maps-btn" onClick={() => rollInitiative(false)} title="Tire l’initiative des nouveaux venus">🎲</button>
+              <button className="maps-btn" onClick={() => { if (window.confirm('Terminer le combat ? Les jetons et leurs PV restent.')) endCombat(); }}>■ Fin</button>
+            </>
+          ) : (
+            <>
+              <button className="maps-btn gold combat-next" onClick={() => rollInitiative(true)} disabled={!order.length} title="Tire l’initiative de tous ceux qui n’en ont pas, puis commence">⚔ Lancer le combat</button>
+              <button className="maps-btn" onClick={() => rollInitiative(false)} disabled={!order.length} title="Seulement les créatures : saisis l’initiative des joueurs">🎲 Créatures</button>
+            </>
+          )}
         </div>
+        {b.turn && <p className="combat-keys">Raccourcis : <kbd>N</kbd> ou <kbd>Espace</kbd> tour suivant · <kbd>B</kbd> précédent · <kbd>Échap</kbd> désélectionner</p>}
 
         {order.length === 0 && <p className="maps-sub">Aucun combattant. Ajoute le groupe et des créatures ci-dessous, ou lance une rencontre depuis la carte de navigation.</p>}
-        <ol className="combat-order">
+        <ol className="combat-order" ref={listRef}>
           {order.map((t) => {
             const pct = t.maxHp ? Math.max(0, Math.min(1, (t.hp ?? 0) / t.maxHp)) : null;
             return (
@@ -208,7 +236,15 @@ export default function CombatPanel({ b, grid, place, selectedId, onSelect, set,
                 <span>PV <b>{sheet.hp ?? '—'}/{sheet.maxHp ?? '—'}</b></span>
                 <span>Vitesse <b>{speedCells(sheetStat)}</b> cases</span>
                 <span>Init <b>{signed(initModOf(sheet))}</b></span>
+                <span>Vue <b>{sightOf(sheet)}</b> cases</span>
+                <span>Perception passive <b>{passiveOfToken(sheet)}</b></span>
               </p>
+              {sheet.kind === 'pc' && (
+                <p className="combat-senses">
+                  <label>Vue <input inputMode="numeric" value={sheet.sight ?? ''} placeholder={String(sightOf(sheet))} onChange={(e) => patch(sheet.id, { sight: e.target.value === '' ? undefined : Number(e.target.value) || 0 })} /> cases</label>
+                  <label>Perception passive <input inputMode="numeric" value={sheet.passive ?? ''} placeholder={String(passiveOfToken(sheet))} onChange={(e) => patch(sheet.id, { passive: e.target.value === '' ? undefined : Number(e.target.value) || 0 })} /></label>
+                </p>
+              )}
             </div>
           </div>
 
@@ -246,9 +282,14 @@ export default function CombatPanel({ b, grid, place, selectedId, onSelect, set,
           {last && last.from === sheet.id && (
             <div className="combat-apply">
               <span>{last.dmg} dégâts ({last.label}) : appliquer à</span>
-              {b.tokens.filter((t) => t.kind !== sheet.kind && !isOut(t) && t.hp !== undefined).map((t) => (
-                <button key={t.id} className="maps-btn" onClick={() => { changeHp(t, -last.dmg); setLast(null); }}>{t.name}</button>
-              ))}
+              {b.tokens.filter((t) => t.kind !== sheet.kind && !isOut(t) && t.hp !== undefined)
+                .map((t) => ({ t, d: Math.max(Math.max(0, t.x - (sheet.x + sheet.size - 1), sheet.x - (t.x + t.size - 1)), Math.max(0, t.y - (sheet.y + sheet.size - 1), sheet.y - (t.y + t.size - 1))) }))
+                .sort((x, y) => x.d - y.d)
+                .map(({ t, d }) => (
+                  <button key={t.id} className={`maps-btn ${d <= last.reach ? 'gold' : ''}`} title={d <= last.reach ? 'À portée' : `À ${d} cases`} onClick={() => { changeHp(t, -last.dmg); setLast(null); }}>
+                    {t.name}{d <= last.reach ? ' · à portée' : ''}
+                  </button>
+                ))}
             </div>
           )}
           {(sheetStat?.traits?.length || sheetStat?.reactions?.length) ? (

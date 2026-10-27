@@ -280,3 +280,34 @@
 .place-more{margin-top:4px}
 .place-more summary{cursor:pointer;font-size:12px;color:#c9a24a}
 .place-more ul{margin-top:4px}
+
+/* Dangerosité perçue des sentiers (carte de navigation et carte de combat) */
+.trail-danger{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.03em;padding:1px 7px;border-radius:999px;border:1px solid;white-space:nowrap}
+.trail-danger.lvl-1{color:#bfe9c8;border-color:#4f8a5f;background:rgba(79,138,95,.15)}
+.trail-danger.lvl-2{color:#d9e9b0;border-color:#7c8f45;background:rgba(124,143,69,.15)}
+.trail-danger.lvl-3{color:#f3d08a;border-color:#b58a2e;background:rgba(181,138,46,.15)}
+.trail-danger.lvl-4{color:#f6b28a;border-color:#c0602f;background:rgba(192,96,47,.18)}
+.trail-danger.lvl-5{color:#ffb0a0;border-color:#c0392f;background:rgba(192,57,47,.25)}
+.trail-block{margin:8px 0;padding:8px;border:1px solid #3e3320;border-radius:6px;background:rgba(0,0,0,.2)}
+.trail-block p{margin:0 0 4px}
+.trails-panel h3{margin:0 0 4px}
+.trails-list{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:3px}
+.trails-list li{display:flex;align-items:center;gap:6px;padding:3px 4px;border-radius:4px}
+.trails-list li[data-on="1"]{background:rgba(127,224,208,.08)}
+.trails-title{flex:1;min-width:0;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trails-dc{font-size:12px;color:#c9a24a;white-space:nowrap}
+.trails-dc.is-noticed{color:#7fe0d0}
+.place-seen{font-size:11px;color:#7fe0d0;border:1px solid #2f6f66;border-radius:999px;padding:0 6px}
+.battle-label.is-noticed rect{stroke:#7fe0d0;stroke-width:.07}
+.battle-label.is-noticed text{fill:#c9fff6}
+.combat-keys{margin:2px 0 8px;font-size:11px;color:#9c8a5e}
+.combat-keys kbd{font:inherit;font-size:10px;padding:0 4px;border:1px solid #5a4a2a;border-radius:3px;background:rgba(0,0,0,.35);color:#e7d8b0}
+.combat-senses{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 0;font-size:12px;color:#c9b98f}
+.combat-senses input{width:38px;font:inherit;font-size:12px;padding:1px 4px;border:1px solid #5a4a2a;border-radius:4px;background:rgba(0,0,0,.35);color:#fff1c2}
+.place-meta{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex:none}
+.place-title{overflow-wrap:break-word;font-size:13px;line-height:1.25}
+.place-list .place-title,.place-list .maps-link.place-title{flex:1 1 120px;min-width:110px;font-size:13px;line-height:1.25;text-align:left}
+.place-list.is-search li{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:4px 6px}
+.place-list.is-search .place-title{min-width:0}
+.place-list.is-passages .place-title{flex:1 1 calc(100% - 44px)}
+.place-list.is-passages .place-meta{flex-direction:row;align-items:center;flex-wrap:wrap;gap:4px 6px;margin-left:32px}

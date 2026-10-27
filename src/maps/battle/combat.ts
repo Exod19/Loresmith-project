@@ -118,6 +118,34 @@ export function previousTurn(b: Battle): Pick<Battle, 'turn' | 'round'> {
   return { turn: order[prev].id, round: i === 0 && b.round > 1 ? b.round - 1 : b.round };
 }
 
+/** Avance (ou recule) d'un tour, avec la ligne de journal qui va avec. */
+export function advanceBattle(b: Battle, dir: 1 | -1): Partial<Battle> {
+  const next = dir > 0 ? nextTurn(b) : previousTurn(b);
+  const who = b.tokens.find((t) => t.id === next.turn);
+  if (!who) return next;
+  const line = { id: Math.random().toString(36).slice(2, 10), text: `${next.round !== b.round ? `Round ${next.round} · ` : ''}Tour de ${who.name}`, tone: 'info' as const };
+  return { ...next, log: [line, ...(b.log ?? [])].slice(0, 30) };
+}
+
+/** Peuples qui voient dans le noir (18 m = 12 cases) ; les autres portent une torche (6 m vive + 6 m faible = 8 cases). */
+const DARKVISION = /nain|elfe|gnome|orc|orque|tieffelin|drow|duergar|svirfneblin|tabaxi|aasimar|dwarf|elf|tiefling/i;
+export const sightFor = (race?: string) => (race && DARKVISION.test(race) ? 12 : 8);
+
+/** Portée de vue d'un jeton : saisie, sinon selon la fiche (vision dans le noir), sinon une torche. */
+export function sightOf(t: BattleToken): number {
+  if (t.sight !== undefined) return t.sight;
+  const s = statOf(t);
+  const dv = s && /vision dans le noir ([\d,]+) m/.exec(s.senses);
+  return dv ? Math.round((parseFloat(dv[1].replace(',', '.')) * FT_PER_M) / 5) : 8;
+}
+
+/** Perception passive d'un jeton : saisie, sinon lue dans la fiche (« Perception passive 12 »), sinon 10. */
+export function passiveOfToken(t: BattleToken): number {
+  if (t.passive !== undefined) return t.passive;
+  const m = statOf(t) && /Perception passive (\d+)/.exec(statOf(t)!.senses);
+  return m ? Number(m[1]) : 10;
+}
+
 /** États de D&D 5e, avec leur effet en une ligne. */
 export const CONDITIONS: { name: string; rule: string }[] = [
   { name: 'À terre', rule: 'Se relever coûte la moitié du déplacement. Avantage aux attaques au contact contre lui, désavantage à distance.' },

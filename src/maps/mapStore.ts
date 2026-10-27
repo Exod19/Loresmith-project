@@ -122,6 +122,9 @@ export interface BattleToken {
   spent?: string[];
   /** Identifiant du personnage du groupe dont vient ce jeton. */
   heroId?: string;
+  /** Portée de vue en cases (vision dans le noir ou torche), et Perception passive. */
+  sight?: number;
+  passive?: number;
 }
 
 export interface Battle {

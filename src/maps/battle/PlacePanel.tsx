@@ -6,10 +6,13 @@
 import type { ReactNode } from 'react';
 import type { PartyPlace, PassageLink } from '../mapStore';
 import type { SearchEntry } from './search';
+import type { TrailProfile } from '../atlas/trails';
+import { DangerChip } from '../TrailsPanel';
 
-export type SearchItem = { id: string; label: string; title: string; entry: SearchEntry; shown: boolean };
-export type SecretItem = { id: string; label: string; title: string; dc?: number; check?: string; found: boolean; link?: PassageLink };
-export type ExitItem = { id: string; label: string; title: string; link: PassageLink; toward: boolean };
+/** `seenBy` : le joueur qui le remarque sans chercher (Perception passive, à portée de vue). */
+export type SearchItem = { id: string; label: string; title: string; entry: SearchEntry; shown: boolean; seenBy?: string };
+export type SecretItem = { id: string; label: string; title: string; dc?: number; check?: string; found: boolean; link?: PassageLink; profile?: TrailProfile; seenBy?: string };
+export type ExitItem = { id: string; label: string; title: string; link: PassageLink; toward: boolean; profile?: TrailProfile };
 type LinkOption = { value: string; label: string; link: PassageLink };
 /** Sorties affichées d'emblée ; les autres sont repliées (celles qui mènent à la destination passent en tête). */
 const SHOWN_EXITS = 6;
@@ -39,6 +42,7 @@ export default function PlacePanel({ title, text, dest, search, secrets, exits, 
     <li key={e.id} {...hover(e.id)} data-toward={e.toward ? 1 : 0}>
       <span className="place-tag tone-exit">{e.label}</span>
       <span className="place-title"><button className="maps-link" onClick={() => onOpen(e.id)}>{e.title}</button> <small>→ {e.link.label}</small>{e.toward && <small className="place-toward"> 🎯</small>}</span>
+      {e.profile && <span className="place-meta"><DangerChip profile={e.profile} /></span>}
       <button className="maps-btn gold" onClick={() => onFollow(e.link)}>Suivre ➜</button>
       <details className="place-edit">
         <summary title="Modifier la destination">✎</summary>
@@ -65,7 +69,7 @@ export default function PlacePanel({ title, text, dest, search, secrets, exits, 
         )}
       </section>
 
-      <section className="maps-card place-list">
+      <section className="maps-card place-list is-search">
         <h4>À fouiller <small>({search.length})</small></h4>
         {search.length === 0 && <p className="maps-sub">Rien de notable à fouiller ici.</p>}
         <ul>
@@ -73,7 +77,10 @@ export default function PlacePanel({ title, text, dest, search, secrets, exits, 
             <li key={s.id} {...hover(s.id)}>
               <span className="place-tag tone-search">{s.label}</span>
               <button className="maps-link place-title" onClick={() => onOpen(s.id)}>{s.title}</button>
-              <small className="place-dc">{s.entry.skill} {s.entry.dc}</small>
+              <span className="place-meta">
+                <small className="place-dc">{s.entry.skill} {s.entry.dc}</small>
+                {s.seenBy && !s.shown && <small className="place-seen" title="Remarqué sans chercher (Perception passive, à portée de vue)">vu par {s.seenBy}</small>}
+              </span>
               <button className="place-eye" title={s.shown ? 'Visible des joueurs (clic : cacher)' : 'Caché aux joueurs (clic : montrer)'} onClick={() => onToggle(s.id)}>{s.shown ? '👁' : '🙈'}</button>
             </li>
           ))}
@@ -81,14 +88,18 @@ export default function PlacePanel({ title, text, dest, search, secrets, exits, 
       </section>
 
       {secrets.length > 0 && (
-        <section className="maps-card place-list">
+        <section className="maps-card place-list is-passages">
           <h4>Passages secrets <small>({secrets.filter((s) => s.found).length}/{secrets.length} découverts)</small></h4>
           <ul>
             {secrets.map((s) => (
               <li key={s.id} {...hover(s.id)} data-on={s.found ? 1 : 0}>
                 <span className="place-tag tone-secret">{s.label}</span>
                 <button className="maps-link place-title" onClick={() => onOpen(s.id)}>{s.title}</button>
-                {s.dc !== undefined && <small className="place-dc">{s.check ?? 'Perception'} {s.dc}</small>}
+                <span className="place-meta">
+                  {s.profile && <DangerChip profile={s.profile} />}
+                  {s.dc !== undefined && <small className="place-dc">{(s.check ?? 'Perception').replace(/^.*\((.*)\)$/, '$1')} {s.dc}</small>}
+                  {s.seenBy && !s.found && <small className="place-seen">vu par {s.seenBy}</small>}
+                </span>
                 <button className={`maps-btn ${s.found ? '' : 'gold'}`} onClick={() => onToggle(s.id)} title={s.found ? 'Le recacher aux joueurs' : 'Les joueurs l’ont trouvé : le leur montrer'}>
                   {s.found ? '🔓 Trouvé' : '🔒 Caché'}
                 </button>
@@ -99,7 +110,7 @@ export default function PlacePanel({ title, text, dest, search, secrets, exits, 
         </section>
       )}
 
-      <section className="maps-card place-list">
+      <section className="maps-card place-list is-passages">
         <h4>Sorties <small>({exits.length})</small></h4>
         {exits.length === 0 && <p className="maps-sub">Aucune sortie dont la destination est connue.</p>}
         <ul>{exits.slice(0, SHOWN_EXITS).map(exitRow)}</ul>

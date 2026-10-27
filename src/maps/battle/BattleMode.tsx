@@ -21,7 +21,9 @@ import CombatPanel, { type Hero } from './CombatPanel';
 import PlacePanel, { type ExitItem, type SearchItem, type SecretItem } from './PlacePanel';
 import { DEFAULT_BRUSH, PROP_BY_KEY, PROP_LABEL, propUrl, applyBuild, shapeCells, type Brush } from './build';
 import { passageDifficulty, searchFor, type SearchEntry } from './search';
-import { statOf } from './combat';
+import { advanceBattle, isOut, passiveOfToken, sightOf, statOf } from './combat';
+import { detectLabel, trailProfile } from '../atlas/trails';
+import { describeLite } from '../atlas/lore';
 import { placeEncounter, type EncounterGroup } from './encounter';
 import { askAI, aiReady, parseJson } from '../../ai/client';
 import './battle.css';
@@ -199,6 +201,7 @@ export default function BattleMode({
       e.preventDefault();
       setDrag({ id: t.id, origin: { x: t.x, y: t.y }, start: c, cur: c, moved: false, wasSelected: selectedId === t.id });
       setSelectedId(t.id);
+      if (b.turn) setTab('combat');
       return;
     }
     const c = cellAt(e.clientX, e.clientY);
@@ -280,11 +283,23 @@ export default function BattleMode({
     setInfoId(null);
     setSelectedId(null);
   }
-  // Échap désélectionne le jeton et ferme la fiche.
+  /** Avance d'un tour et sélectionne le combattant dont c'est le tour. */
+  const advance = (dir: 1 | -1) => {
+    const patch = advanceBattle(b, dir);
+    set(patch);
+    if (patch.turn) setSelectedId(patch.turn);
+  };
+  // Raccourcis : N ou Espace = tour suivant, B = tour précédent, Échap = tout désélectionner (hors champs de saisie).
+  const keyRef = useRef<(e: KeyboardEvent) => void>(() => {});
+  keyRef.current = (e: KeyboardEvent) => {
+    const typing = e.target instanceof HTMLElement && /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName);
+    if (e.key === 'Escape') { setSelectedId(null); setInfoId(null); return; }
+    if (typing || e.ctrlKey || e.metaKey || e.altKey || !b.tokens.some((t) => t.init !== undefined)) return;
+    if (e.key === 'n' || e.key === 'N' || e.key === ' ') { e.preventDefault(); advance(1); }
+    else if (e.key === 'b' || e.key === 'B') { e.preventDefault(); advance(-1); }
+  };
   useEffect(() => {
-    const key = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { setSelectedId(null); setInfoId(null); }
-    };
+    const key = (e: KeyboardEvent) => keyRef.current(e);
     window.addEventListener('keydown', key);
     return () => window.removeEventListener('keydown', key);
   }, []);
@@ -295,7 +310,7 @@ export default function BattleMode({
   const passages = [
     ...localElements.filter((e) => e.kind === 'passage').map((e) => ({
       id: e.id, title: e.title, secret: e.secret, found: discovered.includes(e.id), dc: e.dc, checkLabel: e.checkLabel, auto: e.auto,
-      cells: e.cells ?? [], trace: e.trace, subtitle: e.subtitle, summary: e.summary, marker: undefined as MapMarker | undefined,
+      cells: e.cells ?? [], trace: e.trace, subtitle: e.subtitle, summary: describeLite(e) || undefined, marker: undefined as MapMarker | undefined,
     })),
     ...markers.filter((m) => m.kind === 'passage' && m.planId === plan?.id).map((m) => ({
       id: `mk-${m.id}`, title: m.title, secret: true, found: m.revealed, dc: m.dcInvestigate ?? 14, checkLabel: 'Investigation', auto: undefined as PassageLink | undefined,
@@ -306,8 +321,22 @@ export default function BattleMode({
   const dest = party?.dest;
   const towardDest = (link?: PassageLink) => !!(dest && link && (link.id === dest.id || link.label.startsWith(dest.title)));
 
+  const profileOf = (p: (typeof passages)[number]) => trailProfile({ title: p.title, trace: p.trace }, p.secret ? p.dc : undefined);
+  // Joueurs sur le plateau : ce qu'ils voient sans chercher (Perception passive, à portée de vue).
+  const pcs = b.tokens.filter((t) => t.kind === 'pc');
+  const seenBy = (cells: number[], skill: string, dc: number) => {
+    if (!/perception/i.test(skill) || !cells.length) return undefined;
+    return pcs.find((t) => {
+      const near = cells.some((c) => {
+        const x = c % b.cols, y = Math.floor(c / b.cols);
+        return Math.max(Math.max(0, t.x - x, x - (t.x + t.size - 1)), Math.max(0, t.y - y, y - (t.y + t.size - 1))) <= sightOf(t);
+      });
+      return near && dc <= passiveOfToken(t);
+    })?.name;
+  };
   const secrets: SecretItem[] = passages.filter((p) => p.secret).map((p, i) => ({
-    id: p.id, label: `S${i + 1}`, title: p.title, dc: p.dc, check: p.checkLabel, found: p.found, link: linkOf(p.id),
+    id: p.id, label: `S${i + 1}`, title: p.title, dc: p.dc, check: p.checkLabel, found: p.found, link: linkOf(p.id), profile: profileOf(p),
+    seenBy: seenBy(p.cells, p.checkLabel ?? 'Perception', p.dc ?? 15),
   }));
   // Sorties : les galeries qui quittent le plateau, mènent à un autre plan, ou dont le MJ a inscrit la destination.
   // Une même destination n'est listée qu'une fois ; les galeries internes restent sur le plateau, cliquables.
@@ -322,7 +351,7 @@ export default function BattleMode({
     return true;
   });
   const exits: ExitItem[] = exitList
-    .map((p) => ({ id: p.id, label: '', title: p.title, link: linkOf(p.id)!, toward: towardDest(linkOf(p.id)) }))
+    .map((p) => ({ id: p.id, label: '', title: p.title, link: linkOf(p.id)!, toward: towardDest(linkOf(p.id)), profile: profileOf(p) }))
     .sort((x, y) => Number(y.toward) - Number(x.toward))
     .map((e, i) => ({ ...e, label: `E${i + 1}` }));
   const others = passages.filter((p) => !p.secret).length - exits.length;
@@ -344,6 +373,7 @@ export default function BattleMode({
     ...searchPoints.map(({ e, entry }) => ({ id: e.id, label: '', title: e.title, entry, shown: discovered.includes(e.id) })),
     ...markerPoints.map(({ m, entry }) => ({ id: `mk-${m.id}`, label: '', title: m.title, entry, shown: m.revealed })),
   ].map((s, i) => ({ ...s, label: `F${i + 1}` }));
+  // Qui remarque l'élément sans chercher (calculé après les cases, plus bas).
 
   // Destinations proposées : ancres de l'Atlas, et éléments interactifs de cet univers.
   const anchorOptions = (atlas?.anchors ?? []).map((a) => {
@@ -359,11 +389,11 @@ export default function BattleMode({
   const boardElements: BoardElement[] = [
     ...localElements.filter((e) => e.kind === 'passage').map((e) => ({
       id: e.id, kind: 'passage' as const, title: e.title, category: e.category, cells: e.cells,
-      ghost: e.secret && !discovered.includes(e.id), dc: e.dc, info: { subtitle: e.subtitle, text: e.summary },
+      ghost: e.secret && !discovered.includes(e.id), dc: e.dc, info: { subtitle: e.subtitle, text: describeLite(e) },
     })),
     ...searchPoints.map(({ e }) => ({
       id: e.id, kind: 'point' as const, title: e.title, category: e.category, cell: e.cell,
-      ghost: !discovered.includes(e.id), info: { subtitle: e.subtitle, text: e.summary },
+      ghost: !discovered.includes(e.id), info: { subtitle: e.subtitle, text: describeLite(e) },
     })),
     ...markerPoints.map(({ m, cell }) => ({
       id: `mk-${m.id}`, kind: 'point' as const, title: m.title, category: 'indetermine', cell, ghost: !m.revealed, dc: m.dcInvestigate,
@@ -381,9 +411,10 @@ export default function BattleMode({
   };
 
   // Repères MJ : F1 sur les éléments à fouiller, S1 sur les passages secrets, E1 sur les sorties.
+  for (const s of search) s.seenBy = seenBy(cellsOf(s.id), s.entry.skill, s.entry.dc);
   const labels: BoardLabel[] = [
-    ...search.flatMap((s) => { const c = cellsOf(s.id)[0]; return c === undefined ? [] : [{ cell: c, text: s.label, tone: 'search' as const }]; }),
-    ...secrets.flatMap((s) => { const c = cellsOf(s.id); return c.length ? [{ cell: anchorOf(c, b.cols), text: s.label, tone: 'secret' as const }] : []; }),
+    ...search.flatMap((s) => { const c = cellsOf(s.id)[0]; return c === undefined ? [] : [{ cell: c, text: s.label, tone: 'search' as const, noticed: !!s.seenBy && !s.shown }]; }),
+    ...secrets.flatMap((s) => { const c = cellsOf(s.id); return c.length ? [{ cell: anchorOf(c, b.cols), text: s.label, tone: 'secret' as const, noticed: !!s.seenBy && !s.found }] : []; }),
     ...exits.flatMap((e) => { const c = cellsOf(e.id); return c.length ? [{ cell: anchorOf(c, b.cols), text: e.label, tone: e.toward ? 'dest' as const : 'exit' as const }] : []; }),
   ];
   const highlight = hoverId ? cellsOf(hoverId) : infoId ? cellsOf(infoId) : undefined;
@@ -393,6 +424,7 @@ export default function BattleMode({
     id: t.id, x: t.x, y: t.y, size: t.size,
     move: reachableCells(grid, b.cols, b.rows, t, speedCells(statOf(t))),
     attack: attackCells(statOf(t)), ranged: rangedCells(statOf(t)), selected: t.id === selectedId,
+    ...(t.kind === 'pc' ? { sight: sightOf(t), search: 1 } : {}),
   });
   // Pendant un glisser, la zone de déplacement du jeton s'affiche depuis sa case de départ.
   const dragged = drag?.moved ? b.tokens.find((t) => t.id === drag.id) : undefined;
@@ -405,7 +437,7 @@ export default function BattleMode({
     const at = liveAt(t);
     return {
       id: t.id, name: t.name, kind: t.kind, x: at.x, y: at.y, size: t.size, icon: t.icon, image: tokenImage(t),
-      selected: t.id === selectedId, hidden: !t.visible, active: t.id === b.turn, hp: t.hp, maxHp: t.maxHp,
+      selected: t.id === selectedId, hidden: !t.visible, active: t.id === b.turn, hp: t.hp, maxHp: t.maxHp, out: isOut(t),
     };
   });
 
@@ -598,7 +630,15 @@ export default function BattleMode({
                 return (
                   <dl className="fiche-facts">
                     {infoPassage.summary && <><dt>Description</dt><dd>{infoPassage.summary}</dd></>}
-                    {infoPassage.secret && <><dt>Pour le trouver</dt><dd><b>{infoPassage.checkLabel ?? 'Perception'} DC {infoPassage.dc ?? 14}</b></dd></>}
+                    {(() => {
+                      const t = profileOf(infoPassage);
+                      return (
+                        <>
+                          <dt>Pour le repérer</dt><dd><b>{detectLabel(t.detect)}</b></dd>
+                          <dt>Dangerosité</dt><dd><span className={`trail-danger lvl-${t.danger.level}`}>{t.danger.label}</span> {t.danger.text} <span className="maps-sub">({t.danger.why.join(', ')})</span></dd>
+                        </>
+                      );
+                    })()}
                     {diff && <><dt>Pour le suivre</dt><dd>{diff.text}</dd></>}
                     <dt>Destination</dt>
                     <dd>

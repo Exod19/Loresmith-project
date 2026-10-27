@@ -8,17 +8,21 @@ import type { TerrainKind } from './terrain';
 import { CATEGORY_IMG, vignette } from './vignettes';
 
 /** `active` : c'est son tour. `hp`/`maxHp` : barre de vie (MJ seulement). */
-export type BoardToken = PlayerToken & { selected?: boolean; hidden?: boolean; active?: boolean; hp?: number; maxHp?: number };
+export type BoardToken = PlayerToken & { selected?: boolean; hidden?: boolean; active?: boolean; hp?: number; maxHp?: number; out?: boolean };
 
 /** Repère MJ posé sur une case : S1 (passage secret), E1 (sortie), F1 (élément à fouiller). */
-export type BoardLabel = { cell: number; text: string; tone: 'secret' | 'exit' | 'search' | 'dest' };
+export type BoardLabel = { cell: number; text: string; tone: 'secret' | 'exit' | 'search' | 'dest'; noticed?: boolean };
 
 /** Élément du plateau. `ghost` : secret non découvert, visible du MJ seulement (pointillés + DC). */
 export type BoardElement = PlayerElement & { cells?: number[]; ghost?: boolean; dc?: number };
 
 /** Portées d'une créature (MJ seulement) : cases atteignables, et anneau de portée d'attaque. */
 /** `attack` : allonge au corps à corps (anneau plein). `ranged` : portée courte à distance (anneau en pointillés). */
-export type BoardRange = { id: string; x: number; y: number; size: number; move: number[]; attack: number; ranged: number; selected: boolean };
+export type BoardRange = {
+  id: string; x: number; y: number; size: number; move: number[]; attack: number; ranged: number; selected: boolean;
+  /** Joueurs : portée de vue (Perception) et cases à portée de main pour fouiller (Investigation). */
+  sight?: number; search?: number;
+};
 
 type Props = {
   cols: number;
@@ -216,6 +220,15 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
               fill="none" stroke="#e0603f" strokeWidth={r.selected ? 0.1 : 0.05} strokeDasharray="0.25 0.15" opacity={r.selected ? 1 : 0.6}
             />
           )}
+          {r.sight ? (
+            <circle cx={r.x + r.size / 2} cy={r.y + r.size / 2} r={r.sight + r.size / 2} fill="rgba(127,224,208,0.05)" stroke="#7fe0d0" strokeWidth={r.selected ? 0.07 : 0.04} strokeDasharray="0.3 0.2" opacity={r.selected ? 0.95 : 0.55}>
+              <title>Portée de vue : {r.sight} cases ({r.sight * 5} pieds)</title>
+            </circle>
+          ) : null}
+          {r.search ? (
+            <rect x={r.x - r.search} y={r.y - r.search} width={r.size + 2 * r.search} height={r.size + 2 * r.search}
+              fill="rgba(127,200,255,0.08)" stroke="#7fc8ff" strokeWidth={0.04} strokeDasharray="0.08 0.08" opacity={r.selected ? 1 : 0.6} />
+          ) : null}
           {r.ranged > r.attack && (
             <rect
               x={r.x - r.ranged} y={r.y - r.ranged} width={r.size + 2 * r.ranged} height={r.size + 2 * r.ranged}
@@ -248,7 +261,7 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
       {labels.map((l) => {
         const x = l.cell % cols, y = Math.floor(l.cell / cols);
         return (
-          <g key={`lb-${l.text}-${l.cell}`} className={`battle-label tone-${l.tone}`} pointerEvents="none">
+          <g key={`lb-${l.text}-${l.cell}`} className={`battle-label tone-${l.tone} ${l.noticed ? 'is-noticed' : ''}`} pointerEvents="none">
             <rect x={x + 0.02} y={y + 0.02} width={0.64} height={0.36} rx={0.1} />
             <text x={x + 0.34} y={y + 0.29} textAnchor="middle" fontSize={0.26}>{l.text}</text>
           </g>
@@ -275,6 +288,9 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
             <text x={cx} y={cy - r - 0.08} textAnchor="middle" fontSize={0.22} fill="#ecd289" fontFamily="Cinzel, serif" pointerEvents="none" stroke="#0b0906" strokeWidth={0.04} paintOrder="stroke">
               {t.name}
             </text>
+            {t.out && (
+              <path d={`M${cx - r * 0.7} ${cy - r * 0.7}L${cx + r * 0.7} ${cy + r * 0.7}M${cx + r * 0.7} ${cy - r * 0.7}L${cx - r * 0.7} ${cy + r * 0.7}`} stroke="#c0492f" strokeWidth={0.1} strokeLinecap="round" pointerEvents="none" />
+            )}
             {t.active && <circle className="battle-turn-ring" cx={cx} cy={cy} r={r + 0.1} fill="none" stroke="#fff1c2" strokeWidth={0.07} pointerEvents="none" />}
             {t.maxHp ? (
               <g pointerEvents="none">

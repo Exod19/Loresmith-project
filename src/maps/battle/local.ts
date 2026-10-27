@@ -4,7 +4,7 @@
  * Les passages secrets restent fermés tant que le MJ ne les a pas découverts ; chacun a un DC à obtenir.
  */
 import type { AtlasData, AtlasFeature, AtlasGeometry, AtlasMap } from '../atlas/types';
-import { dmFeature } from '../atlas/lore';
+import { describe, dmFeature } from '../atlas/lore';
 import type { MapMarker } from '../mapStore';
 import { generateTerrain, type LocationHint, type TerrainElement, type TerrainKind } from './terrain';
 import type { PassageLink } from '../mapStore';
@@ -118,7 +118,7 @@ export function buildLocalMap(p: {
     const secret = f.trace === 'secret';
     const d = secret ? dcOf(f) : null;
     elements.push({
-      id: f.id, kind: 'passage', title: f.title, category: f.category, subtitle: f.subtitle, summary: f.summary,
+      id: f.id, kind: 'passage', title: f.title, category: f.category, subtitle: f.subtitle, summary: describe(f) || undefined,
       trace: f.trace, secret, cells: [...cells], floor: f.trace === 'crevasse' ? 'X' : f.trace === 'ruisseau' ? '~' : '.',
       ...(secret ? { dc: d?.dc ?? 14, checkLabel: d?.checkLabel ?? 'Perception (Sagesse)' } : {}),
     });
@@ -136,7 +136,7 @@ export function buildLocalMap(p: {
     const c = toCell(px, py);
     if (!inside(c)) continue;
     found.push({
-      e: { id: f.id, kind: 'point', secret: false, title: f.title, category: f.category, subtitle: f.subtitle, summary: f.summary, cell: c.y * cols + c.x },
+      e: { id: f.id, kind: 'point', secret: false, title: f.title, category: f.category, subtitle: f.subtitle, summary: describe(f) || undefined, cell: c.y * cols + c.x },
       rank: RANK[f.importance ?? 'detail'] ?? 3,
       d: Math.hypot(c.x - cols / 2, c.y - rows / 2),
     });

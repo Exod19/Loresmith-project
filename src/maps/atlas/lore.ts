@@ -400,7 +400,28 @@ export function describe(f: AtlasFeature): string {
   if (e) return pick(e.d, f.id);
   if (/^(Galerie|Grande galerie|Galerie principale|Galerie du |Galerie profonde|Rue |Allée )/.test(f.title)) return pick(TRACE.galerie.d, f.id);
   if (/Couloir|Boyau/.test(f.title)) return pick(TRACE.boyau.d, f.id);
-  return f.summary && !isGeneric(f.summary) ? f.summary : '';
+  return f.summary && !isGeneric(f.summary) ? f.summary : CATEGORY_D[f.category] ?? '';
+}
+
+/** Dernier recours, selon la nature du lieu : une description d'ambiance plutôt qu'une fiche vide. */
+const CATEGORY_D: Partial<Record<AtlasFeature['category'], string>> = {
+  cite: 'Un coin de la cité souterraine : lanternes de cristal, échoppes taillées dans la roche et passants qui ne lèvent pas les yeux.',
+  institution: 'Un bâtiment officiel aux portes massives, gardé, où l’on vient chercher une autorisation ou une audience.',
+  sanctuaire: 'Un lieu de recueillement : la pierre y est polie par les mains des fidèles, et l’air sent la cire froide.',
+  ressource: 'Un lieu de travail et d’échange : outils, marchandises et l’odeur âcre du métal et de la sueur.',
+  garde: 'Un poste tenu par des sentinelles : on y observe qui passe, et on n’aime pas les questions.',
+  ruine: 'Des vestiges d’une présence ancienne, que la poussière et le silence ont repris.',
+  vivant: 'Un recoin où la vie s’accroche : moisissures, traces de bêtes et bruissements dans le noir.',
+  grotte: 'Une salle de roche nue, que l’écho de vos pas emplit aussitôt.',
+  eau: 'L’eau goutte et ruisselle ; la pierre y est froide et luisante.',
+  danger: 'Quelque chose, ici, met les nerfs à vif : la roche semble prête à céder.',
+  voie: 'Un passage fréquenté, aux parois polies par les épaules et les sacs.',
+  indetermine: 'Un détail de la roche qui accroche le regard, sans qu’on sache encore pourquoi.',
+};
+
+/** Description d'un élément partiel (zone locale du combat, plateau sauvegardé) : jamais de texte de démonstration. */
+export function describeLite(e: { id: string; title: string; trace?: string; category?: string; summary?: string }): string {
+  return describe(e as AtlasFeature);
 }
 
 /** Conseils au MJ pour un élément. */

@@ -16,6 +16,8 @@ import {
 import { battleBoard, mapBoard } from './playerBoard';
 import BattleMode from './battle/BattleMode';
 import type { Hero } from './battle/CombatPanel';
+import TrailsPanel, { DangerChip, trailsNear } from './TrailsPanel';
+import { detectLabel, noticedPassively, passiveOf, trailProfile } from './atlas/trails';
 import Interactables from './Interactables';
 import { publishStage } from '../present/stage';
 import './maps.css';
@@ -62,10 +64,23 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   const hintMarker = selectedMarker ?? partyMarker;
   /** Lieu courant (lieu de l'Atlas, point perso ou repère) : c'est lui qui donne le terrain de la carte de combat. */
   const locationHint = hintFeature
-    ? { id: hintFeature.id, title: hintFeature.title, category: hintFeature.category, trace: hintFeature.trace, text: [hintFeature.subtitle, hintFeature.summary].filter(Boolean).join(' ') }
+    ? { id: hintFeature.id, title: hintFeature.title, category: hintFeature.category, trace: hintFeature.trace, text: [hintFeature.subtitle, describeFeature(hintFeature)].filter(Boolean).join(' ') }
     : hintMarker
       ? { id: `mk-${hintMarker.id}`, title: hintMarker.title, category: hintMarker.kind === 'rencontre' ? 'danger' : 'indetermine', trace: hintMarker.kind === 'passage' ? 'secret' : undefined, text: hintMarker.summary, groups: hintMarker.groups }
       : null;
+
+  /** Perception passive du groupe : la meilleure de ses membres (10 + Sagesse). */
+  const best = heroes.reduce<{ pp: number; who?: string }>((acc, h) => {
+    const pp = passiveOf(Number(h.wis) || undefined, Number(h.perceptionBonus) || 0);
+    return pp > acc.pp ? { pp, who: h.name } : acc;
+  }, { pp: 10 });
+  /** Sentiers qui partent de la position du groupe, sur le plan affiché. */
+  const partyAt = party.at && party.at.planId === map.id ? placeCoords(data, rec, party.at) : null;
+  const trails = useMemo(
+    () => (partyAt && rec.kind === 'atlas' ? trailsNear(data, map, partyAt, overlay.revealed, best.pp) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [data, map.id, partyAt?.[0], partyAt?.[1], overlay.revealed, best.pp, rec.kind],
+  );
 
   /** Repères du groupe sur le plan affiché (MJ) : où il est, et où il veut aller. */
   const partyMarks: MapMark[] = ([['party', party.at, 'Groupe'], ['dest', party.dest, 'Destination']] as const).flatMap(([tone, p, label]) => {
@@ -300,6 +315,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 onBring={() => bringPlayers(feature.id)}
                 revealed={rec.kind === 'atlas' ? overlay.revealed.includes(feature.id) : undefined}
                 onToggleReveal={rec.kind === 'atlas' ? () => toggleReveal(feature.id) : undefined}
+                passive={best.pp}
                 partyHere={party.at?.id === feature.id} partyDest={party.dest?.id === feature.id}
                 onPartyHere={() => setOverlay(withPartyAt(overlay, { id: feature.id, kind: 'feature', title: feature.title, planId: map.id }))}
                 onPartyDest={() => setDest(party.dest?.id === feature.id ? undefined : { id: feature.id, kind: 'feature', title: feature.title, planId: map.id })}
@@ -312,6 +328,15 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                   ? 'Touche un lieu pour le lire, ou place un repère ci-dessous. Tout ce que tu révèles apparaît en direct chez les joueurs.'
                   : 'Mode joueurs : seules les informations partagées sont visibles.'}
               </p>
+            )}
+
+            {dm && party.at && partyAt && (
+              <TrailsPanel
+                placeTitle={party.at.title} trails={trails} passive={best.pp} passiveWho={best.who}
+                onToggle={(id) => toggleReveal(id)}
+                onSelect={(f) => { setSelectedId(f.id); setEnc(null); }}
+                onRevealNoticed={() => setOverlay({ ...overlay, revealed: [...new Set([...overlay.revealed, ...trails.filter((t) => t.noticed).map((t) => t.f.id)])] })}
+              />
             )}
 
             {dm && rec.kind === 'atlas' && (
@@ -405,15 +430,17 @@ function PartyBar({ party, inBattle, onShow, onBattle, onClearDest }: {
   );
 }
 
-function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring, partyHere, partyDest, onPartyHere, onPartyDest }: {
+function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring, partyHere, partyDest, onPartyHere, onPartyDest, passive = 10 }: {
   f: AtlasFeature; dm: boolean; notes: string; defaultCtx: EncCtx; onClose: () => void; onRoll: (ctx: EncCtx) => void;
   revealed?: boolean; onToggleReveal?: () => void; onBring?: () => void;
   partyHere?: boolean; partyDest?: boolean; onPartyHere?: () => void; onPartyDest?: () => void;
+  /** Perception passive du groupe, pour dire si un sentier se voit sans chercher. */
+  passive?: number;
 }) {
   const [zone, setZone] = useState<Zone>(defaultCtx.zone);
   const [depth, setDepth] = useState(defaultCtx.depth);
   const guide = dm ? dmFeature(f) : null;
-  const text = f.summary ?? describeFeature(f);
+  const text = describeFeature(f);
   return (
     <div className="maps-card">
       <div className="maps-card-head">
@@ -423,6 +450,21 @@ function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onT
       <h3>{f.title}</h3>
       {f.subtitle && <p className="maps-sub">{f.subtitle}</p>}
       <p>{text}</p>
+      {f.trace && (() => {
+        const t = trailProfile(f, f.trace === 'secret' ? 15 : undefined);
+        return (
+          <div className="trail-block">
+            <p><DangerChip profile={t} /> <b>Dangerosité perçue : {t.danger.label}.</b> {t.danger.text}</p>
+            <p className="maps-sub">Ce qui se voit : {t.danger.why.join(', ')}.</p>
+            {dm && (
+              <p className="maps-sub">
+                Pour le repérer : <b>{detectLabel(t.detect)}</b>
+                {noticedPassively(t.detect, passive) ? ` · le groupe le voit sans chercher (perception passive ${passive})` : ' · il faut le chercher'}
+              </p>
+            )}
+          </div>
+        );
+      })()}
       {dm && notes && <Block title="Notes du MJ">{notes}</Block>}
       {guide && guide.checks.length > 0 && (
         <Block title="Jets suggérés">
