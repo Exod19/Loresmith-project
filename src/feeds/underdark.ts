@@ -32,12 +32,24 @@ export const FEED_TYPE_LABEL: Record<string, string> = {
 /** Identifiant de la liaison d'un univers aux Archives de l'Underdark (champ `archives` de l'univers). */
 export const UNDERDARK_LINK = 'underdark';
 
-const URL_PATH = `${import.meta.env.BASE_URL}feeds/underdark.json`;
+/** Clé du réglage « adresse du fichier des Archives » (laisse vide : fichier livré avec l'application). */
+export const ARCHIVES_URL_KEY = 'loresmith:archives-url';
+
+function feedUrl(): string {
+  try {
+    const custom = localStorage.getItem(ARCHIVES_URL_KEY)?.trim();
+    if (custom) return custom;
+  } catch {
+    // Stockage indisponible : on garde le fichier livré.
+  }
+  return `${import.meta.env.BASE_URL}feeds/underdark.json`;
+}
+
 let cache: Promise<UnderdarkFeed> | null = null;
 
 /** Charge le fichier une seule fois (cache mémoire). */
 export function loadUnderdarkFeed(): Promise<UnderdarkFeed> {
-  cache ??= fetch(URL_PATH, { cache: 'no-cache' }).then((r) => {
+  cache ??= fetch(feedUrl(), { cache: 'no-cache' }).then((r) => {
     if (!r.ok) throw new Error(`Archives indisponibles (${r.status})`);
     return r.json() as Promise<UnderdarkFeed>;
   });
@@ -59,7 +71,11 @@ export function useUnderdarkFeed() {
     loadUnderdarkFeed().then((f) => alive && setFeed(f)).catch((e: Error) => alive && setError(e.message));
     return () => { alive = false; };
   }, []);
-  return { feed, error, reload: () => reloadUnderdarkFeed().then(setFeed).catch((e: Error) => setError(e.message)) };
+  return {
+    feed, error,
+    /** Relit le fichier, met l'écran à jour et renvoie la version reçue (`null` en cas d'erreur). */
+    reload: () => reloadUnderdarkFeed().then((f) => { setFeed(f); return f; }).catch((e: Error) => { setError(e.message); return null; }),
+  };
 }
 
 /** Type de bibliothèque de Loresmith pour chaque type de fiche des Archives. */

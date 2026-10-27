@@ -1,10 +1,10 @@
 /**
- * Page « Cartes » d'un univers : créer une carte vierge, importer une image, importer l'Atlas des profondeurs,
- * ouvrir une carte dans la visionneuse (MJ ou joueurs).
+ * Page « Cartes » d'un univers : créer une carte vierge, importer une image, importer l'Atlas des profondeurs
+ * (et le synchroniser avec les Archives), ouvrir une carte dans la visionneuse.
  */
 import { useRef, useState } from 'react';
 import MapViewer from './MapViewer';
-import { useUnderdarkFeed } from '../feeds/underdark';
+import { useUnderdarkFeed, ARCHIVES_URL_KEY } from '../feeds/underdark';
 import { ATLAS_MAP_ID, imageFileToDataUrl, type MapRecord } from './mapStore';
 import type { AtlasData } from './atlas/types';
 import './maps.css';
@@ -18,6 +18,17 @@ type Props = {
 };
 
 const uid = () => Math.random().toString(36).slice(2, 10);
+/** Identifiants des lieux connus au dernier passage : c'est ce qui permet de compter les ajouts et retraits. */
+const KNOWN_KEY = 'loresmith:atlas-known:v1';
+
+function readKnown(): Set<string> | null {
+  try {
+    const raw = localStorage.getItem(KNOWN_KEY);
+    return raw ? new Set<string>(JSON.parse(raw)) : null;
+  } catch {
+    return null;
+  }
+}
 
 export default function MapsPage({ universe, maps, dispatch, flash }: Props) {
   const [openId, setOpenId] = useState<string | null>(null);
@@ -25,11 +36,15 @@ export default function MapsPage({ universe, maps, dispatch, flash }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [view, setView] = useState<'rayons' | 'liste'>('rayons');
-  const { feed, error } = useUnderdarkFeed();
+  const [sourceUrl, setSourceUrl] = useState(() => {
+    try { return localStorage.getItem(ARCHIVES_URL_KEY) ?? ''; } catch { return ''; }
+  });
+  const { feed, error, reload } = useUnderdarkFeed();
 
   if (!universe) return <div className="maps-page"><p>Aucun univers actif.</p></div>;
 
   const mine = Object.values(maps).filter((m) => m.universeId === universe.id).sort((a, b) => b.updatedAt - a.updatedAt);
+  const atlasRec = maps[ATLAS_MAP_ID];
   const hasAtlas = mine.some((m) => m.kind === 'atlas');
   /** L'Atlas des profondeurs est le contenu de l'Underdark : il ne s'ajoute qu'à cet univers. */
   const isUnderdark = universe.archives === 'underdark';
@@ -63,8 +78,43 @@ export default function MapsPage({ universe, maps, dispatch, flash }: Props) {
 
   const importAtlas = () => {
     const now = Date.now();
-    dispatch({ type: 'ADD_MAP', map: { id: ATLAS_MAP_ID, universeId: universe.id, kind: 'atlas', title: 'Atlas des profondeurs', description: 'Grands niveaux, strates, sites, passages et rencontres.', createdAt: now, updatedAt: now } });
+    dispatch({ type: 'ADD_MAP', map: { id: ATLAS_MAP_ID, universeId: universe.id, kind: 'atlas', title: 'Atlas des profondeurs', description: 'Grands niveaux, strates, sites, passages et rencontres.', createdAt: now, updatedAt: now, syncedAt: now } });
     flash('Atlas des profondeurs ajouté');
+  };
+
+  /**
+   * Synchronise l'Atlas avec les Archives. Seule la source est remplacée : révélations, repères et combats
+   * sont dans l'univers, à part, et ne sont jamais touchés. Un repère lié à une fiche disparue est signalé, pas supprimé.
+   */
+  const sync = async () => {
+    const before = readKnown();
+    setBusy(true);
+    const fresh = await reload();
+    setBusy(false);
+    if (!fresh) { flash('Synchronisation impossible : vérifie l’adresse des Archives.'); return; }
+
+    const now = new Set(fresh.atlas.features.map((f) => f.id));
+    try { localStorage.setItem(KNOWN_KEY, JSON.stringify([...now])); } catch { /* Stockage plein : la synchronisation reste valable pour cette session. */ }
+    // L'index de l'Atlas est reconstruit à partir de `updatedAt` : il doit changer après une synchronisation.
+    if (atlasRec) dispatch({ type: 'UPDATE_MAP', id: ATLAS_MAP_ID, patch: { syncedAt: Date.now(), updatedAt: Date.now() } });
+
+    const orphans = mine.reduce((n, m) => n + (m.overlay?.markers ?? []).filter((k) => k.archiveId && !now.has(k.archiveId)).length, 0);
+    const suffix = orphans ? ` ${orphans} repère(s) lié(s) à une fiche disparue : signalé(s), non supprimé(s).` : '';
+    if (!before) {
+      flash(`Première synchronisation : ${now.size} lieux enregistrés.${suffix}`);
+      return;
+    }
+    const added = [...now].filter((id) => !before.has(id)).length;
+    const removed = [...before].filter((id) => !now.has(id)).length;
+    flash(`Archives à jour : ${added} lieu(x) ajouté(s), ${removed} retiré(s). Vos repères et révélations sont conservés.${suffix}`);
+  };
+
+  const saveSource = (value: string) => {
+    setSourceUrl(value);
+    try {
+      if (value.trim()) localStorage.setItem(ARCHIVES_URL_KEY, value.trim());
+      else localStorage.removeItem(ARCHIVES_URL_KEY);
+    } catch { /* Stockage indisponible : l'adresse vaut pour cette session seulement. */ }
   };
 
   if (open) {
@@ -93,13 +143,30 @@ export default function MapsPage({ universe, maps, dispatch, flash }: Props) {
           <button className={view === 'rayons' ? 'on' : ''} onClick={() => setView('rayons')}>Rayons</button>
           <button className={view === 'liste' ? 'on' : ''} onClick={() => setView('liste')}>Liste</button>
         </div>
-        <p className="maps-sub">Cartes interactives à montrer aux joueurs. Les repères, les conseils et les rencontres aléatoires restent réservés au mode MJ.</p>
+        <p className="maps-sub">Cartes interactives à projeter aux joueurs. Ce que tu révèles ou places apparaît en direct sur leur écran ; le reste reste réservé au MJ.</p>
         <div className="maps-actions">
           <button className="maps-btn gold" onClick={newBlank}>+ Carte vierge</button>
           <button className="maps-btn" disabled={busy} onClick={() => fileRef.current?.click()}>{busy ? 'Lecture…' : 'Importer une image'}</button>
           {isUnderdark && !hasAtlas && <button className="maps-btn" onClick={importAtlas}>Importer l’Atlas des profondeurs</button>}
+          {hasAtlas && (
+            <button className="maps-btn" disabled={busy} onClick={sync}>
+              {busy ? 'Synchronisation…' : '⟳ Synchroniser les Archives'}
+            </button>
+          )}
           <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) importImage(f); e.target.value = ''; }} />
         </div>
+        {hasAtlas && (
+          <details className="maps-sync">
+            <summary>Synchronisation des Archives{atlasRec?.syncedAt ? ` · dernière le ${new Date(atlasRec.syncedAt).toLocaleString('fr-CA')}` : ''}</summary>
+            <p className="maps-sub">
+              La synchronisation met à jour les lieux de l’Atlas. Tes révélations, repères, rencontres et combats sont stockés dans l’univers : ils ne sont jamais remplacés.
+            </p>
+            <label className="maps-row">
+              Adresse du fichier des Archives (vide : version livrée avec l’application)
+              <input className="maps-btn" value={sourceUrl} placeholder="https://…/underdark.json" onChange={(e) => saveSource(e.target.value)} />
+            </label>
+          </details>
+        )}
       </header>
 
       {mine.length === 0 && <p className="maps-hint">Aucune carte pour cet univers. Crée une carte vierge, importe une image, ou ajoute l’Atlas des profondeurs.</p>}

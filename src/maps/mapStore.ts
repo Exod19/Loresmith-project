@@ -1,14 +1,15 @@
 /**
- * Cartes des univers : modèle persistant et conversion vers le format de l'Atlas.
+ * Cartes des univers : modèle persistant, superposition du MJ et conversion vers le format de l'Atlas.
  *
  * Deux sortes de cartes :
- *  - `atlas` : l'Atlas des profondeurs intégré (données et code fournis par le projet) ;
+ *  - `atlas` : l'Atlas des profondeurs (données des Archives de l'Underdark, synchronisables) ;
  *  - `custom` : une image importée (ou une carte vierge) avec des repères placés par le MJ.
  *
- * Les cartes personnalisées sont converties en `AtlasData` pour être rendues par le même moteur (MapCanvas).
+ * La superposition du MJ (`overlay`, `battle`) est stockée à part de la source : une synchronisation des Archives
+ * ne touche jamais aux révélations, aux repères ou aux combats.
  */
 import { setAtlasData } from './atlas/model';
-import type { AtlasData, AtlasFeature, AtlasGeometry, FeatureCategory, Importance } from './atlas/types';
+import type { AtlasData, AtlasFeature, AtlasGeometry, AtlasMap, FeatureCategory, Importance } from './atlas/types';
 
 export type Zone = 'sauvage' | 'transit' | 'cite';
 
@@ -31,6 +32,62 @@ export interface PointRecord {
   depth: number;
 }
 
+export type MarkerKind = 'rencontre' | 'passage' | 'repere';
+
+/** Repère posé par le MJ sur une carte : rencontre, passage secret, ou simple point d'intérêt. */
+export interface MapMarker {
+  id: string;
+  kind: MarkerKind;
+  title: string;
+  /** Plan où le repère est posé (cf. mapIdOf). */
+  planId: string;
+  /** Position normalisée 0–1 sur le plan. */
+  x: number;
+  y: number;
+  /** Texte montré aux joueurs quand le repère est révélé. */
+  summary: string;
+  /** Notes du MJ : jamais envoyées aux joueurs. */
+  notes: string;
+  revealed: boolean;
+  /** Créatures d'une rencontre tirée au sort : fiche MJ seulement. */
+  groups?: { stat: string; role?: string; n: number; detail: string }[];
+  /** Fiche des Archives à laquelle le repère est lié. Un lieu disparu après synchronisation le signale sans être effacé. */
+  archiveId?: string;
+}
+
+export interface MapOverlay {
+  /** Identifiants des lieux de l'atlas visibles des joueurs. Rien n'est visible par défaut. */
+  revealed: string[];
+  markers: MapMarker[];
+}
+
+export interface BattleToken {
+  id: string;
+  name: string;
+  kind: 'pc' | 'monster' | 'other';
+  /** Case de la grille (coin haut-gauche). */
+  x: number;
+  y: number;
+  /** Taille en cases : 1 (moyenne), 2 (grande créature). */
+  size: 1 | 2;
+  /** Invisible pour les joueurs tant que le MJ ne le révèle pas. */
+  visible: boolean;
+  hp?: number;
+  maxHp?: number;
+  ac?: number;
+  /** Fiche SRD (cf. statblocks.ts) si la créature est connue. */
+  statId?: string;
+}
+
+export interface Battle {
+  cols: number;
+  rows: number;
+  /** Une case = 5 pieds en D&D 5e. */
+  feetPerCell: number;
+  round: number;
+  tokens: BattleToken[];
+}
+
 export interface MapRecord {
   id: string;
   universeId: string;
@@ -43,6 +100,10 @@ export interface MapRecord {
   width?: number;
   height?: number;
   points?: PointRecord[];
+  overlay?: MapOverlay;
+  battle?: Battle;
+  /** Dernière synchronisation avec les Archives (atlas uniquement). */
+  syncedAt?: number;
   createdAt: number;
   updatedAt: number;
 }
@@ -51,8 +112,12 @@ export interface MapRecord {
 export const ATLAS_MAP_ID = 'atlas-profondeurs';
 export const ATLAS_DEFAULT_PLAN = 'carte-n1-s3';
 
+export const EMPTY_OVERLAY: MapOverlay = { revealed: [], markers: [] };
+export const DEFAULT_BATTLE: Battle = { cols: 20, rows: 14, feetPerCell: 5, round: 1, tokens: [] };
+
 const MIN_ZOOM: Record<Importance, number> = { landmark: 0, regional: 0, local: 1.3, detail: 2.6 };
 const REF_W = 1240;
+const MARKER_CATEGORY: Record<MarkerKind, FeatureCategory> = { rencontre: 'danger', passage: 'voie', repere: 'indetermine' };
 
 /** Construit le jeu de données d'une carte personnalisée. Les repères secrets sont retirés pour les joueurs. */
 export function buildCustomAtlas(rec: MapRecord, dm: boolean): AtlasData {
@@ -82,19 +147,64 @@ export function buildCustomAtlas(rec: MapRecord, dm: boolean): AtlasData {
 /** Identifiant de la carte rendue (dans son jeu de données). */
 export const mapIdOf = (rec: MapRecord) => (rec.kind === 'atlas' ? ATLAS_DEFAULT_PLAN : `map-${rec.id}`);
 
-let activeKey = '';
 /**
- * Active le jeu de données d'une carte avant son rendu. Ne reconstruit les index que si la carte change.
- * Le moteur d'Atlas lit des index partagés : une seule carte est active à la fois.
+ * Ajoute les repères du MJ au jeu de données. Côté joueurs, seuls les repères révélés passent.
+ * Un repère est un point d'atlas : il bénéficie donc du zoom, de la sélection et des étiquettes existantes.
+ */
+function withMarkers(data: AtlasData, rec: MapRecord, dm: boolean): AtlasData {
+  const markers = (rec.overlay?.markers ?? []).filter((m) => dm || m.revealed);
+  if (markers.length === 0) return data;
+  const features: AtlasFeature[] = markers.map((m) => ({
+    id: `mk-${m.id}`, title: m.title, category: MARKER_CATEGORY[m.kind], importance: 'landmark', minZoom: 0,
+    summary: dm ? [m.summary, m.notes && `Notes du MJ : ${m.notes}`].filter(Boolean).join('\n\n') || undefined : m.summary || undefined,
+    canonStatus: 'creation', placementStatus: 'documented',
+  }));
+  const geometries: AtlasGeometry[] = markers.map((m) => ({
+    id: `g-mk-${m.id}`, mapId: m.planId, featureId: `mk-${m.id}`, type: 'point', coordinates: [m.x, m.y],
+  }));
+  return { ...data, features: [...data.features, ...features], geometries: [...data.geometries, ...geometries] };
+}
+
+/** Jeu de données complet d'une carte, vue MJ (`dm`) ou joueurs. Pour l'Atlas, `atlas` est la source synchronisée. */
+export function mapDataFor(rec: MapRecord, atlas: AtlasData, dm: boolean): AtlasData {
+  if (rec.kind === 'custom') return withMarkers(buildCustomAtlas(rec, dm), rec, dm);
+  if (dm) return withMarkers(atlas, rec, true);
+  const revealed = new Set(rec.overlay?.revealed ?? []);
+  return withMarkers(
+    { ...atlas, features: atlas.features.filter((f) => revealed.has(f.id)), geometries: atlas.geometries.filter((g) => revealed.has(g.featureId)) },
+    rec, false,
+  );
+}
+
+/** Ne garde que le plan demandé : c'est ce qu'on envoie à l'écran joueur (petit, sans données MJ). */
+export function restrictToPlan(data: AtlasData, planId: string): AtlasData {
+  const geometries = data.geometries.filter((g) => g.mapId === planId);
+  const ids = new Set(geometries.map((g) => g.featureId));
+  const maps: AtlasMap[] = data.maps.filter((m) => m.id === planId);
+  return {
+    ...data,
+    levels: [], strata: [], spaces: [], anchors: [], connections: [],
+    maps,
+    cavities: { [planId]: data.cavities[planId] ?? [] },
+    features: data.features.filter((f) => ids.has(f.id)),
+    geometries,
+  };
+}
+
+let activeKey = '';
+let activeData: AtlasData | null = null;
+/**
+ * Active le jeu de données d'une carte avant son rendu (vue MJ). Ne reconstruit les index que si la carte
+ * ou sa superposition a changé (`updatedAt`). Le moteur d'Atlas lit des index partagés : une seule carte est active à la fois.
  */
 export function activateMap(rec: MapRecord, dm: boolean, atlas: AtlasData): AtlasData {
-  const key = rec.kind === 'atlas' ? 'atlas' : `${rec.id}:${rec.updatedAt}:${dm}`;
-  const data = rec.kind === 'atlas' ? atlas : buildCustomAtlas(rec, dm);
-  if (key !== activeKey) {
-    setAtlasData(data);
+  const key = `${rec.id}:${rec.updatedAt}:${dm}`;
+  if (key !== activeKey || !activeData) {
+    activeData = mapDataFor(rec, atlas, dm);
+    setAtlasData(activeData);
     activeKey = key;
   }
-  return data;
+  return activeData;
 }
 
 /** Lit une image et la réduit (côté le plus long ≤ 2000 px) pour rester raisonnable dans le stockage local. */

@@ -101,7 +101,7 @@ function buildings(m: AtlasMap) {
   return out;
 }
 
-export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, dm }: {
+export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, dataKey, dm }: {
   map: AtlasMap; layers: Layers; hidden: Set<FeatureCategory>;
   /** Mode MJ : révèle les passages secrets. Hors MJ, la carte est une carte de lore. */
   dm: boolean;
@@ -109,6 +109,9 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   focus?: { kind: 'anchor' | 'point'; id: string } | null; focusKey?: string;
   selectedId?: string | null;
   onSelect: (f: AtlasFeature) => void; onAnchor: (a: AtlasAnchor) => void;
+  /** Mode placement : un clic sur le fond de la carte renvoie sa position normalisée (0–1). */
+  onPlace?: (x: number, y: number) => void;
+  dataKey?: string | number;
 }) {
   const svg = useRef<SVGSVGElement>(null);
   const W = map.width, H = map.height;
@@ -142,9 +145,10 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
     ro.observe(el); return () => ro.disconnect();
   }, [W, H]);
 
-  const geos = useMemo(() => geometriesOn(map.id), [map.id]);
-  const anchors = useMemo(() => anchorsOn(map.id), [map.id]);
-  const cavities = useMemo(() => cavitiesOf(map.id), [map.id]);
+  // `dataKey` change quand le contenu du plan change (repères, révélations) sans changer de plan : les listes sont recalculées.
+  const geos = useMemo(() => geometriesOn(map.id), [map.id, dataKey]);
+  const anchors = useMemo(() => anchorsOn(map.id), [map.id, dataKey]);
+  const cavities = useMemo(() => cavitiesOf(map.id), [map.id, dataKey]);
   const houses = useMemo(() => (map.scope.kind === 'site' && !map.decor ? buildings(map) : []), [map]);
   const relief = useMemo(() => terrain(cavities, W, H), [cavities, W, H]);
   /** Tracés des passages triés par seuil de zoom : ceux qui sont visibles forment un préfixe de la liste. */
@@ -218,7 +222,13 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
     const sc = px; drag.current = { x: 0, y: 0, pending: true };
     setT((o) => ({ ...o, tx: o.tx + dr.x * sc, ty: o.ty + dr.y * sc }));
   };
-  const up = (e: RPointerEvent) => { pointers.current.delete(e.pointerId); if (pointers.current.size < 2) pinch.current = null; if (!pointers.current.size) commitDrag(); };
+  const up = (e: RPointerEvent) => { pointers.current.delete(e.pointerId); if (pointers.current.size < 2) pinch.current = null; if (!pointers.current.size) commitDrag();
+    // Clic sur le fond (pas sur un lieu, pas un glisser) : position dans le plan, en tenant compte du zoom et du décalage.
+    if (onPlace && travel.current.dist <= 6 && !(e.target as Element).closest('[role="button"]')) {
+      const c = toSvg(e.clientX, e.clientY);
+      onPlace((c.x - t.tx) / t.k / W, (c.y - t.ty) / t.k / H);
+    }
+  };
   /** Un clic n'est valide que si le pointeur ne s'est presque pas déplacé (pas pendant un glisser). */
   const tap = (fn: () => void) => () => { if (travel.current.dist <= 6) fn(); };
   const selectRef = useRef(onSelect); selectRef.current = onSelect;

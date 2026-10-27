@@ -1,40 +1,31 @@
 /**
- * Écran joueur : la fenêtre à partager. Plein écran, sans menus ; elle montre ce que le MJ pousse depuis la console.
- * Les cartes sont rendues en mode joueurs : repères secrets et notes du MJ ne sont jamais affichés.
+ * Écran joueur : la fenêtre à partager. Plein écran, sans menus ; elle affiche ce que la console MJ projette.
+ * Les données reçues sont déjà filtrées (cf. maps/playerBoard.ts) : aucune note ni repère secret n'arrive ici.
  */
 import { useEffect, useState } from 'react';
 import MapCanvas, { type Layers } from '../maps/atlas/MapCanvas';
-import { activateMap, type MapRecord } from '../maps/mapStore';
-import { useUnderdarkFeed } from '../feeds/underdark';
+import { setAtlasData } from '../maps/atlas/model';
 import type { AtlasData, FeatureCategory } from '../maps/atlas/types';
-import { openStageChannel, type Stage } from './stage';
+import BattleBoard from '../maps/battle/BattleBoard';
+import { openStageChannel, type PlayerBoard, type Stage } from './stage';
 import '../maps/maps.css';
 import '../maps/atlas/atlas.css';
+import '../maps/battle/battle.css';
 import './present.css';
 
-/** Même clé que la console MJ (App.jsx). */
-const STORE_KEY = 'loresmith:store:v1';
 const LAYERS: Layers = { points: true, etiquettes: true, galeries: true, connexions: true, ambiance: true };
 const HIDDEN = new Set<FeatureCategory>();
 
-function readMaps(): Record<string, MapRecord> {
-  try {
-    return JSON.parse(localStorage.getItem(STORE_KEY) || '{}').maps || {};
-  } catch {
-    return {};
-  }
-}
-
 export default function PlayerScreen() {
   const [stage, setStage] = useState<Stage>({ kind: 'blank' });
-  const [maps, setMaps] = useState(readMaps);
-  const { feed } = useUnderdarkFeed();
+  // Compteur à chaque envoi : force la carte à relire ses données même si le plan ne change pas.
+  const [rev, setRev] = useState(0);
 
   useEffect(() => {
     const link = openStageChannel((m) => {
       if (m.type !== 'stage') return;
       setStage(m.stage);
-      setMaps(readMaps());
+      setRev((r) => r + 1);
     });
     link.send({ type: 'hello' });
     return () => link.close();
@@ -42,7 +33,7 @@ export default function PlayerScreen() {
 
   return (
     <div className="present-screen">
-      <Scene stage={stage} maps={maps} atlas={feed?.atlas} />
+      <Scene stage={stage} rev={rev} />
       <button className="present-fs" onClick={() => document.documentElement.requestFullscreen?.()}>
         Plein écran
       </button>
@@ -50,7 +41,7 @@ export default function PlayerScreen() {
   );
 }
 
-function Scene({ stage, maps, atlas }: { stage: Stage; maps: Record<string, MapRecord>; atlas?: AtlasData }) {
+function Scene({ stage, rev }: { stage: Stage; rev: number }) {
   if (stage.kind === 'image') {
     return (
       <figure className="present-image">
@@ -67,21 +58,37 @@ function Scene({ stage, maps, atlas }: { stage: Stage; maps: Record<string, MapR
       </article>
     );
   }
-  if (stage.kind === 'map') {
-    const rec = maps[stage.mapId];
-    if (!rec) return <p className="present-wait">Carte introuvable.</p>;
-    if (rec.kind === 'atlas' && !atlas) return <p className="present-wait">Chargement de la carte…</p>;
-    const data = activateMap(rec, false, atlas as AtlasData);
-    const map = data.maps.find((m) => m.id === stage.planId) ?? data.maps[0];
-    return (
-      <div className="maps-canvas present-map">
-        <MapCanvas key={map.id} map={map} layers={LAYERS} hidden={HIDDEN} selectedId={null} onSelect={() => {}} onAnchor={() => {}} dm={false} />
-      </div>
-    );
+  if (stage.kind === 'board') {
+    return stage.board.mode === 'map'
+      ? <PlayerMap board={stage.board} rev={rev} />
+      : <PlayerBattle board={stage.board} />;
   }
   return (
     <div className="present-blank">
       <img src="/brand/loresmith-emblem-gold-transparent.png" alt="" />
+    </div>
+  );
+}
+
+function PlayerMap({ board, rev }: { board: Extract<PlayerBoard, { mode: 'map' }>; rev: number }) {
+  setAtlasData(board.data as AtlasData);
+  const map = board.data.maps.find((m) => m.id === board.planId) ?? board.data.maps[0];
+  if (!map) return <p className="present-wait">Carte vide.</p>;
+  return (
+    <div className="maps-canvas present-map">
+      <MapCanvas key={map.id} map={map} layers={LAYERS} hidden={HIDDEN} selectedId={null} onSelect={() => {}} onAnchor={() => {}} dataKey={rev} dm={false} />
+    </div>
+  );
+}
+
+function PlayerBattle({ board }: { board: Extract<PlayerBoard, { mode: 'battle' }> }) {
+  return (
+    <div className="present-battle">
+      <header className="present-battle-head">
+        <span>{board.title}</span>
+        <span>Round {board.round}</span>
+      </header>
+      <BattleBoard cols={board.cols} rows={board.rows} backdrop={board.backdrop} tokens={board.tokens} />
     </div>
   );
 }

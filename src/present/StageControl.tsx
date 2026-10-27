@@ -1,10 +1,14 @@
 /**
  * Console MJ → écran joueur. Ouvre la fenêtre à partager, puis choisit ce qu'elle montre :
- * écran noir, texte à lire, carte de l'univers, image (monstre, PNJ, lieu, objet…).
+ * écran noir, texte à lire, carte, image (monstre, PNJ, lieu, objet…).
+ * Pour la carte et le combat en cours, la vue « Cartes » projette en direct : on les retrouve ici.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { loadUnderdarkFeed } from '../feeds/underdark';
+import { mapBoard } from '../maps/playerBoard';
 import { mapIdOf, type MapRecord } from '../maps/mapStore';
-import { openStageChannel, PLAYER_VIEW_NAME, type Stage, type StageMessage } from './stage';
+import type { AtlasData } from '../maps/atlas/types';
+import { currentStage, onPlayerHello, PLAYER_VIEW_NAME, publishStage, type Stage } from './stage';
 import './present.css';
 
 type Asset = { id: string; name?: string; dataUrl?: string; universeId?: string; category?: string };
@@ -16,31 +20,27 @@ type Props = {
 };
 
 const BLANK: Stage = { kind: 'blank' };
-const LABEL: Record<Stage['kind'], string> = { blank: 'Écran noir', text: 'Texte', image: 'Image', map: 'Carte' };
+const LABEL: Record<Stage['kind'], string> = { blank: 'Écran noir', text: 'Texte', image: 'Image', board: 'Carte / combat' };
 
 export default function StageControl({ universe, state, flash }: Props) {
-  const [stage, setStage] = useState<Stage>(BLANK);
+  const [stage, setStage] = useState<Stage>(() => currentStage());
   const [linked, setLinked] = useState(false);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
-  // Lu par le canal (rappel au moment de la connexion) : une ref évite de le recréer à chaque affichage.
-  const current = useRef<Stage>(BLANK);
-  const link = useRef<ReturnType<typeof openStageChannel> | null>(null);
 
-  useEffect(() => {
-    link.current = openStageChannel((m: StageMessage) => {
-      if (m.type !== 'hello') return;
-      setLinked(true);
-      link.current?.send({ type: 'stage', stage: current.current });
-    });
-    return () => link.current?.close();
-  }, []);
+  useEffect(() => onPlayerHello(() => setLinked(true)), []);
 
   function show(next: Stage) {
     if (!linked) flash("Ouvre l'écran joueur pour voir le résultat.");
-    current.current = next;
     setStage(next);
-    link.current?.send({ type: 'stage', stage: next });
+    publishStage(next);
+  }
+
+  async function showMap(rec: MapRecord) {
+    // Le plan entier de l'Atlas vient du fichier des Archives : on le charge au besoin (les cartes perso n'en ont pas besoin).
+    const feed = rec.kind === 'atlas' ? await loadUnderdarkFeed().catch(() => null) : null;
+    if (rec.kind === 'atlas' && !feed) { flash('Archives indisponibles.'); return; }
+    show({ kind: 'board', board: mapBoard(rec, feed?.atlas as AtlasData, mapIdOf(rec)) });
   }
 
   function openPlayerScreen() {
@@ -97,40 +97,35 @@ export default function StageControl({ universe, state, flash }: Props) {
         <p className="sub">Aucune carte dans cet univers. Crée-la dans Cartes.</p>
       ) : (
         <div className="present-grid">
-          {maps.map((m) => {
-            const planId = mapIdOf(m);
-            const on = stage.kind === 'map' && stage.mapId === m.id;
-            return (
-              <button key={m.id} className="present-tile" data-on={on ? 1 : 0} onClick={() => show({ kind: 'map', mapId: m.id, planId })}>
-                {m.image ? <img src={m.image} alt="" /> : <div className="present-tile-empty">◇</div>}
-                <span>{m.title}</span>
-              </button>
-            );
-          })}
+          {maps.map((m) => (
+            <button key={m.id} className="present-tile" onClick={() => showMap(m)}>
+              {m.image ? <img src={m.image} alt="" /> : <div className="present-tile-empty">◇</div>}
+              <span>{m.title}</span>
+            </button>
+          ))}
         </div>
       )}
+      <p className="sub">Pour révéler des lieux, placer des rencontres ou lancer un combat, utilise l'onglet Cartes : la projection suit en direct.</p>
 
       <div className="eyebrow">Images : monstres, PNJ, lieux, objets</div>
       {images.length === 0 ? (
         <p className="sub">Aucune image. Ajoute-les dans Images : elles apparaîtront ici.</p>
       ) : (
         <div className="present-grid">
-          {images.map((a) => {
-            const on = stage.kind === 'image' && stage.dataUrl === a.dataUrl;
-            return (
-              <button
-                key={a.id}
-                className="present-tile"
-                data-on={on ? 1 : 0}
-                onClick={() => show({ kind: 'image', title: a.name ?? 'Image', dataUrl: a.dataUrl as string })}
-              >
-                <img src={a.dataUrl} alt="" />
-                <span>{a.name ?? 'Image'}</span>
-              </button>
-            );
-          })}
+          {images.map((a) => (
+            <button
+              key={a.id}
+              className="present-tile"
+              data-on={stage.kind === 'image' && stage.dataUrl === a.dataUrl ? 1 : 0}
+              onClick={() => show({ kind: 'image', title: a.name ?? 'Image', dataUrl: a.dataUrl as string })}
+            >
+              <img src={a.dataUrl} alt="" />
+              <span>{a.name ?? 'Image'}</span>
+            </button>
+          ))}
         </div>
       )}
     </>
   );
 }
+

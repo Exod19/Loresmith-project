@@ -25,6 +25,7 @@ import ArchivesLinkPanel from './feeds/ArchivesLink';
 import StageControl from './present/StageControl';
 import { DiceFloater } from './dice/DiceRoller3D';
 import DmCopilot from './copilot/DmCopilot';
+import { hostStage } from './present/stage';
 
 // Pages « Jouer » : le lanceur de dés flotte par-dessus.
 const PLAY_VIEWS = ['present', 'scene', 'encounter', 'quests'];
@@ -5073,6 +5074,11 @@ export default function App() {
       dispatch({ type: 'UPDATE_UNIVERSE', id: u.id, patch: { archives: UNDERDARK_LINK } });
     }
   }, [state]);
+
+  // Console MJ : elle répond aux écrans joueurs qui se connectent et leur envoie la scène en cours.
+  useEffect(() => {
+    hostStage();
+  }, []);
 
   useEffect(() => {
     (async () => {
