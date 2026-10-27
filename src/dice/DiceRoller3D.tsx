@@ -37,7 +37,7 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
           id: 'dice-canvas',
           assetPath: '/assets/dice-box/',
           theme: 'default',
-          themeColor: '#4f46e5',
+          themeColor: '#c9a24a',
           offscreen: false,
           // Appelé dès que les dés sont immobiles. `value` = total du groupe (ex. 2d6 → somme).
           onRollComplete: (results: DieGroup[]) => {
@@ -71,12 +71,12 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
   };
 
   return (
-    <div className="flex flex-col items-center bg-slate-900 p-4 rounded-2xl shadow-2xl w-full text-white">
-      <h2 className="text-xl font-black text-indigo-400 mb-3">🎲 Lanceur de dés 3D RPG</h2>
+    <div className="flex flex-col items-center bg-[#16110a] border border-[#c9a24a]/40 p-4 rounded-2xl shadow-2xl w-full text-white">
+      <h2 className="text-xl font-black font-['Cinzel'] text-[#c9a24a] mb-3">🎲 Lanceur de dés 3D RPG</h2>
 
       <div
         id="dice-box"
-        className="w-full h-[300px] bg-slate-950 rounded-xl border border-slate-800 shadow-inner relative overflow-hidden mb-3 [&>canvas]:block [&>canvas]:w-full [&>canvas]:h-full"
+        className="w-full h-[300px] bg-[#0b0906] rounded-xl border border-[#c9a24a]/30 shadow-inner relative overflow-hidden mb-3 [&>canvas]:block [&>canvas]:w-full [&>canvas]:h-full"
       />
 
       <div className="flex flex-wrap gap-1.5 w-full mb-3">
@@ -86,7 +86,7 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
             type="button"
             onClick={() => roll(d)}
             disabled={!ready}
-            className="px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700 hover:border-indigo-500 text-sm font-mono disabled:opacity-40"
+            className="px-2.5 py-1 rounded-md bg-[#1c150c] border border-[#c9a24a]/30 hover:border-[#c9a24a] text-sm font-mono disabled:opacity-40"
           >
             {d}
           </button>
@@ -105,25 +105,25 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
           value={notation}
           onChange={(e) => setNotation(e.target.value)}
           placeholder="Ex: 1d20+5, 2d6, 4d10"
-          className="flex-1 px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white font-mono focus:outline-none focus:border-indigo-500"
+          className="flex-1 px-4 py-2 rounded-lg bg-[#1c150c] border border-[#c9a24a]/30 text-[#f3e6c0] font-mono focus:outline-none focus:border-[#c9a24a]"
         />
         <button
           type="submit"
           disabled={!ready}
-          className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold rounded-lg shadow-lg shadow-indigo-600/30 transition-all disabled:opacity-40"
+          className="px-6 py-2 bg-[#7d6128] hover:bg-[#c9a24a] hover:text-[#0b0906] active:scale-95 text-[#f3e6c0] font-bold rounded-lg shadow-lg shadow-[#c9a24a]/20 transition-all disabled:opacity-40"
         >
           Lancer !
         </button>
       </form>
 
-      {!ready && !error && <p className="text-sm text-slate-400">Chargement du moteur 3D…</p>}
+      {!ready && !error && <p className="text-sm text-[#c9a24a]/70">Chargement du moteur 3D…</p>}
       {error && <p className="text-sm text-red-400">{error}</p>}
 
       {total !== null && (
-        <div className="bg-slate-950/60 p-4 rounded-xl border border-indigo-500/30 w-full text-center">
-          <div className="text-sm text-slate-400 uppercase tracking-wider font-semibold">Total du jet</div>
-          <div className="text-5xl font-black text-indigo-400 my-1">{total}</div>
-          <div className="text-xs text-slate-500 font-mono mt-2">
+        <div className="bg-[#0b0906]/60 p-4 rounded-xl border border-[#c9a24a]/40 w-full text-center">
+          <div className="text-sm text-[#c9a24a]/70 uppercase tracking-wider font-semibold">Total du jet</div>
+          <div className="text-5xl font-black text-[#ecd289] my-1">{total}</div>
+          <div className="text-xs text-[#c9a24a]/60 font-mono mt-2">
             {label} → {groups.map((g) => `[${(g.rolls ?? []).map((r) => r.value).join(', ') || g.value}]`).join(' + ')}
           </div>
         </div>
@@ -150,7 +150,7 @@ export function DiceFloater() {
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-label={open ? 'Fermer le lanceur de dés' : 'Ouvrir le lanceur de dés'}
-        className="fixed right-4 bottom-4 z-50 w-14 h-14 rounded-full bg-indigo-600 hover:bg-indigo-700 text-2xl shadow-lg shadow-indigo-600/40 active:scale-95 transition-all"
+        className="fixed right-4 bottom-4 z-50 w-14 h-14 rounded-full bg-[#7d6128] hover:bg-[#c9a24a] text-2xl shadow-lg shadow-[#c9a24a]/30 active:scale-95 transition-all"
       >
         🎲
       </button>
