@@ -105,8 +105,11 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
   };
 
   return (
-    <div className="flex flex-col items-center bg-[#16110a] border border-[#c9a24a]/40 p-4 rounded-2xl shadow-2xl w-full text-white">
-      <h2 className="text-xl font-black font-['Cinzel'] text-[#c9a24a] mb-3">🎲 Lanceur de dés 3D RPG</h2>
+    <div className="flex flex-col items-center bg-gradient-to-b from-[#1c150c] via-[#16110a] to-[#0b0906] border border-[#c9a24a]/50 ring-1 ring-[#c9a24a]/15 ring-offset-2 ring-offset-[#0b0906] p-4 rounded-2xl shadow-[0_20px_60px_-10px_rgba(0,0,0,0.9)] w-full text-white">
+      <h2 className="text-xl font-black font-['Cinzel'] tracking-wide text-[#ecd289] drop-shadow-[0_0_10px_rgba(201,162,74,0.35)] mb-1">
+        🎲 Lanceur de dés 3D RPG
+      </h2>
+      <div className="h-px w-2/3 bg-gradient-to-r from-transparent via-[#c9a24a] to-transparent mb-3" aria-hidden="true" />
 
       <div className="grid grid-cols-5 gap-2 w-full mb-1" role="radiogroup" aria-label="Texture des dés">
         {DICE_THEMES.map((t) => (
@@ -119,7 +122,7 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
             disabled={themeLoading}
             className={`flex flex-col items-center gap-1 p-1.5 rounded-lg border transition-all hover:-translate-y-0.5 disabled:opacity-60 ${
               theme.id === t.id
-                ? 'border-[#c9a24a] bg-[#c9a24a]/10'
+                ? 'border-[#c9a24a] bg-[#c9a24a]/15 shadow-[0_0_14px_rgba(201,162,74,0.35)]'
                 : 'border-[#c9a24a]/20 bg-[#1c150c] hover:border-[#c9a24a]/60'
             }`}
           >
@@ -140,7 +143,7 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
 
       <div
         id="dice-box"
-        className="w-full h-[300px] bg-[#0b0906] rounded-xl border border-[#c9a24a]/30 shadow-inner relative overflow-hidden mb-3 [&>canvas]:block [&>canvas]:w-full [&>canvas]:h-full"
+        className="w-full h-[300px] bg-[#0b0906] bg-[url('/assets/dice-roller/zone-lancer-classique.jpg')] bg-cover bg-center rounded-xl border border-[#c9a24a]/40 shadow-[inset_0_0_40px_rgba(0,0,0,0.75)] relative overflow-hidden mb-3 [&>canvas]:block [&>canvas]:w-full [&>canvas]:h-full"
       />
 
       <div className="flex flex-wrap gap-1.5 w-full mb-3">
@@ -150,7 +153,11 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
             type="button"
             onClick={() => roll(d)}
             disabled={!ready || themeLoading}
-            className="px-2.5 py-1 rounded-md bg-[#1c150c] border border-[#c9a24a]/30 hover:border-[#c9a24a] text-sm font-mono disabled:opacity-40"
+            className={`px-2.5 py-1 rounded-md border text-sm font-mono transition-all hover:-translate-y-0.5 disabled:opacity-40 ${
+              notation === d
+                ? 'border-[#c9a24a] bg-[#c9a24a]/15 text-[#ecd289] shadow-[0_0_10px_rgba(201,162,74,0.35)]'
+                : 'border-[#c9a24a]/30 bg-[#1c150c] text-[#f3e6c0] hover:border-[#c9a24a]'
+            }`}
           >
             {d}
           </button>
@@ -169,12 +176,12 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
           value={notation}
           onChange={(e) => setNotation(e.target.value)}
           placeholder="Ex: 1d20+5, 2d6, 4d10"
-          className="flex-1 px-4 py-2 rounded-lg bg-[#1c150c] border border-[#c9a24a]/30 text-[#f3e6c0] font-mono focus:outline-none focus:border-[#c9a24a]"
+          className="flex-1 px-4 py-2 rounded-lg bg-[#0b0906] border border-[#c9a24a]/40 text-[#f3e6c0] font-mono shadow-inner focus:outline-none focus:border-[#c9a24a] focus:shadow-[0_0_10px_rgba(201,162,74,0.3)]"
         />
         <button
           type="submit"
           disabled={!ready || themeLoading}
-          className="px-6 py-2 bg-[#7d6128] hover:bg-[#c9a24a] hover:text-[#0b0906] active:scale-95 text-[#f3e6c0] font-bold rounded-lg shadow-lg shadow-[#c9a24a]/20 transition-all disabled:opacity-40"
+          className="px-6 py-2 font-['Cinzel'] font-bold tracking-wide rounded-lg border border-[#ecd289]/60 bg-gradient-to-b from-[#ecd289] via-[#c9a24a] to-[#7d6128] text-[#16110a] shadow-lg shadow-[#c9a24a]/25 hover:brightness-110 active:scale-95 transition-all disabled:opacity-40"
         >
           Lancer !
         </button>
@@ -184,9 +191,9 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
       {error && <p className="text-sm text-red-400">{error}</p>}
 
       {total !== null && (
-        <div className="bg-[#0b0906]/60 p-4 rounded-xl border border-[#c9a24a]/40 w-full text-center">
-          <div className="text-sm text-[#c9a24a]/70 uppercase tracking-wider font-semibold">Total du jet</div>
-          <div className="text-5xl font-black text-[#ecd289] my-1">{total}</div>
+        <div className="bg-gradient-to-b from-[#1c150c] to-[#0b0906] p-4 rounded-xl border border-[#c9a24a]/50 shadow-[inset_0_0_24px_rgba(201,162,74,0.12)] w-full text-center">
+          <div className="text-sm font-['Cinzel'] text-[#c9a24a]/80 uppercase tracking-[0.2em] font-semibold">Total du jet</div>
+          <div className="text-5xl font-black font-['Cinzel'] text-[#ecd289] drop-shadow-[0_0_14px_rgba(236,210,137,0.45)] my-1">{total}</div>
           <div className="text-xs text-[#c9a24a]/60 font-mono mt-2">
             {label} → {groups.map((g) => `[${(g.rolls ?? []).map((r) => r.value).join(', ') || g.value}]`).join(' + ')}
           </div>
@@ -214,10 +221,8 @@ export function DiceFloater() {
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-label={open ? 'Fermer le lanceur de dés' : 'Ouvrir le lanceur de dés'}
-        className="fixed right-4 bottom-4 z-50 w-14 h-14 rounded-full bg-[#7d6128] hover:bg-[#c9a24a] text-2xl shadow-lg shadow-[#c9a24a]/30 active:scale-95 transition-all"
-      >
-        🎲
-      </button>
+        className="fixed right-4 bottom-4 z-50 w-16 h-16 rounded-full bg-[url('/assets/dice-roller/bouton-flottant-d20.png')] bg-cover bg-center shadow-lg shadow-[#c9a24a]/40 hover:scale-105 hover:shadow-[#c9a24a]/60 active:scale-95 transition-all"
+      />
     </>
   );
 }
