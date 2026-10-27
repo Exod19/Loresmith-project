@@ -115,6 +115,10 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
   const [stroke, setStroke] = useState<{ anchor: { x: number; y: number }; cur: { x: number; y: number }; cells: number[] } | null>(null);
   const [history, setHistory] = useState<(BattleBuild | undefined)[]>([]);
   const wrapRef = useRef<HTMLDivElement>(null);
+  /** Glisser d'un jeton en cours : case de départ, case actuelle, et si le jeton a bougé. */
+  const [drag, setDrag] = useState<{ id: string; origin: { x: number; y: number }; start: { x: number; y: number }; cur: { x: number; y: number }; moved: boolean; wasSelected: boolean } | null>(null);
+  /** Vrai juste après un déplacement : le clic qui suit le relâchement ne doit pas désélectionner. */
+  const justDropped = useRef(false);
   /** Zoom du plateau : la largeur du plateau suit ce facteur, le cadre défile. */
   const [zoom, setZoom] = useState(1);
   /** Élément dont la fiche est ouverte sur le plateau (clic sur un passage, un lieu ou un objet). */
@@ -198,7 +202,17 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
     commitBuild({ ...build, props });
   };
   const onBuildDown = (e: ReactPointerEvent) => {
-    if (!building || e.button !== 0) return;
+    if (e.button !== 0) return;
+    if (!building) {
+      // Saisir un jeton : il est sélectionné, et le glisser le déplace. Sans mouvement, c'est un simple clic.
+      const c = cellAt(e.clientX, e.clientY);
+      const t = c && b.tokens.find((q) => c.x >= q.x && c.x < q.x + q.size && c.y >= q.y && c.y < q.y + q.size);
+      if (!c || !t) return;
+      e.preventDefault();
+      setDrag({ id: t.id, origin: { x: t.x, y: t.y }, start: c, cur: c, moved: false, wasSelected: selectedId === t.id });
+      setSelectedId(t.id);
+      return;
+    }
     const c = cellAt(e.clientX, e.clientY);
     if (!c) return;
     e.preventDefault();
@@ -206,6 +220,11 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
     setStroke({ anchor: c, cur: c, cells: [c.y * b.cols + c.x] });
   };
   const onBuildMove = (e: ReactPointerEvent) => {
+    if (drag) {
+      const c = cellAt(e.clientX, e.clientY);
+      if (c && (c.x !== drag.cur.x || c.y !== drag.cur.y)) setDrag({ ...drag, cur: c, moved: true });
+      return;
+    }
     if (!stroke || brush.tool !== 'terrain') return;
     const c = cellAt(e.clientX, e.clientY);
     if (!c || (c.x === stroke.cur.x && c.y === stroke.cur.y)) return;
@@ -214,6 +233,26 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
       : shapeCells(brush.shape, stroke.anchor, c, b.cols);
     setStroke({ ...stroke, cur: c, cells });
   };
+  // Le glisser se termine au relâchement : le jeton reste là si la case n'est pas libre.
+  useEffect(() => {
+    if (!drag) return;
+    const up = () => {
+      const t = b.tokens.find((q) => q.id === drag.id);
+      if (t && drag.moved) {
+        const x = drag.origin.x + drag.cur.x - drag.start.x, y = drag.origin.y + drag.cur.y - drag.start.y;
+        if (fits(bv, t.id, t.size, x, y)) patchToken(t.id, { x, y });
+        justDropped.current = true;
+        setTimeout(() => { justDropped.current = false; }, 0);
+      } else if (drag.wasSelected) {
+        setSelectedId(null);
+      }
+      setDrag(null);
+    };
+    window.addEventListener('pointerup', up, { once: true });
+    return () => window.removeEventListener('pointerup', up);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [drag]);
+
   // Le tracé se termine au relâchement, même hors du plateau.
   useEffect(() => {
     if (!stroke) return;
@@ -257,28 +296,23 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
     setSelectedId(token.id);
   }
 
-  function moveTo(x: number, y: number) {
-    if (!selected) { setSelectedId(null); return; }
-    if (fits(bv, selected.id, selected.size, x, y)) patchToken(selected.id, { x, y });
-  }
-
-  /** Clic sur une case vide : déplace le jeton sélectionné, sinon désélectionne. */
-  function onBoardCell(x: number, y: number) {
-    if (selected) { moveTo(x, y); return; }
+  /** Clic sur une case vide : désélectionne le jeton et ferme la fiche. Les jetons se déplacent par glisser-déposer. */
+  function onBoardCell() {
+    if (justDropped.current) return;
     setInfoId(null);
     setSelectedId(null);
   }
-  /** Clic sur un élément : déplace le jeton sélectionné là où il est, sinon ouvre sa fiche. */
-  function onElementClick(id: string, at?: { x: number; y: number }) {
-    const el = boardElements.find((e) => e.id === id);
-    if (!el) return;
-    if (selected) {
-      if (at) moveTo(at.x, at.y);
-      return;
-    }
+  /** Clic sur un élément : ouvre sa fiche. */
+  function onElementClick(id: string) {
+    if (!boardElements.some((e) => e.id === id)) return;
     setInfoId(id);
-    setSelectedId(null);
   }
+  // Échap désélectionne le jeton.
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') setSelectedId(null); };
+    window.addEventListener('keydown', key);
+    return () => window.removeEventListener('keydown', key);
+  }, []);
   const zoomBy = (dir: 1 | -1) => setZoom((z) => ZOOMS[Math.min(ZOOMS.length - 1, Math.max(0, ZOOMS.indexOf(z) + dir))] ?? z);
 
   // Passages : tracés réels de l'Atlas, et portes posées par le MJ sur ce plan. Chacun mène quelque part.
@@ -359,10 +393,14 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
   });
   const ranges: BoardRange[] = showRanges ? b.tokens.map(rangeOf) : [];
 
-  const boardTokens: BoardToken[] = b.tokens.map((t) => ({
-    id: t.id, name: t.name, kind: t.kind, x: t.x, y: t.y, size: t.size, icon: t.icon, image: tokenImage(t),
-    selected: t.id === selectedId, hidden: !t.visible,
-  }));
+  // Pendant un glisser, le jeton suit le pointeur.
+  const liveAt = (t: BattleToken) => (drag?.moved && drag.id === t.id
+    ? { x: drag.origin.x + drag.cur.x - drag.start.x, y: drag.origin.y + drag.cur.y - drag.start.y }
+    : { x: t.x, y: t.y });
+  const boardTokens: BoardToken[] = b.tokens.map((t) => {
+    const at = liveAt(t);
+    return { id: t.id, name: t.name, kind: t.kind, x: at.x, y: at.y, size: t.size, icon: t.icon, image: tokenImage(t), selected: t.id === selectedId, hidden: !t.visible };
+  });
 
   const readout = selected && hover ? feetBetween(selected, { ...hover, size: 1 }, b.feetPerCell) : null;
   const walk = selected && hover ? pathCost(grid, b.cols, b.rows, selected, hover) : null;
@@ -404,7 +442,7 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
             ◎ Portées
           </button>
           <span className="battle-hint">
-            {selected ? `Clique une case pour déplacer ${selected.name}.` : 'Clique un jeton pour le sélectionner.'}
+            {selected ? `Glisse ${selected.name} sur une case libre. Clique à nouveau dessus, ou sur une case vide, pour le désélectionner.` : 'Glisse un jeton pour le déplacer, ou clique dessus pour le sélectionner.'}
           </span>
         </div>
         {passages.some((p) => p.secret) && (
@@ -453,7 +491,7 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
         >
           <BattleBoard
             cols={b.cols} rows={b.rows} backdrop={rec.image} terrain={grid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
-            onToken={setSelectedId} onCell={onBoardCell} onElement={onElementClick} onHover={(x, y) => setHover({ x, y })}
+            onCell={onBoardCell} onElement={onElementClick} onHover={(x, y) => setHover({ x, y })}
             preview={stroke && brush.tool === 'terrain' ? stroke.cells : undefined}
           />
           {readout && (
