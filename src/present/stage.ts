@@ -12,7 +12,7 @@ export type PlayerToken = { id: string; name: string; kind: 'pc' | 'monster' | '
 /** `cells` : cases d'un passage ; `secret` : passage découvert par les joueurs (teinte propre). */
 export type PlayerElement = { id: string; kind: 'passage' | 'point'; title: string; category: string; cell?: number; cells?: number[]; secret?: boolean; image?: string;
   /** Texte montré dans l'encadré d'un élément (joueurs) : rien n'est envoyé s'il n'est pas visible. */
-  info?: { subtitle?: string; text?: string };
+  info?: { subtitle?: string; text?: string; image?: string };
 };
 
 /** Ce que voient les joueurs d'une carte ou d'un combat. */

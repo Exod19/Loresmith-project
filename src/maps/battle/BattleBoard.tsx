@@ -106,6 +106,52 @@ const TEXTURES = (
 const cellPath = (cells: number[], cols: number) =>
   cells.map((i) => `M${i % cols} ${Math.floor(i / cols)}h1v1h-1z`).join('');
 
+/** Case d'un passage la plus proche de son centre : là où on pose sa marque. */
+function anchorCell(cells: number[], cols: number): number {
+  const mx = cells.reduce((t, i) => t + (i % cols), 0) / cells.length;
+  const my = cells.reduce((t, i) => t + Math.floor(i / cols), 0) / cells.length;
+  return cells.reduce((best, i) => {
+    const d = (i % cols - mx) ** 2 + (Math.floor(i / cols) - my) ** 2;
+    const db = (best % cols - mx) ** 2 + (Math.floor(best / cols) - my) ** 2;
+    return d < db ? i : best;
+  }, cells[0]);
+}
+
+/** Marque d'un lieu ou d'un objet sur sa case : vignette, image d'objet, ou icône à défaut. */
+function pointMark(e: BoardElement, cell: number, cols: number, onElement?: (id: string) => void) {
+  const cx = (cell % cols) + 0.5, cy = Math.floor(cell / cols) + 0.5;
+  const click = onElement ? () => onElement(e.id) : undefined;
+  if (e.image) {
+    // Objet déposé : son image remplit la case ; en pointillé et estompé pour le MJ quand il est caché.
+    return (
+      <g key={`m-${e.id}`} className="battle-element" onClick={click} opacity={e.ghost ? 0.45 : 1}>
+        <image href={e.image} x={cx - 0.46} y={cy - 0.46} width={0.92} height={0.92} preserveAspectRatio="xMidYMid meet" />
+        {e.ghost && <rect x={cx - 0.46} y={cy - 0.46} width={0.92} height={0.92} fill="none" stroke="#ecd289" strokeWidth={0.05} strokeDasharray="0.1 0.07" />}
+        <title>{e.ghost ? `${e.title} (caché aux joueurs)` : e.title}</title>
+      </g>
+    );
+  }
+  const img = e.ghost ? vignette('element_cache') : CATEGORY_IMG[e.category] ? vignette(CATEGORY_IMG[e.category]) : undefined;
+  const clip = `clip-el-${e.id.replace(/[^a-zA-Z0-9]/g, '')}`;
+  return (
+    <g key={`m-${e.id}`} className="battle-element" onClick={click} opacity={e.ghost ? 0.85 : 1}>
+      {img ? (
+        <>
+          <clipPath id={clip}><circle cx={cx} cy={cy} r={0.4} /></clipPath>
+          <image href={img} x={cx - 0.4} y={cy - 0.4} width={0.8} height={0.8} clipPath={`url(#${clip})`} preserveAspectRatio="xMidYMid slice" />
+          <circle cx={cx} cy={cy} r={0.4} fill="none" stroke={e.ghost ? '#ecd289' : '#7d6128'} strokeWidth={0.05} strokeDasharray={e.ghost ? '0.1 0.07' : undefined} />
+        </>
+      ) : (
+        <>
+          <circle cx={cx} cy={cy} r={0.4} fill="#0b0906" stroke={e.ghost ? '#ecd289' : '#7d6128'} strokeWidth={0.05} strokeDasharray={e.ghost ? '0.1 0.07' : undefined} />
+          <text x={cx} y={cy + 0.14} textAnchor="middle" fontSize={0.42} pointerEvents="none">{CATEGORY_ICON[e.category] ?? '◆'}</text>
+        </>
+      )}
+      <title>{e.ghost ? `${e.title} (secret)${e.dc ? ` · DC ${e.dc}` : ''}` : e.title}</title>
+    </g>
+  );
+}
+
 export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview }: Props) {
   const lines: string[] = [];
   for (let x = 0; x <= cols; x++) lines.push(`M${x} 0V${rows}`);
@@ -143,43 +189,15 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
           if (!e.cells) return null;
           // Passage secret non découvert (MJ seulement) : contour pointillé sur ses cases.
           if (e.ghost) return <path key={`g-${e.id}`} d={cellPath(e.cells, cols)} fill="rgba(236,210,137,0.16)" stroke="#ecd289" strokeWidth={0.07} strokeDasharray="0.15 0.1" opacity={0.95} pointerEvents="none"><title>{`${e.title} (secret, visible du MJ seulement)`}</title></path>;
-          // Passage secret découvert : teinte violette, distincte des chemins ordinaires.
-          // Les passages ouverts ont une zone cliquable (écran joueur) : leur texte s'affiche dans un encadré.
+          // Passage visible : zone cliquable (écran joueur), teinte violette s'il était secret, et une marque au milieu.
           const hit = onElement ? { className: 'battle-hit', onClick: () => onElement(e.id), cursor: 'pointer' } : { pointerEvents: 'none' as const };
-          if (e.secret) return <path key={`s-${e.id}`} d={cellPath(e.cells, cols)} fill="rgba(156,123,214,0.32)" stroke="#9c7bd6" strokeWidth={0.05} {...hit}><title>{`${e.title} (passage secret)`}</title></path>;
-          return onElement ? <path key={`h-${e.id}`} d={cellPath(e.cells, cols)} fill="transparent" {...hit}><title>{e.title}</title></path> : null;
+          const zone = e.secret
+            ? <path d={cellPath(e.cells, cols)} fill="rgba(156,123,214,0.32)" stroke="#9c7bd6" strokeWidth={0.05} {...hit}><title>{`${e.title} (passage secret)`}</title></path>
+            : <path d={cellPath(e.cells, cols)} fill="transparent" {...hit}><title>{e.title}</title></path>;
+          return <g key={`p-${e.id}`}>{zone}{pointMark(e, anchorCell(e.cells, cols), cols, onElement)}</g>;
         }
         if (e.cell === undefined) return null;
-        const cx = (e.cell % cols) + 0.5, cy = Math.floor(e.cell / cols) + 0.5;
-        if (e.image) {
-          // Objet déposé : son image remplit la case ; en pointillé et estompé pour le MJ quand il est caché.
-          return (
-            <g key={e.id} className="battle-element" opacity={e.ghost ? 0.45 : 1}>
-              <image href={e.image} x={cx - 0.46} y={cy - 0.46} width={0.92} height={0.92} preserveAspectRatio="xMidYMid meet" />
-              {e.ghost && <rect x={cx - 0.46} y={cy - 0.46} width={0.92} height={0.92} fill="none" stroke="#ecd289" strokeWidth={0.05} strokeDasharray="0.1 0.07" />}
-              <title>{e.ghost ? `${e.title} (caché aux joueurs)` : e.title}</title>
-            </g>
-          );
-        }
-        const img = e.ghost ? vignette('element_cache') : CATEGORY_IMG[e.category] ? vignette(CATEGORY_IMG[e.category]) : undefined;
-        const clip = `clip-el-${e.id.replace(/[^a-zA-Z0-9]/g, '')}`;
-        return (
-          <g key={e.id} className="battle-element" onClick={onElement ? () => onElement(e.id) : undefined} opacity={e.ghost ? 0.85 : 1}>
-            {img ? (
-              <>
-                <clipPath id={clip}><circle cx={cx} cy={cy} r={0.4} /></clipPath>
-                <image href={img} x={cx - 0.4} y={cy - 0.4} width={0.8} height={0.8} clipPath={`url(#${clip})`} preserveAspectRatio="xMidYMid slice" />
-                <circle cx={cx} cy={cy} r={0.4} fill="none" stroke={e.ghost ? '#ecd289' : '#7d6128'} strokeWidth={0.05} strokeDasharray={e.ghost ? '0.1 0.07' : undefined} />
-              </>
-            ) : (
-              <>
-                <circle cx={cx} cy={cy} r={0.4} fill="#0b0906" stroke={e.ghost ? '#ecd289' : '#7d6128'} strokeWidth={0.05} strokeDasharray={e.ghost ? '0.1 0.07' : undefined} />
-                <text x={cx} y={cy + 0.14} textAnchor="middle" fontSize={0.42} pointerEvents="none">{CATEGORY_ICON[e.category] ?? '◆'}</text>
-              </>
-            )}
-            <title>{e.ghost ? `${e.title} (secret)${e.dc ? ` · DC ${e.dc}` : ''}` : e.title}</title>
-          </g>
-        );
+        return pointMark(e, e.cell, cols, onElement);
       })}
 
       {tokens.map((t) => {

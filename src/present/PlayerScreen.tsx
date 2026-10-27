@@ -103,6 +103,7 @@ function PlayerBattle({ board }: { board: Extract<PlayerBoard, { mode: 'battle' 
         <aside className="present-info" role="dialog" aria-label={open.title}>
           <button className="present-info-close" onClick={() => setOpenId(null)} aria-label="Fermer">×</button>
           <span className="present-info-kind">{CATEGORY_ICON[open.category] ?? '◆'} {open.info?.subtitle ?? KIND_NAME[open.kind]}</span>
+          {open.info?.image && <img className="present-info-img" src={open.info.image} alt={open.title} />}
           <h3>{open.title}</h3>
           {open.info?.text && open.info.text.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
         </aside>

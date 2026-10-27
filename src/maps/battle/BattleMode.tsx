@@ -14,7 +14,10 @@ import { buildLocalMap, cellIn } from './local';
 import { attackCells, reachableCells, speedCells } from './ranges';
 import { tokenImage } from './vignettes';
 import BuildPanel from './BuildPanel';
-import { DEFAULT_BRUSH, PROP_LABEL, propUrl, applyBuild, shapeCells, type Brush } from './build';
+import { DEFAULT_BRUSH, PROP_BY_KEY, PROP_LABEL, propUrl, applyBuild, shapeCells, type Brush } from './build';
+
+/** Niveaux de zoom du plateau (même logique que la carte de navigation). */
+const ZOOMS = [0.75, 1, 1.5, 2, 2.5, 3];
 import { iconFor, placeEncounter, type EncounterGroup } from './encounter';
 import './battle.css';
 
@@ -112,6 +115,10 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
   const [stroke, setStroke] = useState<{ anchor: { x: number; y: number }; cur: { x: number; y: number }; cells: number[] } | null>(null);
   const [history, setHistory] = useState<(BattleBuild | undefined)[]>([]);
   const wrapRef = useRef<HTMLDivElement>(null);
+  /** Zoom du plateau : la largeur du plateau suit ce facteur, le cadre défile. */
+  const [zoom, setZoom] = useState(1);
+  /** Objet dont la fiche est ouverte (clic sur une case). */
+  const [detailId, setDetailId] = useState<string | null>(null);
 
   const selected = b.tokens.find((t) => t.id === selectedId) ?? null;
   const set = (patch: Partial<Battle>) => onBattle({ ...b, ...patch });
@@ -255,6 +262,16 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
     if (fits(bv, selected.id, selected.size, x, y)) patchToken(selected.id, { x, y });
   }
 
+  /** Clic sur une case : déplace le jeton sélectionné, ou ouvre la fiche de l'objet posé là. */
+  function onBoardCell(x: number, y: number) {
+    if (selected) { moveTo(x, y); return; }
+    const p = build.props.find((q) => q.cell === y * b.cols + x);
+    setDetailId(p ? p.id : null);
+    setSelectedId(null);
+  }
+  const detailProp = build.props.find((p) => p.id === detailId) ?? null;
+  const zoomBy = (dir: 1 | -1) => setZoom((z) => ZOOMS[Math.min(ZOOMS.length - 1, Math.max(0, ZOOMS.indexOf(z) + dir))] ?? z);
+
   // Passages : tracés réels de l'Atlas, et portes posées par le MJ sur ce plan. Chacun mène quelque part.
   const passages: { id: string; title: string; secret: boolean; found: boolean; dc?: number; checkLabel?: string; auto?: PassageLink; marker?: MapMarker; cells: number[] }[] = [
     ...(b.local?.elements ?? []).filter((e) => e.kind === 'passage').map((e) => ({
@@ -357,6 +374,11 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
             </button>
           )}
           {!b.terrain && <button className="maps-btn" onClick={() => generate(context ?? { title: 'Caverne' }, context?.id ?? 'caverne', 0)}>Générer un terrain</button>}
+          <div className="battle-zoom" title="Zoom du plateau">
+            <button className="maps-btn" onClick={() => zoomBy(-1)} disabled={zoom <= ZOOMS[0]} aria-label="Dézoomer">−</button>
+            <span>{Math.round(zoom * 100)} %</span>
+            <button className="maps-btn" onClick={() => zoomBy(1)} disabled={zoom >= ZOOMS[ZOOMS.length - 1]} aria-label="Zoomer">+</button>
+          </div>
           <button className={`maps-btn ${showRanges ? 'gold' : ''}`} title="Afficher les déplacements et les portées d'attaque (MJ seulement)" onClick={() => setShowRanges((v) => !v)}>
             ◎ Portées
           </button>
@@ -377,7 +399,8 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
           </div>
         )}
         <div
-          ref={wrapRef} className={`battle-board-wrap ${building ? 'building' : ''}`}
+          ref={wrapRef} className={`battle-board-wrap ${building ? 'building' : ''} ${zoom !== 1 ? 'zoomed' : ''}`}
+          style={{ width: `${zoom * 100}%` }}
           onPointerDown={onBuildDown} onPointerMove={onBuildMove}
           onDragOver={(e) => { if (building) e.preventDefault(); }}
           onDrop={(e) => {
@@ -390,7 +413,7 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
         >
           <BattleBoard
             cols={b.cols} rows={b.rows} backdrop={rec.image} terrain={grid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
-            onToken={setSelectedId} onCell={moveTo} onHover={(x, y) => setHover({ x, y })}
+            onToken={setSelectedId} onCell={onBoardCell} onHover={(x, y) => setHover({ x, y })}
             preview={stroke && brush.tool === 'terrain' ? stroke.cells : undefined}
           />
           {readout && (
@@ -404,6 +427,21 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
       </div>
 
       <aside className="maps-panel battle-side">
+        {detailProp && (
+          <section className="maps-card battle-detail">
+            <h3>{PROP_BY_KEY[detailProp.key]?.label ?? detailProp.key}</h3>
+            <img src={propUrl(detailProp.key)} alt={PROP_BY_KEY[detailProp.key]?.label ?? ''} />
+            <p>{PROP_BY_KEY[detailProp.key]?.text}</p>
+            <label className="build-check">
+              <input
+                type="checkbox" checked={detailProp.visible}
+                onChange={(e) => commitBuild({ ...build, props: build.props.map((p) => (p.id === detailProp.id ? { ...p, visible: e.target.checked } : p)) })}
+              />
+              Visible des joueurs
+            </label>
+            <button className="maps-btn" onClick={() => setDetailId(null)}>Fermer</button>
+          </section>
+        )}
         {building && (
           <BuildPanel
             brush={brush} onBrush={setBrush} propVisible={propVisible} onPropVisible={setPropVisible}

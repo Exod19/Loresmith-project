@@ -2,7 +2,8 @@
  * Palette de construction (MJ) : terrain et forme à peindre, objets à glisser sur le plateau.
  * Le plateau lui-même gère les gestes (cf. BattleMode).
  */
-import { BUILD_TERRAIN, PROPS, SHAPES, propUrl, type Brush } from './build';
+import { useState } from 'react';
+import { BUILD_TERRAIN, GROUPS, PROPS, SHAPES, propUrl, type Brush } from './build';
 
 type Props = {
   brush: Brush;
@@ -16,6 +17,9 @@ type Props = {
 };
 
 export default function BuildPanel({ brush, onBrush, propVisible, onPropVisible, canUndo, onUndo, onClear, propCount }: Props) {
+  const [query, setQuery] = useState('');
+  const q = query.trim().toLowerCase();
+  const shown = PROPS.filter((p) => !q || p.label.toLowerCase().includes(q));
   const shape = brush.tool === 'terrain' ? brush.shape : 'pinceau';
   const hint = brush.tool === 'terrain'
     ? SHAPES.find((s) => s.id === shape)?.hint
@@ -57,18 +61,30 @@ export default function BuildPanel({ brush, onBrush, propVisible, onPropVisible,
       </div>
 
       <div className="build-label">Objets <small>({propCount} posé{propCount > 1 ? 's' : ''})</small></div>
-      <div className="build-props">
-        {PROPS.map((p) => (
-          <button
-            key={p.key} draggable title={p.label}
-            className={`build-prop ${brush.tool === 'objet' && brush.prop === p.key ? 'on' : ''}`}
-            onClick={() => onBrush({ tool: 'objet', prop: p.key })}
-            onDragStart={(e) => { e.dataTransfer.setData('text/plain', p.key); onBrush({ tool: 'objet', prop: p.key }); }}
-          >
-            <img src={propUrl(p.key)} alt="" draggable={false} />
-            <span>{p.label}</span>
-          </button>
-        ))}
+      <input className="build-search" type="search" placeholder="Rechercher un objet…" value={query} onChange={(e) => setQuery(e.target.value)} />
+      <div className="build-groups">
+        {GROUPS.map((g) => {
+          const items = shown.filter((p) => p.group === g);
+          if (!items.length) return null;
+          return (
+            <details key={g} className="build-group" open={!!q || undefined}>
+              <summary>{g} <small>({items.length})</small></summary>
+              <div className="build-props">
+                {items.map((p) => (
+                  <button
+                    key={p.key} draggable title={`${p.label} — ${p.text}`}
+                    className={`build-prop ${brush.tool === 'objet' && brush.prop === p.key ? 'on' : ''}`}
+                    onClick={() => onBrush({ tool: 'objet', prop: p.key })}
+                    onDragStart={(e) => { e.dataTransfer.setData('text/plain', p.key); onBrush({ tool: 'objet', prop: p.key }); }}
+                  >
+                    <img src={propUrl(p.key)} alt="" draggable={false} />
+                    <span>{p.label}</span>
+                  </button>
+                ))}
+              </div>
+            </details>
+          );
+        })}
       </div>
       <div className="build-row">
         <button className={`build-tile ${brush.tool === 'objet' && brush.prop === 'gomme' ? 'on' : ''}`} onClick={() => onBrush({ tool: 'objet', prop: 'gomme' })}>
