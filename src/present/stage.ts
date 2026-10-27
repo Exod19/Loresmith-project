@@ -9,7 +9,8 @@ import type { AtlasData } from '../maps/atlas/types';
 export type PlayerToken = { id: string; name: string; kind: 'pc' | 'monster' | 'other'; x: number; y: number; size: 1 | 2; icon?: string; image?: string; statId?: string };
 
 /** Élément visible sur le plateau de combat : un point (cell) ou un passage (cells, déjà creusé dans le terrain). */
-export type PlayerElement = { id: string; kind: 'passage' | 'point'; title: string; category: string; cell?: number };
+/** `cells` : cases d'un passage ; `secret` : passage découvert par les joueurs (teinte propre). */
+export type PlayerElement = { id: string; kind: 'passage' | 'point'; title: string; category: string; cell?: number; cells?: number[]; secret?: boolean };
 
 /** Ce que voient les joueurs d'une carte ou d'un combat. */
 export type PlayerBoard =

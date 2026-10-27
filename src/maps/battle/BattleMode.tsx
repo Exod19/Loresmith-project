@@ -282,6 +282,18 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
             {selected ? `Clique une case pour déplacer ${selected.name}.` : 'Clique un jeton pour le sélectionner.'}
           </span>
         </div>
+        {passages.some((p) => p.secret) && (
+          <div className="battle-chips" aria-label="Passages secrets">
+            {passages.filter((p) => p.secret).map((p) => (
+              <button
+                key={p.id} className={`battle-chip ${p.found ? 'on' : ''}`} aria-pressed={p.found}
+                onClick={() => (p.marker ? onMarker(p.marker.id, { revealed: !p.found }) : toggleDiscovered(p.id))}
+              >
+                {p.found ? '🔓' : '🔒'} {p.title}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="battle-board-wrap">
           <BattleBoard
             cols={b.cols} rows={b.rows} backdrop={rec.image} terrain={grid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive
@@ -421,6 +433,9 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
               ))}
               {passages.some((p) => p.secret && !p.found) && (
                 <li><span className="battle-swatch k-secret" />Passage secret, fermé (contour pointillé)</li>
+              )}
+              {passages.some((p) => p.secret && p.found) && (
+                <li><span className="battle-swatch k-secret-open" />Passage secret, découvert (teinte violette)</li>
               )}
               {boardElements.some((e) => e.ghost && e.kind === 'point') && (
                 <li><span className="battle-icon">?</span>Élément caché : visible du MJ seulement</li>

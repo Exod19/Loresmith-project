@@ -58,6 +58,10 @@
 .battle-missing{font-size:12px;color:var(--muted,#9a8a63)}
 .battle-swatch.k-floor{background:#110d09}
 .battle-swatch.k-secret{background:transparent;border:1px dashed #ecd289}
+.battle-swatch.k-secret-open{background:rgba(156,123,214,.42);border:1px solid #9c7bd6}
+.battle-chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+.battle-chip{font:inherit;font-size:13px;padding:3px 9px;border-radius:999px;border:1px dashed #ecd289;background:rgba(0,0,0,.35);color:#ecd289;cursor:pointer}
+.battle-chip.on{border-style:solid;border-color:#9c7bd6;background:rgba(156,123,214,.28);color:#f1eaff}
 .battle-group-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .battle-group-head select{max-width:150px}
 .battle-group{margin-top:6px;border-top:1px solid rgba(201,162,74,.15);padding-top:4px}

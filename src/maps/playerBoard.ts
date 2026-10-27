@@ -26,7 +26,7 @@ export function battleBoard(rec: MapRecord): PlayerBoard {
   // et un objet n'apparaît que lorsque le MJ le révèle.
   const passages: PlayerElement[] = (local?.elements ?? [])
     .filter((e) => e.kind === 'passage' && (!e.secret || revealed.includes(e.id)))
-    .map((e) => ({ id: e.id, kind: 'passage', title: e.title, category: e.category }));
+    .map((e) => ({ id: e.id, kind: 'passage', title: e.title, category: e.category, cells: e.cells, secret: e.secret }));
   const objects: PlayerElement[] = local?.window
     ? (rec.overlay?.markers ?? [])
       .filter((m) => m.revealed && m.kind !== 'rencontre' && m.planId === local.planId)
