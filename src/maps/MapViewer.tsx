@@ -34,13 +34,15 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 /** Repère en cours de placement : le prochain clic sur la carte le crée. */
 type Draft = { kind: MarkerKind; title: string; summary?: string; notes?: string; groups?: MapMarker['groups'] };
 
-export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [] }: {
+export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false, onReturn, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [] }: {
   rec: MapRecord; atlas: AtlasData; dm: boolean; onDm: (v: boolean) => void;
   onUpdate: (patch: Partial<MapRecord>) => void; onBack: () => void;
   /** Personnages du groupe, pour les ajouter au combat. */
   heroes?: Hero[];
   /** Ouverte depuis la Table de jeu pour un combat : la carte de combat du lieu du groupe s'affiche d'emblée. */
   startInBattle?: boolean;
+  /** Ouverte depuis la Table de jeu : y revenir d'un clic, là où on l'avait laissée. */
+  onReturn?: () => void;
   /** Campagnes de l'univers, et celle qui est invoquée sur la carte. */
   campaigns?: GuideCampaign[];
   activeCampaignId?: string;
@@ -249,6 +251,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   return (
     <div className="atlas-page maps-viewer">
       <div className="maps-toolbar">
+        {onReturn && <button className="maps-btn gold" onClick={onReturn} title="Revenir à la Table de jeu, là où tu l’avais laissée">← Table de jeu</button>}
         {battleOpen
           ? <button className="maps-btn" onClick={() => setBattleOpen(false)}>← Carte de navigation</button>
           : <button className="maps-btn" onClick={onBack}>← Cartes</button>}

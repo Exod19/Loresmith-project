@@ -2,7 +2,8 @@
  * Passage de relais vers la page Cartes : la Table de jeu y dépose la carte à ouvrir (et si c'est en combat),
  * la page Cartes la reprend une seule fois à son ouverture.
  */
-export type MapIntent = { mapId: string; battle?: boolean };
+/** `from` : la page d'où l'on vient, pour y revenir d'un clic. */
+export type MapIntent = { mapId: string; battle?: boolean; from?: 'table' };
 
 let pending: MapIntent | null = null;
 

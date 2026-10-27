@@ -117,22 +117,22 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
   return (
     <div className="flex flex-col items-center bg-gradient-to-b from-[#1c150c] via-[#16110a] to-[#0b0906] border border-[#c9a24a]/50 ring-1 ring-[#c9a24a]/15 ring-offset-2 ring-offset-[#0b0906] p-4 rounded-2xl shadow-[0_20px_60px_-10px_rgba(0,0,0,0.9)] w-full text-white">
       <h2 className="text-xl font-black font-['Cinzel'] tracking-wide text-[#ecd289] drop-shadow-[0_0_10px_rgba(201,162,74,0.35)] mb-1">
-        🎲 Lanceur de dés 3D RPG
+        Lanceur de dés 3D RPG
       </h2>
       <div className="h-px w-2/3 bg-gradient-to-r from-transparent via-[#c9a24a] to-transparent mb-3" aria-hidden="true" />
 
 
-      <div className="relative w-full mb-3">
-        <div
-          id="dice-box"
-          style={{ backgroundImage: `url(${ARENES[arene].url})` }}
-          className="w-full h-[clamp(180px,38vh,300px)] bg-[#0b0906] bg-cover bg-center rounded-xl border border-[#c9a24a]/40 shadow-[inset_0_0_40px_rgba(0,0,0,0.75)] relative overflow-hidden [&>canvas]:block [&>canvas]:w-full [&>canvas]:h-full"
-        />
+      <div
+        id="dice-box"
+        style={{ backgroundImage: `url(${ARENES[arene].url})` }}
+        className="w-full h-[clamp(180px,38vh,300px)] bg-[#0b0906] bg-cover bg-center rounded-xl border border-[#c9a24a]/40 shadow-[inset_0_0_40px_rgba(0,0,0,0.75)] relative overflow-hidden [&>canvas]:block [&>canvas]:w-full [&>canvas]:h-full"
+      />
+      <div className="flex justify-end w-full mt-2 mb-3">
         <button
           type="button"
           onClick={() => setArene((a) => (a === 'classique' ? 'underdark' : 'classique'))}
           aria-label="Changer d'arène"
-          className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded border border-[#c9a24a]/50 bg-[#0b0906]/75 text-[10px] font-['Cinzel'] tracking-wide text-[#ecd289] hover:border-[#ecd289] transition-colors"
+          className="px-2 py-0.5 rounded border border-[#c9a24a]/50 bg-[#0b0906] text-[10px] font-['Cinzel'] tracking-wide text-[#ecd289] hover:border-[#ecd289] transition-colors"
         >
           Arène : {ARENES[arene].label}
         </button>
