@@ -138,7 +138,7 @@ export function archiveBundle(feed: UnderdarkFeed, universeId: string, ids?: str
     return { ...toLibraryEntry(e, `arc-${e.id}`, related), universeId };
   });
   const assets = chosen.flatMap((e) => e.images.map((img) => ({
-    id: `arc-img-${e.id}-${img.id}`, name: img.caption || img.alt || e.name, category: 'library', targetType: 'library',
+    id: `arc-img-${e.id}-${img.id}`, name: e.name, category: 'library', targetType: 'library',
     targetId: `arc-${e.id}`, dataUrl: img.src, source: 'archives', prompt: img.caption ?? '', createdAt: 0, universeId,
   })));
   return { entries, assets };

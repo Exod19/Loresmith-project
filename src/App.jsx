@@ -4909,7 +4909,8 @@ function reducer(s, a) {
         else if (cur.sourceId && cur.archiveType === 'document' && entry.archiveType !== 'document') libraryEntries[entry.id] = { ...cur, archiveType: entry.archiveType };
       }
       const assets = { ...(s.assets || {}) };
-      for (const asset of a.assets || []) if (!assets[asset.id]) assets[asset.id] = asset;
+      // Images des Archives : mises à jour à chaque import (elles ne sont jamais éditées à la main).
+      for (const asset of a.assets || []) if (!assets[asset.id] || assets[asset.id].source === 'archives') assets[asset.id] = asset;
       // Import complet de l'univers : les images des Archives qui ne sont plus rattachées (doublons) sont retirées.
       if (a.full) {
         const wanted = new Set((a.assets || []).map((x) => x.id));
