@@ -36,8 +36,9 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
           container: '#dice-box',
           id: 'dice-canvas',
           assetPath: '/assets/dice-box/',
-          theme: 'default',
-          themeColor: '#c9a24a',
+          theme: 'loresmith-cosmic',
+          themeColor: '#ffffff',
+          scale: 7,
           offscreen: false,
           // Appelé dès que les dés sont immobiles. `value` = total du groupe (ex. 2d6 → somme).
           onRollComplete: (results: DieGroup[]) => {
