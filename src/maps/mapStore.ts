@@ -55,7 +55,7 @@ export interface MapMarker {
   notes: string;
   revealed: boolean;
   /** Créatures d'une rencontre tirée au sort : fiche MJ seulement. */
-  groups?: { stat: string; role?: string; n: number; detail: string }[];
+  groups?: { stat: string; role?: string; n: number; detail: string; name?: string; image?: string; hp?: number; ac?: number; size?: 1 | 2 }[];
   /** Élément interactif : ce qu'on lit au joueur, ce que ça fait, s'il peut le garder, DC d'investigation, connaissances. */
   reading?: string;
   effect?: string;

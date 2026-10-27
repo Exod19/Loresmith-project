@@ -112,3 +112,15 @@
 /* Rayons : nombre de fiches par type */
 .library-shell .library-type-list button { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .library-type-count { font: 600 11px/1 'Cinzel', serif; color: #9a8a63; background: rgba(201,162,74,.1); border-radius: 999px; padding: 4px 8px; }
+
+/* Ce que les joueurs savent : connaissances graduées par DD, avec la façon de les révéler en jeu. */
+.dossier-know { border: 1px solid var(--line-2, rgba(201, 162, 74, 0.4)); border-left: 4px solid var(--teal, #54d8c6); border-radius: 6px; padding: 12px 14px; margin-bottom: 16px; background: rgba(84, 216, 198, 0.05); }
+.dossier-know-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.dossier-know-head h2 { margin: 0; font-size: 17px; }
+.dossier-know ol { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.dossier-know li { display: grid; grid-template-columns: 74px 1fr; gap: 10px; align-items: start; }
+.dossier-know li p { margin: 0; }
+.dossier-dc { display: inline-block; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; padding: 3px 6px; border-radius: 4px; border: 1px solid var(--gold, #c9a24a); color: var(--gold-lt, #ecd289); }
+.dossier-dc[data-common='1'] { border-color: var(--teal, #54d8c6); color: var(--teal, #54d8c6); }
+.dossier-skill { display: block; font-size: 11.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted, #9a8a63); }
+.dossier-reveal { margin-top: 4px !important; font-style: italic; color: var(--muted, #9a8a63); font-size: 0.95em; }

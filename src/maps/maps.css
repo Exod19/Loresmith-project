@@ -83,3 +83,20 @@
 .maps-sync{margin-top:10px}
 .maps-sync summary{cursor:pointer;color:#ecd289}
 .maps-sync label{display:flex;flex-direction:column;gap:6px;margin-top:8px;font-size:13px}
+
+/* Campagne invoquée sur la carte (MJ). */
+.camp-guide { border-left: 3px solid var(--teal, #54d8c6); }
+.camp-guide .maps-card-head select { max-width: 70%; }
+.camp-guide-nav { display: flex; align-items: center; gap: 6px; }
+.camp-guide-nav h3 { flex: 1; margin: 0; font-size: 1rem; }
+.camp-guide-here { color: var(--verdant, #7fb05a); }
+.camp-guide-lead ul { padding-left: 16px; }
+.camp-guide-npcs { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.camp-guide-npcs li { display: flex; gap: 8px; align-items: center; }
+.camp-guide-npcs img, .camp-guide-ph { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; flex: none; display: grid; place-items: center; border: 1px solid rgba(201, 162, 74, 0.4); }
+.camp-guide-npcs small { display: block; opacity: 0.75; }
+.camp-guide-enc { border-top: 1px solid rgba(201, 162, 74, 0.2); padding-top: 6px; margin-top: 6px; }
+.camp-guide-creatures { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0; }
+.camp-guide-creatures span { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; border: 1px solid rgba(201, 162, 74, 0.35); border-radius: 12px; padding: 1px 8px 1px 2px; }
+.camp-guide-creatures img { width: 20px; height: 20px; border-radius: 50%; }
+.camp-guide-read { white-space: pre-wrap; font-style: italic; }

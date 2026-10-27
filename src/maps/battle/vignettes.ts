@@ -16,6 +16,9 @@ const CREATURE: Record<string, string> = {
   otyugh: 'creature_otyugh', 'umber-hulk': 'creature_umber_hulk', roper: 'creature_roper',
 };
 
+/** Portraits des créatures SRD, pour choisir une image de fiche (identifiant SRD → chemin). */
+export const CREATURE_VIGNETTES: { id: string; src: string }[] = Object.entries(CREATURE).map(([id, file]) => ({ id, src: vignette(file) }));
+
 /** Icône de chaque catégorie de lieu. */
 export const CATEGORY_IMG: Record<string, string> = {
   eau: 'lieu_eau', danger: 'lieu_danger', ruine: 'lieu_ruine', grotte: 'lieu_grotte', ressource: 'lieu_ressource', vivant: 'lieu_vivant',

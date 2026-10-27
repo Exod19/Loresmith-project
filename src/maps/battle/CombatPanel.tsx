@@ -14,6 +14,7 @@ import { passiveOf } from '../atlas/trails';
 import { speedCells } from './ranges';
 import { tokenImage } from './vignettes';
 import { iconFor } from './encounter';
+import type { BestiaryRef } from '../CampaignGuide';
 
 /** Personnage du groupe (fiche de l'application) : seuls les champs utiles au combat. */
 export type Hero = {
@@ -31,6 +32,8 @@ type Props = {
   onSelect: (id: string | null) => void;
   set: (patch: Partial<Battle>) => void;
   heroes: Hero[];
+  /** Fiches de PNJ & Créatures : elles arrivent avec leur jeton, leurs PV et leur CA. */
+  bestiary?: BestiaryRef[];
   /** Pose des jetons sur les premières cases libres. */
   onPlace: (tokens: Omit<BattleToken, 'x' | 'y'>[]) => void;
   onRemove: (id: string) => void;
@@ -43,7 +46,7 @@ const TONE_ICON: Record<Hint['tone'], string> = { move: '➜', attack: '⚔', po
 const leadingInt = (s: string | number | undefined) => { const n = parseInt(String(s ?? ''), 10); return Number.isFinite(n) ? n : undefined; };
 const signed = (n: number) => (n >= 0 ? `+${n}` : `−${-n}`);
 
-export default function CombatPanel({ b, grid, place, selectedId, onSelect, set, heroes, onPlace, onRemove }: Props) {
+export default function CombatPanel({ b, grid, place, selectedId, onSelect, set, heroes, bestiary = [], onPlace, onRemove }: Props) {
   const [amount, setAmount] = useState<Record<string, string>>({});
   const [last, setLast] = useState<{ from: string; dmg: number; label: string; reach: number } | null>(null);
   const listRef = useRef<HTMLOListElement>(null);
@@ -145,6 +148,7 @@ export default function CombatPanel({ b, grid, place, selectedId, onSelect, set,
   }
 
   function addCreatures() {
+    if (addStat.startsWith('own:')) return addOwn(addStat.slice(4));
     const st = addStat ? STATS[addStat] : undefined;
     const n = Math.max(1, Math.min(12, addCount));
     const base = addName.trim() || st?.name || 'Créature';
@@ -152,6 +156,25 @@ export default function CombatPanel({ b, grid, place, selectedId, onSelect, set,
     onPlace(Array.from({ length: n }, (_, i) => ({
       id: uid(), name: n > 1 ? `${base} ${i + 1}` : base, kind: 'monster', size: st && /taille (G|TG)/.test(st.meta) ? 2 : 1,
       visible: false, hp, maxHp: hp, ac: st ? leadingInt(st.ac) : undefined, statId: st ? addStat : undefined, icon: iconFor('monster', st),
+    })));
+    setAddName(''); setAddCount(1);
+  }
+
+  /** Ajoute une fiche de PNJ & Créatures : son jeton, ses PV, sa CA, et sa fiche SRD si elle en vient. */
+  function addOwn(id: string) {
+    const ref = bestiary.find((x) => x.id === id);
+    if (!ref) return;
+    const n = Math.max(1, Math.min(12, addCount));
+    const base = addName.trim() || ref.name;
+    const monster = ref.isMonster || ref.entityType === 'monster';
+    const hp = leadingInt(ref.hp);
+    const dex = leadingInt(ref.dex);
+    onPlace(Array.from({ length: n }, (_, i) => ({
+      id: uid(), name: n > 1 ? `${base} ${i + 1}` : base, kind: monster ? 'monster' : 'other',
+      size: ref.size === 'G' || ref.size === 'TG' || ref.size === 'Gig' ? 2 : 1,
+      visible: false, hp, maxHp: hp, ac: leadingInt(ref.ac), image: ref.token || undefined,
+      statId: ref.srdId && STATS[ref.srdId] ? ref.srdId : undefined,
+      initMod: dex !== undefined ? Math.floor((dex - 10) / 2) : undefined,
     })));
     setAddName(''); setAddCount(1);
   }
@@ -338,12 +361,19 @@ export default function CombatPanel({ b, grid, place, selectedId, onSelect, set,
         <div className="combat-add-row">
           <select className="maps-btn" value={addStat} onChange={(e) => setAddStat(e.target.value)}>
             <option value="">Créature sans fiche</option>
-            {SRD.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            {bestiary.length > 0 && (
+              <optgroup label="PNJ & Créatures">
+                {bestiary.map((x) => <option key={x.id} value={`own:${x.id}`}>{x.name}</option>)}
+              </optgroup>
+            )}
+            <optgroup label="SRD">
+              {SRD.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </optgroup>
           </select>
           <input className="maps-btn" type="number" min={1} max={12} value={addCount} onChange={(e) => setAddCount(Number(e.target.value) || 1)} aria-label="Nombre" />
         </div>
         <div className="combat-add-row">
-          <input className="maps-btn" placeholder={addStat ? STATS[addStat]?.name : 'Nom'} value={addName} onChange={(e) => setAddName(e.target.value)} />
+          <input className="maps-btn" placeholder={addStat.startsWith('own:') ? bestiary.find((x) => `own:${x.id}` === addStat)?.name : addStat ? STATS[addStat]?.name : 'Nom'} value={addName} onChange={(e) => setAddName(e.target.value)} />
           <button className="maps-btn gold" onClick={addCreatures}>Placer</button>
         </div>
         <p className="maps-sub">Les créatures arrivent cachées aux joueurs : révèle-les d’un clic sur 🙈.</p>

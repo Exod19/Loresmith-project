@@ -19,6 +19,7 @@ import type { Hero } from './battle/CombatPanel';
 import TrailsPanel, { DangerChip, trailsNear } from './TrailsPanel';
 import { detectLabel, noticedPassively, passiveOf, trailProfile } from './atlas/trails';
 import Interactables from './Interactables';
+import CampaignGuide, { type BestiaryRef, type GuideCampaign, type GuidePlace } from './CampaignGuide';
 import { publishStage } from '../present/stage';
 import './maps.css';
 
@@ -32,11 +33,18 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 /** Repère en cours de placement : le prochain clic sur la carte le crée. */
 type Draft = { kind: MarkerKind; title: string; summary?: string; notes?: string; groups?: MapMarker['groups'] };
 
-export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [] }: {
+export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [] }: {
   rec: MapRecord; atlas: AtlasData; dm: boolean; onDm: (v: boolean) => void;
   onUpdate: (patch: Partial<MapRecord>) => void; onBack: () => void;
   /** Personnages du groupe, pour les ajouter au combat. */
   heroes?: Hero[];
+  /** Campagnes de l'univers, et celle qui est invoquée sur la carte. */
+  campaigns?: GuideCampaign[];
+  activeCampaignId?: string;
+  onCampaign?: (id: string) => void;
+  onCampaignProgress?: (id: string, progress: { sceneId?: string; done?: string[] }) => void;
+  /** Fiches de PNJ & Créatures (jetons, PV, CA) pour les rencontres et le combat. */
+  bestiary?: BestiaryRef[];
 }) {
   const data = activateMap(rec, dm, atlas);
   const [planId, setPlanId] = useState(rec.kind === 'atlas' ? ATLAS_DEFAULT_PLAN : mapIdOf(rec));
@@ -139,6 +147,38 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     setBattleOpen(true);
   };
 
+  /** Lieux nommés de la carte (tous plans) : la campagne invoquée y retrouve ses scènes par leur nom. */
+  const guidePlaces = useMemo<GuidePlace[]>(() => {
+    if (!campaigns.length) return [];
+    const planTitle = new Map(data.maps.map((m) => [m.id, m.title]));
+    const byId = new Map(data.features.map((f) => [f.id, f]));
+    const out: GuidePlace[] = [];
+    const seen = new Set<string>();
+    for (const g of data.geometries) {
+      if (g.featureId.startsWith('mk-') || seen.has(g.featureId)) continue;
+      const f = byId.get(g.featureId);
+      if (!f || f.trace) continue;
+      seen.add(f.id);
+      out.push({ id: f.id, kind: 'feature', title: f.title, planId: g.mapId, plan: planTitle.get(g.mapId) });
+    }
+    for (const m of overlay.markers) out.push({ id: m.id, kind: 'marker', title: m.title, planId: m.planId, plan: planTitle.get(m.planId) });
+    return out;
+  }, [data, overlay.markers, campaigns.length]);
+
+  /** Rencontre de la campagne : posée au lieu de la scène s'il est sur la carte, sinon au prochain clic. */
+  const placeCampaignEncounter = (enc: { name?: string; detail?: string; tactics?: string; complication?: string; nonCombatResolution?: string }, groups: MapMarker['groups'], at: GuidePlace | null) => {
+    const draft: Draft = {
+      kind: 'rencontre',
+      title: enc.name || DEFAULT_TITLE.rencontre,
+      summary: enc.detail ?? '',
+      notes: [enc.tactics && `Tactique : ${enc.tactics}`, enc.complication && `Complication : ${enc.complication}`, enc.nonCombatResolution && `Sans combat : ${enc.nonCombatResolution}`].filter(Boolean).join('\n'),
+      groups,
+    };
+    const xy = at ? placeCoords(data, rec, at) : null;
+    if (at && xy) createMarker(draft, xy[0] + 0.004, xy[1] + 0.004, at.planId);
+    else { setBattleOpen(false); setPlacing(draft); }
+  };
+
   /** Lieux de l'atlas présents sur le plan : « tout révéler » ne touche qu'à ceux-là. */
   const planFeatureIds = useMemo(
     () => (rec.kind === 'atlas' ? atlas.geometries.filter((g) => g.mapId === map.id).map((g) => g.featureId) : []),
@@ -198,11 +238,15 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
 
   function addMarker(x: number, y: number) {
     if (!placing) return;
+    createMarker(placing, x, y, map.id);
+  }
+  function createMarker(draft: Draft, x: number, y: number, planOf: string) {
     const m: MapMarker = {
-      id: uid(), kind: placing.kind, title: placing.title || DEFAULT_TITLE[placing.kind], planId: map.id, x, y,
-      summary: placing.summary ?? '', notes: placing.notes ?? '', revealed: false, groups: placing.groups,
+      id: uid(), kind: draft.kind, title: draft.title || DEFAULT_TITLE[draft.kind], planId: planOf, x, y,
+      summary: draft.summary ?? '', notes: draft.notes ?? '', revealed: false, groups: draft.groups,
     };
     setPlacing(null);
+    if (planOf !== map.id) setPlanId(planOf);
     setSelectedId(`mk-${m.id}`);
     if (m.kind === 'rencontre') {
       // Nouvelle rencontre : on oublie le plateau précédent et on ouvre la carte de combat de ce lieu, avec ses créatures.
@@ -263,7 +307,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
           onFollow={followPassage} onLink={setPassageLink} onMarker={(id, patch) => updateMarker(id, patch)}
           onReveal={(id) => toggleReveal(id)}
           onBattle={(b) => onUpdate({ battle: b, updatedAt: Date.now() })}
-          heroes={heroes} party={party}
+          heroes={heroes} party={party} bestiary={bestiary}
           onSearchNote={(id, note) => {
             const notesMap = { ...(overlay.searchNotes ?? {}) };
             if (note) notesMap[id] = note; else delete notesMap[id];
@@ -291,6 +335,22 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
           </div>
 
           <aside className="maps-panel">
+            {dm && campaigns.length > 0 && (
+              <CampaignGuide
+                campaigns={campaigns}
+                activeId={activeCampaignId}
+                onPick={(id) => onCampaign?.(id)}
+                onProgress={(c, progress) => onCampaignProgress?.(c.id, progress)}
+                places={guidePlaces}
+                partyAt={party.at}
+                bestiary={bestiary}
+                onShow={showPlace}
+                onDest={(p) => setDest({ id: p.id, kind: p.kind, title: p.title, planId: p.planId })}
+                onPartyHere={(p) => setOverlay(withPartyAt(overlay, { id: p.id, kind: p.kind, title: p.title, planId: p.planId }))}
+                onEncounter={(enc, groups, at) => placeCampaignEncounter(enc, groups, at)}
+                onMarkPlace={(title, summary) => setPlacing({ kind: 'objet', title, summary })}
+              />
+            )}
             {dm && placing && (
               <p className="maps-hint maps-placing">
                 Clique sur la carte pour placer « {placing.title} ». <button className="maps-link" onClick={() => setPlacing(null)}>Annuler</button>
@@ -523,7 +583,7 @@ function MarkerEditor({ m, onChange, onRemove, onClose }: {
         <Block title="Créatures (MJ)">
           {m.groups.map((g, i) => {
             const s: Stat | undefined = STATS[g.stat];
-            return <div key={i}>{g.n} × {s?.name ?? g.stat}{g.role ? ` (${g.role})` : ''} {s && <span className="maps-sub">CA {s.ac} · PV {s.hp}</span>}</div>;
+            return <div key={i}>{g.n} × {g.name ?? s?.name ?? g.stat}{g.role ? ` (${g.role})` : ''} {(g.hp || s) && <span className="maps-sub">CA {g.ac ?? s?.ac} · PV {g.hp ?? s?.hp}</span>}</div>;
           })}
         </Block>
       )}
