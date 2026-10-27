@@ -76,7 +76,12 @@ function PlayerMap({ board, rev }: { board: Extract<PlayerBoard, { mode: 'map' }
   if (!map) return <p className="present-wait">Carte vide.</p>;
   return (
     <div className="maps-canvas present-map">
-      <MapCanvas key={map.id} map={map} layers={LAYERS} hidden={HIDDEN} selectedId={null} onSelect={() => {}} onAnchor={() => {}} dataKey={rev} dm={false} />
+      <MapCanvas
+        key={map.id} map={map} layers={LAYERS} hidden={HIDDEN} selectedId={null} onSelect={() => {}} onAnchor={() => {}} dm={false}
+        dataKey={rev}
+        focus={board.focus ? { kind: 'point', id: board.focus.id } : null}
+        focusKey={board.focus ? String(board.focus.tick) : undefined}
+      />
     </div>
   );
 }
@@ -88,7 +93,7 @@ function PlayerBattle({ board }: { board: Extract<PlayerBoard, { mode: 'battle' 
         <span>{board.title}</span>
         <span>Round {board.round}</span>
       </header>
-      <BattleBoard cols={board.cols} rows={board.rows} backdrop={board.backdrop} terrain={board.terrain} tokens={board.tokens} />
+      <BattleBoard cols={board.cols} rows={board.rows} backdrop={board.backdrop} terrain={board.terrain} elements={board.elements} tokens={board.tokens} />
     </div>
   );
 }

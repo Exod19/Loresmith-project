@@ -9,6 +9,7 @@
  * ne touche jamais aux révélations, aux repères ou aux combats.
  */
 import { setAtlasData } from './atlas/model';
+import type { LocalElement } from './battle/local';
 import type { AtlasData, AtlasFeature, AtlasGeometry, AtlasMap, FeatureCategory, Importance } from './atlas/types';
 
 export type Zone = 'sauvage' | 'transit' | 'cite';
@@ -64,6 +65,9 @@ export interface MapOverlay {
 export interface BattleToken {
   id: string;
   name: string;
+  /** Icône (emoji) ou image de la créature ; à défaut, une icône selon la fiche. */
+  icon?: string;
+  image?: string;
   kind: 'pc' | 'monster' | 'other';
   /** Case de la grille (coin haut-gauche). */
   x: number;
@@ -88,6 +92,8 @@ export interface Battle {
   tokens: BattleToken[];
   /** Terrain généré depuis un lieu : `grid` = cols × rows caractères (cf. battle/terrain.ts). `source` = identifiant du lieu. */
   terrain?: { source: string; seed: number; grid: string };
+  /** Zone locale autour du lieu : éléments de l'Atlas placés sur la grille, et ceux que le MJ a découverts. */
+  local?: { source: string; window: { x0: number; y0: number; w: number; h: number }; elements: LocalElement[]; discovered: string[] };
 }
 
 export interface MapRecord {

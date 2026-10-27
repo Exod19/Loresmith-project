@@ -4,7 +4,7 @@
  * Chaque case est un caractère (voir TERRAIN) ; la grille est stockée en une seule chaîne de cols × rows caractères.
  */
 
-export type TerrainKind = '.' | '#' | '~' | ':' | '=' | 'X' | 'I' | ',';
+export type TerrainKind = '.' | '#' | '~' | ':' | '=' | 'X' | 'I' | ',' | 'p';
 
 export const TERRAIN: Record<TerrainKind, { label: string; blocks: boolean; difficult: boolean }> = {
   '.': { label: 'Sol', blocks: false, difficult: false },
@@ -15,6 +15,7 @@ export const TERRAIN: Record<TerrainKind, { label: string; blocks: boolean; diff
   X: { label: 'Gouffre / faille', blocks: true, difficult: false },
   I: { label: 'Stalagmite / pilier', blocks: true, difficult: false },
   ',': { label: 'Cristaux / champignons (décor)', blocks: false, difficult: false },
+  p: { label: 'Passage (tracé de l’Atlas)', blocks: false, difficult: false },
 };
 
 export type LocationHint = { title: string; category?: string; trace?: string; text?: string };
@@ -185,4 +186,21 @@ export function pathCost(grid: string | undefined, cols: number, rows: number, f
     }
   }
   return dist[goal] === Infinity ? null : dist[goal];
+}
+
+/** Un élément du lieu : passage (tracé) ou point, avec son état de découverte. */
+export type TerrainElement = { kind: 'passage' | 'point'; secret: boolean; cells?: number[]; cell?: number };
+
+/**
+ * Grille telle que la voient les joueurs : les passages de l'Atlas sont creusés, et les passages secrets
+ * restent de la roche tant que le MJ ne les a pas découverts.
+ */
+export function effectiveGrid(base: string, elements: TerrainElement[], discovered: string[], ids: string[]): string {
+  const g = base.split('') as TerrainKind[];
+  elements.forEach((e, i) => {
+    if (e.kind !== 'passage' || !e.cells) return;
+    const open = !e.secret || discovered.includes(ids[i]);
+    for (const c of e.cells) if (c >= 0 && c < g.length) g[c] = open ? 'p' : '#';
+  });
+  return g.join('');
 }

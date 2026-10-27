@@ -6,13 +6,16 @@
  */
 import type { AtlasData } from '../maps/atlas/types';
 
-export type PlayerToken = { id: string; name: string; kind: 'pc' | 'monster' | 'other'; x: number; y: number; size: 1 | 2 };
+export type PlayerToken = { id: string; name: string; kind: 'pc' | 'monster' | 'other'; x: number; y: number; size: 1 | 2; icon?: string; image?: string };
+
+/** Élément visible sur le plateau de combat : un point (cell) ou un passage (cells, déjà creusé dans le terrain). */
+export type PlayerElement = { id: string; kind: 'passage' | 'point'; title: string; category: string; cell?: number };
 
 /** Ce que voient les joueurs d'une carte ou d'un combat. */
 export type PlayerBoard =
   /** `data` ne contient que le plan montré et ses lieux révélés. */
-  | { mode: 'map'; title: string; planId: string; data: AtlasData }
-  | { mode: 'battle'; title: string; backdrop?: string; cols: number; rows: number; feetPerCell: number; round: number; tokens: PlayerToken[]; terrain?: string };
+  | { mode: 'map'; title: string; planId: string; data: AtlasData; focus?: { id: string; tick: number } }
+  | { mode: 'battle'; title: string; backdrop?: string; cols: number; rows: number; feetPerCell: number; round: number; tokens: PlayerToken[]; terrain?: string; elements: PlayerElement[] };
 
 export type Stage =
   | { kind: 'blank' }

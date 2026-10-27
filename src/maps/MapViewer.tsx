@@ -40,6 +40,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [enc, setEnc] = useState<{ ctx: EncCtx; e: Encounter } | null>(null);
   const [placing, setPlacing] = useState<Draft | null>(null);
+  /** Lieu que les joueurs doivent voir au centre de l'écran (demandé depuis la fiche). */
+  const [focus, setFocus] = useState<{ id: string; tick: number } | null>(null);
 
   const overlay = rec.overlay ?? EMPTY_OVERLAY;
   const map = data.maps.find((m) => m.id === planId) ?? data.maps[0];
@@ -64,8 +66,15 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
   // Projection : toute modification de la carte, du repérage ou du combat part vers l'écran joueur.
   useEffect(() => {
     if (!projecting) return;
-    publishStage({ kind: 'board', board: battleOpen ? battleBoard(rec) : mapBoard(rec, atlas, map.id) });
-  }, [projecting, battleOpen, rec, atlas, map.id]);
+    publishStage({ kind: 'board', board: battleOpen ? battleBoard(rec) : mapBoard(rec, atlas, map.id, focus ?? undefined) });
+  }, [projecting, battleOpen, rec, atlas, map.id, focus]);
+
+  /** Amène la vue joueurs sur ce lieu : le révèle si besoin, centre la carte chez eux, et démarre la projection. */
+  const bringPlayers = (id: string) => {
+    if (rec.kind === 'atlas' && !overlay.revealed.includes(id)) toggleReveal(id);
+    setFocus({ id, tick: Date.now() });
+    setProjecting(true);
+  };
 
   function stopProjecting() {
     setProjecting(false);
@@ -130,7 +139,11 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
       )}
 
       {battleOpen ? (
-        <BattleMode rec={rec} battle={rec.battle ?? DEFAULT_BATTLE} context={locationHint} onBattle={(b) => onUpdate({ battle: b, updatedAt: Date.now() })} />
+        <BattleMode
+          rec={rec} battle={rec.battle ?? DEFAULT_BATTLE} context={locationHint}
+          atlas={data} plan={map} markers={overlay.markers}
+          onBattle={(b) => onUpdate({ battle: b, updatedAt: Date.now() })}
+        />
       ) : (
         <div className="maps-body">
           <div className="maps-canvas">
@@ -144,6 +157,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
               onAnchor={() => {}}
               onPlace={dm && placing ? addMarker : undefined}
               dataKey={rec.updatedAt}
+              focus={focus ? { kind: 'point', id: focus.id } : null}
+              focusKey={focus ? String(focus.tick) : undefined}
               dm={dm}
             />
           </div>
@@ -170,6 +185,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
                 defaultCtx={{ zone: point?.zone ?? 'sauvage', depth: point?.depth ?? 3, place: feature.title }}
                 onClose={() => setSelectedId(null)}
                 onRoll={(ctx) => setEnc({ ctx, e: rollEncounter(ctx) })}
+                onBring={() => bringPlayers(feature.id)}
                 revealed={rec.kind === 'atlas' ? overlay.revealed.includes(feature.id) : undefined}
                 onToggleReveal={rec.kind === 'atlas' ? () => toggleReveal(feature.id) : undefined}
               />
@@ -244,9 +260,9 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
   );
 }
 
-function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal }: {
+function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring }: {
   f: AtlasFeature; dm: boolean; notes: string; defaultCtx: EncCtx; onClose: () => void; onRoll: (ctx: EncCtx) => void;
-  revealed?: boolean; onToggleReveal?: () => void;
+  revealed?: boolean; onToggleReveal?: () => void; onBring?: () => void;
 }) {
   const [zone, setZone] = useState<Zone>(defaultCtx.zone);
   const [depth, setDepth] = useState(defaultCtx.depth);
@@ -268,6 +284,7 @@ function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onT
         </Block>
       )}
       {guide && guide.tips.map((t, i) => <p key={i} className="maps-tip">{t}</p>)}
+      {dm && onBring && <button className="maps-btn gold" onClick={onBring}>🎯 Amener la vue joueurs ici</button>}
       {dm && onToggleReveal && (
         <button className={`maps-btn ${revealed ? '' : 'gold'}`} onClick={onToggleReveal}>
           {revealed ? '🙈 Cacher aux joueurs' : '👁 Montrer aux joueurs'}
