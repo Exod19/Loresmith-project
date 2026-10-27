@@ -113,35 +113,6 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
       </h2>
       <div className="h-px w-2/3 bg-gradient-to-r from-transparent via-[#c9a24a] to-transparent mb-3" aria-hidden="true" />
 
-      <div className="grid grid-cols-5 gap-2 w-full mb-1" role="radiogroup" aria-label="Texture des dés">
-        {DICE_THEMES.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            role="radio"
-            aria-checked={theme.id === t.id}
-            onClick={() => setTheme(t)}
-            disabled={themeLoading}
-            className={`flex flex-col items-center gap-1 p-1.5 rounded-lg border transition-all hover:-translate-y-0.5 disabled:opacity-60 ${
-              theme.id === t.id
-                ? 'border-[#c9a24a] bg-[#c9a24a]/15 shadow-[0_0_14px_rgba(201,162,74,0.35)]'
-                : 'border-[#c9a24a]/20 bg-[#1c150c] hover:border-[#c9a24a]/60'
-            }`}
-          >
-            <img
-              src={`/assets/dice-box/thumbs/${t.id}.png`}
-              alt=""
-              width={48}
-              height={48}
-              className="w-12 h-12 rounded-md object-contain"
-            />
-            <span className="text-[11px] font-['Cinzel'] text-[#f3e6c0]">{t.label}</span>
-          </button>
-        ))}
-      </div>
-      <p className="text-xs text-[#c9a24a]/80 font-['Cinzel'] mb-3 h-4" aria-live="polite">
-        {themeLoading ? 'Chargement de la texture…' : `Texture : ${theme.label}`}
-      </p>
 
       <div
         id="dice-box"
@@ -155,7 +126,7 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
             type="button"
             onClick={() => roll(d)}
             disabled={!ready || themeLoading}
-            className={`flex-1 min-w-[3.25rem] px-2 py-1.5 rounded-md border text-sm font-mono font-semibold transition-all hover:-translate-y-0.5 disabled:opacity-40 ${
+            className={`flex-1 min-w-0 px-1 py-1.5 rounded-md border text-sm font-mono font-semibold transition-all hover:-translate-y-0.5 disabled:opacity-40 ${
               notation === d
                 ? 'border-[#ecd289] bg-gradient-to-b from-[#3a2c12] to-[#1c150c] text-[#ecd289] shadow-[0_0_12px_rgba(236,210,137,0.4)]'
                 : 'border-[#c9a24a]/30 bg-gradient-to-b from-[#1c150c] to-[#0b0906] text-[#f3e6c0] hover:border-[#c9a24a] hover:text-[#ecd289]'
@@ -165,6 +136,37 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
           </button>
         ))}
       </div>
+
+      <div className="flex gap-1.5 w-full mb-1" role="radiogroup" aria-label="Texture des dés">
+        {DICE_THEMES.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="radio"
+            aria-checked={theme.id === t.id}
+            aria-label={t.label}
+            title={t.label}
+            onClick={() => setTheme(t)}
+            disabled={themeLoading}
+            className={`flex-1 min-w-0 p-0.5 rounded-md border transition-all hover:-translate-y-0.5 disabled:opacity-60 ${
+              theme.id === t.id
+                ? 'border-[#ecd289] bg-[#c9a24a]/15 shadow-[0_0_10px_rgba(236,210,137,0.4)]'
+                : 'border-[#c9a24a]/20 bg-[#1c150c] hover:border-[#c9a24a]/60'
+            }`}
+          >
+            <img
+              src={`/assets/dice-box/thumbs/${t.id}.png`}
+              alt=""
+              width={36}
+              height={36}
+              className="w-full aspect-square rounded object-contain"
+            />
+          </button>
+        ))}
+      </div>
+      <p className="text-xs text-[#c9a24a]/80 font-['Cinzel'] mb-3 h-4" aria-live="polite">
+        {themeLoading ? 'Chargement de la texture…' : `Texture : ${theme.label}`}
+      </p>
 
       <form
         className="flex gap-3 items-center w-full mb-4"
