@@ -99,28 +99,52 @@ export function archiveImageIndex(feed) {
 }
 
 /**
- * Images des Archives qui correspondent à un nom (fiche de bibliothèque, PNJ, créature).
- * Nom exact ou nom alternatif d'abord ; à défaut, un nom des Archives contenu dans le titre (≥ 5 lettres).
+ * Images des Archives qui correspondent exactement à un nom (fiche de bibliothèque, PNJ, créature).
+ * Pas de correspondance partielle : « Yemena Iznogood » ne doit pas prendre l'image du « Clan Iznogood ».
  */
 export function matchArchiveImages(names, index) {
   const keys = names.map(norm).filter(Boolean);
   if (!keys.length || !index.length) return [];
-  const exact = index.filter((img) => img.names.some((n) => keys.includes(norm(n))));
-  if (exact.length) return exact;
-  return index.filter((img) =>
-    img.names.some((n) => {
-      const k = norm(n);
-      return k.length >= 5 && keys.some((t) => (` ${t} `).includes(` ${k} `));
-    })
-  );
+  return index.filter((img) => img.names.some((n) => keys.includes(norm(n))));
+}
+
+/** Portraits de personnages : seulement les fiches qui sont des êtres (pas les factions ni les lieux). */
+const PORTRAIT_TYPES = ['creature', 'personnage', 'divinite', 'flore', 'fungus'];
+export function matchPortrait(names, index) {
+  return matchArchiveImages(names, index.filter((img) => PORTRAIT_TYPES.includes(img.entryType)));
+}
+
+/** Clans moriquendi : identifiant de la fiche des Archives pour chaque clan proposé dans les réglages. */
+export const CLANS = {
+  norrianiss: 'Norrianiss',
+  warral: 'Warral',
+  drehjur: 'Drehjur',
+  'bois-est': 'Bois-de-l’Est',
+  iznogood: 'Iznogood',
+};
+
+/**
+ * Ce que les Archives disent des marques de guerre : peintures claniques communes, plus la fiche du clan demandé.
+ * Sert à l'IA (texte) et à l'image (prompt), pour qu'un Moriquendi porte la bonne marque.
+ */
+export function clanPaintBrief(feed, clanKey) {
+  if (!feed?.entries || !clanKey) return '';
+  const byId = new Map(feed.entries.map((e) => [e.id, e]));
+  const clan = byId.get(`fa-${clanKey}`);
+  const paint = ['co-peintures-claniques', 'co-peintures-guerre-claniques'].map((id) => byId.get(id)).filter(Boolean);
+  const text = (e) => [e.summary, ...(e.sections || []).map((s) => s.body)].join(' ').replace(/\s+/g, ' ').slice(0, 700);
+  const parts = [];
+  if (clan) parts.push(`Clan ${CLANS[clanKey] || clan.name} : ${text(clan)}`);
+  for (const e of paint) parts.push(`${e.name} : ${text(e)}`);
+  return parts.join('\n');
 }
 
 /**
  * Génère un portrait. Avec une clé OpenAI : gpt-image-1. Sinon : Pollinations (gratuit, sans clé),
  * qui reçoit seulement la description visuelle. Le résultat est compressé avant d'être gardé.
  */
-export async function generatePortrait(ai, prompt) {
-  const full = `${prompt}. Dark fantasy tabletop RPG character portrait, painterly, dramatic lighting, centered bust, plain dark background, no text, no watermark.`;
+export async function generatePortrait(ai, prompt, paint = '') {
+  const full = `${prompt}. ${paint ? `Body paint and clan marks as described by the lore (must be respected exactly): ${paint}. ` : ''}Dark fantasy tabletop RPG character portrait, painterly, dramatic lighting, centered bust, plain dark background, no text, no watermark.`;
   if (ai?.provider === 'openai' && ai.apiKey) {
     const res = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',

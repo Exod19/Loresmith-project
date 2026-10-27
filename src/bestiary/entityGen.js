@@ -122,6 +122,7 @@ function briefLines(it) {
     it.ancestry && `Origine / nature : ${it.ancestry}`,
     it.role && `Rôle : ${it.role}`,
     it.cr && `FP visé : ${it.cr}`,
+    it.clan && `Peuple : moriquendi, clan ${it.clan}. Porte les marques de guerre et la peau pâle décrites dans le contexte des Archives (peintures claniques), sans en inventer d'autres.`,
     it.difficulty && `Difficulté pour le groupe : ${DIFFICULTY[it.difficulty] || it.difficulty}`,
     it.backstory && `Histoire inventée en jeu : ${it.backstory}`,
     it.notes && `Notes : ${it.notes}`,
