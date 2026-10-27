@@ -21,6 +21,13 @@ const QUICK_DICE = ['1d4', '1d6', '1d8', '1d10', '1d12', '1d20', '1d100'];
  * Textures disponibles : un dossier par thème dans public/assets/dice-box/themes/<id>/,
  * et une vignette (d20) dans public/assets/dice-box/thumbs/<id>.png.
  */
+/** Arènes de fond de la zone de lancer (assets Drive « arena »). */
+const ARENES = {
+  classique: { label: 'Classique', url: '/assets/dice-roller/arene-classique.webp' },
+  underdark: { label: 'Underdark', url: '/assets/dice-roller/arene-underdark.webp' },
+} as const;
+type Arene = keyof typeof ARENES;
+
 const DICE_THEMES = [
   { id: 'loresmith-cosmic', label: 'Cosmique', themeColor: '#ffffff' },
   { id: 'glace', label: 'Glace', themeColor: '#ffffff' },
@@ -44,6 +51,7 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [theme, setTheme] = useState<DiceTheme>(DICE_THEMES[0]);
+  const [arene, setArene] = useState<Arene>('classique');
   const [themeLoading, setThemeLoading] = useState(false);
   const crit = criticalOutcome(groups);
   // Thème actuellement chargé dans le moteur (roll() ne charge pas de nouveau thème).
@@ -114,10 +122,21 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
       <div className="h-px w-2/3 bg-gradient-to-r from-transparent via-[#c9a24a] to-transparent mb-3" aria-hidden="true" />
 
 
-      <div
-        id="dice-box"
-        className="w-full h-[300px] bg-[#0b0906] bg-[url('/assets/dice-roller/zone-lancer-classique.jpg')] bg-cover bg-center rounded-xl border border-[#c9a24a]/40 shadow-[inset_0_0_40px_rgba(0,0,0,0.75)] relative overflow-hidden mb-3 [&>canvas]:block [&>canvas]:w-full [&>canvas]:h-full"
-      />
+      <div className="relative w-full mb-3">
+        <div
+          id="dice-box"
+          style={{ backgroundImage: `url(${ARENES[arene].url})` }}
+          className="w-full h-[clamp(180px,38vh,300px)] bg-[#0b0906] bg-cover bg-center rounded-xl border border-[#c9a24a]/40 shadow-[inset_0_0_40px_rgba(0,0,0,0.75)] relative overflow-hidden [&>canvas]:block [&>canvas]:w-full [&>canvas]:h-full"
+        />
+        <button
+          type="button"
+          onClick={() => setArene((a) => (a === 'classique' ? 'underdark' : 'classique'))}
+          aria-label="Changer d'arène"
+          className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded border border-[#c9a24a]/50 bg-[#0b0906]/75 text-[10px] font-['Cinzel'] tracking-wide text-[#ecd289] hover:border-[#ecd289] transition-colors"
+        >
+          Arène : {ARENES[arene].label}
+        </button>
+      </div>
 
       <div className="flex flex-wrap gap-1.5 w-full mb-3">
         {QUICK_DICE.map((d) => (
@@ -155,11 +174,9 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
             }`}
           >
             <img
-              src={`/assets/dice-box/thumbs/${t.id}.png`}
+              src={`/assets/dice-roller/cartes/${t.id}.webp`}
               alt=""
-              width={36}
-              height={36}
-              className="w-full aspect-square rounded object-contain"
+              className="w-full aspect-[67/83] rounded object-cover"
             />
           </button>
         ))}
@@ -198,7 +215,7 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
         <button
           type="submit"
           disabled={!ready || themeLoading}
-          className="shrink-0 whitespace-nowrap inline-flex items-center gap-2 px-5 py-2 font-['Cinzel'] font-bold uppercase tracking-wider rounded-lg border border-[#ecd289]/60 bg-gradient-to-b from-[#ecd289] via-[#c9a24a] to-[#7d6128] text-[#16110a] shadow-lg shadow-[#c9a24a]/25 hover:brightness-110 active:scale-95 transition-all disabled:opacity-40"
+          className="shrink-0 whitespace-nowrap inline-flex items-center gap-2 px-5 py-2 font-['Cinzel'] font-bold uppercase tracking-wider rounded-lg border border-[#ecd289]/60 bg-gradient-to-b from-[#ecd289] via-[#c9a24a] to-[#7d6128] text-[#16110a] shadow-lg shadow-[#c9a24a]/25 hover:brightness-110 active:scale-95 transition-all disabled:bg-[url('/assets/dice-roller/bouton-lancer-desactive.webp')] disabled:bg-[length:100%_100%] disabled:border-transparent disabled:text-[#8e8e8e] disabled:shadow-none disabled:cursor-not-allowed"
         >
           <img src="/assets/dice-roller/bouton-flottant-d20.png" alt="" width={18} height={18} className="w-[18px] h-[18px]" />
           Lancer !
