@@ -7,6 +7,7 @@ import { mapDataFor, restrictToPlan, DEFAULT_BATTLE, type MapRecord } from './ma
 import { effectiveGrid } from './battle/terrain';
 import { cellIn } from './battle/local';
 import { tokenImage } from './battle/vignettes';
+import { applyBuild, PROP_LABEL, propUrl } from './battle/build';
 import type { PlayerBoard, PlayerElement, PlayerToken } from '../present/stage';
 
 /** Carte telle que les joueurs la voient, sur le plan choisi, centrée sur `focus` si le MJ l'a demandé. */
@@ -35,9 +36,13 @@ export function battleBoard(rec: MapRecord): PlayerBoard {
         return cell === undefined ? [] : [{ id: `mk-${m.id}`, kind: 'point' as const, title: m.title, category: m.kind === 'passage' ? 'voie' : 'indetermine', cell }];
       })
     : [];
-  const elements: PlayerElement[] = [...passages, ...objects];
+  // Objets déposés à la main par le MJ : seuls les visibles sont envoyés.
+  const props: PlayerElement[] = (b.build?.props ?? [])
+    .filter((p) => p.visible)
+    .map((p) => ({ id: `pr-${p.id}`, kind: 'point', title: PROP_LABEL[p.key] ?? p.key, category: 'indetermine', cell: p.cell, image: propUrl(p.key) }));
+  const elements: PlayerElement[] = [...passages, ...objects, ...props];
   const terrain = b.terrain
-    ? effectiveGrid(b.terrain.grid, local?.elements ?? [], revealed, (local?.elements ?? []).map((e) => e.id))
+    ? applyBuild(effectiveGrid(b.terrain.grid, local?.elements ?? [], revealed, (local?.elements ?? []).map((e) => e.id)), b.build)
     : undefined;
   return {
     mode: 'battle', title: rec.title, backdrop: rec.image, cols: b.cols, rows: b.rows,

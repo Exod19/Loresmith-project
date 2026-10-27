@@ -111,6 +111,14 @@ export interface Battle {
   local?: { source: string; planId?: string; window: { x0: number; y0: number; w: number; h: number }; elements: LocalElement[]; discovered: string[] };
   /** Identifiant de la rencontre dont les créatures sont déjà placées sur le plateau. */
   encounterOf?: string;
+  /** Construction manuelle : surcharges du terrain généré et objets déposés (cf. battle/build.ts). */
+  build?: BattleBuild;
+}
+
+/** `edits` : index de case → type de terrain, posé à la main. `props` : objets déposés sur une case. */
+export interface BattleBuild {
+  edits: Record<string, string>;
+  props: { id: string; key: string; cell: number; visible: boolean }[];
 }
 
 export interface MapRecord {

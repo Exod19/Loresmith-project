@@ -10,7 +10,7 @@ export type PlayerToken = { id: string; name: string; kind: 'pc' | 'monster' | '
 
 /** Élément visible sur le plateau de combat : un point (cell) ou un passage (cells, déjà creusé dans le terrain). */
 /** `cells` : cases d'un passage ; `secret` : passage découvert par les joueurs (teinte propre). */
-export type PlayerElement = { id: string; kind: 'passage' | 'point'; title: string; category: string; cell?: number; cells?: number[]; secret?: boolean };
+export type PlayerElement = { id: string; kind: 'passage' | 'point'; title: string; category: string; cell?: number; cells?: number[]; secret?: boolean; image?: string };
 
 /** Ce que voient les joueurs d'une carte ou d'un combat. */
 export type PlayerBoard =

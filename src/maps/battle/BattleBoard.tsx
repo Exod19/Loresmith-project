@@ -31,6 +31,8 @@ type Props = {
   onCell?: (x: number, y: number) => void;
   onHover?: (x: number, y: number) => void;
   onElement?: (id: string) => void;
+  /** Cases survolées pendant un tracé (MJ, mode construction). */
+  preview?: number[];
 };
 
 /** Icône de chaque catégorie de lieu. */
@@ -108,7 +110,7 @@ const TEXTURES = (
 const cellPath = (cells: number[], cols: number) =>
   cells.map((i) => `M${i % cols} ${Math.floor(i / cols)}h1v1h-1z`).join('');
 
-export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement }: Props) {
+export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview }: Props) {
   const lines: string[] = [];
   for (let x = 0; x <= cols; x++) lines.push(`M${x} 0V${rows}`);
   for (let y = 0; y <= rows; y++) lines.push(`M0 ${y}H${cols}`);
@@ -138,6 +140,8 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
         </g>
       ))}
 
+      {preview && preview.length > 0 && <path d={cellPath(preview, cols)} fill="rgba(236,210,137,0.35)" stroke="#ecd289" strokeWidth={0.04} pointerEvents="none" />}
+
       {elements.map((e) => {
         if (e.kind === 'passage') {
           if (!e.cells) return null;
@@ -149,6 +153,16 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
         }
         if (e.cell === undefined) return null;
         const cx = (e.cell % cols) + 0.5, cy = Math.floor(e.cell / cols) + 0.5;
+        if (e.image) {
+          // Objet déposé : son image remplit la case ; en pointillé et estompé pour le MJ quand il est caché.
+          return (
+            <g key={e.id} className="battle-element" opacity={e.ghost ? 0.45 : 1}>
+              <image href={e.image} x={cx - 0.46} y={cy - 0.46} width={0.92} height={0.92} preserveAspectRatio="xMidYMid meet" />
+              {e.ghost && <rect x={cx - 0.46} y={cy - 0.46} width={0.92} height={0.92} fill="none" stroke="#ecd289" strokeWidth={0.05} strokeDasharray="0.1 0.07" />}
+              <title>{e.ghost ? `${e.title} (caché aux joueurs)` : e.title}</title>
+            </g>
+          );
+        }
         const img = e.ghost ? vignette('element_cache') : CATEGORY_IMG[e.category] ? vignette(CATEGORY_IMG[e.category]) : undefined;
         const clip = `clip-el-${e.id.replace(/[^a-zA-Z0-9]/g, '')}`;
         return (
