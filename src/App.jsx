@@ -23,6 +23,10 @@ import MapsPage from './maps/MapsPage';
 import ArchivesPage from './feeds/ArchivesPage';
 import ArchivesLinkPanel from './feeds/ArchivesLink';
 import StageControl from './present/StageControl';
+import { DiceFloater } from './dice/DiceRoller3D';
+
+// Pages « Jouer » : le lanceur de dés flotte par-dessus.
+const PLAY_VIEWS = ['present', 'scene', 'encounter', 'quests'];
 import { UNDERDARK_LINK } from './feeds/underdark';
 
 /* ----------------------------- styles (gold / ornate) ------------------- */
@@ -5406,6 +5410,7 @@ export default function App() {
               <Conjure {...{ dispatch, universe, party, state, flash }} />
             )}
           </div>
+          {PLAY_VIEWS.includes(view) && <DiceFloater />}
           {settingsOpen && (
             <SettingsModal
               onClose={() => setSettingsOpen(false)}
