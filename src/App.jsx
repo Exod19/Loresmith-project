@@ -4910,6 +4910,11 @@ function reducer(s, a) {
       }
       const assets = { ...(s.assets || {}) };
       for (const asset of a.assets || []) if (!assets[asset.id]) assets[asset.id] = asset;
+      // Import complet de l'univers : les images des Archives qui ne sont plus rattachées (doublons) sont retirées.
+      if (a.full) {
+        const wanted = new Set((a.assets || []).map((x) => x.id));
+        for (const [id, x] of Object.entries(assets)) if (x.source === 'archives' && x.universeId === a.universeId && !wanted.has(id)) delete assets[id];
+      }
       return { ...s, libraryEntries, assets };
     }
     case 'ADD_LIBRARY_ENTRY':
