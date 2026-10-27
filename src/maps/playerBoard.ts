@@ -20,10 +20,11 @@ export function battleBoard(rec: MapRecord): PlayerBoard {
     .filter((t) => t.visible)
     .map(({ id, name, kind, x, y, size, icon, image }) => ({ id, name, kind, x, y, size, icon, image }));
   const local = b.local;
+  const revealed = rec.overlay?.revealed ?? [];
   // Les joueurs ne voient que les éléments visibles : un passage secret n'existe pour eux qu'une fois découvert,
   // et un objet n'apparaît que lorsque le MJ le révèle.
   const passages: PlayerElement[] = (local?.elements ?? [])
-    .filter((e) => e.kind === 'passage' && (!e.secret || (local?.discovered ?? []).includes(e.id)))
+    .filter((e) => e.kind === 'passage' && (!e.secret || revealed.includes(e.id)))
     .map((e) => ({ id: e.id, kind: 'passage', title: e.title, category: e.category }));
   const objects: PlayerElement[] = local?.window
     ? (rec.overlay?.markers ?? [])
@@ -35,7 +36,7 @@ export function battleBoard(rec: MapRecord): PlayerBoard {
     : [];
   const elements: PlayerElement[] = [...passages, ...objects];
   const terrain = b.terrain
-    ? effectiveGrid(b.terrain.grid, local?.elements ?? [], local?.discovered ?? [], (local?.elements ?? []).map((e) => e.id))
+    ? effectiveGrid(b.terrain.grid, local?.elements ?? [], revealed, (local?.elements ?? []).map((e) => e.id))
     : undefined;
   return {
     mode: 'battle', title: rec.title, backdrop: rec.image, cols: b.cols, rows: b.rows,

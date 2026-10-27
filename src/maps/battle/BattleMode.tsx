@@ -5,12 +5,13 @@
  * ramène sur la carte de navigation, à la destination.
  */
 import { useEffect, useState } from 'react';
-import BattleBoard, { type BoardElement, type BoardToken } from './BattleBoard';
+import BattleBoard, { type BoardElement, type BoardRange, type BoardToken } from './BattleBoard';
 import { STATS, type Stat } from '../atlas/statblocks';
 import type { AtlasData, AtlasMap } from '../atlas/types';
 import { DEFAULT_BATTLE, type Battle, type BattleToken, type MapMarker, type MapRecord, type PassageLink } from '../mapStore';
 import { blocksCell, effectiveGrid, generateTerrain, pathCost, seedOf, TERRAIN, type LocationHint, type TerrainKind } from './terrain';
 import { buildLocalMap, cellIn } from './local';
+import { attackCells, reachableCells, speedCells } from './ranges';
 import { iconFor, placeEncounter, type EncounterGroup } from './encounter';
 import './battle.css';
 
@@ -80,7 +81,7 @@ function firstFree(b: Battle, size: 1 | 2): { x: number; y: number } | null {
   return null;
 }
 
-export default function BattleMode({ rec, battle, onBattle, context, atlas, plan, markers, onFollow, onLink, onMarker }: {
+export default function BattleMode({ rec, battle, onBattle, context, atlas, plan, markers, onFollow, onLink, onMarker, onReveal }: {
   rec: MapRecord; battle: Battle; onBattle: (b: Battle) => void;
   /** Lieu sélectionné : sa zone locale est placée sur la grille à l'ouverture ; une rencontre y place ses créatures. */
   context: (LocationHint & { id: string; groups?: EncounterGroup[] }) | null;
@@ -88,6 +89,8 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
   onFollow: (link: PassageLink) => void;
   onLink: (passageId: string, link: PassageLink | null) => void;
   onMarker: (id: string, patch: Partial<MapMarker>) => void;
+  /** Révèle ou cache un passage pour les joueurs : même interrupteur que sur la carte de navigation. */
+  onReveal: (featureId: string) => void;
 }) {
   const b = battle ?? DEFAULT_BATTLE;
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -96,11 +99,16 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
   const [kind, setKind] = useState<BattleToken['kind']>('monster');
   const [statId, setStatId] = useState('');
   const [image, setImage] = useState<string | undefined>();
+  const [groupBy, setGroupBy] = useState<'destination' | 'orientation'>('destination');
+  /** Portées affichées sur le plateau : réservé au MJ, jamais envoyé aux joueurs. */
+  const [showRanges, setShowRanges] = useState(false);
 
   const selected = b.tokens.find((t) => t.id === selectedId) ?? null;
   const set = (patch: Partial<Battle>) => onBattle({ ...b, ...patch });
-  const grid = effectiveOf(b);
-  const discovered = b.local?.discovered ?? [];
+  // Une seule source de vérité : les éléments révélés de la fiche (« Montrer aux joueurs »).
+  const discovered = rec.overlay?.revealed ?? [];
+  const bv: Battle = b.local ? { ...b, local: { ...b.local, discovered } } : b;
+  const grid = effectiveOf(bv);
 
   /**
    * Construit la carte du lieu : terrain, passages et objets à leur place. Une rencontre place aussi ses créatures,
@@ -148,17 +156,13 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
     patchToken(t.id, { hp: Math.max(0, Math.min(t.maxHp ?? t.hp, t.hp + delta)) });
   };
 
-  /** Découvre ou recache un passage secret du tracé de l'Atlas. */
-  const toggleDiscovered = (id: string) => {
-    if (!b.local) return;
-    const next = b.local.discovered.includes(id) ? b.local.discovered.filter((x) => x !== id) : [...b.local.discovered, id];
-    set({ local: { ...b.local, discovered: next } });
-  };
+  /** Révèle ou cache un passage secret du tracé de l'Atlas (partagé avec la carte de navigation). */
+  const toggleDiscovered = (id: string) => onReveal(id);
 
   function addToken() {
     const st: Stat | undefined = statId ? STATS[statId] : undefined;
     const size: 1 | 2 = st && /taille (G|TG)/.test(st.meta) ? 2 : 1;
-    const spot = firstFree(b, size);
+    const spot = firstFree(bv, size);
     if (!spot) return; // plateau plein
     const hp = st ? leadingInt(st.hp) : undefined;
     const token: BattleToken = {
@@ -174,16 +178,16 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
 
   function moveTo(x: number, y: number) {
     if (!selected) { setSelectedId(null); return; }
-    if (fits(b, selected.id, selected.size, x, y)) patchToken(selected.id, { x, y });
+    if (fits(bv, selected.id, selected.size, x, y)) patchToken(selected.id, { x, y });
   }
 
   // Passages : tracés réels de l'Atlas, et portes posées par le MJ sur ce plan. Chacun mène quelque part.
-  const passages: { id: string; title: string; secret: boolean; found: boolean; dc?: number; checkLabel?: string; auto?: PassageLink; marker?: MapMarker }[] = [
+  const passages: { id: string; title: string; secret: boolean; found: boolean; dc?: number; checkLabel?: string; auto?: PassageLink; marker?: MapMarker; cells: number[] }[] = [
     ...(b.local?.elements ?? []).filter((e) => e.kind === 'passage').map((e) => ({
-      id: e.id, title: e.title, secret: e.secret, found: discovered.includes(e.id), dc: e.dc, checkLabel: e.checkLabel, auto: e.auto,
+      id: e.id, title: e.title, secret: e.secret, found: discovered.includes(e.id), dc: e.dc, checkLabel: e.checkLabel, auto: e.auto, cells: e.cells ?? [],
     })),
     ...markers.filter((m) => m.kind === 'passage' && m.planId === plan?.id).map((m) => ({
-      id: `mk-${m.id}`, title: m.title, secret: true, found: m.revealed, dc: m.dcInvestigate ?? 14, checkLabel: 'Investigation', marker: m,
+      id: `mk-${m.id}`, title: m.title, secret: true, found: m.revealed, dc: m.dcInvestigate ?? 14, checkLabel: 'Investigation', marker: m, cells: [],
     })),
   ];
   const linkOf = (id: string) => rec.overlay?.passageLinks?.[id] ?? passages.find((p) => p.id === id)?.auto;
@@ -215,6 +219,34 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
       : []),
   ];
 
+  // Regroupement de la liste : par destination, ou par direction depuis le centre du plateau.
+  const groupBy_ = groupBy;
+  const center = { x: b.cols / 2, y: b.rows / 2 };
+  const DIRS = ['Nord', 'Nord-Est', 'Est', 'Sud-Est', 'Sud', 'Sud-Ouest', 'Ouest', 'Nord-Ouest'];
+  const directionOf = (cells: number[]) => {
+    if (!cells.length) return 'Autre';
+    const mx = cells.reduce((t, i) => t + (i % b.cols), 0) / cells.length;
+    const my = cells.reduce((t, i) => t + Math.floor(i / b.cols), 0) / cells.length;
+    const angle = (Math.atan2(mx - center.x, -(my - center.y)) * 180) / Math.PI;
+    return DIRS[Math.round((((angle % 360) + 360) % 360) / 45) % 8];
+  };
+  const groups = new Map<string, typeof passages>();
+  for (const p of passages) {
+    const key = groupBy_ === 'orientation'
+      ? directionOf(p.cells)
+      : linkOf(p.id)?.label ?? 'Destination non inscrite';
+    groups.set(key, [...(groups.get(key) ?? []), p]);
+  }
+
+  // Portées : déplacement (cases atteignables, terrain compté) et anneau d'attaque, pour chaque créature et chaque joueur.
+  const statOf = (t: BattleToken) => (t.statId ? STATS[t.statId] : undefined);
+  const rangeOf = (t: BattleToken): BoardRange => ({
+    id: t.id, x: t.x, y: t.y, size: t.size,
+    move: reachableCells(grid, b.cols, b.rows, t, speedCells(statOf(t))),
+    attack: attackCells(statOf(t)), selected: t.id === selectedId,
+  });
+  const ranges: BoardRange[] = showRanges ? b.tokens.map(rangeOf) : [];
+
   const boardTokens: BoardToken[] = b.tokens.map((t) => ({
     id: t.id, name: t.name, kind: t.kind, x: t.x, y: t.y, size: t.size, icon: t.icon, image: t.image,
     selected: t.id === selectedId, hidden: !t.visible,
@@ -242,13 +274,16 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
           )}
           {b.terrain && <button className="maps-btn" onClick={() => set({ terrain: undefined, local: undefined, encounterOf: undefined })}>Terrain vierge</button>}
           {!b.terrain && <button className="maps-btn" onClick={() => generate(context ?? { title: 'Caverne' }, context?.id ?? 'caverne', 0)}>Générer un terrain</button>}
+          <button className={`maps-btn ${showRanges ? 'gold' : ''}`} title="Afficher les déplacements et les portées d'attaque (MJ seulement)" onClick={() => setShowRanges((v) => !v)}>
+            ◎ Portées
+          </button>
           <span className="battle-hint">
             {selected ? `Clique une case pour déplacer ${selected.name}.` : 'Clique un jeton pour le sélectionner.'}
           </span>
         </div>
         <div className="battle-board-wrap">
           <BattleBoard
-            cols={b.cols} rows={b.rows} backdrop={rec.image} terrain={grid} elements={boardElements} tokens={boardTokens} interactive
+            cols={b.cols} rows={b.rows} backdrop={rec.image} terrain={grid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive
             onToken={setSelectedId} onCell={moveTo} onHover={(x, y) => setHover({ x, y })}
           />
           {readout && (
@@ -264,37 +299,48 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
       <aside className="maps-panel battle-side">
         {passages.length > 0 && (
           <section className="maps-card battle-secrets">
-            <h3>Passages ({passages.length})</h3>
-            <ul className="battle-list">
-              {passages.map((p) => {
-                const link = linkOf(p.id);
-                const current = rec.overlay?.passageLinks?.[p.id];
-                const value = current ? `${current.kind}:${current.id}` : '';
-                return (
-                  <li key={p.id} data-on={p.found ? 1 : 0} className="battle-passage">
-                    <span className="battle-name">{p.secret ? (p.found ? '🔓' : '🔒') : '⇢'} {p.title}</span>
-                    {p.secret && <small>DC {p.dc} · {p.checkLabel}</small>}
-                    {p.secret && (
-                      <button className={`maps-btn ${p.found ? '' : 'gold'}`} onClick={() => (p.marker ? onMarker(p.marker.id, { revealed: !p.found }) : toggleDiscovered(p.id))}>
-                        {p.found ? 'Recacher' : 'Découvert'}
-                      </button>
-                    )}
-                    <div className="battle-dest">
-                      {link
-                        ? <><span>→ {link.label}</span> <button className="maps-btn gold" onClick={() => onFollow(link)}>Suivre le chemin</button></>
-                        : <span className="battle-missing">Destination non inscrite</span>}
-                      <select className="maps-btn" value={value} onChange={(e) => {
-                        const opt = options.find((o) => o.value === e.target.value);
-                        onLink(p.id, opt ? opt.link : null);
-                      }}>
-                        <option value="">{link && !current ? 'Destination de l’Atlas' : 'Choisir la destination…'}</option>
-                        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                      </select>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
+            <div className="battle-group-head">
+              <h3>Passages ({passages.length})</h3>
+              <select className="maps-btn" value={groupBy} onChange={(e) => setGroupBy(e.target.value as 'destination' | 'orientation')}>
+                <option value="destination">Par destination</option>
+                <option value="orientation">Par orientation</option>
+              </select>
+            </div>
+            {[...groups.entries()].map(([name, items]) => (
+              <details key={name} className="battle-group">
+                <summary>{name} <small>({items.length})</small></summary>
+                <ul className="battle-list">
+                  {items.map((p) => {
+                    const link = linkOf(p.id);
+                    const current = rec.overlay?.passageLinks?.[p.id];
+                    const value = current ? `${current.kind}:${current.id}` : '';
+                    return (
+                      <li key={p.id} data-on={p.found ? 1 : 0} className="battle-passage">
+                        <span className="battle-name">{p.secret ? (p.found ? '🔓' : '🔒') : '⇢'} {p.title}</span>
+                        {p.secret && <small>DC {p.dc} · {p.checkLabel}</small>}
+                        {p.secret && (
+                          <button className={`maps-btn ${p.found ? '' : 'gold'}`} onClick={() => (p.marker ? onMarker(p.marker.id, { revealed: !p.found }) : toggleDiscovered(p.id))}>
+                            {p.found ? 'Recacher' : 'Découvert'}
+                          </button>
+                        )}
+                        <div className="battle-dest">
+                          {link
+                            ? <><span>→ {link.label}</span> <button className="maps-btn gold" onClick={() => onFollow(link)}>Suivre le chemin</button></>
+                            : <span className="battle-missing">Destination non inscrite</span>}
+                          <select className="maps-btn" value={value} onChange={(e) => {
+                            const opt = options.find((o) => o.value === e.target.value);
+                            onLink(p.id, opt ? opt.link : null);
+                          }}>
+                            <option value="">{link && !current ? 'Destination de l’Atlas' : 'Changer la destination…'}</option>
+                            {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                          </select>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </details>
+            ))}
           </section>
         )}
 
@@ -346,6 +392,7 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
           <section className="maps-card battle-sheet">
             <h3>{selected.name}</h3>
             {selected.ac !== undefined && <p>CA <b>{selected.ac}</b>{selected.hp !== undefined && <> · PV <b>{selected.hp}/{selected.maxHp}</b></>}</p>}
+            <p className="maps-sub">Déplacement : {speedCells(stat)} cases ({speedCells(stat) * b.feetPerCell} pieds) · Attaque : {attackCells(stat)} case{attackCells(stat) > 1 ? 's' : ''}</p>
             {stat && (
               <>
                 <p className="maps-sub">Vitesse {stat.speed}{speedInCells(stat.speed) !== undefined && ` (≈ ${speedInCells(stat.speed)} cases par tour)`}</p>

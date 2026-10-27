@@ -6,16 +6,17 @@
 
 export type TerrainKind = '.' | '#' | '~' | ':' | '=' | 'X' | 'I' | ',' | 'p';
 
+/** Libellés affichés dans la légende : ce qu'on voit, et si l'on peut s'y déplacer. */
 export const TERRAIN: Record<TerrainKind, { label: string; blocks: boolean; difficult: boolean }> = {
-  '.': { label: 'Sol', blocks: false, difficult: false },
-  '#': { label: 'Roche', blocks: true, difficult: false },
-  '~': { label: 'Eau (terrain difficile)', blocks: false, difficult: true },
-  ':': { label: 'Éboulis (terrain difficile)', blocks: false, difficult: true },
-  '=': { label: 'Pont', blocks: false, difficult: false },
-  X: { label: 'Gouffre / faille', blocks: true, difficult: false },
-  I: { label: 'Stalagmite / pilier', blocks: true, difficult: false },
-  ',': { label: 'Cristaux / champignons (décor)', blocks: false, difficult: false },
-  p: { label: 'Couloir (passage creusé)', blocks: false, difficult: false },
+  '.': { label: 'Sol : praticable', blocks: false, difficult: false },
+  '#': { label: 'Roche : infranchissable', blocks: true, difficult: false },
+  '~': { label: 'Eau : praticable, terrain difficile (compte double)', blocks: false, difficult: true },
+  ':': { label: 'Éboulis : praticable, terrain difficile (compte double)', blocks: false, difficult: true },
+  '=': { label: 'Pont : praticable', blocks: false, difficult: false },
+  X: { label: 'Gouffre ou faille : infranchissable', blocks: true, difficult: false },
+  I: { label: 'Stalagmite ou pilier : infranchissable', blocks: true, difficult: false },
+  ',': { label: 'Décor (cristaux, champignons) : praticable', blocks: false, difficult: false },
+  p: { label: 'Couloir (passage) : praticable', blocks: false, difficult: false },
 };
 
 export type LocationHint = { title: string; category?: string; trace?: string; text?: string };

@@ -3,7 +3,7 @@
  * les vrais éléments de l'Atlas (passages = tracés, points = lieux, repères du MJ) à leur position relative.
  * Les passages secrets restent fermés tant que le MJ ne les a pas découverts ; chacun a un DC à obtenir.
  */
-import type { AtlasData, AtlasFeature, AtlasMap } from '../atlas/types';
+import type { AtlasData, AtlasFeature, AtlasGeometry, AtlasMap } from '../atlas/types';
 import { dmFeature } from '../atlas/lore';
 import type { MapMarker } from '../mapStore';
 import { generateTerrain, type LocationHint, type TerrainElement } from './terrain';
@@ -110,18 +110,38 @@ export function buildLocalMap(p: {
   const base = generateTerrain(cols, rows, p.hint, p.seed);
   // Destination de chaque passage, lue dans les connexions de l'Atlas quand elle existe.
   // Un passage secret n'apparaît que s'il mène quelque part dans l'Atlas : les autres n'existent pas pour le combat.
+  const places = onPlan.filter((g) => g.type === 'point').map((g) => ({ g, f: byId.get(g.featureId) })).filter((x): x is { g: AtlasGeometry; f: AtlasFeature } => !!x.f && !x.f.area && !!x.f.category);
   const kept = elements
-    .map((e) => (e.kind === 'passage' ? { ...e, auto: autoLink(atlas, plan, e.id) } : e))
+    .map((e) => (e.kind === 'passage' ? { ...e, auto: autoLink(atlas, plan, e.id, places) } : e))
     .filter((e) => e.kind !== 'passage' || !e.secret || e.auto)
     .slice(0, MAX_ELEMENTS);
   return { window: win, base, elements: kept };
 }
 
 /** Destination d'un tracé : une de ses extrémités tombe sur une ancre reliée à une ancre d'un autre plan. */
-function autoLink(atlas: AtlasData, plan: AtlasMap, featureId: string): PassageLink | undefined {
+function autoLink(atlas: AtlasData, plan: AtlasMap, featureId: string, places: { g: AtlasGeometry; f: AtlasFeature }[]): PassageLink | undefined {
   const g = atlas.geometries.find((x) => x.featureId === featureId && x.type === 'polyline');
   if (!g) return undefined;
   const pts = g.coordinates as [number, number][];
+  // 1. Connexion de l'Atlas : l'extrémité tombe sur une ancre reliée à un autre plan.
+  const viaAnchor = anchorLink(atlas, plan, pts);
+  if (viaAnchor) return viaAnchor;
+  // 2. À défaut, le lieu nommé au bout du tracé : le passage relie deux lieux du plan.
+  const near = (p: [number, number]) => {
+    let best: { f: AtlasFeature } | undefined; let bd = 0.012;
+    for (const x of places) {
+      const [qx, qy] = x.g.coordinates as [number, number];
+      const d = Math.hypot(qx - p[0], qy - p[1]);
+      if (d < bd) { bd = d; best = x; }
+    }
+    return best;
+  };
+  const a = near(pts[0]), b = near(pts[pts.length - 1]);
+  if (a && b && a.f.id !== b.f.id) return { kind: 'feature', id: b.f.id, planId: plan.id, label: b.f.title };
+  return undefined;
+}
+
+function anchorLink(atlas: AtlasData, plan: AtlasMap, pts: [number, number][]): PassageLink | undefined {
   for (const e of [pts[0], pts[pts.length - 1]]) {
     for (const from of atlas.anchors.filter((a) => a.mapId === plan.id && Math.hypot(a.at[0] - e[0], a.at[1] - e[1]) < 0.02)) {
       for (const c of atlas.connections) {

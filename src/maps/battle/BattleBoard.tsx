@@ -10,6 +10,9 @@ export type BoardToken = PlayerToken & { selected?: boolean; hidden?: boolean };
 /** Élément du plateau. `ghost` : secret non découvert, visible du MJ seulement (pointillés + DC). */
 export type BoardElement = PlayerElement & { cells?: number[]; ghost?: boolean; dc?: number };
 
+/** Portées d'une créature (MJ seulement) : cases atteignables, et anneau de portée d'attaque. */
+export type BoardRange = { id: string; x: number; y: number; size: number; move: number[]; attack: number; selected: boolean };
+
 type Props = {
   cols: number;
   rows: number;
@@ -17,6 +20,8 @@ type Props = {
   /** Terrain effectif (cols × rows caractères, cf. terrain.ts). */
   terrain?: string;
   elements?: BoardElement[];
+  /** Portées à afficher (MJ seulement, absentes sur l'écran joueur). */
+  ranges?: BoardRange[];
   tokens: BoardToken[];
   /** Présent = mode MJ : la grille accepte les clics. */
   interactive?: boolean;
@@ -38,9 +43,9 @@ const KIND_FILL: Record<PlayerToken['kind'], string> = { pc: '#54d8c6', monster:
 const TEXTURES = (
   <defs>
     <pattern id="tex-floor" patternUnits="userSpaceOnUse" width={1} height={1}>
-      <rect width={1} height={1} fill="#110d09" />
-      <circle cx={0.2} cy={0.3} r={0.03} fill="#231c14" />
-      <circle cx={0.7} cy={0.8} r={0.025} fill="#231c14" />
+      <rect width={1} height={1} fill="#2b241b" />
+      <circle cx={0.2} cy={0.3} r={0.03} fill="#382f23" />
+      <circle cx={0.7} cy={0.8} r={0.025} fill="#382f23" />
     </pattern>
     <pattern id="tex-rock" patternUnits="userSpaceOnUse" width={1} height={1}>
       <rect width={1} height={1} fill="#4a3c2a" />
@@ -81,7 +86,7 @@ const TEXTURES = (
 const cellPath = (cells: number[], cols: number) =>
   cells.map((i) => `M${i % cols} ${Math.floor(i / cols)}h1v1h-1z`).join('');
 
-export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], tokens, interactive, onToken, onCell, onHover, onElement }: Props) {
+export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement }: Props) {
   const lines: string[] = [];
   for (let x = 0; x <= cols; x++) lines.push(`M${x} 0V${rows}`);
   for (let y = 0; y <= rows; y++) lines.push(`M0 ${y}H${cols}`);
@@ -121,11 +126,21 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
 
       <path d={lines.join('')} stroke="rgba(201,162,74,.22)" strokeWidth={0.03} fill="none" pointerEvents="none" />
 
+      {ranges.map((r) => (
+        <g key={`range-${r.id}`} pointerEvents="none">
+          {r.move.length > 0 && <path d={cellPath(r.move, cols)} fill="rgba(84,216,198,0.18)" opacity={r.selected ? 1 : 0.7} />}
+          <rect
+            x={r.x - r.attack} y={r.y - r.attack} width={r.size + 2 * r.attack} height={r.size + 2 * r.attack}
+            fill="none" stroke="#e0603f" strokeWidth={r.selected ? 0.1 : 0.05} strokeDasharray="0.25 0.15" opacity={r.selected ? 1 : 0.6}
+          />
+        </g>
+      ))}
+
       {elements.map((e) => {
         if (e.kind === 'passage') {
           // Passage secret non découvert (MJ seulement) : contour pointillé sur ses cases.
           if (!e.ghost || !e.cells) return null;
-          return <path key={`g-${e.id}`} d={cellPath(e.cells, cols)} fill="none" stroke="#ecd289" strokeWidth={0.07} strokeDasharray="0.15 0.1" opacity={0.9} pointerEvents="none" />;
+          return <path key={`g-${e.id}`} d={cellPath(e.cells, cols)} fill="rgba(236,210,137,0.16)" stroke="#ecd289" strokeWidth={0.07} strokeDasharray="0.15 0.1" opacity={0.95} pointerEvents="none"><title>{`${e.title} (secret, visible du MJ seulement)`}</title></path>;
         }
         if (e.cell === undefined) return null;
         const cx = (e.cell % cols) + 0.5, cy = Math.floor(e.cell / cols) + 0.5;

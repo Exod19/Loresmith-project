@@ -67,7 +67,7 @@ export interface MapMarker {
 }
 
 /** Où mène un passage : une ancre de l'Atlas, ou un élément interactif de cet univers. */
-export interface PassageLink { kind: 'anchor' | 'marker'; id: string; planId: string; label: string }
+export interface PassageLink { kind: 'anchor' | 'marker' | 'feature'; id: string; planId: string; label: string }
 
 export interface MapOverlay {
   /** Identifiants des lieux de l'atlas visibles des joueurs. Rien n'est visible par défaut. */

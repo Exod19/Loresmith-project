@@ -83,10 +83,12 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
       const m = overlay.markers.find((x) => x.id === link.id);
       if (m && !m.revealed) updateMarker(m.id, { revealed: true });
     }
+    // Un lieu de l'Atlas qui n'est pas encore visible devient visible au passage.
+    if (link.kind === 'feature' && rec.kind === 'atlas' && !overlay.revealed.includes(link.id)) toggleReveal(link.id);
     setBattleOpen(false);
     setPlanId(link.planId);
     setSelectedId(null);
-    setFocus({ kind: link.kind === 'anchor' ? 'anchor' : 'point', id: link.kind === 'anchor' ? link.id : `mk-${link.id}`, tick: Date.now() });
+    setFocus({ kind: link.kind === 'anchor' ? 'anchor' : 'point', id: link.kind === 'anchor' ? link.id : link.kind === 'feature' ? link.id : `mk-${link.id}`, tick: Date.now() });
   };
 
   /** Inscrit (ou efface) la destination d'un passage. */
@@ -118,9 +120,15 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
       id: uid(), kind: placing.kind, title: placing.title || DEFAULT_TITLE[placing.kind], planId: map.id, x, y,
       summary: placing.summary ?? '', notes: placing.notes ?? '', revealed: false, groups: placing.groups,
     };
-    setOverlay({ ...overlay, markers: [...overlay.markers, m] });
     setPlacing(null);
     setSelectedId(`mk-${m.id}`);
+    if (m.kind === 'rencontre') {
+      // Nouvelle rencontre : on oublie le plateau précédent et on ouvre la carte de combat de ce lieu, avec ses créatures.
+      onUpdate({ overlay: { ...overlay, markers: [...overlay.markers, m] }, updatedAt: Date.now(), battle: { ...DEFAULT_BATTLE, tokens: [] } });
+      setBattleOpen(true);
+      return;
+    }
+    setOverlay({ ...overlay, markers: [...overlay.markers, m] });
   }
   const updateMarker = (id: string, patch: Partial<MapMarker>) => setOverlay({
     ...overlay, markers: overlay.markers.map((m) => (m.id === id ? { ...m, ...patch } : m)),
@@ -163,6 +171,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
           rec={rec} battle={rec.battle ?? DEFAULT_BATTLE} context={locationHint}
           atlas={data} plan={map} markers={overlay.markers}
           onFollow={followPassage} onLink={setPassageLink} onMarker={(id, patch) => updateMarker(id, patch)}
+          onReveal={(id) => toggleReveal(id)}
           onBattle={(b) => onUpdate({ battle: b, updatedAt: Date.now() })}
         />
       ) : (

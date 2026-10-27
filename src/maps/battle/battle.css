@@ -58,3 +58,9 @@
 .battle-missing{font-size:12px;color:var(--muted,#9a8a63)}
 .battle-swatch.k-floor{background:#110d09}
 .battle-swatch.k-secret{background:transparent;border:1px dashed #ecd289}
+.battle-group-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.battle-group-head select{max-width:150px}
+.battle-group{margin-top:6px;border-top:1px solid rgba(201,162,74,.15);padding-top:4px}
+.battle-group > summary{cursor:pointer;font-family:'Cinzel',serif;font-size:13px;color:#ecd289;padding:4px 0}
+.battle-group > summary small{color:var(--muted,#9a8a63);font-family:inherit}
+.battle-swatch.k-floor{background:#2b241b}
