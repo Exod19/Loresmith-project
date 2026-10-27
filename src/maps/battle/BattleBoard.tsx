@@ -43,15 +43,14 @@ export const CATEGORY_ICON: Record<string, string> = {
 
 const KIND_FILL: Record<PlayerToken['kind'], string> = { pc: '#54d8c6', monster: '#c0492f', other: '#c9a24a' };
 
-/** Textures du terrain (public/images/combat-map/variants) : quatre variantes par type, tirées au sort de façon
- *  stable pour chaque case. Une image par case, posée sur la grille : une répétition de motif donnait des rayures. */
-const TEX_URL = (name: string) => `${import.meta.env.BASE_URL}images/combat-map/variants/${name}.webp`;
+/** Textures du terrain (public/images/combat-map/textures) : une image par case, posée sur la grille.
+ *  Une répétition de motif donnait des rayures à cette échelle ; chaque case garde ainsi son image exacte. */
+const TEX_URL = (name: string) => `${import.meta.env.BASE_URL}images/combat-map/textures/${name}.webp`;
 const TILE_FILE: Partial<Record<TerrainKind, string>> = {
-  '.': 'sol', '#': 'roche', '~': 'eau', ':': 'eboulis', '=': 'pont', X: 'gouffre', ',': 'decor', I: 'pilier',
+  '.': 'sol', '#': 'roche', '~': 'eau', ':': 'eboulis', '=': 'pont', X: 'gouffre', ',': 'decor', I: 'roche',
 };
-const VARIANTS = 4;
 const TILE_BASE: Record<string, string> = {
-  sol: '#2b241b', roche: '#4a3c2a', eau: '#1d4a5b', eboulis: '#3e3429', pont: '#8a6a2c', gouffre: '#030303', decor: '#2b241b', pilier: '#4a3c2a',
+  sol: '#2b241b', roche: '#4a3c2a', eau: '#1d4a5b', eboulis: '#3e3429', pont: '#8a6a2c', gouffre: '#030303', decor: '#2b241b', stalagmite: '#4a3c2a',
 };
 /** Taille d'une case dans le canevas de terrain (pixels). Le canevas est ensuite mis à l'échelle par le CSS. */
 const CELL_PX = 64;
@@ -70,10 +69,7 @@ function loadTile(file: string): Promise<HTMLImageElement> {
   return p;
 }
 
-/** Variante stable d'une case (0 à VARIANTS-1), dérivée de son index : le terrain ne scintille pas d'un rendu à l'autre. */
-const variantOf = (i: number) => ((i * 2654435761) >>> 0) % VARIANTS;
-
-/** Dessine le terrain case par case dans le canevas : une variante de texture par case, avec la couleur de base dessous. */
+/** Dessine le terrain case par case dans le canevas : une texture par type, avec la couleur de base dessous. */
 async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: number, terrain: string | undefined) {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
@@ -81,19 +77,19 @@ async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: numbe
   ctx.fillStyle = TILE_BASE.sol;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   if (!terrain) return;
-  const keys = Array.from(terrain, (k, i) => {
-    const file = TILE_FILE[k as TerrainKind] ?? 'sol';
-    return `${file}_${String(variantOf(i) + 1).padStart(2, '0')}`;
-  });
-  const names = [...new Set(keys)];
-  const images = Object.fromEntries(await Promise.all(names.map(async (f) => [f, await loadTile(f).catch(() => null)])));
+  const files = [...new Set([...Array.from(terrain).map((k) => TILE_FILE[k as TerrainKind] ?? 'sol'), 'stalagmite'])];
+  const images = Object.fromEntries(await Promise.all(files.map(async (f) => [f, await loadTile(f).catch(() => null)])));
   Array.from(terrain).forEach((k, i) => {
     const file = TILE_FILE[k as TerrainKind] ?? 'sol';
     const x = (i % cols) * CELL_PX, y = Math.floor(i / cols) * CELL_PX;
     ctx.fillStyle = TILE_BASE[file] ?? TILE_BASE.sol;
     ctx.fillRect(x, y, CELL_PX, CELL_PX);
-    const img = images[keys[i]];
+    const img = images[file];
     if (img) ctx.drawImage(img, x, y, CELL_PX, CELL_PX);
+    if (k === 'I') {
+      const col = images['stalagmite'];
+      if (col) ctx.drawImage(col, x, y, CELL_PX, CELL_PX);
+    }
   });
 }
 
