@@ -51,7 +51,7 @@ export default function ArchivesPage({ universe, dispatch, flash }: Props) {
   };
 
   const addToLibrary = (e: FeedEntry) => {
-    dispatch({ type: 'IMPORT_ARCHIVE_ENTRIES', ...archiveBundle([e], universe.id) });
+    dispatch({ type: 'IMPORT_ARCHIVE_ENTRIES', ...archiveBundle(feed, universe.id, [e.id]) });
     flash(`« ${e.name} » ajoutée à la bibliothèque`);
   };
 

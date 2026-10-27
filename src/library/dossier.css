@@ -1,0 +1,114 @@
+/* Fiches de bibliothèque : une seule présentation pour tous les types. Sélecteurs préfixés pour primer sur les styles globaux. */
+
+/* ——— Grille de cartes : même largeur, même hauteur, même cadrage ——— */
+.library-shell .library-entry-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 18px; align-items: stretch;
+}
+.library-shell .lib-card {
+  all: unset; box-sizing: border-box; display: flex; flex-direction: column; height: 100%; cursor: pointer;
+  background: linear-gradient(180deg, #1c150c, #16110a); border: 1px solid rgba(201,162,74,.22); border-radius: 6px;
+  overflow: hidden; transition: border-color .15s, transform .15s, box-shadow .15s;
+}
+.library-shell .lib-card:hover { border-color: rgba(201,162,74,.55); transform: translateY(-2px); }
+.library-shell .lib-card:focus-visible { outline: 2px solid #c9a24a; outline-offset: 2px; }
+.library-shell .lib-card[data-on="1"] { border-color: #c9a24a; box-shadow: 0 0 0 1px #c9a24a, 0 8px 24px rgba(0,0,0,.45); }
+.library-shell .lib-card-media { display: block; position: relative; aspect-ratio: 16 / 9; background: #0d0a06; overflow: hidden; }
+.library-shell .lib-card-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.library-shell .lib-card-ph { position: absolute; inset: 0; display: grid; place-items: center; font-size: 42px; color: rgba(201,162,74,.45); }
+.library-shell .lib-card-body { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px 14px; flex: 1; }
+.library-shell .lib-card-type { font: 600 10px/1 'Cinzel', serif; letter-spacing: .16em; text-transform: uppercase; color: #c9a24a; }
+.library-shell .lib-card-title {
+  font: 600 1.02rem/1.25 'Cinzel', serif; color: #ecd289;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.5em;
+}
+.library-shell .lib-card-sum {
+  font: 400 .95rem/1.45 'EB Garamond', serif; color: #9a8a63;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+/* ——— Fiche ——— */
+.dossier { max-width: 1180px; margin: 0 auto; color: #e7d8b0; font-family: 'EB Garamond', 'Spectral', serif; }
+.dossier-head { text-align: center; padding: 8px 0 26px; margin-bottom: 28px; position: relative; }
+.dossier-head::after {
+  content: ''; display: block; width: 180px; height: 1px; margin: 22px auto 0;
+  background: linear-gradient(90deg, transparent, #c9a24a, transparent);
+}
+.dossier-kicker { display: flex; justify-content: center; gap: 12px; align-items: center; font: 600 11px/1 'Cinzel', serif; letter-spacing: .22em; text-transform: uppercase; color: #c9a24a; }
+.dossier-canon { padding: 3px 9px; border: 1px solid rgba(201,162,74,.4); border-radius: 999px; letter-spacing: .12em; color: #9a8a63; }
+.dossier h1 { font: 600 2.4rem/1.15 'Cinzel', serif; color: #ecd289; margin: 14px 0 6px; letter-spacing: .02em; }
+.dossier-sub { font-style: italic; font-size: 1.2rem; color: #d8c79c; margin: 0; }
+.dossier-alt { font-size: .95rem; color: #9a8a63; margin: 6px 0 0; }
+.dossier-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+.dossier-btn {
+  font: 600 11px/1 'Cinzel', serif; letter-spacing: .12em; text-transform: uppercase; color: #ecd289;
+  background: transparent; border: 1px solid rgba(201,162,74,.5); border-radius: 4px; padding: 9px 14px; cursor: pointer;
+}
+.dossier-btn:hover:not(:disabled) { border-color: #ecd289; background: rgba(201,162,74,.08); }
+.dossier-btn:disabled { opacity: .5; cursor: default; }
+
+.dossier-grid { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 40px; align-items: start; }
+.dossier-main { min-width: 0; }
+.dossier-side { position: sticky; top: 16px; display: flex; flex-direction: column; gap: 22px; }
+
+/* Passage à lire : parchemin, en tête de fiche */
+.dossier-readaloud {
+  position: relative; margin: 6px 0 30px; padding: 26px 28px 22px;
+  background: linear-gradient(175deg, #f0e2bd, #e7d8b0 45%, #dcc99e); color: #382b14;
+  border: 1px solid #bda36e; border-radius: 8px; box-shadow: inset 0 0 60px rgba(120,90,40,.22), 0 3px 0 rgba(0,0,0,.25);
+}
+.dossier-readaloud::before {
+  content: '❦  À lire aux aventuriers'; position: absolute; top: -11px; left: 18px; padding: 2px 10px;
+  background: #e7d8b0; border: 1px solid #bda36e; border-radius: 6px;
+  font: 600 10px/1.4 'Cinzel', serif; letter-spacing: .18em; color: #7d6128;
+}
+.dossier-readaloud p { font: italic 400 1.14rem/1.7 'Spectral', 'EB Garamond', serif; margin: 0 0 .7em; }
+.dossier-readaloud p:last-child { margin-bottom: 0; }
+.dossier-readaloud.empty { background: rgba(201,162,74,.04); border: 1px dashed rgba(201,162,74,.4); box-shadow: none; color: #9a8a63; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.dossier-readaloud.empty::before { background: #16110a; border-color: rgba(201,162,74,.4); color: #9a8a63; }
+.dossier-readaloud.empty p { font: italic 1rem/1.5 'EB Garamond', serif; margin: 0; }
+
+.dossier-lead { font: italic 400 1.28rem/1.6 'EB Garamond', serif; color: #f1e4c3; border-left: 2px solid #c9a24a; padding: 2px 0 2px 18px; margin: 0 0 30px; }
+
+.dossier-section { margin-bottom: 30px; }
+.dossier-section h2 { display: flex; align-items: center; gap: 14px; font: 600 .98rem/1.2 'Cinzel', serif; letter-spacing: .14em; text-transform: uppercase; color: #c9a24a; margin: 0 0 12px; }
+.dossier-section h2::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(201,162,74,.5), transparent); }
+.dossier-section p { font-size: 1.08rem; line-height: 1.75; margin: 0 0 .75em; color: #e7d8b0; }
+
+/* Colonne latérale */
+.dossier-hero { margin: 0; border: 1px solid rgba(201,162,74,.35); border-radius: 6px; overflow: hidden; background: #0d0a06; aspect-ratio: 4 / 3; }
+.dossier-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.dossier-ph { width: 100%; height: 100%; display: grid; place-items: center; font-size: 56px; color: rgba(201,162,74,.4); background: radial-gradient(circle at 50% 40%, #22190c, #0d0a06); }
+
+.dossier-id { margin: 0; border-top: 1px solid rgba(201,162,74,.3); }
+.dossier-id > div { display: grid; grid-template-columns: 120px 1fr; gap: 12px; padding: 9px 0; border-bottom: 1px solid rgba(201,162,74,.15); }
+.dossier-id dt { font: 600 10px/1.9 'Cinzel', serif; letter-spacing: .12em; text-transform: uppercase; color: #9a8a63; }
+.dossier-id dd { margin: 0; font-size: .98rem; line-height: 1.45; }
+
+.dossier-gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.dossier-gallery img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 3px; border: 1px solid rgba(201,162,74,.25); }
+
+.dossier-mj { background: #1c150c; border: 1px solid rgba(201,162,74,.35); border-radius: 6px; padding: 16px 18px; }
+.dossier-mj h3, .dossier-rel h3 { font: 600 .9rem/1.2 'Cinzel', serif; letter-spacing: .12em; text-transform: uppercase; color: #c9a24a; margin: 0 0 4px; }
+.dossier-mj-note { font-size: .82rem; font-style: italic; color: #9a8a63; margin: 0 0 12px; }
+.dossier-mj-row { margin-bottom: 12px; }
+.dossier-mj-row b { display: block; font: 600 10px/1.9 'Cinzel', serif; letter-spacing: .12em; text-transform: uppercase; color: #9a8a63; }
+.dossier-mj-row p { margin: 0; font-size: .98rem; line-height: 1.55; white-space: pre-line; }
+
+.dossier-rel ul { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.dossier-rel li { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; border-bottom: 1px solid rgba(201,162,74,.12); padding-bottom: 6px; }
+.dossier-rel button { all: unset; cursor: pointer; color: #ecd289; font-size: 1rem; text-decoration: underline; text-decoration-color: rgba(201,162,74,.4); text-underline-offset: 3px; }
+.dossier-rel button:hover { text-decoration-color: #ecd289; }
+.dossier-rel small { font-size: .78rem; font-style: italic; color: #9a8a63; white-space: nowrap; }
+
+.dossier-foot { font-size: .8rem; color: #6f6038; margin: 0; }
+
+@media (max-width: 900px) {
+  .dossier-grid { grid-template-columns: 1fr; gap: 26px; }
+  .dossier-side { position: static; }
+  .dossier h1 { font-size: 1.9rem; }
+  .dossier-hero { aspect-ratio: 16 / 10; }
+}
+
+/* Rayons : nombre de fiches par type */
+.library-shell .library-type-list button { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.library-type-count { font: 600 11px/1 'Cinzel', serif; color: #9a8a63; background: rgba(201,162,74,.1); border-radius: 999px; padding: 4px 8px; }

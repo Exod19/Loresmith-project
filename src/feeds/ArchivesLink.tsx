@@ -19,7 +19,7 @@ export function setArchivesLink(universe: Universe, dispatch: Props['dispatch'],
 
 /** Crée dans la bibliothèque les fiches et images des Archives absentes (jamais d'écrasement d'une fiche déjà modifiée). */
 export function importArchiveLibrary(feed: UnderdarkFeed, universe: Universe, dispatch: Props['dispatch']) {
-  dispatch({ type: 'IMPORT_ARCHIVE_ENTRIES', ...archiveBundle(feed.entries, universe.id) });
+  dispatch({ type: 'IMPORT_ARCHIVE_ENTRIES', ...archiveBundle(feed, universe.id) });
 }
 
 export default function ArchivesLinkPanel({ universe, dispatch, flash, setView }: Props) {

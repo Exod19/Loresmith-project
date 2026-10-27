@@ -76,10 +76,11 @@ export function useUnderdarkFeed() {
 const LIBRARY_TYPE: Record<string, string> = {
   personnage: 'person', divinite: 'person', peuple: 'faction', faction: 'faction', lieu: 'place', habitat: 'place',
   evenement: 'event', cycle: 'event', objet: 'artifact', rituel: 'artifact', source: 'document',
+  creature: 'vivant', flore: 'vivant', fungus: 'vivant',
 };
 
 /** Copie modifiable d'une fiche des Archives, pour la bibliothèque d'une campagne. */
-export function toLibraryEntry(e: FeedEntry, id: string, now = Date.now()) {
+export function toLibraryEntry(e: FeedEntry, id: string, related: { id: string; name: string; kind: string }[] = [], now = Date.now()) {
   return {
     id,
     sourceId: e.id,
@@ -87,12 +88,19 @@ export function toLibraryEntry(e: FeedEntry, id: string, now = Date.now()) {
     title: e.name,
     subtitle: e.scientificName ?? '',
     shortSummary: e.summary,
+    /** Texte intégral, aplati : sert à la reformulation IA. La lecture utilise `sections`. */
     body: e.sections.map((s) => `${s.title}\n\n${s.body}`).join('\n\n'),
+    sections: e.sections.map((s) => ({ id: s.id, title: s.title, body: s.body })),
+    params: e.params.filter((p) => p.value),
+    altNames: e.altNames.map((a) => a.value),
+    canon: e.status,
+    related,
+    readAloud: '',
     origin: 'Archives de l’Underdark',
     historicalContext: '', currentLocation: '', owner: '', campaignUse: '', secrets: '',
     tags: [...(e.tags ?? []), FEED_TYPE_LABEL[e.type] ?? e.type].filter(Boolean),
     imagePrompt: '',
-    roughNotes: `Copie des Archives (fiche ${e.id}), à réviser pour la campagne.`,
+    roughNotes: '',
     linkedCampaignIds: [] as string[],
     createdAt: now,
     updatedAt: now,
@@ -100,12 +108,21 @@ export function toLibraryEntry(e: FeedEntry, id: string, now = Date.now()) {
 }
 
 /**
- * Fiches et images de bibliothèque pour des fiches des Archives. Identifiants stables (arc-<id>, arc-img-…) :
- * un second import ne crée rien en double. L'image garde le chemin publié : elle n'est pas copiée dans le navigateur.
+ * Fiches, liens et images de bibliothèque pour des fiches des Archives (toutes, ou `ids`).
+ * Identifiants stables (arc-<id>, arc-img-…) : un second import ne crée rien en double.
+ * L'image garde le chemin publié : elle n'est pas copiée dans le navigateur.
  */
-export function archiveBundle(feedEntries: FeedEntry[], universeId: string) {
-  const entries = feedEntries.map((e) => ({ ...toLibraryEntry(e, `arc-${e.id}`), universeId }));
-  const assets = feedEntries.flatMap((e) => e.images.map((img) => ({
+export function archiveBundle(feed: UnderdarkFeed, universeId: string, ids?: string[]) {
+  const names = new Map(feed.entries.map((e) => [e.id, e.name]));
+  const chosen = ids ? feed.entries.filter((e) => ids.includes(e.id)) : feed.entries;
+  const entries = chosen.map((e) => {
+    const related = feed.relations
+      .filter((r) => r.from === e.id || r.to === e.id)
+      .map((r) => { const other = r.from === e.id ? r.to : r.from; return { id: `arc-${other}`, name: names.get(other) ?? other, kind: r.kind }; })
+      .filter((r) => names.has(r.id.replace(/^arc-/, '')));
+    return { ...toLibraryEntry(e, `arc-${e.id}`, related), universeId };
+  });
+  const assets = chosen.flatMap((e) => e.images.map((img) => ({
     id: `arc-img-${e.id}-${img.id}`, name: img.caption || img.alt || e.name, category: 'library', targetType: 'library',
     targetId: `arc-${e.id}`, dataUrl: img.src, source: 'archives', prompt: img.caption ?? '', createdAt: 0, universeId,
   })));

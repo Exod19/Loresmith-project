@@ -22,6 +22,7 @@ import { Download, Upload, Settings, ExternalLink } from 'lucide-react';
 import MapsPage from './maps/MapsPage';
 import ArchivesPage from './feeds/ArchivesPage';
 import ArchivesLinkPanel from './feeds/ArchivesLink';
+import Dossier, { LibraryCard } from './library/Dossier';
 import { UNDERDARK_LINK } from './feeds/underdark';
 
 /* ----------------------------- styles (gold / ornate) ------------------- */
@@ -4891,7 +4892,14 @@ function reducer(s, a) {
     case 'IMPORT_ARCHIVE_ENTRIES': {
       // Ajoute les fiches des Archives qui ne sont pas encore dans la bibliothèque de l'univers : jamais d'écrasement.
       const libraryEntries = { ...(s.libraryEntries || {}) };
-      for (const entry of a.entries) if (!libraryEntries[entry.id]) libraryEntries[entry.id] = entry;
+      for (const entry of a.entries) {
+        const cur = libraryEntries[entry.id];
+        // Fiche importée avant la mise en forme structurée : on la complète, sans toucher à ce qui a été modifié.
+        if (!cur) libraryEntries[entry.id] = entry;
+        else if (cur.sourceId && !cur.sections) libraryEntries[entry.id] = { ...entry, ...cur };
+        // Reclassement d'une fiche importée dans l'ancien rayon « Documents » vers son rayon d'origine.
+        else if (cur.sourceId && cur.archiveType === 'document' && entry.archiveType !== 'document') libraryEntries[entry.id] = { ...cur, archiveType: entry.archiveType };
+      }
       const assets = { ...(s.assets || {}) };
       for (const asset of a.assets || []) if (!assets[asset.id]) assets[asset.id] = asset;
       return { ...s, libraryEntries, assets };
@@ -11079,6 +11087,11 @@ const LIBRARY_TYPES = {
     singular: 'Artefact',
     tone: "fiche de musée, description d'objet, provenance, rumeurs, possesseurs",
   },
+  vivant: {
+    label: 'Vivant',
+    singular: 'Espèce',
+    tone: 'fiche de bestiaire ou de flore : habitat, cycle de vie, usages, dangers, rencontres',
+  },
   person: {
     label: 'Personnages',
     singular: 'Personnage',
@@ -11137,6 +11150,11 @@ function Library({ state, dispatch, universe, campaigns, flash }) {
   const filtered = entries.filter((e) => e.archiveType === type);
   const selected =
     entries.find((e) => e.id === selectedId) || filtered[0] || null;
+
+  // Ouvrir une fiche depuis la grille : on amène directement la lecture en haut de page.
+  useEffect(() => {
+    if (selectedId) document.querySelector('.dossier')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [selectedId]);
 
   useEffect(() => {
     if (!selectedId && filtered[0]) {
@@ -11370,6 +11388,28 @@ function Library({ state, dispatch, universe, campaigns, flash }) {
     flash('Fiche vide créée.');
   }
 
+  async function writeReadAloud(entry) {
+    setBusy(true);
+    try {
+      const data = await callAI(ai, {
+        system: `Tu es le conteur d'une table de jeu de rôle. Tu écris des passages courts, à lire à voix haute aux aventuriers.\nRéponds uniquement en JSON valide : {"readAloud": "..."}.\nLangue : français. Deux à quatre phrases, à la deuxième personne du pluriel, sensorielles. N'invente aucun fait absent de la fiche.`,
+        prompt: `Univers : ${universe.name}\nTon : ${universe.tone}\nFiche : ${entry.title}\nRésumé : ${entry.shortSummary || ''}\nTexte source :\n${(entry.body || '').slice(0, 6000)}`,
+      });
+      dispatch({ type: 'UPDATE_LIBRARY_ENTRY', id: entry.id, patch: { readAloud: String(data.readAloud || '').trim() } });
+      flash('Passage à lire rédigé : relis-le avant la séance.');
+    } catch (e) {
+      flash(e.message);
+    }
+    setBusy(false);
+  }
+
+  function openEntry(id) {
+    const target = state.libraryEntries?.[id];
+    if (!target) return;
+    setType(target.archiveType);
+    setSelectedId(id);
+  }
+
   async function polishEntry(entry) {
     setBusy(true);
 
@@ -11597,6 +11637,7 @@ function Library({ state, dispatch, universe, campaigns, flash }) {
                 }}
               >
                 {v.label}
+                <span className="library-type-count">{entries.filter((e) => e.archiveType === k).length}</span>
               </button>
             ))}
           </div>
@@ -11706,31 +11747,14 @@ function Library({ state, dispatch, universe, campaigns, flash }) {
                 const img = getPrimaryAsset(state, 'library', entry.id);
 
                 return (
-                  <div
+                  <LibraryCard
                     key={entry.id}
-                    className="library-card"
-                    data-on={selected?.id === entry.id ? 1 : 0}
+                    entry={entry}
+                    img={img}
+                    typeLabel={LIBRARY_TYPES[entry.archiveType]?.singular || 'Archive'}
+                    selected={selected?.id === entry.id}
                     onClick={() => setSelectedId(entry.id)}
-                  >
-                    {img?.dataUrl && (
-                      <img
-                        src={img.dataUrl}
-                        alt={entry.title}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.open(img.dataUrl, '_blank');
-                        }}
-                      />
-                    )}
-
-                    <div className="library-card-type">
-                      {LIBRARY_TYPES[entry.archiveType]?.singular || 'Archive'}
-                    </div>
-
-                    <div className="library-card-title">{entry.title}</div>
-
-                    {entry.shortSummary && <p>{entry.shortSummary}</p>}
-                  </div>
+                  />
                 );
               })}
             </div>
@@ -11747,6 +11771,8 @@ function Library({ state, dispatch, universe, campaigns, flash }) {
               onPolish={polishEntry}
               onUploadImage={uploadEntryImage}
               onToggleCampaign={toggleEntryCampaign}
+              onOpenEntry={openEntry}
+              onWriteReadAloud={writeReadAloud}
             />
           )}
         </main>
@@ -11762,114 +11788,11 @@ function splitLines(value) {
     .filter(Boolean);
 }
 
-function firstParagraph(value) {
-  return (
-    String(value || '')
-      .split('\n')
-      .map((x) => x.trim())
-      .filter(Boolean)[0] || ''
-  );
-}
 
-function entryLines(entry, key, fallback = []) {
-  const value = entry?.[key];
 
-  if (Array.isArray(value)) {
-    return value.map((x) => String(x || '').trim()).filter(Boolean);
-  }
 
-  if (typeof value === 'string' && value.trim()) {
-    return value
-      .split('\n')
-      .map((x) => x.trim())
-      .filter(Boolean);
-  }
 
-  if (Array.isArray(fallback)) {
-    return fallback.map((x) => String(x || '').trim()).filter(Boolean);
-  }
 
-  if (typeof fallback === 'string' && fallback.trim()) {
-    return fallback
-      .split('\n')
-      .map((x) => x.trim())
-      .filter(Boolean);
-  }
-
-  return [];
-}
-
-function ArchivePanel({ title, icon = '✦', children, className = '' }) {
-  return (
-    <section className={`archive-panel ${className}`}>
-      <div className="archive-panel-title">
-        <span>{icon}</span>
-        {title}
-      </div>
-      <div className="archive-panel-body">{children}</div>
-    </section>
-  );
-}
-
-function ArchiveList({ items = [] }) {
-  const safeItems = Array.isArray(items)
-    ? items.map((x) => String(x || '').trim()).filter(Boolean)
-    : String(items || '')
-        .split('\n')
-        .map((x) => x.trim())
-        .filter(Boolean);
-
-  if (!safeItems.length) {
-    return <p className="archive-muted">Aucune donnée pour le moment.</p>;
-  }
-
-  return (
-    <ul className="archive-list">
-      {safeItems.map((item, i) => (
-        <li key={i}>{item}</li>
-      ))}
-    </ul>
-  );
-}
-
-function ArchiveMetaTable({ rows = [] }) {
-  return (
-    <div className="archive-meta-table">
-      {rows
-        .filter((row) => row && row[1])
-        .map(([label, value, icon], i) => (
-          <React.Fragment key={i}>
-            <div className="archive-meta-label">
-              <span>{icon || '◆'}</span>
-              {label}
-            </div>
-            <div className="archive-meta-value">{value}</div>
-          </React.Fragment>
-        ))}
-    </div>
-  );
-}
-
-function CampaignMentionList({ entry, campaigns }) {
-  const linked = campaigns.filter((c) =>
-    (entry.linkedCampaignIds || []).includes(c.id)
-  );
-
-  if (!linked.length) {
-    return <p className="archive-muted">Aucune mention en campagne.</p>;
-  }
-
-  return (
-    <ul className="archive-mentions">
-      {linked.map((c) => (
-        <li key={c.id}>
-          <b>{c.title}</b>
-          <span>{c.premise || c.hook || 'Campagne liée'}</span>
-        </li>
-      ))}
-    </ul>
-  );
-}
 
 function LibraryEntryEditor({
   entry,
@@ -11881,6 +11804,8 @@ function LibraryEntryEditor({
   onPolish,
   onUploadImage,
   onToggleCampaign,
+  onOpenEntry,
+  onWriteReadAloud,
 }) {
   const img = getPrimaryAsset(state, 'library', entry.id);
 
@@ -11901,9 +11826,14 @@ function LibraryEntryEditor({
       <LibraryArchiveView
         entry={entry}
         img={img}
+        gallery={getAssetsFor(state, 'library', entry.id).filter((x) => x.dataUrl)}
         campaigns={campaigns}
+        related={entry.related || []}
+        hasEntry={(id) => !!state.libraryEntries?.[id]}
+        onOpenEntry={onOpenEntry}
         onUploadImage={onUploadImage}
         onPolish={onPolish}
+        onWriteReadAloud={onWriteReadAloud}
         busy={busy}
       />
 
@@ -11933,6 +11863,15 @@ function LibraryEntryEditor({
             className="in"
             value={entry.shortSummary || ''}
             onChange={(e) => updateField('shortSummary', e.target.value)}
+          />
+        </Field>
+
+        <Field label="Passage à lire aux aventuriers (à voix haute)">
+          <textarea
+            className="in"
+            rows={3}
+            value={entry.readAloud || ''}
+            onChange={(e) => updateField('readAloud', e.target.value)}
           />
         </Field>
 
@@ -12034,1039 +11973,35 @@ function LibraryEntryEditor({
 function LibraryArchiveView({
   entry,
   img,
+  gallery,
   campaigns,
+  related,
+  hasEntry,
+  onOpenEntry,
   onUploadImage,
   onPolish,
-  busy,
-}) {
-  const type = entry.archiveType || 'document';
-
-  const props = {
-    entry,
-    img,
-    campaigns,
-    onUploadImage,
-    onPolish,
-    busy,
-  };
-
-  if (type === 'artifact') return <ArtifactArchivePage {...props} />;
-  if (type === 'person') return <PersonArchivePage {...props} />;
-  if (type === 'place') return <PlaceArchivePage {...props} />;
-  if (type === 'event') return <EventArchivePage {...props} />;
-  if (type === 'faction') return <FactionArchivePage {...props} />;
-  if (type === 'mystery') return <MysteryArchivePage {...props} />;
-
-  return <DocumentArchivePage {...props} />;
-}
-
-function ArchiveTopActions({ entry, onUploadImage, onPolish, busy }) {
-  const inputId = `archive-top-upload-${entry.id}`;
-
-  return (
-    <div className="archive-actions">
-      <label
-        className="archive-icon-btn"
-        title="Ajouter ou remplacer l’image"
-        htmlFor={inputId}
-      >
-        ⬆
-        <input
-          id={inputId}
-          type="file"
-          accept="image/*"
-          style={{ display: 'none' }}
-          onChange={(e) => {
-            onUploadImage(entry, e.target.files && e.target.files[0]);
-            e.target.value = '';
-          }}
-        />
-      </label>
-
-      <button
-        className="archive-icon-btn"
-        title="Reformuler avec l’IA"
-        disabled={busy}
-        onClick={() => onPolish(entry)}
-      >
-        ✎
-      </button>
-    </div>
-  );
-}
-
-function ArchiveHeroImage({
-  img,
-  entry,
-  variant = 'wide',
-  onUploadImage,
-}) {
-  const inputId = `archive-image-upload-${entry.id}-${variant}`;
-
-  if (!img?.dataUrl) {
-    return (
-      <label
-        className={`archive-image-empty ${variant}`}
-        htmlFor={inputId}
-        title="Cliquer pour ajouter une image"
-      >
-        <span>Image à ajouter</span>
-        <small>Cliquer pour importer</small>
-
-        <input
-          id={inputId}
-          type="file"
-          accept="image/*"
-          style={{ display: 'none' }}
-          onChange={(e) => {
-            onUploadImage(entry, e.target.files && e.target.files[0]);
-            e.target.value = '';
-          }}
-        />
-      </label>
-    );
-  }
-
-  return (
-    <label
-      className={`archive-image-click-wrap ${variant}`}
-      htmlFor={inputId}
-      title="Cliquer pour remplacer l’image"
-    >
-      <img
-        className={`archive-hero-image ${variant}`}
-        src={img.dataUrl}
-        alt={entry.title}
-      />
-
-      <span className="archive-image-overlay">Remplacer l’image</span>
-
-      <input
-        id={inputId}
-        type="file"
-        accept="image/*"
-        style={{ display: 'none' }}
-        onChange={(e) => {
-          onUploadImage(entry, e.target.files && e.target.files[0]);
-          e.target.value = '';
-        }}
-      />
-    </label>
-  );
-}
-
-function ArtifactArchivePage({
-  entry,
-  img,
-  campaigns,
-  onUploadImage,
-  onPolish,
-  busy,
-}) {
-  const properties = entryLines(entry, 'properties', [
-    entry.campaignUse,
-    entry.secrets,
-  ]).filter(Boolean);
-
-  return (
-    <article className="archive-page archive-artifact">
-      <ArchiveTopActions
-        entry={entry}
-        onUploadImage={onUploadImage}
-        onPolish={onPolish}
-        busy={busy}
-      />
-
-      <div className="archive-breadcrumb">
-        Bibliothèque › Artefacts › {entry.title}
-      </div>
-
-      <header className="archive-header">
-        <div>
-          <h1>{entry.title}</h1>
-          <div className="archive-subtitle">
-            ◆ {entry.subtitle || 'Artefact légendaire'}
-          </div>
-        </div>
-      </header>
-
-      <div className="artifact-layout">
-        <div>
-          <div className="artifact-showcase">
-          <ArchiveHeroImage
-  img={img}
-  entry={entry}
-  variant="..."
-  onUploadImage={onUploadImage}
-/>
-            <div className="artifact-plaque">
-              <b>{entry.title}</b>
-              <span>{entry.subtitle || 'Artefact'}</span>
-            </div>
-          </div>
-        </div>
-
-        <ArchivePanel title="Plaque d’inventaire" icon="◇">
-          <ArchiveMetaTable
-            rows={[
-              ['Époque', entry.era || entry.historicalContext, '◴'],
-              ['Matériaux', entry.materials || entry.tags?.join(', '), '▰'],
-              ['Civilisation', entry.civilization || entry.origin, '▣'],
-              ['État', entry.condition || entry.currentLocation, '⬟'],
-              ['Gardien', entry.owner, '♛'],
-            ]}
-          />
-        </ArchivePanel>
-      </div>
-
-      <div className="archive-grid three">
-        <ArchivePanel title="Description" icon="✎" className="span-two">
-          <p>{entry.shortSummary || firstParagraph(entry.body)}</p>
-          {entry.body && <p>{entry.body}</p>}
-        </ArchivePanel>
-
-        <ArchivePanel title="Propriétés connues" icon="◆">
-          <ArchiveList items={properties} />
-        </ArchivePanel>
-
-        <ArchivePanel title="Contexte historique" icon="⌛">
-          <p>{entry.historicalContext || 'Contexte non documenté.'}</p>
-        </ArchivePanel>
-
-        <ArchivePanel title="Origine" icon="✥">
-          <p>{entry.origin || 'Origine inconnue.'}</p>
-        </ArchivePanel>
-
-        <ArchivePanel title="Malédictions / secrets" icon="✦">
-          <ArchiveList items={entryLines(entry, 'secrets', [entry.secrets])} />
-        </ArchivePanel>
-
-        <ArchivePanel title="Mentions en campagne" icon="▣">
-          <CampaignMentionList entry={entry} campaigns={campaigns} />
-        </ArchivePanel>
-      </div>
-    </article>
-  );
-}
-function MysteryArchivePage({
-  entry,
-  img,
-  campaigns,
-  onUploadImage,
-  onPolish,
-  busy,
-}) {
-  const fragments = entryLines(entry, 'fragments', [
-    entry.shortSummary,
-    entry.body,
-  ]);
-
-  const clues = entryLines(entry, 'clues');
-  const witnesses = entryLines(entry, 'witnesses');
-  const places = entryLines(entry, 'places', [entry.currentLocation]);
-  const redHerrings = entryLines(entry, 'redHerrings');
-  const questions = entryLines(entry, 'questions');
-  const truth = entry.secrets || entry.campaignUse || '';
-
-  return (
-    <article className="archive-page archive-mystery">
-      <ArchiveTopActions
-        entry={entry}
-        onUploadImage={onUploadImage}
-        onPolish={onPolish}
-        busy={busy}
-      />
-
-      <div className="archive-breadcrumb">
-        Bibliothèque › Mystères › {entry.title || 'Mystère sans titre'}
-      </div>
-
-      <header className="archive-header mystery-header">
-        <div>
-          <h1>{entry.title || 'Mystère sans titre'}</h1>
-          <div className="archive-subtitle">
-            ● {entry.subtitle || 'Mystère actif'}
-          </div>
-        </div>
-
-        <div className="mystery-progress">
-          <span>Ouvert</span>
-          <span>Enquête</span>
-          <span>Confrontation</span>
-          <span>Résolution</span>
-        </div>
-      </header>
-
-      <div className="mystery-board">
-        <ArchivePanel title="Fragments connus" icon="✎">
-          <ArchiveList items={fragments} />
-        </ArchivePanel>
-
-        <ArchivePanel title="Indices" icon="⌕" className="burned-note">
-          <ArchiveList items={clues.length ? clues : fragments} />
-        </ArchivePanel>
-
-        <ArchivePanel title="Témoins" icon="☷">
-          <ArchiveList items={witnesses} />
-        </ArchivePanel>
-
-        <ArchivePanel title="Lieux liés" icon="⌖">
-          <ArchiveList items={places} />
-        </ArchivePanel>
-
-        <ArchivePanel title="Fausses pistes" icon="×" className="dark-note">
-          <ArchiveList items={redHerrings} />
-        </ArchivePanel>
-
-        <ArchivePanel title="Questions ouvertes" icon="?">
-          <ArchiveList items={questions} />
-        </ArchivePanel>
-
-        <ArchivePanel
-          title="Vérité cachée"
-          icon="▣"
-          className="truth-panel span-two"
-        >
-          <p>{truth || 'Vérité non révélée.'}</p>
-        </ArchivePanel>
-      </div>
-    </article>
-  );
-}
-function PersonArchivePage({
-  entry,
-  img,
-  campaigns,
-  onUploadImage,
-  onPolish,
+  onWriteReadAloud,
   busy,
 }) {
   return (
-    <article className="archive-page archive-person">
-      <ArchiveTopActions
-        entry={entry}
-        onUploadImage={onUploadImage}
-        onPolish={onPolish}
-        busy={busy}
-      />
-
-      <div className="archive-breadcrumb">
-        Bibliothèque › Personnages › {entry.title}
-      </div>
-
-      <header className="archive-header">
-        <div>
-          <h1>{entry.title}</h1>
-          <div className="archive-subtitle">
-            {entry.subtitle || 'NPC majeur'}
-          </div>
-        </div>
-      </header>
-
-      <div className="person-layout">
-        <div className="person-portrait-card">
-        <ArchiveHeroImage
-  img={img}
-  entry={entry}
-  variant="..."
-  onUploadImage={onUploadImage}
-/>
-          <div className="person-quote">
-            “{entry.quote || entry.shortSummary || 'Aucune citation consignée.'}
-            ”
-          </div>
-        </div>
-
-        <div className="person-main-grid">
-          <ArchivePanel title="Résumé narratif" icon="✒">
-            <p>{entry.shortSummary || firstParagraph(entry.body)}</p>
-          </ArchivePanel>
-
-          <ArchivePanel title="Identité" icon="◆">
-            <ArchiveMetaTable
-              rows={[
-                ['Race', entry.race, '☻'],
-                ['Occupation', entry.occupation || entry.subtitle, '▣'],
-                ['Âge', entry.age, '⌛'],
-                ['Statut', entry.status, '♛'],
-                ['Allégeance', entry.allegiance || entry.owner, '⬟'],
-                ['Résidence', entry.currentLocation, '⌂'],
-              ]}
-            />
-          </ArchivePanel>
-
-          <ArchivePanel title="Apparence" icon="◎">
-            <p>{entry.appearance || 'Apparence non documentée.'}</p>
-          </ArchivePanel>
-
-          <ArchivePanel title="Personnalité" icon="◈">
-            <p>
-              {entry.personality ||
-                entry.body ||
-                'Personnalité non documentée.'}
-            </p>
-          </ArchivePanel>
-
-          <ArchivePanel title="Objectifs" icon="☉">
-            <ArchiveList
-              items={entryLines(entry, 'goals', [entry.campaignUse])}
-            />
-          </ArchivePanel>
-
-          <ArchivePanel title="Secrets" icon="▣">
-            <p>{entry.secrets || 'Aucun secret consigné.'}</p>
-          </ArchivePanel>
-        </div>
-      </div>
-
-      <div className="archive-grid two">
-        <ArchivePanel title="Dialogues de rencontre" icon="☷">
-          <ArchiveList items={entryLines(entry, 'dialogues')} />
-        </ArchivePanel>
-
-        <ArchivePanel title="Apparitions en campagne" icon="▣">
-          <CampaignMentionList entry={entry} campaigns={campaigns} />
-        </ArchivePanel>
-      </div>
-    </article>
+    <Dossier
+      entry={entry}
+      typeLabel={LIBRARY_TYPES[entry.archiveType]?.singular || Archive}
+      img={img}
+      gallery={gallery}
+      campaigns={campaigns}
+      related={related}
+      hasEntry={hasEntry}
+      onOpenEntry={onOpenEntry}
+      onUploadImage={onUploadImage}
+      onPolish={onPolish}
+      onWriteReadAloud={onWriteReadAloud}
+      busy={busy}
+    />
   );
 }
-function PlaceArchivePage({
-  entry,
-  img,
-  campaigns,
-  onUploadImage,
-  onPolish,
-  busy,
-}) {
-  return (
-    <article className="archive-page archive-place">
-      <ArchiveTopActions
-        entry={entry}
-        onUploadImage={onUploadImage}
-        onPolish={onPolish}
-        busy={busy}
-      />
 
-      <div className="archive-breadcrumb">
-        Bibliothèque › Lieux › {entry.title}
-      </div>
 
-      <header className="archive-header place-header">
-        <div>
-          <h1>{entry.title}</h1>
-          <div className="archive-subtitle">
-            ⌖ {entry.subtitle || 'Lieu majeur'}
-          </div>
-        </div>
-        <div className="archive-compass">
-          N<br />✦<br />S
-        </div>
-      </header>
-
-      <div className="place-map-frame">
-      <ArchiveHeroImage
-  img={img}
-  entry={entry}
-  variant="..."
-  onUploadImage={onUploadImage}
-/>
-      </div>
-
-      <div className="archive-grid four">
-        <ArchivePanel title="Description" icon="✎" className="span-two">
-          <p>{entry.shortSummary || firstParagraph(entry.body)}</p>
-          {entry.body && <p>{entry.body}</p>}
-        </ArchivePanel>
-
-        <ArchivePanel title="Région" icon="✥">
-          <p>{entry.region || entry.currentLocation || 'Région inconnue.'}</p>
-        </ArchivePanel>
-
-        <ArchivePanel title="Population" icon="☷">
-          <p>{entry.population || 'Population non documentée.'}</p>
-        </ArchivePanel>
-
-        <ArchivePanel title="Quartiers" icon="▣">
-          <ArchiveList items={entryLines(entry, 'districts')} />
-        </ArchivePanel>
-
-        <ArchivePanel title="Points d’intérêt" icon="●">
-          <ArchiveList items={entryLines(entry, 'pointsOfInterest')} />
-        </ArchivePanel>
-
-        <ArchivePanel title="Histoire du lieu" icon="⌛">
-          <p>{entry.historicalContext || 'Histoire non documentée.'}</p>
-        </ArchivePanel>
-
-        <ArchivePanel title="Rumeurs locales" icon="☷">
-          <ArchiveList items={entryLines(entry, 'rumors', [entry.secrets])} />
-        </ArchivePanel>
-      </div>
-    </article>
-  );
-}
-function EventArchivePage({
-  entry,
-  img,
-  campaigns,
-  onUploadImage,
-  onPolish,
-  busy,
-}) {
-  return (
-    <article className="archive-page archive-event">
-      <ArchiveTopActions
-        entry={entry}
-        onUploadImage={onUploadImage}
-        onPolish={onPolish}
-        busy={busy}
-      />
-
-      <div className="archive-breadcrumb">
-        Bibliothèque › Événements › {entry.title}
-      </div>
-
-      <header className="archive-header event-header">
-        <div className="illuminated-letter">{(entry.title || 'E')[0]}</div>
-        <div>
-          <h1>{entry.title}</h1>
-          <div className="archive-subtitle">Événement majeur</div>
-        </div>
-      </header>
-
-      <div className="event-engraving">
-      <ArchiveHeroImage
-  img={img}
-  entry={entry}
-  variant="..."
-  onUploadImage={onUploadImage}
-/>
-      </div>
-
-      <div className="archive-grid three">
-        <ArchivePanel title="Date" icon="▣">
-          <p>{entry.date || entry.era || 'Date inconnue.'}</p>
-        </ArchivePanel>
-
-        <ArchivePanel title="Lieu" icon="⌖">
-          <p>{entry.currentLocation || 'Lieu inconnu.'}</p>
-        </ArchivePanel>
-
-        <ArchivePanel title="Acteurs principaux" icon="♟">
-          <ArchiveList items={entryLines(entry, 'actors', [entry.owner])} />
-        </ArchivePanel>
-
-        <ArchivePanel title="Résumé historique" icon="✎" className="span-two">
-          <p>{entry.shortSummary || firstParagraph(entry.body)}</p>
-          {entry.body && <p>{entry.body}</p>}
-        </ArchivePanel>
-
-        <ArchivePanel title="Chronologie des faits" icon="⌛">
-          <ArchiveList items={entryLines(entry, 'timeline')} />
-        </ArchivePanel>
-
-        <ArchivePanel title="Causes" icon="C">
-          <ArchiveList items={entryLines(entry, 'causes', [entry.origin])} />
-        </ArchivePanel>
-
-        <ArchivePanel title="Conséquences" icon="◆">
-          <ArchiveList
-            items={entryLines(entry, 'consequences', [entry.campaignUse])}
-          />
-        </ArchivePanel>
-
-        <ArchivePanel title="Versions contradictoires" icon="※">
-          <p>{entry.secrets || 'Aucune contradiction consignée.'}</p>
-        </ArchivePanel>
-      </div>
-    </article>
-  );
-}
-function FactionArchivePage({
-  entry,
-  img,
-  campaigns,
-  onUploadImage,
-  onPolish,
-  busy,
-}) {
-  return (
-    <article className="archive-page archive-faction">
-      <ArchiveTopActions
-        entry={entry}
-        onUploadImage={onUploadImage}
-        onPolish={onPolish}
-        busy={busy}
-      />
-
-      <div className="archive-breadcrumb">
-        Bibliothèque › Factions › {entry.title}
-      </div>
-
-      <div className="faction-layout">
-        <div className="faction-banner">
-        <ArchiveHeroImage
-  img={img}
-  entry={entry}
-  variant="..."
-  onUploadImage={onUploadImage}
-/>
-        </div>
-
-        <div className="faction-main">
-          <header className="archive-header">
-            <div>
-              <h1>{entry.title}</h1>
-              <div className="archive-subtitle">
-                {entry.subtitle || 'Faction secrète'}
-              </div>
-            </div>
-          </header>
-
-          <div className="faction-motto">
-            « {entry.motto || entry.shortSummary || 'Devise inconnue.'} »
-          </div>
-
-          <ArchivePanel title="Doctrine" icon="▣">
-            <p>
-              {entry.body || entry.shortSummary || 'Doctrine non documentée.'}
-            </p>
-          </ArchivePanel>
-        </div>
-
-        <ArchivePanel
-          title="Dossier d’information"
-          icon="◇"
-          className="confidential-panel"
-        >
-          <ArchiveMetaTable
-            rows={[
-              ['Type', entry.subtitle || 'Faction', '◈'],
-              ['Taille', entry.size, '☷'],
-              ['Influence', entry.influence || entry.campaignUse, '✥'],
-              ['Statut', entry.status, '⬟'],
-              ['Niveau de secret', entry.secrecy || entry.secrets, '▣'],
-            ]}
-          />
-          <div className="confidential-stamp">CONFIDENTIEL</div>
-        </ArchivePanel>
-      </div>
-
-      <div className="archive-grid three">
-        <ArchivePanel title="Hiérarchie" icon="♛">
-          <ArchiveList items={entryLines(entry, 'hierarchy', [entry.owner])} />
-        </ArchivePanel>
-
-        <ArchivePanel title="Territoires" icon="⌖">
-          <ArchiveList
-            items={entryLines(entry, 'territories', [entry.currentLocation])}
-          />
-        </ArchivePanel>
-
-        <ArchivePanel title="Alliés" icon="☷">
-          <ArchiveList items={entryLines(entry, 'allies')} />
-        </ArchivePanel>
-
-        <ArchivePanel title="Ennemis" icon="⚔">
-          <ArchiveList items={entryLines(entry, 'enemies')} />
-        </ArchivePanel>
-
-        <ArchivePanel title="Ressources" icon="▰">
-          <ArchiveList items={entryLines(entry, 'resources')} />
-        </ArchivePanel>
-
-        <ArchivePanel title="Secrets" icon="▣">
-          <p>{entry.secrets || 'Aucun secret consigné.'}</p>
-        </ArchivePanel>
-      </div>
-    </article>
-  );
-}
-function DocumentArchivePage({
-  entry,
-  img,
-  campaigns,
-  onUploadImage,
-  onPolish,
-  busy,
-}) {
-  return (
-    <article className="archive-page archive-document">
-      <ArchiveTopActions
-        entry={entry}
-        onUploadImage={onUploadImage}
-        onPolish={onPolish}
-        busy={busy}
-      />
-
-      <div className="archive-breadcrumb">
-        Bibliothèque › Documents › {entry.title}
-      </div>
-
-      <header className="archive-header">
-        <div>
-          <h1>{entry.title}</h1>
-          <div className="archive-subtitle">
-            ▧ {entry.subtitle || 'Document trouvé'}
-          </div>
-        </div>
-      </header>
-
-      <div className="document-layout">
-        <div className="document-scan">
-        <ArchiveHeroImage
-  img={img}
-  entry={entry}
-  variant="..."
-  onUploadImage={onUploadImage}
-/>
-        </div>
-
-        <ArchivePanel title="Cote d’archivage" icon="▣">
-          <ArchiveMetaTable
-            rows={[
-              ['Type', entry.subtitle || 'Document', '▧'],
-              ['Classification', entry.classification, '◈'],
-              ['Support', entry.materials || entry.tags?.join(', '), '▰'],
-              ['État', entry.condition, '⬟'],
-              ['Langue', entry.language, '☷'],
-            ]}
-          />
-        </ArchivePanel>
-      </div>
-
-      <div className="archive-grid three">
-        <ArchivePanel title="Transcription" icon="✎" className="span-two">
-          <p>{entry.body || entry.shortSummary || 'Aucune transcription.'}</p>
-        </ArchivePanel>
-
-        <ArchivePanel title="Découverte" icon="✥">
-          <ArchiveMetaTable
-            rows={[
-              ['Lieu', entry.currentLocation, '⌖'],
-              ['Découvert par', entry.owner, '☷'],
-              ['Date', entry.date || entry.era, '⌛'],
-            ]}
-          />
-        </ArchivePanel>
-
-        <ArchivePanel title="Authenticité" icon="⬟">
-          <p>
-            {entry.authenticity || entry.secrets || 'Authenticité non évaluée.'}
-          </p>
-        </ArchivePanel>
-
-        <ArchivePanel title="Liens narratifs" icon="◆" className="span-two">
-          <CampaignMentionList entry={entry} campaigns={campaigns} />
-        </ArchivePanel>
-      </div>
-    </article>
-  );
-}
-function AssetManager({
-  state,
-  dispatch,
-  universe,
-  party,
-  campaigns,
-  npcs,
-  flash,
-}) {
-  const { ai } = useContext(AIContext);
-
-  const [category, setCategory] = useState('scene');
-  const [targetId, setTargetId] = useState('');
-  const [name, setName] = useState('');
-  const [prompt, setPrompt] = useState('');
-  const [busy, setBusy] = useState(false);
-
-  const sceneTargets = campaigns.flatMap((c) =>
-    (c.scenes || []).map((sc) => ({
-      id: sc.id,
-      label: `${c.title} → ${sc.title}`,
-      type: 'scene',
-    }))
-  );
-
-  const campaignTargets = campaigns.map((c) => ({
-    id: c.id,
-    label: c.title,
-    type: 'campaign',
-  }));
-
-  const npcTargets = npcs.map((n) => ({
-    id: n.id,
-    label: n.name,
-    type: 'npc',
-  }));
-
-  const creatureTargets = npcs.map((n) => ({
-    id: n.id,
-    label: n.name,
-    type: 'creature',
-  }));
-
-  const playerTargets = party.map((p) => ({
-    id: p.id,
-    label: p.name,
-    type: 'player',
-  }));
-
-  const targetOptions =
-    category === 'scene'
-      ? sceneTargets
-      : category === 'campaign'
-      ? campaignTargets
-      : category === 'npc'
-      ? npcTargets
-      : category === 'creature'
-      ? creatureTargets
-      : category === 'player'
-      ? playerTargets
-      : category === 'map'
-      ? campaignTargets
-      : [{ id: universe.id, label: universe.name, type: 'universe' }];
-
-  const targetType =
-    category === 'scene'
-      ? 'scene'
-      : category === 'campaign' || category === 'map'
-      ? 'campaign'
-      : category === 'npc'
-      ? 'npc'
-      : category === 'creature'
-      ? 'creature'
-      : category === 'player'
-      ? 'player'
-      : 'universe';
-
-  const assets = Object.values(state.assets || {})
-    .filter((asset) => asset.universeId === universe.id)
-    .sort((a, b) => b.createdAt - a.createdAt);
-
-  async function uploadImage(file) {
-    if (!file) return;
-
-    if (!targetId) {
-      flash("Choisis où l'image doit apparaître.");
-      return;
-    }
-
-    try {
-      const dataUrl = await fileToDataUrl(file);
-
-      dispatch({
-        type: 'ADD_ASSET',
-        asset: {
-          id: uid(),
-          name: name || file.name,
-          category,
-          targetType,
-          targetId,
-          dataUrl,
-          source: 'upload',
-          prompt: '',
-          createdAt: now(),
-        },
-      });
-
-      setName('');
-      flash('Image importée et assignée.');
-    } catch (e) {
-      flash(e.message);
-    }
-  }
-
-  async function generateImage() {
-    if (!prompt.trim()) {
-      flash("Écris un prompt d'image.");
-      return;
-    }
-
-    if (!targetId) {
-      flash("Choisis où l'image doit apparaître.");
-      return;
-    }
-
-    if (!ai.apiKey) {
-      flash('Configure une clé IA avant de générer une image.');
-      return;
-    }
-
-    if (ai.provider !== 'openai') {
-      flash(
-        "La génération d'image intégrée est prévue pour OpenAI. Utilise l'import manuel pour l'instant."
-      );
-      return;
-    }
-
-    setBusy(true);
-
-    try {
-      const dataUrl = await generateOpenAIImage(ai, prompt);
-
-      dispatch({
-        type: 'ADD_ASSET',
-        asset: {
-          id: uid(),
-          name: name || 'Image générée',
-          category,
-          targetType,
-          targetId,
-          dataUrl,
-          source: 'generated',
-          prompt,
-          createdAt: now(),
-        },
-      });
-
-      setPrompt('');
-      setName('');
-      flash('Image générée et assignée.');
-    } catch (e) {
-      flash(e.message);
-    }
-
-    setBusy(false);
-  }
-
-  return (
-    <>
-      <h1 className="view">Images</h1>
-      <p className="sub">
-        Choisis exactement où chaque image doit apparaître : une scène précise,
-        une campagne, un PNJ, une créature ou un personnage joueur.
-      </p>
-
-      <div className="panel">
-        <div className="row">
-          <Field label="Type d'image">
-            <select
-              className="in"
-              value={category}
-              onChange={(e) => {
-                setCategory(e.target.value);
-                setTargetId('');
-              }}
-            >
-              <option value="scene">Image de scène</option>
-              <option value="campaign">Image de campagne</option>
-              <option value="npc">Portrait de PNJ</option>
-              <option value="creature">Image de créature / monstre</option>
-              <option value="player">Portrait de joueur</option>
-              <option value="map">Carte / lieu</option>
-              <option value="universe">Image d'univers</option>
-            </select>
-          </Field>
-
-          <Field label="Où l'image doit apparaître">
-            <select
-              className="in"
-              value={targetId}
-              onChange={(e) => setTargetId(e.target.value)}
-            >
-              <option value="">Choisir une cible…</option>
-              {targetOptions.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
-          </Field>
-        </div>
-
-        <Field label="Nom de l'image">
-          <input
-            className="in"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="ex. Embuscade dans la clairière"
-          />
-        </Field>
-
-        <Field label="Importer une image">
-          <input
-            className="in"
-            type="file"
-            accept="image/*"
-            onChange={(e) => uploadImage(e.target.files && e.target.files[0])}
-          />
-        </Field>
-
-        <div className="eyebrow">Génération d'image</div>
-
-        <Field label="Prompt d'image">
-          <textarea
-            className="in"
-            rows={4}
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Décris l'image à générer..."
-          />
-        </Field>
-
-        <button
-          className="btn ghost"
-          style={{ marginBottom: 12 }}
-          onClick={() => {
-            const selected = targetOptions.find((t) => t.id === targetId);
-            setPrompt(
-              buildImagePrompt({
-                type: category,
-                name: selected?.label || name,
-                description: '',
-                universe,
-              })
-            );
-          }}
-        >
-          Préparer un prompt automatiquement
-        </button>
-
-        <button className="btn primary" disabled={busy} onClick={generateImage}>
-          {busy ? (
-            <>
-              <Spin /> Génération…
-            </>
-          ) : (
-            "Générer l'image"
-          )}
-        </button>
-      </div>
-
-      <div className="eyebrow">Galerie</div>
-
-      {assets.length === 0 ? (
-        <div className="empty muted">Aucune image importée.</div>
-      ) : (
-        <div className="asset-grid">
-          {assets.map((asset) => (
-            <div className="asset-card" key={asset.id}>
-              <img src={asset.dataUrl} alt={asset.name} />
-              <div>
-                <b>{asset.name}</b>
-                <span>
-                  {asset.category} · {asset.targetType}
-                </span>
-              </div>
-              <button
-                className="btn ghost sm danger"
-                onClick={() => {
-                  if (confirm('Supprimer cette image ?')) {
-                    dispatch({ type: 'DELETE_ASSET', id: asset.id });
-                  }
-                }}
-              >
-                ✕
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </>
-  );
-}
 async function generateOpenAIImage(ai, prompt) {
   if (!ai || !ai.apiKey) {
     throw new Error('Clé API manquante.');
