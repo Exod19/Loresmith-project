@@ -2,10 +2,12 @@
  * Page « Cartes » d'un univers : créer une carte vierge, importer une image, importer l'Atlas des profondeurs
  * (et le synchroniser avec les Archives), ouvrir une carte dans la visionneuse.
  */
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Hero } from './battle/CombatPanel';
 import MapViewer from './MapViewer';
 import { useUnderdarkFeed, ARCHIVES_URL_KEY } from '../feeds/underdark';
+import { bestiaryEncounters } from '../feeds/bestiary';
+import { setBestiary } from './atlas/encounters';
 import { ATLAS_MAP_ID, imageFileToDataUrl, type MapRecord } from './mapStore';
 import type { AtlasData } from './atlas/types';
 import type { BestiaryRef, GuideCampaign } from './CampaignGuide';
@@ -48,6 +50,8 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
     try { return localStorage.getItem(ARCHIVES_URL_KEY) ?? ''; } catch { return ''; }
   });
   const { feed, error, reload } = useUnderdarkFeed();
+  // Le Bestiaire des Archives alimente les rencontres de toutes les cartes.
+  useEffect(() => { if (feed) setBestiary(bestiaryEncounters(feed.entries)); }, [feed]);
 
   if (!universe) return <div className="maps-page"><p>Aucun univers actif.</p></div>;
 

@@ -27,7 +27,7 @@ import StageControl from './present/StageControl';
 import { DiceFloater } from './dice/DiceRoller3D';
 import DmCopilot from './copilot/DmCopilot';
 import { hostStage } from './present/stage';
-import { UNDERDARK_LINK } from './feeds/underdark';
+import { UNDERDARK_LINK, useUnderdarkFeed } from './feeds/underdark';
 import { Sidebar, Topbar, MobileBar, CommandPalette, NAV } from './shell/Shell';
 import UniverseHome from './shell/Home';
 import { askPersistence, loadState, saveState as persistState } from './store/persist';
@@ -11141,6 +11141,9 @@ function LibraryEntryEditor({
   onPickArchive,
 }) {
   const img = getPrimaryAsset(state, 'library', entry.id);
+  // Détail complet de la fiche des Archives, lu depuis le fichier publié (rien n'est copié dans le navigateur).
+  const { feed: archiveFeed } = useUnderdarkFeed();
+  const archive = entry.sourceId ? archiveFeed?.entries.find((x) => x.id === entry.sourceId) ?? null : null;
 
   function update(patch) {
     dispatch({
@@ -11159,6 +11162,7 @@ function LibraryEntryEditor({
       <LibraryArchiveView
         entry={entry}
         img={img}
+        archive={archive}
         gallery={getAssetsFor(state, 'library', entry.id).filter((x) => x.dataUrl)}
         campaigns={campaigns}
         related={entry.related || []}
@@ -11312,6 +11316,7 @@ function LibraryEntryEditor({
 function LibraryArchiveView({
   entry,
   img,
+  archive,
   gallery,
   campaigns,
   related,
@@ -11329,6 +11334,7 @@ function LibraryArchiveView({
       entry={entry}
       typeLabel={LIBRARY_TYPES[entry.archiveType]?.singular || 'Archive'}
       img={img}
+      archive={archive}
       gallery={gallery}
       campaigns={campaigns}
       related={related}
