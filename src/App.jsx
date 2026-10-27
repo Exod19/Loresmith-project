@@ -18,6 +18,7 @@ import React, {
   useContext,
   createContext,
 } from 'react';
+import { Download, Upload, Settings, ExternalLink } from 'lucide-react';
 import MapsPage from './maps/MapsPage';
 import ArchivesPage from './feeds/ArchivesPage';
 import ArchivesLinkPanel from './feeds/ArchivesLink';
@@ -71,6 +72,7 @@ const STYLE = `
    .brand b{font-family:'Cinzel',serif;font-weight:700;letter-spacing:.18em;font-size:16px;color:#f0e2bb}
    .brand span{
     display:block;
+    white-space:nowrap;
     font-size:9px;
     letter-spacing:.26em;
     color:var(--faint);
@@ -92,11 +94,25 @@ const STYLE = `
    .uni-switch{display:flex;align-items:center;gap:8px;margin-left:8px}
    .uni-switch select{background:var(--panel-3);color:var(--txt);border:1px solid var(--line-2);border-radius:99px;padding:8px 14px;font-size:13px;font-family:'Cinzel';outline:none;max-width:210px}
    .uni-switch select:focus{border-color:var(--gold)}
-   .nav{display:flex;gap:2px;margin-left:auto;flex-wrap:wrap}
+   .top{flex-wrap:wrap;row-gap:8px}
+   .nav{order:3;width:100%;display:flex;gap:4px 12px;flex-wrap:nowrap;align-items:center;overflow-x:auto;scrollbar-width:none;padding-top:8px;border-top:1px solid var(--line)}
+   .nav::-webkit-scrollbar{display:none}
+   .nav-group{display:flex;align-items:center;gap:2px;flex-wrap:nowrap;flex:none}
+   .nav button{white-space:nowrap}
+   .nav-group+.nav-group{padding-left:12px;border-left:1px solid var(--line)}
+   .nav-group-label{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);margin-right:4px}
+   .top-actions{display:flex;align-items:center;gap:4px;flex:none;margin-left:auto}
+   .ls-root :is(button,a,select,input,textarea,summary,[tabindex]):focus-visible{outline:2px solid var(--gold-lt);outline-offset:2px}
    .nav button{background:transparent;border:1px solid transparent;color:var(--muted);padding:8px 13px;border-radius:4px;font-size:13px;font-family:'Cinzel';letter-spacing:.03em;transition:.15s}
    .nav button:hover{color:var(--gold-lt)}
    .nav button[data-on="1"]{color:#f3e6c0;border-color:var(--gold-dk);background:linear-gradient(180deg,rgba(201,162,74,.16),rgba(201,162,74,.04));box-shadow:inset 0 0 10px rgba(201,162,74,.14)}
-   .iconbtn{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--line);border-radius:4px;background:var(--panel);color:var(--gold);font-size:15px;transition:.15s;margin-left:4px}
+   .iconbtn{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--line);border-radius:4px;background:var(--panel);color:var(--gold);font-size:15px;transition:.15s}
+   .stat-card{display:block;width:100%;text-align:left;color:inherit;font:inherit;transition:border-color .15s,transform .15s}
+   .stat-card:hover{border-color:var(--gold);transform:translateY(-1px)}
+   .block-text{white-space:pre-wrap;font-size:14px;line-height:1.55}
+   .block-list{list-style:disc;margin:4px 0 0;padding-left:18px;font-size:14px;line-height:1.5}
+   .linkbtn{background:none;border:0;padding:0;color:var(--gold-lt);text-decoration:underline;font:inherit;cursor:pointer}
+   .iconbtn.wide{width:auto;display:inline-flex;align-items:center;gap:6px;padding:0 10px;font-family:'Cinzel',serif;font-size:12px;letter-spacing:.04em}
    .iconbtn:hover{border-color:var(--gold);color:var(--gold-lt)}
    .wrap{flex:1;max-width:1200px;width:100%;margin:0 auto;padding:26px 22px 90px}
    h1.view{font-family:'Cinzel',serif;font-weight:600;letter-spacing:.02em;font-size:26px;margin:0 0 4px;color:#f3e7c2}
@@ -1266,7 +1282,19 @@ const STYLE = `
     font-size:15px;
     line-height:1.45;
   }
-   @media (max-width:640px){.nav{order:3;width:100%;margin-left:0}.top{flex-wrap:wrap}}
+   @media (max-width:1500px){.nav-group-label{display:none}.nav button{padding:8px 10px}.nav{gap:4px 8px}.nav-group+.nav-group{padding-left:8px}}
+   @media (max-width:900px){
+     .top{gap:10px;padding:10px 16px}
+     .nav{margin:0 -16px;padding:6px 16px 2px;width:calc(100% + 32px);-webkit-overflow-scrolling:touch}
+     .nav-group-label{display:inline}
+     .nav button{min-height:44px}
+     .nav{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+     .dashboard-brand-mark{display:none}
+     .grid.cols-3:has(> .stat-card){grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+     .stat-card{padding:12px 14px}
+     .iconbtn{width:44px;height:44px}
+     .iconbtn.wide{display:none}
+   }
    /* ---------- Scene Runner v2 : cleaner play layout ---------- */
 
 .scene-shell{
@@ -5140,20 +5168,36 @@ export default function App() {
   const npcs = inU(state.npcs).sort((a, b) => b.createdAt - a.createdAt);
   const quests = inU(state.quests);
 
-  const NAV = [
-    ['dashboard', 'Universes'],
-    ['library', 'Bibliothèque'],
-    ['forge', 'Campaigns'],
-    ['chat', 'Generator'],
-    ['scene', 'Scene Runner'],
-    ['encounter', 'Combat'],
-    ['quests', 'Quest Log'],
-    ['maps', 'Cartes'],
-    ['archives', 'Archives'],
-    ['bestiary', 'NPCs & Monsters'],
-    ['party', 'Party'],
-    ['assets', 'Images'],
-    ['conjure', 'Conjure'],
+  // Onglets regroupés par moment d'usage : préparer le monde, créer, jouer.
+  const NAV_GROUPS = [
+    [
+      'Monde',
+      [
+        ['dashboard', 'Univers'],
+        ['library', 'Bibliothèque'],
+        ['archives', 'Archives'],
+        ['maps', 'Cartes'],
+        ['bestiary', 'PNJ & monstres'],
+        ['party', 'Groupe'],
+        ['assets', 'Images'],
+      ],
+    ],
+    [
+      'Créer',
+      [
+        ['forge', 'Campagnes'],
+        ['chat', 'Générateur'],
+        ['conjure', 'Conjurer'],
+      ],
+    ],
+    [
+      'Jouer',
+      [
+        ['scene', 'Table de jeu'],
+        ['encounter', 'Combat'],
+        ['quests', 'Quêtes'],
+      ],
+    ],
   ];
 
   return (
@@ -5174,11 +5218,13 @@ export default function App() {
     src={BRAND.wordmark}
     alt="Loresmith"
   />
-  <span>GAME MASTER CONSOLE</span>
+  <span>CONSOLE DU MAÎTRE DE JEU</span>
 </div>
             </div>
             <div className="uni-switch">
               <select
+                aria-label="Univers actif"
+                title="Changer d'univers"
                 value={U || ''}
                 onChange={(e) =>
                   dispatch({ type: 'SET_UNIVERSE', id: e.target.value })
@@ -5191,53 +5237,65 @@ export default function App() {
                 ))}
               </select>
             </div>
-            <div className="nav">
-              {NAV.map(([k, l]) => (
-                <button
-                  key={k}
-                  data-on={view === k ? 1 : 0}
-                  onClick={() => setView(k)}
-                >
-                  {l}
-                </button>
+            <nav className="nav" aria-label="Navigation principale">
+              {NAV_GROUPS.map(([group, items]) => (
+                <div className="nav-group" key={group}>
+                  <span className="nav-group-label">{group}</span>
+                  {items.map(([k, l]) => (
+                    <button
+                      key={k}
+                      data-on={view === k ? 1 : 0}
+                      aria-current={view === k ? 'page' : undefined}
+                      onClick={() => setView(k)}
+                    >
+                      {l}
+                    </button>
+                  ))}
+                </div>
               ))}
+            </nav>
+            <div className="top-actions">
+              <button
+                className="iconbtn"
+                title="Exporter une sauvegarde (.json)"
+                aria-label="Exporter une sauvegarde"
+                onClick={() => exportBackup(state)}
+              >
+                <Download size={16} aria-hidden="true" />
+              </button>
+              <button
+                className="iconbtn"
+                title="Restaurer une sauvegarde (.json)"
+                aria-label="Restaurer une sauvegarde"
+                onClick={() => importRef.current && importRef.current.click()}
+              >
+                <Upload size={16} aria-hidden="true" />
+              </button>
+              <button
+                className="iconbtn"
+                title="Réglages de l'IA"
+                aria-label="Réglages de l'IA"
+                onClick={() => setSettingsOpen(true)}
+              >
+                <Settings size={16} aria-hidden="true" />
+              </button>
+              <button
+                className="iconbtn wide"
+                title="Ouvrir la table de jeu dans un nouvel onglet"
+                onClick={() => openViewInNewTab('scene')}
+              >
+                <ExternalLink size={14} aria-hidden="true" />
+                <span>Table</span>
+              </button>
+              <button
+                className="iconbtn wide"
+                title="Ouvrir le combat dans un nouvel onglet"
+                onClick={() => openViewInNewTab('encounter')}
+              >
+                <ExternalLink size={14} aria-hidden="true" />
+                <span>Combat</span>
+              </button>
             </div>
-            <button
-              className="iconbtn"
-              title="Backup (export)"
-              onClick={() => exportBackup(state)}
-            >
-              ⤓
-            </button>
-            <button
-              className="iconbtn"
-              title="Restaurer (import)"
-              onClick={() => importRef.current && importRef.current.click()}
-            >
-              ⤒
-            </button>
-            <button
-              className="iconbtn"
-              title="Réglages IA"
-              onClick={() => setSettingsOpen(true)}
-            >
-              ⚙
-            </button>
-            <button
-              className="iconbtn"
-              title="Ouvrir Scene Runner dans un nouvel onglet"
-              onClick={() => openViewInNewTab('scene')}
-            >
-              ↗S
-            </button>
-
-            <button
-              className="iconbtn"
-              title="Ouvrir Combat dans un nouvel onglet"
-              onClick={() => openViewInNewTab('encounter')}
-            >
-              ↗C
-            </button>
             <input
               ref={importRef}
               type="file"
@@ -5536,34 +5594,30 @@ function Dashboard({
 <h1 className="view">{universe.name}</h1>
       <p className="sub">
         {universe.tone ||
-          'Set the tone and lore below — it seeds everything the AI generates here.'}
+          'Définis le ton et le lore plus bas : ils nourrissent tout ce que l’IA génère ici.'}
       </p>
-      <div className="warnbar">
+      <div className="warnbar" role="status">
         Moteur IA :{' '}
         <b>{ai.apiKey ? AI_PRESETS[ai.provider].label : 'non configuré'}</b>.{' '}
         {ai.apiKey ? (
           'Prêt.'
         ) : (
           <span>
-            <span
-              className="linkish"
-              style={{
-                color: 'var(--gold-lt)',
-                cursor: 'pointer',
-                textDecoration: 'underline',
-              }}
+            <button
+              type="button"
+              className="linkbtn"
               onClick={() => setSettingsOpen(true)}
             >
               Ouvre les Réglages
-            </span>{' '}
+            </button>{' '}
             et colle une clé (Gemini gratuit conseillé).
           </span>
         )}{' '}
-        Pense à exporter un <b>backup</b> (icône ⤓ en haut) pour ne rien perdre.
+        Pense à exporter une <b>sauvegarde</b> (premier bouton en haut à droite) pour ne rien perdre.
       </div>
       <div className="grid cols-3">
         {[
-          ['Campaigns', campaigns.length, 'forge'],
+          ['Campagnes', campaigns.length, 'forge'],
           [
             'Bibliothèque',
             Object.values(state.libraryEntries || {}).filter(
@@ -5571,15 +5625,16 @@ function Dashboard({
             ).length,
             'library',
           ],
-          ['Party', party.length, 'party'],
-          ['Bestiary', npcs.length, 'bestiary'],
-          ['Quests', quests.length, 'quests'],
+          ['Groupe', party.length, 'party'],
+          ['PNJ & monstres', npcs.length, 'bestiary'],
+          ['Quêtes', quests.length, 'quests'],
         ].map(([l, n, v]) => (
-          <div
-            className="panel"
+          <button
+            type="button"
+            className="panel stat-card"
             key={l}
-            style={{ cursor: 'pointer' }}
             onClick={() => setView(v)}
+            aria-label={`${l} : ${n}. Ouvrir`}
           >
             <div
               className="faint"
@@ -5601,7 +5656,7 @@ function Dashboard({
             >
               {n}
             </div>
-          </div>
+          </button>
         ))}
       </div>
       <UniverseBrainPanel
@@ -6358,7 +6413,7 @@ function Forge({
             })`
         )
         .join('; ')
-    : 'a generic party of four adventurers';
+    : 'un groupe générique de quatre aventuriers';
 
   function updatePlannedScene(index, patch) {
     setForm((f) => ({
@@ -7046,7 +7101,7 @@ function Forge({
       flash(
         isLong
           ? 'Campagne longue forgée — structure complète créée'
-          : 'Campaign forged — expand any scene for detail'
+          : 'Campagne forgée : développe une scène pour voir le détail.'
       );
     } catch (e) {
       setErr(e.message);
@@ -7057,7 +7112,7 @@ function Forge({
 
   return (
     <>
-      <h1 className="view">Campaign Forge</h1>
+      <h1 className="view">Forge de campagnes</h1>
 
       <p className="sub">
         Forge une campagne courte rapidement, ou construis une campagne longue
@@ -7087,7 +7142,7 @@ function Forge({
         {mode === 'short' ? (
           <>
             <div className="row">
-              <Field label="Session length (hours)">
+              <Field label="Durée de la séance (heures)">
                 <input
                   className="in"
                   type="number"
@@ -7098,7 +7153,7 @@ function Forge({
                 />
               </Field>
 
-              <Field label="Party level">
+              <Field label="Niveau du groupe">
                 <input
                   className="in"
                   type="number"
@@ -7110,20 +7165,20 @@ function Forge({
               </Field>
             </div>
 
-            <Field label="Theme / prompt">
+            <Field label="Thème ou idée de départ">
               <input
                 className="in"
-                placeholder="a heist beneath the drowned cathedral; a betrayal among the guilds…"
+                placeholder="un casse sous la cathédrale engloutie ; une trahison entre guildes…"
                 value={form.theme}
                 onChange={(e) => set('theme', e.target.value)}
               />
             </Field>
 
-            <Field label="Must-hit beats (optional)">
+            <Field label="Moments incontournables (facultatif)">
               <textarea
                 className="in"
                 rows={2}
-                placeholder="Introduce the villain early; reward Kael's search for his sister…"
+                placeholder="Présenter le méchant tôt ; récompenser la quête de Kael pour retrouver sa sœur…"
                 value={form.beats}
                 onChange={(e) => set('beats', e.target.value)}
               />
@@ -7142,35 +7197,35 @@ function Forge({
         )}
 
         <div className="faint" style={{ fontSize: 12, marginBottom: 14 }}>
-          Party seed: {partyBlurb}
+          Groupe pris en compte : {partyBlurb}
         </div>
 
         <button className="btn primary" disabled={busy} onClick={forge}>
           {busy ? (
             <>
-              <Spin /> Forging…
+              <Spin /> Forge en cours…
             </>
           ) : mode === 'long' ? (
-            '⚒ Forge long campaign'
+            '⚒ Forger la campagne longue'
           ) : (
-            '⚒ Forge campaign'
+            '⚒ Forger la campagne'
           )}
         </button>
 
         {err && (
-          <div style={{ color: 'var(--blood)', marginTop: 12, fontSize: 13 }}>
+          <div role="alert" style={{ color: 'var(--blood)', marginTop: 12, fontSize: 13 }}>
             {err}
           </div>
         )}
       </div>
 
-      <div className="eyebrow">Forged campaigns</div>
+      <div className="eyebrow">Campagnes forgées</div>
 
       {campaigns.length === 0 ? (
         <div className="empty">
-          <div className="big">No campaigns yet</div>
+          <div className="big">Aucune campagne pour l’instant</div>
           <p className="muted">
-            Fill the form above and forge your first adventure.
+            Remplis le formulaire ci-dessus pour forger ta première aventure.
           </p>
         </div>
       ) : (
@@ -8143,18 +8198,29 @@ function CampaignCard({
           </div>
 
           <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>
-            ~{camp.hours}h · lv {camp.level} · {camp.scenes.length} scenes
+            ~{camp.hours} h · niv. {camp.level} · {camp.scenes.length} scène
+            {camp.scenes.length > 1 ? 's' : ''}
           </div>
         </div>
 
         <div className="row" style={{ flex: 'none' }}>
-          <button className="btn ghost sm" onClick={() => setOpen((o) => !o)}>
-            {open ? 'Hide' : 'Open'}
+          <button
+            className="btn ghost sm"
+            aria-expanded={open}
+            onClick={() => setOpen((o) => !o)}
+          >
+            {open ? 'Fermer' : 'Ouvrir'}
           </button>
           <button
             className="btn ghost sm danger"
+            title="Supprimer la campagne"
+            aria-label={`Supprimer la campagne ${camp.title}`}
             onClick={() => {
-              if (confirm('Delete campaign?')) {
+              if (
+                confirm(
+                  `Supprimer la campagne « ${camp.title} » ? Cette action est irréversible.`
+                )
+              ) {
                 dispatch({ type: 'DELETE_CAMPAIGN', id: camp.id });
               }
             }}
@@ -8269,7 +8335,7 @@ function CampaignCard({
           <div className="scroll">{camp.hook}</div>
 
           <div className="eyebrow" style={{ marginTop: 22 }}>
-            Scenes
+            Scènes
           </div>
 
           {camp.scenes.map((sc, i) => (
@@ -8823,13 +8889,13 @@ JSON: {
           disabled={busy}
           onClick={() => (x ? setShow((s) => !s) : expand())}
         >
-          {busy ? <Spin /> : x ? show ? 'Collapse' : 'Detail' : '✦ Expand'}
+          {busy ? <Spin /> : x ? show ? 'Masquer' : 'Afficher' : '✦ Développer'}
         </button>
       </div>
       {x && show && (
         <div style={{ marginTop: 12, paddingLeft: 26 }}>
           <div className="muted" style={{ fontSize: 13.5 }}>
-            <b style={{ color: 'var(--txt)' }}>Setting. </b>
+            <b style={{ color: 'var(--txt)' }}>Cadre. </b>
             {x.setting}
           </div>
           {x.readAloud && <div className="scroll">{x.readAloud}</div>}
@@ -8845,7 +8911,7 @@ JSON: {
             </Block>
           )}
           {x.npcs?.length > 0 && (
-            <Block title="NPCs">
+            <Block title="PNJ">
               {x.npcs.map((n, i) => (
                 <div key={i} className="feat">
                   <b>{n.name}.</b> {n.note}
@@ -8854,7 +8920,7 @@ JSON: {
             </Block>
           )}
           {x.encounters?.length > 0 && (
-            <Block title="Encounters">
+            <Block title="Rencontres">
               {x.encounters.map((e, i) => (
                 <div key={i} className="feat">
                   <b>{e.name}.</b> {e.detail}
@@ -8863,11 +8929,11 @@ JSON: {
             </Block>
           )}
           {x.skillChecks?.length > 0 && (
-            <Block title="Skill checks">
+            <Block title="Tests de compétence">
               {x.skillChecks.map((c, i) => (
                 <div key={i} className="feat">
                   <b>
-                    {c.check} (DC {c.dc}).
+                    {c.check} (DD {c.dc}).
                   </b>{' '}
                   {c.on_success}
                 </div>
@@ -8875,20 +8941,50 @@ JSON: {
             </Block>
           )}
           {x.branches?.length > 0 && (
-            <Block title="If / then">
+            <Block title="Si… alors">
               {x.branches.map((b, i) => (
                 <div key={i} className="feat">
-                  <b>If</b> {b.if} <b>→</b> {b.then}
+                  <b>Si</b> {b.if} <b>→</b> {b.then}
                 </div>
               ))}
             </Block>
           )}
+          {[
+            ['purpose', 'Objectif de la scène'],
+            ['lore', 'Lore'],
+            ['dmNotes', 'Notes du MJ'],
+            ['sensoryDetails', 'Ambiance'],
+            ['hiddenTruth', 'Vérité cachée'],
+          ].map(([k, label]) =>
+            x[k] ? (
+              <Block key={k} title={label}>
+                <div className="block-text">{toText(x[k])}</div>
+              </Block>
+            ) : null
+          )}
+          {[
+            ['playerChoices', 'Choix des joueurs'],
+            ['consequences', 'Conséquences'],
+            ['seeds', 'Graines pour la suite'],
+            ['callbacks', 'Rappels'],
+            ['questions', 'Questions à résoudre'],
+          ].map(([k, label]) =>
+            toList(x[k]).length ? (
+              <Block key={k} title={label}>
+                <ul className="block-list">
+                  {toList(x[k]).map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              </Block>
+            ) : null
+          )}
           {x.loot?.length > 0 && (
-            <Block title="Loot">
+            <Block title="Butin">
               <div className="row" style={{ gap: 6 }}>
                 {x.loot.map((l, i) => (
                   <span key={i} className="tag ember" style={{ flex: 'none' }}>
-                    {l}
+                    {toText(l)}
                   </span>
                 ))}
               </div>
@@ -8899,6 +8995,23 @@ JSON: {
     </div>
   );
 }
+// Les réponses de l'IA ne respectent pas toujours le format demandé :
+// un champ texte peut arriver en objet ou en liste. Rendre un objet brut
+// dans React fait planter toute la page, d'où cette conversion.
+function toText(v) {
+  if (v == null) return '';
+  if (typeof v === 'string' || typeof v === 'number') return String(v);
+  if (Array.isArray(v)) return v.map(toText).filter(Boolean).join(', ');
+  if (typeof v === 'object')
+    return Object.values(v).map(toText).filter(Boolean).join(' — ');
+  return '';
+}
+
+function toList(v) {
+  if (v == null || v === '') return [];
+  return (Array.isArray(v) ? v : [v]).map(toText).filter(Boolean);
+}
+
 function Block({ title, children }) {
   return (
     <div style={{ marginTop: 12 }}>
@@ -9329,7 +9442,7 @@ function Chat({
 
   return (
     <>
-      <h1 className="view">Generator</h1>
+      <h1 className="view">Générateur</h1>
       <p className="sub">
         Discute avec l'IA pour bâtir et raffiner. En mode <b>Voix de PNJ</b>,
         sélectionne une campagne, une scène, puis clique sur le portrait du PNJ
@@ -10003,7 +10116,7 @@ Réponds uniquement avec une ou deux répliques en français que ce personnage p
 
       <main className="scene-main">
         <div className="scene-titlebar">
-          <h1>{activeScene ? activeScene.title : 'Scene Runner'}</h1>
+          <h1>{activeScene ? activeScene.title : 'Table de jeu'}</h1>
           <div className="scene-pill">
             {activeScene ? activeScene.type : 'Aucune scène'}
           </div>
@@ -12988,7 +13101,7 @@ function Party({ state, dispatch, party, universe, flash }) {
   const [adding, setAdding] = useState(false);
   return (
     <>
-      <h1 className="view">The Party</h1>
+      <h1 className="view">Le groupe</h1>
       <p className="sub">
         Import each player's sheet so adventures fit their level, skills and
         backstory. Upload a PDF (read on-device) or paste the sheet text — the
@@ -13696,7 +13809,7 @@ function Bestiary({
 
   return (
     <>
-      <h1 className="view">Bestiary</h1>
+      <h1 className="view">PNJ & monstres</h1>
       <p className="sub">
         Crée des PNJ ou des monstres séparément. Les PNJ servent surtout au
         rôleplay, aux scènes et aux dialogues. Les monstres servent aux
@@ -16810,7 +16923,7 @@ function Quests({ dispatch, quests, campaigns, flash }) {
   const side = quests.filter((q) => q.type === 'side');
   return (
     <>
-      <h1 className="view">Quest Log</h1>
+      <h1 className="view">Quêtes</h1>
       <p className="sub">
         Track the main thread and side quests. Check off beats as the party
         clears them; the bar shows how far each story has come.
@@ -17107,7 +17220,7 @@ function Conjure({ dispatch, universe, party, state, flash }) {
   }
   return (
     <>
-      <h1 className="view">Conjure</h1>
+      <h1 className="view">Conjurer</h1>
       <p className="sub">
         Mid-session improv. Pick what you need, give a nudge, and the AI hands
         you something to say — seeded with this universe's canon and your party.
