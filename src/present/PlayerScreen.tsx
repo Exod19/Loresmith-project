@@ -7,7 +7,8 @@ import MapCanvas, { type Layers } from '../maps/atlas/MapCanvas';
 import { setAtlasData } from '../maps/atlas/model';
 import type { AtlasData, FeatureCategory } from '../maps/atlas/types';
 import BattleBoard, { CATEGORY_ICON } from '../maps/battle/BattleBoard';
-import { openStageChannel, type PlayerBoard, type PlayerElement, type Stage } from './stage';
+import { CATEGORY_IMG, vignette } from '../maps/battle/vignettes';
+import { openStageChannel, type PlayerBoard, type PlayerElement, type PlayerToken, type Stage } from './stage';
 import '../maps/maps.css';
 import '../maps/atlas/atlas.css';
 import '../maps/battle/battle.css';
@@ -88,7 +89,7 @@ function PlayerMap({ board, rev }: { board: Extract<PlayerBoard, { mode: 'map' }
 
 function PlayerBattle({ board }: { board: Extract<PlayerBoard, { mode: 'battle' }> }) {
   const [openId, setOpenId] = useState<string | null>(null);
-  const open = board.elements.find((e) => e.id === openId) ?? null;
+  const card = openId ? cardFor(board, openId) : null;
   return (
     <div className="present-battle">
       <header className="present-battle-head">
@@ -99,17 +100,32 @@ function PlayerBattle({ board }: { board: Extract<PlayerBoard, { mode: 'battle' 
         cols={board.cols} rows={board.rows} backdrop={board.backdrop} terrain={board.terrain} elements={board.elements} tokens={board.tokens}
         onElement={(id) => setOpenId((cur) => (cur === id ? null : id))}
       />
-      {open && (
-        <aside className="present-info" role="dialog" aria-label={open.title}>
-          <button className="present-info-close" onClick={() => setOpenId(null)} aria-label="Fermer">×</button>
-          <span className="present-info-kind">{CATEGORY_ICON[open.category] ?? '◆'} {open.info?.subtitle ?? KIND_NAME[open.kind]}</span>
-          {open.info?.image && <img className="present-info-img" src={open.info.image} alt={open.title} />}
-          <h3>{open.title}</h3>
-          {open.info?.text && open.info.text.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
+      {card && (
+        <aside className="present-card" role="dialog" aria-label={card.title}>
+          {card.image && <img className="present-card-img" src={card.image} alt={card.title} />}
+          <div className="present-card-body">
+            <button className="present-info-close" onClick={() => setOpenId(null)} aria-label="Fermer">×</button>
+            <span className="present-info-kind">{card.icon && <>{card.icon} </>}{card.subtitle}</span>
+            <h3>{card.title}</h3>
+            {card.text && card.text.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
+          </div>
         </aside>
       )}
     </div>
   );
 }
 
+/** Contenu de la fiche d'un élément ou d'un jeton, tel que les joueurs le voient. */
+function cardFor(board: Extract<PlayerBoard, { mode: 'battle' }>, id: string) {
+  const el = board.elements.find((e) => e.id === id);
+  if (el) {
+    const image = el.info?.image ?? (CATEGORY_IMG[el.category] ? vignette(CATEGORY_IMG[el.category]) : undefined);
+    return { title: el.title, subtitle: el.info?.subtitle ?? KIND_NAME[el.kind], icon: CATEGORY_ICON[el.category], text: el.info?.text, image };
+  }
+  const token = board.tokens.find((t) => t.id === id);
+  if (token) return { title: token.name, subtitle: token.info?.subtitle ?? KIND_NAME_TOKEN[token.kind], icon: undefined, text: token.info?.text, image: token.info?.image };
+  return null;
+}
+
+const KIND_NAME_TOKEN: Record<PlayerToken['kind'], string> = { pc: 'Compagnon', monster: 'Créature', other: 'Présence' };
 const KIND_NAME: Record<PlayerElement['kind'], string> = { passage: 'Passage', point: 'Lieu' };

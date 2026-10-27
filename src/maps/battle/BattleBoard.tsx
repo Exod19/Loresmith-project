@@ -205,7 +205,7 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
         const r = t.size * 0.42;
         const cx = t.x + t.size / 2, cy = t.y + t.size / 2;
         return (
-          <g key={t.id} className="battle-token" opacity={t.hidden ? 0.4 : 1} onClick={interactive && onToken ? (e) => { e.stopPropagation(); onToken(t.id); } : undefined}>
+          <g key={t.id} className="battle-token" opacity={t.hidden ? 0.4 : 1} onClick={interactive && onToken ? (e) => { e.stopPropagation(); onToken(t.id); } : onElement ? () => onElement(t.id) : undefined}>
             {t.image ? (
               <>
                 <clipPath id={`clip-${t.id}`}><circle cx={cx} cy={cy} r={r} /></clipPath>

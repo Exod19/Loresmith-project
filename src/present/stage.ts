@@ -6,7 +6,8 @@
  */
 import type { AtlasData } from '../maps/atlas/types';
 
-export type PlayerToken = { id: string; name: string; kind: 'pc' | 'monster' | 'other'; x: number; y: number; size: 1 | 2; icon?: string; image?: string; statId?: string };
+/** `info` : fiche en jeu montrée quand un joueur clique sur le jeton. */
+export type PlayerToken = { id: string; name: string; kind: 'pc' | 'monster' | 'other'; x: number; y: number; size: 1 | 2; icon?: string; image?: string; statId?: string; info?: { subtitle?: string; text?: string; image?: string } };
 
 /** Élément visible sur le plateau de combat : un point (cell) ou un passage (cells, déjà creusé dans le terrain). */
 /** `cells` : cases d'un passage ; `secret` : passage découvert par les joueurs (teinte propre). */

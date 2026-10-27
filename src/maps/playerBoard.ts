@@ -8,6 +8,8 @@ import { effectiveGrid } from './battle/terrain';
 import { cellIn } from './battle/local';
 import { tokenImage } from './battle/vignettes';
 import { applyBuild, PROP_BY_KEY, propUrl } from './battle/build';
+import { CREATURE_LORE, KIND_LORE } from './battle/lore';
+import { STATS } from './atlas/statblocks';
 import type { PlayerBoard, PlayerElement, PlayerToken } from '../present/stage';
 
 /** Carte telle que les joueurs la voient, sur le plan choisi, centrée sur `focus` si le MJ l'a demandé. */
@@ -20,7 +22,13 @@ export function battleBoard(rec: MapRecord): PlayerBoard {
   const b = rec.battle ?? DEFAULT_BATTLE;
   const tokens: PlayerToken[] = b.tokens
     .filter((t) => t.visible)
-    .map(({ id, name, kind, x, y, size, icon, image, statId }) => ({ id, name, kind, x, y, size, icon, image: tokenImage({ kind, statId, image }), statId }));
+    .map(({ id, name, kind, x, y, size, icon, image, statId }) => {
+      const portrait = tokenImage({ kind, statId, image });
+      return {
+        id, name, kind, x, y, size, icon, image: portrait, statId,
+        info: { subtitle: (statId && STATS[statId]?.meta) || undefined, text: (statId && CREATURE_LORE[statId]) || KIND_LORE[kind], image: portrait },
+      };
+    });
   const local = b.local;
   const revealed = rec.overlay?.revealed ?? [];
   // Les joueurs ne voient que les éléments visibles : un passage secret n'existe pour eux qu'une fois découvert,
