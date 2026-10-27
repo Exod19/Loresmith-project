@@ -6,11 +6,14 @@ const CONTAINER_ID = 'dice-box';
 
 interface DieResult {
   value: number;
-  groupId?: string;
+  qty?: number;
+  sides?: number | string;
 }
 
 export const DiceRoller3D: React.FC = () => {
   const diceBoxRef = useRef<DiceBox | null>(null);
+  // dice-box ne peut être utilisé (clear/roll) qu'une fois init() terminé
+  const readyRef = useRef(false);
   const [notation, setNotation] = useState<string>('1d20');
   const [total, setTotal] = useState<number | null>(null);
   const [individualResults, setIndividualResults] = useState<DieResult[]>([]);
@@ -27,6 +30,8 @@ export const DiceRoller3D: React.FC = () => {
         theme: 'default', // Thèmes interchangeables (cool, metal, glass...)
         themeColor: '#4f46e5', // Couleur des dés (ex: Violet Indigo)
         offscreen: false, // Mettre à true en production pour booster les performances
+        // Les assets (ammo WASM, thèmes) sont dans public/assets/
+        assetPath: '/assets/',
 
         // Callback appelé dès que les dés s'arrêtent de rouler
         onRollComplete: (results: DieResult[]) => {
@@ -38,21 +43,27 @@ export const DiceRoller3D: React.FC = () => {
       });
 
       // Lancement de la configuration asynchrone
-      diceBoxRef.current.init().then(() => {
-        console.log('Moteur 3D Dice-Box prêt !');
-      });
+      diceBoxRef.current
+        .init()
+        .then(() => {
+          readyRef.current = true;
+          console.log('Moteur 3D Dice-Box prêt !');
+        })
+        .catch((err: unknown) => {
+          console.error('Échec de l’initialisation de Dice-Box :', err);
+        });
     }
 
     // Nettoyage au démontage du composant
     return () => {
-      if (diceBoxRef.current) {
+      if (diceBoxRef.current && readyRef.current) {
         diceBoxRef.current.clear();
       }
     };
   }, []);
 
   const handleRoll = () => {
-    if (diceBoxRef.current && notation) {
+    if (diceBoxRef.current && readyRef.current && notation) {
       // Efface les anciens dés présents à l'écran
       diceBoxRef.current.clear();
       setTotal(null);
@@ -68,7 +79,7 @@ export const DiceRoller3D: React.FC = () => {
       {/* Conteneur du Canvas 3D où les dés vont physiquement rouler et rebondir */}
       <div
         id={CONTAINER_ID}
-        className="w-[600px] h-[400px] bg-slate-950 rounded-xl border border-slate-800 shadow-inner relative overflow-hidden mb-4"
+        className="w-[600px] h-[400px] bg-slate-950 rounded-xl border border-slate-800 shadow-inner relative overflow-hidden mb-4 [&>canvas]:block [&>canvas]:w-full [&>canvas]:h-full"
       />
 
       {/* Interface de contrôle */}
@@ -94,7 +105,7 @@ export const DiceRoller3D: React.FC = () => {
           <div className="text-sm text-slate-400 uppercase tracking-wider font-semibold">Total du Jet</div>
           <div className="text-5xl font-black text-indigo-400 my-1">{total}</div>
           <div className="text-xs text-slate-500 font-mono mt-2">
-            Détails : {individualResults.map((d) => `[${d.groupId}: ${d.value}]`).join(' + ')}
+            Détails : {individualResults.map((d) => `[${d.qty ?? 1}d${d.sides ?? '?'}: ${d.value}]`).join(' + ')}
           </div>
         </div>
       )}
