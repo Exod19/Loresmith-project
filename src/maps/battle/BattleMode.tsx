@@ -18,8 +18,8 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 const KIND_LABEL: Record<BattleToken['kind'], string> = { pc: 'Joueur', monster: 'Créature', other: 'Autre' };
 const SRD = Object.values(STATS).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
 /** Types de terrain qui méritent une ligne dans la légende (la roche et le sol sont évidents). */
-const LEGEND_ORDER: TerrainKind[] = ['#', '~', ':', 'p', '=', 'X', 'I', ','];
-const SWATCH: Partial<Record<TerrainKind, string>> = { '#': 'rock', '~': 'water', ':': 'rubble', p: 'pass', '=': 'bridge', X: 'chasm', I: 'pillar', ',': 'decor' };
+const LEGEND_ORDER: TerrainKind[] = ['.', '#', 'p', '~', ':', '=', 'X', 'I', ','];
+const SWATCH: Partial<Record<TerrainKind, string>> = { '.': 'floor', '#': 'rock', '~': 'water', ':': 'rubble', p: 'pass', '=': 'bridge', X: 'chasm', I: 'pillar', ',': 'decor' };
 
 /** Nombre entier lu au début d'un texte (« 16 (armure d’écailles) » → 16). */
 const leadingInt = (s: string) => { const n = parseInt(s, 10); return Number.isFinite(n) ? n : undefined; };
@@ -366,11 +366,17 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
 
         {grid && (
           <section className="maps-card battle-legend">
-            <h3>Terrain</h3>
+            <h3>Légende</h3>
             <ul>
               {LEGEND_ORDER.filter((k) => present.has(k)).map((k) => (
                 <li key={k}><span className={`battle-swatch k-${SWATCH[k]}`} />{TERRAIN[k].label}</li>
               ))}
+              {passages.some((p) => p.secret && !p.found) && (
+                <li><span className="battle-swatch k-secret" />Passage secret, fermé (contour pointillé)</li>
+              )}
+              {boardElements.some((e) => e.ghost && e.kind === 'point') && (
+                <li><span className="battle-icon">?</span>Élément caché : visible du MJ seulement</li>
+              )}
             </ul>
             <p className="maps-sub">Le déplacement suit le chemin réel : contourner les obstacles, et compter le terrain difficile (eau, éboulis) pour le double.</p>
           </section>

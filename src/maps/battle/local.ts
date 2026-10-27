@@ -109,7 +109,11 @@ export function buildLocalMap(p: {
 
   const base = generateTerrain(cols, rows, p.hint, p.seed);
   // Destination de chaque passage, lue dans les connexions de l'Atlas quand elle existe.
-  const kept = elements.slice(0, MAX_ELEMENTS).map((e) => (e.kind === 'passage' ? { ...e, auto: autoLink(atlas, plan, e.id) } : e));
+  // Un passage secret n'apparaît que s'il mène quelque part dans l'Atlas : les autres n'existent pas pour le combat.
+  const kept = elements
+    .map((e) => (e.kind === 'passage' ? { ...e, auto: autoLink(atlas, plan, e.id) } : e))
+    .filter((e) => e.kind !== 'passage' || !e.secret || e.auto)
+    .slice(0, MAX_ELEMENTS);
   return { window: win, base, elements: kept };
 }
 

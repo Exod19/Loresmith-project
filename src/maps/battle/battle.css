@@ -56,3 +56,5 @@
 .battle-dest > span{font-size:13px;overflow-wrap:anywhere}
 .battle-dest select{width:100%;min-width:0;max-width:100%}
 .battle-missing{font-size:12px;color:var(--muted,#9a8a63)}
+.battle-swatch.k-floor{background:#110d09}
+.battle-swatch.k-secret{background:transparent;border:1px dashed #ecd289}
