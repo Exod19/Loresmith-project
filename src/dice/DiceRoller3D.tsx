@@ -218,6 +218,15 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
           role="status"
         >
           {crit && (
+            <img
+              src={`/assets/dice-roller/overlay-${crit === 'success' ? 'succes' : 'echec'}-critique.webp`}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+            />
+          )}
+          <div className="relative">
+          {crit && (
             <div
               className={`font-['Cinzel'] text-xs font-bold uppercase tracking-[0.25em] mb-1 ${
                 crit === 'success' ? 'text-[#ecd289]' : 'text-[#ff8a8f]'
@@ -238,6 +247,7 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
           </div>
           <div className="text-xs text-[#c9a24a]/60 font-mono mt-2">
             {label} → {groups.map((g) => `[${(g.rolls ?? []).map((r) => r.value).join(', ') || g.value}]`).join(' + ')}
+          </div>
           </div>
         </div>
       )}
