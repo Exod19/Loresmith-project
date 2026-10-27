@@ -12,6 +12,7 @@ import { DEFAULT_BATTLE, type Battle, type BattleToken, type MapMarker, type Map
 import { blocksCell, effectiveGrid, generateTerrain, pathCost, seedOf, TERRAIN, type LocationHint, type TerrainKind } from './terrain';
 import { buildLocalMap, cellIn } from './local';
 import { attackCells, reachableCells, speedCells } from './ranges';
+import { tokenImage } from './vignettes';
 import { iconFor, placeEncounter, type EncounterGroup } from './encounter';
 import './battle.css';
 
@@ -248,7 +249,7 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
   const ranges: BoardRange[] = showRanges ? b.tokens.map(rangeOf) : [];
 
   const boardTokens: BoardToken[] = b.tokens.map((t) => ({
-    id: t.id, name: t.name, kind: t.kind, x: t.x, y: t.y, size: t.size, icon: t.icon, image: t.image,
+    id: t.id, name: t.name, kind: t.kind, x: t.x, y: t.y, size: t.size, icon: t.icon, image: tokenImage(t),
     selected: t.id === selectedId, hidden: !t.visible,
   }));
 

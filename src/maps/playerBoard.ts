@@ -6,6 +6,7 @@ import type { AtlasData } from './atlas/types';
 import { mapDataFor, restrictToPlan, DEFAULT_BATTLE, type MapRecord } from './mapStore';
 import { effectiveGrid } from './battle/terrain';
 import { cellIn } from './battle/local';
+import { tokenImage } from './battle/vignettes';
 import type { PlayerBoard, PlayerElement, PlayerToken } from '../present/stage';
 
 /** Carte telle que les joueurs la voient, sur le plan choisi, centrée sur `focus` si le MJ l'a demandé. */
@@ -18,7 +19,7 @@ export function battleBoard(rec: MapRecord): PlayerBoard {
   const b = rec.battle ?? DEFAULT_BATTLE;
   const tokens: PlayerToken[] = b.tokens
     .filter((t) => t.visible)
-    .map(({ id, name, kind, x, y, size, icon, image }) => ({ id, name, kind, x, y, size, icon, image }));
+    .map(({ id, name, kind, x, y, size, icon, image, statId }) => ({ id, name, kind, x, y, size, icon, image: tokenImage({ kind, statId, image }), statId }));
   const local = b.local;
   const revealed = rec.overlay?.revealed ?? [];
   // Les joueurs ne voient que les éléments visibles : un passage secret n'existe pour eux qu'une fois découvert,

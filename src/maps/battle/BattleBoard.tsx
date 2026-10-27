@@ -5,6 +5,7 @@
 import { useEffect, useRef } from 'react';
 import type { PlayerElement, PlayerToken } from '../../present/stage';
 import type { TerrainKind } from './terrain';
+import { CATEGORY_IMG, vignette } from './vignettes';
 
 export type BoardToken = PlayerToken & { selected?: boolean; hidden?: boolean };
 
@@ -141,10 +142,22 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
         }
         if (e.cell === undefined) return null;
         const cx = (e.cell % cols) + 0.5, cy = Math.floor(e.cell / cols) + 0.5;
+        const img = e.ghost ? vignette('element_cache') : CATEGORY_IMG[e.category] ? vignette(CATEGORY_IMG[e.category]) : undefined;
+        const clip = `clip-el-${e.id.replace(/[^a-zA-Z0-9]/g, '')}`;
         return (
-          <g key={e.id} className="battle-element" onClick={onElement ? () => onElement(e.id) : undefined} opacity={e.ghost ? 0.7 : 1}>
-            <circle cx={cx} cy={cy} r={0.4} fill="#0b0906" stroke={e.ghost ? '#ecd289' : '#7d6128'} strokeWidth={0.05} strokeDasharray={e.ghost ? '0.1 0.07' : undefined} />
-            <text x={cx} y={cy + 0.14} textAnchor="middle" fontSize={0.42} pointerEvents="none">{e.ghost ? '?' : CATEGORY_ICON[e.category] ?? '◆'}</text>
+          <g key={e.id} className="battle-element" onClick={onElement ? () => onElement(e.id) : undefined} opacity={e.ghost ? 0.85 : 1}>
+            {img ? (
+              <>
+                <clipPath id={clip}><circle cx={cx} cy={cy} r={0.4} /></clipPath>
+                <image href={img} x={cx - 0.4} y={cy - 0.4} width={0.8} height={0.8} clipPath={`url(#${clip})`} preserveAspectRatio="xMidYMid slice" />
+                <circle cx={cx} cy={cy} r={0.4} fill="none" stroke={e.ghost ? '#ecd289' : '#7d6128'} strokeWidth={0.05} strokeDasharray={e.ghost ? '0.1 0.07' : undefined} />
+              </>
+            ) : (
+              <>
+                <circle cx={cx} cy={cy} r={0.4} fill="#0b0906" stroke={e.ghost ? '#ecd289' : '#7d6128'} strokeWidth={0.05} strokeDasharray={e.ghost ? '0.1 0.07' : undefined} />
+                <text x={cx} y={cy + 0.14} textAnchor="middle" fontSize={0.42} pointerEvents="none">{CATEGORY_ICON[e.category] ?? '◆'}</text>
+              </>
+            )}
             <title>{e.ghost ? `${e.title} (secret)${e.dc ? ` · DC ${e.dc}` : ''}` : e.title}</title>
           </g>
         );
