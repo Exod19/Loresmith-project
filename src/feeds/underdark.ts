@@ -127,6 +127,13 @@ export function toLibraryEntry(e: FeedEntry, id: string, related: { id: string; 
  * Identifiants stables (arc-<id>, arc-img-…) : un second import ne crée rien en double.
  * L'image garde le chemin publié : elle n'est pas copiée dans le navigateur.
  */
+/** Empreinte stable d'un chemin : identifiant d'image identique d'un import à l'autre. */
+function hashOf(text: string) {
+  let h = 5381;
+  for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) >>> 0;
+  return h.toString(36);
+}
+
 export function archiveBundle(feed: UnderdarkFeed, universeId: string, ids?: string[]) {
   const names = new Map(feed.entries.map((e) => [e.id, e.name]));
   const chosen = ids ? feed.entries.filter((e) => ids.includes(e.id)) : feed.entries;
@@ -135,11 +142,13 @@ export function archiveBundle(feed: UnderdarkFeed, universeId: string, ids?: str
       .filter((r) => r.from === e.id || r.to === e.id)
       .map((r) => { const other = r.from === e.id ? r.to : r.from; return { id: `arc-${other}`, name: names.get(other) ?? other, kind: r.kind }; })
       .filter((r) => names.has(r.id.replace(/^arc-/, '')));
-    return { ...toLibraryEntry(e, `arc-${e.id}`, related), universeId };
+    // Les images restent sur la fiche (imageSrcs) : la fiche les affiche toutes, même partagées.
+    return { ...toLibraryEntry(e, `arc-${e.id}`, related), universeId, imageSrc: e.images[0]?.src, imageSrcs: e.images.map((img) => img.src) };
   });
-  const assets = chosen.flatMap((e) => e.images.map((img) => ({
-    id: `arc-img-${e.id}-${img.id}`, name: e.name, category: 'library', targetType: 'library',
-    targetId: `arc-${e.id}`, dataUrl: img.src, source: 'archives', prompt: img.caption ?? '', createdAt: 0, universeId,
-  })));
-  return { entries, assets };
+  // La médiathèque ne garde qu'une copie de chaque image, même utilisée par plusieurs fiches.
+  const bank = new Map();
+  for (const e of chosen) for (const img of e.images) {
+    if (!bank.has(img.src)) bank.set(img.src, { id: `arc-img-${hashOf(img.src)}`, name: e.name, category: 'library', targetType: 'library', targetId: `arc-${e.id}`, dataUrl: img.src, source: 'archives', prompt: img.caption ?? '', createdAt: 0, universeId });
+  }
+  return { entries, assets: [...bank.values()] };
 }

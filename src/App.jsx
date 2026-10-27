@@ -4904,7 +4904,7 @@ function reducer(s, a) {
         const cur = libraryEntries[entry.id];
         // Fiche importée avant la mise en forme structurée : on la complète, sans toucher à ce qui a été modifié.
         if (!cur) libraryEntries[entry.id] = entry;
-        else if (cur.sourceId && !cur.sections) libraryEntries[entry.id] = { ...entry, ...cur };
+        else if (cur.sourceId && (!cur.sections || cur.imageSrcs === undefined)) libraryEntries[entry.id] = { ...entry, ...cur };
         // Reclassement d'une fiche importée dans l'ancien rayon « Documents » vers son rayon d'origine.
         else if (cur.sourceId && cur.archiveType === 'document' && entry.archiveType !== 'document') libraryEntries[entry.id] = { ...cur, archiveType: entry.archiveType };
       }
@@ -11188,7 +11188,7 @@ Ne révèle pas les secrets du MJ aux paliers faciles. Reste fidèle à la fiche
           ) : (
             <div className="library-entry-grid">
               {filtered.map((entry) => {
-                const img = getPrimaryAsset(state, 'library', entry.id);
+                const img = getPrimaryAsset(state, 'library', entry.id) ?? (entry.imageSrc ? { dataUrl: entry.imageSrc } : null);
 
                 return (
                   <LibraryCard
@@ -11263,7 +11263,7 @@ function LibraryEntryEditor({
   onWriteKnowledge,
   onPickArchive,
 }) {
-  const img = getPrimaryAsset(state, 'library', entry.id);
+  const img = getPrimaryAsset(state, 'library', entry.id) ?? (entry.imageSrc ? { dataUrl: entry.imageSrc } : null);
   // Détail complet de la fiche des Archives, lu depuis le fichier publié (rien n'est copié dans le navigateur).
   const { feed: archiveFeed } = useUnderdarkFeed();
   const archive = entry.sourceId ? archiveFeed?.entries.find((x) => x.id === entry.sourceId) ?? null : null;
@@ -11286,7 +11286,7 @@ function LibraryEntryEditor({
         entry={entry}
         img={img}
         archive={archive}
-        gallery={getAssetsFor(state, 'library', entry.id).filter((x) => x.dataUrl)}
+        gallery={[...getAssetsFor(state, 'library', entry.id).filter((x) => x.dataUrl), ...(entry.imageSrcs || []).map((src, i) => ({ id: `${entry.id}-${i}`, name: entry.title, dataUrl: src }))]}
         campaigns={campaigns}
         related={entry.related || []}
         hasEntry={(id) => !!state.libraryEntries?.[id]}
