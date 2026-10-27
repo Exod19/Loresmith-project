@@ -23,8 +23,12 @@ import MapsPage from './maps/MapsPage';
 import ArchivesPage from './feeds/ArchivesPage';
 import ArchivesLinkPanel from './feeds/ArchivesLink';
 import Dossier, { LibraryCard } from './library/Dossier';
+import StageControl from './present/StageControl';
+import { DiceFloater } from './dice/DiceRoller3D';
+import DmCopilot from './copilot/DmCopilot';
+import { hostStage } from './present/stage';
 import { UNDERDARK_LINK } from './feeds/underdark';
-import { Sidebar, Topbar, MobileBar, CommandPalette, DiceTray, NAV } from './shell/Shell';
+import { Sidebar, Topbar, MobileBar, CommandPalette, NAV } from './shell/Shell';
 import UniverseHome from './shell/Home';
 
 /* ----------------------------- styles (gold / ornate) ------------------- */
@@ -5090,6 +5094,11 @@ export default function App() {
     }
   }, [state]);
 
+  // Console MJ : elle répond aux écrans joueurs qui se connectent et leur envoie la scène en cours.
+  useEffect(() => {
+    hostStage();
+  }, []);
+
   useEffect(() => {
     (async () => {
       try {
@@ -5356,7 +5365,9 @@ export default function App() {
             ) : view === 'archives' ? (
               <ArchivesPage universe={universe} dispatch={dispatch} flash={flash} />
             ) : view === 'maps' ? (
-              <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} />
+              <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} heroes={party} />
+            ) : view === 'present' ? (
+              <StageControl {...{ universe, state, flash }} />
             ) : view === 'quests' ? (
               <Quests {...{ dispatch, quests, campaigns, flash }} />
             ) : (
@@ -5364,7 +5375,7 @@ export default function App() {
             )}
           </div>
           </div>
-          <DiceTray open={diceOpen} setOpen={setDiceOpen} />
+          <DiceFloater open={diceOpen} onOpenChange={setDiceOpen} />
           <MobileBar
             view={view}
             setView={goTo}
@@ -10135,6 +10146,15 @@ Réponds uniquement avec une ou deux répliques en français que ce personnage p
           </div>
         </section>
 
+        <DmCopilot
+          key={activeScene?.id || 'none'}
+          readAloud={readAloud}
+          checks={expanded?.skillChecks || []}
+          branches={expanded?.branches || []}
+          hasMonsters={getSceneMonsterRows({ expanded, activeScene, npcs }).length > 0}
+          onOpenCombat={() => setView('encounter')}
+        />
+
         <div className="scene-grid-dialogue">
           <section className="scene-card scene-dialogue-card">
             <div className="scene-label">Dialogues de scène</div>
@@ -13922,6 +13942,11 @@ function Encounter({ dispatch, state, party, npcs, flash }) {
       <p className="sub">
         Suivi d’initiative, HP, attaques, buffs/malus, ressources limitées et
         positionnement tactique.
+      </p>
+      <p className="sub" style={{ color: 'var(--gold-lt)' }}>
+        Nouveau : le combat se mène aussi directement sur la carte de combat
+        (Cartes → ⚔ Ouvrir la carte de combat → onglet Combat), avec le
+        plateau, l’initiative, les attaques et les conseils tactiques.
       </p>
 
       <div className="combat-layout-advanced">

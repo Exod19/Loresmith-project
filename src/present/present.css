@@ -1,0 +1,28 @@
+/* Écran joueur (plein écran, projeté) et pilotage côté MJ. */
+
+.present-screen{position:fixed;inset:0;background:#000;color:#e7d8b0;overflow:hidden;font-family:'EB Garamond',Georgia,serif}
+.present-blank,.present-text,.present-image,.present-wait{position:absolute;inset:0}
+.present-blank{display:grid;place-items:center}
+.present-blank img{width:min(220px,40vw);opacity:.22}
+.present-image{margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:4vh 4vw}
+.present-image img{max-width:100%;max-height:calc(100% - 48px);object-fit:contain;box-shadow:0 0 60px rgba(201,162,74,.12)}
+.present-image figcaption{font-family:'Cinzel',serif;letter-spacing:.14em;font-size:clamp(14px,2vw,22px);color:#ecd289}
+.present-text{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8vh 8vw;text-align:center}
+.present-text h1{font-family:'Cinzel',serif;font-weight:600;color:#ecd289;font-size:clamp(28px,4vw,56px);margin:0 0 4vh}
+.present-text p{font-size:clamp(20px,2.6vw,36px);line-height:1.5;white-space:pre-wrap;max-width:60ch;margin:0}
+.present-wait{display:grid;place-items:center;margin:0;color:#9a8a63;font-family:'Cinzel',serif}
+.present-map{position:absolute;inset:0}
+.present-fs{position:absolute;right:10px;bottom:10px;z-index:5;opacity:.25;background:rgba(0,0,0,.6);color:#c9a24a;border:1px solid #5a481f;border-radius:4px;padding:4px 9px;font:12px 'Cinzel',serif;cursor:pointer}
+.present-fs:hover{opacity:1}
+
+.present-status{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.present-now{margin-left:auto;color:var(--muted);font-size:14px}
+.present-dot{width:9px;height:9px;border-radius:50%;background:var(--faint);flex:none}
+.present-dot[data-on="1"]{background:var(--verdant)}
+
+.present-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.present-tile{display:flex;flex-direction:column;gap:6px;padding:8px;background:var(--ink-2);border:1px solid var(--line);border-radius:var(--r-sm);color:var(--txt);font:inherit;font-size:13px;text-align:left;cursor:pointer;transition:.15s}
+.present-tile:hover{border-color:var(--gold)}
+.present-tile[data-on="1"]{border-color:var(--gold-lt);box-shadow:0 0 0 2px var(--glow)}
+.present-tile img,.present-tile-empty{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px;background:var(--panel-3)}
+.present-tile-empty{display:grid;place-items:center;color:var(--faint);font-size:28px}

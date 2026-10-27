@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Archive,
   BookOpen,
@@ -12,7 +12,7 @@ import {
   Image,
   Map as MapIcon,
   Menu,
-  RotateCcw,
+  Monitor,
   ScrollText,
   Search,
   Settings,
@@ -24,7 +24,6 @@ import {
   Wand2,
   X,
 } from 'lucide-react';
-import { naturalD20, rollExpression } from './dice';
 import './shell.css';
 
 // Navigation regroupée par moment d'usage : Monde → Préparation → Session.
@@ -57,6 +56,7 @@ export const NAV = [
     label: 'Session',
     icon: Swords,
     items: [
+      { view: 'present', label: 'Écran joueur', icon: Monitor },
       { view: 'scene', label: 'Table de jeu', icon: Feather },
       { view: 'encounter', label: 'Combat', icon: Swords },
       { view: 'quests', label: 'Quêtes', icon: Flag },
@@ -361,170 +361,4 @@ function norm(s) {
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
     .toLowerCase();
-}
-
-/* ---------------------------- Lanceur de dés --------------------------- */
-const DICE = [4, 6, 8, 10, 12, 20, 100];
-const HISTORY_KEY = 'loresmith:dice-history';
-
-function loadHistory() {
-  try {
-    return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]').slice(0, 12);
-  } catch {
-    return [];
-  }
-}
-
-export function DiceTray({ open, setOpen }) {
-  const [expr, setExpr] = useState('1d20');
-  const [result, setResult] = useState(null);
-  const [shown, setShown] = useState(null);
-  const [rolling, setRolling] = useState(false);
-  const [error, setError] = useState('');
-  const [history, setHistory] = useState(loadHistory);
-  const timer = useRef(null);
-
-  useEffect(() => () => clearInterval(timer.current), []);
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e) => e.key === 'Escape' && setOpen(false);
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open, setOpen]);
-
-  function roll(source = expr) {
-    let r;
-    try {
-      r = rollExpression(source);
-    } catch (e) {
-      setError(e.message);
-      return;
-    }
-    setError('');
-    setExpr(source);
-    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    const finish = () => {
-      clearInterval(timer.current);
-      setRolling(false);
-      setShown(r.total);
-      setResult(r);
-      setHistory((h) => {
-        const next = [{ expr: r.expr, total: r.total, t: Date.now() }, ...h].slice(0, 12);
-        try {
-          localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
-        } catch {}
-        return next;
-      });
-    };
-    if (reduce) return finish();
-    setRolling(true);
-    let n = 0;
-    const max = Math.max(...r.parts.map((p) => p.sides || 6), 6);
-    clearInterval(timer.current);
-    timer.current = setInterval(() => {
-      setShown(1 + Math.floor(Math.random() * max));
-      if (++n > 9) finish();
-    }, 45);
-  }
-
-  function addDie(sides) {
-    const m = expr.match(/^(\d*)d(\d+)$/i);
-    if (m && Number(m[2]) === sides) setExpr(`${Number(m[1] || 1) + 1}d${sides}`);
-    else setExpr(`1d${sides}`);
-  }
-
-  const nat = result && !rolling ? naturalD20(result) : null;
-
-  return (
-    <>
-      <button
-        className="lsx-fab"
-        data-open={open ? 1 : 0}
-        onClick={() => setOpen(!open)}
-        aria-label={open ? 'Fermer le lanceur de dés' : 'Ouvrir le lanceur de dés'}
-        aria-expanded={open}
-      >
-        <D20Glyph size={34} />
-      </button>
-      {open && (
-        <section className="lsx-dice" role="dialog" aria-label="Lanceur de dés">
-          <header>
-            <Dices size={17} aria-hidden="true" />
-            <b>Lanceur de dés</b>
-            <button className="lsx-icon" onClick={() => setOpen(false)} aria-label="Fermer">
-              <X size={15} />
-            </button>
-          </header>
-          <div className="lsx-dice-result" data-rolling={rolling ? 1 : 0} data-nat={nat === 20 ? 'crit' : nat === 1 ? 'fumble' : ''}>
-            <span className="lsx-dice-total" aria-live="polite">
-              {shown ?? '—'}
-            </span>
-            <span className="lsx-dice-detail">
-              {result && !rolling
-                ? `${result.expr} → ${result.detail}`
-                : rolling
-                ? 'Les dés roulent…'
-                : 'Choisis un dé ou tape une formule'}
-            </span>
-            {nat === 20 && <span className="lsx-dice-flag">Réussite critique</span>}
-            {nat === 1 && <span className="lsx-dice-flag">Échec critique</span>}
-          </div>
-          <div className="lsx-dice-row">
-            {DICE.map((d) => (
-              <button key={d} onClick={() => addDie(d)} onDoubleClick={() => roll(`1d${d}`)} data-on={new RegExp(`d${d}$`).test(expr) ? 1 : 0}>
-                d{d}
-              </button>
-            ))}
-          </div>
-          <div className="lsx-dice-row lsx-dice-quick">
-            <button onClick={() => roll('2d20kh1')}>Avantage</button>
-            <button onClick={() => roll('2d20kl1')}>Désavantage</button>
-            <button onClick={() => roll('4d6kh3')}>Caractéristique</button>
-          </div>
-          <form
-            className="lsx-dice-form"
-            onSubmit={(e) => {
-              e.preventDefault();
-              roll();
-            }}
-          >
-            <input value={expr} onChange={(e) => setExpr(e.target.value)} aria-label="Formule de dés" spellCheck={false} />
-            <button type="submit" className="lsx-roll" disabled={rolling}>
-              Lancer !
-            </button>
-          </form>
-          {error && <div className="lsx-dice-error">{error}</div>}
-          {history.length > 0 && (
-            <div className="lsx-dice-hist">
-              <div className="lsx-dice-hist-h">
-                <span>Historique</span>
-                <button
-                  onClick={() => {
-                    setHistory([]);
-                    try {
-                      localStorage.removeItem(HISTORY_KEY);
-                    } catch {}
-                  }}
-                  aria-label="Effacer l'historique"
-                  title="Effacer l'historique"
-                >
-                  <RotateCcw size={12} />
-                </button>
-              </div>
-              <ul>
-                {history.map((h) => (
-                  <li key={h.t}>
-                    <button onClick={() => roll(h.expr)} title="Relancer">
-                      <span>{h.expr}</span>
-                      <b>{h.total}</b>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </section>
-      )}
-    </>
-  );
 }

@@ -76,3 +76,10 @@
   .archives-body { grid-template-columns: 1fr; }
   .archives-body > .maps-panel { position: static; max-height: none; }
 }
+
+/* Projection et synchronisation (console MJ) */
+.maps-live{margin:8px 0 0;color:#ecd289;font-size:13px}
+.maps-placing{border:1px dashed #c9a24a;padding:8px 10px;border-radius:6px}
+.maps-sync{margin-top:10px}
+.maps-sync summary{cursor:pointer;color:#ecd289}
+.maps-sync label{display:flex;flex-direction:column;gap:6px;margin-top:8px;font-size:13px}

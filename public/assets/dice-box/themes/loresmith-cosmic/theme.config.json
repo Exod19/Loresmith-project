@@ -1,0 +1,20 @@
+{
+	"name": "Loresmith Cosmic",
+	"systemName": "loresmith-cosmic",
+	"author": "Loresmith",
+	"version": 0.2,
+	"meshFile": "default.json",
+	"material": {
+		"type": "color",
+		"diffuseTexture": {
+			"light": "cosmic.png",
+			"dark": "cosmic.png"
+		},
+		"diffuseLevel": 1,
+		"bumpTexture": "normal.png",
+		"bumpLevel": 0.5,
+		"specularTexture": "specular.jpg",
+		"specularPower": 1
+	},
+	"diceAvailable": ["d4","d6","d8","d10","d12","d20","d100"]
+}
