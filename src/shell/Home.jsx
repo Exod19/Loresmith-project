@@ -11,16 +11,12 @@ import {
   Wand2,
 } from 'lucide-react';
 
-// Décors existants utilisés tant que l'univers ou la campagne n'a pas sa propre image.
+// Décors utilisés tant que l'univers ou la campagne n'a pas sa propre image.
+const UI = '/images/ui/';
 export const DECOR = {
-  hero: '/images/decor/salle-1672.webp',
-  cards: [
-    '/images/decor/cite-1000.webp',
-    '/images/decor/cristal-1000.webp',
-    '/images/decor/livres-1000.webp',
-    '/images/decor/araignee-1000.webp',
-    '/images/decor/moriquendi-1000.webp',
-  ],
+  hero: UI + 'hero.webp',
+  cards: ['v-cite', 'v-champignons', 'v-englouti', 'v-crypte', 'v-marche', 'v-sanctuaire'].map((n) => `${UI}${n}.webp`),
+  avatar: UI + 'avatar.webp',
 };
 
 const SCENE_TYPES = {
@@ -74,6 +70,7 @@ export default function UniverseHome({
     <div className="lsx-home">
       <div className="lsx-home-main">
         <section className="lsx-hero" style={{ '--hero': `url("${heroImage || DECOR.hero}")` }}>
+          <span className="lsx-hero-frame" aria-hidden="true" />
           <div className="lsx-hero-body">
             <span className="lsx-kicker">Univers actif</span>
             <h1>{universe.name}</h1>
@@ -128,7 +125,7 @@ export default function UniverseHome({
         <SectionHead title="À ne pas manquer" />
         <div className="lsx-glance">
           <article className="lsx-tile">
-            <TileHead icon={Archive} title="Dernières fiches" action="Voir tout" onAction={() => setView('library')} />
+            <TileHead icon={Archive} img="sceau" title="Dernières fiches" action="Voir tout" onAction={() => setView('library')} />
             {recentEntries.length === 0 ? (
               <p className="lsx-tile-empty">La bibliothèque est encore vide.</p>
             ) : (
@@ -152,7 +149,7 @@ export default function UniverseHome({
           </article>
 
           <article className="lsx-tile">
-            <TileHead icon={ScrollText} title="Prochaine scène" badge={nextScene ? SCENE_TYPES[nextScene.type] || nextScene.type : null} />
+            <TileHead icon={ScrollText} img="rouleau" title="Prochaine scène" badge={nextScene ? SCENE_TYPES[nextScene.type] || nextScene.type : null} />
             {nextScene ? (
               <>
                 <b className="lsx-tile-title">{nextScene.title}</b>
@@ -167,7 +164,7 @@ export default function UniverseHome({
           </article>
 
           <article className="lsx-tile">
-            <TileHead icon={Flag} title="Quêtes en cours" action="Voir" onAction={() => setView('quests')} />
+            <TileHead icon={Flag} img="sablier" title="Quêtes en cours" action="Voir" onAction={() => setView('quests')} />
             {openQuests.length === 0 ? (
               <p className="lsx-tile-empty">Aucune quête ouverte.</p>
             ) : (
@@ -186,7 +183,7 @@ export default function UniverseHome({
           </article>
 
           <article className="lsx-tile">
-            <TileHead icon={Wand2} title="Dernière improvisation" action="Ouvrir" onAction={() => setView('conjure')} />
+            <TileHead icon={Wand2} img="bougie" title="Dernière improvisation" action="Ouvrir" onAction={() => setView('conjure')} />
             {lastLog ? (
               <>
                 <small className="lsx-tile-date">{ago(lastLog.t)}</small>
@@ -211,9 +208,7 @@ export default function UniverseHome({
                 const img = portrait(p);
                 return (
                   <li key={p.id}>
-                    <span className="lsx-avatar" style={img ? { backgroundImage: `url("${img}")` } : undefined}>
-                      {!img && (p.name || '?').slice(0, 1)}
-                    </span>
+                    <span className="lsx-avatar" data-default={img ? undefined : 1} style={{ backgroundImage: `url("${img || DECOR.avatar}")` }} />
                     <span>
                       <b>{p.name}</b>
                       <small>{[p.cls, p.race, p.level ? `niv. ${p.level}` : ''].filter(Boolean).join(' • ')}</small>
@@ -267,10 +262,14 @@ function SectionHead({ title, action, onAction }) {
   );
 }
 
-function TileHead({ icon: Icon, title, action, onAction, badge }) {
+function TileHead({ icon: Icon, img, title, action, onAction, badge }) {
   return (
     <div className="lsx-tile-h">
-      <Icon size={16} strokeWidth={1.6} aria-hidden="true" />
+      {img ? (
+        <img className="lsx-tile-obj" src={`${UI}${img}.webp`} alt="" aria-hidden="true" />
+      ) : (
+        <Icon size={16} strokeWidth={1.6} aria-hidden="true" />
+      )}
       <b>{title}</b>
       {badge && <span className="lsx-badge">{badge}</span>}
       {action && (

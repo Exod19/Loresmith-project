@@ -38,14 +38,13 @@
 .lsx-side{position:fixed;inset:0 auto 0 0;width:var(--lsx-side-w);z-index:40;display:flex;flex-direction:column;
   padding:18px 14px 14px;overflow-y:auto;scrollbar-width:thin;
   background:
-    linear-gradient(180deg,rgba(10,8,5,.35),rgba(10,8,5,.92) 62%,rgba(10,8,5,.98)),
     var(--lsx-grain),
-    url("/images/decor/livres-1000.webp") center bottom/cover no-repeat,
-    #0d0a06;
+    url("/images/ui/sidebar.webp") center bottom/100% auto no-repeat,
+    #090705;
   border-right:1px solid var(--lsx-edge-2);
   box-shadow:inset -1px 0 0 rgba(0,0,0,.6),8px 0 30px rgba(0,0,0,.35)}
 .lsx-side::after{content:"";position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(180deg,rgba(13,10,6,.94) 0,rgba(13,10,6,.86) 55%,rgba(13,10,6,.55) 100%)}
+  background:linear-gradient(180deg,rgba(9,7,5,.9) 0,rgba(9,7,5,.78) 45%,rgba(9,7,5,.25) 78%,rgba(9,7,5,.05) 100%)}
 .lsx-side>*{position:relative;z-index:1}
 .lsx-brand{display:flex;align-items:center;gap:10px;padding:0 6px 16px;margin-bottom:8px;border-bottom:1px solid var(--lsx-edge)}
 .lsx-brand-emblem{width:40px;height:40px;object-fit:contain;filter:drop-shadow(0 0 10px rgba(201,162,74,.25))}
@@ -70,7 +69,7 @@
 .lsx-item[data-on="1"]{color:#f6e7bf;background:rgba(201,162,74,.12)}
 .lsx-item[data-on="1"] svg{color:var(--gold-lt)}
 
-.lsx-sep{height:1px;margin:12px 6px;background:linear-gradient(90deg,transparent,var(--lsx-edge-2),transparent)}
+.lsx-sep{height:16px;margin:8px 0;background:url("/images/ui/separateur.webp") center/contain no-repeat;opacity:.85}
 .lsx-tool{display:flex;align-items:center;gap:12px;width:100%;padding:9px 12px;border:0;border-radius:8px;background:transparent;color:var(--txt);font-size:15.5px;text-align:left}
 .lsx-tool svg{color:var(--gold)}
 .lsx-tool:hover{background:rgba(201,162,74,.07);color:var(--gold-lt)}
@@ -83,7 +82,7 @@
 .lsx-universe:focus-within{outline:2px solid var(--gold-lt);outline-offset:2px}
 .lsx-universe select{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
 .lsx-universe-img{width:44px;height:44px;flex:none;border-radius:6px;border:1px solid var(--lsx-edge-2);
-  background:url("/images/decor/cite-1000.webp") center/cover}
+  background:url("/images/ui/v-cite.webp") center/cover}
 .lsx-universe-name{flex:1;font-family:'Cinzel',serif;font-size:13px;line-height:1.25}
 .lsx-side-foot{margin-top:auto;padding-top:14px}
 
@@ -133,7 +132,7 @@
   background:
     linear-gradient(90deg,rgba(8,6,4,.94) 0%,rgba(8,6,4,.72) 42%,rgba(8,6,4,.1) 78%),
     linear-gradient(0deg,rgba(8,6,4,.85),transparent 55%),
-    var(--hero) center/cover no-repeat;
+    var(--hero) right center/cover no-repeat;
   box-shadow:var(--lsx-shadow),inset 0 0 80px rgba(0,0,0,.55)}
 .lsx-hero::after{content:"";position:absolute;inset:0;background:var(--lsx-grain);mix-blend-mode:overlay;pointer-events:none}
 .lsx-hero-body{position:relative;z-index:1;padding:34px 36px;max-width:640px}
@@ -175,8 +174,18 @@
 .lsx-empty-card:hover{border-color:var(--gold)}
 
 .lsx-glance{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
-.lsx-tile,.lsx-rail-card{border-radius:10px;padding:14px 16px;border:1px solid var(--lsx-edge-2);
-  background:var(--lsx-grain),linear-gradient(180deg,#191209,#110c07);box-shadow:inset 0 1px 0 rgba(236,210,137,.05)}
+.lsx-tile,.lsx-rail-card{position:relative;border-radius:10px;padding:14px 16px;border:1px solid var(--lsx-edge-2);
+  background:linear-gradient(180deg,rgba(24,17,10,.9),rgba(14,10,6,.95)),url("/images/ui/cuir.webp") center/cover,#120d07;
+  box-shadow:inset 0 1px 0 rgba(236,210,137,.06),0 10px 24px rgba(0,0,0,.35)}
+/* Coins de laiton : seulement sur les cartes de la colonne et la bannière, pas partout. */
+.lsx-rail-card::before,.lsx-hero-frame{content:"";position:absolute;inset:-3px;pointer-events:none;z-index:2;
+  background:
+    url("/images/ui/coin-tl.webp") top left/34px no-repeat,
+    url("/images/ui/coin-tr.webp") top right/34px no-repeat,
+    url("/images/ui/coin-bl.webp") bottom left/34px no-repeat,
+    url("/images/ui/coin-br.webp") bottom right/34px no-repeat}
+.lsx-hero-frame{inset:-2px;background-size:52px,52px,52px,52px}
+.lsx-tile-obj{width:24px;height:30px;object-fit:contain;flex:none;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))}
 .lsx-tile-h{display:flex;align-items:center;gap:8px;margin-bottom:10px;color:var(--gold)}
 .lsx-tile-h b{font-family:'Cinzel',serif;font-weight:500;font-size:14px;color:#efdfb6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lsx-tile-h button,.lsx-badge{white-space:nowrap;flex:none}
@@ -202,7 +211,7 @@
 .lsx-home-rail{display:flex;flex-direction:column;gap:16px;position:sticky;top:calc(var(--lsx-top-h) + 20px)}
 .lsx-party li{display:flex;align-items:center;gap:12px;padding:7px 0}
 .lsx-party li+li{border-top:1px solid rgba(201,162,74,.1)}
-.lsx-avatar{width:44px;height:44px;flex:none;border-radius:50%;display:grid;place-items:center;background:#1f170d center/cover;
+.lsx-avatar{width:44px;height:44px;flex:none;border-radius:50%;display:grid;place-items:center;background:#1f170d center/cover;background-size:cover;
   border:1.5px solid var(--gold-dk);box-shadow:0 0 0 2px rgba(0,0,0,.6);font-family:'Cinzel',serif;color:var(--gold-lt);font-size:17px}
 .lsx-quick button{width:100%;display:flex;align-items:center;gap:12px;padding:10px 4px;border:0;background:none;color:var(--txt);font-size:15px;text-align:left}
 .lsx-quick li+li button{border-top:1px solid rgba(201,162,74,.1)}
@@ -257,4 +266,22 @@
 }
 @media (prefers-reduced-motion:reduce){
   .lsx-root *,.lsx-root *::before,.lsx-root *::after{transition:none !important;animation:none !important}
+}
+
+.lsx-avatar[data-default]{background-size:118%;border-color:var(--lsx-edge-2)}
+
+/* --------------------------- matières & décor -------------------------- */
+/* Texte à lire aux joueurs et réponses de l'IA : vrai parchemin. */
+.lsx-root .scroll,.lsx-root .msg.ai{background:linear-gradient(175deg,rgba(245,230,195,.55),rgba(220,196,150,.35)),url("/images/ui/parchemin.webp") center/cover,var(--parch)}
+.lsx-root .panel{background:linear-gradient(180deg,rgba(28,21,12,.9),rgba(18,13,8,.94)),url("/images/ui/cuir.webp") center/cover,var(--panel)}
+.lsx-empty-card{background:linear-gradient(rgba(10,8,5,.78),rgba(10,8,5,.85)),url("/images/ui/marbre.webp") center/cover}
+.lsx-section-h h2::after{content:"";width:140px;height:14px;margin-left:6px;background:url("/images/ui/separateur.webp") left center/contain no-repeat;opacity:.55}
+/* Table du MJ en bas de page : décor de fin, jamais par-dessus le contenu. */
+.ls-root .wrap.lsx-content{position:relative}
+.lsx-main::after{content:"";display:block;height:220px;margin-top:-140px;pointer-events:none;
+  background:linear-gradient(180deg,var(--bg),rgba(11,9,6,0) 55%),url("/images/ui/footer.webp") center bottom/min(1400px,100%) auto no-repeat;opacity:.9}
+.lsx-mobilebar .lsx-mobile-dice img{width:40px;height:40px;object-fit:contain}
+@media (max-width:640px){
+  .lsx-section-h h2::after{display:none}
+  .lsx-main::after{height:150px;margin-top:-90px}
 }
