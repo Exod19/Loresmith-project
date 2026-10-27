@@ -31,6 +31,8 @@ export type LocalMap = {
 
 /** Épaisseur d'un passage, en cases, selon son type. Seuls les passages du tracé sont repris : les lieux et repères
  * sont affichés à part, avec leur état de découverte. */
+/** Nombre maximal de lieux de l'Atlas placés sur un plateau. */
+const MAX_PLACES = 8;
 const RADIUS: Record<string, number> = { tunnel: 0, galerie: 0, boyau: 0, etroit: 0, crevasse: 0, ruisseau: 0, secret: 0 };
 
 /** Lieux dont le nom décrit un obstacle visible sur la carte de navigation. */
@@ -122,6 +124,10 @@ export function buildLocalMap(p: {
   }
 
   // Lieux de l'Atlas (corde, piton, carcasse…) : des points nommés, sur la case où ils se trouvent.
+  // La carte de navigation n'en montre que les plus importants à son zoom de départ : on suit la même hiérarchie,
+  // puis on garde les plus proches du centre, en nombre limité pour que le plateau reste lisible.
+  const RANK: Record<string, number> = { landmark: 0, regional: 1, local: 2, detail: 3 };
+  const found: { e: LocalElement; rank: number; d: number }[] = [];
   for (const g of onPlan) {
     if (g.type !== 'point' || g.featureId.startsWith('mk-')) continue;
     const f = byId.get(g.featureId);
@@ -129,11 +135,14 @@ export function buildLocalMap(p: {
     const [px, py] = g.coordinates as [number, number];
     const c = toCell(px, py);
     if (!inside(c)) continue;
-    elements.push({
-      id: f.id, kind: 'point', secret: false, title: f.title, category: f.category, subtitle: f.subtitle, summary: f.summary,
-      cell: c.y * cols + c.x,
+    found.push({
+      e: { id: f.id, kind: 'point', secret: false, title: f.title, category: f.category, subtitle: f.subtitle, summary: f.summary, cell: c.y * cols + c.x },
+      rank: RANK[f.importance ?? 'detail'] ?? 3,
+      d: Math.hypot(c.x - cols / 2, c.y - rows / 2),
     });
   }
+  found.sort((a, b) => a.rank - b.rank || a.d - b.d);
+  for (const { e } of found.slice(0, MAX_PLACES)) elements.push(e);
 
   // Les plus proches du centre d'abord ; on garde une lisibilité raisonnable.
   const centre = toCell(cx, cy);
