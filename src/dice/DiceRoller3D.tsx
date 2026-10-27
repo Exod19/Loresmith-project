@@ -4,9 +4,9 @@
  * Les assets (dés, textures) sont dans public/assets/dice-box.
  */
 import React, { useEffect, useRef, useState } from 'react';
+import { criticalOutcome, type DieGroup } from './criticalOutcome';
 
-type DieRoll = { value: number };
-type DieGroup = { groupId: string; value: number; rolls?: DieRoll[] };
+
 interface DiceBoxInstance {
   init(): Promise<unknown>;
   updateConfig(config: { theme: string; themeColor: string }): Promise<unknown>;
@@ -15,6 +15,7 @@ interface DiceBoxInstance {
 type DiceBoxCtor = new (config: Record<string, unknown>) => DiceBoxInstance;
 
 const QUICK_DICE = ['1d4', '1d6', '1d8', '1d10', '1d12', '1d20', '1d100'];
+
 
 /**
  * Textures disponibles : un dossier par thème dans public/assets/dice-box/themes/<id>/,
@@ -44,6 +45,7 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
   const [error, setError] = useState<string | null>(null);
   const [theme, setTheme] = useState<DiceTheme>(DICE_THEMES[0]);
   const [themeLoading, setThemeLoading] = useState(false);
+  const crit = criticalOutcome(groups);
   // Thème actuellement chargé dans le moteur (roll() ne charge pas de nouveau thème).
   const loadedThemeRef = useRef<string>(DICE_THEMES[0].id);
 
@@ -153,10 +155,10 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
             type="button"
             onClick={() => roll(d)}
             disabled={!ready || themeLoading}
-            className={`px-2.5 py-1 rounded-md border text-sm font-mono transition-all hover:-translate-y-0.5 disabled:opacity-40 ${
+            className={`flex-1 min-w-[3.25rem] px-2 py-1.5 rounded-md border text-sm font-mono font-semibold transition-all hover:-translate-y-0.5 disabled:opacity-40 ${
               notation === d
-                ? 'border-[#c9a24a] bg-[#c9a24a]/15 text-[#ecd289] shadow-[0_0_10px_rgba(201,162,74,0.35)]'
-                : 'border-[#c9a24a]/30 bg-[#1c150c] text-[#f3e6c0] hover:border-[#c9a24a]'
+                ? 'border-[#ecd289] bg-gradient-to-b from-[#3a2c12] to-[#1c150c] text-[#ecd289] shadow-[0_0_12px_rgba(236,210,137,0.4)]'
+                : 'border-[#c9a24a]/30 bg-gradient-to-b from-[#1c150c] to-[#0b0906] text-[#f3e6c0] hover:border-[#c9a24a] hover:text-[#ecd289]'
             }`}
           >
             {d}
@@ -171,18 +173,32 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
           roll(notation);
         }}
       >
-        <input
-          type="text"
-          value={notation}
-          onChange={(e) => setNotation(e.target.value)}
-          placeholder="Ex: 1d20+5, 2d6, 4d10"
-          className="flex-1 px-4 py-2 rounded-lg bg-[#0b0906] border border-[#c9a24a]/40 text-[#f3e6c0] font-mono shadow-inner focus:outline-none focus:border-[#c9a24a] focus:shadow-[0_0_10px_rgba(201,162,74,0.3)]"
-        />
+        <div className="flex-1 min-w-0 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0b0906] border border-[#c9a24a]/40 shadow-inner focus-within:border-[#c9a24a] focus-within:shadow-[0_0_10px_rgba(201,162,74,0.3)]">
+          <img src="/assets/dice-roller/bouton-flottant-d20.png" alt="" width={22} height={22} className="w-[22px] h-[22px] shrink-0 opacity-80" />
+          <input
+            type="text"
+            value={notation}
+            onChange={(e) => setNotation(e.target.value)}
+            placeholder="Ex: 1d20+5, 2d6, 4d10"
+            className="flex-1 min-w-0 bg-transparent text-[#f3e6c0] font-mono focus:outline-none"
+          />
+          {notation && (
+            <button
+              type="button"
+              onClick={() => setNotation('')}
+              aria-label="Effacer la formule"
+              className="text-[#c9a24a]/70 hover:text-[#ecd289] text-lg leading-none px-1"
+            >
+              ×
+            </button>
+          )}
+        </div>
         <button
           type="submit"
           disabled={!ready || themeLoading}
-          className="px-6 py-2 font-['Cinzel'] font-bold tracking-wide rounded-lg border border-[#ecd289]/60 bg-gradient-to-b from-[#ecd289] via-[#c9a24a] to-[#7d6128] text-[#16110a] shadow-lg shadow-[#c9a24a]/25 hover:brightness-110 active:scale-95 transition-all disabled:opacity-40"
+          className="shrink-0 whitespace-nowrap inline-flex items-center gap-2 px-5 py-2 font-['Cinzel'] font-bold uppercase tracking-wider rounded-lg border border-[#ecd289]/60 bg-gradient-to-b from-[#ecd289] via-[#c9a24a] to-[#7d6128] text-[#16110a] shadow-lg shadow-[#c9a24a]/25 hover:brightness-110 active:scale-95 transition-all disabled:opacity-40"
         >
+          <img src="/assets/dice-roller/bouton-flottant-d20.png" alt="" width={18} height={18} className="w-[18px] h-[18px]" />
           Lancer !
         </button>
       </form>
@@ -191,9 +207,35 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
       {error && <p className="text-sm text-red-400">{error}</p>}
 
       {total !== null && (
-        <div className="bg-gradient-to-b from-[#1c150c] to-[#0b0906] p-4 rounded-xl border border-[#c9a24a]/50 shadow-[inset_0_0_24px_rgba(201,162,74,0.12)] w-full text-center">
+        <div
+          className={`relative p-4 rounded-xl border w-full text-center overflow-hidden ${
+            crit === 'success'
+              ? 'border-[#ecd289] bg-gradient-to-b from-[#3a2c12] via-[#1c150c] to-[#0b0906] shadow-[0_0_28px_rgba(236,210,137,0.35),inset_0_0_30px_rgba(236,210,137,0.15)]'
+              : crit === 'failure'
+                ? 'border-[#e5484d] bg-gradient-to-b from-[#4a0d12] via-[#1a0608] to-[#0b0906] shadow-[0_0_28px_rgba(229,72,77,0.4),inset_0_0_30px_rgba(229,72,77,0.18)]'
+                : 'border-[#c9a24a]/50 bg-gradient-to-b from-[#1c150c] to-[#0b0906] shadow-[inset_0_0_24px_rgba(201,162,74,0.12)]'
+          }`}
+          role="status"
+        >
+          {crit && (
+            <div
+              className={`font-['Cinzel'] text-xs font-bold uppercase tracking-[0.25em] mb-1 ${
+                crit === 'success' ? 'text-[#ecd289]' : 'text-[#ff8a8f]'
+              }`}
+            >
+              {crit === 'success' ? '✦ Succès critique ✦' : '✖ Échec critique ✖'}
+            </div>
+          )}
           <div className="text-sm font-['Cinzel'] text-[#c9a24a]/80 uppercase tracking-[0.2em] font-semibold">Total du jet</div>
-          <div className="text-5xl font-black font-['Cinzel'] text-[#ecd289] drop-shadow-[0_0_14px_rgba(236,210,137,0.45)] my-1">{total}</div>
+          <div
+            className={`text-5xl font-black font-['Cinzel'] my-1 ${
+              crit === 'failure'
+                ? 'text-[#ff8a8f] drop-shadow-[0_0_14px_rgba(229,72,77,0.6)]'
+                : 'text-[#ecd289] drop-shadow-[0_0_14px_rgba(236,210,137,0.45)]'
+            }`}
+          >
+            {total}
+          </div>
           <div className="text-xs text-[#c9a24a]/60 font-mono mt-2">
             {label} → {groups.map((g) => `[${(g.rolls ?? []).map((r) => r.value).join(', ') || g.value}]`).join(' + ')}
           </div>
