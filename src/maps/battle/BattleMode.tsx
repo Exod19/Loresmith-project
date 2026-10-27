@@ -117,8 +117,8 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
   const wrapRef = useRef<HTMLDivElement>(null);
   /** Zoom du plateau : la largeur du plateau suit ce facteur, le cadre défile. */
   const [zoom, setZoom] = useState(1);
-  /** Objet dont la fiche est ouverte (clic sur une case). */
-  const [detailId, setDetailId] = useState<string | null>(null);
+  /** Élément dont la fiche est ouverte sur le plateau (clic sur un passage, un lieu ou un objet). */
+  const [infoId, setInfoId] = useState<string | null>(null);
 
   const selected = b.tokens.find((t) => t.id === selectedId) ?? null;
   const set = (patch: Partial<Battle>) => onBattle({ ...b, ...patch });
@@ -262,14 +262,26 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
     if (fits(bv, selected.id, selected.size, x, y)) patchToken(selected.id, { x, y });
   }
 
-  /** Clic sur une case : déplace le jeton sélectionné, ou ouvre la fiche de l'objet posé là. */
+  /** Clic sur une case vide : déplace le jeton sélectionné, sinon désélectionne. */
   function onBoardCell(x: number, y: number) {
     if (selected) { moveTo(x, y); return; }
-    const p = build.props.find((q) => q.cell === y * b.cols + x);
-    setDetailId(p ? p.id : null);
+    setInfoId(null);
     setSelectedId(null);
   }
-  const detailProp = build.props.find((p) => p.id === detailId) ?? null;
+  /** Clic sur un élément : déplace le jeton sélectionné là où il est, sinon ouvre sa fiche. */
+  function onElementClick(id: string) {
+    const el = boardElements.find((e) => e.id === id);
+    if (!el) return;
+    if (selected) {
+      const cell = el.kind === 'passage' ? el.cells?.[0] : el.cell;
+      if (cell !== undefined) moveTo(cell % b.cols, Math.floor(cell / b.cols));
+      return;
+    }
+    setInfoId(id);
+    setSelectedId(null);
+  }
+  const info = boardElements.find((e) => e.id === infoId) ?? null;
+  const infoProp = info?.id.startsWith('pr-') ? build.props.find((p) => `pr-${p.id}` === info.id) ?? null : null;
   const zoomBy = (dir: 1 | -1) => setZoom((z) => ZOOMS[Math.min(ZOOMS.length - 1, Math.max(0, ZOOMS.indexOf(z) + dir))] ?? z);
 
   // Passages : tracés réels de l'Atlas, et portes posées par le MJ sur ce plan. Chacun mène quelque part.
@@ -297,20 +309,21 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
   const boardElements: BoardElement[] = [
     ...(b.local?.elements ?? []).filter((e) => e.kind === 'passage').map((e) => ({
       id: e.id, kind: 'passage' as const, title: e.title, category: e.category, cells: e.cells,
-      ghost: e.secret && !discovered.includes(e.id), dc: e.dc,
+      ghost: e.secret && !discovered.includes(e.id), dc: e.dc, info: { subtitle: e.subtitle, text: e.summary },
     })),
     ...(b.local?.window && plan
       ? markers.filter((m) => m.planId === plan.id && (m.kind === 'objet' || m.kind === 'passage' || m.kind === 'repere')).flatMap((m) => {
         const cell = cellIn(b.local!.window, b.cols, b.rows, m.x, m.y);
         return cell === undefined ? [] : [{
           id: `mk-${m.id}`, kind: 'point' as const, title: m.title, category: m.kind === 'passage' ? 'voie' : 'indetermine',
-          cell, ghost: !m.revealed, dc: m.dcInvestigate,
+          cell, ghost: !m.revealed, dc: m.dcInvestigate, info: { text: [m.reading, m.summary].filter(Boolean).join('\n\n') },
         }];
       })
       : []),
     ...build.props.map((p) => ({
       id: `pr-${p.id}`, kind: 'point' as const, title: PROP_LABEL[p.key] ?? p.key, category: 'indetermine', cell: p.cell,
       image: propUrl(p.key), ghost: !p.visible,
+      info: { subtitle: 'Objet', text: PROP_BY_KEY[p.key]?.text, image: propUrl(p.key) },
     })),
   ];
 
@@ -398,6 +411,25 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
             ))}
           </div>
         )}
+        {info && (
+          <aside className="present-info battle-info" role="dialog" aria-label={info.title}>
+            <button className="present-info-close" onClick={() => setInfoId(null)} aria-label="Fermer">×</button>
+            <span className="present-info-kind">{info.info?.subtitle ?? (info.kind === 'passage' ? 'Passage' : 'Lieu')}{info.ghost ? ' · secret (MJ)' : ''}</span>
+            {info.info?.image && <img className="present-info-img" src={info.info.image} alt="" />}
+            <h3>{info.title}</h3>
+            {info.info?.text && info.info.text.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
+            {info.ghost && info.dc !== undefined && <p className="battle-sub">DC {info.dc} pour la trouver</p>}
+            {infoProp && (
+              <label className="build-check">
+                <input
+                  type="checkbox" checked={infoProp.visible}
+                  onChange={(e) => commitBuild({ ...build, props: build.props.map((p) => (p.id === infoProp.id ? { ...p, visible: e.target.checked } : p)) })}
+                />
+                Visible des joueurs
+              </label>
+            )}
+          </aside>
+        )}
         <div
           ref={wrapRef} className={`battle-board-wrap ${building ? 'building' : ''} ${zoom !== 1 ? 'zoomed' : ''}`}
           style={{ width: `${zoom * 100}%` }}
@@ -413,7 +445,7 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
         >
           <BattleBoard
             cols={b.cols} rows={b.rows} backdrop={rec.image} terrain={grid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
-            onToken={setSelectedId} onCell={onBoardCell} onHover={(x, y) => setHover({ x, y })}
+            onToken={setSelectedId} onCell={onBoardCell} onElement={onElementClick} onHover={(x, y) => setHover({ x, y })}
             preview={stroke && brush.tool === 'terrain' ? stroke.cells : undefined}
           />
           {readout && (
@@ -427,21 +459,6 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
       </div>
 
       <aside className="maps-panel battle-side">
-        {detailProp && (
-          <section className="maps-card battle-detail">
-            <h3>{PROP_BY_KEY[detailProp.key]?.label ?? detailProp.key}</h3>
-            <img src={propUrl(detailProp.key)} alt={PROP_BY_KEY[detailProp.key]?.label ?? ''} />
-            <p>{PROP_BY_KEY[detailProp.key]?.text}</p>
-            <label className="build-check">
-              <input
-                type="checkbox" checked={detailProp.visible}
-                onChange={(e) => commitBuild({ ...build, props: build.props.map((p) => (p.id === detailProp.id ? { ...p, visible: e.target.checked } : p)) })}
-              />
-              Visible des joueurs
-            </label>
-            <button className="maps-btn" onClick={() => setDetailId(null)}>Fermer</button>
-          </section>
-        )}
         {building && (
           <BuildPanel
             brush={brush} onBrush={setBrush} propVisible={propVisible} onPropVisible={setPropVisible}

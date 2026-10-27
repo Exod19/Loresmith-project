@@ -172,6 +172,14 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
 
       <path d={lines.join('')} stroke="rgba(201,162,74,.22)" strokeWidth={0.03} fill="none" pointerEvents="none" />
 
+      {/* Cases cliquables sous les éléments et les jetons : ceux-ci reçoivent d’abord le clic. */}
+      {interactive && cells.map((c) => (
+        <rect
+          key={`${c.x}-${c.y}`} x={c.x} y={c.y} width={1} height={1} fill="transparent" className="battle-cell"
+          onClick={() => onCell?.(c.x, c.y)}
+          onPointerEnter={() => onHover?.(c.x, c.y)}
+        />
+      ))}
       {ranges.map((r) => (
         <g key={`range-${r.id}`} pointerEvents="none">
           {r.move.length > 0 && <path d={cellPath(r.move, cols)} fill="rgba(84,216,198,0.18)" opacity={r.selected ? 1 : 0.7} />}
@@ -189,12 +197,13 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
           if (!e.cells) return null;
           // Passage secret non découvert (MJ seulement) : contour pointillé sur ses cases.
           if (e.ghost) return <path key={`g-${e.id}`} d={cellPath(e.cells, cols)} fill="rgba(236,210,137,0.16)" stroke="#ecd289" strokeWidth={0.07} strokeDasharray="0.15 0.1" opacity={0.95} pointerEvents="none"><title>{`${e.title} (secret, visible du MJ seulement)`}</title></path>;
-          // Passage visible : zone cliquable (écran joueur), teinte violette s'il était secret, et une marque au milieu.
+          // Passage visible : zone cliquable, teinte violette s'il était secret, et une marque au milieu pour les lieux spéciaux.
           const hit = onElement ? { className: 'battle-hit', onClick: () => onElement(e.id), cursor: 'pointer' } : { pointerEvents: 'none' as const };
           const zone = e.secret
             ? <path d={cellPath(e.cells, cols)} fill="rgba(156,123,214,0.32)" stroke="#9c7bd6" strokeWidth={0.05} {...hit}><title>{`${e.title} (passage secret)`}</title></path>
             : <path d={cellPath(e.cells, cols)} fill="transparent" {...hit}><title>{e.title}</title></path>;
-          return <g key={`p-${e.id}`}>{zone}{pointMark(e, anchorCell(e.cells, cols), cols, onElement)}</g>;
+          // Les couloirs ordinaires n'ont pas de marque : leur zone s'éclaire seulement au survol.
+          return <g key={`p-${e.id}`}>{zone}{e.category !== 'voie' && pointMark(e, anchorCell(e.cells, cols), cols, onElement)}</g>;
         }
         if (e.cell === undefined) return null;
         return pointMark(e, e.cell, cols, onElement);
@@ -224,13 +233,6 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
         );
       })}
 
-      {interactive && cells.map((c) => (
-        <rect
-          key={`${c.x}-${c.y}`} x={c.x} y={c.y} width={1} height={1} fill="transparent" className="battle-cell"
-          onClick={() => onCell?.(c.x, c.y)}
-          onPointerEnter={() => onHover?.(c.x, c.y)}
-        />
-      ))}
     </svg>
     </div>
   );

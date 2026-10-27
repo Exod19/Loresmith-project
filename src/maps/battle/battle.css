@@ -108,3 +108,5 @@
 .battle-detail img{width:100%;aspect-ratio:1;object-fit:contain;background:#0b0906;border:1px solid #5a4a2a;border-radius:6px}
 .battle-detail p{margin:0;font-size:14px;line-height:1.4}
 .battle-board-wrap{max-height:72vh;overflow:auto;border-radius:6px}
+.battle-canvas{position:relative}
+.battle-info{left:12px;bottom:12px;max-width:min(440px,80%);max-height:70%}
