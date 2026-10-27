@@ -32,7 +32,14 @@ import { Sidebar, Topbar, MobileBar, CommandPalette, NAV } from './shell/Shell';
 import UniverseHome from './shell/Home';
 import { askPersistence, loadState, saveState as persistState } from './store/persist';
 import { repairJson } from './ai/json';
-import { cleanForSpeech, synthesizeSpeech, voiceProfileFor } from './voice/elevenlabs';
+import {
+  VOICE_MODELS,
+  VOICE_NAMES,
+  VOICE_PRESETS,
+  cleanForSpeech,
+  resolveVoiceProfile,
+  synthesizeSpeech,
+} from './voice/elevenlabs';
 import { atlasPlaces, buildLoreContext, feedFor, norm as normName } from './ai/loreContext';
 import {
   BRIEF_FIELDS,
@@ -4509,6 +4516,7 @@ const defaultAI = () => ({
   model: AI_PRESETS.gemini.model,
   apiKey: '',
   elevenKey: '',
+  voiceOutput: 'self', // "self" = je lis moi-même | "generate" = générer le son
 });
 const AIContext = createContext({ ai: defaultAI(), setAI: () => {} });
 
@@ -8313,7 +8321,7 @@ function Chat({
   flash,
   setSettingsOpen,
 }) {
-  const { ai } = useContext(AIContext);
+  const { ai, setAI } = useContext(AIContext);
 
   const [mode, setMode] = useState('gm'); // "gm" | "npc"
   const [activeThreadId, setActiveThreadId] = useState('');
@@ -8529,7 +8537,7 @@ function Chat({
     }
     try {
       setPlayingIdx(idx);
-      const profile = voiceProfileFor({
+      const profile = resolveVoiceProfile({
         ...(selectedNpc || {}),
         name: selectedSpeaker?.name || '',
         voice: selectedSpeaker?.voice || '',
@@ -8778,6 +8786,23 @@ function Chat({
           >
             Voix de PNJ
           </button>
+
+          {mode === 'npc' && (
+            <div style={{ display: 'flex', gap: 6, marginLeft: 'auto' }}>
+              <button
+                className={'btn sm' + (ai.voiceOutput !== 'generate' ? ' primary' : ' ghost')}
+                onClick={() => setAI({ voiceOutput: 'self' })}
+              >
+                Je lis moi-même
+              </button>
+              <button
+                className={'btn sm' + (ai.voiceOutput === 'generate' ? ' primary' : ' ghost')}
+                onClick={() => setAI({ voiceOutput: 'generate' })}
+              >
+                Générer le son
+              </button>
+            </div>
+          )}
         </div>
 
         {mode === 'npc' && (
@@ -8972,7 +8997,7 @@ function Chat({
                     className={'msg ' + (m.role === 'user' ? 'user' : 'ai')}
                   >
                     {m.content}
-                    {mode === 'npc' && m.role !== 'user' && (
+                    {mode === 'npc' && m.role !== 'user' && ai.voiceOutput === 'generate' && (
                       <div>
                         <button
                           className="btn ghost sm"
@@ -12796,6 +12821,7 @@ function BestiaryEditor({ n, dispatch }) {
         {area('motivation', 'Motivation')}
         {area('secret', 'Secret')}
       </div>
+      <VoiceProfileEditor n={n} up={up} />
       {area('tactics', 'Tactique')}
       {named('traits', 'Traits')}
       {named('actions', 'Actions')}
@@ -12803,6 +12829,74 @@ function BestiaryEditor({ n, dispatch }) {
     </div>
   );
 }
+/** Profil de voix d'un PNJ : automatique (déduit de la fiche) ou manuel, avec préréglages. */
+function VoiceProfileEditor({ n, up }) {
+  const vp = n.voiceProfile || { mode: 'auto' };
+  const set = (patch) => up({ voiceProfile: { ...vp, ...patch } });
+  const applyPreset = (key) => {
+    const p = VOICE_PRESETS[key];
+    up({ voiceProfile: { mode: 'manual', voiceName: p.voiceName, model: p.model, stability: p.stability, style: p.style } });
+  };
+  const switchMode = (mode) =>
+    set(
+      mode === 'manual'
+        ? { mode, voiceName: vp.voiceName || 'George', model: vp.model || VOICE_MODELS[0].id, stability: vp.stability ?? 0.5, style: vp.style ?? 0.35 }
+        : { mode }
+    );
+  const isV3 = vp.model === 'eleven_v3';
+
+  return (
+    <div className="voice-profile" style={{ margin: '8px 0' }}>
+      <div className="eyebrow">Profil de voix</div>
+      <div className="row" style={{ alignItems: 'flex-end' }}>
+        <Field label="Mode">
+          <select className="in" value={vp.mode || 'auto'} onChange={(e) => switchMode(e.target.value)}>
+            <option value="auto">Automatique (déduit de la fiche)</option>
+            <option value="manual">Manuel</option>
+          </select>
+        </Field>
+        {Object.entries(VOICE_PRESETS).map(([key, p]) => (
+          <button key={key} className="btn ghost sm" style={{ flex: 'none' }} onClick={() => applyPreset(key)}>
+            {p.label}
+          </button>
+        ))}
+      </div>
+      {vp.mode === 'manual' && (
+        <div className="row">
+          <Field label="Voix">
+            <select className="in" value={vp.voiceName} onChange={(e) => set({ voiceName: e.target.value })}>
+              {VOICE_NAMES.map((name) => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Modèle">
+            <select className="in" value={vp.model} onChange={(e) => set({ model: e.target.value })}>
+              {VOICE_MODELS.map((m) => (
+                <option key={m.id} value={m.id}>{m.label}</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Stabilité">
+            {isV3 ? (
+              <select className="in" value={vp.stability ?? 0} onChange={(e) => set({ stability: Number(e.target.value) })}>
+                <option value={0}>Créatif</option>
+                <option value={0.5}>Naturel</option>
+                <option value={1}>Robuste</option>
+              </select>
+            ) : (
+              <input type="range" min="0" max="1" step="0.05" value={vp.stability ?? 0.5} onChange={(e) => set({ stability: Number(e.target.value) })} />
+            )}
+          </Field>
+          <Field label={`Expressivité (${Number(vp.style ?? 0.35).toFixed(2)})`}>
+            <input type="range" min="0" max="1" step="0.05" value={vp.style ?? 0.35} onChange={(e) => set({ style: Number(e.target.value) })} />
+          </Field>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function getLinkedSceneLabels(sceneIds, campaigns) {
   if (!sceneIds || sceneIds.length === 0) return [];
 

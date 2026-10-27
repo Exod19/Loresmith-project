@@ -47,6 +47,23 @@ const PERSONALITIES = [
 ];
 const DEFAULT_TONE = { stability: 0.55, style: 0.35 };
 
+// Modèles proposés dans la fiche. v3 accepte des balises ([rires], [chuchote]) mais n'autorise que stabilité 0, 0.5 ou 1.
+export const VOICE_MODELS = [
+  { id: MODEL_ID, label: 'Multilingue v2 (stable)' },
+  { id: 'eleven_v3', label: 'v3 (expressif, balises)' },
+];
+export const VOICE_NAMES = Object.keys(VOICE_IDS);
+
+// Préréglages pour les personnages marqués : voix existante + modèle expressif.
+export const VOICE_PRESETS = {
+  gobelin: { label: 'Gobelin railleur', voiceName: 'Callum', model: 'eleven_v3', stability: 0, style: 0.6 },
+  dragon: { label: 'Dragon grave', voiceName: 'Brian', model: 'eleven_v3', stability: 0, style: 0.6 },
+  tenanciere: { label: 'Tenancière séductrice', voiceName: 'Lily', model: 'eleven_v3', stability: 0, style: 0.6 },
+};
+
+const V3_STABILITIES = [0, 0.5, 1];
+const snapV3 = (v) => V3_STABILITIES.reduce((best, s) => (Math.abs(s - v) < Math.abs(best - v) ? s : best));
+
 function hashStr(s) {
   let h = 0;
   for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
@@ -83,10 +100,34 @@ export function voiceProfileFor(npc) {
   return {
     voiceName,
     voiceId: VOICE_IDS[voiceName],
+    model: MODEL_ID,
     settings: {
       stability: tone.stability,
       similarity_boost: 0.8,
       style: tone.style,
+      use_speaker_boost: true,
+    },
+  };
+}
+
+/**
+ * Profil réel d'un PNJ : le profil saisi dans sa fiche (`npc.voiceProfile`, mode « manuel »)
+ * ou, à défaut, le profil automatique déduit de sa description.
+ */
+export function resolveVoiceProfile(npc) {
+  const manual = npc?.voiceProfile;
+  if (manual?.mode !== 'manual' || !VOICE_IDS[manual.voiceName]) return voiceProfileFor(npc);
+
+  const model = manual.model || MODEL_ID;
+  const stability = Number(manual.stability ?? 0.5);
+  return {
+    voiceName: manual.voiceName,
+    voiceId: VOICE_IDS[manual.voiceName],
+    model,
+    settings: {
+      stability: model === 'eleven_v3' ? snapV3(stability) : Math.min(1, Math.max(0, stability)),
+      similarity_boost: 0.8,
+      style: Math.min(1, Math.max(0, Number(manual.style ?? 0.35))),
       use_speaker_boost: true,
     },
   };
@@ -110,7 +151,7 @@ export async function synthesizeSpeech(text, profile, apiKey) {
   const res = await fetch(`${API}/text-to-speech/${profile.voiceId}?output_format=mp3_44100_128`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'xi-api-key': apiKey },
-    body: JSON.stringify({ text: clean, model_id: MODEL_ID, voice_settings: profile.settings }),
+    body: JSON.stringify({ text: clean, model_id: profile.model || MODEL_ID, voice_settings: profile.settings }),
   });
   if (!res.ok) {
     const detail = await res.text().catch(() => '');
