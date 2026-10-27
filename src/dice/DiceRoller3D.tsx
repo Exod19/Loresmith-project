@@ -25,7 +25,6 @@ const DICE_THEMES = [
   { id: 'glace', label: 'Glace', themeColor: '#ffffff' },
   { id: 'arcane', label: 'Arcane', themeColor: '#ffffff' },
   { id: 'magma', label: 'Magma', themeColor: '#ffffff' },
-  { id: 'parchemin', label: 'Parchemin', themeColor: '#ffffff' },
   { id: 'foret', label: 'Forêt', themeColor: '#ffffff' },
 ] as const;
 type DiceTheme = (typeof DICE_THEMES)[number];
