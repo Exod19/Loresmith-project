@@ -79,7 +79,7 @@ function PlayerMap({ board, rev }: { board: Extract<PlayerBoard, { mode: 'map' }
       <MapCanvas
         key={map.id} map={map} layers={LAYERS} hidden={HIDDEN} selectedId={null} onSelect={() => {}} onAnchor={() => {}} dm={false}
         dataKey={rev}
-        focus={board.focus ? { kind: 'point', id: board.focus.id } : null}
+        focus={board.focus ? { kind: board.focus.kind, id: board.focus.id } : null}
         focusKey={board.focus ? String(board.focus.tick) : undefined}
       />
     </div>

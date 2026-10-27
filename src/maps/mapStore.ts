@@ -33,7 +33,11 @@ export interface PointRecord {
   depth: number;
 }
 
-export type MarkerKind = 'rencontre' | 'passage' | 'repere';
+/** `objet` : élément avec lequel les joueurs peuvent interagir. `passage` : porte ou passage secret. `repere` : ancien type, traité comme un objet. */
+export type MarkerKind = 'rencontre' | 'passage' | 'objet' | 'repere';
+
+/** Connaissance qu'un test (de Connaissance, d'Histoire…) peut révéler. */
+export interface KnowledgeHint { skill: string; dc: number; text: string }
 
 /** Repère posé par le MJ sur une carte : rencontre, passage secret, ou simple point d'intérêt. */
 export interface MapMarker {
@@ -52,14 +56,25 @@ export interface MapMarker {
   revealed: boolean;
   /** Créatures d'une rencontre tirée au sort : fiche MJ seulement. */
   groups?: { stat: string; role?: string; n: number; detail: string }[];
+  /** Élément interactif : ce qu'on lit au joueur, ce que ça fait, s'il peut le garder, DC d'investigation, connaissances. */
+  reading?: string;
+  effect?: string;
+  keep?: string;
+  dcInvestigate?: number;
+  knowledge?: KnowledgeHint[];
   /** Fiche des Archives à laquelle le repère est lié. Un lieu disparu après synchronisation le signale sans être effacé. */
   archiveId?: string;
 }
+
+/** Où mène un passage : une ancre de l'Atlas, ou un élément interactif de cet univers. */
+export interface PassageLink { kind: 'anchor' | 'marker'; id: string; planId: string; label: string }
 
 export interface MapOverlay {
   /** Identifiants des lieux de l'atlas visibles des joueurs. Rien n'est visible par défaut. */
   revealed: string[];
   markers: MapMarker[];
+  /** Destinations inscrites par le MJ, par identifiant de passage (tracé de l'Atlas). */
+  passageLinks?: Record<string, PassageLink>;
 }
 
 export interface BattleToken {
@@ -93,7 +108,9 @@ export interface Battle {
   /** Terrain généré depuis un lieu : `grid` = cols × rows caractères (cf. battle/terrain.ts). `source` = identifiant du lieu. */
   terrain?: { source: string; seed: number; grid: string };
   /** Zone locale autour du lieu : éléments de l'Atlas placés sur la grille, et ceux que le MJ a découverts. */
-  local?: { source: string; window: { x0: number; y0: number; w: number; h: number }; elements: LocalElement[]; discovered: string[] };
+  local?: { source: string; planId?: string; window: { x0: number; y0: number; w: number; h: number }; elements: LocalElement[]; discovered: string[] };
+  /** Identifiant de la rencontre dont les créatures sont déjà placées sur le plateau. */
+  encounterOf?: string;
 }
 
 export interface MapRecord {
@@ -125,7 +142,7 @@ export const DEFAULT_BATTLE: Battle = { cols: 24, rows: 16, feetPerCell: 5, roun
 
 const MIN_ZOOM: Record<Importance, number> = { landmark: 0, regional: 0, local: 1.3, detail: 2.6 };
 const REF_W = 1240;
-const MARKER_CATEGORY: Record<MarkerKind, FeatureCategory> = { rencontre: 'danger', passage: 'voie', repere: 'indetermine' };
+const MARKER_CATEGORY: Record<MarkerKind, FeatureCategory> = { rencontre: 'danger', passage: 'voie', objet: 'indetermine', repere: 'indetermine' };
 
 /** Construit le jeu de données d'une carte personnalisée. Les repères secrets sont retirés pour les joueurs. */
 export function buildCustomAtlas(rec: MapRecord, dm: boolean): AtlasData {
@@ -191,7 +208,7 @@ export function restrictToPlan(data: AtlasData, planId: string): AtlasData {
   const maps: AtlasMap[] = data.maps.filter((m) => m.id === planId);
   return {
     ...data,
-    levels: [], strata: [], spaces: [], anchors: [], connections: [],
+    levels: [], strata: [], spaces: [], anchors: data.anchors.filter((a) => a.mapId === planId), connections: [],
     maps,
     cavities: { [planId]: data.cavities[planId] ?? [] },
     features: data.features.filter((f) => ids.has(f.id)),

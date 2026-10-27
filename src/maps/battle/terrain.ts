@@ -15,7 +15,7 @@ export const TERRAIN: Record<TerrainKind, { label: string; blocks: boolean; diff
   X: { label: 'Gouffre / faille', blocks: true, difficult: false },
   I: { label: 'Stalagmite / pilier', blocks: true, difficult: false },
   ',': { label: 'Cristaux / champignons (décor)', blocks: false, difficult: false },
-  p: { label: 'Passage (tracé de l’Atlas)', blocks: false, difficult: false },
+  p: { label: 'Couloir (passage creusé)', blocks: false, difficult: false },
 };
 
 export type LocationHint = { title: string; category?: string; trace?: string; text?: string };
@@ -189,7 +189,9 @@ export function pathCost(grid: string | undefined, cols: number, rows: number, f
 }
 
 /** Un élément du lieu : passage (tracé) ou point, avec son état de découverte. */
-export type TerrainElement = { kind: 'passage' | 'point'; secret: boolean; cells?: number[]; cell?: number };
+export type TerrainElement = {
+  kind: 'passage' | 'point'; secret: boolean; cells?: number[]; cell?: number;
+};
 
 /**
  * Grille telle que la voient les joueurs : les passages de l'Atlas sont creusés, et les passages secrets
@@ -200,7 +202,8 @@ export function effectiveGrid(base: string, elements: TerrainElement[], discover
   elements.forEach((e, i) => {
     if (e.kind !== 'passage' || !e.cells) return;
     const open = !e.secret || discovered.includes(ids[i]);
-    for (const c of e.cells) if (c >= 0 && c < g.length) g[c] = open ? 'p' : '#';
+    if (!open) return;
+    for (const c of e.cells) if (c >= 0 && c < g.length) g[c] = 'p';
   });
   return g.join('');
 }

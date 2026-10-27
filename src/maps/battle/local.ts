@@ -7,9 +7,12 @@ import type { AtlasData, AtlasFeature, AtlasMap } from '../atlas/types';
 import { dmFeature } from '../atlas/lore';
 import type { MapMarker } from '../mapStore';
 import { generateTerrain, type LocationHint, type TerrainElement } from './terrain';
+import type { PassageLink } from '../mapStore';
 
 export type LocalElement = TerrainElement & {
   id: string;
+  /** Destination déduite de l'Atlas (ancre reliée à un autre plan). Le MJ peut la remplacer. */
+  auto?: PassageLink;
   title: string;
   category: string;
   subtitle?: string;
@@ -26,7 +29,8 @@ export type LocalMap = {
   elements: LocalElement[];
 };
 
-/** Épaisseur d'un passage, en cases, selon son type. */
+/** Épaisseur d'un passage, en cases, selon son type. Seuls les passages du tracé sont repris : les lieux et repères
+ * sont affichés à part, avec leur état de découverte. */
 const RADIUS: Record<string, number> = { tunnel: 1, galerie: 1, boyau: 0, etroit: 0, crevasse: 0, ruisseau: 0, secret: 0 };
 const MAX_ELEMENTS = 60;
 
@@ -95,30 +99,6 @@ export function buildLocalMap(p: {
     });
   }
 
-  // Points : lieux de l'Atlas situés dans la fenêtre.
-  for (const g of onPlan) {
-    if (g.type !== 'point' || g.featureId.startsWith('mk-')) continue;
-    const f = byId.get(g.featureId);
-    if (!f || f.area) continue;
-    const [x, y] = g.coordinates as [number, number];
-    const c = toCell(x, y);
-    if (!inside(c)) continue;
-    elements.push({ id: f.id, kind: 'point', title: f.title, category: f.category, subtitle: f.subtitle, summary: f.summary, secret: false, cell: c.y * cols + c.x });
-  }
-
-  // Repères du MJ sur ce plan : rencontres, passages secrets (portes), repères.
-  for (const m of markers) {
-    if (m.planId !== plan.id) continue;
-    const c = toCell(m.x, m.y);
-    if (!inside(c)) continue;
-    const secret = m.kind === 'passage';
-    elements.push({
-      id: `mk-${m.id}`, kind: 'point', title: m.title, category: m.kind === 'rencontre' ? 'danger' : m.kind === 'passage' ? 'voie' : 'indetermine',
-      summary: m.summary, secret, cell: c.y * cols + c.x,
-      ...(secret ? { dc: 14, checkLabel: 'Perception (Sagesse)' } : {}),
-    });
-  }
-
   // Les plus proches du centre d'abord ; on garde une lisibilité raisonnable.
   const centre = toCell(cx, cy);
   const dist = (e: LocalElement) => {
@@ -127,9 +107,34 @@ export function buildLocalMap(p: {
   };
   elements.sort((a, b) => dist(a) - dist(b));
 
-  return {
-    window: win,
-    base: generateTerrain(cols, rows, p.hint, p.seed),
-    elements: elements.slice(0, MAX_ELEMENTS),
-  };
+  const base = generateTerrain(cols, rows, p.hint, p.seed);
+  // Destination de chaque passage, lue dans les connexions de l'Atlas quand elle existe.
+  const kept = elements.slice(0, MAX_ELEMENTS).map((e) => (e.kind === 'passage' ? { ...e, auto: autoLink(atlas, plan, e.id) } : e));
+  return { window: win, base, elements: kept };
+}
+
+/** Destination d'un tracé : une de ses extrémités tombe sur une ancre reliée à une ancre d'un autre plan. */
+function autoLink(atlas: AtlasData, plan: AtlasMap, featureId: string): PassageLink | undefined {
+  const g = atlas.geometries.find((x) => x.featureId === featureId && x.type === 'polyline');
+  if (!g) return undefined;
+  const pts = g.coordinates as [number, number][];
+  for (const e of [pts[0], pts[pts.length - 1]]) {
+    for (const from of atlas.anchors.filter((a) => a.mapId === plan.id && Math.hypot(a.at[0] - e[0], a.at[1] - e[1]) < 0.02)) {
+      for (const c of atlas.connections) {
+        const to = c.fromAnchorId === from.id ? c.toAnchorId : c.toAnchorId === from.id ? c.fromAnchorId : null;
+        const target = to && atlas.anchors.find((a) => a.id === to);
+        if (target && target.mapId !== plan.id) {
+          const mapTitle = atlas.maps.find((m) => m.id === target.mapId)?.title ?? target.mapId;
+          return { kind: 'anchor', id: target.id, planId: target.mapId, label: `${target.label} · ${mapTitle}` };
+        }
+      }
+    }
+  }
+  return undefined;
+}
+
+/** Case de la grille où tombe un point du plan, si elle est dans la zone. */
+export function cellIn(win: { x0: number; y0: number; w: number; h: number }, cols: number, rows: number, x: number, y: number): number | undefined {
+  const c = Math.floor(((x - win.x0) / win.w) * cols), r = Math.floor(((y - win.y0) / win.h) * rows);
+  return c >= 0 && r >= 0 && c < cols && r < rows ? r * cols + c : undefined;
 }

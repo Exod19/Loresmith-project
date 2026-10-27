@@ -11,18 +11,19 @@ import { STATS, SRD_CREDIT, mod, type Stat } from './atlas/statblocks';
 import type { AtlasData, AtlasFeature, FeatureCategory } from './atlas/types';
 import {
   activateMap, ATLAS_DEFAULT_PLAN, DEFAULT_BATTLE, EMPTY_OVERLAY, mapIdOf,
-  type MapMarker, type MapOverlay, type MapRecord, type MarkerKind, type PointRecord,
+  type MapMarker, type MapOverlay, type MapRecord, type MarkerKind, type PassageLink, type PointRecord,
 } from './mapStore';
 import { battleBoard, mapBoard } from './playerBoard';
 import BattleMode from './battle/BattleMode';
+import Interactables from './Interactables';
 import { publishStage } from '../present/stage';
 import './maps.css';
 
 const LAYERS: Layers = { points: true, etiquettes: true, galeries: true, connexions: true, ambiance: true };
 const ZONES: { v: Zone; l: string }[] = [{ v: 'sauvage', l: 'Sauvage' }, { v: 'transit', l: 'Transit' }, { v: 'cite', l: 'Cité' }];
-const KIND_LABEL: Record<MarkerKind, string> = { rencontre: 'Rencontre', passage: 'Passage secret', repere: 'Repère' };
-const KIND_ICON: Record<MarkerKind, string> = { rencontre: '⚔', passage: '🗝', repere: '◆' };
-const DEFAULT_TITLE: Record<MarkerKind, string> = { rencontre: 'Rencontre', passage: 'Passage secret', repere: 'Repère' };
+const KIND_LABEL: Record<MarkerKind, string> = { rencontre: 'Rencontre', passage: 'Passage secret', objet: 'Objet', repere: 'Repère' };
+const KIND_ICON: Record<MarkerKind, string> = { rencontre: '⚔', passage: '🗝', objet: '◆', repere: '◆' };
+const DEFAULT_TITLE: Record<MarkerKind, string> = { rencontre: 'Rencontre', passage: 'Passage secret', objet: 'Objet', repere: 'Repère' };
 const uid = () => Math.random().toString(36).slice(2, 10);
 
 /** Repère en cours de placement : le prochain clic sur la carte le crée. */
@@ -41,7 +42,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
   const [enc, setEnc] = useState<{ ctx: EncCtx; e: Encounter } | null>(null);
   const [placing, setPlacing] = useState<Draft | null>(null);
   /** Lieu que les joueurs doivent voir au centre de l'écran (demandé depuis la fiche). */
-  const [focus, setFocus] = useState<{ id: string; tick: number } | null>(null);
+  const [focus, setFocus] = useState<{ kind: 'anchor' | 'point'; id: string; tick: number } | null>(null);
 
   const overlay = rec.overlay ?? EMPTY_OVERLAY;
   const map = data.maps.find((m) => m.id === planId) ?? data.maps[0];
@@ -54,7 +55,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
   const locationHint = feature
     ? { id: feature.id, title: feature.title, category: feature.category, trace: feature.trace, text: [feature.subtitle, feature.summary].filter(Boolean).join(' ') }
     : selectedMarker
-      ? { id: `mk-${selectedMarker.id}`, title: selectedMarker.title, category: selectedMarker.kind === 'rencontre' ? 'danger' : 'indetermine', trace: selectedMarker.kind === 'passage' ? 'secret' : undefined, text: selectedMarker.summary }
+      ? { id: `mk-${selectedMarker.id}`, title: selectedMarker.title, category: selectedMarker.kind === 'rencontre' ? 'danger' : 'indetermine', trace: selectedMarker.kind === 'passage' ? 'secret' : undefined, text: selectedMarker.summary, groups: selectedMarker.groups }
       : null;
 
   /** Lieux de l'atlas présents sur le plan : « tout révéler » ne touche qu'à ceux-là. */
@@ -72,8 +73,27 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
   /** Amène la vue joueurs sur ce lieu : le révèle si besoin, centre la carte chez eux, et démarre la projection. */
   const bringPlayers = (id: string) => {
     if (rec.kind === 'atlas' && !overlay.revealed.includes(id)) toggleReveal(id);
-    setFocus({ id, tick: Date.now() });
+    setFocus({ kind: 'point', id, tick: Date.now() });
     setProjecting(true);
+  };
+
+  /** Suit le passage jusqu'à sa destination, sur la carte de navigation. Une porte qui mène ailleurs s'ouvre pour les joueurs. */
+  const followPassage = (link: PassageLink) => {
+    if (link.kind === 'marker') {
+      const m = overlay.markers.find((x) => x.id === link.id);
+      if (m && !m.revealed) updateMarker(m.id, { revealed: true });
+    }
+    setBattleOpen(false);
+    setPlanId(link.planId);
+    setSelectedId(null);
+    setFocus({ kind: link.kind === 'anchor' ? 'anchor' : 'point', id: link.kind === 'anchor' ? link.id : `mk-${link.id}`, tick: Date.now() });
+  };
+
+  /** Inscrit (ou efface) la destination d'un passage. */
+  const setPassageLink = (passageId: string, link: PassageLink | null) => {
+    const links = { ...(overlay.passageLinks ?? {}) };
+    if (link) links[passageId] = link; else delete links[passageId];
+    setOverlay({ ...overlay, passageLinks: links });
   };
 
   function stopProjecting() {
@@ -142,6 +162,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
         <BattleMode
           rec={rec} battle={rec.battle ?? DEFAULT_BATTLE} context={locationHint}
           atlas={data} plan={map} markers={overlay.markers}
+          onFollow={followPassage} onLink={setPassageLink} onMarker={(id, patch) => updateMarker(id, patch)}
           onBattle={(b) => onUpdate({ battle: b, updatedAt: Date.now() })}
         />
       ) : (
@@ -210,16 +231,11 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
               </div>
             )}
 
-            {dm && (
+            {dm && markers.some((m) => m.kind === 'rencontre') && (
               <div className="maps-card">
-                <h3>Repères du plan ({markers.length})</h3>
-                <div className="maps-enc-ctrl">
-                  <button className="maps-btn gold" onClick={() => setPlacing({ kind: 'passage', title: DEFAULT_TITLE.passage })}>+ Passage secret</button>
-                  <button className="maps-btn" onClick={() => setPlacing({ kind: 'rencontre', title: DEFAULT_TITLE.rencontre })}>+ Rencontre</button>
-                  <button className="maps-btn" onClick={() => setPlacing({ kind: 'repere', title: DEFAULT_TITLE.repere })}>+ Repère</button>
-                </div>
+                <h3>Rencontres placées</h3>
                 <ul className="maps-list">
-                  {markers.map((m) => (
+                  {markers.filter((m) => m.kind === 'rencontre').map((m) => (
                     <li key={m.id} data-on={selectedId === `mk-${m.id}` ? 1 : 0}>
                       <button className="maps-link" onClick={() => setSelectedId(`mk-${m.id}`)}>{KIND_ICON[m.kind]} {m.title}</button>
                       <button className="maps-btn" onClick={() => updateMarker(m.id, { revealed: !m.revealed })}>
@@ -250,6 +266,15 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
             )}
           </aside>
         </div>
+      )}
+
+      {dm && !battleOpen && (
+        <Interactables
+          markers={markers.filter((m) => m.kind !== 'rencontre')}
+          onChange={(id, patch) => updateMarker(id, patch)}
+          onRemove={(id) => removeMarker(id)}
+          onAdd={(kind) => setPlacing({ kind, title: DEFAULT_TITLE[kind] })}
+        />
       )}
 
       <p className="maps-footer">

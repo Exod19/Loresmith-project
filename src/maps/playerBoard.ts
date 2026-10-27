@@ -5,10 +5,11 @@
 import type { AtlasData } from './atlas/types';
 import { mapDataFor, restrictToPlan, DEFAULT_BATTLE, type MapRecord } from './mapStore';
 import { effectiveGrid } from './battle/terrain';
+import { cellIn } from './battle/local';
 import type { PlayerBoard, PlayerElement, PlayerToken } from '../present/stage';
 
 /** Carte telle que les joueurs la voient, sur le plan choisi, centrée sur `focus` si le MJ l'a demandé. */
-export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus?: { id: string; tick: number }): PlayerBoard {
+export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus?: { kind: 'anchor' | 'point'; id: string; tick: number }): PlayerBoard {
   return { mode: 'map', title: rec.title, planId, data: restrictToPlan(mapDataFor(rec, atlas, false), planId), focus };
 }
 
@@ -19,11 +20,20 @@ export function battleBoard(rec: MapRecord): PlayerBoard {
     .filter((t) => t.visible)
     .map(({ id, name, kind, x, y, size, icon, image }) => ({ id, name, kind, x, y, size, icon, image }));
   const local = b.local;
-  // Les joueurs ne voient que les éléments visibles : un passage secret n'existe pour eux qu'une fois découvert.
-  const visible = (local?.elements ?? []).map((e, i) => ({ e, i })).filter(({ e }) => !e.secret || (local?.discovered ?? []).includes(e.id));
-  const elements: PlayerElement[] = visible.map(({ e }) => ({
-    id: e.id, kind: e.kind, title: e.title, category: e.category, cell: e.cell,
-  }));
+  // Les joueurs ne voient que les éléments visibles : un passage secret n'existe pour eux qu'une fois découvert,
+  // et un objet n'apparaît que lorsque le MJ le révèle.
+  const passages: PlayerElement[] = (local?.elements ?? [])
+    .filter((e) => e.kind === 'passage' && (!e.secret || (local?.discovered ?? []).includes(e.id)))
+    .map((e) => ({ id: e.id, kind: 'passage', title: e.title, category: e.category }));
+  const objects: PlayerElement[] = local?.window
+    ? (rec.overlay?.markers ?? [])
+      .filter((m) => m.revealed && m.kind !== 'rencontre' && m.planId === local.planId)
+      .flatMap((m) => {
+        const cell = cellIn(local.window, b.cols, b.rows, m.x, m.y);
+        return cell === undefined ? [] : [{ id: `mk-${m.id}`, kind: 'point' as const, title: m.title, category: m.kind === 'passage' ? 'voie' : 'indetermine', cell }];
+      })
+    : [];
+  const elements: PlayerElement[] = [...passages, ...objects];
   const terrain = b.terrain
     ? effectiveGrid(b.terrain.grid, local?.elements ?? [], local?.discovered ?? [], (local?.elements ?? []).map((e) => e.id))
     : undefined;
