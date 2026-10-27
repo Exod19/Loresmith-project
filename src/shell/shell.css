@@ -36,15 +36,15 @@
 
 /* ------------------------------- sidebar ------------------------------- */
 .lsx-side{position:fixed;inset:0 auto 0 0;width:var(--lsx-side-w);z-index:40;display:flex;flex-direction:column;
-  padding:18px 14px 14px;overflow-y:auto;scrollbar-width:thin;
-  background:
-    var(--lsx-grain),
-    url("/images/ui/sidebar.webp") center bottom/100% auto no-repeat,
-    #090705;
+  padding:18px 14px 0;overflow-y:auto;scrollbar-width:thin;
+  background:var(--lsx-grain),linear-gradient(180deg,#0d0a06,#090705);
   border-right:1px solid var(--lsx-edge-2);
   box-shadow:inset -1px 0 0 rgba(0,0,0,.6),8px 0 30px rgba(0,0,0,.35)}
-.lsx-side::after{content:"";position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(180deg,rgba(9,7,5,.9) 0,rgba(9,7,5,.78) 45%,rgba(9,7,5,.25) 78%,rgba(9,7,5,.05) 100%)}
+/* Décor de bas de barre : un vrai bloc après le menu, il n'occupe que l'espace libre
+   et ne passe jamais sous le texte. Le haut de l'image se fond dans le fond. */
+.lsx-side-decor{flex:1 0 120px;min-height:120px;margin:4px -14px 0;pointer-events:none;
+  background:url("/images/ui/sidebar.webp") center 76%/cover no-repeat;
+  -webkit-mask-image:linear-gradient(180deg,transparent 0,#000 24%);mask-image:linear-gradient(180deg,transparent 0,#000 24%)}
 .lsx-side>*{position:relative;z-index:1}
 .lsx-brand{display:flex;align-items:center;gap:10px;padding:0 6px 16px;margin-bottom:8px;border-bottom:1px solid var(--lsx-edge)}
 .lsx-brand-emblem{width:40px;height:40px;object-fit:contain;filter:drop-shadow(0 0 10px rgba(201,162,74,.25))}
@@ -84,7 +84,7 @@
 .lsx-universe-img{width:44px;height:44px;flex:none;border-radius:6px;border:1px solid var(--lsx-edge-2);
   background:url("/images/ui/v-cite.webp") center/cover}
 .lsx-universe-name{flex:1;font-family:'Cinzel',serif;font-size:13px;line-height:1.25}
-.lsx-side-foot{margin-top:auto;padding-top:14px}
+.lsx-side-foot{padding-top:6px}
 
 /* -------------------------------- topbar ------------------------------- */
 .lsx-top{position:sticky;top:0;z-index:30;height:var(--lsx-top-h);display:flex;align-items:center;gap:16px;padding:0 28px;

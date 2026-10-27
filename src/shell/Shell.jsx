@@ -92,8 +92,9 @@ export function Sidebar({
   onClose,
 }) {
   const current = findNav(view).group.id;
-  const [openGroups, setOpenGroups] = useState(() => ({ [current]: true, monde: true }));
-  useEffect(() => setOpenGroups((g) => ({ ...g, [current]: true })), [current]);
+  // Accordéon : un seul groupe ouvert à la fois, celui de la page courante par défaut.
+  const [openGroups, setOpenGroups] = useState(() => ({ [current]: true }));
+  useEffect(() => setOpenGroups({ [current]: true }), [current]);
 
   function go(v) {
     setView(v);
@@ -125,7 +126,7 @@ export function Sidebar({
                 <button
                   className="lsx-group-head"
                   aria-expanded={isOpen}
-                  onClick={() => setOpenGroups((s) => ({ ...s, [g.id]: !s[g.id] }))}
+                  onClick={() => setOpenGroups((s) => (s[g.id] ? {} : { [g.id]: true }))}
                 >
                   <GIcon size={19} strokeWidth={1.6} aria-hidden="true" />
                   <span>{g.label}</span>
@@ -190,6 +191,7 @@ export function Sidebar({
             <Settings size={17} strokeWidth={1.6} aria-hidden="true" /> Réglages de l'IA
           </button>
         </div>
+        <div className="lsx-side-decor" aria-hidden="true" />
       </aside>
     </>
   );
