@@ -24,6 +24,8 @@ import ArchivesPage from './feeds/ArchivesPage';
 import ArchivesLinkPanel from './feeds/ArchivesLink';
 import Dossier, { LibraryCard } from './library/Dossier';
 import { UNDERDARK_LINK } from './feeds/underdark';
+import { Sidebar, Topbar, MobileBar, CommandPalette, DiceTray, NAV } from './shell/Shell';
+import UniverseHome from './shell/Home';
 
 /* ----------------------------- styles (gold / ornate) ------------------- */
 const STYLE = `
@@ -5053,6 +5055,10 @@ export default function App() {
   });
   const [toast, setToast] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [sideOpen, setSideOpen] = useState(false);
+  const [diceOpen, setDiceOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [saveState, setSaveState] = useState({ status: 'saved' });
   const saveRef = useRef(null);
   const importRef = useRef(null);
 
@@ -5112,12 +5118,38 @@ export default function App() {
   useEffect(() => {
     if (!hydrated || !state) return;
     clearTimeout(saveRef.current);
+    setSaveState((prev) => (prev.status === 'error' ? prev : { status: 'pending' }));
     saveRef.current = setTimeout(() => {
       try {
         localStorage.setItem(STORE_KEY, JSON.stringify(state));
-      } catch {}
+        setSaveState({ status: 'saved' });
+      } catch (err) {
+        // Avant, l'échec (souvent un quota dépassé par des images) passait sous silence.
+        const full = err && (err.name === 'QuotaExceededError' || err.code === 22);
+        setSaveState({
+          status: 'error',
+          message: full
+            ? 'Stockage du navigateur plein : exporte une sauvegarde et supprime des images lourdes.'
+            : 'Sauvegarde locale impossible : ' + (err?.message || 'erreur inconnue'),
+        });
+      }
     }, 400);
   }, [state, hydrated]);
+
+  useEffect(() => {
+    if (saveState.status === 'error') flash(saveState.message);
+  }, [saveState.status]);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearchOpen((o) => !o);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
   useEffect(() => {
     const url = new URL(window.location.href);
     url.searchParams.set('view', view);
@@ -5168,7 +5200,7 @@ export default function App() {
         >
           <div className="empty">
             <Spin />
-            <div style={{ marginTop: 12 }}>Opening the grimoire…</div>
+            <div style={{ marginTop: 12 }}>Ouverture du grimoire…</div>
           </div>
         </div>
       </>
@@ -5184,134 +5216,48 @@ export default function App() {
   const npcs = inU(state.npcs).sort((a, b) => b.createdAt - a.createdAt);
   const quests = inU(state.quests);
 
-  // Onglets regroupés par moment d'usage : préparer le monde, créer, jouer.
-  const NAV_GROUPS = [
-    [
-      'Monde',
-      [
-        ['dashboard', 'Univers'],
-        ['library', 'Bibliothèque'],
-        ['archives', 'Archives'],
-        ['maps', 'Cartes'],
-        ['bestiary', 'PNJ & monstres'],
-        ['party', 'Groupe'],
-        ['assets', 'Images'],
-      ],
-    ],
-    [
-      'Créer',
-      [
-        ['forge', 'Campagnes'],
-        ['chat', 'Générateur'],
-        ['conjure', 'Conjurer'],
-      ],
-    ],
-    [
-      'Jouer',
-      [
-        ['scene', 'Table de jeu'],
-        ['encounter', 'Combat'],
-        ['quests', 'Quêtes'],
-      ],
-    ],
-  ];
+  const universeImageAsset = universe
+    ? getPrimaryAsset(state, 'universe', universe.id)
+    : null;
+  const universeImage = universeImageAsset?.dataUrl || universeImageAsset?.url || '';
+
+  function goTo(nextView) {
+    setView(nextView);
+    window.scrollTo({ top: 0 });
+  }
+
+  const searchItems = buildSearchItems({ state, U, campaigns, npcs, quests, party });
 
   return (
     <AIContext.Provider value={{ ai, setAI }}>
       <>
         <style>{STYLE}</style>
-        <div className="ls-root">
-          <div className="top">
-            <div className="brand">
-            <img
-  className="brand-emblem"
-  src={BRAND.emblem}
-  alt="Loresmith"
-/>
-<div className="brand-text">
-  <img
-    className="brand-wordmark"
-    src={BRAND.wordmark}
-    alt="Loresmith"
-  />
-  <span>CONSOLE DU MAÎTRE DE JEU</span>
-</div>
-            </div>
-            <div className="uni-switch">
-              <select
-                aria-label="Univers actif"
-                title="Changer d'univers"
-                value={U || ''}
-                onChange={(e) =>
-                  dispatch({ type: 'SET_UNIVERSE', id: e.target.value })
-                }
-              >
-                {Object.values(state.universes).map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <nav className="nav" aria-label="Navigation principale">
-              {NAV_GROUPS.map(([group, items]) => (
-                <div className="nav-group" key={group}>
-                  <span className="nav-group-label">{group}</span>
-                  {items.map(([k, l]) => (
-                    <button
-                      key={k}
-                      data-on={view === k ? 1 : 0}
-                      aria-current={view === k ? 'page' : undefined}
-                      onClick={() => setView(k)}
-                    >
-                      {l}
-                    </button>
-                  ))}
-                </div>
-              ))}
-            </nav>
-            <div className="top-actions">
-              <button
-                className="iconbtn"
-                title="Exporter une sauvegarde (.json)"
-                aria-label="Exporter une sauvegarde"
-                onClick={() => exportBackup(state)}
-              >
-                <Download size={16} aria-hidden="true" />
-              </button>
-              <button
-                className="iconbtn"
-                title="Restaurer une sauvegarde (.json)"
-                aria-label="Restaurer une sauvegarde"
-                onClick={() => importRef.current && importRef.current.click()}
-              >
-                <Upload size={16} aria-hidden="true" />
-              </button>
-              <button
-                className="iconbtn"
-                title="Réglages de l'IA"
-                aria-label="Réglages de l'IA"
-                onClick={() => setSettingsOpen(true)}
-              >
-                <Settings size={16} aria-hidden="true" />
-              </button>
-              <button
-                className="iconbtn wide"
-                title="Ouvrir la table de jeu dans un nouvel onglet"
-                onClick={() => openViewInNewTab('scene')}
-              >
-                <ExternalLink size={14} aria-hidden="true" />
-                <span>Table</span>
-              </button>
-              <button
-                className="iconbtn wide"
-                title="Ouvrir le combat dans un nouvel onglet"
-                onClick={() => openViewInNewTab('encounter')}
-              >
-                <ExternalLink size={14} aria-hidden="true" />
-                <span>Combat</span>
-              </button>
-            </div>
+        <div className="ls-root lsx-root">
+          <Sidebar
+            view={view}
+            setView={goTo}
+            brand={BRAND}
+            universes={Object.values(state.universes)}
+            universe={universe}
+            universeImage={universeImage}
+            onSwitchUniverse={(id) => dispatch({ type: 'SET_UNIVERSE', id })}
+            onOpenSearch={() => setSearchOpen(true)}
+            onOpenDice={() => setDiceOpen(true)}
+            onSettings={() => setSettingsOpen(true)}
+            open={sideOpen}
+            onClose={() => setSideOpen(false)}
+          />
+          <div className="lsx-main">
+            <Topbar
+              view={view}
+              onMenu={() => setSideOpen(true)}
+              onOpenSearch={() => setSearchOpen(true)}
+              onExport={() => exportBackup(state)}
+              onImport={() => importRef.current && importRef.current.click()}
+              onSettings={() => setSettingsOpen(true)}
+              onPopout={openViewInNewTab}
+              saveState={saveState}
+            />
             <input
               ref={importRef}
               type="file"
@@ -5319,8 +5265,7 @@ export default function App() {
               style={{ display: 'none' }}
               onChange={handleImportFile}
             />
-          </div>
-          <div className="wrap">
+          <div className="wrap lsx-content" data-view={view}>
             {!universe ? (
               <NoUniverse dispatch={dispatch} />
             ) : view === 'dashboard' ? (
@@ -5418,6 +5363,23 @@ export default function App() {
               <Conjure {...{ dispatch, universe, party, state, flash }} />
             )}
           </div>
+          </div>
+          <DiceTray open={diceOpen} setOpen={setDiceOpen} />
+          <MobileBar
+            view={view}
+            setView={goTo}
+            onOpenDice={() => setDiceOpen((o) => !o)}
+            onMenu={() => setSideOpen(true)}
+          />
+          <CommandPalette
+            open={searchOpen}
+            onClose={() => setSearchOpen(false)}
+            items={searchItems}
+            onPick={(item) => {
+              setSearchOpen(false);
+              goTo(item.view);
+            }}
+          />
           {settingsOpen && (
             <SettingsModal
               onClose={() => setSettingsOpen(false)}
@@ -5431,6 +5393,33 @@ export default function App() {
   );
 }
 
+
+/* ----------------------------- recherche globale ------------------------ */
+// Index plat de tout ce qui vit dans l'univers actif, pour la palette ⌘K.
+function buildSearchItems({ state, U, campaigns, npcs, quests, party }) {
+  const items = [];
+  for (const g of NAV)
+    for (const it of g.items)
+      items.push({ key: 'v-' + it.view, kind: 'Page', label: it.label, hint: g.label, view: it.view });
+  for (const c of campaigns) {
+    items.push({ key: 'c-' + c.id, kind: 'Campagne', label: c.title, hint: c.theme || '', view: 'forge' });
+    for (const sc of c.scenes || [])
+      items.push({ key: 's-' + sc.id, kind: 'Scène', label: sc.title, hint: c.title, view: 'scene' });
+  }
+  for (const n of npcs)
+    items.push({ key: 'n-' + n.id, kind: 'PNJ', label: n.name, hint: n.role || n.type || '', view: 'bestiary' });
+  for (const p of party)
+    items.push({ key: 'p-' + p.id, kind: 'Personnage', label: p.name, hint: [p.race, p.cls].filter(Boolean).join(' '), view: 'party' });
+  for (const q of quests)
+    items.push({ key: 'q-' + q.id, kind: 'Quête', label: q.title, hint: q.type === 'main' ? 'principale' : 'secondaire', view: 'quests' });
+  for (const e of Object.values(state.libraryEntries || {}))
+    if (e.universeId === U)
+      items.push({ key: 'l-' + e.id, kind: 'Fiche', label: e.title, hint: LIBRARY_TYPES[e.archiveType]?.singular || '', view: 'library' });
+  for (const m of Object.values(state.maps || {}))
+    if (m.universeId === U)
+      items.push({ key: 'm-' + m.id, kind: 'Carte', label: m.name || m.title || 'Carte', view: 'maps' });
+  return items;
+}
 /* ----------------------------- Settings (AI) ---------------------------- */
 function SettingsModal({ onClose, flash }) {
   const { ai, setAI } = useContext(AIContext);
@@ -5601,80 +5590,41 @@ function Dashboard({
   importRef,
 }) {
   const { ai } = useContext(AIContext);
+  const library = Object.values(state.libraryEntries || {})
+    .filter((e) => e.universeId === universe.id)
+    .map((e) => ({ ...e, typeLabel: LIBRARY_TYPES[e.archiveType]?.singular || '' }));
+  const assetSrc = (asset) => asset?.dataUrl || asset?.url || '';
+  const heroAsset = getPrimaryAsset(state, 'universe', universe.id);
   return (
     <>
-      <div className="dashboard-brand-mark">
-  <img src={BRAND.horizontal} alt="Loresmith" />
-</div>
-
-<h1 className="view">{universe.name}</h1>
-      <p className="sub">
-        {universe.tone ||
-          'Définis le ton et le lore plus bas : ils nourrissent tout ce que l’IA génère ici.'}
-      </p>
-      <div className="warnbar" role="status">
-        Moteur IA :{' '}
-        <b>{ai.apiKey ? AI_PRESETS[ai.provider].label : 'non configuré'}</b>.{' '}
-        {ai.apiKey ? (
-          'Prêt.'
-        ) : (
-          <span>
-            <button
-              type="button"
-              className="linkbtn"
-              onClick={() => setSettingsOpen(true)}
-            >
-              Ouvre les Réglages
-            </button>{' '}
-            et colle une clé (Gemini gratuit conseillé).
-          </span>
-        )}{' '}
-        Pense à exporter une <b>sauvegarde</b> (premier bouton en haut à droite) pour ne rien perdre.
-      </div>
-      <div className="grid cols-3">
-        {[
-          ['Campagnes', campaigns.length, 'forge'],
-          [
-            'Bibliothèque',
-            Object.values(state.libraryEntries || {}).filter(
-              (e) => e.universeId === universe.id
-            ).length,
-            'library',
-          ],
-          ['Groupe', party.length, 'party'],
-          ['PNJ & monstres', npcs.length, 'bestiary'],
-          ['Quêtes', quests.length, 'quests'],
-        ].map(([l, n, v]) => (
-          <button
-            type="button"
-            className="panel stat-card"
-            key={l}
-            onClick={() => setView(v)}
-            aria-label={`${l} : ${n}. Ouvrir`}
-          >
-            <div
-              className="faint"
-              style={{
-                fontSize: 12,
-                letterSpacing: '.1em',
-                fontFamily: 'Cinzel',
-              }}
-            >
-              {l.toUpperCase()}
-            </div>
-            <div
-              style={{
-                fontFamily: 'Cinzel,serif',
-                fontSize: 30,
-                marginTop: 4,
-                color: 'var(--gold-lt)',
-              }}
-            >
-              {n}
-            </div>
-          </button>
-        ))}
-      </div>
+      <UniverseHome
+        universe={universe}
+        heroImage={assetSrc(heroAsset)}
+        campaigns={campaigns}
+        party={party}
+        npcs={npcs}
+        quests={quests}
+        library={library}
+        log={(state.log || []).filter((l) => l.universeId === universe.id)}
+        campaignImage={(c) => assetSrc(getPrimaryAsset(state, 'campaign', c.id))}
+        portrait={(p) => assetSrc(getPrimaryAsset(state, 'player', p.id))}
+        libraryImage={(e) => assetSrc(getPrimaryAsset(state, 'library', e.id))}
+        setView={setView}
+      />
+      {!ai.apiKey && (
+        <div className="warnbar" role="status" style={{ marginTop: 22 }}>
+          Moteur IA : <b>non configuré</b>.{' '}
+          <button type="button" className="linkbtn" onClick={() => setSettingsOpen(true)}>
+            Ouvre les Réglages
+          </button>{' '}
+          et colle une clé (Gemini gratuit conseillé) pour générer campagnes, scènes et PNJ.
+        </div>
+      )}
+      <details className="lsx-advanced">
+        <summary>
+          Canon, mémoire & sauvegardes
+          <small>ce que l'IA lit à chaque génération</small>
+        </summary>
       <UniverseBrainPanel
         universe={universe}
         campaigns={campaigns}
@@ -5682,9 +5632,9 @@ function Dashboard({
         flash={flash}
       />
       <ArchivesLinkPanel universe={universe} dispatch={dispatch} flash={flash} setView={setView} />
-      <div className="eyebrow">Universe canon</div>
+      <div className="eyebrow">Canon de l’univers</div>
       <div className="panel">
-        <Field label="Name">
+        <Field label="Nom">
           <input
             className="in"
             value={universe.name}
@@ -5697,11 +5647,11 @@ function Dashboard({
             }
           />
         </Field>
-        <Field label="Tone (one line)">
+        <Field label="Ton (une ligne)">
           <input
             className="in"
             value={universe.tone}
-            placeholder="grimdark / hopeful / pulpy swashbuckling…"
+            placeholder="sombre / épique / pulp de cape et d’épée…"
             onChange={(e) =>
               dispatch({
                 type: 'UPDATE_UNIVERSE',
@@ -5711,12 +5661,12 @@ function Dashboard({
             }
           />
         </Field>
-        <Field label="Lore & canon — the AI reads this on every generation">
+        <Field label="Lore & canon — l’IA le relit à chaque génération">
           <textarea
             className="in"
             rows={4}
             value={universe.lore}
-            placeholder="Factions, geography, what magic means here, the gods, recent history…"
+            placeholder="Factions, géographie, place de la magie, dieux, histoire récente…"
             onChange={(e) =>
               dispatch({
                 type: 'UPDATE_UNIVERSE',
@@ -5735,29 +5685,29 @@ function Dashboard({
                 type: 'ADD_UNIVERSE',
                 u: {
                   id: uid(),
-                  name: 'New Universe',
+                  name: 'Nouvel univers',
                   tone: '',
                   lore: '',
                   createdAt: now(),
                 },
               });
-              flash('New universe bound');
+              flash('Nouvel univers créé');
             }}
           >
-            ✦ New universe
+            ✦ Nouvel univers
           </button>
           {Object.keys(state.universes).length > 1 && (
             <button
               className="btn ghost danger"
               style={{ flex: 'none' }}
               onClick={() => {
-                if (confirm('Delete this universe and switch to another?')) {
+                if (confirm('Supprimer cet univers et basculer vers un autre ?')) {
                   dispatch({ type: 'DELETE_UNIVERSE', id: universe.id });
-                  flash('Universe deleted');
+                  flash('Univers supprimé');
                 }
               }}
             >
-              Delete universe
+              Supprimer l’univers
             </button>
           )}
         </div>
@@ -5782,14 +5732,14 @@ function Dashboard({
               flash('Backup téléchargé');
             }}
           >
-            ⤓ Export backup (.json)
+            ⤓ Exporter (.json)
           </button>
           <button
             className="btn"
             style={{ flex: 'none' }}
             onClick={() => importRef.current && importRef.current.click()}
           >
-            ⤒ Import / restore
+            ⤒ Importer / restaurer
           </button>
           <button
             className="btn"
@@ -5800,6 +5750,7 @@ function Dashboard({
           </button>
         </div>
       </div>
+      </details>
     </>
   );
 }
