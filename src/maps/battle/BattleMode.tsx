@@ -310,10 +310,10 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
       ghost: e.secret && !discovered.includes(e.id), dc: e.dc, info: { subtitle: e.subtitle, text: e.summary },
     })),
     ...(b.local?.window && plan
-      ? markers.filter((m) => m.planId === plan.id && (m.kind === 'objet' || m.kind === 'passage' || m.kind === 'repere')).flatMap((m) => {
+      ? markers.filter((m) => m.planId === plan.id && (m.kind === 'objet' || m.kind === 'repere')).flatMap((m) => {
         const cell = cellIn(b.local!.window, b.cols, b.rows, m.x, m.y);
         return cell === undefined ? [] : [{
-          id: `mk-${m.id}`, kind: 'point' as const, title: m.title, category: m.kind === 'passage' ? 'voie' : 'indetermine',
+          id: `mk-${m.id}`, kind: 'point' as const, title: m.title, category: 'indetermine',
           cell, ghost: !m.revealed, dc: m.dcInvestigate, info: { text: [m.reading, m.summary].filter(Boolean).join('\n\n') },
         }];
       })

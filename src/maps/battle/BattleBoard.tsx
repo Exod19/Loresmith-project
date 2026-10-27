@@ -107,9 +107,13 @@ const cellPath = (cells: number[], cols: number) =>
   cells.map((i) => `M${i % cols} ${Math.floor(i / cols)}h1v1h-1z`).join('');
 
 /** Marque d'un lieu ou d'un objet sur sa case : vignette, image d'objet, ou icône à défaut. */
+/** Portes, pièges et eau : le terrain et les tracés les montrent déjà, pas de cercle sur le plateau. */
+const NO_MARK = new Set(['voie', 'danger', 'eau']);
+
 function pointMark(e: BoardElement, cell: number, cols: number, onElement?: (id: string) => void) {
   const cx = (cell % cols) + 0.5, cy = Math.floor(cell / cols) + 0.5;
   const click = onElement ? () => onElement(e.id) : undefined;
+  if (!e.image && NO_MARK.has(e.category)) return null;
   if (e.image) {
     // Objet déposé : son image remplit la case ; en pointillé et estompé pour le MJ quand il est caché.
     return (
