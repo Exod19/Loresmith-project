@@ -77,3 +77,21 @@
 .battle-stack{position:relative;width:100%}
 .battle-stack .battle-terrain{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;image-rendering:auto}
 .battle-stack .battle-board{position:relative;background:transparent;border:none}
+
+/* Palette de construction (MJ) */
+.battle-board-wrap.building{cursor:crosshair}
+.build-panel{display:flex;flex-direction:column;gap:8px}
+.build-hint{margin:0;font-size:13px;color:#c9a24a}
+.build-label{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#ecd289;margin-top:4px}
+.build-label small{text-transform:none;letter-spacing:0;color:#9c8a5e}
+.build-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.build-tile,.build-seg button{font:inherit;font-size:13px;padding:5px 6px;border:1px solid #5a4a2a;border-radius:4px;background:rgba(0,0,0,.35);color:#e7d8b0;cursor:pointer}
+.build-tile.on,.build-seg button.on,.build-prop.on{border-color:#ecd289;background:rgba(236,210,137,.18);color:#fff3cf}
+.build-seg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.build-seg button{padding:5px 2px}
+.build-props{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;max-height:200px;overflow:auto}
+.build-prop{display:flex;flex-direction:column;align-items:center;gap:2px;padding:3px;border:1px solid #3e3320;border-radius:4px;background:rgba(0,0,0,.3);color:#c9b98f;font:inherit;font-size:10px;cursor:grab}
+.build-prop img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:3px;pointer-events:none}
+.build-prop span{text-align:center;line-height:1.15}
+.build-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.build-check{display:flex;align-items:center;gap:4px;font-size:13px;color:#e7d8b0}

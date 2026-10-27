@@ -8,11 +8,18 @@ import type { TerrainKind } from './terrain';
 export type BuildShape = 'pinceau' | 'ligne' | 'contour' | 'zone';
 
 export const SHAPES: { id: BuildShape; label: string; hint: string }[] = [
-  { id: 'pinceau', label: 'Pinceau', hint: 'Glisse sur les cases.' },
-  { id: 'ligne', label: 'Ligne', hint: 'Clique un point de départ, puis un point d’arrivée : un mur ou un couloir droit.' },
-  { id: 'contour', label: 'Contour', hint: 'Clique deux coins opposés : le pourtour d’une salle.' },
-  { id: 'zone', label: 'Zone', hint: 'Clique deux coins opposés : un rectangle plein.' },
+  { id: 'pinceau', label: 'Pinceau', hint: 'Glisse sur les cases à peindre.' },
+  { id: 'ligne', label: 'Ligne', hint: 'Glisse d’un point à l’autre : un mur ou un couloir droit.' },
+  { id: 'contour', label: 'Contour', hint: 'Glisse entre deux coins opposés : le pourtour d’une salle.' },
+  { id: 'zone', label: 'Zone', hint: 'Glisse entre deux coins opposés : un rectangle plein.' },
 ];
+
+/** Outil courant : peindre le terrain (type et forme), ou déposer un objet (ou le retirer). */
+export type Brush =
+  | { tool: 'terrain'; kind: TerrainKind | 'gomme'; shape: BuildShape }
+  | { tool: 'objet'; prop: string | 'gomme' };
+
+export const DEFAULT_BRUSH: Brush = { tool: 'terrain', kind: '#', shape: 'pinceau' };
 
 /** Types de terrain que le MJ peut poser à la main, avec des libellés courts. */
 export const BUILD_TERRAIN: { kind: TerrainKind; label: string }[] = [
@@ -64,8 +71,9 @@ export const PROP_LABEL: Record<string, string> = Object.fromEntries(PROPS.map((
 export const propUrl = (key: string) => `${import.meta.env.BASE_URL}images/combat-map/props/${key}.webp`;
 
 /** Cases d'une forme tracée entre deux points (index de case). */
-export function shapeCells(shape: Exclude<BuildShape, 'pinceau'>, a: { x: number; y: number }, b: { x: number; y: number }, cols: number): number[] {
+export function shapeCells(shape: BuildShape, a: { x: number; y: number }, b: { x: number; y: number }, cols: number): number[] {
   const out: number[] = [];
+  if (shape === 'pinceau') return [b.y * cols + b.x];
   if (shape === 'ligne') {
     // Tracé de Bresenham : une suite de cases connexes entre les deux points.
     let x = a.x, y = a.y;

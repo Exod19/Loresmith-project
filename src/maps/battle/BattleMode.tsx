@@ -4,15 +4,17 @@
  * de l'Atlas) et ses objets y sont à leur position. Chaque passage mène quelque part : « Suivre le chemin »
  * ramène sur la carte de navigation, à la destination.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import BattleBoard, { type BoardElement, type BoardRange, type BoardToken } from './BattleBoard';
 import { STATS, type Stat } from '../atlas/statblocks';
 import type { AtlasData, AtlasMap } from '../atlas/types';
-import { DEFAULT_BATTLE, type Battle, type BattleToken, type MapMarker, type MapRecord, type PassageLink } from '../mapStore';
+import { DEFAULT_BATTLE, type Battle, type BattleBuild, type BattleToken, type MapMarker, type MapRecord, type PassageLink } from '../mapStore';
 import { blocksCell, effectiveGrid, generateTerrain, pathCost, seedOf, TERRAIN, type LocationHint, type TerrainKind } from './terrain';
 import { buildLocalMap, cellIn } from './local';
 import { attackCells, reachableCells, speedCells } from './ranges';
 import { tokenImage } from './vignettes';
+import BuildPanel from './BuildPanel';
+import { DEFAULT_BRUSH, PROP_LABEL, propUrl, applyBuild, shapeCells, type Brush } from './build';
 import { iconFor, placeEncounter, type EncounterGroup } from './encounter';
 import './battle.css';
 
@@ -66,7 +68,7 @@ export function feetBetween(a: Box, b: Box, feetPerCell: number) {
 function effectiveOf(b: Battle): string | undefined {
   if (!b.terrain) return undefined;
   const local = b.local;
-  return effectiveGrid(b.terrain.grid, local?.elements ?? [], local?.discovered ?? [], (local?.elements ?? []).map((e) => e.id));
+  return applyBuild(effectiveGrid(b.terrain.grid, local?.elements ?? [], local?.discovered ?? [], (local?.elements ?? []).map((e) => e.id)), b.build);
 }
 
 /** Le jeton peut-il occuper ce coin sans chevaucher un autre jeton, un obstacle, ni sortir du plateau ? */
@@ -103,9 +105,21 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
   const [groupBy, setGroupBy] = useState<'destination' | 'orientation'>('destination');
   /** Portées affichées sur le plateau : réservé au MJ, jamais envoyé aux joueurs. */
   const [showRanges, setShowRanges] = useState(false);
+  /** Construction manuelle : mode, outil, tracé en cours, et historique pour « Annuler ». */
+  const [building, setBuilding] = useState(false);
+  const [brush, setBrush] = useState<Brush>(DEFAULT_BRUSH);
+  const [propVisible, setPropVisible] = useState(true);
+  const [stroke, setStroke] = useState<{ anchor: { x: number; y: number }; cur: { x: number; y: number }; cells: number[] } | null>(null);
+  const [history, setHistory] = useState<(BattleBuild | undefined)[]>([]);
+  const wrapRef = useRef<HTMLDivElement>(null);
 
   const selected = b.tokens.find((t) => t.id === selectedId) ?? null;
   const set = (patch: Partial<Battle>) => onBattle({ ...b, ...patch });
+  const build: BattleBuild = b.build ?? { edits: {}, props: [] };
+  const commitBuild = (next: BattleBuild | undefined) => {
+    setHistory((h) => [...h.slice(-49), b.build]);
+    set({ build: next });
+  };
   // Une seule source de vérité : les éléments révélés de la fiche (« Montrer aux joueurs »).
   const discovered = rec.overlay?.revealed ?? [];
   const bv: Battle = b.local ? { ...b, local: { ...b.local, discovered } } : b;
@@ -118,7 +132,8 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
   const generate = (hint: LocationHint, source: string, n: number, groups?: EncounterGroup[]) => {
     const seed = (seedOf(source) + n * 2654435761) >>> 0;
     if (!(atlas && plan)) {
-      set({ terrain: { source, seed, grid: generateTerrain(b.cols, b.rows, hint, seed) }, local: undefined });
+      set({ terrain: { source, seed, grid: generateTerrain(b.cols, b.rows, hint, seed) }, local: undefined, build: undefined });
+      setHistory([]);
       return;
     }
     const local = buildLocalMap({ atlas, plan, markers, centerId: source, cols: b.cols, rows: b.rows, hint, seed });
@@ -139,7 +154,9 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
       local: { source, planId: plan.id, window: local.window, elements: local.elements, discovered: previous },
       tokens,
       encounterOf: groups?.length ? source : b.encounterOf,
+      build: undefined,
     });
+    setHistory([]);
   };
 
   useEffect(() => {
@@ -150,6 +167,62 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
     // Seul le changement de lieu déclenche la génération ; le reste se fait à la main.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [context?.id]);
+
+  /** Case du plateau sous le pointeur (le SVG est mis à l'échelle en gardant les proportions). */
+  const cellAt = (clientX: number, clientY: number) => {
+    const svg = wrapRef.current?.querySelector('svg.battle-board');
+    if (!(svg instanceof SVGSVGElement)) return null;
+    const r = svg.getBoundingClientRect();
+    const s = Math.min(r.width / b.cols, r.height / b.rows);
+    const x = Math.floor((clientX - (r.left + (r.width - b.cols * s) / 2)) / s);
+    const y = Math.floor((clientY - (r.top + (r.height - b.rows * s) / 2)) / s);
+    return x >= 0 && y >= 0 && x < b.cols && y < b.rows ? { x, y } : null;
+  };
+  const paintCells = (cells: number[], kind: TerrainKind | 'gomme') => {
+    const edits = { ...build.edits };
+    for (const c of cells) { if (kind === 'gomme') delete edits[c]; else edits[c] = kind; }
+    commitBuild({ ...build, edits });
+  };
+  const placeProp = (cell: { x: number; y: number }, prop: string | 'gomme') => {
+    const idx = cell.y * b.cols + cell.x;
+    if (prop === 'gomme' && !build.props.some((p) => p.cell === idx)) return;
+    const props = build.props.filter((p) => p.cell !== idx);
+    if (prop !== 'gomme') props.push({ id: uid(), key: prop, cell: idx, visible: propVisible });
+    commitBuild({ ...build, props });
+  };
+  const onBuildDown = (e: ReactPointerEvent) => {
+    if (!building || e.button !== 0) return;
+    const c = cellAt(e.clientX, e.clientY);
+    if (!c) return;
+    e.preventDefault();
+    if (brush.tool === 'objet') { placeProp(c, brush.prop); return; }
+    setStroke({ anchor: c, cur: c, cells: [c.y * b.cols + c.x] });
+  };
+  const onBuildMove = (e: ReactPointerEvent) => {
+    if (!stroke || brush.tool !== 'terrain') return;
+    const c = cellAt(e.clientX, e.clientY);
+    if (!c || (c.x === stroke.cur.x && c.y === stroke.cur.y)) return;
+    const cells = brush.shape === 'pinceau'
+      ? [...new Set([...stroke.cells, c.y * b.cols + c.x])]
+      : shapeCells(brush.shape, stroke.anchor, c, b.cols);
+    setStroke({ ...stroke, cur: c, cells });
+  };
+  // Le tracé se termine au relâchement, même hors du plateau.
+  useEffect(() => {
+    if (!stroke) return;
+    const up = () => {
+      if (brush.tool === 'terrain') paintCells(stroke.cells, brush.kind);
+      setStroke(null);
+    };
+    window.addEventListener('pointerup', up, { once: true });
+    return () => window.removeEventListener('pointerup', up);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stroke]);
+  const undo = () => {
+    const prev = history[history.length - 1];
+    setHistory((h) => h.slice(0, -1));
+    set({ build: prev });
+  };
 
   const patchToken = (id: string, patch: Partial<BattleToken>) => set({ tokens: b.tokens.map((t) => (t.id === id ? { ...t, ...patch } : t)) });
   const adjustHp = (t: BattleToken, delta: number) => {
@@ -218,6 +291,10 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
         }];
       })
       : []),
+    ...build.props.map((p) => ({
+      id: `pr-${p.id}`, kind: 'point' as const, title: PROP_LABEL[p.key] ?? p.key, category: 'indetermine', cell: p.cell,
+      image: propUrl(p.key), ghost: !p.visible,
+    })),
   ];
 
   // Regroupement de la liste : par destination, ou par direction depuis le centre du plateau.
@@ -273,7 +350,12 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
               ↻ Régénérer le terrain
             </button>
           )}
-          {b.terrain && <button className="maps-btn" onClick={() => set({ terrain: undefined, local: undefined, encounterOf: undefined })}>Terrain vierge</button>}
+          {b.terrain && <button className="maps-btn" onClick={() => set({ terrain: undefined, local: undefined, encounterOf: undefined, build: undefined })}>Terrain vierge</button>}
+          {b.terrain && (
+            <button className={`maps-btn ${building ? 'gold' : ''}`} title="Peindre le terrain et déposer des objets à la main" onClick={() => { setBuilding((v) => !v); setStroke(null); }}>
+              🛠 Construction
+            </button>
+          )}
           {!b.terrain && <button className="maps-btn" onClick={() => generate(context ?? { title: 'Caverne' }, context?.id ?? 'caverne', 0)}>Générer un terrain</button>}
           <button className={`maps-btn ${showRanges ? 'gold' : ''}`} title="Afficher les déplacements et les portées d'attaque (MJ seulement)" onClick={() => setShowRanges((v) => !v)}>
             ◎ Portées
@@ -294,10 +376,22 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
             ))}
           </div>
         )}
-        <div className="battle-board-wrap">
+        <div
+          ref={wrapRef} className={`battle-board-wrap ${building ? 'building' : ''}`}
+          onPointerDown={onBuildDown} onPointerMove={onBuildMove}
+          onDragOver={(e) => { if (building) e.preventDefault(); }}
+          onDrop={(e) => {
+            if (!building) return;
+            e.preventDefault();
+            const key = e.dataTransfer.getData('text/plain');
+            const c = cellAt(e.clientX, e.clientY);
+            if (c && PROP_LABEL[key]) placeProp(c, key);
+          }}
+        >
           <BattleBoard
-            cols={b.cols} rows={b.rows} backdrop={rec.image} terrain={grid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive
+            cols={b.cols} rows={b.rows} backdrop={rec.image} terrain={grid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
             onToken={setSelectedId} onCell={moveTo} onHover={(x, y) => setHover({ x, y })}
+            preview={stroke && brush.tool === 'terrain' ? stroke.cells : undefined}
           />
           {readout && (
             <div className="battle-readout">
@@ -310,6 +404,13 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
       </div>
 
       <aside className="maps-panel battle-side">
+        {building && (
+          <BuildPanel
+            brush={brush} onBrush={setBrush} propVisible={propVisible} onPropVisible={setPropVisible}
+            canUndo={history.length > 0} onUndo={undo} propCount={build.props.length}
+            onClear={() => { if (window.confirm('Effacer toutes les modifications à la main ?')) commitBuild(undefined); }}
+          />
+        )}
         {passages.length > 0 && (
           <section className="maps-card battle-secrets">
             <div className="battle-group-head">
