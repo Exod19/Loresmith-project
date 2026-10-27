@@ -49,7 +49,7 @@ import './forge/forge.css';
 import { entityFromSrd, generateEntities } from './bestiary/entityGen';
 import StatSheet from './bestiary/StatSheet';
 import ArchiveImagePicker from './media/ArchiveImagePicker';
-import { archiveImageIndex, fileToCompressed, generatePortrait, makeToken, matchArchiveImages } from './media/images';
+import { CLANS, archiveImageIndex, clanPaintBrief, fileToCompressed, generatePortrait, makeToken, matchArchiveImages, matchPortrait } from './media/images';
 import { STATS } from './maps/atlas/statblocks';
 import { tokenImage } from './maps/battle/vignettes';
 
@@ -12233,7 +12233,11 @@ async function assignPortrait(dispatch, n, src, source = 'upload') {
 
 /** Image automatique : les Archives d'abord (par nom ou espèce), sinon le portrait SRD. */
 function autoPortrait(dispatch, n, imageIndex) {
-  const match = matchArchiveImages([n.name, n.kind, n.type].filter(Boolean), imageIndex)[0];
+  const isMonster = n.entityType === 'monster' || n.isMonster;
+  // Une créature prend l'image de son espèce (nom exact de la fiche des Archives) ; un PNJ, celle de son nom.
+  const match = isMonster
+    ? matchArchiveImages([n.kind, n.type, n.name].filter(Boolean), imageIndex.filter((i) => ['creature', 'flore', 'fungus'].includes(i.entryType)))[0]
+    : matchPortrait([n.name], imageIndex)[0];
   if (match) return assignPortrait(dispatch, n, match.src, 'archives');
   if (n.srdId) return assignPortrait(dispatch, n, tokenImage({ kind: 'monster', statId: n.srdId }), 'srd');
   return null;
@@ -12249,7 +12253,7 @@ function Bestiary({ dispatch, state, universe, npcs, party, campaigns, flash }) 
   const [count, setCount] = useState(1);
   const [difficulty, setDifficulty] = useState('moderate');
   const [advanced, setAdvanced] = useState(false);
-  const [f, setF] = useState({ name: '', function: '', ancestry: '', role: '', cr: '', backstory: '', sceneIds: [] });
+  const [f, setF] = useState({ name: '', function: '', ancestry: '', role: '', cr: '', clan: '', backstory: '', sceneIds: [] });
   const [busy, setBusy] = useState('');
   const [err, setErr] = useState('');
   const [filter, setFilter] = useState('all');
@@ -12321,22 +12325,27 @@ function Bestiary({ dispatch, state, universe, npcs, party, campaigns, flash }) 
     return n;
   }
 
-  async function generate() {
+  /** Génération. `random` : tout au hasard (on ignore le texte et les champs), seul le FP ou le clan peut contraindre. */
+  async function generate(random = false) {
     setBusy('gen');
     setErr('');
     try {
-      const notes = [quick, f.backstory && `Histoire : ${f.backstory}`].filter(Boolean).join('\n');
+      const idea = random ? '' : quick;
+      const notes = random ? '' : [quick, f.backstory && `Histoire : ${f.backstory}`].filter(Boolean).join('\n');
       const items = Array.from({ length: Math.max(1, Math.min(6, count)) }, () => ({
         mode,
         difficulty,
         notes,
-        name: count === 1 ? f.name : '',
-        function: f.function,
-        ancestry: f.ancestry,
-        role: f.role,
+        name: random || count !== 1 ? '' : f.name,
+        function: random ? '' : f.function,
+        ancestry: random ? '' : f.ancestry,
+        role: random ? '' : f.role,
         cr: f.cr,
+        clan: mode === 'npc' || mode === 'monster' ? f.clan : '',
       }));
-      const ctx = buildLoreContext({ universe, state, feed, party, budget: 7000, focus: `${quick} ${f.function} ${f.ancestry} ${f.name}` });
+      // Sans nom ni idée imposés, l'IA ne doit pas reprendre les personnages célèbres des Archives.
+      const free = random || (!idea && !f.name && !f.function);
+      const ctx = buildLoreContext({ universe, state, feed, party, budget: 7000, noNamedPersons: free, focus: `${idea} ${f.function} ${f.ancestry} ${f.name}` });
       const made = [];
       for (let i = 0; i < items.length; i += 3) {
         const batch = items.slice(i, i + 3);
@@ -12346,7 +12355,7 @@ function Bestiary({ dispatch, state, universe, npcs, party, campaigns, flash }) 
           level: lvl,
           size,
         });
-        for (const e of entities) made.push(add(e, { linkedSceneIds: f.sceneIds, sourceNotes: notes }));
+        for (const e of entities) made.push(add(e, { linkedSceneIds: f.sceneIds, sourceNotes: notes, clan: f.clan || undefined }));
       }
       if (made[0]) select(made[0].id);
       made.forEach((n) => autoImage(n));
@@ -12372,7 +12381,7 @@ function Bestiary({ dispatch, state, universe, npcs, party, campaigns, flash }) 
     setBusy('img');
     try {
       const prompt = n.imagePrompt || `${n.name}, ${n.kind || n.type || ''}. ${n.description || n.shortDescription || ''}`;
-      await setImage(n, await generatePortrait(ai, prompt), 'generated');
+      await setImage(n, await generatePortrait(ai, prompt, clanPaintBrief(feed, n.clan)), 'generated');
       flash('Portrait et jeton créés.');
     } catch (e) {
       flash(e.message);
@@ -12457,7 +12466,7 @@ function Bestiary({ dispatch, state, universe, npcs, party, campaigns, flash }) 
               </option>
             ))}
           </select>
-          <button className="btn primary" disabled={!!busy} onClick={generate}>
+          <button className="btn primary" disabled={!!busy} onClick={() => generate(false)}>
             {busy === 'gen' ? (
               <>
                 <Spin /> Forge…
@@ -12466,6 +12475,31 @@ function Bestiary({ dispatch, state, universe, npcs, party, campaigns, flash }) 
               `✦ Générer`
             )}
           </button>
+          <button className="btn" disabled={!!busy} onClick={() => generate(true)} title="Ignore le texte et les champs : l'IA tire tout au hasard (le FP ou le clan, si tu les as choisis, restent imposés)">
+            🎲 Tout au hasard
+          </button>
+        </div>
+        <div className="bx-quick">
+          <Field label="FP (vide : au hasard)">
+            <select className="in" value={f.cr} onChange={(e) => set('cr', e.target.value)}>
+              <option value="">Aléatoire</option>
+              {['0', '1/8', '1/4', '1/2', ...Array.from({ length: 30 }, (_, i) => String(i + 1))].map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Peuple / clan moriquendi (marques de guerre)">
+            <select className="in" value={f.clan} onChange={(e) => set('clan', e.target.value)}>
+              <option value="">Aucun / au hasard</option>
+              {Object.entries(CLANS).map(([k, v]) => (
+                <option key={k} value={k}>
+                  Moriquendi · clan {v}
+                </option>
+              ))}
+            </select>
+          </Field>
         </div>
         <div className="bx-presets">
           {QUICK_PRESETS[mode].map((p) => (

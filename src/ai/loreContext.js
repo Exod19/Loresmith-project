@@ -74,7 +74,7 @@ export function atlasPlaces(feed, limit = 140) {
  * Construit le bloc de contexte. `focus` : texte de la demande (thème, notes) qui oriente le tri.
  * `budget` : nombre de caractères visé, pour ne pas noyer le modèle.
  */
-export function buildLoreContext({ universe, state, feed, focus = '', budget = 14000, party = [] }) {
+export function buildLoreContext({ universe, state, feed, focus = '', budget = 14000, party = [], noNamedPersons = false }) {
   const f = new Set(words(focus));
   const parts = [];
 
@@ -105,7 +105,9 @@ export function buildLoreContext({ universe, state, feed, focus = '', budget = 1
   }
 
   // Bibliothèque : les fiches les plus pertinentes en entier (résumé), les autres en simple nom.
-  const lib = Object.values(state?.libraryEntries || {}).filter((e) => e.universeId === universe.id);
+  const lib = Object.values(state?.libraryEntries || {})
+    .filter((e) => e.universeId === universe.id)
+    .filter((e) => !(noNamedPersons && e.archiveType === 'person'));
   if (lib.length) {
     const ranked = lib
       .map((e) => ({ e, s: score(`${e.title} ${e.shortSummary} ${(e.tags || []).join(' ')} ${e.body?.slice(0, 600)}`, f) }))
@@ -122,7 +124,7 @@ export function buildLoreContext({ universe, state, feed, focus = '', budget = 1
   // Archives : uniquement les fiches pas encore copiées dans la bibliothèque.
   if (feed?.entries?.length) {
     const inLib = new Set(lib.map((e) => e.sourceId).filter(Boolean));
-    const usable = feed.entries.filter((e) => !inLib.has(e.id) && e.type !== 'source');
+    const usable = feed.entries.filter((e) => !inLib.has(e.id) && e.type !== 'source' && !(noNamedPersons && ['personnage', 'divinite'].includes(e.type)));
     const ranked = usable
       .map((e) => ({ e, s: score(`${e.name} ${e.summary} ${(e.tags || []).join(' ')}`, f) + (['creature', 'peuple', 'faction', 'lieu', 'personnage', 'divinite'].includes(e.type) ? 0.5 : 0) }))
       .sort((a, b) => b.s - a.s)
