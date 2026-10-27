@@ -48,6 +48,12 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
   const selectedMarker = markers.find((m) => m.id === markerId) ?? null;
   const feature = !markerId && selectedId ? data.features.find((f) => f.id === selectedId) ?? null : null;
   const point = rec.points?.find((p) => p.id === selectedId) ?? null;
+  /** Lieu courant (lieu de l'Atlas, point perso ou repère) : c'est lui qui donne le terrain de la carte de combat. */
+  const locationHint = feature
+    ? { id: feature.id, title: feature.title, category: feature.category, trace: feature.trace, text: [feature.subtitle, feature.summary].filter(Boolean).join(' ') }
+    : selectedMarker
+      ? { id: `mk-${selectedMarker.id}`, title: selectedMarker.title, category: selectedMarker.kind === 'rencontre' ? 'danger' : 'indetermine', trace: selectedMarker.kind === 'passage' ? 'secret' : undefined, text: selectedMarker.summary }
+      : null;
 
   /** Lieux de l'atlas présents sur le plan : « tout révéler » ne touche qu'à ceux-là. */
   const planFeatureIds = useMemo(
@@ -124,7 +130,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
       )}
 
       {battleOpen ? (
-        <BattleMode rec={rec} battle={rec.battle ?? DEFAULT_BATTLE} onBattle={(b) => onUpdate({ battle: b, updatedAt: Date.now() })} />
+        <BattleMode rec={rec} battle={rec.battle ?? DEFAULT_BATTLE} context={locationHint} onBattle={(b) => onUpdate({ battle: b, updatedAt: Date.now() })} />
       ) : (
         <div className="maps-body">
           <div className="maps-canvas">

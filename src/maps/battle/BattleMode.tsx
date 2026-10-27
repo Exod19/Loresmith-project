@@ -3,10 +3,11 @@
  * avec le plateau sur grille à la place du plan. Distances en pieds, jetons, aide aux règles D&D 5e.
  * L'écran joueur montre le même plateau en lecture seule (cf. playerBoard.ts) : jetons visibles, sans points de vie.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import BattleBoard, { type BoardToken } from './BattleBoard';
 import { STATS, type Stat } from '../atlas/statblocks';
 import { DEFAULT_BATTLE, type Battle, type BattleToken, type MapRecord } from '../mapStore';
+import { blocksCell, generateTerrain, pathCost, seedOf, TERRAIN, type LocationHint } from './terrain';
 import './battle.css';
 
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -32,9 +33,10 @@ export function feetBetween(a: Box, b: Box, feetPerCell: number) {
   return { cells, feet: cells * feetPerCell };
 }
 
-/** Le jeton peut-il occuper ce coin sans chevaucher un autre jeton ni sortir du plateau ? */
+/** Le jeton peut-il occuper ce coin sans chevaucher un autre jeton, un obstacle, ni sortir du plateau ? */
 function fits(b: Battle, id: string | null, size: number, x: number, y: number) {
   if (x < 0 || y < 0 || x + size > b.cols || y + size > b.rows) return false;
+  for (let dy = 0; dy < size; dy++) for (let dx = 0; dx < size; dx++) if (blocksCell(b.terrain?.grid, b.cols, x + dx, y + dy)) return false;
   return !b.tokens.some((t) => t.id !== id && t.x < x + size && x < t.x + t.size && t.y < y + size && y < t.y + t.size);
 }
 
@@ -43,7 +45,11 @@ function firstFree(b: Battle, size: 1 | 2): { x: number; y: number } | null {
   return null;
 }
 
-export default function BattleMode({ rec, battle, onBattle }: { rec: MapRecord; battle: Battle; onBattle: (b: Battle) => void }) {
+export default function BattleMode({ rec, battle, onBattle, context }: {
+  rec: MapRecord; battle: Battle; onBattle: (b: Battle) => void;
+  /** Lieu sélectionné dans l'Atlas : son terrain est généré à l'ouverture. */
+  context: (LocationHint & { id: string }) | null;
+}) {
   const b = battle ?? DEFAULT_BATTLE;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hover, setHover] = useState<{ x: number; y: number } | null>(null);
@@ -53,6 +59,18 @@ export default function BattleMode({ rec, battle, onBattle }: { rec: MapRecord; 
 
   const selected = b.tokens.find((t) => t.id === selectedId) ?? null;
   const set = (patch: Partial<Battle>) => onBattle({ ...b, ...patch });
+
+  /** Génère le terrain du lieu (une seule fois par lieu ; « Régénérer » propose une variante). */
+  const generate = (hint: LocationHint, source: string, n: number) => {
+    const seed = (seedOf(source) + n * 2654435761) >>> 0;
+    set({ terrain: { source, seed, grid: generateTerrain(b.cols, b.rows, hint, seed) } });
+  };
+  useEffect(() => {
+    if (!context || b.terrain?.source === context.id) return;
+    generate(context, context.id, 0);
+    // Seul le changement de lieu déclenche la génération ; le reste se fait à la main.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [context?.id]);
   const patchToken = (id: string, patch: Partial<BattleToken>) => set({ tokens: b.tokens.map((t) => (t.id === id ? { ...t, ...patch } : t)) });
   const adjustHp = (t: BattleToken, delta: number) => {
     if (t.hp === undefined) return;
@@ -85,6 +103,8 @@ export default function BattleMode({ rec, battle, onBattle }: { rec: MapRecord; 
     selected: t.id === selectedId, hidden: !t.visible,
   }));
   const readout = selected && hover ? feetBetween(selected, { ...hover, size: 1 }, b.feetPerCell) : null;
+  const walk = selected && hover ? pathCost(b.terrain?.grid, b.cols, b.rows, selected, hover) : null;
+  const hoverKind = hover && b.terrain ? TERRAIN[b.terrain.grid[hover.y * b.cols + hover.x] as keyof typeof TERRAIN]?.label : null;
   const stat = selected?.statId ? STATS[selected.statId] : undefined;
 
   return (
@@ -92,18 +112,34 @@ export default function BattleMode({ rec, battle, onBattle }: { rec: MapRecord; 
       <div className="maps-canvas battle-canvas">
         <div className="battle-bar">
           <span className="battle-round">Round {b.round}</span>
+          {context && <span className="battle-place">{context.title}</span>}
           <button className="maps-btn gold" onClick={() => set({ round: b.round + 1 })}>Round suivant</button>
           <button className="maps-btn" onClick={() => { if (window.confirm('Retirer tous les jetons du plateau ?')) set({ tokens: [], round: 1 }); }}>Vider le plateau</button>
+          {b.terrain && (
+            <button className="maps-btn" title="Propose une autre disposition pour le même lieu" onClick={() => generate(context ?? { title: 'Caverne' }, b.terrain!.source, (b.terrain!.seed & 0xff) + 1)}>
+              ↻ Régénérer le terrain
+            </button>
+          )}
+          {b.terrain && <button className="maps-btn" onClick={() => set({ terrain: undefined })}>Terrain vierge</button>}
+          {!b.terrain && <button className="maps-btn" onClick={() => generate(context ?? { title: 'Caverne' }, context?.id ?? 'caverne', 0)}>Générer un terrain</button>}
           <span className="battle-hint">
             {selected ? `Clique une case pour déplacer ${selected.name}.` : 'Clique un jeton pour le sélectionner.'}
           </span>
         </div>
         <div className="battle-board-wrap">
           <BattleBoard
-            cols={b.cols} rows={b.rows} backdrop={rec.image} tokens={boardTokens} interactive
+            cols={b.cols} rows={b.rows} backdrop={rec.image} terrain={b.terrain?.grid} tokens={boardTokens} interactive
             onToken={setSelectedId} onCell={moveTo} onHover={(x, y) => setHover({ x, y })}
           />
-          {readout && <div className="battle-readout">{readout.feet} pieds · {readout.cells} case{readout.cells > 1 ? 's' : ''}</div>}
+          {readout && (
+            <div className="battle-readout">
+              {walk === null
+                ? 'Chemin coupé'
+                : <>{walk * b.feetPerCell} pieds de déplacement</>}
+              {walk !== null && <span className="battle-sub"> · {readout.feet} à vol d'oiseau</span>}
+              {hoverKind && <span className="battle-sub"> · {hoverKind}</span>}
+            </div>
+          )}
         </div>
       </div>
 
@@ -163,6 +199,18 @@ export default function BattleMode({ rec, battle, onBattle }: { rec: MapRecord; 
             <button className="maps-btn" onClick={() => { if (window.confirm(`Retirer ${selected.name} ?`)) { set({ tokens: b.tokens.filter((t) => t.id !== selected.id) }); setSelectedId(null); } }}>
               Retirer du plateau
             </button>
+          </section>
+        )}
+
+        {b.terrain && (
+          <section className="maps-card battle-legend">
+            <h3>Terrain</h3>
+            <ul>
+              {(Object.keys(TERRAIN) as (keyof typeof TERRAIN)[]).filter((k) => k !== '.').map((k) => (
+                <li key={k}><span className={`battle-swatch k-${k === '#' ? 'rock' : k === 'X' ? 'chasm' : k === '~' ? 'water' : k === ':' ? 'rubble' : k === '=' ? 'bridge' : k === 'I' ? 'pillar' : 'decor'}`} />{TERRAIN[k].label}</li>
+              ))}
+            </ul>
+            <p className="maps-sub">Le déplacement suit le chemin réel : contourner les obstacles, et compter le terrain difficile (eau, éboulis) pour le double.</p>
           </section>
         )}
 

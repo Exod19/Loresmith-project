@@ -86,6 +86,8 @@ export interface Battle {
   feetPerCell: number;
   round: number;
   tokens: BattleToken[];
+  /** Terrain généré depuis un lieu : `grid` = cols × rows caractères (cf. battle/terrain.ts). `source` = identifiant du lieu. */
+  terrain?: { source: string; seed: number; grid: string };
 }
 
 export interface MapRecord {
@@ -113,7 +115,7 @@ export const ATLAS_MAP_ID = 'atlas-profondeurs';
 export const ATLAS_DEFAULT_PLAN = 'carte-n1-s3';
 
 export const EMPTY_OVERLAY: MapOverlay = { revealed: [], markers: [] };
-export const DEFAULT_BATTLE: Battle = { cols: 20, rows: 14, feetPerCell: 5, round: 1, tokens: [] };
+export const DEFAULT_BATTLE: Battle = { cols: 24, rows: 16, feetPerCell: 5, round: 1, tokens: [] };
 
 const MIN_ZOOM: Record<Importance, number> = { landmark: 0, regional: 0, local: 1.3, detail: 2.6 };
 const REF_W = 1240;

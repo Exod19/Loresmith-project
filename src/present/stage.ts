@@ -12,7 +12,7 @@ export type PlayerToken = { id: string; name: string; kind: 'pc' | 'monster' | '
 export type PlayerBoard =
   /** `data` ne contient que le plan montré et ses lieux révélés. */
   | { mode: 'map'; title: string; planId: string; data: AtlasData }
-  | { mode: 'battle'; title: string; backdrop?: string; cols: number; rows: number; feetPerCell: number; round: number; tokens: PlayerToken[] };
+  | { mode: 'battle'; title: string; backdrop?: string; cols: number; rows: number; feetPerCell: number; round: number; tokens: PlayerToken[]; terrain?: string };
 
 export type Stage =
   | { kind: 'blank' }

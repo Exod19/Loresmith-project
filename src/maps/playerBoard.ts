@@ -19,6 +19,6 @@ export function battleBoard(rec: MapRecord): PlayerBoard {
     .map(({ id, name, kind, x, y, size }) => ({ id, name, kind, x, y, size }));
   return {
     mode: 'battle', title: rec.title, backdrop: rec.image, cols: b.cols, rows: b.rows,
-    feetPerCell: b.feetPerCell, round: b.round, tokens,
+    feetPerCell: b.feetPerCell, round: b.round, tokens, terrain: b.terrain?.grid,
   };
 }

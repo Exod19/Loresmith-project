@@ -88,7 +88,7 @@ function PlayerBattle({ board }: { board: Extract<PlayerBoard, { mode: 'battle' 
         <span>{board.title}</span>
         <span>Round {board.round}</span>
       </header>
-      <BattleBoard cols={board.cols} rows={board.rows} backdrop={board.backdrop} tokens={board.tokens} />
+      <BattleBoard cols={board.cols} rows={board.rows} backdrop={board.backdrop} terrain={board.terrain} tokens={board.tokens} />
     </div>
   );
 }
