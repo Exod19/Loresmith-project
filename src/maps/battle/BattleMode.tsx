@@ -280,8 +280,6 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
     setInfoId(id);
     setSelectedId(null);
   }
-  const info = boardElements.find((e) => e.id === infoId) ?? null;
-  const infoProp = info?.id.startsWith('pr-') ? build.props.find((p) => `pr-${p.id}` === info.id) ?? null : null;
   const zoomBy = (dir: 1 | -1) => setZoom((z) => ZOOMS[Math.min(ZOOMS.length - 1, Math.max(0, ZOOMS.indexOf(z) + dir))] ?? z);
 
   // Passages : tracés réels de l'Atlas, et portes posées par le MJ sur ce plan. Chacun mène quelque part.
@@ -326,6 +324,9 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
       info: { subtitle: 'Objet', text: PROP_BY_KEY[p.key]?.text, image: propUrl(p.key) },
     })),
   ];
+
+  const info = boardElements.find((e) => e.id === infoId) ?? null;
+  const infoProp = info?.id.startsWith('pr-') ? build.props.find((p) => `pr-${p.id}` === info.id) ?? null : null;
 
   // Regroupement de la liste : par destination, ou par direction depuis le centre du plateau.
   const groupBy_ = groupBy;
