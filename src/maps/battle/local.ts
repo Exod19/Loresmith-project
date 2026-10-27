@@ -6,7 +6,7 @@
 import type { AtlasData, AtlasFeature, AtlasGeometry, AtlasMap } from '../atlas/types';
 import { dmFeature } from '../atlas/lore';
 import type { MapMarker } from '../mapStore';
-import { generateTerrain, type LocationHint, type TerrainElement } from './terrain';
+import { generateTerrain, type LocationHint, type TerrainElement, type TerrainKind } from './terrain';
 import type { PassageLink } from '../mapStore';
 
 export type LocalElement = TerrainElement & {
@@ -31,7 +31,29 @@ export type LocalMap = {
 
 /** Épaisseur d'un passage, en cases, selon son type. Seuls les passages du tracé sont repris : les lieux et repères
  * sont affichés à part, avec leur état de découverte. */
-const RADIUS: Record<string, number> = { tunnel: 1, galerie: 1, boyau: 0, etroit: 0, crevasse: 0, ruisseau: 0, secret: 0 };
+const RADIUS: Record<string, number> = { tunnel: 0, galerie: 0, boyau: 0, etroit: 0, crevasse: 0, ruisseau: 0, secret: 0 };
+
+/** Lieux dont le nom décrit un obstacle visible sur la carte de navigation. */
+const OBSTACLES: [RegExp, TerrainKind, number][] = [
+  [/stalagm|stalact|pilier|colonne|concretion/, 'I', 0],
+  [/eboulis|gravat|decombre|rocaille/, ':', 1],
+  [/lac|etang|source|cascade|bassin|mare|flaque/, '~', 1],
+];
+const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+/** Sol = intérieur des cavités dessinées sur la carte de navigation ; le reste est de la roche. */
+function floorFromCavities(cols: number, rows: number, win: { x0: number; y0: number; w: number; h: number }, cavs: { cx: number; cy: number; rx: number; ry: number }[]): string | undefined {
+  if (!cavs.length) return undefined;
+  let floor = 0;
+  const out: string[] = [];
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+    const px = win.x0 + ((x + 0.5) / cols) * win.w, py = win.y0 + ((y + 0.5) / rows) * win.h;
+    const open = cavs.some((c) => ((px - c.cx) / c.rx) ** 2 + ((py - c.cy) / c.ry) ** 2 <= 1);
+    if (open) floor++;
+    out.push(open ? '.' : '#');
+  }
+  return floor > 0 ? out.join('') : undefined;
+}
 const MAX_ELEMENTS = 60;
 
 /** Premier test de la fiche qui porte un DD ; à défaut, un DD indicatif pour un passage secret. */
@@ -94,7 +116,7 @@ export function buildLocalMap(p: {
     const d = secret ? dcOf(f) : null;
     elements.push({
       id: f.id, kind: 'passage', title: f.title, category: f.category, subtitle: f.subtitle, summary: f.summary,
-      trace: f.trace, secret, cells: [...cells],
+      trace: f.trace, secret, cells: [...cells], floor: f.trace === 'crevasse' ? 'X' : f.trace === 'ruisseau' ? '~' : '.',
       ...(secret ? { dc: d?.dc ?? 14, checkLabel: d?.checkLabel ?? 'Perception (Sagesse)' } : {}),
     });
   }
@@ -107,11 +129,37 @@ export function buildLocalMap(p: {
   };
   elements.sort((a, b) => dist(a) - dist(b));
 
-  const base = generateTerrain(cols, rows, p.hint, p.seed);
+  // Terrain : les cavités de la carte de navigation, sinon le terrain généré. Puis les obstacles nommés sur la carte.
+  const cavs = atlas.cavities[plan.id] ?? [];
+  // Un lieu de type couloir est presque entièrement de la roche : seuls ses passages sont praticables.
+  const corridor = ['boyau', 'etroit', 'galerie', 'tunnel', 'secret'].includes(p.hint.trace ?? '') || p.hint.category === 'voie';
+  let base = corridor
+    ? '#'.repeat(cols * rows)
+    : floorFromCavities(cols, rows, win, cavs) ?? generateTerrain(cols, rows, p.hint, p.seed);
+  for (const g of onPlan) {
+    if (g.type !== 'point') continue;
+    const f = byId.get(g.featureId);
+    if (!f || f.area) continue;
+    const rule = OBSTACLES.find(([re]) => re.test(norm(f.title)));
+    if (!rule) continue;
+    const [, kind, radius] = rule;
+    const [px, py] = g.coordinates as [number, number];
+    const c = toCell(px, py);
+    if (!inside(c)) continue;
+    const chars = base.split('') as TerrainKind[];
+    for (let dy = -radius; dy <= radius; dy++) for (let dx = -radius; dx <= radius; dx++) {
+      const x = c.x + dx, y = c.y + dy;
+      if (x < 0 || y < 0 || x >= cols || y >= rows) continue;
+      if (chars[y * cols + x] === '.') chars[y * cols + x] = kind;
+    }
+    base = chars.join('');
+  }
   // Destination de chaque passage, lue dans les connexions de l'Atlas quand elle existe.
   // Un passage secret n'apparaît que s'il mène quelque part dans l'Atlas : les autres n'existent pas pour le combat.
   const places = onPlan.filter((g) => g.type === 'point').map((g) => ({ g, f: byId.get(g.featureId) })).filter((x): x is { g: AtlasGeometry; f: AtlasFeature } => !!x.f && !x.f.area && !!x.f.category);
-  const kept = elements
+  // Dans un couloir, seul le passage du lieu est praticable : les autres de la zone ne sont pas accessibles d'ici.
+  const scoped = corridor ? elements.filter((e) => e.kind !== 'passage' || e.id === centerId) : elements;
+  const kept = scoped
     .map((e) => (e.kind === 'passage' ? { ...e, auto: autoLink(atlas, plan, e.id, places) } : e))
     .filter((e) => e.kind !== 'passage' || !e.secret || e.auto)
     .slice(0, MAX_ELEMENTS);

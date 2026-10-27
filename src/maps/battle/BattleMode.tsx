@@ -19,8 +19,8 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 const KIND_LABEL: Record<BattleToken['kind'], string> = { pc: 'Joueur', monster: 'Créature', other: 'Autre' };
 const SRD = Object.values(STATS).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
 /** Types de terrain qui méritent une ligne dans la légende (la roche et le sol sont évidents). */
-const LEGEND_ORDER: TerrainKind[] = ['.', '#', 'p', '~', ':', '=', 'X', 'I', ','];
-const SWATCH: Partial<Record<TerrainKind, string>> = { '.': 'floor', '#': 'rock', '~': 'water', ':': 'rubble', p: 'pass', '=': 'bridge', X: 'chasm', I: 'pillar', ',': 'decor' };
+const LEGEND_ORDER: TerrainKind[] = ['.', '#', '~', ':', '=', 'X', 'I', ','];
+const SWATCH: Partial<Record<TerrainKind, string>> = { '.': 'floor', '#': 'rock', '~': 'water', ':': 'rubble', '=': 'bridge', X: 'chasm', I: 'pillar', ',': 'decor' };
 
 /** Nombre entier lu au début d'un texte (« 16 (armure d’écailles) » → 16). */
 const leadingInt = (s: string) => { const n = parseInt(s, 10); return Number.isFinite(n) ? n : undefined; };

@@ -4,7 +4,7 @@
  * Chaque case est un caractère (voir TERRAIN) ; la grille est stockée en une seule chaîne de cols × rows caractères.
  */
 
-export type TerrainKind = '.' | '#' | '~' | ':' | '=' | 'X' | 'I' | ',' | 'p';
+export type TerrainKind = '.' | '#' | '~' | ':' | '=' | 'X' | 'I' | ',';
 
 /** Libellés affichés dans la légende : ce qu'on voit, et si l'on peut s'y déplacer. */
 export const TERRAIN: Record<TerrainKind, { label: string; blocks: boolean; difficult: boolean }> = {
@@ -16,7 +16,6 @@ export const TERRAIN: Record<TerrainKind, { label: string; blocks: boolean; diff
   X: { label: 'Gouffre ou faille : infranchissable', blocks: true, difficult: false },
   I: { label: 'Stalagmite ou pilier : infranchissable', blocks: true, difficult: false },
   ',': { label: 'Décor (cristaux, champignons) : praticable', blocks: false, difficult: false },
-  p: { label: 'Couloir (passage) : praticable', blocks: false, difficult: false },
 };
 
 export type LocationHint = { title: string; category?: string; trace?: string; text?: string };
@@ -192,6 +191,8 @@ export function pathCost(grid: string | undefined, cols: number, rows: number, f
 /** Un élément du lieu : passage (tracé) ou point, avec son état de découverte. */
 export type TerrainElement = {
   kind: 'passage' | 'point'; secret: boolean; cells?: number[]; cell?: number;
+  /** Ce que devient le passage une fois ouvert : sol par défaut, gouffre pour une faille, eau pour un ruisseau. */
+  floor?: TerrainKind;
 };
 
 /**
@@ -202,9 +203,9 @@ export function effectiveGrid(base: string, elements: TerrainElement[], discover
   const g = base.split('') as TerrainKind[];
   elements.forEach((e, i) => {
     if (e.kind !== 'passage' || !e.cells) return;
+    // Un passage fermé est de la roche ; un passage ouvert est du sol (ou ce que dit son tracé).
     const open = !e.secret || discovered.includes(ids[i]);
-    if (!open) return;
-    for (const c of e.cells) if (c >= 0 && c < g.length) g[c] = 'p';
+    for (const c of e.cells) if (c >= 0 && c < g.length) g[c] = open ? (e.floor ?? '.') : '#';
   });
   return g.join('');
 }

@@ -44,10 +44,10 @@ const KIND_FILL: Record<PlayerToken['kind'], string> = { pc: '#54d8c6', monster:
  *  Une répétition de motif donnait des rayures à cette échelle ; chaque case garde ainsi son image exacte. */
 const TEX_URL = (name: string) => `${import.meta.env.BASE_URL}images/combat-map/textures/${name}.webp`;
 const TILE_FILE: Partial<Record<TerrainKind, string>> = {
-  '.': 'sol', '#': 'roche', '~': 'eau', ':': 'eboulis', p: 'couloir', '=': 'pont', X: 'gouffre', ',': 'decor', I: 'roche',
+  '.': 'sol', '#': 'roche', '~': 'eau', ':': 'eboulis', '=': 'pont', X: 'gouffre', ',': 'decor', I: 'roche',
 };
 const TILE_BASE: Record<string, string> = {
-  sol: '#2b241b', roche: '#4a3c2a', eau: '#1d4a5b', eboulis: '#3e3429', couloir: '#6b5a3e', pont: '#8a6a2c', gouffre: '#030303', decor: '#2b241b', stalagmite: '#4a3c2a',
+  sol: '#2b241b', roche: '#4a3c2a', eau: '#1d4a5b', eboulis: '#3e3429', pont: '#8a6a2c', gouffre: '#030303', decor: '#2b241b', stalagmite: '#4a3c2a',
 };
 /** Taille d'une case dans le canevas de terrain (pixels). Le canevas est ensuite mis à l'échelle par le CSS. */
 const CELL_PX = 64;
