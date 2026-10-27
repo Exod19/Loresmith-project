@@ -112,3 +112,36 @@
 /* Rayons : nombre de fiches par type */
 .library-shell .library-type-list button { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .library-type-count { font: 600 11px/1 'Cinzel', serif; color: #9a8a63; background: rgba(201,162,74,.1); border-radius: 999px; padding: 4px 8px; }
+
+/* Détail des Archives (fiche complète) */
+.dossier .archive-block { margin-top: 8px; }
+.dossier .archive-sub { font: 600 .82rem/1.2 'Cinzel', serif; letter-spacing: .1em; text-transform: uppercase; color: #9a8a63; margin: 18px 0 6px; }
+.dossier .archive-facts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: -10px 0 26px; }
+.dossier .archive-facts span { font: 600 .8rem/1 'Cinzel', serif; letter-spacing: .08em; color: #ecd289; border: 1px solid rgba(201,162,74,.4); border-radius: 999px; padding: 6px 12px; }
+.dossier .archive-facts small { color: #9a8a63; margin-right: 4px; text-transform: uppercase; font-size: .7rem; }
+.dossier .archive-named { margin: 0 0 14px; padding-left: 14px; border-left: 1px solid rgba(201,162,74,.25); }
+.dossier .archive-named > b { display: block; font: 600 1rem/1.3 'Cinzel', serif; color: #ecd289; margin-bottom: 4px; }
+.dossier .archive-named p { font-size: 1.02rem; line-height: 1.7; margin: 0 0 .6em; }
+.dossier .archive-meta, .dossier .archive-muted { display: block; font-style: italic; color: #9a8a63; font-size: .9rem; margin-bottom: 4px; }
+.dossier .archive-list { margin: 0; padding-left: 20px; line-height: 1.6; }
+.dossier .archive-stages { margin: 0; padding-left: 22px; }
+.dossier .archive-stages li { margin-bottom: 12px; }
+.dossier .archive-stages small { color: #9a8a63; }
+.dossier .archive-stages p { margin: 4px 0 0; }
+.dossier .archive-statblock { background: #1c150c; border: 1px solid rgba(201,162,74,.35); border-radius: 6px; padding: 18px 20px; }
+.dossier .archive-stat-head { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font: italic 1rem/1.4 'EB Garamond', serif; color: #d8c79c; border-bottom: 1px solid rgba(201,162,74,.3); padding-bottom: 8px; margin-bottom: 10px; }
+.dossier .archive-approval { font: 600 .7rem/1 'Cinzel', serif; letter-spacing: .1em; text-transform: uppercase; padding: 5px 9px; border-radius: 999px; border: 1px solid rgba(201,162,74,.5); color: #ecd289; font-style: normal; }
+.dossier .archive-approval.brouillon { color: #9a8a63; border-style: dashed; }
+.dossier .archive-stat-line { display: flex; flex-wrap: wrap; gap: 16px; font-size: 1rem; margin-bottom: 12px; }
+.dossier .archive-stat-line b { font: 600 .7rem/1 'Cinzel', serif; letter-spacing: .08em; color: #9a8a63; margin-right: 4px; text-transform: uppercase; }
+.dossier .archive-abilities { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; text-align: center; border-top: 1px solid rgba(201,162,74,.2); border-bottom: 1px solid rgba(201,162,74,.2); padding: 10px 0; margin-bottom: 12px; }
+.dossier .archive-abilities small { display: block; font: 600 .65rem/1.4 'Cinzel', serif; letter-spacing: .1em; color: #9a8a63; }
+.dossier .archive-abilities b { font-size: .95rem; font-weight: 500; }
+.dossier .archive-chapters { display: flex; flex-direction: column; gap: 6px; }
+.dossier .archive-chapter { border: 1px solid rgba(201,162,74,.2); border-radius: 4px; background: rgba(201,162,74,.03); }
+.dossier .archive-chapter[data-open="1"] { border-color: rgba(201,162,74,.5); }
+.dossier .archive-chapter button { all: unset; box-sizing: border-box; width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; cursor: pointer; padding: 10px 14px; font: 600 .95rem/1.3 'Cinzel', serif; color: #ecd289; }
+.dossier .archive-chapter button small { font: italic .85rem 'EB Garamond', serif; color: #9a8a63; }
+.dossier .archive-chapter p { padding: 0 16px 8px; line-height: 1.75; }
+.dossier .archive-chapter p:last-child { padding-bottom: 14px; }
+@media (max-width: 900px) { .dossier .archive-abilities { grid-template-columns: repeat(3, 1fr); } }

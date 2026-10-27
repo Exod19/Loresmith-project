@@ -14,6 +14,15 @@ export interface FeedEntry {
   id: string; type: string; name: string; scientificName?: string; summary: string; status: string;
   tags: string[]; params: { label: string; value: string }[]; altNames: { lang: string; value: string }[];
   sections: FeedSection[]; images: FeedImage[];
+  threat?: string; warral?: number | null; sentience?: string;
+  statBlock?: { gmBehavior?: string[]; [k: string]: unknown };
+  lifecycle?: { id: string; name: string; description: string; duration?: string }[];
+  abilities?: { id: string; name: string; description: string; kind: string }[];
+  harvest?: { id: string; part: string; method?: string; conservation?: string; allegedProperties?: string; uses?: string }[];
+  observations?: { id: string; title?: string; author?: string; date?: string; place?: string; text: string }[];
+  citations?: { id: string; label?: string; locator?: string; note?: string }[];
+  contradictions?: string; openQuestions?: string;
+  document?: { chapters?: { id?: string; title: string; body: string }[] };
 }
 export interface FeedRelation { id: string; from: string; to: string; kind: string; note?: string; status: string }
 export interface UnderdarkFeed {

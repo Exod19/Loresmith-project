@@ -2,9 +2,11 @@
  * Page « Cartes » d'un univers : créer une carte vierge, importer une image, importer l'Atlas des profondeurs,
  * ouvrir une carte dans la visionneuse (MJ ou joueurs).
  */
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import MapViewer from './MapViewer';
 import { useUnderdarkFeed } from '../feeds/underdark';
+import { bestiaryEncounters } from '../feeds/bestiary';
+import { setBestiary } from './atlas/encounters';
 import { ATLAS_MAP_ID, imageFileToDataUrl, type MapRecord } from './mapStore';
 import type { AtlasData } from './atlas/types';
 import './maps.css';
@@ -26,6 +28,8 @@ export default function MapsPage({ universe, maps, dispatch, flash }: Props) {
   const [busy, setBusy] = useState(false);
   const [view, setView] = useState<'rayons' | 'liste'>('rayons');
   const { feed, error } = useUnderdarkFeed();
+  // Le Bestiaire des Archives alimente les rencontres de toutes les cartes.
+  useEffect(() => { if (feed) setBestiary(bestiaryEncounters(feed.entries)); }, [feed]);
 
   if (!universe) return <div className="maps-page"><p>Aucun univers actif.</p></div>;
 

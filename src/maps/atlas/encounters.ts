@@ -5,8 +5,8 @@
  */
 export type Zone = 'sauvage' | 'transit' | 'cite';
 export type EncCtx = { zone: Zone; depth: number; place: string; assassins?: boolean };
-type Group = { stat: string; dice: string; role?: string };
-type Entry = {
+type Group = { stat: string; dice: string; role?: string; label?: string };
+export type Entry = {
   kind: 'Créature' | 'Convoi' | 'Travailleurs' | 'Voyageurs' | 'Patrouille' | 'Signe';
   title: string; text: string; groups?: Group[]; wants?: string[]; hook?: string;
   zones: Zone[]; min?: number; max?: number; weight?: number; peaceful?: boolean; assassins?: boolean;
@@ -136,21 +136,25 @@ export function roll(dice: string): { total: number; detail: string } {
 
 export type Encounter = {
   d20: number; check: string; happens: boolean; entry?: Entry; attitude?: string; wants?: string;
-  groups?: { stat: string; role?: string; n: number; detail: string }[];
+  groups?: { stat: string; role?: string; label?: string; n: number; detail: string }[];
 };
 
 /** Tire une rencontre : d20 de déclenchement (≥ 15, ou ≥ 13 dans les profondeurs et les entre-strates), puis table pondérée. */
+/** Rencontres supplémentaires (Bestiaire des Archives), ajoutées au tirage. */
+let POOL: Entry[] = E;
+export function setBestiary(list: Entry[]) { POOL = [...E, ...list]; }
+
 export function rollEncounter(ctx: EncCtx, force = false): Encounter {
   const threshold = ctx.zone === 'cite' ? 14 : ctx.depth >= 4 || ctx.zone === 'transit' ? 13 : 15;
   const d20 = rnd(20); const happens = force || d20 >= threshold;
   const check = force ? 'Rencontre imposée par le MJ' : `1d20 = ${d20} (rencontre sur ${threshold} ou plus)`;
   if (!happens) return { d20, check, happens };
-  const pool = E.filter((e) => e.zones.includes(ctx.zone) && (e.min ?? 1) <= ctx.depth && ctx.depth <= (e.max ?? 9) && (!e.assassins || ctx.assassins));
+  const pool = POOL.filter((e) => e.zones.includes(ctx.zone) && (e.min ?? 1) <= ctx.depth && ctx.depth <= (e.max ?? 9) && (!e.assassins || ctx.assassins));
   const sum = pool.reduce((a, e) => a + (e.weight ?? 1), 0); let r = Math.random() * sum; let entry = pool[0];
   for (const e of pool) { r -= e.weight ?? 1; if (r <= 0) { entry = e; break; } }
   const r2 = roll('2d6'); const att = entry.kind === 'Signe' ? undefined
     : `2d6 = ${r2.total} → ${(entry.kind === 'Créature' ? 'Hostile ou affamée : elle attaque si elle a l’avantage, sinon elle guette.' : ATT.find(([n]) => r2.total <= n)?.[1] ?? 'Amical : propose son aide ou un échange avantageux.')}`;
   const attitude = att && entry.peaceful && r2.total <= 2 ? `2d6 = ${r2.total} → Méfiant : ils ont été attaqués récemment et tirent à vue si on les surprend.` : att;
   return { d20, check, happens, entry, attitude, wants: entry.wants?.[Math.floor(Math.random() * entry.wants.length)],
-    groups: entry.groups?.map((g) => { const r = roll(g.dice); return { stat: g.stat, role: g.role, n: r.total, detail: r.detail }; }) };
+    groups: entry.groups?.map((g) => { const r = roll(g.dice); return { stat: g.stat, role: g.role, label: g.label, n: r.total, detail: r.detail }; }) };
 }

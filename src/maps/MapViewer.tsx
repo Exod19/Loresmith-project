@@ -158,7 +158,7 @@ function EncounterBox({ enc, onRoll }: { enc: { ctx: EncCtx; e: Encounter }; onR
             const s: Stat | undefined = STATS[g.stat];
             return (
               <div key={i} className="maps-group">
-                <div>{g.n} × {s?.name ?? g.stat}{g.role ? ` (${g.role})` : ''} <span className="maps-sub">{g.detail}</span></div>
+                <div>{g.n} × {g.label ?? s?.name ?? g.stat}{g.role ? ` (${g.role})` : ''} <span className="maps-sub">{g.detail}</span></div>
                 {s && <div className="maps-sub">CA {s.ac} · PV {s.hp} · For {mod(s.abil[0])} · Dex {mod(s.abil[1])} · Con {mod(s.abil[2])}</div>}
               </div>
             );

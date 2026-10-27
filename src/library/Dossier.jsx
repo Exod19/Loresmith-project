@@ -4,6 +4,7 @@
  * savoir du MJ (réservé), liens « Dans la Toile », campagnes.
  */
 import './dossier.css';
+import ArchiveDetail from './ArchiveDetail';
 
 const CANON = {
   confirme: 'Confirmé', recit: 'Récit', oral: 'Tradition orale', hypothese: 'Hypothèse', conteste: 'Contesté',
@@ -50,7 +51,7 @@ function ReadAloud({ entry, onWrite, busy }) {
 }
 
 export default function Dossier({
-  entry, typeLabel, img, gallery = [], campaigns = [], related = [], hasEntry = () => false,
+  entry, typeLabel, img, gallery = [], campaigns = [], related = [], hasEntry = () => false, archive = null,
   onOpenEntry, onPolish, onUploadImage, onWriteReadAloud, busy,
 }) {
   const sections = entry.sections?.length ? entry.sections : filled([['', entry.body]]).map(([, body]) => ({ id: 'corps', title: 'Texte', body }));
@@ -101,6 +102,7 @@ export default function Dossier({
               {paras(s.body).map((p, i) => <p key={i}>{p}</p>)}
             </section>
           ))}
+          {archive && <ArchiveDetail a={archive} />}
         </div>
 
         <aside className="dossier-side">
