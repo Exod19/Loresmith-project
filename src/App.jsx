@@ -11986,7 +11986,7 @@ function LibraryArchiveView({
   return (
     <Dossier
       entry={entry}
-      typeLabel={LIBRARY_TYPES[entry.archiveType]?.singular || Archive}
+      typeLabel={LIBRARY_TYPES[entry.archiveType]?.singular || 'Archive'}
       img={img}
       gallery={gallery}
       campaigns={campaigns}
@@ -12037,6 +12037,310 @@ async function generateOpenAIImage(ai, prompt) {
   }
 
   return 'data:image/png;base64,' + b64;
+}
+/* ----------------------------- Party (+ PDF import) --------------------- */
+function AssetManager({
+  state,
+  dispatch,
+  universe,
+  party,
+  campaigns,
+  npcs,
+  flash,
+}) {
+  const { ai } = useContext(AIContext);
+
+  const [category, setCategory] = useState('scene');
+  const [targetId, setTargetId] = useState('');
+  const [name, setName] = useState('');
+  const [prompt, setPrompt] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const sceneTargets = campaigns.flatMap((c) =>
+    (c.scenes || []).map((sc) => ({
+      id: sc.id,
+      label: `${c.title} → ${sc.title}`,
+      type: 'scene',
+    }))
+  );
+
+  const campaignTargets = campaigns.map((c) => ({
+    id: c.id,
+    label: c.title,
+    type: 'campaign',
+  }));
+
+  const npcTargets = npcs.map((n) => ({
+    id: n.id,
+    label: n.name,
+    type: 'npc',
+  }));
+
+  const creatureTargets = npcs.map((n) => ({
+    id: n.id,
+    label: n.name,
+    type: 'creature',
+  }));
+
+  const playerTargets = party.map((p) => ({
+    id: p.id,
+    label: p.name,
+    type: 'player',
+  }));
+
+  const targetOptions =
+    category === 'scene'
+      ? sceneTargets
+      : category === 'campaign'
+      ? campaignTargets
+      : category === 'npc'
+      ? npcTargets
+      : category === 'creature'
+      ? creatureTargets
+      : category === 'player'
+      ? playerTargets
+      : category === 'map'
+      ? campaignTargets
+      : [{ id: universe.id, label: universe.name, type: 'universe' }];
+
+  const targetType =
+    category === 'scene'
+      ? 'scene'
+      : category === 'campaign' || category === 'map'
+      ? 'campaign'
+      : category === 'npc'
+      ? 'npc'
+      : category === 'creature'
+      ? 'creature'
+      : category === 'player'
+      ? 'player'
+      : 'universe';
+
+  const assets = Object.values(state.assets || {})
+    .filter((asset) => asset.universeId === universe.id)
+    .sort((a, b) => b.createdAt - a.createdAt);
+
+  async function uploadImage(file) {
+    if (!file) return;
+
+    if (!targetId) {
+      flash("Choisis où l'image doit apparaître.");
+      return;
+    }
+
+    try {
+      const dataUrl = await fileToDataUrl(file);
+
+      dispatch({
+        type: 'ADD_ASSET',
+        asset: {
+          id: uid(),
+          name: name || file.name,
+          category,
+          targetType,
+          targetId,
+          dataUrl,
+          source: 'upload',
+          prompt: '',
+          createdAt: now(),
+        },
+      });
+
+      setName('');
+      flash('Image importée et assignée.');
+    } catch (e) {
+      flash(e.message);
+    }
+  }
+
+  async function generateImage() {
+    if (!prompt.trim()) {
+      flash("Écris un prompt d'image.");
+      return;
+    }
+
+    if (!targetId) {
+      flash("Choisis où l'image doit apparaître.");
+      return;
+    }
+
+    if (!ai.apiKey) {
+      flash('Configure une clé IA avant de générer une image.');
+      return;
+    }
+
+    if (ai.provider !== 'openai') {
+      flash(
+        "La génération d'image intégrée est prévue pour OpenAI. Utilise l'import manuel pour l'instant."
+      );
+      return;
+    }
+
+    setBusy(true);
+
+    try {
+      const dataUrl = await generateOpenAIImage(ai, prompt);
+
+      dispatch({
+        type: 'ADD_ASSET',
+        asset: {
+          id: uid(),
+          name: name || 'Image générée',
+          category,
+          targetType,
+          targetId,
+          dataUrl,
+          source: 'generated',
+          prompt,
+          createdAt: now(),
+        },
+      });
+
+      setPrompt('');
+      setName('');
+      flash('Image générée et assignée.');
+    } catch (e) {
+      flash(e.message);
+    }
+
+    setBusy(false);
+  }
+
+  return (
+    <>
+      <h1 className="view">Images</h1>
+      <p className="sub">
+        Choisis exactement où chaque image doit apparaître : une scène précise,
+        une campagne, un PNJ, une créature ou un personnage joueur.
+      </p>
+
+      <div className="panel">
+        <div className="row">
+          <Field label="Type d'image">
+            <select
+              className="in"
+              value={category}
+              onChange={(e) => {
+                setCategory(e.target.value);
+                setTargetId('');
+              }}
+            >
+              <option value="scene">Image de scène</option>
+              <option value="campaign">Image de campagne</option>
+              <option value="npc">Portrait de PNJ</option>
+              <option value="creature">Image de créature / monstre</option>
+              <option value="player">Portrait de joueur</option>
+              <option value="map">Carte / lieu</option>
+              <option value="universe">Image d'univers</option>
+            </select>
+          </Field>
+
+          <Field label="Où l'image doit apparaître">
+            <select
+              className="in"
+              value={targetId}
+              onChange={(e) => setTargetId(e.target.value)}
+            >
+              <option value="">Choisir une cible…</option>
+              {targetOptions.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </div>
+
+        <Field label="Nom de l'image">
+          <input
+            className="in"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="ex. Embuscade dans la clairière"
+          />
+        </Field>
+
+        <Field label="Importer une image">
+          <input
+            className="in"
+            type="file"
+            accept="image/*"
+            onChange={(e) => uploadImage(e.target.files && e.target.files[0])}
+          />
+        </Field>
+
+        <div className="eyebrow">Génération d'image</div>
+
+        <Field label="Prompt d'image">
+          <textarea
+            className="in"
+            rows={4}
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Décris l'image à générer..."
+          />
+        </Field>
+
+        <button
+          className="btn ghost"
+          style={{ marginBottom: 12 }}
+          onClick={() => {
+            const selected = targetOptions.find((t) => t.id === targetId);
+            setPrompt(
+              buildImagePrompt({
+                type: category,
+                name: selected?.label || name,
+                description: '',
+                universe,
+              })
+            );
+          }}
+        >
+          Préparer un prompt automatiquement
+        </button>
+
+        <button className="btn primary" disabled={busy} onClick={generateImage}>
+          {busy ? (
+            <>
+              <Spin /> Génération…
+            </>
+          ) : (
+            "Générer l'image"
+          )}
+        </button>
+      </div>
+
+      <div className="eyebrow">Galerie</div>
+
+      {assets.length === 0 ? (
+        <div className="empty muted">Aucune image importée.</div>
+      ) : (
+        <div className="asset-grid">
+          {assets.map((asset) => (
+            <div className="asset-card" key={asset.id}>
+              <img src={asset.dataUrl} alt={asset.name} />
+              <div>
+                <b>{asset.name}</b>
+                <span>
+                  {asset.category} · {asset.targetType}
+                </span>
+              </div>
+              <button
+                className="btn ghost sm danger"
+                onClick={() => {
+                  if (confirm('Supprimer cette image ?')) {
+                    dispatch({ type: 'DELETE_ASSET', id: asset.id });
+                  }
+                }}
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
 }
 /* ----------------------------- Party (+ PDF import) --------------------- */
 function Party({ state, dispatch, party, universe, flash }) {
