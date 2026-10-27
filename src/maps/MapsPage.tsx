@@ -3,6 +3,7 @@
  * (et le synchroniser avec les Archives), ouvrir une carte dans la visionneuse.
  */
 import { useRef, useState } from 'react';
+import type { Hero } from './battle/CombatPanel';
 import MapViewer from './MapViewer';
 import { useUnderdarkFeed, ARCHIVES_URL_KEY } from '../feeds/underdark';
 import { ATLAS_MAP_ID, imageFileToDataUrl, type MapRecord } from './mapStore';
@@ -15,6 +16,8 @@ type Props = {
   maps: Record<string, MapRecord>;
   dispatch: (a: { type: string; [k: string]: unknown }) => void;
   flash: (m: string) => void;
+  /** Personnages du groupe (univers courant), pour le combat. */
+  heroes?: Hero[];
 };
 
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -30,7 +33,7 @@ function readKnown(): Set<string> | null {
   }
 }
 
-export default function MapsPage({ universe, maps, dispatch, flash }: Props) {
+export default function MapsPage({ universe, maps, dispatch, flash, heroes = [] }: Props) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [dm, setDm] = useState(true);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -129,6 +132,7 @@ export default function MapsPage({ universe, maps, dispatch, flash }: Props) {
           onDm={setDm}
           onBack={() => setOpenId(null)}
           onUpdate={(patch) => dispatch({ type: 'UPDATE_MAP', id: open.id, patch })}
+          heroes={heroes}
         />
       </div>
     );

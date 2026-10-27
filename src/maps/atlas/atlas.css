@@ -526,3 +526,14 @@
 .am-pin.is-sel .am-emblem .shield, .am-pin:hover .am-emblem .shield { stroke-width: 2; fill: #1d2427; }
 .am-emblem-img { filter: drop-shadow(0 0 6px #000) drop-shadow(0 0 2px #000); }
 .am-pin.is-sel .am-emblem-img, .am-pin:hover .am-emblem-img { filter: drop-shadow(0 0 10px #f3d9a7aa) drop-shadow(0 0 2px #000); }
+
+/* Repères MJ du groupe : toujours visibles, au-dessus des lieux */
+.am-mark-ring { fill: none; stroke-width: 3; animation: am-mark 1.6s ease-in-out infinite; }
+.am-mark-dot { stroke: #0b0906; stroke-width: 2; }
+.am-mark-flag { stroke-width: 1.5; }
+.am-mark-text { font: 600 12px Cinzel, serif; letter-spacing: .04em; }
+.am-mark-party .am-mark-ring { stroke: #7fe0d0; } .am-mark-party .am-mark-dot { fill: #7fe0d0; }
+.am-mark-party .am-mark-flag { fill: rgba(8,30,28,.92); stroke: #7fe0d0; } .am-mark-party .am-mark-text { fill: #c9fff6; }
+.am-mark-dest .am-mark-ring { stroke: #f0c867; stroke-dasharray: 6 5; } .am-mark-dest .am-mark-dot { fill: #f0c867; }
+.am-mark-dest .am-mark-flag { fill: rgba(35,26,8,.92); stroke: #f0c867; } .am-mark-dest .am-mark-text { fill: #ffe9b0; }
+@keyframes am-mark { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }

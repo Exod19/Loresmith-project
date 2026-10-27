@@ -3,18 +3,19 @@
  * Mode MJ : tout est visible, notes comprises. La projection montre aux joueurs ce qu'ils doivent voir, et se met à jour en direct.
  */
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import MapCanvas, { type Layers } from './atlas/MapCanvas';
+import MapCanvas, { type Layers, type MapMark } from './atlas/MapCanvas';
 import { CATEGORIES } from './atlas/model';
 import { describe as describeFeature, dmFeature } from './atlas/lore';
 import { rollEncounter, type EncCtx, type Encounter, type Zone } from './atlas/encounters';
 import { STATS, SRD_CREDIT, mod, type Stat } from './atlas/statblocks';
 import type { AtlasData, AtlasFeature, FeatureCategory } from './atlas/types';
 import {
-  activateMap, ATLAS_DEFAULT_PLAN, DEFAULT_BATTLE, EMPTY_OVERLAY, mapIdOf,
-  type MapMarker, type MapOverlay, type MapRecord, type MarkerKind, type PassageLink, type PointRecord,
+  activateMap, ATLAS_DEFAULT_PLAN, DEFAULT_BATTLE, EMPTY_OVERLAY, mapIdOf, placeCoords,
+  type MapMarker, type MapOverlay, type MapRecord, type MarkerKind, type PartyPlace, type PartyTrack, type PassageLink, type PointRecord,
 } from './mapStore';
 import { battleBoard, mapBoard } from './playerBoard';
 import BattleMode from './battle/BattleMode';
+import type { Hero } from './battle/CombatPanel';
 import Interactables from './Interactables';
 import { publishStage } from '../present/stage';
 import './maps.css';
@@ -29,9 +30,11 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 /** Repère en cours de placement : le prochain clic sur la carte le crée. */
 type Draft = { kind: MarkerKind; title: string; summary?: string; notes?: string; groups?: MapMarker['groups'] };
 
-export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
+export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [] }: {
   rec: MapRecord; atlas: AtlasData; dm: boolean; onDm: (v: boolean) => void;
   onUpdate: (patch: Partial<MapRecord>) => void; onBack: () => void;
+  /** Personnages du groupe, pour les ajouter au combat. */
+  heroes?: Hero[];
 }) {
   const data = activateMap(rec, dm, atlas);
   const [planId, setPlanId] = useState(rec.kind === 'atlas' ? ATLAS_DEFAULT_PLAN : mapIdOf(rec));
@@ -51,12 +54,75 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
   const selectedMarker = markers.find((m) => m.id === markerId) ?? null;
   const feature = !markerId && selectedId ? data.features.find((f) => f.id === selectedId) ?? null : null;
   const point = rec.points?.find((p) => p.id === selectedId) ?? null;
+  const party: PartyTrack = overlay.party ?? { trail: [] };
+  /** Où est le groupe, quand rien n'est sélectionné : la carte de combat garde son lieu d'un passage à l'autre. */
+  const partyFeature = !selectedId && party.at?.kind === 'feature' && party.at.planId === map.id ? data.features.find((f) => f.id === party.at!.id) ?? null : null;
+  const partyMarker = !selectedId && party.at?.kind === 'marker' && party.at.planId === map.id ? markers.find((m) => m.id === party.at!.id) ?? null : null;
+  const hintFeature = feature ?? partyFeature;
+  const hintMarker = selectedMarker ?? partyMarker;
   /** Lieu courant (lieu de l'Atlas, point perso ou repère) : c'est lui qui donne le terrain de la carte de combat. */
-  const locationHint = feature
-    ? { id: feature.id, title: feature.title, category: feature.category, trace: feature.trace, text: [feature.subtitle, feature.summary].filter(Boolean).join(' ') }
-    : selectedMarker
-      ? { id: `mk-${selectedMarker.id}`, title: selectedMarker.title, category: selectedMarker.kind === 'rencontre' ? 'danger' : 'indetermine', trace: selectedMarker.kind === 'passage' ? 'secret' : undefined, text: selectedMarker.summary, groups: selectedMarker.groups }
+  const locationHint = hintFeature
+    ? { id: hintFeature.id, title: hintFeature.title, category: hintFeature.category, trace: hintFeature.trace, text: [hintFeature.subtitle, hintFeature.summary].filter(Boolean).join(' ') }
+    : hintMarker
+      ? { id: `mk-${hintMarker.id}`, title: hintMarker.title, category: hintMarker.kind === 'rencontre' ? 'danger' : 'indetermine', trace: hintMarker.kind === 'passage' ? 'secret' : undefined, text: hintMarker.summary, groups: hintMarker.groups }
       : null;
+
+  /** Repères du groupe sur le plan affiché (MJ) : où il est, et où il veut aller. */
+  const partyMarks: MapMark[] = ([['party', party.at, 'Groupe'], ['dest', party.dest, 'Destination']] as const).flatMap(([tone, p, label]) => {
+    const at = p && p.planId === map.id ? placeCoords(data, rec, p) : null;
+    return at ? [{ id: tone, x: at[0], y: at[1], label: `${label} · ${p!.title}`, tone }] : [];
+  });
+  /**
+   * Où arrive le groupe en suivant un passage. Une ancre (entrée d'un autre plan) n'est pas un lieu :
+   * le groupe se retrouve au lieu nommé le plus proche, pour que la carte de combat ait un endroit à montrer.
+   */
+  const arrivalOf = (link: PassageLink): PartyPlace => {
+    const fallback: PartyPlace = { id: link.id, kind: link.kind, title: link.label.split(' · ')[0], planId: link.planId };
+    if (link.kind !== 'anchor') return fallback;
+    const a = data.anchors.find((x) => x.id === link.id);
+    if (!a) return fallback;
+    const [ax, ay] = a.at as [number, number];
+    const byId = new Map(data.features.map((f) => [f.id, f]));
+    // Le lieu qui porte le nom de l'ancre d'abord, puis les lieux importants ; les détails (flaque, galets) en dernier.
+    const name = link.label.split(' · ')[0];
+    let best: PartyPlace | null = null, bestScore = 0.06;
+    for (const g of data.geometries) {
+      if (g.mapId !== link.planId || g.type !== 'point' || g.featureId.startsWith('mk-')) continue;
+      const f = byId.get(g.featureId);
+      if (!f || f.area) continue;
+      const [x, y] = g.coordinates as [number, number];
+      const d = Math.hypot(x - ax, y - ay);
+      if (d > 0.06) continue;
+      const score = d + (f.title === name ? -1 : 0) + (f.importance === 'detail' ? 0.04 : 0);
+      if (score < bestScore) { bestScore = score; best = { id: f.id, kind: 'feature', title: f.title, planId: link.planId }; }
+    }
+    return best ?? fallback;
+  };
+
+  /** Le lieu sélectionné, tel que le suivi du groupe le retient. */
+  const selectedPlace: PartyPlace | null = feature
+    ? { id: feature.id, kind: 'feature', title: feature.title, planId: map.id }
+    : selectedMarker ? { id: selectedMarker.id, kind: 'marker', title: selectedMarker.title, planId: map.id } : null;
+  /** Déplace le groupe : l'ancienne position rejoint le parcours, et la destination atteinte s'efface. */
+  const withPartyAt = (base: MapOverlay, p: PartyPlace): MapOverlay => {
+    const cur = base.party ?? { trail: [] };
+    if (cur.at?.id === p.id) return base;
+    const trail = cur.at ? [...cur.trail.filter((x) => x.id !== cur.at!.id && x.id !== p.id), cur.at].slice(-8) : cur.trail;
+    return { ...base, party: { at: p, dest: cur.dest?.id === p.id ? undefined : cur.dest, trail } };
+  };
+  const setDest = (p: PartyPlace | undefined) => setOverlay({ ...overlay, party: { ...party, dest: p } });
+  /** Montre un lieu suivi sur la carte de navigation (et le sélectionne). */
+  const showPlace = (p: PartyPlace) => {
+    setBattleOpen(false);
+    setPlanId(p.planId);
+    setSelectedId(p.kind === 'marker' ? `mk-${p.id}` : p.kind === 'feature' ? p.id : null);
+    setFocus({ kind: p.kind === 'anchor' ? 'anchor' : 'point', id: p.kind === 'marker' ? `mk-${p.id}` : p.id, tick: Date.now() });
+  };
+  /** Ouvre la carte de combat du lieu sélectionné (le groupe y est), ou de la position du groupe. */
+  const openBattle = () => {
+    if (selectedPlace && party.at?.id !== selectedPlace.id) setOverlay(withPartyAt(overlay, selectedPlace));
+    setBattleOpen(true);
+  };
 
   /** Lieux de l'atlas présents sur le plan : « tout révéler » ne touche qu'à ceux-là. */
   const planFeatureIds = useMemo(
@@ -79,12 +145,13 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
 
   /** Suit le passage jusqu'à sa destination, sur la carte de navigation. Une porte qui mène ailleurs s'ouvre pour les joueurs. */
   const followPassage = (link: PassageLink) => {
-    if (link.kind === 'marker') {
-      const m = overlay.markers.find((x) => x.id === link.id);
-      if (m && !m.revealed) updateMarker(m.id, { revealed: true });
-    }
+    // Une seule écriture : la porte s'ouvre, le lieu devient visible, et le groupe s'y déplace.
+    let next = overlay;
+    if (link.kind === 'marker') next = { ...next, markers: next.markers.map((m) => (m.id === link.id ? { ...m, revealed: true } : m)) };
     // Un lieu de l'Atlas qui n'est pas encore visible devient visible au passage.
-    if (link.kind === 'feature' && rec.kind === 'atlas' && !overlay.revealed.includes(link.id)) toggleReveal(link.id);
+    if (link.kind === 'feature' && rec.kind === 'atlas' && !next.revealed.includes(link.id)) next = { ...next, revealed: [...next.revealed, link.id] };
+    next = withPartyAt(next, arrivalOf(link));
+    setOverlay(next);
     setBattleOpen(false);
     setPlanId(link.planId);
     setSelectedId(null);
@@ -150,7 +217,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
             {atlas.maps.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
           </select>
         )}
-        {!battleOpen && <button className="maps-btn" onClick={() => setBattleOpen(true)}>⚔ Ouvrir la carte de combat</button>}
+        {!battleOpen && <button className="maps-btn" onClick={openBattle} title={locationHint ? `Carte de combat : ${locationHint.title}` : 'Sélectionne un lieu, ou place le groupe'}>⚔ Ouvrir la carte de combat</button>}
         <div className="maps-spacer" />
         <button className={`maps-btn ${projecting ? 'gold' : ''}`} onClick={() => (projecting ? stopProjecting() : setProjecting(true))}>
           {projecting ? '■ Arrêter la projection' : '▶ Projeter aux joueurs'}
@@ -162,6 +229,14 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
           </div>
         )}
       </div>
+      {dm && (
+        <PartyBar
+          party={party} inBattle={battleOpen}
+          onShow={showPlace}
+          onBattle={(p) => { setPlanId(p.planId); setSelectedId(p.kind === 'marker' ? `mk-${p.id}` : p.kind === 'feature' ? p.id : null); setBattleOpen(true); }}
+          onClearDest={() => setDest(undefined)}
+        />
+      )}
       {projecting && (
         <p className="maps-live">● Écran joueur : {battleOpen ? `carte de combat (${rec.title})` : map.title} · mis à jour en direct</p>
       )}
@@ -173,6 +248,12 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
           onFollow={followPassage} onLink={setPassageLink} onMarker={(id, patch) => updateMarker(id, patch)}
           onReveal={(id) => toggleReveal(id)}
           onBattle={(b) => onUpdate({ battle: b, updatedAt: Date.now() })}
+          heroes={heroes} party={party}
+          onSearchNote={(id, note) => {
+            const notesMap = { ...(overlay.searchNotes ?? {}) };
+            if (note) notesMap[id] = note; else delete notesMap[id];
+            setOverlay({ ...overlay, searchNotes: notesMap });
+          }}
         />
       ) : (
         <div className="maps-body">
@@ -184,6 +265,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
               hidden={new Set<FeatureCategory>()}
               selectedId={selectedId}
               onSelect={(f: AtlasFeature) => { setSelectedId(f.id); setEnc(null); }}
+              marks={dm ? partyMarks : []}
               onAnchor={() => {}}
               onPlace={dm && placing ? addMarker : undefined}
               dataKey={rec.updatedAt}
@@ -218,6 +300,9 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
                 onBring={() => bringPlayers(feature.id)}
                 revealed={rec.kind === 'atlas' ? overlay.revealed.includes(feature.id) : undefined}
                 onToggleReveal={rec.kind === 'atlas' ? () => toggleReveal(feature.id) : undefined}
+                partyHere={party.at?.id === feature.id} partyDest={party.dest?.id === feature.id}
+                onPartyHere={() => setOverlay(withPartyAt(overlay, { id: feature.id, kind: 'feature', title: feature.title, planId: map.id }))}
+                onPartyDest={() => setDest(party.dest?.id === feature.id ? undefined : { id: feature.id, kind: 'feature', title: feature.title, planId: map.id })}
               />
             )}
 
@@ -294,9 +379,36 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
   );
 }
 
-function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring }: {
+/** Fil du groupe (MJ) : où il est, où il veut aller, par où il est passé. Visible dans les deux cartes. */
+function PartyBar({ party, inBattle, onShow, onBattle, onClearDest }: {
+  party: PartyTrack; inBattle: boolean;
+  onShow: (p: PartyPlace) => void; onBattle: (p: PartyPlace) => void; onClearDest: () => void;
+}) {
+  const { at, dest, trail } = party;
+  return (
+    <div className="party-bar" aria-label="Suivi du groupe">
+      <span className="party-at">
+        📍 {at ? <>Groupe : <b>{at.title}</b></> : <>Position du groupe inconnue <small>(sélectionne un lieu : « Le groupe est ici »)</small></>}
+        {at && <button className="maps-link" onClick={() => onShow(at)}>voir</button>}
+        {at && !inBattle && at.kind !== 'anchor' && <button className="maps-link" onClick={() => onBattle(at)}>⚔ combat ici</button>}
+      </span>
+      <span className="party-dest">
+        🎯 {dest ? <>Destination : <b>{dest.title}</b> <button className="maps-link" onClick={() => onShow(dest)}>voir</button> <button className="maps-link" onClick={onClearDest} aria-label="Retirer la destination">×</button></> : <small>Pas de destination (fiche d’un lieu : « En faire la destination »)</small>}
+      </span>
+      {trail.length > 0 && (
+        <span className="party-trail" title="Parcours du groupe">
+          {trail.map((t) => <button key={t.id} className="maps-link" onClick={() => onShow(t)}>{t.title}</button>)}
+          {at && <b>› {at.title}</b>}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring, partyHere, partyDest, onPartyHere, onPartyDest }: {
   f: AtlasFeature; dm: boolean; notes: string; defaultCtx: EncCtx; onClose: () => void; onRoll: (ctx: EncCtx) => void;
   revealed?: boolean; onToggleReveal?: () => void; onBring?: () => void;
+  partyHere?: boolean; partyDest?: boolean; onPartyHere?: () => void; onPartyDest?: () => void;
 }) {
   const [zone, setZone] = useState<Zone>(defaultCtx.zone);
   const [depth, setDepth] = useState(defaultCtx.depth);
@@ -318,7 +430,13 @@ function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onT
         </Block>
       )}
       {guide && guide.tips.map((t, i) => <p key={i} className="maps-tip">{t}</p>)}
-      {dm && onBring && <button className="maps-btn gold" onClick={onBring}>🎯 Amener la vue joueurs ici</button>}
+      {dm && (onPartyHere || onPartyDest) && (
+        <div className="maps-party-btns">
+          {onPartyHere && <button className={`maps-btn ${partyHere ? 'gold' : ''}`} disabled={partyHere} onClick={onPartyHere}>{partyHere ? '📍 Le groupe est ici' : '📍 Le groupe est ici ?'}</button>}
+          {onPartyDest && <button className={`maps-btn ${partyDest ? 'gold' : ''}`} onClick={onPartyDest}>{partyDest ? '🎯 Destination (retirer)' : '🎯 En faire la destination'}</button>}
+        </div>
+      )}
+      {dm && onBring && <button className="maps-btn gold" onClick={onBring}>👁 Amener la vue joueurs ici</button>}
       {dm && onToggleReveal && (
         <button className={`maps-btn ${revealed ? '' : 'gold'}`} onClick={onToggleReveal}>
           {revealed ? '🙈 Cacher aux joueurs' : '👁 Montrer aux joueurs'}

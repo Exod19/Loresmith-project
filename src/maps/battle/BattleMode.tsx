@@ -1,63 +1,40 @@
 /**
- * Carte de combat, côté MJ : même mise en page que la carte de navigation (zone centrale + panneau latéral),
- * avec le plateau sur grille à la place du plan. Le lieu choisi donne la zone locale : ses passages (tracés réels
- * de l'Atlas) et ses objets y sont à leur position. Chaque passage mène quelque part : « Suivre le chemin »
- * ramène sur la carte de navigation, à la destination.
+ * Carte de combat, côté MJ : le plateau au centre, et un panneau en trois onglets.
+ * - Combat : initiative, tours, PV, attaques à lancer, conseils tactiques (et plan de l'IA).
+ * - Lieu : ce qu'on peut fouiller, les passages secrets et les sorties, repérés sur le plateau (F1, S1, E1).
+ * - Construction : peindre le terrain et déposer des objets.
+ * Le lieu choisi donne la zone locale : ses passages (tracés réels de l'Atlas) et ses éléments y sont à leur position.
+ * « Suivre » un passage ramène sur la carte de navigation, à sa destination, et y déplace le groupe.
  */
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
-import BattleBoard, { type BoardElement, type BoardRange, type BoardToken } from './BattleBoard';
-import { STATS, type Stat } from '../atlas/statblocks';
+import BattleBoard, { anchorOf, type BoardElement, type BoardLabel, type BoardRange, type BoardToken } from './BattleBoard';
 import type { AtlasData, AtlasMap } from '../atlas/types';
-import { DEFAULT_BATTLE, type Battle, type BattleBuild, type BattleToken, type MapMarker, type MapRecord, type PassageLink } from '../mapStore';
+import {
+  DEFAULT_BATTLE, type Battle, type BattleBuild, type BattleToken, type MapMarker, type MapRecord, type PartyTrack, type PassageLink, type SearchNote,
+} from '../mapStore';
 import { blocksCell, effectiveGrid, generateTerrain, pathCost, seedOf, TERRAIN, type LocationHint, type TerrainKind } from './terrain';
 import { buildLocalMap, cellIn } from './local';
 import { attackCells, rangedCells, reachableCells, speedCells } from './ranges';
 import { tokenImage } from './vignettes';
 import BuildPanel from './BuildPanel';
+import CombatPanel, { type Hero } from './CombatPanel';
+import PlacePanel, { type ExitItem, type SearchItem, type SecretItem } from './PlacePanel';
 import { DEFAULT_BRUSH, PROP_BY_KEY, PROP_LABEL, propUrl, applyBuild, shapeCells, type Brush } from './build';
+import { passageDifficulty, searchFor, type SearchEntry } from './search';
+import { statOf } from './combat';
+import { placeEncounter, type EncounterGroup } from './encounter';
+import { askAI, aiReady, parseJson } from '../../ai/client';
+import './battle.css';
 
 /** Niveaux de zoom du plateau (même logique que la carte de navigation). */
 const ZOOMS = [0.75, 1, 1.5, 2, 2.5, 3];
-import { iconFor, placeEncounter, type EncounterGroup } from './encounter';
-import './battle.css';
-
 const uid = () => Math.random().toString(36).slice(2, 10);
-const KIND_LABEL: Record<BattleToken['kind'], string> = { pc: 'Joueur', monster: 'Créature', other: 'Autre' };
-const SRD = Object.values(STATS).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
-/** Types de terrain qui méritent une ligne dans la légende (la roche et le sol sont évidents). */
+/** Types de terrain qui méritent une ligne dans la légende. */
 const LEGEND_ORDER: TerrainKind[] = ['.', '#', '~', ':', '=', 'X', 'I', ','];
 const SWATCH: Partial<Record<TerrainKind, string>> = { '.': 'floor', '#': 'rock', '~': 'water', ':': 'rubble', '=': 'bridge', X: 'chasm', I: 'pillar', ',': 'decor' };
 
-/** Nombre entier lu au début d'un texte (« 16 (armure d’écailles) » → 16). */
-const leadingInt = (s: string) => { const n = parseInt(s, 10); return Number.isFinite(n) ? n : undefined; };
-
-/** Vitesse « 7,5 m » → cases de 5 pieds (1 m ≈ 3,28 pieds). */
-function speedInCells(speed: string) {
-  const m = parseFloat(speed.replace(',', '.'));
-  return Number.isFinite(m) ? Math.round((m * 3.28084) / 5) : undefined;
-}
-
-/** Redimensionne une image importée en vignette carrée (pour le jeton). */
-function fileToTokenImage(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.onload = () => {
-      const s = 96;
-      const c = document.createElement('canvas');
-      c.width = s; c.height = s;
-      const k = Math.max(s / img.naturalWidth, s / img.naturalHeight);
-      const w = img.naturalWidth * k, h = img.naturalHeight * k;
-      c.getContext('2d')!.drawImage(img, (s - w) / 2, (s - h) / 2, w, h);
-      URL.revokeObjectURL(url);
-      resolve(c.toDataURL('image/png'));
-    };
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image illisible.')); };
-    img.src = url;
-  });
-}
-
 type Box = { x: number; y: number; size: number };
+type Tab = 'combat' | 'lieu' | 'construction';
 
 /** Distance entre deux jetons (centres), selon la règle 5e : la diagonale compte comme une case droite. */
 export function feetBetween(a: Box, b: Box, feetPerCell: number) {
@@ -82,12 +59,18 @@ function fits(b: Battle, id: string | null, size: number, x: number, y: number) 
   return !b.tokens.some((t) => t.id !== id && t.x < x + size && x < t.x + t.size && t.y < y + size && y < t.y + t.size);
 }
 
-function firstFree(b: Battle, size: 1 | 2): { x: number; y: number } | null {
-  for (let y = 0; y < b.rows; y++) for (let x = 0; x < b.cols; x++) if (fits(b, null, size, x, y)) return { x, y };
-  return null;
+/** Case libre la plus proche du centre du plateau. */
+function freeNear(b: Battle, size: 1 | 2): { x: number; y: number } | null {
+  const cx = Math.floor(b.cols / 2), cy = Math.floor(b.rows / 2);
+  const spots: { x: number; y: number; d: number }[] = [];
+  for (let y = 0; y < b.rows; y++) for (let x = 0; x < b.cols; x++) spots.push({ x, y, d: Math.max(Math.abs(x - cx), Math.abs(y - cy)) + Math.abs(x - cx) * 0.01 });
+  spots.sort((p, q) => p.d - q.d);
+  return spots.find((p) => fits(b, null, size, p.x, p.y)) ?? null;
 }
 
-export default function BattleMode({ rec, battle, onBattle, context, atlas, plan, markers, onFollow, onLink, onMarker, onReveal }: {
+export default function BattleMode({
+  rec, battle, onBattle, context, atlas, plan, markers, onFollow, onLink, onMarker, onReveal, heroes = [], party, onSearchNote,
+}: {
   rec: MapRecord; battle: Battle; onBattle: (b: Battle) => void;
   /** Lieu sélectionné : sa zone locale est placée sur la grille à l'ouverture ; une rencontre y place ses créatures. */
   context: (LocationHint & { id: string; groups?: EncounterGroup[] }) | null;
@@ -95,21 +78,23 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
   onFollow: (link: PassageLink) => void;
   onLink: (passageId: string, link: PassageLink | null) => void;
   onMarker: (id: string, patch: Partial<MapMarker>) => void;
-  /** Révèle ou cache un passage pour les joueurs : même interrupteur que sur la carte de navigation. */
+  /** Révèle ou cache un élément pour les joueurs : même interrupteur que sur la carte de navigation. */
   onReveal: (featureId: string) => void;
+  heroes?: Hero[];
+  party?: PartyTrack;
+  /** Réécrit (ou rétablit, avec null) la fiche de fouille d'un élément. */
+  onSearchNote?: (id: string, note: SearchNote | null) => void;
 }) {
   const b = battle ?? DEFAULT_BATTLE;
+  const [tab, setTab] = useState<Tab>(b.tokens.some((t) => t.kind === 'monster') ? 'combat' : 'lieu');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hover, setHover] = useState<{ x: number; y: number } | null>(null);
-  const [name, setName] = useState('');
-  const [kind, setKind] = useState<BattleToken['kind']>('monster');
-  const [statId, setStatId] = useState('');
-  const [image, setImage] = useState<string | undefined>();
-  const [groupBy, setGroupBy] = useState<'destination' | 'orientation'>('destination');
+  /** Élément survolé dans les listes : éclairé sur le plateau, pour le MJ seulement. */
+  const [hoverId, setHoverId] = useState<string | null>(null);
   /** Portées affichées sur le plateau : réservé au MJ, jamais envoyé aux joueurs. */
   const [showRanges, setShowRanges] = useState(false);
-  /** Construction manuelle : mode, outil, tracé en cours, et historique pour « Annuler ». */
-  const [building, setBuilding] = useState(false);
+  /** Construction manuelle : outil, tracé en cours, et historique pour « Annuler ». */
+  const building = tab === 'construction';
   const [brush, setBrush] = useState<Brush>(DEFAULT_BRUSH);
   const [propVisible, setPropVisible] = useState(true);
   const [stroke, setStroke] = useState<{ anchor: { x: number; y: number }; cur: { x: number; y: number }; cells: number[] } | null>(null);
@@ -119,10 +104,10 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
   const [drag, setDrag] = useState<{ id: string; origin: { x: number; y: number }; start: { x: number; y: number }; cur: { x: number; y: number }; moved: boolean; wasSelected: boolean } | null>(null);
   /** Vrai juste après un déplacement : le clic qui suit le relâchement ne doit pas désélectionner. */
   const justDropped = useRef(false);
-  /** Zoom du plateau : la largeur du plateau suit ce facteur, le cadre défile. */
   const [zoom, setZoom] = useState(1);
-  /** Élément dont la fiche est ouverte sur le plateau (clic sur un passage, un lieu ou un objet). */
+  /** Élément dont la fiche est ouverte sur le plateau. */
   const [infoId, setInfoId] = useState<string | null>(null);
+  const [rewrite, setRewrite] = useState<{ busy: boolean; error?: string }>({ busy: false });
 
   const selected = b.tokens.find((t) => t.id === selectedId) ?? null;
   const set = (patch: Partial<Battle>) => onBattle({ ...b, ...patch });
@@ -135,9 +120,10 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
   const discovered = rec.overlay?.revealed ?? [];
   const bv: Battle = b.local ? { ...b, local: { ...b.local, discovered } } : b;
   const grid = effectiveOf(bv);
+  const placeTitle = context?.title ?? b.local?.place ?? rec.title;
 
   /**
-   * Construit la carte du lieu : terrain, passages et objets à leur place. Une rencontre place aussi ses créatures,
+   * Construit la carte du lieu : terrain, passages et éléments à leur place. Une rencontre place aussi ses créatures,
    * groupées (caravane) ou dispersées (mineurs) selon leur rôle. `n` change la disposition du terrain (« Régénérer »).
    */
   const generate = (hint: LocationHint, source: string, n: number, groups?: EncounterGroup[]) => {
@@ -166,8 +152,10 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
       tokens,
       encounterOf: groups?.length ? source : b.encounterOf,
       build: undefined,
+      ...(groups?.length ? { turn: undefined, round: 1, log: [] } : {}),
     });
     setHistory([]);
+    if (groups?.length) setTab('combat');
   };
 
   useEffect(() => {
@@ -201,7 +189,7 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
     if (prop !== 'gomme') props.push({ id: uid(), key: prop, cell: idx, visible: propVisible });
     commitBuild({ ...build, props });
   };
-  const onBuildDown = (e: ReactPointerEvent) => {
+  const onBoardDown = (e: ReactPointerEvent) => {
     if (e.button !== 0) return;
     if (!building) {
       // Saisir un jeton : il est sélectionné, et le glisser le déplace. Sans mouvement, c'est un simple clic.
@@ -219,7 +207,7 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
     if (brush.tool === 'objet') { placeProp(c, brush.prop); return; }
     setStroke({ anchor: c, cur: c, cells: [c.y * b.cols + c.x] });
   };
-  const onBuildMove = (e: ReactPointerEvent) => {
+  const onBoardMove = (e: ReactPointerEvent) => {
     if (drag) {
       const c = cellAt(e.clientX, e.clientY);
       if (c && (c.x !== drag.cur.x || c.y !== drag.cur.y)) setDrag({ ...drag, cur: c, moved: true });
@@ -271,29 +259,19 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
   };
 
   const patchToken = (id: string, patch: Partial<BattleToken>) => set({ tokens: b.tokens.map((t) => (t.id === id ? { ...t, ...patch } : t)) });
-  const adjustHp = (t: BattleToken, delta: number) => {
-    if (t.hp === undefined) return;
-    patchToken(t.id, { hp: Math.max(0, Math.min(t.maxHp ?? t.hp, t.hp + delta)) });
-  };
 
-  /** Révèle ou cache un passage secret du tracé de l'Atlas (partagé avec la carte de navigation). */
-  const toggleDiscovered = (id: string) => onReveal(id);
-
-  function addToken() {
-    const st: Stat | undefined = statId ? STATS[statId] : undefined;
-    const size: 1 | 2 = st && /taille (G|TG)/.test(st.meta) ? 2 : 1;
-    const spot = firstFree(bv, size);
-    if (!spot) return; // plateau plein
-    const hp = st ? leadingInt(st.hp) : undefined;
-    const token: BattleToken = {
-      id: uid(), name: name.trim() || st?.name || 'Jeton', kind, x: spot.x, y: spot.y, size,
-      // Les créatures sont cachées jusqu'à ce que le MJ les révèle.
-      visible: kind !== 'monster', hp, maxHp: hp, ac: st ? leadingInt(st.ac) : undefined, statId: st ? statId : undefined,
-      icon: iconFor(kind, st), image,
-    };
-    set({ tokens: [...b.tokens, token] });
-    setName(''); setStatId(''); setImage(undefined);
-    setSelectedId(token.id);
+  /** Pose des jetons près du centre, chacun sur la première case libre. */
+  function placeTokens(list: Omit<BattleToken, 'x' | 'y'>[]) {
+    let next = bv;
+    const placed: BattleToken[] = [];
+    for (const t of list) {
+      const spot = freeNear(next, t.size);
+      if (!spot) break;
+      const token = { ...t, ...spot } as BattleToken;
+      placed.push(token);
+      next = { ...next, tokens: [...next.tokens, token] };
+    }
+    if (placed.length) set({ tokens: [...b.tokens, ...placed] });
   }
 
   /** Clic sur une case vide : désélectionne le jeton et ferme la fiche. Les jetons se déplacent par glisser-déposer. */
@@ -302,29 +280,70 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
     setInfoId(null);
     setSelectedId(null);
   }
-  /** Clic sur un élément : ouvre sa fiche. */
-  function onElementClick(id: string) {
-    if (!boardElements.some((e) => e.id === id)) return;
-    setInfoId(id);
-  }
-  // Échap désélectionne le jeton.
+  // Échap désélectionne le jeton et ferme la fiche.
   useEffect(() => {
-    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') setSelectedId(null); };
+    const key = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setSelectedId(null); setInfoId(null); }
+    };
     window.addEventListener('keydown', key);
     return () => window.removeEventListener('keydown', key);
   }, []);
   const zoomBy = (dir: 1 | -1) => setZoom((z) => ZOOMS[Math.min(ZOOMS.length - 1, Math.max(0, ZOOMS.indexOf(z) + dir))] ?? z);
 
-  // Passages : tracés réels de l'Atlas, et portes posées par le MJ sur ce plan. Chacun mène quelque part.
-  const passages: { id: string; title: string; secret: boolean; found: boolean; dc?: number; checkLabel?: string; auto?: PassageLink; marker?: MapMarker; cells: number[] }[] = [
-    ...(b.local?.elements ?? []).filter((e) => e.kind === 'passage').map((e) => ({
-      id: e.id, title: e.title, secret: e.secret, found: discovered.includes(e.id), dc: e.dc, checkLabel: e.checkLabel, auto: e.auto, cells: e.cells ?? [],
+  // Passages : tracés réels de l'Atlas, et portes posées par le MJ sur ce plan.
+  const localElements = b.local?.elements ?? [];
+  const passages = [
+    ...localElements.filter((e) => e.kind === 'passage').map((e) => ({
+      id: e.id, title: e.title, secret: e.secret, found: discovered.includes(e.id), dc: e.dc, checkLabel: e.checkLabel, auto: e.auto,
+      cells: e.cells ?? [], trace: e.trace, subtitle: e.subtitle, summary: e.summary, marker: undefined as MapMarker | undefined,
     })),
     ...markers.filter((m) => m.kind === 'passage' && m.planId === plan?.id).map((m) => ({
-      id: `mk-${m.id}`, title: m.title, secret: true, found: m.revealed, dc: m.dcInvestigate ?? 14, checkLabel: 'Investigation', marker: m, cells: [],
+      id: `mk-${m.id}`, title: m.title, secret: true, found: m.revealed, dc: m.dcInvestigate ?? 14, checkLabel: 'Investigation', auto: undefined as PassageLink | undefined,
+      cells: [] as number[], trace: 'secret', subtitle: undefined as string | undefined, summary: m.summary, marker: m,
     })),
   ];
   const linkOf = (id: string) => rec.overlay?.passageLinks?.[id] ?? passages.find((p) => p.id === id)?.auto;
+  const dest = party?.dest;
+  const towardDest = (link?: PassageLink) => !!(dest && link && (link.id === dest.id || link.label.startsWith(dest.title)));
+
+  const secrets: SecretItem[] = passages.filter((p) => p.secret).map((p, i) => ({
+    id: p.id, label: `S${i + 1}`, title: p.title, dc: p.dc, check: p.checkLabel, found: p.found, link: linkOf(p.id),
+  }));
+  // Sorties : les galeries qui quittent le plateau, mènent à un autre plan, ou dont le MJ a inscrit la destination.
+  // Une même destination n'est listée qu'une fois ; les galeries internes restent sur le plateau, cliquables.
+  const onEdge = (cells: number[]) => cells.some((c) => { const x = c % b.cols, y = Math.floor(c / b.cols); return x === 0 || y === 0 || x === b.cols - 1 || y === b.rows - 1; });
+  const seenDest = new Set<string>();
+  const exitList = passages.filter((p) => {
+    const link = linkOf(p.id);
+    if (p.secret || !link) return false;
+    if (!(rec.overlay?.passageLinks?.[p.id] || link.kind === 'anchor' || onEdge(p.cells))) return false;
+    if (seenDest.has(link.id)) return false;
+    seenDest.add(link.id);
+    return true;
+  });
+  const exits: ExitItem[] = exitList
+    .map((p) => ({ id: p.id, label: '', title: p.title, link: linkOf(p.id)!, toward: towardDest(linkOf(p.id)) }))
+    .sort((x, y) => Number(y.toward) - Number(x.toward))
+    .map((e, i) => ({ ...e, label: `E${i + 1}` }));
+  const others = passages.filter((p) => !p.secret).length - exits.length;
+
+  // À fouiller : lieux de l'Atlas jouables (cf. search.ts), et éléments interactifs posés par le MJ.
+  const notes = rec.overlay?.searchNotes ?? {};
+  const searchPoints = localElements
+    .filter((e) => e.kind === 'point' && e.cell !== undefined)
+    .map((e) => ({ e, entry: searchFor(e.title, notes[e.id]) }))
+    .filter((x): x is { e: typeof x.e; entry: SearchEntry } => !!x.entry);
+  const markerPoints = b.local?.window && plan
+    ? markers.filter((m) => m.planId === plan.id && (m.kind === 'objet' || m.kind === 'repere')).flatMap((m) => {
+      const cell = cellIn(b.local!.window, b.cols, b.rows, m.x, m.y);
+      const entry: SearchEntry = { skill: 'Investigation', dc: m.dcInvestigate ?? 12, find: m.reading || m.summary || 'À décrire.', loot: m.keep, effect: m.effect };
+      return cell === undefined ? [] : [{ m, cell, entry }];
+    })
+    : [];
+  const search: SearchItem[] = [
+    ...searchPoints.map(({ e, entry }) => ({ id: e.id, label: '', title: e.title, entry, shown: discovered.includes(e.id) })),
+    ...markerPoints.map(({ m, entry }) => ({ id: `mk-${m.id}`, label: '', title: m.title, entry, shown: m.revealed })),
+  ].map((s, i) => ({ ...s, label: `F${i + 1}` }));
 
   // Destinations proposées : ancres de l'Atlas, et éléments interactifs de cet univers.
   const anchorOptions = (atlas?.anchors ?? []).map((a) => {
@@ -336,326 +355,329 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
   }));
   const options = [...anchorOptions, ...markerOptions];
 
-  // Éléments du plateau : passages (tracés) et objets (repères) ; les éléments cachés sont en pointillés pour le MJ.
+  // Éléments du plateau : passages, éléments à fouiller, repères du MJ et objets déposés. Cachés : en pointillés pour le MJ.
   const boardElements: BoardElement[] = [
-    ...(b.local?.elements ?? []).filter((e) => e.kind === 'passage').map((e) => ({
+    ...localElements.filter((e) => e.kind === 'passage').map((e) => ({
       id: e.id, kind: 'passage' as const, title: e.title, category: e.category, cells: e.cells,
       ghost: e.secret && !discovered.includes(e.id), dc: e.dc, info: { subtitle: e.subtitle, text: e.summary },
     })),
-    ...(b.local?.elements ?? []).filter((e) => e.kind === 'point' && e.cell !== undefined).map((e) => ({
+    ...searchPoints.map(({ e }) => ({
       id: e.id, kind: 'point' as const, title: e.title, category: e.category, cell: e.cell,
       ghost: !discovered.includes(e.id), info: { subtitle: e.subtitle, text: e.summary },
     })),
-    ...(b.local?.window && plan
-      ? markers.filter((m) => m.planId === plan.id && (m.kind === 'objet' || m.kind === 'repere')).flatMap((m) => {
-        const cell = cellIn(b.local!.window, b.cols, b.rows, m.x, m.y);
-        return cell === undefined ? [] : [{
-          id: `mk-${m.id}`, kind: 'point' as const, title: m.title, category: 'indetermine',
-          cell, ghost: !m.revealed, dc: m.dcInvestigate, info: { text: [m.reading, m.summary].filter(Boolean).join('\n\n') },
-        }];
-      })
-      : []),
+    ...markerPoints.map(({ m, cell }) => ({
+      id: `mk-${m.id}`, kind: 'point' as const, title: m.title, category: 'indetermine', cell, ghost: !m.revealed, dc: m.dcInvestigate,
+      info: { text: [m.reading, m.summary].filter(Boolean).join('\n\n') },
+    })),
     ...build.props.map((p) => ({
       id: `pr-${p.id}`, kind: 'point' as const, title: PROP_LABEL[p.key] ?? p.key, category: 'indetermine', cell: p.cell,
       image: propUrl(p.key), ghost: !p.visible,
       info: { subtitle: 'Objet', text: PROP_BY_KEY[p.key]?.text, image: propUrl(p.key) },
     })),
   ];
-
-  const info = boardElements.find((e) => e.id === infoId) ?? null;
-  const infoProp = info?.id.startsWith('pr-') ? build.props.find((p) => `pr-${p.id}` === info.id) ?? null : null;
-
-  // Regroupement de la liste : par destination, ou par direction depuis le centre du plateau.
-  const groupBy_ = groupBy;
-  const center = { x: b.cols / 2, y: b.rows / 2 };
-  const DIRS = ['Nord', 'Nord-Est', 'Est', 'Sud-Est', 'Sud', 'Sud-Ouest', 'Ouest', 'Nord-Ouest'];
-  const directionOf = (cells: number[]) => {
-    if (!cells.length) return 'Autre';
-    const mx = cells.reduce((t, i) => t + (i % b.cols), 0) / cells.length;
-    const my = cells.reduce((t, i) => t + Math.floor(i / b.cols), 0) / cells.length;
-    const angle = (Math.atan2(mx - center.x, -(my - center.y)) * 180) / Math.PI;
-    return DIRS[Math.round((((angle % 360) + 360) % 360) / 45) % 8];
+  const cellsOf = (id: string): number[] => {
+    const el = boardElements.find((e) => e.id === id);
+    return el ? (el.cells ?? (el.cell !== undefined ? [el.cell] : [])) : [];
   };
-  const groups = new Map<string, typeof passages>();
-  for (const p of passages) {
-    const key = groupBy_ === 'orientation'
-      ? directionOf(p.cells)
-      : linkOf(p.id)?.label ?? 'Destination non inscrite';
-    groups.set(key, [...(groups.get(key) ?? []), p]);
-  }
+
+  // Repères MJ : F1 sur les éléments à fouiller, S1 sur les passages secrets, E1 sur les sorties.
+  const labels: BoardLabel[] = [
+    ...search.flatMap((s) => { const c = cellsOf(s.id)[0]; return c === undefined ? [] : [{ cell: c, text: s.label, tone: 'search' as const }]; }),
+    ...secrets.flatMap((s) => { const c = cellsOf(s.id); return c.length ? [{ cell: anchorOf(c, b.cols), text: s.label, tone: 'secret' as const }] : []; }),
+    ...exits.flatMap((e) => { const c = cellsOf(e.id); return c.length ? [{ cell: anchorOf(c, b.cols), text: e.label, tone: e.toward ? 'dest' as const : 'exit' as const }] : []; }),
+  ];
+  const highlight = hoverId ? cellsOf(hoverId) : infoId ? cellsOf(infoId) : undefined;
 
   // Portées : déplacement (cases atteignables, terrain compté) et anneau d'attaque, pour chaque créature et chaque joueur.
-  const statOf = (t: BattleToken) => (t.statId ? STATS[t.statId] : undefined);
   const rangeOf = (t: BattleToken): BoardRange => ({
     id: t.id, x: t.x, y: t.y, size: t.size,
     move: reachableCells(grid, b.cols, b.rows, t, speedCells(statOf(t))),
     attack: attackCells(statOf(t)), ranged: rangedCells(statOf(t)), selected: t.id === selectedId,
   });
-  const ranges: BoardRange[] = showRanges ? b.tokens.map(rangeOf) : [];
+  // Pendant un glisser, la zone de déplacement du jeton s'affiche depuis sa case de départ.
+  const dragged = drag?.moved ? b.tokens.find((t) => t.id === drag.id) : undefined;
+  const ranges: BoardRange[] = showRanges ? b.tokens.map(rangeOf) : dragged ? [{ ...rangeOf(dragged), attack: 0, ranged: 0 }] : [];
 
-  // Pendant un glisser, le jeton suit le pointeur.
   const liveAt = (t: BattleToken) => (drag?.moved && drag.id === t.id
     ? { x: drag.origin.x + drag.cur.x - drag.start.x, y: drag.origin.y + drag.cur.y - drag.start.y }
     : { x: t.x, y: t.y });
   const boardTokens: BoardToken[] = b.tokens.map((t) => {
     const at = liveAt(t);
-    return { id: t.id, name: t.name, kind: t.kind, x: at.x, y: at.y, size: t.size, icon: t.icon, image: tokenImage(t), selected: t.id === selectedId, hidden: !t.visible };
+    return {
+      id: t.id, name: t.name, kind: t.kind, x: at.x, y: at.y, size: t.size, icon: t.icon, image: tokenImage(t),
+      selected: t.id === selectedId, hidden: !t.visible, active: t.id === b.turn, hp: t.hp, maxHp: t.maxHp,
+    };
   });
 
   const readout = selected && hover ? feetBetween(selected, { ...hover, size: 1 }, b.feetPerCell) : null;
   const walk = selected && hover ? pathCost(grid, b.cols, b.rows, selected, hover) : null;
   const hoverKind = hover && grid ? TERRAIN[grid[hover.y * b.cols + hover.x] as keyof typeof TERRAIN]?.label : null;
-  const stat = selected?.statId ? STATS[selected.statId] : undefined;
-  // Légende : seulement les terrains réellement présents sur ce plateau.
   const present = new Set<string>(grid ? Array.from(grid) : []);
+  const activeToken = b.tokens.find((t) => t.id === b.turn);
+
+  // Fiche ouverte : élément du plateau, et ce que le MJ en sait.
+  const info = boardElements.find((e) => e.id === infoId) ?? null;
+  const infoSearch = info ? search.find((s) => s.id === info.id) ?? null : null;
+  const infoPassage = info ? passages.find((p) => p.id === info.id) ?? null : null;
+  const infoMarker = info?.id.startsWith('mk-') ? markers.find((m) => `mk-${m.id}` === info.id) ?? null : null;
+  /** Visibilité d'un élément pour les joueurs : lieu de l'Atlas, repère du MJ ou objet déposé. */
+  const toggleShown = (id: string) => {
+    if (id.startsWith('pr-')) {
+      commitBuild({ ...build, props: build.props.map((p) => (`pr-${p.id}` === id ? { ...p, visible: !p.visible } : p)) });
+    } else if (id.startsWith('mk-')) {
+      const m = markers.find((x) => `mk-${x.id}` === id);
+      if (m) onMarker(m.id, { revealed: !m.revealed });
+    } else onReveal(id);
+  };
+  const isShown = (id: string) => (id.startsWith('pr-') ? !!build.props.find((p) => `pr-${p.id}` === id)?.visible
+    : id.startsWith('mk-') ? !!markers.find((m) => `mk-${m.id}` === id)?.revealed : discovered.includes(id));
+  /** Passage le plus proche d'un élément à fouiller (dans un rayon de 4 cases) : ce que la fouille peut ouvrir. */
+  const passageNear = (cell: number | undefined) => {
+    if (cell === undefined) return null;
+    const x = cell % b.cols, y = Math.floor(cell / b.cols);
+    let best: (typeof passages)[number] | null = null, bestD = 5;
+    for (const p of passages) for (const c of p.cells) {
+      const d = Math.max(Math.abs((c % b.cols) - x), Math.abs(Math.floor(c / b.cols) - y));
+      if (d < bestD) { bestD = d; best = p; }
+    }
+    return best;
+  };
+
+  async function rewriteSearch(id: string, title: string, entry: SearchEntry) {
+    setRewrite({ busy: true });
+    try {
+      const el = localElements.find((e) => e.id === id);
+      const text = await askAI(
+        'Tu es un maître du jeu de D&D 5e qui prépare une séance dans l’Outreterre. Tu écris des fiches de fouille concises, concrètes et évocatrices, en français.',
+        `Lieu : ${placeTitle}. Élément : ${title}${el?.summary ? ` (${el.summary})` : ''}.\nFiche actuelle : ${JSON.stringify(entry)}.\nRéécris-la avec des détails propres à ce lieu. Champs : skill (compétence 5e), dc (nombre), find (ce que le joueur trouve, 1 à 2 phrases), loot (butin, ou chaîne vide), effect (effet en jeu, ou chaîne vide).`,
+        { json: true },
+      );
+      const note = parseJson<SearchNote>(text);
+      if (!note?.find || !note.skill || !Number.isFinite(Number(note.dc))) throw new Error('Réponse de l’IA illisible.');
+      onSearchNote?.(id, { skill: note.skill, dc: Number(note.dc), find: note.find, loot: note.loot || undefined, effect: note.effect || undefined });
+      setRewrite({ busy: false });
+    } catch (e) {
+      setRewrite({ busy: false, error: (e as Error).message });
+    }
+  }
+
+  const legend = grid ? (
+    <details className="maps-card battle-legend">
+      <summary>Légende</summary>
+      <ul>
+        {LEGEND_ORDER.filter((k) => present.has(k)).map((k) => (
+          <li key={k}><span className={`battle-swatch k-${SWATCH[k]}`} />{TERRAIN[k].label}</li>
+        ))}
+        {secrets.some((s) => !s.found) && <li><span className="battle-swatch k-secret" />Passage secret fermé (MJ seulement)</li>}
+        {secrets.some((s) => s.found) && <li><span className="battle-swatch k-secret-open" />Passage secret découvert</li>}
+        <li><span className="place-tag tone-search">F</span><span className="place-tag tone-secret">S</span><span className="place-tag tone-exit">E</span>Repères du MJ, jamais montrés aux joueurs</li>
+      </ul>
+      <p className="maps-sub">Une case = 5 pieds ; une diagonale compte comme une case droite. Eau et éboulis comptent double.</p>
+    </details>
+  ) : null;
 
   return (
-    <div className="maps-body">
+    <div className="maps-body battle-body">
       <div className="maps-canvas battle-canvas">
         <div className="battle-bar">
-          <span className="battle-round">Round {b.round}</span>
-          {(context?.title ?? b.local?.place) && <span className="battle-place">{context?.title ?? b.local?.place}</span>}
-          <button className="maps-btn gold" onClick={() => set({ round: b.round + 1 })}>Round suivant</button>
-          <button className="maps-btn" onClick={() => { if (window.confirm('Retirer tous les jetons du plateau ?')) set({ tokens: [], round: 1 }); }}>Vider le plateau</button>
-          {b.terrain && (
-            <button
-              className="maps-btn" disabled={!!b.local}
-              title={b.local ? 'Le terrain suit la carte de navigation : il ne change pas tant que le lieu ne change pas.' : 'Propose une autre disposition de terrain pour le même lieu'}
-              onClick={() => generate(context ?? { title: 'Caverne' }, b.terrain!.source, (b.terrain!.seed & 0xff) + 1, undefined)}
-            >
-              ↻ Régénérer le terrain
-            </button>
-          )}
-          {b.terrain && <button className="maps-btn" onClick={() => set({ terrain: undefined, local: undefined, encounterOf: undefined, build: undefined })}>Terrain vierge</button>}
-          {b.terrain && (
-            <button className={`maps-btn ${building ? 'gold' : ''}`} title="Peindre le terrain et déposer des objets à la main" onClick={() => { setBuilding((v) => !v); setStroke(null); }}>
-              🛠 Construction
-            </button>
-          )}
-          {!b.terrain && <button className="maps-btn" onClick={() => generate(context ?? { title: 'Caverne' }, context?.id ?? 'caverne', 0)}>Générer un terrain</button>}
-          <div className="battle-zoom" title="Zoom du plateau">
-            <button className="maps-btn" onClick={() => zoomBy(-1)} disabled={zoom <= ZOOMS[0]} aria-label="Dézoomer">−</button>
-            <span>{Math.round(zoom * 100)} %</span>
-            <button className="maps-btn" onClick={() => zoomBy(1)} disabled={zoom >= ZOOMS[ZOOMS.length - 1]} aria-label="Zoomer">+</button>
+          <div className="battle-where">
+            <span className="battle-place-name">{placeTitle}</span>
+            <span className="battle-turn-chip">
+              Round {b.round}{activeToken ? <> · tour de <b>{activeToken.name}</b></> : null}
+            </span>
           </div>
-          <button className={`maps-btn ${showRanges ? 'gold' : ''}`} title="Afficher les déplacements et les portées d'attaque (MJ seulement)" onClick={() => setShowRanges((v) => !v)}>
-            ◎ Portées
-          </button>
-          <span className="battle-hint">
-            {selected ? `Glisse ${selected.name} sur une case libre. Clique à nouveau dessus, ou sur une case vide, pour le désélectionner.` : 'Glisse un jeton pour le déplacer, ou clique dessus pour le sélectionner.'}
-          </span>
+          <div className="battle-tools">
+            <details className="battle-menu">
+              <summary className="maps-btn">Terrain ▾</summary>
+              <div className="battle-menu-pop">
+                <button
+                  className="maps-btn" disabled={!b.terrain || !!b.local}
+                  title={b.local ? 'Le terrain suit la carte de navigation : il ne change pas tant que le lieu ne change pas.' : 'Une autre disposition pour le même lieu'}
+                  onClick={() => generate(context ?? { title: 'Caverne' }, b.terrain!.source, (b.terrain!.seed & 0xff) + 1, undefined)}
+                >↻ Régénérer</button>
+                {b.terrain
+                  ? <button className="maps-btn" onClick={() => set({ terrain: undefined, local: undefined, encounterOf: undefined, build: undefined })}>Terrain vierge</button>
+                  : <button className="maps-btn" onClick={() => generate(context ?? { title: 'Caverne' }, context?.id ?? 'caverne', 0)}>Générer un terrain</button>}
+                <button className="maps-btn" onClick={() => { if (window.confirm('Retirer tous les jetons du plateau ?')) set({ tokens: [], round: 1, turn: undefined, log: [] }); }}>Vider le plateau</button>
+              </div>
+            </details>
+            <div className="battle-zoom" title="Zoom du plateau">
+              <button className="maps-btn" onClick={() => zoomBy(-1)} disabled={zoom <= ZOOMS[0]} aria-label="Dézoomer">−</button>
+              <span>{Math.round(zoom * 100)} %</span>
+              <button className="maps-btn" onClick={() => zoomBy(1)} disabled={zoom >= ZOOMS[ZOOMS.length - 1]} aria-label="Zoomer">+</button>
+            </div>
+            <button className={`maps-btn ${showRanges ? 'gold' : ''}`} title="Déplacements et portées d'attaque (MJ seulement)" onClick={() => setShowRanges((v) => !v)}>◎ Portées</button>
+          </div>
         </div>
-        {passages.some((p) => p.secret) && (
+
+        {secrets.length > 0 && (
           <div className="battle-chips" aria-label="Passages secrets">
-            {passages.filter((p) => p.secret).map((p) => (
+            {secrets.map((s) => (
               <button
-                key={p.id} className={`battle-chip ${p.found ? 'on' : ''}`} aria-pressed={p.found}
-                onClick={() => (p.marker ? onMarker(p.marker.id, { revealed: !p.found }) : toggleDiscovered(p.id))}
+                key={s.id} className={`battle-chip ${s.found ? 'on' : ''}`} aria-pressed={s.found}
+                onMouseEnter={() => setHoverId(s.id)} onMouseLeave={() => setHoverId(null)}
+                onClick={() => toggleShown(s.id)} title={s.found ? 'Trouvé : clic pour le recacher' : 'Caché : clic quand les joueurs le trouvent'}
               >
-                {p.found ? '🔓' : '🔒'} {p.title}
+                <b>{s.label}</b> {s.found ? '🔓' : '🔒'} {s.title}
               </button>
             ))}
           </div>
         )}
-        {info && (
-          <aside className="present-info battle-info" role="dialog" aria-label={info.title}>
-            <button className="present-info-close" onClick={() => setInfoId(null)} aria-label="Fermer">×</button>
-            <span className="present-info-kind">{info.info?.subtitle ?? (info.kind === 'passage' ? 'Passage' : 'Lieu')}{info.ghost ? ' · secret (MJ)' : ''}</span>
-            {info.info?.image && <img className="present-info-img" src={info.info.image} alt="" />}
-            <h3>{info.title}</h3>
-            {info.info?.text && info.info.text.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
-            {info.ghost && info.dc !== undefined && <p className="battle-sub">DC {info.dc} pour la trouver</p>}
-            {infoProp && (
-              <label className="build-check">
-                <input
-                  type="checkbox" checked={infoProp.visible}
-                  onChange={(e) => commitBuild({ ...build, props: build.props.map((p) => (p.id === infoProp.id ? { ...p, visible: e.target.checked } : p)) })}
-                />
-                Visible des joueurs
-              </label>
+
+        <div className="battle-stage">
+          <div
+            ref={wrapRef} className={`battle-board-wrap ${building ? 'building' : ''} ${zoom !== 1 ? 'zoomed' : ''} ${drag ? 'dragging' : ''}`}
+            style={{ width: `${zoom * 100}%` }}
+            onPointerDown={onBoardDown} onPointerMove={onBoardMove}
+            onDragOver={(e) => { if (building) e.preventDefault(); }}
+            onDrop={(e) => {
+              if (!building) return;
+              e.preventDefault();
+              const key = e.dataTransfer.getData('text/plain');
+              const c = cellAt(e.clientX, e.clientY);
+              if (c && PROP_LABEL[key]) placeProp(c, key);
+            }}
+          >
+            <BattleBoard
+              cols={b.cols} rows={b.rows} backdrop={rec.image} terrain={grid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
+              onCell={onBoardCell} onElement={(id) => { if (boardElements.some((e) => e.id === id)) setInfoId(id); }} onHover={(x, y) => setHover({ x, y })}
+              preview={stroke && brush.tool === 'terrain' ? stroke.cells : undefined}
+              labels={labels} highlight={highlight}
+            />
+            {readout && (
+              <div className="battle-readout">
+                {walk === null ? 'Chemin coupé' : <>{walk * b.feetPerCell} pieds de marche</>}
+                {walk !== null && <span className="battle-sub"> · {readout.feet} à vol d'oiseau</span>}
+                {hoverKind && <span className="battle-sub"> · {hoverKind}</span>}
+              </div>
             )}
-          </aside>
-        )}
-        <div
-          ref={wrapRef} className={`battle-board-wrap ${building ? 'building' : ''} ${zoom !== 1 ? 'zoomed' : ''}`}
-          style={{ width: `${zoom * 100}%` }}
-          onPointerDown={onBuildDown} onPointerMove={onBuildMove}
-          onDragOver={(e) => { if (building) e.preventDefault(); }}
-          onDrop={(e) => {
-            if (!building) return;
-            e.preventDefault();
-            const key = e.dataTransfer.getData('text/plain');
-            const c = cellAt(e.clientX, e.clientY);
-            if (c && PROP_LABEL[key]) placeProp(c, key);
-          }}
-        >
-          <BattleBoard
-            cols={b.cols} rows={b.rows} backdrop={rec.image} terrain={grid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
-            onCell={onBoardCell} onElement={onElementClick} onHover={(x, y) => setHover({ x, y })}
-            preview={stroke && brush.tool === 'terrain' ? stroke.cells : undefined}
-          />
-          {readout && (
-            <div className="battle-readout">
-              {walk === null ? 'Chemin coupé' : <>{walk * b.feetPerCell} pieds de déplacement</>}
-              {walk !== null && <span className="battle-sub"> · {readout.feet} à vol d'oiseau</span>}
-              {hoverKind && <span className="battle-sub"> · {hoverKind}</span>}
-            </div>
+          </div>
+
+          {info && (
+            <aside className="battle-fiche" role="dialog" aria-label={info.title}>
+              <button className="present-info-close" onClick={() => setInfoId(null)} aria-label="Fermer">×</button>
+              <span className="present-info-kind">
+                {infoSearch ? `${infoSearch.label} · à fouiller` : infoPassage ? `${secrets.find((s) => s.id === info.id)?.label ?? exits.find((e) => e.id === info.id)?.label ?? 'Galerie'} · ${infoPassage.secret ? 'passage secret' : 'passage'}` : info.info?.subtitle ?? 'Élément'}
+              </span>
+              {info.info?.image && <img className="present-info-img" src={info.info.image} alt="" />}
+              <h3>{info.title}</h3>
+              {info.info?.subtitle && !infoSearch && <p className="maps-sub">{info.info.subtitle}</p>}
+
+              {infoSearch && (() => {
+                const near = infoSearch.entry.passage ? passageNear(info.cell) : null;
+                const nearLink = near ? linkOf(near.id) : undefined;
+                return (
+                  <dl className="fiche-facts">
+                    <dt>Pour le trouver</dt><dd><b>{infoSearch.entry.skill} DC {infoSearch.entry.dc}</b></dd>
+                    <dt>Ce qu’on trouve</dt><dd>{infoSearch.entry.find}</dd>
+                    {infoSearch.entry.loot && <><dt>Butin</dt><dd>{infoSearch.entry.loot}</dd></>}
+                    {infoSearch.entry.effect && <><dt>Effet</dt><dd>{infoSearch.entry.effect}</dd></>}
+                    {infoSearch.entry.passage && (
+                      <>
+                        <dt>Passage</dt>
+                        <dd>
+                          {infoSearch.entry.passage.text}{infoSearch.entry.passage.dc ? ` (${infoSearch.entry.passage.skill} DC ${infoSearch.entry.passage.dc})` : ''}
+                          {near && (
+                            <span className="fiche-actions">
+                              {near.secret && !near.found && <button className="maps-btn gold" onClick={() => toggleShown(near.id)}>Révéler {secrets.find((s) => s.id === near.id)?.label ?? 'le passage'}</button>}
+                              {nearLink && <button className="maps-btn" onClick={() => onFollow(nearLink)}>Suivre ➜ {nearLink.label}</button>}
+                            </span>
+                          )}
+                        </dd>
+                      </>
+                    )}
+                    {info.info?.text && <><dt>Atlas</dt><dd className="maps-sub">{info.info.text}</dd></>}
+                  </dl>
+                );
+              })()}
+
+              {infoPassage && (() => {
+                const link = linkOf(infoPassage.id);
+                const diff = passageDifficulty(infoPassage.trace);
+                const current = rec.overlay?.passageLinks?.[infoPassage.id];
+                return (
+                  <dl className="fiche-facts">
+                    {infoPassage.summary && <><dt>Description</dt><dd>{infoPassage.summary}</dd></>}
+                    {infoPassage.secret && <><dt>Pour le trouver</dt><dd><b>{infoPassage.checkLabel ?? 'Perception'} DC {infoPassage.dc ?? 14}</b></dd></>}
+                    {diff && <><dt>Pour le suivre</dt><dd>{diff.text}</dd></>}
+                    <dt>Destination</dt>
+                    <dd>
+                      {link ? <>{link.label}{towardDest(link) && ' 🎯'}</> : <span className="battle-missing">non inscrite</span>}
+                      <select className="maps-btn" value={current ? `${current.kind}:${current.id}` : ''} onChange={(e) => {
+                        const opt = options.find((o) => o.value === e.target.value);
+                        onLink(infoPassage.id, opt ? opt.link : null);
+                      }}>
+                        <option value="">{link && !current ? 'Celle de l’Atlas' : 'Choisir une destination…'}</option>
+                        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                      </select>
+                    </dd>
+                  </dl>
+                );
+              })()}
+
+              {!infoSearch && !infoPassage && info.info?.text && info.info.text.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
+              {infoMarker?.notes && <p className="maps-sub">Notes : {infoMarker.notes}</p>}
+
+              <div className="fiche-actions">
+                <button className={`maps-btn ${isShown(info.id) ? '' : 'gold'}`} onClick={() => toggleShown(info.id)}>
+                  {isShown(info.id) ? '👁 Visible des joueurs' : '🙈 Caché : le montrer'}
+                </button>
+                {infoPassage && linkOf(infoPassage.id) && (!infoPassage.secret || infoPassage.found) && (
+                  <button className="maps-btn gold" onClick={() => onFollow(linkOf(infoPassage.id)!)}>Suivre ➜</button>
+                )}
+                {infoSearch && !infoSearch.id.startsWith('mk-') && (
+                  <>
+                    <button className="maps-btn" disabled={rewrite.busy || !aiReady()} title={aiReady() ? 'Réécrire la fiche pour ce lieu' : 'Configure une clé d’IA dans Réglages'}
+                      onClick={() => rewriteSearch(infoSearch.id, infoSearch.title, infoSearch.entry)}>{rewrite.busy ? 'L’IA écrit…' : '✨ Détailler avec l’IA'}</button>
+                    {notes[infoSearch.id] && <button className="maps-btn" onClick={() => onSearchNote?.(infoSearch.id, null)}>Rétablir</button>}
+                  </>
+                )}
+              </div>
+              {rewrite.error && <p className="combat-ai-error">{rewrite.error}</p>}
+            </aside>
           )}
         </div>
+        <p className="battle-hint">
+          {building ? 'Construction : peins le terrain ou glisse des objets sur le plateau.'
+            : selected ? `${selected.name} sélectionné : glisse-le pour le déplacer, clique à côté ou Échap pour le désélectionner.`
+              : 'Glisse un jeton pour le déplacer · clique un élément pour sa fiche · survole une ligne du panneau pour la repérer.'}
+        </p>
       </div>
 
       <aside className="maps-panel battle-side">
-        {building && (
+        <div className="battle-tabs" role="tablist">
+          {([['combat', '⚔ Combat'], ['lieu', '🧭 Lieu'], ['construction', '🛠 Construire']] as const).map(([id, label]) => (
+            <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? 'on' : ''} onClick={() => { setTab(id); setStroke(null); }}>
+              {label}
+              {id === 'lieu' && search.length + secrets.length > 0 && <small>{search.length + secrets.length}</small>}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'combat' && (
+          <CombatPanel
+            b={b} grid={grid} place={placeTitle} selectedId={selectedId} onSelect={setSelectedId} set={set} heroes={heroes}
+            onPlace={placeTokens}
+            onRemove={(id) => { set({ tokens: b.tokens.filter((t) => t.id !== id), turn: b.turn === id ? undefined : b.turn }); setSelectedId(null); }}
+          />
+        )}
+
+        {tab === 'lieu' && (
+          <PlacePanel
+            title={placeTitle} text={context?.text} dest={dest}
+            search={search} secrets={secrets} exits={exits} others={others} options={options}
+            onOpen={(id) => setInfoId(id)} onHover={setHoverId} onToggle={toggleShown} onFollow={onFollow} onLink={onLink}
+            legend={legend}
+          />
+        )}
+
+        {tab === 'construction' && (
           <BuildPanel
             brush={brush} onBrush={setBrush} propVisible={propVisible} onPropVisible={setPropVisible}
             canUndo={history.length > 0} onUndo={undo} propCount={build.props.length}
             onClear={() => { if (window.confirm('Effacer toutes les modifications à la main ?')) commitBuild(undefined); }}
           />
         )}
-        {passages.length > 0 && (
-          <section className="maps-card battle-secrets">
-            <div className="battle-group-head">
-              <h3>Passages ({passages.length})</h3>
-              <select className="maps-btn" value={groupBy} onChange={(e) => setGroupBy(e.target.value as 'destination' | 'orientation')}>
-                <option value="destination">Par destination</option>
-                <option value="orientation">Par orientation</option>
-              </select>
-            </div>
-            {[...groups.entries()].map(([name, items]) => (
-              <details key={name} className="battle-group">
-                <summary>{name} <small>({items.length})</small></summary>
-                <ul className="battle-list">
-                  {items.map((p) => {
-                    const link = linkOf(p.id);
-                    const current = rec.overlay?.passageLinks?.[p.id];
-                    const value = current ? `${current.kind}:${current.id}` : '';
-                    return (
-                      <li key={p.id} data-on={p.found ? 1 : 0} className="battle-passage">
-                        <span className="battle-name">{p.secret ? (p.found ? '🔓' : '🔒') : '⇢'} {p.title}</span>
-                        {p.secret && <small>DC {p.dc} · {p.checkLabel}</small>}
-                        {p.secret && (
-                          <button className={`maps-btn ${p.found ? '' : 'gold'}`} onClick={() => (p.marker ? onMarker(p.marker.id, { revealed: !p.found }) : toggleDiscovered(p.id))}>
-                            {p.found ? 'Recacher' : 'Découvert'}
-                          </button>
-                        )}
-                        <div className="battle-dest">
-                          {link
-                            ? <><span>→ {link.label}</span> <button className="maps-btn gold" onClick={() => onFollow(link)}>Suivre le chemin</button></>
-                            : <span className="battle-missing">Destination non inscrite</span>}
-                          <select className="maps-btn" value={value} onChange={(e) => {
-                            const opt = options.find((o) => o.value === e.target.value);
-                            onLink(p.id, opt ? opt.link : null);
-                          }}>
-                            <option value="">{link && !current ? 'Destination de l’Atlas' : 'Changer la destination…'}</option>
-                            {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                          </select>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </details>
-            ))}
-          </section>
-        )}
-
-        <section className="maps-card">
-          <h3>Ajouter un jeton</h3>
-          <div className="maps-form">
-            <select className="maps-btn" value={statId} onChange={(e) => { setStatId(e.target.value); if (e.target.value) setKind('monster'); }}>
-              <option value="">Sans fiche (saisie libre)</option>
-              {SRD.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-            <input className="maps-btn" placeholder={stat?.name ?? 'Nom'} value={name} onChange={(e) => setName(e.target.value)} />
-            <select className="maps-btn" value={kind} onChange={(e) => setKind(e.target.value as BattleToken['kind'])}>
-              {(Object.keys(KIND_LABEL) as BattleToken['kind'][]).map((k) => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}
-            </select>
-            <label className="battle-file">
-              Image du jeton (facultatif)
-              <input type="file" accept="image/*" onChange={async (e) => {
-                const f = e.target.files?.[0];
-                if (f) setImage(await fileToTokenImage(f).catch(() => undefined));
-              }} />
-            </label>
-            {image && <img className="battle-thumb" src={image} alt="" />}
-            <button className="maps-btn gold" onClick={addToken}>Placer sur le plateau</button>
-          </div>
-        </section>
-
-        <section className="maps-card">
-          <h3>Jetons ({b.tokens.length})</h3>
-          {b.tokens.length === 0 && <p className="maps-sub">Aucun jeton. Ajoute les joueurs et les créatures, ou lance une rencontre depuis la carte.</p>}
-          <ul className="battle-list">
-            {b.tokens.map((t) => (
-              <li key={t.id} data-on={t.id === selectedId ? 1 : 0}>
-                <button className="maps-link" onClick={() => setSelectedId(t.id)}>{t.icon ?? '◆'} {t.name}</button>
-                <small>{KIND_LABEL[t.kind]}{t.hp !== undefined ? ` · ${t.hp}/${t.maxHp} PV` : ''}</small>
-                <button className="maps-btn" title={t.visible ? 'Visible des joueurs' : 'Caché des joueurs'} onClick={() => patchToken(t.id, { visible: !t.visible })}>
-                  {t.visible ? '👁' : '🙈'}
-                </button>
-                {t.hp !== undefined && (
-                  <span className="battle-hp">
-                    {[-5, -1, 1, 5].map((d) => <button key={d} className="maps-btn" onClick={() => adjustHp(t, d)}>{d > 0 ? `+${d}` : d}</button>)}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        {selected && (
-          <section className="maps-card battle-sheet">
-            <h3>{selected.name}</h3>
-            {selected.ac !== undefined && <p>CA <b>{selected.ac}</b>{selected.hp !== undefined && <> · PV <b>{selected.hp}/{selected.maxHp}</b></>}</p>}
-            <p className="maps-sub">Déplacement : {speedCells(stat)} cases ({speedCells(stat) * b.feetPerCell} pieds) · Allonge : {attackCells(stat)} case{attackCells(stat) > 1 ? 's' : ''}{rangedCells(stat) > 0 && <> · Portée courte : {rangedCells(stat)} cases</>}</p>
-            {stat && (
-              <>
-                <p className="maps-sub">Vitesse {stat.speed}{speedInCells(stat.speed) !== undefined && ` (≈ ${speedInCells(stat.speed)} cases par tour)`}</p>
-                <p className="maps-sub">Actions : {stat.actions.map(([n]) => n.split(' (')[0]).join(' · ')}</p>
-              </>
-            )}
-            <h4>Distances</h4>
-            <ul className="battle-dist">
-              {b.tokens.filter((t) => t.id !== selected.id).map((t) => (
-                <li key={t.id}>{t.name} : {feetBetween(selected, t, b.feetPerCell).feet} pieds</li>
-              ))}
-            </ul>
-            <button className="maps-btn" onClick={() => { if (window.confirm(`Retirer ${selected.name} ?`)) { set({ tokens: b.tokens.filter((t) => t.id !== selected.id) }); setSelectedId(null); } }}>
-              Retirer du plateau
-            </button>
-          </section>
-        )}
-
-        {grid && (
-          <section className="maps-card battle-legend">
-            <h3>Légende</h3>
-            <ul>
-              {LEGEND_ORDER.filter((k) => present.has(k)).map((k) => (
-                <li key={k}><span className={`battle-swatch k-${SWATCH[k]}`} />{TERRAIN[k].label}</li>
-              ))}
-              {passages.some((p) => p.secret && !p.found) && (
-                <li><span className="battle-swatch k-secret" />Passage secret, fermé (contour pointillé)</li>
-              )}
-              {passages.some((p) => p.secret && p.found) && (
-                <li><span className="battle-swatch k-secret-open" />Passage secret, découvert (teinte violette)</li>
-              )}
-              {boardElements.some((e) => e.ghost && e.kind === 'point') && (
-                <li><span className="battle-icon">?</span>Élément caché : visible du MJ seulement</li>
-              )}
-            </ul>
-            <p className="maps-sub">Le déplacement suit le chemin réel : contourner les obstacles, et compter le terrain difficile (eau, éboulis) pour le double.</p>
-          </section>
-        )}
-
-        <section className="maps-card battle-rules">
-          <h3>Rappels D&amp;D 5e</h3>
-          <ul>
-            <li>Une case = 5 pieds (1,5 m). Une diagonale compte comme une case droite.</li>
-            <li>Corps à corps : atteint à 1 case (5 pieds).</li>
-            <li>Vitesse ÷ 5 = cases par tour ; l'action Se précipiter double le déplacement.</li>
-            <li>Couvert : à moitié +2 CA, aux trois quarts +5 CA, total : impossible à viser directement.</li>
-          </ul>
-        </section>
       </aside>
     </div>
   );

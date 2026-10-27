@@ -9,6 +9,7 @@ import { cellIn } from './battle/local';
 import { tokenImage } from './battle/vignettes';
 import { applyBuild, PROP_BY_KEY, propUrl } from './battle/build';
 import { CREATURE_LORE, KIND_LORE } from './battle/lore';
+import { isSearchable } from './battle/search';
 import { STATS } from './atlas/statblocks';
 import type { PlayerBoard, PlayerElement, PlayerToken } from '../present/stage';
 
@@ -38,7 +39,7 @@ export function battleBoard(rec: MapRecord): PlayerBoard {
     .map((e) => ({ id: e.id, kind: 'passage', title: e.title, category: e.category, cells: e.cells, secret: e.secret, info: { subtitle: e.subtitle, text: e.summary } }));
   // Lieux de l'Atlas : visibles une fois révélés sur la carte de navigation, comme les autres repères de l'Atlas.
   const places: PlayerElement[] = (local?.elements ?? [])
-    .filter((e) => e.kind === 'point' && e.cell !== undefined && revealed.includes(e.id))
+    .filter((e) => e.kind === 'point' && e.cell !== undefined && revealed.includes(e.id) && isSearchable(e.title))
     .map((e) => ({ id: e.id, kind: 'point', title: e.title, category: e.category, cell: e.cell, info: { subtitle: e.subtitle, text: e.summary } }));
   const objects: PlayerElement[] = local?.window
     ? (rec.overlay?.markers ?? [])

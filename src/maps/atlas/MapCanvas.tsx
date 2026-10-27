@@ -101,7 +101,10 @@ function buildings(m: AtlasMap) {
   return out;
 }
 
-export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, dataKey, dm }: {
+/** Repère MJ dessiné au-dessus de la carte (position du groupe, destination), en coordonnées de plan 0–1. */
+export type MapMark = { id: string; x: number; y: number; label: string; tone: 'party' | 'dest' };
+
+export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, dataKey, dm, marks = [] }: {
   map: AtlasMap; layers: Layers; hidden: Set<FeatureCategory>;
   /** Mode MJ : révèle les passages secrets. Hors MJ, la carte est une carte de lore. */
   dm: boolean;
@@ -112,6 +115,7 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   /** Mode placement : un clic sur le fond de la carte renvoie sa position normalisée (0–1). */
   onPlace?: (x: number, y: number) => void;
   dataKey?: string | number;
+  marks?: MapMark[];
 }) {
   const svg = useRef<SVGSVGElement>(null);
   const W = map.width, H = map.height;
@@ -413,6 +417,16 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
               </g>
             );
           })}
+          {marks.map((m) => (
+            <g key={m.id} className={`am-mark am-mark-${m.tone}`} transform={`translate(${m.x * W} ${m.y * H}) scale(${s})`} pointerEvents="none">
+              <circle r={24} className="am-mark-ring" />
+              <circle r={6} className="am-mark-dot" />
+              <g transform="translate(0 -34)">
+                <rect x={-(m.label.length * 3.6 + 10)} y={-11} width={m.label.length * 7.2 + 20} height={20} rx={10} className="am-mark-flag" />
+                <text textAnchor="middle" y={4} className="am-mark-text">{m.label}</text>
+              </g>
+            </g>
+          ))}
         </g>
       </svg>
       <div className="am-grain" aria-hidden style={{ backgroundImage: `url(${grain()})` }} />

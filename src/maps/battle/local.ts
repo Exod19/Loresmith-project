@@ -8,6 +8,7 @@ import { dmFeature } from '../atlas/lore';
 import type { MapMarker } from '../mapStore';
 import { generateTerrain, type LocationHint, type TerrainElement, type TerrainKind } from './terrain';
 import type { PassageLink } from '../mapStore';
+import { isSearchable } from './search';
 
 export type LocalElement = TerrainElement & {
   id: string;
@@ -123,15 +124,14 @@ export function buildLocalMap(p: {
     });
   }
 
-  // Lieux de l'Atlas (corde, piton, carcasse…) : des points nommés, sur la case où ils se trouvent.
-  // La carte de navigation n'en montre que les plus importants à son zoom de départ : on suit la même hiérarchie,
-  // puis on garde les plus proches du centre, en nombre limité pour que le plateau reste lisible.
+  // Lieux de l'Atlas (corde, piton, crâne…) : seuls ceux qui méritent une fouille (cf. search.ts), sur leur case.
+  // Les plus importants d'abord (comme sur la carte de navigation), puis les plus proches du centre, en nombre limité.
   const RANK: Record<string, number> = { landmark: 0, regional: 1, local: 2, detail: 3 };
   const found: { e: LocalElement; rank: number; d: number }[] = [];
   for (const g of onPlan) {
     if (g.type !== 'point' || g.featureId.startsWith('mk-')) continue;
     const f = byId.get(g.featureId);
-    if (!f || f.area || !f.category) continue;
+    if (!f || f.area || !f.category || !isSearchable(f.title)) continue;
     const [px, py] = g.coordinates as [number, number];
     const c = toCell(px, py);
     if (!inside(c)) continue;

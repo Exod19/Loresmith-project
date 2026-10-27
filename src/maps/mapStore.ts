@@ -75,7 +75,24 @@ export interface MapOverlay {
   markers: MapMarker[];
   /** Destinations inscrites par le MJ, par identifiant de passage (tracé de l'Atlas). */
   passageLinks?: Record<string, PassageLink>;
+  /** Où est le groupe, où il veut aller, et par où il est passé (MJ seulement). */
+  party?: PartyTrack;
+  /** Fiches de fouille réécrites par le MJ (ou par l'IA), par identifiant de lieu. */
+  searchNotes?: Record<string, SearchNote>;
 }
+
+/** Un lieu repéré pour le suivi du groupe : un lieu de l'Atlas, une ancre ou un repère, sur un plan. */
+export interface PartyPlace { id: string; kind: 'feature' | 'anchor' | 'marker'; title: string; planId: string }
+
+export interface PartyTrack {
+  at?: PartyPlace;
+  dest?: PartyPlace;
+  /** Lieux traversés, du plus ancien au plus récent (les derniers seulement). */
+  trail: PartyPlace[];
+}
+
+/** Ce que le MJ sait d'un élément à fouiller : comment le trouver, ce qu'on y trouve, et ce que ça fait. */
+export interface SearchNote { skill: string; dc: number; find: string; loot?: string; effect?: string }
 
 export interface BattleToken {
   id: string;
@@ -96,6 +113,15 @@ export interface BattleToken {
   ac?: number;
   /** Fiche SRD (cf. statblocks.ts) si la créature est connue. */
   statId?: string;
+  /** Initiative obtenue, et bonus d'initiative (Dextérité) pour les jets. */
+  init?: number;
+  initMod?: number;
+  /** États 5e en cours (À terre, Empoisonné…). */
+  conditions?: string[];
+  /** Capacités à recharge ou à usage limité déjà utilisées. */
+  spent?: string[];
+  /** Identifiant du personnage du groupe dont vient ce jeton. */
+  heroId?: string;
 }
 
 export interface Battle {
@@ -113,6 +139,9 @@ export interface Battle {
   encounterOf?: string;
   /** Construction manuelle : surcharges du terrain généré et objets déposés (cf. battle/build.ts). */
   build?: BattleBuild;
+  /** Jeton dont c'est le tour, et journal des derniers jets. */
+  turn?: string;
+  log?: { id: string; text: string; tone?: 'hit' | 'miss' | 'crit' | 'info' }[];
 }
 
 /** `edits` : index de case → type de terrain, posé à la main. `props` : objets déposés sur une case. */
@@ -184,6 +213,23 @@ export const mapIdOf = (rec: MapRecord) => (rec.kind === 'atlas' ? ATLAS_DEFAULT
  * Ajoute les repères du MJ au jeu de données. Côté joueurs, seuls les repères révélés passent.
  * Un repère est un point d'atlas : il bénéficie donc du zoom, de la sélection et des étiquettes existantes.
  */
+/** Coordonnées d'un lieu suivi (lieu de l'Atlas, ancre ou repère) sur son plan. */
+export function placeCoords(data: AtlasData, rec: MapRecord, p: PartyPlace): [number, number] | null {
+  if (p.kind === 'marker') {
+    const m = rec.overlay?.markers.find((x) => x.id === p.id);
+    return m ? [m.x, m.y] : null;
+  }
+  if (p.kind === 'anchor') {
+    const a = data.anchors.find((x) => x.id === p.id);
+    return a ? (a.at as [number, number]) : null;
+  }
+  const g = data.geometries.find((x) => x.featureId === p.id && x.mapId === p.planId) ?? data.geometries.find((x) => x.featureId === p.id);
+  if (!g) return null;
+  if (g.type === 'point') return g.coordinates as [number, number];
+  const pts = g.coordinates as [number, number][];
+  return pts[Math.floor(pts.length / 2)] ?? null;
+}
+
 function withMarkers(data: AtlasData, rec: MapRecord, dm: boolean): AtlasData {
   const markers = (rec.overlay?.markers ?? []).filter((m) => dm || m.revealed);
   if (markers.length === 0) return data;

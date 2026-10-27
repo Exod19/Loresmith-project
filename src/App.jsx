@@ -5408,7 +5408,7 @@ export default function App() {
             ) : view === 'archives' ? (
               <ArchivesPage universe={universe} dispatch={dispatch} flash={flash} />
             ) : view === 'maps' ? (
-              <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} />
+              <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} heroes={party} />
             ) : view === 'present' ? (
               <StageControl {...{ universe, state, flash }} />
             ) : view === 'quests' ? (
@@ -14749,6 +14749,11 @@ function Encounter({ dispatch, state, party, npcs, flash }) {
       <p className="sub">
         Suivi d’initiative, HP, attaques, buffs/malus, ressources limitées et
         positionnement tactique.
+      </p>
+      <p className="sub" style={{ color: 'var(--gold-lt)' }}>
+        Nouveau : le combat se mène aussi directement sur la carte de combat
+        (Cartes → ⚔ Ouvrir la carte de combat → onglet Combat), avec le
+        plateau, l’initiative, les attaques et les conseils tactiques.
       </p>
 
       <div className="combat-layout-advanced">

@@ -7,7 +7,11 @@ import type { PlayerElement, PlayerToken } from '../../present/stage';
 import type { TerrainKind } from './terrain';
 import { CATEGORY_IMG, vignette } from './vignettes';
 
-export type BoardToken = PlayerToken & { selected?: boolean; hidden?: boolean };
+/** `active` : c'est son tour. `hp`/`maxHp` : barre de vie (MJ seulement). */
+export type BoardToken = PlayerToken & { selected?: boolean; hidden?: boolean; active?: boolean; hp?: number; maxHp?: number };
+
+/** Repère MJ posé sur une case : S1 (passage secret), E1 (sortie), F1 (élément à fouiller). */
+export type BoardLabel = { cell: number; text: string; tone: 'secret' | 'exit' | 'search' | 'dest' };
 
 /** Élément du plateau. `ghost` : secret non découvert, visible du MJ seulement (pointillés + DC). */
 export type BoardElement = PlayerElement & { cells?: number[]; ghost?: boolean; dc?: number };
@@ -35,6 +39,9 @@ type Props = {
   onElement?: (id: string, at?: { x: number; y: number }) => void;
   /** Cases survolées pendant un tracé (MJ, mode construction). */
   preview?: number[];
+  /** Repères numérotés et cases mises en évidence (MJ seulement : jamais sur l'écran joueur). */
+  labels?: BoardLabel[];
+  highlight?: number[];
 };
 
 /** Icône de chaque catégorie de lieu. */
@@ -108,6 +115,17 @@ const TEXTURES = (
 const cellPath = (cells: number[], cols: number) =>
   cells.map((i) => `M${i % cols} ${Math.floor(i / cols)}h1v1h-1z`).join('');
 
+/** Case d'un passage la plus proche de son centre : là où l'on pose son repère. */
+export function anchorOf(cells: number[], cols: number): number {
+  const mx = cells.reduce((t, i) => t + (i % cols), 0) / cells.length;
+  const my = cells.reduce((t, i) => t + Math.floor(i / cols), 0) / cells.length;
+  return cells.reduce((best, i) => {
+    const d = (i % cols - mx) ** 2 + (Math.floor(i / cols) - my) ** 2;
+    const db = (best % cols - mx) ** 2 + (Math.floor(best / cols) - my) ** 2;
+    return d < db ? i : best;
+  }, cells[0]);
+}
+
 /** Marque d'un lieu ou d'un objet sur sa case : vignette, image d'objet, ou icône à défaut. */
 /** Portes, pièges et eau : le terrain et les tracés les montrent déjà, pas de cercle sur le plateau. */
 const NO_MARK = new Set(['voie', 'danger', 'eau']);
@@ -159,7 +177,7 @@ function cellUnder(ev: ReactMouseEvent<SVGElement>, cols: number, rows: number) 
   return x >= 0 && y >= 0 && x < cols && y < rows ? { x, y } : undefined;
 }
 
-export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview }: Props) {
+export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview, labels = [], highlight }: Props) {
   const lines: string[] = [];
   for (let x = 0; x <= cols; x++) lines.push(`M${x} 0V${rows}`);
   for (let y = 0; y <= rows; y++) lines.push(`M0 ${y}H${cols}`);
@@ -225,6 +243,18 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
         return pointMark(e, e.cell, cols, pick);
       })}
 
+      {highlight && highlight.length > 0 && <path className="battle-glow" d={cellPath(highlight, cols)} fill="rgba(255,235,160,0.28)" stroke="#fff1c2" strokeWidth={0.08} pointerEvents="none" />}
+
+      {labels.map((l) => {
+        const x = l.cell % cols, y = Math.floor(l.cell / cols);
+        return (
+          <g key={`lb-${l.text}-${l.cell}`} className={`battle-label tone-${l.tone}`} pointerEvents="none">
+            <rect x={x + 0.02} y={y + 0.02} width={0.64} height={0.36} rx={0.1} />
+            <text x={x + 0.34} y={y + 0.29} textAnchor="middle" fontSize={0.26}>{l.text}</text>
+          </g>
+        );
+      })}
+
       {tokens.map((t) => {
         const r = t.size * 0.42;
         const cx = t.x + t.size / 2, cy = t.y + t.size / 2;
@@ -245,6 +275,14 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
             <text x={cx} y={cy - r - 0.08} textAnchor="middle" fontSize={0.22} fill="#ecd289" fontFamily="Cinzel, serif" pointerEvents="none" stroke="#0b0906" strokeWidth={0.04} paintOrder="stroke">
               {t.name}
             </text>
+            {t.active && <circle className="battle-turn-ring" cx={cx} cy={cy} r={r + 0.1} fill="none" stroke="#fff1c2" strokeWidth={0.07} pointerEvents="none" />}
+            {t.maxHp ? (
+              <g pointerEvents="none">
+                <rect x={cx - r} y={cy + r + 0.04} width={2 * r} height={0.09} fill="#1a0f0b" />
+                <rect x={cx - r} y={cy + r + 0.04} width={2 * r * Math.max(0, Math.min(1, (t.hp ?? 0) / t.maxHp))} height={0.09}
+                  fill={(t.hp ?? 0) / t.maxHp > 0.5 ? '#5fae5a' : (t.hp ?? 0) / t.maxHp > 0.25 ? '#d6a43a' : '#c0492f'} />
+              </g>
+            ) : null}
           </g>
         );
       })}
