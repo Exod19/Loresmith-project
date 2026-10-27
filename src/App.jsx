@@ -32,6 +32,7 @@ import { Sidebar, Topbar, MobileBar, CommandPalette, NAV } from './shell/Shell';
 import UniverseHome from './shell/Home';
 import { askPersistence, loadState, saveState as persistState } from './store/persist';
 import { repairJson } from './ai/json';
+import { cleanForSpeech, synthesizeSpeech, voiceProfileFor } from './voice/elevenlabs';
 import { atlasPlaces, buildLoreContext, feedFor, norm as normName } from './ai/loreContext';
 import {
   BRIEF_FIELDS,
@@ -4507,6 +4508,7 @@ const defaultAI = () => ({
   baseUrl: AI_PRESETS.gemini.baseUrl,
   model: AI_PRESETS.gemini.model,
   apiKey: '',
+  elevenKey: '',
 });
 const AIContext = createContext({ ai: defaultAI(), setAI: () => {} });
 
@@ -5498,6 +5500,15 @@ function SettingsModal({ onClose, flash }) {
           value={ai.apiKey}
           onChange={(e) => setAI({ apiKey: e.target.value })}
           placeholder="colle ta clé ici"
+        />
+      </Field>
+      <Field label="Clé ElevenLabs (voix des PNJ)">
+        <input
+          className="in"
+          type="password"
+          value={ai.elevenKey}
+          onChange={(e) => setAI({ elevenKey: e.target.value })}
+          placeholder="facultatif — pour écouter les répliques"
         />
       </Field>
       <div className="row" style={{ alignItems: 'center' }}>
@@ -8308,6 +8319,8 @@ function Chat({
   const [activeThreadId, setActiveThreadId] = useState('');
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
+  const [playingIdx, setPlayingIdx] = useState(-1);
+  const audioRef = useRef(null);
 
   const [activeCampaignId, setActiveCampaignId] = useState(
     campaigns[0]?.id || ''
@@ -8501,6 +8514,41 @@ function Chat({
     setActiveThreadId(id);
 
     return thread;
+  }
+
+  async function playLine(text, idx) {
+    if (playingIdx === idx) {
+      audioRef.current?.pause();
+      setPlayingIdx(-1);
+      return;
+    }
+    if (!ai.elevenKey) {
+      flash('Ajoute une clé ElevenLabs dans Réglages pour écouter.');
+      setSettingsOpen(true);
+      return;
+    }
+    try {
+      setPlayingIdx(idx);
+      const profile = voiceProfileFor({
+        ...(selectedNpc || {}),
+        name: selectedSpeaker?.name || '',
+        voice: selectedSpeaker?.voice || '',
+        description: selectedSpeaker?.description || '',
+      });
+      const blob = await synthesizeSpeech(text, profile, ai.elevenKey);
+      const url = URL.createObjectURL(blob);
+      audioRef.current?.pause();
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => {
+        setPlayingIdx(-1);
+        URL.revokeObjectURL(url);
+      };
+      await audio.play();
+    } catch (e) {
+      setPlayingIdx(-1);
+      flash(e.message || 'Lecture impossible.');
+    }
   }
 
   function startNewThread() {
@@ -8924,6 +8972,18 @@ function Chat({
                     className={'msg ' + (m.role === 'user' ? 'user' : 'ai')}
                   >
                     {m.content}
+                    {mode === 'npc' && m.role !== 'user' && (
+                      <div>
+                        <button
+                          className="btn ghost sm"
+                          style={{ flex: 'none', marginTop: 6 }}
+                          onClick={() => playLine(m.content, i)}
+                          title="Écouter avec la voix du PNJ"
+                        >
+                          {playingIdx === i ? '■ Stop' : '▶ Écouter'}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
 
