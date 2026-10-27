@@ -1,0 +1,26 @@
+/* Copilote MJ (Table de jeu). S'appuie sur les variables et classes de la console (App.jsx). */
+
+.copilot{margin-bottom:16px;display:flex;flex-direction:column;gap:14px}
+.copilot-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.eyebrow-inline{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
+.copilot-progress{font-size:12px;color:var(--faint);font-family:'Cinzel',serif}
+
+.copilot-next{border:1px solid var(--line-2);border-radius:var(--r-sm);padding:14px 16px;background:var(--ink-2)}
+.copilot-kicker{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);margin-bottom:4px}
+.copilot-next h3{margin:0 0 8px;font-size:18px;color:#f3e7c2}
+.copilot-text{margin:0;font-size:15px;line-height:1.55;color:var(--txt)}
+.copilot-why{margin:8px 0 0;font-size:14px;color:var(--muted);line-height:1.5}
+.copilot-dc{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.copilot-hint{font-size:12px;color:var(--faint)}
+.copilot-total{margin-top:12px;max-width:220px}
+.copilot-outcome{margin-top:12px;padding:10px 12px;border-radius:var(--r-sm);border:1px solid var(--line-2);font-size:14.5px;line-height:1.5}
+.copilot-outcome[data-ok="1"]{border-color:var(--verdant);background:rgba(127,176,90,.08)}
+.copilot-outcome[data-ok="0"]{border-color:var(--blood);background:rgba(192,73,47,.08)}
+.copilot-preview{margin-top:12px;font-size:14px;color:var(--muted)}
+.copilot-preview p{margin:0 0 4px}
+.copilot-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+
+.copilot-later ul,.copilot-branches ul{margin:4px 0 0;padding-left:18px;font-size:14px;line-height:1.55;color:var(--muted)}
+.copilot-done{margin:0;font-size:15px;color:var(--muted)}
+.copilot-branches summary{cursor:pointer;font-family:'Cinzel',serif;font-size:12px;letter-spacing:.06em;color:var(--gold-lt)}
+.copilot-arrow{color:var(--gold)}

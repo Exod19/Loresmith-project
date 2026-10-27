@@ -24,6 +24,7 @@ import ArchivesPage from './feeds/ArchivesPage';
 import ArchivesLinkPanel from './feeds/ArchivesLink';
 import StageControl from './present/StageControl';
 import { DiceFloater } from './dice/DiceRoller3D';
+import DmCopilot from './copilot/DmCopilot';
 
 // Pages « Jouer » : le lanceur de dés flotte par-dessus.
 const PLAY_VIEWS = ['present', 'scene', 'encounter', 'quests'];
@@ -10176,6 +10177,15 @@ Réponds uniquement avec une ou deux répliques en français que ce personnage p
             <p>{readAloud}</p>
           </div>
         </section>
+
+        <DmCopilot
+          key={activeScene?.id || 'none'}
+          readAloud={readAloud}
+          checks={expanded?.skillChecks || []}
+          branches={expanded?.branches || []}
+          hasMonsters={getSceneMonsterRows({ expanded, activeScene, npcs }).length > 0}
+          onOpenCombat={() => setView('encounter')}
+        />
 
         <div className="scene-grid-dialogue">
           <section className="scene-card scene-dialogue-card">
