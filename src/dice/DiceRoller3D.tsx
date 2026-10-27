@@ -203,12 +203,17 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
         </button>
       </form>
 
-      {!ready && !error && <p className="text-sm text-[#c9a24a]/70">Chargement du moteur 3D…</p>}
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      <p className="h-5 mb-1 text-sm text-center" aria-live="polite">
+        {error ? (
+          <span className="text-red-400">{error}</span>
+        ) : !ready ? (
+          <span className="text-[#c9a24a]/70">Chargement du moteur 3D…</span>
+        ) : null}
+      </p>
 
-      {total !== null && (
-        <div
-          className={`relative p-4 rounded-xl border w-full text-center overflow-hidden ${
+      {/* Toujours affiché (même vide) pour que la mise en page ne bouge pas à chaque lancer. */}
+      <div
+          className={`relative p-4 h-[11rem] flex flex-col justify-center rounded-xl border w-full text-center overflow-hidden ${
             crit === 'success'
               ? 'border-[#ecd289] bg-gradient-to-b from-[#3a2c12] via-[#1c150c] to-[#0b0906] shadow-[0_0_28px_rgba(236,210,137,0.35),inset_0_0_30px_rgba(236,210,137,0.15)]'
               : crit === 'failure'
@@ -243,14 +248,15 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
                 : 'text-[#ecd289] drop-shadow-[0_0_14px_rgba(236,210,137,0.45)]'
             }`}
           >
-            {total}
+            {total ?? '—'}
           </div>
           <div className="text-xs text-[#c9a24a]/60 font-mono mt-2">
-            {label} → {groups.map((g) => `[${(g.rolls ?? []).map((r) => r.value).join(', ') || g.value}]`).join(' + ')}
+            {total === null
+              ? 'Lancez un dé pour voir le résultat'
+              : <>{label} → {groups.map((g) => `[${(g.rolls ?? []).map((r) => r.value).join(', ') || g.value}]`).join(' + ')}</>}
           </div>
           </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 };
