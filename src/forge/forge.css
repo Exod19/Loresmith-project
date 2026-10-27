@@ -1,0 +1,48 @@
+/* Forge de campagnes : brief à champs « IA décide », progression, bible de campagne. */
+.forge-panel { display: flex; flex-direction: column; gap: 4px; }
+.forge-top { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0 12px; }
+.forge-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 12px; }
+.forge-group { border: 1px solid var(--line); border-radius: var(--r); padding: 8px 12px; margin-bottom: 10px; background: rgba(0, 0, 0, 0.18); }
+.forge-group > summary { cursor: pointer; font-family: 'Cinzel', serif; color: var(--gold-lt); font-size: 14px; letter-spacing: 0.03em; }
+.forge-group > summary small { font-family: 'EB Garamond', serif; color: var(--muted); font-size: 12.5px; margin-left: 8px; letter-spacing: 0; }
+.forge-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0 14px; margin-top: 10px; }
+.forge-field { margin-bottom: 10px; min-width: 0; }
+.forge-field.wide { grid-column: 1 / -1; }
+.forge-input { display: flex; gap: 6px; align-items: flex-start; }
+.forge-input .in { flex: 1; min-width: 0; }
+.forge-input .btn { flex: none; padding: 8px 10px; }
+.forge-ai-chip { display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 8px; border: 1px dashed var(--line-2); color: var(--muted); font-size: 10.5px; letter-spacing: 0.04em; text-transform: none; }
+.forge-sources { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 6px 0 10px; font-size: 13px; color: var(--muted); }
+.forge-sources .tag { flex: none; }
+.forge-check { display: flex; gap: 8px; align-items: center; font-size: 14px; margin-bottom: 12px; }
+.forge-steps { list-style: none; padding: 0; margin: 14px 0 0; display: flex; flex-direction: column; gap: 6px; }
+.forge-steps li { display: grid; grid-template-columns: 22px auto 1fr; gap: 8px; align-items: baseline; font-size: 14px; }
+.forge-steps li small { color: var(--muted); }
+.forge-steps li[data-status='ok'] > span { color: var(--verdant); }
+.forge-steps li[data-status='err'] > span, .forge-steps li[data-status='err'] small { color: var(--blood); }
+
+/* Fiche de campagne : bible, séances, avancement. */
+.camp-progress { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0; font-size: 13px; }
+.camp-progress .bar { flex: 1 1 160px; height: 6px; border-radius: 3px; background: rgba(201, 162, 74, 0.12); overflow: hidden; }
+.camp-progress .bar > i { display: block; height: 100%; background: linear-gradient(90deg, var(--gold-dk), var(--gold)); }
+.camp-bible { margin: 12px 0; display: flex; flex-direction: column; gap: 8px; }
+.camp-bible details { border: 1px solid var(--line); border-radius: var(--r); padding: 8px 12px; background: rgba(0, 0, 0, 0.16); }
+.camp-bible summary { cursor: pointer; font-family: 'Cinzel', serif; color: var(--gold-lt); font-size: 13.5px; }
+.camp-bible .camp-list { margin: 8px 0 0; padding-left: 18px; font-size: 14px; line-height: 1.5; }
+.camp-bible .camp-list li { margin-bottom: 6px; }
+.camp-edit { display: block; width: 100%; text-align: left; background: none; border: 1px dashed transparent; color: inherit; padding: 4px 6px; border-radius: 4px; white-space: pre-wrap; font: inherit; line-height: 1.55; }
+.camp-edit:hover { border-color: var(--line-2); }
+.camp-edit.empty { color: var(--faint); font-style: italic; }
+.camp-session { border-top: 1px solid var(--line); padding: 12px 0 4px; }
+.camp-session-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; justify-content: space-between; }
+.camp-session-head h4 { margin: 0; font-family: 'Cinzel', serif; color: var(--gold-lt); font-size: 15px; }
+.camp-session-meta { font-size: 13.5px; color: var(--muted); margin: 4px 0 8px; line-height: 1.5; }
+.scene-guidance { border-left: 3px solid var(--teal); padding: 6px 10px; margin: 8px 0; background: rgba(84, 216, 198, 0.06); font-size: 14px; }
+.scene-guidance b { color: var(--teal); }
+.scene-creatures { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.scene-creatures span { font-size: 12.5px; border: 1px solid var(--line-2); border-radius: 10px; padding: 1px 8px; }
+
+/* Bibliothèque : édition des connaissances graduées. */
+.knowledge-editor { display: flex; flex-direction: column; gap: 8px; }
+.knowledge-row { display: grid; grid-template-columns: 64px 140px 1fr 1fr auto; gap: 6px; align-items: start; }
+@media (max-width: 760px) { .knowledge-row { grid-template-columns: 64px 1fr auto; } .knowledge-row textarea { grid-column: 1 / -1; } }

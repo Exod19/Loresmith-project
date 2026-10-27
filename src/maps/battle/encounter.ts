@@ -5,7 +5,11 @@
 import { STATS, type Stat } from '../atlas/statblocks';
 import type { BattleToken } from '../mapStore';
 
-export type EncounterGroup = { stat: string; role?: string; n: number; detail: string };
+/**
+ * Groupe de créatures d'une rencontre. `stat` : fiche SRD (ou simple nom). Une créature de PNJ & Créatures
+ * apporte son nom, son jeton et ses valeurs (`name`, `image`, `hp`, `ac`, `size`), prioritaires sur la fiche SRD.
+ */
+export type EncounterGroup = { stat: string; role?: string; n: number; detail: string; name?: string; image?: string; hp?: number; ac?: number; size?: 1 | 2 };
 
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 const CLUSTER = /caravane|escorte|garde|troupe|groupe|meute|bande|soldat|cortege|famille|patrouille|escadron/;
@@ -62,9 +66,9 @@ export function placeEncounter(
 
   for (const g of groups) {
     const st: Stat | undefined = STATS[g.stat];
-    const size: 1 | 2 = st && /taille (G|TG)/.test(st.meta) ? 2 : 1;
-    const hp = st ? parseInt(st.hp, 10) : undefined;
-    const ac = st ? parseInt(st.ac, 10) : undefined;
+    const size: 1 | 2 = g.size ?? (st && /taille (G|TG)/.test(st.meta) ? 2 : 1);
+    const hp = g.hp ?? (st ? parseInt(st.hp, 10) : undefined);
+    const ac = g.ac ?? (st ? parseInt(st.ac, 10) : undefined);
     const mode = groupMode(g);
     let anchor: { x: number; y: number } | null = null;
     if (mode === 'cluster') {
@@ -88,12 +92,12 @@ export function placeEncounter(
       }
       if (!spot) continue;
       placed.push(spot);
-      const name = st?.name ?? g.stat;
+      const name = g.name ?? st?.name ?? g.stat;
       tokens.push({
         id: `e-${seed.toString(36)}-${tokens.length}`,
         name: g.n > 1 ? `${name} ${i + 1}` : name,
         kind: 'monster', x: spot.x, y: spot.y, size, visible: false,
-        hp, maxHp: hp, ac, statId: st ? g.stat : undefined, icon: iconFor('monster', st),
+        hp, maxHp: hp, ac, statId: st ? g.stat : undefined, icon: iconFor('monster', st), image: g.image,
       });
     }
   }

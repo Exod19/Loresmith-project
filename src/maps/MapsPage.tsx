@@ -7,18 +7,25 @@ import type { Hero } from './battle/CombatPanel';
 import { clearMapIntent, peekMapIntent } from './intent';
 import MapViewer from './MapViewer';
 import { useUnderdarkFeed, ARCHIVES_URL_KEY } from '../feeds/underdark';
+import { bestiaryEncounters } from '../feeds/bestiary';
+import { setBestiary } from './atlas/encounters';
 import { ATLAS_MAP_ID, imageFileToDataUrl, type MapRecord } from './mapStore';
 import type { AtlasData } from './atlas/types';
+import type { BestiaryRef, GuideCampaign } from './CampaignGuide';
 import './maps.css';
 import './atlas/atlas.css';
 
 type Props = {
-  universe: { id: string; name: string; archives?: string } | null;
+  universe: { id: string; name: string; archives?: string; activeCampaignId?: string } | null;
   maps: Record<string, MapRecord>;
   dispatch: (a: { type: string; [k: string]: unknown }) => void;
   flash: (m: string) => void;
   /** Personnages du groupe (univers courant), pour le combat. */
   heroes?: Hero[];
+  /** Campagnes de l'univers : l'une d'elles peut être invoquée sur la carte. */
+  campaigns?: GuideCampaign[];
+  /** PNJ & Créatures de l'univers. */
+  bestiary?: BestiaryRef[];
 };
 
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -34,7 +41,7 @@ function readKnown(): Set<string> | null {
   }
 }
 
-export default function MapsPage({ universe, maps, dispatch, flash, heroes = [] }: Props) {
+export default function MapsPage({ universe, maps, dispatch, flash, heroes = [], campaigns = [], bestiary = [] }: Props) {
   // La Table de jeu peut demander d'ouvrir une carte précise (et d'y lancer le combat).
   const [intent] = useState(peekMapIntent);
   useEffect(() => { clearMapIntent(); }, []);
@@ -47,6 +54,8 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [] 
     try { return localStorage.getItem(ARCHIVES_URL_KEY) ?? ''; } catch { return ''; }
   });
   const { feed, error, reload } = useUnderdarkFeed();
+  // Le Bestiaire des Archives alimente les rencontres de toutes les cartes.
+  useEffect(() => { if (feed) setBestiary(bestiaryEncounters(feed.entries)); }, [feed]);
 
   if (!universe) return <div className="maps-page"><p>Aucun univers actif.</p></div>;
 
@@ -138,6 +147,11 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [] 
           onUpdate={(patch) => dispatch({ type: 'UPDATE_MAP', id: open.id, patch })}
           heroes={heroes}
           startInBattle={intent?.mapId === open.id && intent.battle}
+          campaigns={campaigns}
+          activeCampaignId={universe.activeCampaignId}
+          onCampaign={(id) => dispatch({ type: 'UPDATE_UNIVERSE', id: universe.id, patch: { activeCampaignId: id || undefined } })}
+          onCampaignProgress={(id, progress) => dispatch({ type: 'UPDATE_CAMPAIGN', id, patch: { progress } })}
+          bestiary={bestiary}
         />
       </div>
     );
@@ -178,6 +192,9 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [] 
         )}
       </header>
 
+      {universe.activeCampaignId && campaigns.some((c) => c.id === universe.activeCampaignId) && (
+        <p className="maps-hint">📜 Campagne invoquée : <b>{campaigns.find((c) => c.id === universe.activeCampaignId)?.title}</b>. Ouvre une carte : le guide MJ indique où amener le groupe et quelles rencontres l’y attendent.</p>
+      )}
       {mine.length === 0 && <p className="maps-hint">Aucune carte pour cet univers. Crée une carte vierge, importe une image, ou ajoute l’Atlas des profondeurs.</p>}
 
       {[

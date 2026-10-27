@@ -1,9 +1,10 @@
 /**
  * Fiche de bibliothèque : une seule mise en page pour tous les types d'archives.
- * Ordre de lecture pour le MJ : titre → passage à lire → résumé → texte → fiche d'identité, images,
+ * Ordre de lecture pour le MJ : titre → ce que les joueurs savent (DD) → passage à lire → résumé → texte → fiche d'identité, images,
  * savoir du MJ (réservé), liens « Dans la Toile », campagnes.
  */
 import './dossier.css';
+import ArchiveDetail from './ArchiveDetail';
 
 const CANON = {
   confirme: 'Confirmé', recit: 'Récit', oral: 'Tradition orale', hypothese: 'Hypothèse', conteste: 'Contesté',
@@ -49,9 +50,47 @@ function ReadAloud({ entry, onWrite, busy }) {
   );
 }
 
+/** DD affiché : 0 (ou vide) = connu de tous. */
+const dcLabel = (dc) => (Number(dc) > 0 ? `DD ${dc}` : 'Connu');
+
+/**
+ * Ce que les joueurs peuvent savoir, du plus courant au plus rare : DD, compétence, l'information,
+ * et une façon de la leur faire découvrir en jeu (réplique, document, détail du décor).
+ */
+function PlayerKnowledge({ entry, onWrite, busy }) {
+  const rows = [...(entry.playerKnowledge || [])].sort((a, b) => (Number(a.dc) || 0) - (Number(b.dc) || 0));
+  return (
+    <section className="dossier-know">
+      <div className="dossier-know-head">
+        <h2>Ce que les joueurs savent</h2>
+        {onWrite && (
+          <button type="button" className="dossier-btn" disabled={busy} onClick={onWrite}>
+            {busy ? 'Rédaction…' : rows.length ? 'Régénérer (IA)' : 'Générer avec l’IA'}
+          </button>
+        )}
+      </div>
+      {rows.length === 0 && <p className="muted">Pas encore de connaissances graduées pour les joueurs.</p>}
+      <ol>
+        {rows.map((k, i) => (
+          <li key={i}>
+            <span className="dossier-dc" data-common={Number(k.dc) > 0 ? 0 : 1}>
+              {dcLabel(k.dc)}
+            </span>
+            <div>
+              {k.skill && <small className="dossier-skill">{k.skill}</small>}
+              <p>{k.text}</p>
+              {k.reveal && <p className="dossier-reveal">En jeu : {k.reveal}</p>}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
 export default function Dossier({
-  entry, typeLabel, img, gallery = [], campaigns = [], related = [], hasEntry = () => false,
-  onOpenEntry, onPolish, onUploadImage, onWriteReadAloud, busy,
+  entry, typeLabel, img, gallery = [], campaigns = [], related = [], hasEntry = () => false, archive = null,
+  onOpenEntry, onPolish, onUploadImage, onWriteReadAloud, onPickArchive, onWriteKnowledge, busy,
 }) {
   const sections = entry.sections?.length ? entry.sections : filled([['', entry.body]]).map(([, body]) => ({ id: 'corps', title: 'Texte', body }));
   const identity = filled([
@@ -82,6 +121,7 @@ export default function Dossier({
         {entry.altNames?.length > 0 && <p className="dossier-alt">Aussi appelé : {entry.altNames.join(' · ')}</p>}
         <div className="dossier-actions">
           {onPolish && <button type="button" className="dossier-btn" disabled={busy} onClick={() => onPolish(entry)}>Reformuler (IA)</button>}
+          {onPickArchive && <button type="button" className="dossier-btn" onClick={() => onPickArchive(entry)}>Image des Archives</button>}
           {onUploadImage && (
             <label className="dossier-btn">
               Changer l’image
@@ -93,6 +133,7 @@ export default function Dossier({
 
       <div className="dossier-grid">
         <div className="dossier-main">
+          <PlayerKnowledge entry={entry} onWrite={onWriteKnowledge ? () => onWriteKnowledge(entry) : null} busy={busy} />
           <ReadAloud entry={entry} onWrite={onWriteReadAloud} busy={busy} />
           {entry.shortSummary && <p className="dossier-lead">{entry.shortSummary}</p>}
           {sections.map((s) => (
@@ -101,6 +142,7 @@ export default function Dossier({
               {paras(s.body).map((p, i) => <p key={i}>{p}</p>)}
             </section>
           ))}
+          {archive && <ArchiveDetail a={archive} />}
         </div>
 
         <aside className="dossier-side">

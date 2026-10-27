@@ -6,6 +6,7 @@ import { useMemo, useState } from 'react';
 import '../maps/maps.css';
 import { FEED_TYPE_LABEL, UNDERDARK_LINK, archiveBundle, useUnderdarkFeed, type FeedEntry } from './underdark';
 import { setArchivesLink } from './ArchivesLink';
+import ArchiveDetail from '../library/ArchiveDetail';
 
 type Props = {
   universe: { id: string; name: string; archives?: string } | null;
@@ -130,6 +131,7 @@ export default function ArchivesPage({ universe, dispatch, flash }: Props) {
                   </ul>
                 </div>
               )}
+              <ArchiveDetail a={selected} />
               <div className="maps-actions">
                 <button className="maps-btn gold" onClick={() => addToLibrary(selected)}>Ajouter à la bibliothèque</button>
               </div>

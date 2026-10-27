@@ -18,6 +18,7 @@ import { attackCells, rangedCells, reachableCells, speedCells } from './ranges';
 import { tokenImage } from './vignettes';
 import BuildPanel from './BuildPanel';
 import CombatPanel, { type Hero } from './CombatPanel';
+import type { BestiaryRef } from '../CampaignGuide';
 import PlacePanel, { type ExitItem, type SearchItem, type SecretItem } from './PlacePanel';
 import { DEFAULT_BRUSH, PROP_BY_KEY, PROP_LABEL, propUrl, applyBuild, shapeCells, type Brush } from './build';
 import { passageDifficulty, searchFor, type SearchEntry } from './search';
@@ -71,7 +72,7 @@ function freeNear(b: Battle, size: 1 | 2): { x: number; y: number } | null {
 }
 
 export default function BattleMode({
-  rec, battle, onBattle, context, atlas, plan, markers, onFollow, onLink, onMarker, onReveal, heroes = [], party, onSearchNote,
+  rec, battle, onBattle, context, atlas, plan, markers, onFollow, onLink, onMarker, onReveal, heroes = [], party, onSearchNote, bestiary = [],
 }: {
   rec: MapRecord; battle: Battle; onBattle: (b: Battle) => void;
   /** Lieu sélectionné : sa zone locale est placée sur la grille à l'ouverture ; une rencontre y place ses créatures. */
@@ -83,6 +84,8 @@ export default function BattleMode({
   /** Révèle ou cache un élément pour les joueurs : même interrupteur que sur la carte de navigation. */
   onReveal: (featureId: string) => void;
   heroes?: Hero[];
+  /** Fiches de PNJ & Créatures, pour les ajouter au combat avec leur jeton. */
+  bestiary?: BestiaryRef[];
   party?: PartyTrack;
   /** Réécrit (ou rétablit, avec null) la fiche de fouille d'un élément. */
   onSearchNote?: (id: string, note: SearchNote | null) => void;
@@ -696,7 +699,7 @@ export default function BattleMode({
 
         {tab === 'combat' && (
           <CombatPanel
-            b={b} grid={grid} place={placeTitle} selectedId={selectedId} onSelect={setSelectedId} set={set} heroes={heroes}
+            b={b} grid={grid} place={placeTitle} selectedId={selectedId} onSelect={setSelectedId} set={set} heroes={heroes} bestiary={bestiary}
             onPlace={placeTokens}
             onRemove={(id) => { set({ tokens: b.tokens.filter((t) => t.id !== id), turn: b.turn === id ? undefined : b.turn }); setSelectedId(null); }}
           />

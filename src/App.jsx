@@ -5,7 +5,7 @@
      2) Install the PDF reader once:   npm i pdfjs-dist
      3) Open Settings (gear, top-right) and paste an API key for any provider.
         Free options: Google Gemini (Flash), OpenRouter (:free models), Groq.
-   Data is saved to your browser (localStorage). Use Universes → Backups to
+   Data is saved to your browser (IndexedDB). Use Universes → Backups to
    export/import a .json file so you never lose a campaign.
    ========================================================================= */
 import React, {
@@ -29,9 +29,31 @@ import StageControl from './present/StageControl';
 import { DiceFloater } from './dice/DiceRoller3D';
 import DmCopilot from './copilot/DmCopilot';
 import { hostStage } from './present/stage';
-import { UNDERDARK_LINK } from './feeds/underdark';
+import { UNDERDARK_LINK, useUnderdarkFeed } from './feeds/underdark';
 import { Sidebar, Topbar, MobileBar, CommandPalette, NAV } from './shell/Shell';
 import UniverseHome from './shell/Home';
+import { askPersistence, loadState, saveState as persistState } from './store/persist';
+import { repairJson } from './ai/json';
+import { atlasPlaces, buildLoreContext, feedFor, norm as normName } from './ai/loreContext';
+import {
+  BRIEF_FIELDS,
+  FORMATS,
+  emptyBrief,
+  forgeBible,
+  forgeSession,
+  librarySuggestionsFrom,
+  outlineScenes,
+  previousDigest,
+  proposeBrief,
+  toScene,
+} from './forge/campaignPipeline';
+import './forge/forge.css';
+import { entityFromSrd, generateEntities } from './bestiary/entityGen';
+import StatSheet from './bestiary/StatSheet';
+import ArchiveImagePicker from './media/ArchiveImagePicker';
+import { CLANS, archiveImageIndex, clanPaintBrief, fileToCompressed, generatePortrait, makeToken, matchArchiveImages, matchPortrait } from './media/images';
+import { STATS } from './maps/atlas/statblocks';
+import { tokenImage } from './maps/battle/vignettes';
 
 /* ----------------------------- styles (gold / ornate) ------------------- */
 const STYLE = `
@@ -4490,7 +4512,7 @@ const defaultAI = () => ({
 });
 const AIContext = createContext({ ai: defaultAI(), setAI: () => {} });
 
-async function callAIMessages(ai, messages, json) {
+async function callAIMessages(ai, messages, json, opts = {}) {
   if (!ai || !ai.apiKey)
     throw new Error("Configure l'IA dans Réglages (clé API manquante).");
   // Le modèle est facultatif : à défaut, on prend celui du fournisseur choisi.
@@ -4505,7 +4527,8 @@ async function callAIMessages(ai, messages, json) {
     headers['HTTP-Referer'] = 'https://loresmith.local';
     headers['X-Title'] = 'Loresmith';
   }
-  const res = await fetch(url, {
+  const maxTokens = opts.maxTokens || (json ? 4000 : 1800);
+  const send = (max) => fetch(url, {
     method: 'POST',
     headers,
     body: JSON.stringify({
@@ -4521,10 +4544,13 @@ async function callAIMessages(ai, messages, json) {
             },
           ]
         : messages,
-      temperature: json ? 0.2 : 0.85,
-      max_tokens: json ? 4000 : 1800,
+      temperature: opts.temperature ?? (json ? 0.2 : 0.85),
+      max_tokens: max,
     }),
   });
+  let res = await send(maxTokens);
+  // Certains modèles refusent un plafond de réponse élevé : on réessaie avec le plafond habituel.
+  if (res.status === 400 && maxTokens > 4000) res = await send(4000);
   if (!res.ok) {
     let detail = '';
     try {
@@ -4571,6 +4597,9 @@ async function callAIMessages(ai, messages, json) {
   try {
     return JSON.parse(clean);
   } catch {
+    // Réponse coupée par le plafond de longueur : on garde tout ce qui est complet.
+    const repaired = repairJson(text);
+    if (repaired) return { ...repaired, _truncated: true };
     console.warn('Réponse IA non JSON. Utilisation du fallback texte.');
     console.warn("Réponse brute de l'IA:", text);
 
@@ -4580,13 +4609,14 @@ async function callAIMessages(ai, messages, json) {
     };
   }
 }
-const callAI = (ai, { system, prompt, json = true }) =>
+const callAI = (ai, { system, prompt, json = true, maxTokens, temperature }) =>
   callAIMessages(
     ai,
     (system ? [{ role: 'system', content: system }] : []).concat([
       { role: 'user', content: prompt },
     ]),
-    json
+    json,
+    { maxTokens, temperature }
   );
 function getJsonStringField(text, key) {
   if (!text) return '';
@@ -4612,46 +4642,6 @@ function cleanCampaignTitle(title, fallback) {
     .replace(/^["'{\s]+/, '')
     .replace(/["'}\s]+$/, '')
     .slice(0, 80);
-}
-
-function fallbackCampaignFromText(rawText, form) {
-  const title = getJsonStringField(rawText, 'title');
-  const premise = getJsonStringField(rawText, 'premise');
-  const hook = getJsonStringField(rawText, 'hook');
-
-  return {
-    title: cleanCampaignTitle(title, form.theme),
-    premise:
-      premise ||
-      rawText ||
-      'The AI returned text instead of structured campaign data.',
-    hook: hook || premise || rawText || '',
-    scenes: [
-      {
-        title: 'Opening Hook',
-        type: 'social',
-        summary:
-          'Introduce the situation, the main threat, and the first decision.',
-      },
-      {
-        title: 'Investigation',
-        type: 'exploration',
-        summary:
-          'Let the party discover clues, locations, factions, or consequences.',
-      },
-      {
-        title: 'Escalation',
-        type: 'combat',
-        summary: 'Bring the conflict into direct danger.',
-      },
-      {
-        title: 'Final Choice',
-        type: 'climax',
-        summary:
-          'Resolve the adventure through combat, negotiation, sacrifice, or discovery.',
-      },
-    ],
-  };
 }
 
 function fallbackSceneFromText(rawText) {
@@ -5104,8 +5094,8 @@ export default function App() {
   useEffect(() => {
     (async () => {
       try {
-        const saved = localStorage.getItem(STORE_KEY);
-        const parsed = saved ? JSON.parse(saved) : seedUniverse();
+        askPersistence();
+        const parsed = (await loadState(STORE_KEY)) || seedUniverse();
 
         dispatch({
           type: 'HYDRATE',
@@ -5130,9 +5120,9 @@ export default function App() {
     if (!hydrated || !state) return;
     clearTimeout(saveRef.current);
     setSaveState((prev) => (prev.status === 'error' ? prev : { status: 'pending' }));
-    saveRef.current = setTimeout(() => {
+    saveRef.current = setTimeout(async () => {
       try {
-        localStorage.setItem(STORE_KEY, JSON.stringify(state));
+        await persistState(STORE_KEY, state);
         setSaveState({ status: 'saved' });
       } catch (err) {
         // Avant, l'échec (souvent un quota dépassé par des images) passait sous silence.
@@ -5188,9 +5178,7 @@ export default function App() {
         if (!obj || !obj.universes) throw new Error('structure inconnue');
         if (confirm('Remplacer toutes les données actuelles par ce backup ?')) {
           dispatch({ type: 'HYDRATE', state: obj });
-          try {
-            localStorage.setItem(STORE_KEY, JSON.stringify(obj));
-          } catch {}
+          persistState(STORE_KEY, obj).catch(() => {});
           flash('Backup restauré');
         }
       } catch (err) {
@@ -5367,7 +5355,7 @@ export default function App() {
             ) : view === 'archives' ? (
               <ArchivesPage universe={universe} dispatch={dispatch} flash={flash} />
             ) : view === 'maps' ? (
-              <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} heroes={party} />
+              <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} heroes={party} campaigns={campaigns} bestiary={npcs} />
             ) : view === 'present' ? (
               <StageControl {...{ universe, state, flash }} />
             ) : view === 'quests' ? (
@@ -6332,865 +6320,331 @@ Retourne:
   );
 }
 /* ----------------------------- Campaign Forge --------------------------- */
-function Forge({
-  state,
-  dispatch,
-  universe,
-  party,
-  campaigns,
-  flash,
-  setView,
-}) {
-  const { ai } = useContext(AIContext);
+const FORGE_DRAFT_KEY = 'loresmith:forge-brief:v1';
 
-  const [mode, setMode] = useState('short'); // "short" | "long"
+/** Charge les Archives de l'univers (si lié) pour nourrir l'IA. */
+function useUniverseFeed(universe) {
+  const [feed, setFeed] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    feedFor(universe).then((f) => alive && setFeed(f));
+    return () => {
+      alive = false;
+    };
+  }, [universe.id, universe.archives]);
+  return feed;
+}
 
-  const [form, setForm] = useState({
-    hours: 3,
-    level: party[0]?.level || 3,
-    theme: '',
-    beats: '',
-
-    mindDump: '',
-
-    longTitle: '',
-    campaignScope: 'arc',
-    campaignLength: '8-12 sessions',
-    centralConflict: '',
-    mainVillain: '',
-    villainGoal: '',
-    startingSituation: '',
-    finalStakes: '',
-    mainLocations: '',
-    factions: '',
-    recurringSymbols: '',
-    mysteries: '',
-    playerBackstoryHooks: '',
-    toneNotes: '',
-    constraints: '',
-    rewardStyle: 'modeste, narratif, rarement magique',
-    customQuestions: '',
-    actStructure: '3 acts',
-
-    plannedScenes: [
-      makeLongCampaignSceneSeed(1),
-      makeLongCampaignSceneSeed(2),
-      makeLongCampaignSceneSeed(3),
-    ],
+/** Écrit une séance d'une campagne (scènes complètes) et renvoie le patch à enregistrer. */
+async function writeCampaignSession({ ai, universe, state, party, camp, sessionNumber, feed }) {
+  const session = (camp.sessions || []).find((s) => s.sessionNumber === sessionNumber);
+  if (!session) throw new Error(`Séance ${sessionNumber} introuvable.`);
+  const brief = { level: camp.level || 3, hours: camp.hours || 3, ...(camp.brief || {}) };
+  const ctx = buildLoreContext({
+    universe,
+    state,
+    feed,
+    party,
+    budget: 9000,
+    focus: [camp.title, camp.premise, session.title, session.summary, session.mainLocation, ...(session.scenes || []).map((s) => `${s.title} ${s.location}`)].join(' '),
   });
+  const d = await forgeSession((o) => callAI(ai, o), ctx, camp, session, brief, previousDigest(camp, sessionNumber));
+  if (d._parseFailed || !Array.isArray(d.scenes) || !d.scenes.length)
+    throw new Error(`La séance ${sessionNumber} n’a pas pu être écrite (réponse illisible). Réessaie ou change de modèle.`);
+  const fresh = d.scenes.map((sc) => toScene(sc, session));
+  const sessions = camp.sessions.map((s) =>
+    s.sessionNumber === sessionNumber
+      ? {
+          ...s,
+          detailed: true,
+          dmBrief: d.dmBrief || s.dmBrief || '',
+          openingImage: d.openingImage || s.openingImage || '',
+          recap: d.recap || '',
+          possibleEndings: d.possibleEndings || [],
+          cliffhanger: d.cliffhanger || '',
+        }
+      : s
+  );
+  const numbers = new Set(sessions.map((s) => s.sessionNumber));
+  const scenes = [
+    ...sessions.flatMap((s) => (s.sessionNumber === sessionNumber ? fresh : (camp.scenes || []).filter((sc) => sc.sessionNumber === s.sessionNumber))),
+    ...(camp.scenes || []).filter((sc) => !numbers.has(sc.sessionNumber)),
+  ];
+  return { sessions, scenes };
+}
 
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState('');
-
-  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
-
-  const partyBlurb = party.length
-    ? party
-        .map(
-          (c) =>
-            `${c.name} (lv${c.level} ${c.race} ${c.cls}${
-              c.background ? ', ' + c.background : ''
-            })`
-        )
-        .join('; ')
-    : 'un groupe générique de quatre aventuriers';
-
-  function updatePlannedScene(index, patch) {
-    setForm((f) => ({
-      ...f,
-      plannedScenes: f.plannedScenes.map((sc, i) =>
-        i === index ? { ...sc, ...patch } : sc
-      ),
-    }));
-  }
-
-  function addPlannedScene() {
-    setForm((f) => ({
-      ...f,
-      plannedScenes: [
-        ...f.plannedScenes,
-        makeLongCampaignSceneSeed(f.plannedScenes.length + 1),
-      ],
-    }));
-  }
-
-  function removePlannedScene(index) {
-    setForm((f) => ({
-      ...f,
-      plannedScenes: f.plannedScenes.filter((_, i) => i !== index),
-    }));
-  }
-
-  async function populateLongCampaignFromMindDump() {
-    if (!form.mindDump.trim()) {
-      flash("Ajoute d'abord un mind dump de campagne.");
-      return;
-    }
-
-    setBusy(true);
-    setErr('');
-
+function Forge({ state, dispatch, universe, party, campaigns, flash, setView }) {
+  const { ai } = useContext(AIContext);
+  const feed = useUniverseFeed(universe);
+  const startLevel = party[0]?.level || 3;
+  const [brief, setBrief] = useState(() => {
     try {
-      const data = await callAI(ai, {
-        system: `Tu es un architecte de campagne TTRPG pour Loresmith.
-    
-    Réponds uniquement en JSON valide.
-    Tu dois transformer un mind dump libre en squelette de campagne longue.
-    Tu dois extraire les champs de campagne, proposer des scènes, créer des PNJ potentiels,
-    des lieux, des artefacts, des factions, des mystères et des encounters.
-    Langue: français.
-    Style: clair, structuré, jouable, immersif sans être opaque.`,
-        prompt: `Univers: ${universe.name}
-    Ton: ${universe.tone}
-    Canon:
-    ${universe.lore || ''}
-    
-    Mémoire vivante:
-    ${
-      (universe.memoryLog || [])
-        .slice(0, 12)
-        .map((m) => `- ${m.title}: ${m.summary}`)
-        .join('\n') || 'Aucune mémoire enregistrée.'
+      const raw = localStorage.getItem(FORGE_DRAFT_KEY);
+      return { ...emptyBrief(), level: startLevel, ...(raw ? JSON.parse(raw) : {}) };
+    } catch {
+      return { ...emptyBrief(), level: startLevel };
     }
-    
-    Personnages du groupe:
-    ${partyBlurb}
-    
-    Mind dump de campagne:
-    ${form.mindDump}
-    
-    Retourne exactement:
-    {
-      "longTitle": "titre provisoire",
-      "theme": "thème / prémisse",
-      "campaignScope": "arc|season|sandbox|epic",
-      "campaignLength": "longueur visée",
-      "actStructure": "3 acts|5 acts|open web|mystery spiral",
-      "centralConflict": "conflit central",
-      "startingSituation": "situation de départ",
-      "mainVillain": "antagoniste principal",
-      "villainGoal": "objectif de l'antagoniste",
-      "finalStakes": "enjeux finaux",
-      "mainLocations": "lieux majeurs",
-      "factions": "factions importantes",
-      "mysteries": "mystères à révéler",
-      "recurringSymbols": "symboles et motifs",
-      "playerBackstoryHooks": "hooks liés aux joueurs",
-      "toneNotes": "notes de ton",
-      "constraints": "contraintes / à éviter / à inclure",
-      "rewardStyle": "style de récompenses",
-      "customQuestions": "questions ouvertes à clarifier",
-      "plannedScenes": [
-        {
-          "title": "titre",
-          "type": "social|exploration|combat|puzzle|climax",
-          "purpose": "but de la scène",
-          "location": "lieu",
-          "npcs": "PNJ présents",
-          "encounter": "opposition / encounter",
-          "decision": "choix ou dilemme",
-          "clue": "indice ou secret",
-          "loot": "loot possible",
-          "questions": "questions à répondre"
-        }
-      ],
-      "suggestedNpcs": [
-        {
-          "name": "nom",
-          "role": "rôle",
-          "motivation": "motivation",
-          "secret": "secret"
-        }
-      ],
-      "suggestedLibraryEntries": [
-        {
-          "title": "nom",
-          "archiveType": "artifact|person|place|event|faction|mystery|document",
-          "shortSummary": "résumé"
-        }
-      ]
-    }`,
-      });
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(FORGE_DRAFT_KEY, JSON.stringify(brief));
+    } catch {}
+  }, [brief]);
 
-      setForm((f) => ({
-        ...f,
-        longTitle: data.longTitle || f.longTitle,
-        theme: data.theme || f.theme,
-        campaignScope: data.campaignScope || f.campaignScope,
-        campaignLength: data.campaignLength || f.campaignLength,
-        actStructure: data.actStructure || f.actStructure,
-        centralConflict: data.centralConflict || f.centralConflict,
-        startingSituation: data.startingSituation || f.startingSituation,
-        mainVillain: data.mainVillain || f.mainVillain,
-        villainGoal: data.villainGoal || f.villainGoal,
-        finalStakes: data.finalStakes || f.finalStakes,
-        mainLocations: data.mainLocations || f.mainLocations,
-        factions: data.factions || f.factions,
-        mysteries: data.mysteries || f.mysteries,
-        recurringSymbols: data.recurringSymbols || f.recurringSymbols,
-        playerBackstoryHooks:
-          data.playerBackstoryHooks || f.playerBackstoryHooks,
-        toneNotes: data.toneNotes || f.toneNotes,
-        constraints: data.constraints || f.constraints,
-        rewardStyle: data.rewardStyle || f.rewardStyle,
-        customQuestions: data.customQuestions || f.customQuestions,
-        plannedScenes:
-          Array.isArray(data.plannedScenes) && data.plannedScenes.length
-            ? data.plannedScenes.map((sc, i) => ({
-                ...makeLongCampaignSceneSeed(i + 1),
-                ...sc,
-              }))
-            : f.plannedScenes,
-        suggestedNpcs: data.suggestedNpcs || [],
-        suggestedLibraryEntries: data.suggestedLibraryEntries || [],
-      }));
+  const [busy, setBusy] = useState('');
+  const [steps, setSteps] = useState([]);
+  const [err, setErr] = useState('');
+  const [writeAll, setWriteAll] = useState(true);
+  const set = (k, v) => setBrief((b) => ({ ...b, [k]: v }));
+  const call = (o) => callAI(ai, o);
 
-      flash('Squelette de campagne rempli à partir du mind dump.');
+  const libCount = Object.values(state.libraryEntries || {}).filter((e) => e.universeId === universe.id).length;
+  const npcCount = Object.values(state.npcs || {}).filter((n) => n.universeId === universe.id).length;
+  const placeCount = useMemo(() => atlasPlaces(feed).length, [feed]);
+  const groups = [...new Set(BRIEF_FIELDS.map((f) => f.group))];
+
+  const context = () =>
+    buildLoreContext({ universe, state, feed, party, focus: [brief.mindDump, ...BRIEF_FIELDS.map((f) => brief[f.key])].join(' ') });
+
+  function setFormat(format) {
+    setBrief((b) => ({ ...b, format, sessions: FORMATS[format]?.sessions || b.sessions }));
+  }
+
+  async function propose(keys) {
+    setBusy(keys?.length === 1 ? keys[0] : 'propose');
+    setErr('');
+    try {
+      const patch = await proposeBrief(call, context(), brief, keys);
+      setBrief((b) => ({ ...b, ...patch }));
+      const n = Object.keys(patch).length;
+      flash(n ? `${n} champ(s) proposé(s) : modifie ce qui ne te plaît pas.` : 'Rien à proposer : tous les champs sont remplis.');
     } catch (e) {
       setErr(e.message);
     }
-
-    setBusy(false);
+    setBusy('');
   }
+
+  const step = (label, status, note = '') =>
+    setSteps((list) => {
+      const i = list.findIndex((s) => s.label === label);
+      const next = { label, status, note };
+      return i === -1 ? [...list, next] : list.map((s, j) => (j === i ? next : s));
+    });
 
   async function forge() {
-    setBusy(true);
+    setBusy('forge');
     setErr('');
-
+    setSteps([]);
     try {
-      const isLong = mode === 'long';
+      const ctx = context();
+      step('Bible de campagne', 'run');
+      const bible = await forgeBible(call, ctx, brief);
+      if (bible._parseFailed || (!bible.title && !bible.sessions))
+        throw new Error('L’IA n’a pas renvoyé une campagne lisible. Réessaie, ou choisis un modèle plus puissant dans Réglages.');
+      const sessions = (bible.sessions || []).map((s, i) => ({ ...s, sessionNumber: Number(s.sessionNumber) || i + 1, detailed: false }));
+      const id = uid();
 
-      const sceneCount = isLong
-        ? Math.max(6, form.plannedScenes.length || 6)
-        : Math.max(3, Math.min(8, Math.round(form.hours * 1.3)));
+      // Ce que la bibliothèque connaît déjà est lié à la campagne ; le reste est proposé à la création.
+      const lib = Object.values(state.libraryEntries || {}).filter((e) => e.universeId === universe.id);
+      const libByName = new Map(lib.map((e) => [normName(e.title), e]));
+      const suggestions = librarySuggestionsFrom(bible);
+      const linked = [...new Set(suggestions.map((s) => libByName.get(normName(s.title))).filter(Boolean))];
 
-      const system = isLong
-        ? `You are a master long-form D&D / TTRPG campaign architect.
-  
-  Respond with ONLY valid JSON, no prose, no markdown fences.
-  
-  LANGUAGE RULES:
-  - All player-facing narration must be in French.
-  - All campaign notes, scene summaries, NPC notes, encounters, hooks, rewards and lore must be in French.
-  - Mechanical labels may remain short and simple.
-  - The campaign must feel coherent, consequential, seeded, and playable over multiple sessions.
-  - Use previous universe memory naturally: callbacks, consequences, recurring symbols, unresolved tensions, easter eggs.
-  - Do not over-explain callbacks. Make them useful to the DM.
-  
-  DESIGN RULES:
-  - This is a LONG campaign, not a one-shot.
-  - Build acts, recurring NPCs, locations, factions, evolving threats, clues, secrets, encounters and possible outcomes.
-  - Scenes should include prep fields that the DM can later expand.
-  - Encounters should include possible enemies, goals, terrain, complications, and modest loot.
-  - Loot should usually be mundane, personal, funny, damaged, clue-based or modest. Avoid powerful magic unless justified.`
-        : `You are a master D&D 5e adventure designer.
-  
-  Respond with ONLY valid JSON, no prose, no markdown fences.
-  
-  LANGUAGE RULES:
-  - All player-facing narration must be in French.
-  - All read-aloud text must be in French.
-  - All NPC dialogue must be in French.
-  - Mechanical labels may remain short and simple.
-  - Dialogue must reflect the creature or character's voice.
-  - A frog-like character may include occasional "croa".
-  - A serpent-like character should stretch some s sounds, like "sss".
-  - A goblin should sound nervous, twitchy, hesitant, and fragmented.
-  - A noble should sound formal and controlled.
-  - A monster should sound primal, broken, or strange when appropriate.
-  - Do not overdo verbal tics. Use them lightly but clearly.`;
+      let camp = {
+        id,
+        title: cleanCampaignTitle(bible.title, brief.title || brief.theme),
+        premise: bible.premise || '',
+        hook: bible.hook || '',
+        setting: bible.setting || '',
+        campaignMode: brief.format,
+        brief: { ...brief },
+        mindDump: brief.mindDump || '',
+        campaignCanon: bible.campaignCanon || '',
+        dmOverview: bible.dmOverview || '',
+        finalTruth: bible.finalTruth || '',
+        failureState: bible.failureState || '',
+        campaignThemes: bible.campaignThemes || [],
+        campaignQuestions: bible.campaignQuestions || [],
+        acts: bible.acts || [],
+        sessions,
+        recurringNpcs: bible.recurringNpcs || [],
+        factions: bible.factions || [],
+        majorLocations: bible.majorLocations || [],
+        mysteries: bible.mysteries || [],
+        monsters: bible.monsters || [],
+        librarySuggestions: suggestions.filter((s) => !libByName.has(normName(s.title))),
+        linkedLibraryEntryIds: linked.map((e) => e.id),
+        hours: brief.hours,
+        level: brief.level,
+        theme: brief.theme,
+        createdAt: now(),
+        scenes: sessions.flatMap(outlineScenes),
+      };
+      dispatch({ type: 'ADD_CAMPAIGN', c: camp });
+      linked.forEach((e) =>
+        dispatch({ type: 'UPDATE_LIBRARY_ENTRY', id: e.id, patch: { linkedCampaignIds: [...new Set([...(e.linkedCampaignIds || []), id])] } })
+      );
+      step('Bible de campagne', 'ok', `${sessions.length} séance(s), ${camp.recurringNpcs.length} PNJ, ${camp.majorLocations.length} lieux`);
 
-      const prompt = isLong
-        ? `Universe: "${universe.name}".
-  Tone: ${universe.tone}.
-  Canon:
-  ${universe.lore || ''}
-  
-  Recent living memory:
-  ${
-    (universe.memoryLog || [])
-      .slice(0, 12)
-      .map((m) => `- ${m.title}: ${m.summary}`)
-      .join('\n') || 'No recorded memory yet.'
-  }
-  
-  Party:
-  ${partyBlurb}
-  
-  LONG CAMPAIGN BRIEF:
-  Working title: ${form.longTitle || form.theme || 'Untitled long campaign'}
-  Scope: ${form.campaignScope}
-  Expected length: ${form.campaignLength}
-  Party level at start: ${form.level}
-  Act structure: ${form.actStructure}
-  
-  Core theme / prompt:
-  ${form.theme || 'not specified'}
-  
-  Central conflict:
-  ${form.centralConflict || 'not specified'}
-  
-  Starting situation:
-  ${form.startingSituation || 'not specified'}
-  
-  Main villain / antagonist:
-  ${form.mainVillain || 'not specified'}
-  
-  Villain goal:
-  ${form.villainGoal || 'not specified'}
-  
-  Final stakes:
-  ${form.finalStakes || 'not specified'}
-  
-  Main locations:
-  ${form.mainLocations || 'not specified'}
-  
-  Factions:
-  ${form.factions || 'not specified'}
-  
-  Recurring symbols / motifs:
-  ${form.recurringSymbols || 'not specified'}
-  
-  Mysteries / questions:
-  ${form.mysteries || 'not specified'}
-  
-  Player backstory hooks:
-  ${form.playerBackstoryHooks || 'not specified'}
-  
-  Tone notes:
-  ${form.toneNotes || 'not specified'}
-  
-  Constraints / must avoid / must include:
-  ${form.constraints || 'not specified'}
-  
-  Reward style:
-  ${form.rewardStyle || 'modest'}
-  
-  Custom questions / loose notes:
-  ${form.customQuestions || 'not specified'}
-  
-  PLANNED SCENES / BUILDING BLOCKS:
-  ${form.plannedScenes
-    .map(
-      (sc, i) => `
-  Scene ${i + 1}
-  Title: ${sc.title || 'Untitled'}
-  Type: ${sc.type}
-  Purpose: ${sc.purpose || 'not specified'}
-  Location: ${sc.location || 'not specified'}
-  Key NPCs: ${sc.npcs || 'not specified'}
-  Encounter idea: ${sc.encounter || 'not specified'}
-  Decision / dilemma: ${sc.decision || 'not specified'}
-  Clue / secret: ${sc.clue || 'not specified'}
-  Possible loot: ${sc.loot || 'not specified'}
-  Questions to answer: ${sc.questions || 'not specified'}
-  `
-    )
-    .join('\n')}
-  
-  Create a long campaign plan that can be saved into LORESMITH.
-  IMPORTANT:
-- Génère beaucoup de matière utilisable par le MJ.
-- Chaque acte doit avoir du lore, des secrets, des seeds et des conséquences.
-- Chaque séance doit être jouable comme une unité.
-- Chaque scène doit être riche, pas seulement un résumé.
-- Crée plusieurs suggestions de bibliothèque : lieux, artefacts, personnages, événements, factions, mystères.
-- La campagne peut être construite séance par séance, mais le squelette doit déjà contenir la vision globale.
-  Return JSON:
-{
-  "title": str,
-  "setting": str,
-  "premise": str,
-  "hook": str,
-
-  "campaignCanon": "Texte de lore long, 5 à 10 paragraphes, qui explique le contexte profond de la campagne.",
-  "campaignThemes": ["thème 1", "thème 2", "thème 3"],
-  "dmOverview": "Résumé très utile pour le MJ : structure, secrets, vérité cachée, enjeux, rythme.",
-  "openingSituation": "Description détaillée du point de départ.",
-  "finalTruth": "La grande vérité cachée de la campagne.",
-  "failureState": "Ce qui arrive si les PJ échouent.",
-  "campaignQuestions": ["question dramatique 1", "question de lore 2", "question personnelle 3"],
-
-  "acts": [
-    {
-      "title": str,
-      "summary": "Résumé de l’acte.",
-      "purpose": "Fonction narrative de cet acte.",
-      "lore": "Lore détaillé de l’acte, 3 à 6 paragraphes.",
-      "openingBeat": "Comment l’acte commence.",
-      "turningPoint": "Moment de bascule.",
-      "finale": "Comment l’acte devrait culminer.",
-      "secrets": ["secret 1", "secret 2"],
-      "seeds": ["seed futur 1", "seed futur 2"],
-      "consequences": ["conséquence possible 1", "conséquence possible 2"]
-    }
-  ],
-
-  "sessions": [
-    {
-      "title": str,
-      "act": str,
-      "sessionNumber": num,
-      "summary": "Résumé jouable de la séance.",
-      "dmBrief": "Brief dense pour le MJ.",
-      "openingImage": "Image mentale forte pour démarrer.",
-      "mainGoal": "Objectif de séance.",
-      "dramaticQuestion": "Question dramatique centrale.",
-      "loreToReveal": ["lore 1", "lore 2", "lore 3"],
-      "importantChoices": ["choix 1", "choix 2"],
-      "expectedScenes": ["scène prévue 1", "scène prévue 2"],
-      "possibleEndings": ["fin possible 1", "fin possible 2"]
-    }
-  ],
-
-  "recurringNpcs": [
-    {
-      "name": str,
-      "role": str,
-      "motivation": str,
-      "secret": str,
-      "voice": str,
-      "firstAppearance": str,
-      "arc": "Comment ce personnage évolue.",
-      "librarySuggestion": true
-    }
-  ],
-
-  "factions": [
-    {
-      "name": str,
-      "goal": str,
-      "methods": str,
-      "relationshipToParty": str,
-      "publicFace": str,
-      "hiddenTruth": str,
-      "resources": str,
-      "librarySuggestion": true
-    }
-  ],
-
-  "majorLocations": [
-    {
-      "name": str,
-      "description": str,
-      "sensoryDetails": str,
-      "history": str,
-      "secrets": str,
-      "campaignUse": str,
-      "librarySuggestion": true
-    }
-  ],
-
-  "artifacts": [
-    {
-      "title": str,
-      "shortSummary": str,
-      "origin": str,
-      "historicalContext": str,
-      "currentLocation": str,
-      "owner": str,
-      "campaignUse": str,
-      "secrets": str,
-      "imagePrompt": str,
-      "librarySuggestion": true
-    }
-  ],
-
-  "historicalEvents": [
-    {
-      "title": str,
-      "shortSummary": str,
-      "historicalContext": str,
-      "consequences": str,
-      "campaignUse": str,
-      "secrets": str,
-      "librarySuggestion": true
-    }
-  ],
-
-  "mysteries": [
-    {
-      "question": str,
-      "truth": str,
-      "clues": [str],
-      "redHerrings": [str],
-      "payoff": str,
-      "librarySuggestion": true
-    }
-  ],
-
-  "librarySuggestions": [
-    {
-      "title": str,
-      "archiveType": "artifact|person|place|event|faction|mystery|document",
-      "shortSummary": str,
-      "body": "Description riche, 2 à 5 paragraphes.",
-      "origin": str,
-      "historicalContext": str,
-      "currentLocation": str,
-      "owner": str,
-      "campaignUse": str,
-      "secrets": str,
-      "tags": [str],
-      "imagePrompt": str
-    }
-  ],
-
-  "scenes": [
-    {
-      "title": str,
-      "type": "social"|"exploration"|"combat"|"puzzle"|"climax",
-      "summary": str,
-      "readAloud": "Texte à lire aux joueurs, 2 à 4 paragraphes.",
-      "purpose": str,
-      "act": str,
-      "sessionNumber": num,
-      "location": str,
-
-      "lore": "Lore détaillé de la scène, 3 à 7 paragraphes.",
-      "dmNotes": "Notes MJ détaillées : rythme, secrets, ambiance, intentions.",
-      "sensoryDetails": "Sons, odeurs, lumière, textures, météo, présences.",
-      "hiddenTruth": "Ce qui se passe vraiment derrière la scène.",
-      "playerChoices": ["choix 1", "choix 2", "choix 3"],
-      "consequences": [str],
-      "seeds": [str],
-      "callbacks": [str],
-
-      "npcs": [
-        {
-          "name": str,
-          "role": str,
-          "note": str,
-          "motivation": str,
-          "secret": str,
-          "voice": str
+      let failed = 0;
+      if (writeAll) {
+        for (const s of sessions) {
+          const label = `Séance ${s.sessionNumber} · ${s.title || ''}`;
+          step(label, 'run');
+          try {
+            const patch = await writeCampaignSession({ ai, universe, state, party, camp, sessionNumber: s.sessionNumber, feed });
+            camp = { ...camp, ...patch };
+            dispatch({ type: 'UPDATE_CAMPAIGN', id, patch });
+            step(label, 'ok', `${patch.scenes.filter((sc) => sc.sessionNumber === s.sessionNumber).length} scènes`);
+          } catch (e) {
+            failed++;
+            step(label, 'err', e.message);
+          }
         }
-      ],
-
-      "encounters": [
-        {
-          "name": str,
-          "detail": str,
-          "goal": str,
-          "terrain": str,
-          "complication": str,
-          "tactics": str,
-          "nonCombatResolution": str,
-          "loot": [str]
-        }
-      ],
-
-      "skillChecks": [
-        {
-          "check": str,
-          "dc": num,
-          "why": str,
-          "on_success": str,
-          "on_failure": str
-        }
-      ],
-
-      "branches": [
-        {
-          "if": str,
-          "then": str
-        }
-      ],
-
-      "loot": [str],
-      "questions": [str],
-      "libraryLinksToCreate": [
-        {
-          "title": str,
-          "archiveType": "artifact|person|place|event|faction|mystery|document",
-          "shortSummary": str,
-          "body": str,
-          "campaignUse": str,
-          "secrets": str,
-          "tags": [str],
-          "imagePrompt": str
-        }
-      ]
-    }
-  ]
-}`
-        : `Universe: "${universe.name}".
-  Tone: ${universe.tone}.
-  Canon:
-  ${universe.lore || ''}
-  
-  Recent living memory:
-  ${
-    (universe.memoryLog || [])
-      .slice(0, 10)
-      .map((m) => `- ${m.title}: ${m.summary}`)
-      .join('\n') || 'No recorded memory yet.'
-  }
-  
-  Party: ${partyBlurb}.
-  Target level: ${form.level}.
-  Length: ~${form.hours}h.
-  Theme/prompt: ${form.theme || 'your choice, fitting the universe'}.
-  Must-hit beats: ${form.beats || 'none'}.
-  
-  Design an outline of ~${sceneCount} scenes; tie hooks to party backstories where natural.
-  Use the living memory to create consequence, seeding, callbacks, echoes, subtle easter eggs, unresolved tensions and nostalgic reminders from previous play. Do not over-explain them; integrate them naturally.
-  
-  JSON:
-  {
-    "title": str,
-    "setting": str,
-    "premise": str,
-    "hook": str,
-    "scenes": [
-      {
-        "title": str,
-        "type": "social"|"exploration"|"combat"|"puzzle"|"climax",
-        "summary": str,
-        "readAloud": str
       }
-    ]
-  }`;
-
-      const data = await callAI(ai, {
-        system,
-        prompt,
-      });
-
-      const campaignData = data._parseFailed
-        ? fallbackCampaignFromText(data._rawText, form)
-        : data;
-
-      dispatch({
-        type: 'ADD_CAMPAIGN',
-        c: {
-          id: uid(),
-          title: cleanCampaignTitle(
-            campaignData.title,
-            form.longTitle || form.theme
-          ),
-          premise: campaignData.premise || 'No premise generated.',
-          hook: campaignData.hook || campaignData.premise || '',
-          setting: campaignData.setting || '',
-          campaignMode: mode,
-          mindDump: form.mindDump || '',
-          suggestedNpcs: form.suggestedNpcs || [],
-          suggestedLibraryEntries: form.suggestedLibraryEntries || [],
-          linkedLibraryEntryIds: [],
-          campaignCanon: campaignData.campaignCanon || '',
-          acts: campaignData.acts || [],
-          recurringNpcs: campaignData.recurringNpcs || [],
-          factions: campaignData.factions || [],
-          majorLocations: campaignData.majorLocations || [],
-          mysteries: campaignData.mysteries || [],
-          hours: form.hours,
-          level: form.level,
-          theme: form.theme,
-          createdAt: now(),
-          campaignThemes: campaignData.campaignThemes || [],
-          dmOverview: campaignData.dmOverview || '',
-          openingSituation: campaignData.openingSituation || '',
-          finalTruth: campaignData.finalTruth || '',
-          failureState: campaignData.failureState || '',
-          campaignQuestions: campaignData.campaignQuestions || [],
-          sessions: campaignData.sessions || [],
-          artifacts: campaignData.artifacts || [],
-          historicalEvents: campaignData.historicalEvents || [],
-          librarySuggestions: [
-            ...(campaignData.librarySuggestions || []),
-            ...(campaignData.artifacts || []).map((a) => ({
-              ...a,
-              archiveType: 'artifact',
-            })),
-            ...(campaignData.historicalEvents || []).map((e) => ({
-              ...e,
-              archiveType: 'event',
-            })),
-            ...(campaignData.majorLocations || []).map((l) => ({
-              title: l.name,
-              archiveType: 'place',
-              shortSummary: l.description,
-              body: `${l.description || ''}\n\n${l.sensoryDetails || ''}\n\n${
-                l.history || ''
-              }`,
-              campaignUse: l.campaignUse || '',
-              secrets: l.secrets || '',
-            })),
-            ...(campaignData.recurringNpcs || []).map((n) => ({
-              title: n.name,
-              archiveType: 'person',
-              shortSummary: n.role,
-              body: `${n.motivation || ''}\n\n${n.arc || ''}`,
-              campaignUse: n.firstAppearance || '',
-              secrets: n.secret || '',
-            })),
-            ...(campaignData.factions || []).map((f) => ({
-              title: f.name,
-              archiveType: 'faction',
-              shortSummary: f.goal,
-              body: `${f.publicFace || ''}\n\n${f.methods || ''}\n\n${
-                f.resources || ''
-              }`,
-              campaignUse: f.relationshipToParty || '',
-              secrets: f.hiddenTruth || '',
-            })),
-            ...(campaignData.mysteries || []).map((m) => ({
-              title: m.question,
-              archiveType: 'mystery',
-              shortSummary: m.truth,
-              body: `Indices:\n${(m.clues || []).join(
-                '\n'
-              )}\n\nFausses pistes:\n${(m.redHerrings || []).join('\n')}`,
-              campaignUse: m.payoff || '',
-              secrets: m.truth || '',
-            })),
-          ],
-          scenes: (campaignData.scenes || []).map((sc) => ({
-            id: uid(),
-            title: sc.title || 'Untitled Scene',
-            type: sc.type || 'exploration',
-            summary: sc.summary || '',
-            expanded: isLong
-              ? {
-                  setting: sc.location || '',
-                  readAloud: sc.readAloud || '',
-                  purpose: sc.purpose || '',
-                  lore: sc.lore || '',
-                  dmNotes: sc.dmNotes || '',
-                  sensoryDetails: sc.sensoryDetails || '',
-                  hiddenTruth: sc.hiddenTruth || '',
-                  playerChoices: sc.playerChoices || [],
-                  consequences: sc.consequences || [],
-                  seeds: sc.seeds || [],
-                  callbacks: sc.callbacks || [],
-                  npcs: sc.npcs || [],
-                  encounters: sc.encounters || [],
-                  skillChecks: sc.skillChecks || [],
-                  branches: sc.branches || [],
-                  loot: sc.loot || [],
-                  questions: sc.questions || [],
-                  libraryLinksToCreate: sc.libraryLinksToCreate || [],
-                  sessionNumber: sc.sessionNumber || null,
-                  act: sc.act || '',
-                }
-              : null,
-          })),
-        },
-      });
-
       flash(
-        isLong
-          ? 'Campagne longue forgée — structure complète créée'
-          : 'Campagne forgée : développe une scène pour voir le détail.'
+        failed
+          ? `Campagne forgée : ${failed} séance(s) à reprendre depuis sa fiche.`
+          : writeAll
+          ? 'Campagne forgée et entièrement écrite : prête à jouer.'
+          : 'Bible forgée : écris les séances depuis la fiche de la campagne.'
       );
     } catch (e) {
       setErr(e.message);
     }
-
-    setBusy(false);
+    setBusy('');
   }
 
   return (
     <>
       <h1 className="view">Forge de campagnes</h1>
-
       <p className="sub">
-        Forge une campagne courte rapidement, ou construis une campagne longue
-        avec arcs, scènes, PNJ, factions, encounters, mystères, conséquences et
-        mémoire d’univers.
+        Choisis ce que tu veux : chaque champ laissé vide est décidé par l’IA. Tu peux aussi laisser l’IA proposer tout le
+        brief, puis le corriger avant de forger. La forge puise dans le canon, la bibliothèque, les Archives et les lieux de
+        l’Atlas, puis écrit chaque séance scène par scène.
       </p>
 
-      <div className="panel">
-        <div className="bestiary-toggle" style={{ marginBottom: 18 }}>
-          <button
-            type="button"
-            data-on={mode === 'short' ? 1 : 0}
-            onClick={() => setMode('short')}
-          >
-            Campagne courte
-          </button>
-
-          <button
-            type="button"
-            data-on={mode === 'long' ? 1 : 0}
-            onClick={() => setMode('long')}
-          >
-            Campagne longue
-          </button>
+      <div className="panel forge-panel">
+        <div className="forge-top">
+          <Field label="Format">
+            <select className="in" value={brief.format} onChange={(e) => setFormat(e.target.value)}>
+              {Object.entries(FORMATS).map(([k, v]) => (
+                <option key={k} value={k}>
+                  {v.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Séances">
+            <input className="in" type="number" min="1" max="24" value={brief.sessions} onChange={(e) => set('sessions', Math.max(1, Math.min(24, +e.target.value || 1)))} />
+          </Field>
+          <Field label="Heures / séance">
+            <input className="in" type="number" min="1" max="8" value={brief.hours} onChange={(e) => set('hours', +e.target.value || 3)} />
+          </Field>
+          <Field label="Niveau de départ">
+            <input className="in" type="number" min="1" max="20" value={brief.level} onChange={(e) => set('level', +e.target.value || 1)} />
+          </Field>
+          <Field label="Niveau final (facultatif)">
+            <input className="in" type="number" min="1" max="20" value={brief.levelEnd} onChange={(e) => set('levelEnd', e.target.value)} />
+          </Field>
         </div>
 
-        {mode === 'short' ? (
-          <>
-            <div className="row">
-              <Field label="Durée de la séance (heures)">
-                <input
-                  className="in"
-                  type="number"
-                  min="1"
-                  max="8"
-                  value={form.hours}
-                  onChange={(e) => set('hours', +e.target.value)}
-                />
-              </Field>
-
-              <Field label="Niveau du groupe">
-                <input
-                  className="in"
-                  type="number"
-                  min="1"
-                  max="20"
-                  value={form.level}
-                  onChange={(e) => set('level', +e.target.value)}
-                />
-              </Field>
-            </div>
-
-            <Field label="Thème ou idée de départ">
-              <input
-                className="in"
-                placeholder="un casse sous la cathédrale engloutie ; une trahison entre guildes…"
-                value={form.theme}
-                onChange={(e) => set('theme', e.target.value)}
-              />
-            </Field>
-
-            <Field label="Moments incontournables (facultatif)">
-              <textarea
-                className="in"
-                rows={2}
-                placeholder="Présenter le méchant tôt ; récompenser la quête de Kael pour retrouver sa sœur…"
-                value={form.beats}
-                onChange={(e) => set('beats', e.target.value)}
-              />
-            </Field>
-          </>
-        ) : (
-          <LongCampaignForgeFields
-            form={form}
-            set={set}
-            busy={busy}
-            onPopulateFromMindDump={populateLongCampaignFromMindDump}
-            updatePlannedScene={updatePlannedScene}
-            addPlannedScene={addPlannedScene}
-            removePlannedScene={removePlannedScene}
+        <Field label="Notes libres (mind dump, facultatif)">
+          <textarea
+            className="in"
+            rows={3}
+            value={brief.mindDump}
+            onChange={(e) => set('mindDump', e.target.value)}
+            placeholder="Écris en vrac : idées, images, scènes que tu veux absolument, ce que les joueurs ont fait la dernière fois…"
           />
-        )}
+        </Field>
 
-        <div className="faint" style={{ fontSize: 12, marginBottom: 14 }}>
-          Groupe pris en compte : {partyBlurb}
+        <div className="forge-actions">
+          <button className="btn" disabled={!!busy} onClick={() => propose()}>
+            {busy === 'propose' ? <Spin /> : '✦'} L’IA propose les champs vides
+          </button>
+          <button
+            className="btn ghost"
+            disabled={!!busy}
+            onClick={() => {
+              if (confirm('Effacer le brief (les campagnes forgées ne sont pas touchées) ?')) setBrief({ ...emptyBrief(), level: startLevel });
+            }}
+          >
+            Vider le brief
+          </button>
         </div>
 
-        <button className="btn primary" disabled={busy} onClick={forge}>
-          {busy ? (
+        {groups.map((g) => {
+          const fields = BRIEF_FIELDS.filter((f) => f.group === g);
+          const chosen = fields.filter((f) => String(brief[f.key] || '').trim()).length;
+          return (
+            <details key={g} className="forge-group" open={g === 'Cadre' || g === 'Intrigue'}>
+              <summary>
+                {g} <small>{chosen ? `${chosen}/${fields.length} choisis` : 'l’IA décide de tout'}</small>
+              </summary>
+              <div className="forge-fields">
+                {fields.map((f) => {
+                  const v = brief[f.key] || '';
+                  return (
+                    <div key={f.key} className={'forge-field' + (f.long ? ' wide' : '')}>
+                      <label className="fl">
+                        {f.label} {!v.trim() && <span className="forge-ai-chip">IA décide</span>}
+                      </label>
+                      <div className="forge-input">
+                        {f.long ? (
+                          <textarea className="in" rows={2} value={v} placeholder={f.ph || 'Laisse vide : l’IA décide'} onChange={(e) => set(f.key, e.target.value)} />
+                        ) : (
+                          <input className="in" value={v} placeholder={f.ph || 'Laisse vide : l’IA décide'} onChange={(e) => set(f.key, e.target.value)} />
+                        )}
+                        <button className="btn ghost sm" title="Proposer ce champ avec l’IA" disabled={!!busy} onClick={() => propose([f.key])}>
+                          {busy === f.key ? <Spin /> : '🎲'}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </details>
+          );
+        })}
+
+        <div className="forge-sources">
+          <span>Puise dans :</span>
+          <span className="tag">Canon {universe.lore ? '✓' : '—'}</span>
+          <span className="tag">Mémoire · {(universe.memoryLog || []).length}</span>
+          <span className="tag">Bibliothèque · {libCount}</span>
+          {feed && <span className="tag">Archives · {feed.entries.length}</span>}
+          {feed && <span className="tag">Lieux d’Atlas · {placeCount}</span>}
+          <span className="tag">PNJ & créatures · {npcCount}</span>
+          <span className="tag">Groupe · {party.length || 'générique'}</span>
+        </div>
+
+        <label className="forge-check">
+          <input type="checkbox" checked={writeAll} onChange={(e) => setWriteAll(e.target.checked)} /> Écrire toutes les séances en détail maintenant
+          (campagne prête à jouer ; plus long)
+        </label>
+
+        <button className="btn primary" disabled={!!busy} onClick={forge}>
+          {busy === 'forge' ? (
             <>
               <Spin /> Forge en cours…
             </>
-          ) : mode === 'long' ? (
-            '⚒ Forger la campagne longue'
           ) : (
             '⚒ Forger la campagne'
           )}
         </button>
+
+        {steps.length > 0 && (
+          <ol className="forge-steps">
+            {steps.map((s) => (
+              <li key={s.label} data-status={s.status}>
+                <span>{s.status === 'run' ? <Spin /> : s.status === 'ok' ? '✓' : '✕'}</span>
+                <b>{s.label}</b>
+                {s.note && <small>{s.note}</small>}
+              </li>
+            ))}
+          </ol>
+        )}
 
         {err && (
           <div role="alert" style={{ color: 'var(--blood)', marginTop: 12, fontSize: 13 }}>
@@ -7204,18 +6658,12 @@ function Forge({
       {campaigns.length === 0 ? (
         <div className="empty">
           <div className="big">Aucune campagne pour l’instant</div>
-          <p className="muted">
-            Remplis le formulaire ci-dessus pour forger ta première aventure.
-          </p>
+          <p className="muted">Laisse l’IA proposer un brief, ou remplis ce que tu veux, puis forge.</p>
         </div>
       ) : (
         <div className="grid">
           {campaigns.map((c) => (
-            <CampaignCard
-              key={c.id}
-              camp={c}
-              {...{ state, dispatch, universe, party, flash, setView }}
-            />
+            <CampaignCard key={c.id} camp={c} {...{ state, dispatch, universe, party, flash, setView, feed }} />
           ))}
         </div>
       )}
@@ -7264,6 +6712,7 @@ function makeLibraryEntryFromCampaignSuggestion(suggestion, campaignId) {
     secrets: suggestion.secrets || suggestion.secret || '',
     tags: suggestion.tags || [],
     imagePrompt: suggestion.imagePrompt || '',
+    playerKnowledge: normalizeKnowledge(suggestion.playerKnowledge),
     roughNotes: suggestion.roughNotes || suggestion.notes || '',
     linkedCampaignIds: campaignId ? [campaignId] : [],
     createdAt: now(),
@@ -7350,501 +6799,34 @@ function CampaignArchiveSuggestions({
   );
 }
 
-function makeLongCampaignSceneSeed(n) {
-  return {
-    title:
-      n === 1
-        ? 'Ouverture'
-        : n === 2
-        ? 'Première complication'
-        : n === 3
-        ? 'Point de bascule'
-        : `Scène ${n}`,
-    type:
-      n === 1
-        ? 'social'
-        : n === 2
-        ? 'exploration'
-        : n === 3
-        ? 'combat'
-        : 'exploration',
-    purpose: '',
-    location: '',
-    npcs: '',
-    encounter: '',
-    decision: '',
-    clue: '',
-    loot: '',
-    questions: '',
-  };
-}
-
-function LongCampaignForgeFields({
-  form,
-  set,
-  busy,
-  onPopulateFromMindDump,
-  updatePlannedScene,
-  addPlannedScene,
-  removePlannedScene,
-}) {
+/** Texte de la campagne modifiable sur place : un clic pour éditer. */
+function EditableText({ value, onSave, rows = 4, placeholder = 'Cliquer pour écrire…' }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value || '');
+  useEffect(() => {
+    if (!editing) setDraft(value || '');
+  }, [value, editing]);
+  if (editing)
+    return (
+      <div>
+        <textarea className="in" rows={rows} value={draft} autoFocus onChange={(e) => setDraft(e.target.value)} />
+        <div className="row" style={{ gap: 6, marginTop: 6 }}>
+          <button className="btn sm primary" style={{ flex: 'none' }} onClick={() => { onSave(draft); setEditing(false); }}>
+            Enregistrer
+          </button>
+          <button className="btn sm ghost" style={{ flex: 'none' }} onClick={() => setEditing(false)}>
+            Annuler
+          </button>
+        </div>
+      </div>
+    );
   return (
-    <>
-      <div className="eyebrow" style={{ marginTop: 0 }}>
-        Mind dump de campagne
-      </div>
-
-      <div className="panel brain-panel" style={{ marginBottom: 18 }}>
-        <p
-          className="muted"
-          style={{ fontSize: 13.5, lineHeight: 1.5, marginTop: 0 }}
-        >
-          Dépose ici tout ce que tu as en tête : ambiance, méchant, scènes,
-          lieux, twists, inspirations, contraintes, personnages, mystères,
-          images mentales, moments cools. Loresmith va ensuite remplir le
-          squelette de campagne longue automatiquement.
-        </p>
-
-        <Field label="Mind dump libre">
-          <textarea
-            className="in"
-            value={form.mindDump}
-            onChange={(e) => set('mindDump', e.target.value)}
-            placeholder="Ex. Je veux une campagne dans une cité portuaire hantée par un ancien pacte. Les joueurs commencent comme escorte d'un convoi. Le vrai méchant est un juge immortel. Je veux des factions, un artefact brisé, une scène dans un théâtre abandonné..."
-            style={{ minHeight: 180 }}
-          />
-        </Field>
-
-        <button
-          className="btn primary"
-          style={{ flex: 'none' }}
-          disabled={busy}
-          type="button"
-          onClick={onPopulateFromMindDump}
-        >
-          {busy ? (
-            <>
-              <Spin /> Analyse…
-            </>
-          ) : (
-            'Remplir le squelette avec l’IA'
-          )}
-        </button>
-
-        {(form.suggestedNpcs?.length > 0 ||
-          form.suggestedLibraryEntries?.length > 0) && (
-          <div className="memory-list">
-            {form.suggestedNpcs?.length > 0 && (
-              <div className="memory-item">
-                <b>PNJ suggérés</b>
-                <p>
-                  {form.suggestedNpcs
-                    .map((n) => `${n.name} — ${n.role}`)
-                    .join(' / ')}
-                </p>
-              </div>
-            )}
-
-            {form.suggestedLibraryEntries?.length > 0 && (
-              <div className="memory-item">
-                <b>Archives suggérées</b>
-                <p>
-                  {form.suggestedLibraryEntries
-                    .map((e) => `${e.title} (${e.archiveType})`)
-                    .join(' / ')}
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-      <div className="eyebrow" style={{ marginTop: 0 }}>
-        Fondation de campagne
-      </div>
-
-      <div className="row">
-        <Field label="Titre provisoire">
-          <input
-            className="in"
-            value={form.longTitle}
-            onChange={(e) => set('longTitle', e.target.value)}
-            placeholder="ex. Les Cendres du Serment Stellaire"
-          />
-        </Field>
-
-        <Field label="Niveau de départ">
-          <input
-            className="in"
-            type="number"
-            min="1"
-            max="20"
-            value={form.level}
-            onChange={(e) => set('level', +e.target.value)}
-          />
-        </Field>
-
-        <Field label="Longueur visée">
-          <input
-            className="in"
-            value={form.campaignLength}
-            onChange={(e) => set('campaignLength', e.target.value)}
-            placeholder="ex. 8-12 sessions, 3 actes, campagne ouverte..."
-          />
-        </Field>
-      </div>
-
-      <div className="row">
-        <Field label="Portée">
-          <select
-            className="in"
-            value={form.campaignScope}
-            onChange={(e) => set('campaignScope', e.target.value)}
-          >
-            <option value="arc">Arc narratif</option>
-            <option value="season">Saison complète</option>
-            <option value="sandbox">Sandbox évolutif</option>
-            <option value="epic">Épopée longue</option>
-          </select>
-        </Field>
-
-        <Field label="Structure">
-          <select
-            className="in"
-            value={form.actStructure}
-            onChange={(e) => set('actStructure', e.target.value)}
-          >
-            <option value="3 acts">3 actes</option>
-            <option value="5 acts">5 actes</option>
-            <option value="open web">Structure ouverte en toile</option>
-            <option value="mystery spiral">Spirale de mystère</option>
-          </select>
-        </Field>
-      </div>
-
-      <Field label="Thème central / prémisse">
-        <textarea
-          className="in"
-          value={form.theme}
-          onChange={(e) => set('theme', e.target.value)}
-          placeholder="De quoi parle cette campagne? Trahison, dette ancienne, royaume mourant, dieux oubliés, exploration d'une région..."
-        />
-      </Field>
-
-      <div className="row">
-        <Field label="Conflit central">
-          <textarea
-            className="in"
-            value={form.centralConflict}
-            onChange={(e) => set('centralConflict', e.target.value)}
-            placeholder="Quelle tension fait avancer la campagne?"
-          />
-        </Field>
-
-        <Field label="Situation de départ">
-          <textarea
-            className="in"
-            value={form.startingSituation}
-            onChange={(e) => set('startingSituation', e.target.value)}
-            placeholder="Où sont les PJ au début? Qu'est-ce qui vient de se produire?"
-          />
-        </Field>
-      </div>
-
-      <div className="row">
-        <Field label="Antagoniste principal">
-          <textarea
-            className="in"
-            value={form.mainVillain}
-            onChange={(e) => set('mainVillain', e.target.value)}
-            placeholder="Nom, nature, réputation, lien avec l'univers..."
-          />
-        </Field>
-
-        <Field label="Objectif de l'antagoniste">
-          <textarea
-            className="in"
-            value={form.villainGoal}
-            onChange={(e) => set('villainGoal', e.target.value)}
-            placeholder="Que veut-il vraiment? Pourquoi maintenant?"
-          />
-        </Field>
-
-        <Field label="Enjeux finaux">
-          <textarea
-            className="in"
-            value={form.finalStakes}
-            onChange={(e) => set('finalStakes', e.target.value)}
-            placeholder="Qu'est-ce qui arrive si les PJ échouent?"
-          />
-        </Field>
-      </div>
-
-      <div className="eyebrow">Monde, factions et mystères</div>
-
-      <div className="row">
-        <Field label="Lieux majeurs">
-          <textarea
-            className="in"
-            value={form.mainLocations}
-            onChange={(e) => set('mainLocations', e.target.value)}
-            placeholder="Villes, ruines, donjons, routes, sanctuaires, régions..."
-          />
-        </Field>
-
-        <Field label="Factions">
-          <textarea
-            className="in"
-            value={form.factions}
-            onChange={(e) => set('factions', e.target.value)}
-            placeholder="Guildes, cultes, maisons nobles, clans, ordres, monstres organisés..."
-          />
-        </Field>
-      </div>
-
-      <div className="row">
-        <Field label="Mystères à révéler">
-          <textarea
-            className="in"
-            value={form.mysteries}
-            onChange={(e) => set('mysteries', e.target.value)}
-            placeholder="Questions sans réponse, mensonges historiques, secrets de famille, artefacts inconnus..."
-          />
-        </Field>
-
-        <Field label="Symboles récurrents / motifs">
-          <textarea
-            className="in"
-            value={form.recurringSymbols}
-            onChange={(e) => set('recurringSymbols', e.target.value)}
-            placeholder="Corbeaux blancs, marteaux brisés, étoiles noires, chansons, rêves, cicatrices..."
-          />
-        </Field>
-      </div>
-
-      <div className="row">
-        <Field label="Hooks liés aux backgrounds des joueurs">
-          <textarea
-            className="in"
-            value={form.playerBackstoryHooks}
-            onChange={(e) => set('playerBackstoryHooks', e.target.value)}
-            placeholder="Promesses, ennemis personnels, dettes, familles, mentors, objets hérités..."
-          />
-        </Field>
-
-        <Field label="Contraintes / choses à inclure ou éviter">
-          <textarea
-            className="in"
-            value={form.constraints}
-            onChange={(e) => set('constraints', e.target.value)}
-            placeholder="Pas trop d'horreur, beaucoup d'exploration, moins de politique, inclure tel PNJ..."
-          />
-        </Field>
-      </div>
-
-      <div className="row">
-        <Field label="Notes de ton">
-          <textarea
-            className="in"
-            value={form.toneNotes}
-            onChange={(e) => set('toneNotes', e.target.value)}
-            placeholder="Épique, intime, étrange, drôle, sombre mais chaleureux..."
-          />
-        </Field>
-
-        <Field label="Style de récompenses">
-          <textarea
-            className="in"
-            value={form.rewardStyle}
-            onChange={(e) => set('rewardStyle', e.target.value)}
-            placeholder="Modeste, narratif, clues, objets personnels, peu de magie..."
-          />
-        </Field>
-      </div>
-
-      <Field label="Questions personnalisées / notes libres">
-        <textarea
-          className="in"
-          value={form.customQuestions}
-          onChange={(e) => set('customQuestions', e.target.value)}
-          placeholder="Écris ici tout ce qui ne rentre pas dans les champs. Tu peux poser des questions à l'IA ou mettre des idées décousues."
-        />
-      </Field>
-
-      <div className="eyebrow">Scènes planifiées</div>
-
-      <p className="muted" style={{ fontSize: 13.5, lineHeight: 1.5 }}>
-        Ces scènes servent de squelette. L’IA va les transformer en scènes
-        jouables avec PNJ, encounters, skill checks, branches, loot,
-        conséquences et seeds.
-      </p>
-
-      <div className="grid">
-        {form.plannedScenes.map((sc, i) => (
-          <div className="panel" key={i}>
-            <div className="card-h">
-              <div>
-                <div
-                  style={{
-                    fontFamily: 'Cinzel,serif',
-                    color: 'var(--gold-lt)',
-                    fontSize: 16,
-                  }}
-                >
-                  Scène {i + 1}
-                </div>
-
-                <div className="muted" style={{ fontSize: 12 }}>
-                  Bloc de préparation personnalisable
-                </div>
-              </div>
-
-              {form.plannedScenes.length > 1 && (
-                <button
-                  className="btn ghost sm danger"
-                  style={{ flex: 'none' }}
-                  onClick={() => removePlannedScene(i)}
-                >
-                  ×
-                </button>
-              )}
-            </div>
-
-            <div className="row" style={{ marginTop: 12 }}>
-              <Field label="Titre de scène">
-                <input
-                  className="in"
-                  value={sc.title}
-                  onChange={(e) =>
-                    updatePlannedScene(i, { title: e.target.value })
-                  }
-                />
-              </Field>
-
-              <Field label="Type">
-                <select
-                  className="in"
-                  value={sc.type}
-                  onChange={(e) =>
-                    updatePlannedScene(i, { type: e.target.value })
-                  }
-                >
-                  <option value="social">Social</option>
-                  <option value="exploration">Exploration</option>
-                  <option value="combat">Combat</option>
-                  <option value="puzzle">Puzzle</option>
-                  <option value="climax">Climax</option>
-                </select>
-              </Field>
-
-              <Field label="Lieu">
-                <input
-                  className="in"
-                  value={sc.location}
-                  onChange={(e) =>
-                    updatePlannedScene(i, { location: e.target.value })
-                  }
-                  placeholder="ex. Le pont effondré, la halle des guildes..."
-                />
-              </Field>
-            </div>
-
-            <div className="row">
-              <Field label="But de la scène">
-                <textarea
-                  className="in"
-                  value={sc.purpose}
-                  onChange={(e) =>
-                    updatePlannedScene(i, { purpose: e.target.value })
-                  }
-                  placeholder="Pourquoi cette scène existe-t-elle?"
-                />
-              </Field>
-
-              <Field label="PNJ / personnages présents">
-                <textarea
-                  className="in"
-                  value={sc.npcs}
-                  onChange={(e) =>
-                    updatePlannedScene(i, { npcs: e.target.value })
-                  }
-                  placeholder="Noms, rôles, attitudes, secrets..."
-                />
-              </Field>
-            </div>
-
-            <div className="row">
-              <Field label="Encounter / opposition">
-                <textarea
-                  className="in"
-                  value={sc.encounter}
-                  onChange={(e) =>
-                    updatePlannedScene(i, { encounter: e.target.value })
-                  }
-                  placeholder="Monstres, obstacles, terrain, complication..."
-                />
-              </Field>
-
-              <Field label="Décision / dilemme">
-                <textarea
-                  className="in"
-                  value={sc.decision}
-                  onChange={(e) =>
-                    updatePlannedScene(i, { decision: e.target.value })
-                  }
-                  placeholder="Quel choix intéressant les joueurs doivent-ils faire?"
-                />
-              </Field>
-            </div>
-
-            <div className="row">
-              <Field label="Indice / secret révélé">
-                <textarea
-                  className="in"
-                  value={sc.clue}
-                  onChange={(e) =>
-                    updatePlannedScene(i, { clue: e.target.value })
-                  }
-                  placeholder="Indice, vérité, mensonge, symbole, révélation..."
-                />
-              </Field>
-
-              <Field label="Loot possible">
-                <textarea
-                  className="in"
-                  value={sc.loot}
-                  onChange={(e) =>
-                    updatePlannedScene(i, { loot: e.target.value })
-                  }
-                  placeholder="Objet banal, drôle, personnel, clue, petite récompense..."
-                />
-              </Field>
-            </div>
-
-            <Field label="Questions à répondre dans cette scène">
-              <textarea
-                className="in"
-                value={sc.questions}
-                onChange={(e) =>
-                  updatePlannedScene(i, { questions: e.target.value })
-                }
-                placeholder="Qu'est-ce que cette scène doit clarifier? Quel mystère doit avancer?"
-              />
-            </Field>
-          </div>
-        ))}
-      </div>
-
-      <button
-        className="btn"
-        style={{ flex: 'none', marginTop: 12 }}
-        type="button"
-        onClick={addPlannedScene}
-      >
-        + Ajouter une scène
-      </button>
-    </>
+    <button type="button" className={'camp-edit' + (value ? '' : ' empty')} title="Cliquer pour modifier" onClick={() => setEditing(true)}>
+      {value || placeholder}
+    </button>
   );
 }
+
 function CampaignCard({
   camp,
   state,
@@ -7853,11 +6835,88 @@ function CampaignCard({
   party,
   flash,
   setView,
+  feed,
 }) {
   const [open, setOpen] = useState(false);
   const { ai } = useContext(AIContext);
   const [brainNotes, setBrainNotes] = useState(camp.brainScratch || '');
   const [brainBusy, setBrainBusy] = useState(false);
+  const [writing, setWriting] = useState(0);
+  const [populating, setPopulating] = useState('');
+  const sessions = camp.sessions || [];
+  const written = sessions.filter((s) => s.detailed).length;
+  const legacy = sessions.length === 0;
+  const patchCamp = (patch) => dispatch({ type: 'UPDATE_CAMPAIGN', id: camp.id, patch });
+
+  /** Écrit une ou plusieurs séances, l'une après l'autre (chacune voit les précédentes). */
+  async function writeSessions(numbers) {
+    let current = camp;
+    for (const n of numbers) {
+      setWriting(n);
+      try {
+        const patch = await writeCampaignSession({ ai, universe, state, party, camp: current, sessionNumber: n, feed });
+        current = { ...current, ...patch };
+        patchCamp(patch);
+      } catch (e) {
+        flash(e.message);
+        break;
+      }
+    }
+    setWriting(0);
+  }
+
+  function invokeOnMap() {
+    dispatch({ type: 'UPDATE_UNIVERSE', id: universe.id, patch: { activeCampaignId: camp.id } });
+    setView && setView('maps');
+    flash(`« ${camp.title} » invoquée : ouvre une carte pour suivre la campagne.`);
+  }
+
+  /** Crée dans PNJ & Créatures les fiches des PNJ récurrents et des créatures de la campagne. */
+  async function populateBestiary() {
+    const known = new Set(Object.values(state.npcs || {}).filter((n) => n.universeId === universe.id).map((n) => normName(n.name)));
+    const items = [
+      ...(camp.recurringNpcs || []).map((n) => ({
+        mode: 'npc',
+        name: n.name,
+        notes: [n.role, n.kind, n.motivation && `Motivation : ${n.motivation}`, n.secret && `Secret : ${n.secret}`, n.voice && `Voix : ${n.voice}`, n.arc && `Arc : ${n.arc}`, n.attitude && `Attitude : ${n.attitude}`].filter(Boolean).join('\n'),
+      })),
+      ...(camp.monsters || []).map((m) => ({
+        mode: 'monster',
+        name: m.name,
+        cr: m.cr,
+        notes: [m.kind, m.role && `Rôle : ${m.role}`, m.cr && `FP visé : ${m.cr}`, m.where && `Où : ${m.where}`, m.description].filter(Boolean).join('\n'),
+      })),
+    ].filter((it) => it.name && !known.has(normName(it.name)));
+    if (!items.length) {
+      flash('Toutes les fiches de cette campagne existent déjà dans PNJ & Créatures.');
+      return;
+    }
+    const ctx = buildLoreContext({ universe, state, feed, party, budget: 6000, focus: `${camp.title} ${camp.premise}` });
+    let made = 0;
+    for (let i = 0; i < items.length; i += 2) {
+      const batch = items.slice(i, i + 2);
+      setPopulating(`${Math.min(i + 2, items.length)}/${items.length}`);
+      try {
+        const entities = await generateEntities((o) => callAI(ai, o), {
+          ctx: `${ctx}\n\nCAMPAGNE : ${camp.title} — ${camp.premise}`,
+          items: batch,
+          level: camp.level || party[0]?.level || 3,
+          size: party.length || 4,
+        });
+        for (const e of entities) {
+          const n = { ...e, id: uid(), createdAt: now(), campaignIds: [camp.id] };
+          dispatch({ type: 'ADD_NPC', n });
+          autoPortrait(dispatch, n, archiveImageIndex(feed));
+          made++;
+        }
+      } catch (e) {
+        flash(e.message);
+        break;
+      }
+    }
+    setPopulating('');
+    if (made) flash(`${made} fiche(s) créée(s) dans PNJ & Créatures.`);
+  }
 
   async function enrichLongCampaign() {
     setBrainBusy(true);
@@ -8216,6 +7275,211 @@ function CampaignCard({
 
       {open && (
         <>
+          {!legacy && (
+            <div className="camp-progress">
+              <span>
+                Séances écrites : <b>{written}</b>/{sessions.length}
+              </span>
+              <span className="bar">
+                <i style={{ width: `${sessions.length ? (written / sessions.length) * 100 : 0}%` }} />
+              </span>
+              {written < sessions.length && (
+                <button className="btn sm primary" disabled={!!writing} onClick={() => writeSessions(sessions.filter((s) => !s.detailed).map((s) => s.sessionNumber))}>
+                  {writing ? (
+                    <>
+                      <Spin /> Séance {writing}…
+                    </>
+                  ) : (
+                    '✎ Écrire les séances restantes'
+                  )}
+                </button>
+              )}
+            </div>
+          )}
+          <div className="row" style={{ gap: 8, flexWrap: 'wrap', margin: '6px 0 10px' }}>
+            <button className="btn sm" style={{ flex: 'none' }} onClick={invokeOnMap}>
+              🗺 Invoquer sur la carte
+            </button>
+            {(camp.recurringNpcs?.length > 0 || camp.monsters?.length > 0) && (
+              <button className="btn sm" style={{ flex: 'none' }} disabled={!!populating} onClick={populateBestiary}>
+                {populating ? (
+                  <>
+                    <Spin /> Fiches {populating}
+                  </>
+                ) : (
+                  '✦ Créer les fiches PNJ & créatures'
+                )}
+              </button>
+            )}
+          </div>
+
+          <div className="camp-bible">
+            <details open>
+              <summary>Accroche</summary>
+              <EditableText value={camp.hook} onSave={(v) => patchCamp({ hook: v })} />
+            </details>
+            {(camp.dmOverview || !legacy) && (
+              <details>
+                <summary>Brief du MJ</summary>
+                <EditableText value={camp.dmOverview} rows={8} onSave={(v) => patchCamp({ dmOverview: v })} />
+              </details>
+            )}
+            {(camp.campaignCanon || !legacy) && (
+              <details>
+                <summary>Canon de la campagne</summary>
+                <EditableText value={camp.campaignCanon} rows={12} onSave={(v) => patchCamp({ campaignCanon: v })} />
+              </details>
+            )}
+            {(camp.finalTruth || camp.failureState) && (
+              <details>
+                <summary>Vérité cachée · si les PJ échouent</summary>
+                <EditableText value={camp.finalTruth} onSave={(v) => patchCamp({ finalTruth: v })} />
+                <EditableText value={camp.failureState} onSave={(v) => patchCamp({ failureState: v })} />
+              </details>
+            )}
+            {camp.acts?.length > 0 && (
+              <details>
+                <summary>Actes ({camp.acts.length})</summary>
+                <ul className="camp-list">
+                  {camp.acts.map((a, i) => (
+                    <li key={i}>
+                      <b>{a.title}.</b> {toText(a.summary)} {a.turningPoint && <em>Bascule : {toText(a.turningPoint)}</em>}
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
+            {camp.recurringNpcs?.length > 0 && (
+              <details>
+                <summary>PNJ récurrents ({camp.recurringNpcs.length})</summary>
+                <ul className="camp-list">
+                  {camp.recurringNpcs.map((n, i) => (
+                    <li key={i}>
+                      <b>{n.name}</b> — {toText(n.role)}. {toText(n.motivation)} {n.secret && <em>Secret : {toText(n.secret)}</em>}{' '}
+                      {n.voice && <span className="muted">Voix : {toText(n.voice)}</span>}
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
+            {camp.factions?.length > 0 && (
+              <details>
+                <summary>Factions ({camp.factions.length})</summary>
+                <ul className="camp-list">
+                  {camp.factions.map((f, i) => (
+                    <li key={i}>
+                      <b>{f.name}</b> — {toText(f.goal)} {f.hiddenTruth && <em>En vérité : {toText(f.hiddenTruth)}</em>}
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
+            {camp.majorLocations?.length > 0 && (
+              <details>
+                <summary>Lieux ({camp.majorLocations.length})</summary>
+                <ul className="camp-list">
+                  {camp.majorLocations.map((l, i) => (
+                    <li key={i}>
+                      <b>{l.name}</b> — {toText(l.description)} {l.secrets && <em>Secret : {toText(l.secrets)}</em>}
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
+            {camp.mysteries?.length > 0 && (
+              <details>
+                <summary>Mystères ({camp.mysteries.length})</summary>
+                <ul className="camp-list">
+                  {camp.mysteries.map((m, i) => (
+                    <li key={i}>
+                      <b>{toText(m.question)}</b> → {toText(m.truth)}
+                      {toList(m.clues).length > 0 && <div className="muted">Indices : {toList(m.clues).join(' · ')}</div>}
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
+            {camp.monsters?.length > 0 && (
+              <details>
+                <summary>Créatures ({camp.monsters.length})</summary>
+                <ul className="camp-list">
+                  {camp.monsters.map((m, i) => (
+                    <li key={i}>
+                      <b>{m.name}</b> ({toText(m.kind)}, FP {toText(m.cr)}) — {toText(m.where)}
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
+          </div>
+
+          {legacy ? (
+            <>
+              <div className="eyebrow" style={{ marginTop: 22 }}>
+                Scènes
+              </div>
+              {camp.scenes.map((sc, i) => (
+                <SceneRow key={sc.id} scene={sc} idx={i} camp={camp} {...{ state, dispatch, universe, party, flash, setView }} />
+              ))}
+            </>
+          ) : (
+            <>
+              <div className="eyebrow" style={{ marginTop: 22 }}>
+                Séances et scènes
+              </div>
+              {sessions.map((s) => {
+                const scenes = camp.scenes.filter((sc) => sc.sessionNumber === s.sessionNumber);
+                return (
+                  <section key={s.sessionNumber} className="camp-session">
+                    <div className="camp-session-head">
+                      <h4>
+                        Séance {s.sessionNumber} · {s.title}
+                      </h4>
+                      <button className="btn ghost sm" style={{ flex: 'none' }} disabled={!!writing} onClick={() => writeSessions([s.sessionNumber])}>
+                        {writing === s.sessionNumber ? <Spin /> : s.detailed ? '↻ Réécrire' : '✎ Écrire cette séance'}
+                      </button>
+                    </div>
+                    <div className="camp-session-meta">
+                      {toText(s.summary)}
+                      {s.mainGoal && (
+                        <div>
+                          <b>Objectif :</b> {toText(s.mainGoal)}
+                        </div>
+                      )}
+                      {s.mainLocation && (
+                        <div>
+                          <b>Lieu principal :</b> {toText(s.mainLocation)}
+                        </div>
+                      )}
+                    </div>
+                    {s.recap && (
+                      <Block title="À lire en début de séance">
+                        <div className="block-text">{toText(s.recap)}</div>
+                      </Block>
+                    )}
+                    {s.dmBrief && (
+                      <Block title="Brief de séance">
+                        <EditableText
+                          value={toText(s.dmBrief)}
+                          rows={6}
+                          onSave={(v) => patchCamp({ sessions: sessions.map((x) => (x.sessionNumber === s.sessionNumber ? { ...x, dmBrief: v } : x)) })}
+                        />
+                      </Block>
+                    )}
+                    {scenes.map((sc, i) => (
+                      <SceneRow key={sc.id} scene={sc} idx={i} camp={camp} {...{ state, dispatch, universe, party, flash, setView }} />
+                    ))}
+                    {s.cliffhanger && (
+                      <div className="muted" style={{ fontSize: 13.5, margin: '6px 0' }}>
+                        <b>Fin de séance :</b> {toText(s.cliffhanger)}
+                      </div>
+                    )}
+                  </section>
+                );
+              })}
+            </>
+          )}
+
           <div className="eyebrow">Mémoire de campagne</div>
           <CampaignArchiveSuggestions
             suggestions={camp.librarySuggestions || []}
@@ -8312,21 +7576,6 @@ function CampaignCard({
             )}
           </div>
 
-          <div className="scroll">{camp.hook}</div>
-
-          <div className="eyebrow" style={{ marginTop: 22 }}>
-            Scènes
-          </div>
-
-          {camp.scenes.map((sc, i) => (
-            <SceneRow
-              key={sc.id}
-              scene={sc}
-              idx={i}
-              camp={camp}
-              {...{ state, dispatch, universe, party, flash, setView }}
-            />
-          ))}
         </>
       )}
     </div>
@@ -8876,9 +8125,28 @@ JSON: {
         <div style={{ marginTop: 12, paddingLeft: 26 }}>
           <div className="muted" style={{ fontSize: 13.5 }}>
             <b style={{ color: 'var(--txt)' }}>Cadre. </b>
-            {x.setting}
+            {toText(x.setting || scene.location)}
           </div>
-          {x.readAloud && <div className="scroll">{x.readAloud}</div>}
+          {x.readAloud && <div className="scroll">{toText(x.readAloud)}</div>}
+          {(toList(x.guidance).length > 0 || x.nextLocation) && (
+            <div className="scene-guidance">
+              <b>Guider le groupe vers la suite{x.nextLocation ? ` (→ ${toText(x.nextLocation)})` : ''}</b>
+              <ul className="block-list">
+                {toList(x.guidance).map((g, i) => (
+                  <li key={i}>{g}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {toList(x.clues).length > 0 && (
+            <Block title="Indices à trouver">
+              <ul className="block-list">
+                {toList(x.clues).map((c, i) => (
+                  <li key={i}>{c}</li>
+                ))}
+              </ul>
+            </Block>
+          )}
           {x.dialogues?.length > 0 && (
             <Block title="Dialogues">
               {x.dialogues.map((d, i) => (
@@ -8903,7 +8171,19 @@ JSON: {
             <Block title="Rencontres">
               {x.encounters.map((e, i) => (
                 <div key={i} className="feat">
-                  <b>{e.name}.</b> {e.detail}
+                  <b>{toText(e.name)}.</b> {toText(e.detail)}
+                  {e.creatures?.length > 0 && (
+                    <div className="scene-creatures">
+                      {e.creatures.map((c, j) => (
+                        <span key={j}>
+                          {c.count || 1} × {toText(c.name)}
+                          {c.cr ? ` · FP ${toText(c.cr)}` : ''}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {e.tactics && <div className="muted">Tactique : {toText(e.tactics)}</div>}
+                  {e.nonCombatResolution && <div className="muted">Sans combat : {toText(e.nonCombatResolution)}</div>}
                 </div>
               ))}
             </Block>
@@ -8913,9 +8193,10 @@ JSON: {
               {x.skillChecks.map((c, i) => (
                 <div key={i} className="feat">
                   <b>
-                    {c.check} (DD {c.dc}).
+                    {toText(c.check)} (DD {toText(c.dc)}).
                   </b>{' '}
-                  {c.on_success}
+                  {toText(c.on_success)}
+                  {c.on_failure && <span className="muted"> Échec : {toText(c.on_failure)}</span>}
                 </div>
               ))}
             </Block>
@@ -11109,12 +10390,44 @@ const LIBRARY_TYPES = {
   },
 };
 
+const KNOWLEDGE_SCHEMA = `"playerKnowledge": [
+    { "dc": 0, "skill": "—", "text": "ce que tout le monde sait (rumeur, réputation)", "reveal": "comment le glisser en jeu : réplique d'un PNJ, détail du décor, document trouvé" },
+    { "dc": 10, "skill": "Histoire|Arcanes|Nature|Religion|Investigation|Perspicacité|Médecine|Survie", "text": str, "reveal": str },
+    { "dc": 15, "skill": str, "text": str, "reveal": str },
+    { "dc": 20, "skill": str, "text": "ce que seuls les plus savants devinent (peut effleurer un secret)", "reveal": str }
+  ]`;
+
+/** Remet en forme les connaissances graduées renvoyées par l'IA. */
+function normalizeKnowledge(list) {
+  return (Array.isArray(list) ? list : [])
+    .filter((k) => k && (k.text || k.info))
+    .map((k) => ({ dc: Number(k.dc) || 0, skill: toText(k.skill === '—' ? '' : k.skill), text: toText(k.text || k.info), reveal: toText(k.reveal || k.howToReveal) }))
+    .sort((a, b) => a.dc - b.dc);
+}
+
 function Library({ state, dispatch, universe, campaigns, flash }) {
   const { ai } = useContext(AIContext);
 
   const [type, setType] = useState('artifact');
   const [selectedId, setSelectedId] = useState('');
   const [busy, setBusy] = useState(false);
+  const [picker, setPicker] = useState(null);
+  const feed = useUniverseFeed(universe);
+  const imageIndex = useMemo(() => archiveImageIndex(feed), [feed]);
+
+  // Les fiches sans image reçoivent celle des Archives qui porte leur nom (une fois, sans écraser un choix du MJ).
+  useEffect(() => {
+    if (!imageIndex.length) return;
+    const withImage = new Set(Object.values(state.assets || {}).filter((a) => a.targetType === 'library').map((a) => a.targetId));
+    const assets = [];
+    for (const e of Object.values(state.libraryEntries || {})) {
+      if (e.universeId !== universe.id || withImage.has(e.id) || e.noAutoImage) continue;
+      const img = matchArchiveImages([e.title, e.subtitle, ...(e.altNames || [])].filter(Boolean), imageIndex)[0];
+      if (img)
+        assets.push({ id: `arc-auto-${e.id}`, name: img.caption, category: 'library', targetType: 'library', targetId: e.id, dataUrl: img.src, source: 'archives', prompt: '', createdAt: 0, universeId: universe.id });
+    }
+    if (assets.length) dispatch({ type: 'IMPORT_ARCHIVE_ENTRIES', entries: [], assets });
+  }, [imageIndex, Object.keys(state.libraryEntries || {}).length]);
 
   const [draft, setDraft] = useState({
     title: '',
@@ -11234,8 +10547,10 @@ function Library({ state, dispatch, universe, campaigns, flash }) {
     "campaignUse": "comment cela a été vu ou peut revenir en campagne",
     "secrets": "secrets, rumeurs ou incertitudes",
     "tags": ["tag1", "tag2", "tag3"],
-    "imagePrompt": "prompt d'image dark fantasy sans texte ni watermark"
+    "imagePrompt": "prompt d'image dark fantasy sans texte ni watermark",
+    ${KNOWLEDGE_SCHEMA}
   }`,
+        maxTokens: 6000,
       });
 
       const id = uid();
@@ -11255,6 +10570,7 @@ function Library({ state, dispatch, universe, campaigns, flash }) {
         secrets: data.secrets || '',
         tags: data.tags || [],
         imagePrompt: data.imagePrompt || '',
+        playerKnowledge: normalizeKnowledge(data.playerKnowledge),
         roughNotes: draft.roughNotes,
         linkedCampaignIds: draft.linkedCampaignIds,
         createdAt: now(),
@@ -11388,6 +10704,37 @@ function Library({ state, dispatch, universe, campaigns, flash }) {
     setBusy(false);
   }
 
+  async function writeKnowledge(entry) {
+    setBusy(true);
+    try {
+      const data = await callAI(ai, {
+        system: `Tu es le MJ complice d'une table de jeu de rôle (D&D 5e). Tu gradues ce que les personnages peuvent savoir d'un sujet.
+Réponds uniquement en JSON valide. Langue : français.
+Chaque palier : un DD, la compétence qui convient, l'information exacte (ce que le joueur apprend), et une façon CONCRÈTE de la lui faire découvrir en jeu
+(une réplique entre guillemets d'un PNJ, une inscription, une odeur, un document, une rumeur de taverne). Du plus courant (DD 0) au plus rare (DD 20 ou plus).
+Ne révèle pas les secrets du MJ aux paliers faciles. Reste fidèle à la fiche : n'invente pas de faits contraires.`,
+        prompt: `Univers : ${universe.name}\nTon : ${universe.tone}\nType : ${LIBRARY_TYPES[entry.archiveType]?.singular || 'Archive'}\nFiche : ${entry.title}\nRésumé : ${entry.shortSummary || ''}\nTexte :\n${(entry.body || '').slice(0, 5000)}\nSecrets du MJ (à garder pour les paliers élevés, ou à taire) :\n${entry.secrets || '—'}\n\nRetourne : { ${KNOWLEDGE_SCHEMA} } (4 à 6 paliers)`,
+        maxTokens: 2500,
+      });
+      const playerKnowledge = normalizeKnowledge(data.playerKnowledge);
+      if (!playerKnowledge.length) throw new Error('L’IA n’a pas renvoyé de connaissances lisibles. Réessaie.');
+      dispatch({ type: 'UPDATE_LIBRARY_ENTRY', id: entry.id, patch: { playerKnowledge } });
+      flash('Connaissances des joueurs rédigées : relis-les avant la séance.');
+    } catch (e) {
+      flash(e.message);
+    }
+    setBusy(false);
+  }
+
+  function pickArchiveImage(entry, img) {
+    dispatch({
+      type: 'ADD_ASSET',
+      asset: { id: uid(), name: img.caption, category: 'library', targetType: 'library', targetId: entry.id, dataUrl: img.src, source: 'archives', prompt: '', createdAt: now() },
+    });
+    setPicker(null);
+    flash('Image des Archives assignée.');
+  }
+
   function openEntry(id) {
     const target = state.libraryEntries?.[id];
     if (!target) return;
@@ -11492,8 +10839,10 @@ function Library({ state, dispatch, universe, campaigns, flash }) {
 
   "classification": "classification",
   "language": "langue",
-  "authenticity": "évaluation d'authenticité"
+  "authenticity": "évaluation d'authenticité",
+  ${KNOWLEDGE_SCHEMA}
 }`,
+        maxTokens: 7000,
       });
 
       dispatch({
@@ -11559,6 +10908,7 @@ function Library({ state, dispatch, universe, campaigns, flash }) {
           classification: data.classification || entry.classification || '',
           language: data.language || entry.language || '',
           authenticity: data.authenticity || entry.authenticity || '',
+          playerKnowledge: normalizeKnowledge(data.playerKnowledge).length ? normalizeKnowledge(data.playerKnowledge) : entry.playerKnowledge || [],
         },
       });
 
@@ -11758,10 +11108,20 @@ function Library({ state, dispatch, universe, campaigns, flash }) {
               onToggleCampaign={toggleEntryCampaign}
               onOpenEntry={openEntry}
               onWriteReadAloud={writeReadAloud}
+              onWriteKnowledge={writeKnowledge}
+              onPickArchive={imageIndex.length ? (entry) => setPicker(entry) : null}
             />
           )}
         </main>
       </div>
+      {picker && (
+        <ArchiveImagePicker
+          index={imageIndex}
+          suggested={matchArchiveImages([picker.title, picker.subtitle, ...(picker.altNames || [])].filter(Boolean), imageIndex)}
+          onClose={() => setPicker(null)}
+          onPick={(img) => pickArchiveImage(picker, img)}
+        />
+      )}
     </>
   );
 }
@@ -11791,8 +11151,13 @@ function LibraryEntryEditor({
   onToggleCampaign,
   onOpenEntry,
   onWriteReadAloud,
+  onWriteKnowledge,
+  onPickArchive,
 }) {
   const img = getPrimaryAsset(state, 'library', entry.id);
+  // Détail complet de la fiche des Archives, lu depuis le fichier publié (rien n'est copié dans le navigateur).
+  const { feed: archiveFeed } = useUnderdarkFeed();
+  const archive = entry.sourceId ? archiveFeed?.entries.find((x) => x.id === entry.sourceId) ?? null : null;
 
   function update(patch) {
     dispatch({
@@ -11811,6 +11176,7 @@ function LibraryEntryEditor({
       <LibraryArchiveView
         entry={entry}
         img={img}
+        archive={archive}
         gallery={getAssetsFor(state, 'library', entry.id).filter((x) => x.dataUrl)}
         campaigns={campaigns}
         related={entry.related || []}
@@ -11819,6 +11185,8 @@ function LibraryEntryEditor({
         onUploadImage={onUploadImage}
         onPolish={onPolish}
         onWriteReadAloud={onWriteReadAloud}
+        onWriteKnowledge={onWriteKnowledge}
+        onPickArchive={onPickArchive}
         busy={busy}
       />
 
@@ -11849,6 +11217,10 @@ function LibraryEntryEditor({
             value={entry.shortSummary || ''}
             onChange={(e) => updateField('shortSummary', e.target.value)}
           />
+        </Field>
+
+        <Field label="Ce que les joueurs savent (du plus courant au plus rare)">
+          <KnowledgeEditor value={entry.playerKnowledge || []} onChange={(playerKnowledge) => updateField('playerKnowledge', playerKnowledge)} />
         </Field>
 
         <Field label="Passage à lire aux aventuriers (à voix haute)">
@@ -11958,6 +11330,7 @@ function LibraryEntryEditor({
 function LibraryArchiveView({
   entry,
   img,
+  archive,
   gallery,
   campaigns,
   related,
@@ -11966,6 +11339,8 @@ function LibraryArchiveView({
   onUploadImage,
   onPolish,
   onWriteReadAloud,
+  onWriteKnowledge,
+  onPickArchive,
   busy,
 }) {
   return (
@@ -11973,6 +11348,7 @@ function LibraryArchiveView({
       entry={entry}
       typeLabel={LIBRARY_TYPES[entry.archiveType]?.singular || 'Archive'}
       img={img}
+      archive={archive}
       gallery={gallery}
       campaigns={campaigns}
       related={related}
@@ -11981,8 +11357,34 @@ function LibraryArchiveView({
       onUploadImage={onUploadImage}
       onPolish={onPolish}
       onWriteReadAloud={onWriteReadAloud}
+      onWriteKnowledge={onWriteKnowledge}
+      onPickArchive={onPickArchive}
       busy={busy}
     />
+  );
+}
+
+/** Édition des connaissances graduées : DD, compétence, information, façon de la révéler en jeu. */
+function KnowledgeEditor({ value, onChange }) {
+  const rows = value || [];
+  const up = (i, patch) => onChange(rows.map((r, j) => (j === i ? { ...r, ...patch } : r)));
+  return (
+    <div className="knowledge-editor">
+      {rows.map((k, i) => (
+        <div key={i} className="knowledge-row">
+          <input className="in" type="number" min="0" max="30" title="DD (0 = connu de tous)" value={k.dc ?? 0} onChange={(e) => up(i, { dc: Number(e.target.value) || 0 })} />
+          <input className="in" placeholder="Compétence" value={k.skill || ''} onChange={(e) => up(i, { skill: e.target.value })} />
+          <textarea className="in" rows={2} placeholder="Ce que le joueur apprend" value={k.text || ''} onChange={(e) => up(i, { text: e.target.value })} />
+          <textarea className="in" rows={2} placeholder="Comment le lui faire découvrir en jeu" value={k.reveal || ''} onChange={(e) => up(i, { reveal: e.target.value })} />
+          <button type="button" className="btn ghost sm danger" onClick={() => onChange(rows.filter((_, j) => j !== i))} title="Retirer">
+            ✕
+          </button>
+        </div>
+      ))}
+      <button type="button" className="btn ghost sm" onClick={() => onChange([...rows, { dc: rows.length ? Math.min(30, (Number(rows[rows.length - 1].dc) || 0) + 5) : 0, skill: '', text: '', reveal: '' }])}>
+        + Ajouter un palier
+      </button>
+    </div>
   );
 }
 
@@ -12813,892 +12215,588 @@ function CharFormModal({ dispatch, flash, onClose }) {
 }
 
 /* ----------------------------- Bestiary --------------------------------- */
-function Bestiary({
-  dispatch,
-  state,
-  universe,
-  npcs,
-  party,
-  campaigns,
-  flash,
-}) {
-  const { ai } = useContext(AIContext);
+const BESTIARY_SEL_KEY = 'loresmith:bestiary-sel';
+const QUICK_PRESETS = {
+  monster: ['prédateur des galeries', 'nuée fongique', 'boss de fin d’acte', 'gardien d’un sanctuaire', 'charognard opportuniste', 'horreur venue des Archives'],
+  npc: ['marchand louche', 'garde fatigué', 'érudit des Archives', 'enfant témoin', 'prêtresse ambiguë', 'informateur qui ment'],
+};
 
-  const [mode, setMode] = useState('npc'); // "npc" | "monster"
+/** Portrait d'une fiche : image assignée, sinon portrait SRD, sinon rien. */
+function portraitOf(state, n) {
+  const a = getPrimaryAsset(state, 'creature', n.id) || getPrimaryAsset(state, 'npc', n.id);
+  if (a?.dataUrl || a?.url) return a.dataUrl || a.url;
+  if (n.srdId) return tokenImage({ kind: 'monster', statId: n.srdId });
+  return '';
+}
 
-  const [f, setF] = useState({
-    name: '',
-    function: '',
-    ancestry: '',
-    role: '',
-    difficulty: 'moderate',
-    backstory: '',
-    notes: '',
-    sceneIds: [],
+/** Assigne un portrait à une fiche et en tire le jeton rond réutilisé sur les cartes. */
+async function assignPortrait(dispatch, n, src, source = 'upload') {
+  const isMonster = n.entityType === 'monster' || n.isMonster;
+  const type = isMonster ? 'creature' : 'npc';
+  dispatch({
+    type: 'ADD_ASSET',
+    asset: { id: uid(), name: n.name, category: type, targetType: type, targetId: n.id, dataUrl: src, source, prompt: n.imagePrompt || '', createdAt: now() },
   });
+  try {
+    const token = await makeToken(src, { hostile: isMonster });
+    dispatch({ type: 'UPDATE_NPC', id: n.id, patch: { token } });
+  } catch {
+    /* Image d'un autre site sans autorisation : le portrait reste, sans jeton. */
+  }
+}
 
-  const [busy, setBusy] = useState(false);
+/** Image automatique : les Archives d'abord (par nom ou espèce), sinon le portrait SRD. */
+function autoPortrait(dispatch, n, imageIndex) {
+  const isMonster = n.entityType === 'monster' || n.isMonster;
+  // Une créature prend l'image de son espèce (nom exact de la fiche des Archives) ; un PNJ, celle de son nom.
+  const match = isMonster
+    ? matchArchiveImages([n.kind, n.type, n.name].filter(Boolean), imageIndex.filter((i) => ['creature', 'flore', 'fungus'].includes(i.entryType)))[0]
+    : matchPortrait([n.name], imageIndex)[0];
+  if (match) return assignPortrait(dispatch, n, match.src, 'archives');
+  if (n.srdId) return assignPortrait(dispatch, n, tokenImage({ kind: 'monster', statId: n.srdId }), 'srd');
+  return null;
+}
+
+function Bestiary({ dispatch, state, universe, npcs, party, campaigns, flash }) {
+  const { ai } = useContext(AIContext);
+  const feed = useUniverseFeed(universe);
+  const imageIndex = useMemo(() => archiveImageIndex(feed), [feed]);
+
+  const [mode, setMode] = useState('monster');
+  const [quick, setQuick] = useState('');
+  const [count, setCount] = useState(1);
+  const [difficulty, setDifficulty] = useState('moderate');
+  const [advanced, setAdvanced] = useState(false);
+  const [f, setF] = useState({ name: '', function: '', ancestry: '', role: '', cr: '', clan: '', backstory: '', sceneIds: [] });
+  const [busy, setBusy] = useState('');
   const [err, setErr] = useState('');
-
+  const [filter, setFilter] = useState('all');
+  const [q, setQ] = useState('');
+  const [selectedId, setSelectedId] = useState(() => {
+    try {
+      return localStorage.getItem(BESTIARY_SEL_KEY) || '';
+    } catch {
+      return '';
+    }
+  });
+  const [editing, setEditing] = useState(false);
+  const [picker, setPicker] = useState(false);
+  const [srdPick, setSrdPick] = useState('');
   const set = (k, v) => setF((s) => ({ ...s, [k]: v }));
 
   const lvl = party[0]?.level || 3;
   const size = party.length || 4;
+  const isMon = (n) => n.entityType === 'monster' || n.isMonster;
 
-  const sceneOptions = campaigns.flatMap((c) =>
-    (c.scenes || []).map((sc) => ({
-      id: sc.id,
-      label: `${c.title} → ${sc.title}`,
-      campaignId: c.id,
-      campaignTitle: c.title,
-      sceneTitle: sc.title,
-    }))
-  );
-
-  function toggleScene(sceneId) {
-    set(
-      'sceneIds',
-      f.sceneIds.includes(sceneId)
-        ? f.sceneIds.filter((id) => id !== sceneId)
-        : [...f.sceneIds, sceneId]
+  const list = useMemo(() => {
+    const k = normName(q);
+    return npcs.filter(
+      (n) =>
+        (filter === 'all' || (filter === 'monster') === isMon(n)) &&
+        (!k || normName(`${n.name} ${n.kind} ${n.type} ${n.role} ${n.shortDescription} ${n.faction}`).includes(k))
     );
-  }
+  }, [npcs, filter, q]);
+  const selected = npcs.find((n) => n.id === selectedId) || list[0] || null;
+  const pos = selected ? list.findIndex((n) => n.id === selected.id) : -1;
 
-  async function generate() {
-    setBusy(true);
-    setErr('');
-
+  function select(id) {
+    setSelectedId(id);
+    setEditing(false);
     try {
-      const d = await callAI(ai, {
-        system: `You are a D&D 5e / TTRPG creature and NPC designer.
-  
-  Respond with ONLY valid JSON, no prose, no Markdown fences.
-  
-  LANGUAGE RULES:
-  - All descriptions, backstories, actions, traits, loot, effects and roleplay notes must be in French.
-  - Names may be fantasy names.
-  - Dialogue style, voice, motivations and personality must fit the universe.
-  - If the subject is a goblin, it can sound nervous, opportunistic and hesitant.
-  - If serpentine, it may lightly stretch some “s”.
-  - If frog-like, occasional “croa” is allowed, without exaggeration.
-  - Avoid making every verbal tic a gimmick.
-  
-  DESIGN RULES:
-  - NPCs may have stats, but their personality, function, secrets, voice and scene usefulness matter most.
-  - Monsters need clear combat information: stats, skills, actions, bonus actions/reactions if relevant, tactics, effects/buffs, limited-use resources.
-  - Loot should be rare and modest. It can be mundane, funny, damaged, useless, personal, or story-relevant. Avoid powerful rewards unless strongly justified.
-  - Loot tables should use roll ranges such as "1-5", "6-14", "15-19", "20".`,
-        prompt: `Universe: ${universe.name}
-  Tone: ${universe.tone}
-  Canon: ${universe.lore}
-  
-  Party: ${size} heroes around level ${lvl}.
-  
-  Create this as a ${mode === 'npc' ? 'NPC' : 'MONSTER'}.
-  
-  User-provided rough notes:
-  Name: ${f.name || 'not specified'}
-  Function / job / purpose: ${f.function || 'not specified'}
-  Ancestry / creature type: ${f.ancestry || 'not specified'}
-  Role: ${f.role || 'not specified'}
-  Difficulty: ${f.difficulty}
-  Backstory invented on the fly: ${f.backstory || 'not specified'}
-  Messy notes / constraints / things players invented: ${
-    f.notes || 'not specified'
+      localStorage.setItem(BESTIARY_SEL_KEY, id);
+    } catch {}
   }
-  
-  JSON:
-  {
-    "entityType": "${mode}",
-    "name": str,
-    "kind": str,
-    "role": str,
-    "faction": str,
-    "attitude": "hostile"|"neutral"|"friendly"|"fearful"|"manipulative"|"unknown",
-    "function": str,
-    "backstory": str,
-    "description": str,
-    "shortDescription": str,
-    "voice": str,
-    "speechPatterns": str,
-    "motivation": str,
-    "secret": str,
-    "sceneUse": str,
-  
-    "cr": str,
-    "ac": num,
-    "hp": num,
-    "speed": str,
-  
-    "str": num,
-    "dex": num,
-    "con": num,
-    "int": num,
-    "wis": num,
-    "cha": num,
-  
-    "skills": [
-      {
-        "name": str,
-        "bonus": str,
-        "desc": str
-      }
-    ],
-  
-    "saves": [
-      {
-        "name": str,
-        "bonus": str
-      }
-    ],
-  
-    "traits": [
-      {
-        "name": str,
-        "desc": str
-      }
-    ],
-  
-    "actions": [
-      {
-        "name": str,
-        "type": "action"|"bonus action"|"reaction"|"legendary action"|"lair action",
-        "ability": "str"|"dex"|"con"|"int"|"wis"|"cha",
-        "attackBonus": num,
-        "damageDice": str,
-        "damageBonus": num,
-        "damageType": str,
-        "range": str,
-        "desc": str,
-        "save": str,
-        "usesMax": num,
-        "usesLeft": num,
-        "reset": "round"|"turn"|"short rest"|"long rest"|"day"|"encounter"|"none"
-      }
-    ],
-  
-    "effects": [
-      {
-        "name": str,
-        "icon": str,
-        "short": str,
-        "desc": str,
-        "active": false,
-        "usesMax": num,
-        "usesLeft": num,
-        "reset": "round"|"turn"|"short rest"|"long rest"|"day"|"encounter"|"none"
-      }
-    ],
-  
-    "tactics": str,
-  
-    "lootTable": [
-      {
-        "roll": str,
-        "item": str,
-        "desc": str,
-        "rarity": "mundane"|"funny"|"damaged"|"clue"|"minor"|"valuable"|"magical"
-      }
-    ]
-  }`,
-      });
+  const step = (d) => {
+    if (!list.length) return;
+    const i = pos === -1 ? 0 : (pos + d + list.length) % list.length;
+    select(list[i].id);
+  };
 
-      const entity = {
-        id: uid(),
-        createdAt: now(),
-        ...d,
-        entityType: mode,
-        isMonster: mode === 'monster',
-        linkedSceneIds: f.sceneIds,
-        sourceNotes: f.notes,
-      };
+  // Navigation au clavier : ↑/↓ (ou j/k) d'une fiche à l'autre, hors des champs de saisie.
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.target.closest?.('input, textarea, select, [contenteditable]') || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === 'ArrowDown' || e.key === 'j') {
+        e.preventDefault();
+        step(1);
+      } else if (e.key === 'ArrowUp' || e.key === 'k') {
+        e.preventDefault();
+        step(-1);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
 
-      dispatch({
-        type: 'ADD_NPC',
-        n: entity,
-      });
+  const sceneOptions = campaigns.flatMap((c) => (c.scenes || []).map((sc) => ({ id: sc.id, label: `${c.title} → ${sc.title}` })));
 
-      flash(`${entity.name} ajouté au bestiaire`);
+  const setImage = (n, src, source) => assignPortrait(dispatch, n, src, source);
+  const autoImage = (n) => autoPortrait(dispatch, n, imageIndex);
 
-      setF({
-        name: '',
-        function: '',
-        ancestry: '',
-        role: '',
-        difficulty: f.difficulty,
-        backstory: '',
-        notes: '',
-        sceneIds: [],
-      });
+  function add(entity, extra = {}) {
+    const n = { ...entity, ...extra, id: uid(), createdAt: now() };
+    dispatch({ type: 'ADD_NPC', n });
+    return n;
+  }
+
+  /** Génération. `random` : tout au hasard (on ignore le texte et les champs), seul le FP ou le clan peut contraindre. */
+  async function generate(random = false) {
+    setBusy('gen');
+    setErr('');
+    try {
+      const idea = random ? '' : quick;
+      const notes = random ? '' : [quick, f.backstory && `Histoire : ${f.backstory}`].filter(Boolean).join('\n');
+      const items = Array.from({ length: Math.max(1, Math.min(6, count)) }, () => ({
+        mode,
+        difficulty,
+        notes,
+        name: random || count !== 1 ? '' : f.name,
+        function: random ? '' : f.function,
+        ancestry: random ? '' : f.ancestry,
+        role: random ? '' : f.role,
+        cr: f.cr,
+        clan: mode === 'npc' || mode === 'monster' ? f.clan : '',
+      }));
+      // Sans nom ni idée imposés, l'IA ne doit pas reprendre les personnages célèbres des Archives.
+      const free = random || (!idea && !f.name && !f.function);
+      const ctx = buildLoreContext({ universe, state, feed, party, budget: 7000, noNamedPersons: free, focus: `${idea} ${f.function} ${f.ancestry} ${f.name}` });
+      const made = [];
+      for (let i = 0; i < items.length; i += 3) {
+        const batch = items.slice(i, i + 3);
+        const entities = await generateEntities((o) => callAI(ai, o), {
+          ctx: batch.length > 1 ? `${ctx}\n\nCrée des fiches VARIÉES (noms, rôles, tactiques différents).` : ctx,
+          items: batch,
+          level: lvl,
+          size,
+        });
+        for (const e of entities) made.push(add(e, { linkedSceneIds: f.sceneIds, sourceNotes: notes, clan: f.clan || undefined }));
+      }
+      if (made[0]) select(made[0].id);
+      made.forEach((n) => autoImage(n));
+      flash(made.length > 1 ? `${made.length} fiches créées.` : `${made[0]?.name} ajouté à PNJ & Créatures.`);
+      setF((s) => ({ ...s, name: '', backstory: '', sceneIds: [] }));
     } catch (e) {
       setErr(e.message);
     }
-
-    setBusy(false);
+    setBusy('');
   }
 
-  const shown = npcs;
+  function importSrd() {
+    const stat = STATS[srdPick];
+    if (!stat) return;
+    const n = add(entityFromSrd(stat));
+    select(n.id);
+    setImage(n, tokenImage({ kind: 'monster', statId: stat.id }), 'srd');
+    setSrdPick('');
+    flash(`${stat.name} importé du SRD : modifie-le à ta guise.`);
+  }
 
-  return (
-    <>
-      <h1 className="view">PNJ & monstres</h1>
-      <p className="sub">
-        Crée des PNJ ou des monstres séparément. Les PNJ servent surtout au
-        rôleplay, aux scènes et aux dialogues. Les monstres servent aux
-        encounters, au combat, aux actions, aux effets activables et au loot.
-      </p>
-
-      <div className="panel bestiary-forge-panel">
-        <div className="bestiary-toggle">
-          <button
-            type="button"
-            data-on={mode === 'npc' ? 1 : 0}
-            onClick={() => setMode('npc')}
-          >
-            PNJ
-          </button>
-
-          <button
-            type="button"
-            data-on={mode === 'monster' ? 1 : 0}
-            onClick={() => setMode('monster')}
-          >
-            Monstre
-          </button>
-        </div>
-
-        <div className="row">
-          <Field label={mode === 'npc' ? 'Nom du PNJ' : 'Nom du monstre'}>
-            <input
-              className="in"
-              value={f.name}
-              onChange={(e) => set('name', e.target.value)}
-              placeholder={
-                mode === 'npc'
-                  ? 'ex. Mira la passeuse'
-                  : 'ex. Gribble Scrappy Shank'
-              }
-            />
-          </Field>
-
-          <Field
-            label={mode === 'npc' ? 'Fonction / rôle social' : 'Type / espèce'}
-          >
-            <input
-              className="in"
-              value={f.function}
-              onChange={(e) => set('function', e.target.value)}
-              placeholder={
-                mode === 'npc'
-                  ? 'aubergiste, garde, noble, enfant témoin...'
-                  : 'gobelin, orc, abomination fongique...'
-              }
-            />
-          </Field>
-        </div>
-
-        <div className="row">
-          <Field label="Origine / nature">
-            <input
-              className="in"
-              value={f.ancestry}
-              onChange={(e) => set('ancestry', e.target.value)}
-              placeholder="humain, demi-elfe, gobelin, esprit ancien, créature aquatique..."
-            />
-          </Field>
-
-          <Field
-            label={mode === 'npc' ? 'Utilité dans l’histoire' : 'Rôle combat'}
-          >
-            <input
-              className="in"
-              value={f.role}
-              onChange={(e) => set('role', e.target.value)}
-              placeholder={
-                mode === 'npc'
-                  ? 'indice de quête, suspect, allié fragile...'
-                  : 'brute, skirmisher, controller, boss...'
-              }
-            />
-          </Field>
-        </div>
-
-        <div className="row">
-          <Field
-            label={mode === 'npc' ? 'Complexité / dangerosité' : 'Difficulté'}
-          >
-            <select
-              className="in"
-              value={f.difficulty}
-              onChange={(e) => set('difficulty', e.target.value)}
-            >
-              {['trivial', 'easy', 'moderate', 'hard', 'deadly', 'boss'].map(
-                (d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                )
-              )}
-            </select>
-          </Field>
-
-          <Field label="Associer à des scènes">
-            <div className="scene-link-box">
-              {sceneOptions.length === 0 ? (
-                <span>Aucune scène disponible.</span>
-              ) : (
-                sceneOptions.slice(0, 12).map((sc) => (
-                  <button
-                    type="button"
-                    key={sc.id}
-                    data-on={f.sceneIds.includes(sc.id) ? 1 : 0}
-                    onClick={() => toggleScene(sc.id)}
-                  >
-                    {sc.label}
-                  </button>
-                ))
-              )}
-            </div>
-          </Field>
-        </div>
-
-        <Field label="Backstory / ce que tu as inventé sur le fly">
-          <textarea
-            className="in"
-            rows={3}
-            value={f.backstory}
-            onChange={(e) => set('backstory', e.target.value)}
-            placeholder="Ex. Les joueurs ont décidé qu’il connaissait leur ancien mentor. Il ment peut-être, mais il semble sincère..."
-          />
-        </Field>
-
-        <Field label="Notes libres pêle-mêle">
-          <textarea
-            className="in"
-            rows={4}
-            value={f.notes}
-            onChange={(e) => set('notes', e.target.value)}
-            placeholder={
-              mode === 'npc'
-                ? 'Traits, secrets, contradictions, accent, liens avec la scène, comportement...'
-                : 'Attaques souhaitées, ambiance, faiblesse, loot drôle possible, danger approximatif...'
-            }
-          />
-        </Field>
-
-        <div className="faint" style={{ fontSize: 12, marginBottom: 14 }}>
-          Équilibré autour de {size} héros au niveau {lvl}. Tu peux laisser
-          plusieurs champs vides : les notes libres suffisent.
-        </div>
-
-        <button
-          className="btn primary"
-          disabled={
-            busy || (!f.name.trim() && !f.function.trim() && !f.notes.trim())
-          }
-          onClick={generate}
-        >
-          {busy ? (
-            <>
-              <Spin /> Génération…
-            </>
-          ) : mode === 'npc' ? (
-            '✦ Générer le PNJ'
-          ) : (
-            '✦ Générer le monstre'
-          )}
-        </button>
-
-        {err && (
-          <div style={{ color: 'var(--blood)', marginTop: 12, fontSize: 13 }}>
-            {err}
-          </div>
-        )}
-      </div>
-
-      <div className="eyebrow">Fiches créées</div>
-
-      {shown.length === 0 ? (
-        <div className="empty">
-          <div className="big">Le bestiaire est vide</div>
-          <p className="muted">
-            Crée un PNJ ou un monstre avec le formulaire ci-dessus.
-          </p>
-        </div>
-      ) : (
-        <div className="grid cols-2">
-          {shown.map((n) => (
-            <StatBlockCard
-              key={n.id}
-              n={n}
-              state={state}
-              dispatch={dispatch}
-              campaigns={campaigns}
-              flash={flash}
-            />
-          ))}
-        </div>
-      )}
-    </>
-  );
-}
-function StatBlockCard({ n, state, dispatch, campaigns, flash }) {
-  const [open, setOpen] = useState(false);
-
-  const mod = (v) => {
-    const m = Math.floor(((Number(v) || 10) - 10) / 2);
-    return (m >= 0 ? '+' : '') + m;
-  };
-
-  const isMonster = n.entityType === 'monster' || n.isMonster;
-  const portraitTargetType = isMonster ? 'creature' : 'npc';
-
-  const portrait =
-    getPrimaryAsset(state, portraitTargetType, n.id) ||
-    getPrimaryAsset(state, isMonster ? 'npc' : 'creature', n.id);
-
-  async function uploadPortrait(file) {
-    if (!file) return;
-
+  async function aiPortrait(n) {
+    setBusy('img');
     try {
-      const dataUrl = await fileToDataUrl(file);
+      const prompt = n.imagePrompt || `${n.name}, ${n.kind || n.type || ''}. ${n.description || n.shortDescription || ''}`;
+      await setImage(n, await generatePortrait(ai, prompt, clanPaintBrief(feed, n.clan)), 'generated');
+      flash('Portrait et jeton créés.');
+    } catch (e) {
+      flash(e.message);
+    }
+    setBusy('');
+  }
 
-      dispatch({
-        type: 'ADD_ASSET',
-        asset: {
-          id: uid(),
-          name: file.name,
-          category: portraitTargetType,
-          targetType: portraitTargetType,
-          targetId: n.id,
-          dataUrl,
-          source: 'upload',
-          prompt: '',
-          createdAt: now(),
-        },
-      });
-
-      flash('Portrait assigné à la fiche.');
+  async function uploadImage(n, file) {
+    if (!file) return;
+    try {
+      await setImage(n, await fileToCompressed(file), 'upload');
+      flash('Portrait et jeton assignés.');
     } catch (e) {
       flash(e.message);
     }
   }
-  const linkedScenes = getLinkedSceneLabels(n.linkedSceneIds || [], campaigns);
 
-  function updateEffect(index, patch) {
-    const effects = [...(n.effects || [])];
-    effects[index] = { ...effects[index], ...patch };
-
-    dispatch({
-      type: 'UPDATE_NPC',
-      id: n.id,
-      patch: { effects },
-    });
+  async function uploadToken(n, file) {
+    if (!file) return;
+    try {
+      const src = await fileToCompressed(file, { max: 512 });
+      dispatch({ type: 'UPDATE_NPC', id: n.id, patch: { token: await makeToken(src, { hostile: isMon(n) }) } });
+      flash('Jeton remplacé.');
+    } catch (e) {
+      flash(e.message);
+    }
   }
 
-  function spendActionUse(index, delta) {
-    const actions = [...(n.actions || [])];
-    const action = actions[index];
-
-    if (!action) return;
-
-    const max = Number(action.usesMax || 0);
-    const current = Number(action.usesLeft ?? max);
-
-    actions[index] = {
-      ...action,
-      usesLeft: Math.max(0, Math.min(max, current + delta)),
-    };
-
-    dispatch({
-      type: 'UPDATE_NPC',
-      id: n.id,
-      patch: { actions },
-    });
+  function patchArray(n, key, i, patch) {
+    const arr = [...(n[key] || [])];
+    arr[i] = { ...arr[i], ...patch };
+    dispatch({ type: 'UPDATE_NPC', id: n.id, patch: { [key]: arr } });
   }
+
+  const portrait = selected ? portraitOf(state, selected) : '';
+  const sceneLabels = selected ? getLinkedSceneLabels(selected.linkedSceneIds || [], campaigns) : [];
+  const campaignLabels = selected ? campaigns.filter((c) => (selected.campaignIds || []).includes(c.id)).map((c) => c.title) : [];
 
   return (
-    <div className="panel statblock bestiary-card">
-      <div className="card-h">
-        <div style={{ display: 'flex', gap: 12 }}>
-          {portrait?.dataUrl ? (
-            <img
-              src={portrait.dataUrl}
-              alt={n.name}
-              className="scene-mini-portrait"
-              style={{ width: 54, height: 54 }}
-              onClick={() =>
-                window.open(portrait.dataUrl, '_blank', 'noopener,noreferrer')
-              }
-            />
-          ) : (
-            <PortraitToken seed={n.name + n.kind} size={54} />
-          )}
+    <>
+      <h1 className="view">PNJ & Créatures</h1>
+      <p className="sub">
+        Décris en une phrase (ou rien du tout) : l’IA forge une fiche 5e complète en puisant dans le lore. Chaque fiche est gardée
+        dans ton grimoire, reçoit une image des Archives quand il en existe une, et un jeton réutilisé sur les cartes de combat.
+      </p>
 
-          <div>
-            <label
-              className="btn ghost sm"
-              style={{ marginTop: 8, flex: 'none' }}
-            >
-              Image
-              <input
-                type="file"
-                accept="image/*"
-                style={{ display: 'none' }}
-                onChange={(e) => {
-                  uploadPortrait(e.target.files && e.target.files[0]);
-                  e.target.value = '';
-                }}
-              />
-            </label>
-            <div
-              className="muted"
-              style={{ fontSize: 12, fontStyle: 'italic' }}
-            >
-              {isMonster ? 'Monstre' : 'PNJ'} · {n.kind || 'nature inconnue'} ·{' '}
-              {n.role || 'rôle non défini'}
-            </div>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button
-            className="btn ghost sm"
-            style={{ flex: 'none' }}
-            onClick={() => setOpen((v) => !v)}
-          >
-            {open ? 'Réduire' : 'Fiche'}
+      <div className="panel bx-forge">
+        <div className="bestiary-toggle">
+          <button type="button" data-on={mode === 'monster' ? 1 : 0} onClick={() => setMode('monster')}>
+            Créature
           </button>
-
-          <button
-            className="btn ghost sm danger"
-            style={{ flex: 'none' }}
-            onClick={() => {
-              if (confirm('Supprimer ' + n.name + ' ?')) {
-                dispatch({ type: 'DELETE_NPC', id: n.id });
-              }
-            }}
-          >
-            ✕
+          <button type="button" data-on={mode === 'npc' ? 1 : 0} onClick={() => setMode('npc')}>
+            PNJ
           </button>
         </div>
-      </div>
-
-      {n.shortDescription && (
-        <p
-          className="muted"
-          style={{ fontSize: 13, lineHeight: 1.45, marginTop: 10 }}
-        >
-          {n.shortDescription}
-        </p>
-      )}
-
-      {linkedScenes.length > 0 && (
-        <div className="linked-scene-chips">
-          {linkedScenes.map((label) => (
-            <span key={label}>{label}</span>
+        <div className="bx-quick">
+          <input
+            className="in"
+            value={quick}
+            onChange={(e) => setQuick(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && !busy && generate()}
+            placeholder={mode === 'npc' ? 'ex. passeuse drow qui doit de l’argent aux duergars (vide : l’IA choisit)' : 'ex. colonie de moulasses qui garde une herse (vide : l’IA choisit)'}
+          />
+          <select className="in" style={{ flex: '0 0 130px' }} value={difficulty} onChange={(e) => setDifficulty(e.target.value)} title="Difficulté pour le groupe">
+            {[
+              ['trivial', 'Triviale'],
+              ['easy', 'Facile'],
+              ['moderate', 'Moyenne'],
+              ['hard', 'Difficile'],
+              ['deadly', 'Mortelle'],
+              ['boss', 'Boss'],
+            ].map(([v, l]) => (
+              <option key={v} value={v}>
+                {l}
+              </option>
+            ))}
+          </select>
+          <select className="in" style={{ flex: '0 0 76px' }} value={count} onChange={(e) => setCount(+e.target.value)} title="Nombre de fiches">
+            {[1, 2, 3, 4, 6].map((c) => (
+              <option key={c} value={c}>
+                ×{c}
+              </option>
+            ))}
+          </select>
+          <button className="btn primary" disabled={!!busy} onClick={() => generate(false)}>
+            {busy === 'gen' ? (
+              <>
+                <Spin /> Forge…
+              </>
+            ) : (
+              `✦ Générer`
+            )}
+          </button>
+          <button className="btn" disabled={!!busy} onClick={() => generate(true)} title="Ignore le texte et les champs : l'IA tire tout au hasard (le FP ou le clan, si tu les as choisis, restent imposés)">
+            🎲 Tout au hasard
+          </button>
+        </div>
+        <div className="bx-quick">
+          <Field label="FP (vide : au hasard)">
+            <select className="in" value={f.cr} onChange={(e) => set('cr', e.target.value)}>
+              <option value="">Aléatoire</option>
+              {['0', '1/8', '1/4', '1/2', ...Array.from({ length: 30 }, (_, i) => String(i + 1))].map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Peuple / clan moriquendi (marques de guerre)">
+            <select className="in" value={f.clan} onChange={(e) => set('clan', e.target.value)}>
+              <option value="">Aucun / au hasard</option>
+              {Object.entries(CLANS).map(([k, v]) => (
+                <option key={k} value={k}>
+                  Moriquendi · clan {v}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </div>
+        <div className="bx-presets">
+          {QUICK_PRESETS[mode].map((p) => (
+            <button key={p} type="button" onClick={() => setQuick(p)}>
+              {p}
+            </button>
           ))}
+          <button type="button" onClick={() => setAdvanced((v) => !v)}>
+            {advanced ? '− Moins de détails' : '+ Tout choisir moi-même'}
+          </button>
+        </div>
+        {advanced && (
+          <>
+            <div className="row">
+              <Field label="Nom">
+                <input className="in" value={f.name} onChange={(e) => set('name', e.target.value)} placeholder="vide : l’IA choisit" />
+              </Field>
+              <Field label={mode === 'npc' ? 'Fonction / rôle social' : 'Espèce / type'}>
+                <input className="in" value={f.function} onChange={(e) => set('function', e.target.value)} />
+              </Field>
+              <Field label="Origine / nature">
+                <input className="in" value={f.ancestry} onChange={(e) => set('ancestry', e.target.value)} />
+              </Field>
+            </div>
+            <div className="row">
+              <Field label={mode === 'npc' ? 'Utilité dans l’histoire' : 'Rôle au combat'}>
+                <input className="in" value={f.role} onChange={(e) => set('role', e.target.value)} placeholder={mode === 'npc' ? 'indice, suspect, allié fragile…' : 'brute, tireur, contrôleur…'} />
+              </Field>
+              <Field label="FP visé">
+                <input className="in" value={f.cr} onChange={(e) => set('cr', e.target.value)} placeholder="ex. 2" />
+              </Field>
+            </div>
+            <Field label="Histoire inventée en jeu">
+              <textarea className="in" rows={2} value={f.backstory} onChange={(e) => set('backstory', e.target.value)} />
+            </Field>
+            {sceneOptions.length > 0 && (
+              <Field label="Associer à des scènes">
+                <div className="scene-link-box">
+                  {sceneOptions.slice(0, 24).map((sc) => (
+                    <button
+                      type="button"
+                      key={sc.id}
+                      data-on={f.sceneIds.includes(sc.id) ? 1 : 0}
+                      onClick={() => set('sceneIds', f.sceneIds.includes(sc.id) ? f.sceneIds.filter((x) => x !== sc.id) : [...f.sceneIds, sc.id])}
+                    >
+                      {sc.label}
+                    </button>
+                  ))}
+                </div>
+              </Field>
+            )}
+          </>
+        )}
+        <div className="bx-quick">
+          <select className="in" value={srdPick} onChange={(e) => setSrdPick(e.target.value)}>
+            <option value="">Importer une fiche du SRD (instantané, sans IA)…</option>
+            {Object.values(STATS)
+              .sort((a, b) => a.name.localeCompare(b.name, 'fr'))
+              .map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name} · FP {s.cr.split(' ')[0]}
+                </option>
+              ))}
+          </select>
+          <button className="btn" disabled={!srdPick} onClick={importSrd}>
+            Importer
+          </button>
+        </div>
+        <div className="faint" style={{ fontSize: 12 }}>
+          Équilibré pour {size} héros de niveau {lvl}.
+        </div>
+        {err && <div style={{ color: 'var(--blood)', fontSize: 13 }}>{err}</div>}
+      </div>
+
+      {npcs.length === 0 ? (
+        <div className="empty" style={{ marginTop: 16 }}>
+          <div className="big">Le bestiaire est vide</div>
+          <p className="muted">Clique sur « Générer » sans rien écrire : l’IA s’inspire de ton univers.</p>
+        </div>
+      ) : (
+        <div className="bx-layout">
+          <aside className="panel bx-list">
+            <input className="in" placeholder="Chercher…" value={q} onChange={(e) => setQ(e.target.value)} />
+            <div className="bx-filters">
+              {[
+                ['all', `Tous · ${npcs.length}`],
+                ['monster', `Créatures · ${npcs.filter(isMon).length}`],
+                ['npc', `PNJ · ${npcs.filter((n) => !isMon(n)).length}`],
+              ].map(([k, l]) => (
+                <button key={k} type="button" data-on={filter === k ? 1 : 0} onClick={() => setFilter(k)}>
+                  {l}
+                </button>
+              ))}
+            </div>
+            <ul className="bx-items">
+              {list.map((n) => {
+                const img = n.token || portraitOf(state, n);
+                return (
+                  <li key={n.id}>
+                    <button type="button" className="bx-item" data-on={selected?.id === n.id ? 1 : 0} onClick={() => select(n.id)}>
+                      {img ? <img src={img} alt="" loading="lazy" /> : <span className="bx-ph">{isMon(n) ? '👹' : '✦'}</span>}
+                      <span>
+                        <b>{n.name}</b>
+                        <small>{[isMon(n) ? 'Créature' : 'PNJ', n.kind || n.type || n.role].filter(Boolean).join(' · ')}</small>
+                      </span>
+                      <span className="bx-cr">FP {n.cr || '—'}</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="bx-hint">↑ ↓ (ou j / k) pour passer d’une fiche à l’autre</div>
+          </aside>
+
+          <main>
+            {selected && (
+              <>
+                <div className="bx-nav">
+                  <div className="bx-nav-group">
+                    <button className="btn ghost sm" onClick={() => step(-1)} title="Fiche précédente">
+                      ◀
+                    </button>
+                    <span className="muted" style={{ fontSize: 13 }}>
+                      {pos + 1} / {list.length}
+                    </span>
+                    <button className="btn ghost sm" onClick={() => step(1)} title="Fiche suivante">
+                      ▶
+                    </button>
+                  </div>
+                  <div className="bx-nav-group bx-media">
+                    <button className="btn ghost sm" onClick={() => setEditing((v) => !v)}>
+                      {editing ? 'Fermer l’édition' : '✎ Modifier'}
+                    </button>
+                    <button className="btn ghost sm" onClick={() => setPicker(true)}>
+                      Image des Archives
+                    </button>
+                    <label className="btn ghost sm">
+                      Importer une image
+                      <input hidden type="file" accept="image/*" onChange={(e) => { uploadImage(selected, e.target.files?.[0]); e.target.value = ''; }} />
+                    </label>
+                    <button className="btn ghost sm" disabled={busy === 'img'} onClick={() => aiPortrait(selected)} title={ai.provider === 'openai' ? 'gpt-image-1' : 'Pollinations (gratuit) : seule la description visuelle est envoyée'}>
+                      {busy === 'img' ? <Spin /> : '✦ Portrait IA'}
+                    </button>
+                    <label className="btn ghost sm" title="Remplacer seulement le jeton de carte">
+                      Jeton
+                      <input hidden type="file" accept="image/*" onChange={(e) => { uploadToken(selected, e.target.files?.[0]); e.target.value = ''; }} />
+                    </label>
+                    <button
+                      className="btn ghost sm"
+                      onClick={() => {
+                        const copy = add({ ...selected, name: `${selected.name} (copie)` });
+                        if (portrait) setImage(copy, portrait, 'copy');
+                        select(copy.id);
+                      }}
+                    >
+                      Dupliquer
+                    </button>
+                    <button
+                      className="btn ghost sm danger"
+                      onClick={() => {
+                        if (confirm(`Supprimer ${selected.name} ?`)) {
+                          step(1);
+                          dispatch({ type: 'DELETE_NPC', id: selected.id });
+                        }
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+                {editing && <BestiaryEditor n={selected} dispatch={dispatch} />}
+                <StatSheet
+                  n={selected}
+                  portrait={portrait}
+                  token={selected.token}
+                  scenes={sceneLabels}
+                  campaigns={campaignLabels}
+                  onPortraitClick={() => setPicker(true)}
+                  onSpendAction={(i, d) => {
+                    const a = selected.actions[i];
+                    const max = Number(a.usesMax || 0);
+                    patchArray(selected, 'actions', i, { usesLeft: Math.max(0, Math.min(max, Number(a.usesLeft ?? max) + d)) });
+                  }}
+                  onEffect={(i, patch) => patchArray(selected, 'effects', i, patch)}
+                />
+              </>
+            )}
+          </main>
         </div>
       )}
 
-      <div className="row" style={{ marginTop: 10, gap: 16, fontSize: 12.5 }}>
-        <span>
-          <b className="muted">CR</b> {n.cr || '—'}
-        </span>
-        <span>
-          <b className="muted">AC</b> {n.ac || '—'}
-        </span>
-        <span>
-          <b className="muted">HP</b> {n.hp || '—'}
-        </span>
-        <span>
-          <b className="muted">Speed</b> {n.speed || '—'}
-        </span>
-      </div>
+      {picker && selected && (
+        <ArchiveImagePicker
+          index={imageIndex}
+          suggested={matchArchiveImages([selected.name, selected.kind, selected.type].filter(Boolean), imageIndex)}
+          withCreatures
+          onClose={() => setPicker(false)}
+          onPick={(img) => {
+            setImage(selected, img.src, 'archives');
+            setPicker(false);
+            flash('Image et jeton assignés.');
+          }}
+        />
+      )}
+    </>
+  );
+}
 
-      <div className="abil">
-        {[
-          ['STR', n.str],
-          ['DEX', n.dex],
-          ['CON', n.con],
-          ['INT', n.int],
-          ['WIS', n.wis],
-          ['CHA', n.cha],
-        ].map(([l, v]) => (
-          <div key={l}>
-            <div className="ab">{v || 10}</div>
-            <div className="lbl">
-              {l} {mod(v)}
-            </div>
-          </div>
+/** Édition d'une fiche : les champs texte directement, les listes une entrée par ligne (« Nom. Description »). */
+function BestiaryEditor({ n, dispatch }) {
+  const up = (patch) => dispatch({ type: 'UPDATE_NPC', id: n.id, patch });
+  const field = (k, label, type = 'text') => (
+    <Field label={label}>
+      <input className="in" type={type} value={n[k] ?? ''} onChange={(e) => up({ [k]: type === 'number' ? Number(e.target.value) : e.target.value })} />
+    </Field>
+  );
+  const area = (k, label) => (
+    <Field label={label}>
+      <textarea className="in" value={n[k] ?? ''} onChange={(e) => up({ [k]: e.target.value })} />
+    </Field>
+  );
+  const named = (k, label) => (
+    <Field label={`${label} (une par ligne : « Nom. Description »)`}>
+      <textarea
+        className="in"
+        defaultValue={(n[k] || []).map((t) => `${t.name}. ${t.desc || ''}`.trim()).join('\n')}
+        onBlur={(e) =>
+          up({
+            [k]: splitLines(e.target.value).map((line, i) => {
+              const [name, ...rest] = line.split('. ');
+              return { ...(n[k]?.[i] || {}), name: name.trim(), desc: rest.join('. ').trim() };
+            }),
+          })
+        }
+      />
+    </Field>
+  );
+  return (
+    <div className="panel bx-edit" style={{ marginBottom: 12 }} key={n.id}>
+      <div className="row">
+        {field('name', 'Nom')}
+        {field('kind', 'Nature / espèce')}
+        {field('role', 'Rôle')}
+        <Field label="Type">
+          <select className="in" value={n.entityType === 'monster' || n.isMonster ? 'monster' : 'npc'} onChange={(e) => up({ entityType: e.target.value, isMonster: e.target.value === 'monster' })}>
+            <option value="monster">Créature</option>
+            <option value="npc">PNJ</option>
+          </select>
+        </Field>
+      </div>
+      <div className="row">
+        {field('cr', 'FP')}
+        {field('ac', 'CA', 'number')}
+        {field('hp', 'PV', 'number')}
+        {field('hitDice', 'Dés de vie')}
+        {field('speed', 'Vitesse')}
+      </div>
+      <div className="row">
+        {['str', 'dex', 'con', 'int', 'wis', 'cha'].map((k) => (
+          <Field key={k} label={{ str: 'FOR', dex: 'DEX', con: 'CON', int: 'INT', wis: 'SAG', cha: 'CHA' }[k]}>
+            <input className="in" type="number" value={n[k] ?? 10} onChange={(e) => up({ [k]: Number(e.target.value) })} />
+          </Field>
         ))}
       </div>
-
-      {!open && (
-        <div className="faint" style={{ fontSize: 12, marginTop: 12 }}>
-          {isMonster
-            ? 'Les actions, effets et loot sont dans la fiche détaillée.'
-            : 'La voix, le secret et les notes de rôleplay sont dans la fiche détaillée.'}
-        </div>
-      )}
-
-      {open && (
-        <div className="bestiary-detail">
-          {!isMonster && (
-            <>
-              <BestiarySection title="Rôleplay">
-                <p>
-                  <b>Fonction :</b> {n.function || '—'}
-                </p>
-                <p>
-                  <b>Voix :</b> {n.voice || '—'}
-                </p>
-                <p>
-                  <b>Tics / style :</b> {n.speechPatterns || '—'}
-                </p>
-                <p>
-                  <b>Attitude :</b> {n.attitude || '—'}
-                </p>
-                <p>
-                  <b>Motivation :</b> {n.motivation || '—'}
-                </p>
-                <p>
-                  <b>Secret :</b> {n.secret || '—'}
-                </p>
-                <p>
-                  <b>Utilité en scène :</b> {n.sceneUse || '—'}
-                </p>
-              </BestiarySection>
-
-              {n.backstory && (
-                <BestiarySection title="Backstory">
-                  <p>{n.backstory}</p>
-                </BestiarySection>
-              )}
-            </>
-          )}
-
-          {isMonster && (
-            <>
-              <BestiarySection title="Tactiques">
-                <p>{n.tactics || 'Aucune tactique définie.'}</p>
-              </BestiarySection>
-
-              <BestiarySection title="Skills">
-                {(n.skills || []).length === 0 ? (
-                  <p>Aucune compétence spéciale.</p>
-                ) : (
-                  (n.skills || []).map((s, i) => (
-                    <div className="bestiary-line" key={i}>
-                      <b>
-                        {s.name} {s.bonus || ''}
-                      </b>
-                      <span>{s.desc}</span>
-                    </div>
-                  ))
-                )}
-              </BestiarySection>
-            </>
-          )}
-
-          {(n.traits || []).length > 0 && (
-            <BestiarySection title="Traits">
-              {n.traits.map((t, i) => (
-                <div className="bestiary-line" key={i}>
-                  <b>{t.name}</b>
-                  <span>{t.desc}</span>
-                </div>
-              ))}
-            </BestiarySection>
-          )}
-
-          {(n.actions || []).length > 0 && (
-            <BestiarySection title="Actions de combat">
-              {n.actions.map((a, i) => (
-                <ActionCard
-                  key={i}
-                  action={a}
-                  onSpend={() => spendActionUse(i, -1)}
-                  onRestore={() => spendActionUse(i, +1)}
-                />
-              ))}
-            </BestiarySection>
-          )}
-
-          {(n.effects || []).length > 0 && (
-            <BestiarySection title="Effets / buffs activables">
-              {n.effects.map((effect, i) => (
-                <EffectCard
-                  key={i}
-                  effect={effect}
-                  onToggle={() => updateEffect(i, { active: !effect.active })}
-                  onSpend={() =>
-                    updateEffect(i, {
-                      usesLeft: Math.max(
-                        0,
-                        Number(effect.usesLeft ?? effect.usesMax ?? 0) - 1
-                      ),
-                    })
-                  }
-                  onRestore={() =>
-                    updateEffect(i, {
-                      usesLeft: Math.min(
-                        Number(effect.usesMax || 0),
-                        Number(effect.usesLeft ?? effect.usesMax ?? 0) + 1
-                      ),
-                    })
-                  }
-                />
-              ))}
-            </BestiarySection>
-          )}
-
-          <BestiarySection title="Loot">
-            <LootTable lootTable={n.lootTable || []} />
-          </BestiarySection>
-
-          <div className="faint" style={{ fontSize: 12, marginTop: 12 }}>
-            Ajout au combat : Combat → Add from bestiary.
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-function BestiarySection({ title, children }) {
-  return (
-    <div className="bestiary-section">
-      <div className="bestiary-section-title">{title}</div>
-      {children}
-    </div>
-  );
-}
-
-function ActionCard({ action, onSpend, onRestore }) {
-  const max = Number(action.usesMax || 0);
-  const left = Number(action.usesLeft ?? max);
-  const hasUses = max > 0;
-
-  return (
-    <div className="action-card">
-      <div className="action-card-head">
-        <div>
-          <b>{action.name}</b>
-          <span>
-            {action.type || 'action'}
-            {action.reset && action.reset !== 'none'
-              ? ` · reset: ${action.reset}`
-              : ''}
-          </span>
-        </div>
-
-        {hasUses && (
-          <div className="use-tracker">
-            <button type="button" onClick={onSpend}>
-              −
-            </button>
-            <span>
-              {left}/{max}
-            </span>
-            <button type="button" onClick={onRestore}>
-              +
-            </button>
-          </div>
-        )}
+      <div className="row">
+        {field('senses', 'Sens')}
+        {field('languages', 'Langues')}
+        {field('resistances', 'Résistances')}
+        {field('immunities', 'Immunités')}
       </div>
-
-      <div className="action-card-body">
-        {action.attack && (
-          <p>
-            <b>Attaque :</b> {action.attack}
-          </p>
-        )}
-        {action.range && (
-          <p>
-            <b>Portée :</b> {action.range}
-          </p>
-        )}
-        {action.damage && (
-          <p>
-            <b>Dégâts :</b> {action.damage}
-          </p>
-        )}
-        {action.save && (
-          <p>
-            <b>Save :</b> {action.save}
-          </p>
-        )}
-        <p>{action.desc}</p>
+      {area('shortDescription', 'Résumé')}
+      <div className="row">
+        {area('voice', 'Voix')}
+        {area('motivation', 'Motivation')}
+        {area('secret', 'Secret')}
       </div>
+      {area('tactics', 'Tactique')}
+      {named('traits', 'Traits')}
+      {named('actions', 'Actions')}
+      {area('description', 'Description')}
     </div>
   );
 }
-
-function EffectCard({ effect, onToggle, onSpend, onRestore }) {
-  const max = Number(effect.usesMax || 0);
-  const left = Number(effect.usesLeft ?? max);
-  const hasUses = max > 0;
-
-  return (
-    <div className="effect-card" data-active={effect.active ? 1 : 0}>
-      <button type="button" className="effect-toggle" onClick={onToggle}>
-        <span className="effect-icon">{effect.icon || '✦'}</span>
-
-        <span className="effect-main">
-          <b>{effect.name}</b>
-          <small>{effect.short || 'Effet spécial'}</small>
-        </span>
-
-        <span className="effect-state">{effect.active ? 'ON' : 'OFF'}</span>
-      </button>
-
-      <p>{effect.desc}</p>
-
-      {hasUses && (
-        <div className="use-tracker effect-uses">
-          <button type="button" onClick={onSpend}>
-            −
-          </button>
-          <span>
-            {left}/{max}{' '}
-            {effect.reset && effect.reset !== 'none' ? `· ${effect.reset}` : ''}
-          </span>
-          <button type="button" onClick={onRestore}>
-            +
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function LootTable({ lootTable }) {
-  if (!lootTable || lootTable.length === 0) {
-    return (
-      <p className="muted">
-        Aucun loot évident. Peut-être rien, ou seulement des objets banals sans
-        valeur.
-      </p>
-    );
-  }
-
-  return (
-    <div className="loot-table">
-      {lootTable.map((l, i) => (
-        <div className="loot-table-row" key={i}>
-          <span className="loot-roll">{l.roll || '—'}</span>
-
-          <div>
-            <b>{l.item}</b>
-            <p>{l.desc}</p>
-            {l.rarity && <small>{l.rarity}</small>}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function getLinkedSceneLabels(sceneIds, campaigns) {
   if (!sceneIds || sceneIds.length === 0) return [];
 
@@ -15015,6 +14113,7 @@ function buildNpcCombatant(n) {
     attacks: normalizeCombatActions(n.actions || n.attacks || []),
     effects: normalizeCombatEffects(n.effects || []),
     token: makeDefaultToken(false),
+    image: n.token || '',
   };
 }
 function refreshCombatantFromNpc(current, source) {
