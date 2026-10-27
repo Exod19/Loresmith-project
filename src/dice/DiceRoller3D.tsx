@@ -213,7 +213,7 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
               ? 'border-[#ecd289] bg-gradient-to-b from-[#3a2c12] via-[#1c150c] to-[#0b0906] shadow-[0_0_28px_rgba(236,210,137,0.35),inset_0_0_30px_rgba(236,210,137,0.15)]'
               : crit === 'failure'
                 ? 'border-[#e5484d] bg-gradient-to-b from-[#4a0d12] via-[#1a0608] to-[#0b0906] shadow-[0_0_28px_rgba(229,72,77,0.4),inset_0_0_30px_rgba(229,72,77,0.18)]'
-                : 'border-[#c9a24a]/50 bg-gradient-to-b from-[#1c150c] to-[#0b0906] shadow-[inset_0_0_24px_rgba(201,162,74,0.12)]'
+                : "border-[#c9a24a]/50 bg-[url('/assets/dice-roller/resultat-fond-evergreen.webp')] bg-cover bg-center shadow-[inset_0_0_24px_rgba(201,162,74,0.12)]"
           }`}
           role="status"
         >
