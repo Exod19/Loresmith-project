@@ -24,6 +24,7 @@ import ArchivesPage from './feeds/ArchivesPage';
 import ArchivesLinkPanel from './feeds/ArchivesLink';
 import Dossier, { LibraryCard } from './library/Dossier';
 import { UNDERDARK_LINK } from './feeds/underdark';
+import { DiceRoller3D } from './components/DiceRoller3D';
 
 /* ----------------------------- styles (gold / ornate) ------------------- */
 const STYLE = `
@@ -10035,6 +10036,8 @@ Réponds uniquement avec une ou deux répliques en français que ce personnage p
   }
 
   return (
+    <>
+    <DiceRoller3D />
     <div className="scene-shell">
       <aside className="scene-left">
         <div className="scene-card compass-card">
@@ -10384,6 +10387,7 @@ Réponds uniquement avec une ou deux répliques en français que ce personnage p
         />
       )}
     </div>
+    </>
   );
 }
 function SceneDialogueItem({ dialogue, index, state, npcs }) {
@@ -13669,6 +13673,8 @@ function Encounter({ dispatch, state, party, npcs, flash }) {
         positionnement tactique.
       </p>
 
+      <DiceRoller3D />
+
       <div className="combat-layout-advanced">
         <main className="combat-main-col">
           <div className="panel combat-control-panel">
@@ -15871,6 +15877,7 @@ function Quests({ dispatch, quests, campaigns, flash }) {
         Track the main thread and side quests. Check off beats as the party
         clears them; the bar shows how far each story has come.
       </p>
+      <DiceRoller3D />
       <button
         className="btn primary"
         style={{ marginBottom: 18 }}
