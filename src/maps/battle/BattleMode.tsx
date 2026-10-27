@@ -1,5 +1,6 @@
 /**
- * Combat sur grille, côté MJ : plateau interactif, jetons, distances en pieds et aide aux règles D&D 5e.
+ * Carte de combat, côté MJ : même mise en page que la carte de navigation (zone centrale + panneau latéral),
+ * avec le plateau sur grille à la place du plan. Distances en pieds, jetons, aide aux règles D&D 5e.
  * L'écran joueur montre le même plateau en lecture seule (cf. playerBoard.ts) : jetons visibles, sans points de vie.
  */
 import { useState } from 'react';
@@ -87,17 +88,16 @@ export default function BattleMode({ rec, battle, onBattle }: { rec: MapRecord; 
   const stat = selected?.statId ? STATS[selected.statId] : undefined;
 
   return (
-    <div className="battle-mode">
-      <div className="battle-bar">
-        <span className="battle-round">Round {b.round}</span>
-        <button className="maps-btn gold" onClick={() => set({ round: b.round + 1 })}>Round suivant</button>
-        <button className="maps-btn" onClick={() => { if (window.confirm('Retirer tous les jetons du plateau ?')) set({ tokens: [], round: 1 }); }}>Vider le plateau</button>
-        <span className="battle-hint">
-          {selected ? `Clique une case pour déplacer ${selected.name}.` : 'Clique un jeton pour le sélectionner.'}
-        </span>
-      </div>
-
-      <div className="battle-body">
+    <div className="maps-body">
+      <div className="maps-canvas battle-canvas">
+        <div className="battle-bar">
+          <span className="battle-round">Round {b.round}</span>
+          <button className="maps-btn gold" onClick={() => set({ round: b.round + 1 })}>Round suivant</button>
+          <button className="maps-btn" onClick={() => { if (window.confirm('Retirer tous les jetons du plateau ?')) set({ tokens: [], round: 1 }); }}>Vider le plateau</button>
+          <span className="battle-hint">
+            {selected ? `Clique une case pour déplacer ${selected.name}.` : 'Clique un jeton pour le sélectionner.'}
+          </span>
+        </div>
         <div className="battle-board-wrap">
           <BattleBoard
             cols={b.cols} rows={b.rows} backdrop={rec.image} tokens={boardTokens} interactive
@@ -105,77 +105,77 @@ export default function BattleMode({ rec, battle, onBattle }: { rec: MapRecord; 
           />
           {readout && <div className="battle-readout">{readout.feet} pieds · {readout.cells} case{readout.cells > 1 ? 's' : ''}</div>}
         </div>
+      </div>
 
-        <aside className="battle-side">
-          <section className="maps-card">
-            <h3>Ajouter un jeton</h3>
-            <div className="maps-form">
-              <select className="maps-btn" value={statId} onChange={(e) => { setStatId(e.target.value); if (e.target.value) setKind('monster'); }}>
-                <option value="">Sans fiche (saisie libre)</option>
-                {SRD.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-              </select>
-              <input className="maps-btn" placeholder={stat?.name ?? 'Nom'} value={name} onChange={(e) => setName(e.target.value)} />
-              <select className="maps-btn" value={kind} onChange={(e) => setKind(e.target.value as BattleToken['kind'])}>
-                {(Object.keys(KIND_LABEL) as BattleToken['kind'][]).map((k) => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}
-              </select>
-              <button className="maps-btn gold" onClick={addToken}>Placer sur le plateau</button>
-            </div>
-          </section>
+      <aside className="maps-panel battle-side">
+        <section className="maps-card">
+          <h3>Ajouter un jeton</h3>
+          <div className="maps-form">
+            <select className="maps-btn" value={statId} onChange={(e) => { setStatId(e.target.value); if (e.target.value) setKind('monster'); }}>
+              <option value="">Sans fiche (saisie libre)</option>
+              {SRD.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+            <input className="maps-btn" placeholder={stat?.name ?? 'Nom'} value={name} onChange={(e) => setName(e.target.value)} />
+            <select className="maps-btn" value={kind} onChange={(e) => setKind(e.target.value as BattleToken['kind'])}>
+              {(Object.keys(KIND_LABEL) as BattleToken['kind'][]).map((k) => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}
+            </select>
+            <button className="maps-btn gold" onClick={addToken}>Placer sur le plateau</button>
+          </div>
+        </section>
 
-          <section className="maps-card">
-            <h3>Jetons ({b.tokens.length})</h3>
-            {b.tokens.length === 0 && <p className="maps-sub">Aucun jeton. Ajoute les joueurs et les créatures.</p>}
-            <ul className="battle-list">
-              {b.tokens.map((t) => (
-                <li key={t.id} data-on={t.id === selectedId ? 1 : 0}>
-                  <button className="maps-link" onClick={() => setSelectedId(t.id)}>{t.name}</button>
-                  <small>{KIND_LABEL[t.kind]}{t.hp !== undefined ? ` · ${t.hp}/${t.maxHp} PV` : ''}</small>
-                  <button className="maps-btn" title={t.visible ? 'Visible des joueurs' : 'Caché des joueurs'} onClick={() => patchToken(t.id, { visible: !t.visible })}>
-                    {t.visible ? '👁' : '🙈'}
-                  </button>
-                  {t.hp !== undefined && (
-                    <span className="battle-hp">
-                      {[-5, -1, 1, 5].map((d) => <button key={d} className="maps-btn" onClick={() => adjustHp(t, d)}>{d > 0 ? `+${d}` : d}</button>)}
-                    </span>
-                  )}
-                </li>
+        <section className="maps-card">
+          <h3>Jetons ({b.tokens.length})</h3>
+          {b.tokens.length === 0 && <p className="maps-sub">Aucun jeton. Ajoute les joueurs et les créatures.</p>}
+          <ul className="battle-list">
+            {b.tokens.map((t) => (
+              <li key={t.id} data-on={t.id === selectedId ? 1 : 0}>
+                <button className="maps-link" onClick={() => setSelectedId(t.id)}>{t.name}</button>
+                <small>{KIND_LABEL[t.kind]}{t.hp !== undefined ? ` · ${t.hp}/${t.maxHp} PV` : ''}</small>
+                <button className="maps-btn" title={t.visible ? 'Visible des joueurs' : 'Caché des joueurs'} onClick={() => patchToken(t.id, { visible: !t.visible })}>
+                  {t.visible ? '👁' : '🙈'}
+                </button>
+                {t.hp !== undefined && (
+                  <span className="battle-hp">
+                    {[-5, -1, 1, 5].map((d) => <button key={d} className="maps-btn" onClick={() => adjustHp(t, d)}>{d > 0 ? `+${d}` : d}</button>)}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {selected && (
+          <section className="maps-card battle-sheet">
+            <h3>{selected.name}</h3>
+            {selected.ac !== undefined && <p>CA <b>{selected.ac}</b>{selected.hp !== undefined && <> · PV <b>{selected.hp}/{selected.maxHp}</b></>}</p>}
+            {stat && (
+              <>
+                <p className="maps-sub">Vitesse {stat.speed}{speedInCells(stat.speed) !== undefined && ` (≈ ${speedInCells(stat.speed)} cases par tour)`}</p>
+                <p className="maps-sub">Actions : {stat.actions.map(([n]) => n.split(' (')[0]).join(' · ')}</p>
+              </>
+            )}
+            <h4>Distances</h4>
+            <ul className="battle-dist">
+              {b.tokens.filter((t) => t.id !== selected.id).map((t) => (
+                <li key={t.id}>{t.name} : {feetBetween(selected, t, b.feetPerCell).feet} pieds</li>
               ))}
             </ul>
+            <button className="maps-btn" onClick={() => { if (window.confirm(`Retirer ${selected.name} ?`)) { set({ tokens: b.tokens.filter((t) => t.id !== selected.id) }); setSelectedId(null); } }}>
+              Retirer du plateau
+            </button>
           </section>
+        )}
 
-          {selected && (
-            <section className="maps-card battle-sheet">
-              <h3>{selected.name}</h3>
-              {selected.ac !== undefined && <p>CA <b>{selected.ac}</b>{selected.hp !== undefined && <> · PV <b>{selected.hp}/{selected.maxHp}</b></>}</p>}
-              {stat && (
-                <>
-                  <p className="maps-sub">Vitesse {stat.speed}{speedInCells(stat.speed) !== undefined && ` (≈ ${speedInCells(stat.speed)} cases par tour)`}</p>
-                  <p className="maps-sub">Actions : {stat.actions.map(([n]) => n.split(' (')[0]).join(' · ')}</p>
-                </>
-              )}
-              <h4>Distances</h4>
-              <ul className="battle-dist">
-                {b.tokens.filter((t) => t.id !== selected.id).map((t) => (
-                  <li key={t.id}>{t.name} : {feetBetween(selected, t, b.feetPerCell).feet} pieds</li>
-                ))}
-              </ul>
-              <button className="maps-btn" onClick={() => { if (window.confirm(`Retirer ${selected.name} ?`)) { set({ tokens: b.tokens.filter((t) => t.id !== selected.id) }); setSelectedId(null); } }}>
-                Retirer du plateau
-              </button>
-            </section>
-          )}
-
-          <section className="maps-card battle-rules">
-            <h3>Rappels D&amp;D 5e</h3>
-            <ul>
-              <li>Une case = 5 pieds (1,5 m). Une diagonale compte comme une case droite.</li>
-              <li>Corps à corps : atteint à 1 case (5 pieds).</li>
-              <li>Vitesse ÷ 5 = cases par tour ; l'action Se précipiter double le déplacement.</li>
-              <li>Couvert : à moitié +2 CA, aux trois quarts +5 CA, total : impossible à viser directement.</li>
-            </ul>
-          </section>
-        </aside>
-      </div>
+        <section className="maps-card battle-rules">
+          <h3>Rappels D&amp;D 5e</h3>
+          <ul>
+            <li>Une case = 5 pieds (1,5 m). Une diagonale compte comme une case droite.</li>
+            <li>Corps à corps : atteint à 1 case (5 pieds).</li>
+            <li>Vitesse ÷ 5 = cases par tour ; l'action Se précipiter double le déplacement.</li>
+            <li>Couvert : à moitié +2 CA, aux trois quarts +5 CA, total : impossible à viser directement.</li>
+          </ul>
+        </section>
+      </aside>
     </div>
   );
 }

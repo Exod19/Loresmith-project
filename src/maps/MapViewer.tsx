@@ -34,7 +34,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
 }) {
   const data = activateMap(rec, dm, atlas);
   const [planId, setPlanId] = useState(rec.kind === 'atlas' ? ATLAS_DEFAULT_PLAN : mapIdOf(rec));
-  const [mode, setMode] = useState<'carte' | 'combat'>('carte');
+  /** Carte de combat ouverte à la place de la carte de navigation (même mise en page). */
+  const [battleOpen, setBattleOpen] = useState(false);
   const [projecting, setProjecting] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [enc, setEnc] = useState<{ ctx: EncCtx; e: Encounter } | null>(null);
@@ -57,8 +58,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
   // Projection : toute modification de la carte, du repérage ou du combat part vers l'écran joueur.
   useEffect(() => {
     if (!projecting) return;
-    publishStage({ kind: 'board', board: mode === 'combat' ? battleBoard(rec) : mapBoard(rec, atlas, map.id) });
-  }, [projecting, mode, rec, atlas, map.id]);
+    publishStage({ kind: 'board', board: battleOpen ? battleBoard(rec) : mapBoard(rec, atlas, map.id) });
+  }, [projecting, battleOpen, rec, atlas, map.id]);
 
   function stopProjecting() {
     setProjecting(false);
@@ -97,22 +98,21 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
   return (
     <div className="atlas-page maps-viewer">
       <div className="maps-toolbar">
-        <button className="maps-btn" onClick={onBack}>← Cartes</button>
+        {battleOpen
+          ? <button className="maps-btn" onClick={() => setBattleOpen(false)}>← Carte de navigation</button>
+          : <button className="maps-btn" onClick={onBack}>← Cartes</button>}
         <strong className="maps-title">{rec.title}</strong>
-        {rec.kind === 'atlas' && (
+        {rec.kind === 'atlas' && !battleOpen && (
           <select className="maps-btn" value={planId} onChange={(e) => { setPlanId(e.target.value); setSelectedId(null); setPlacing(null); }}>
             {atlas.maps.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
           </select>
         )}
-        <div className="maps-seg" role="group" aria-label="Vue">
-          <button className={mode === 'carte' ? 'on' : ''} onClick={() => setMode('carte')}>Carte</button>
-          <button className={mode === 'combat' ? 'on' : ''} onClick={() => setMode('combat')}>Combat</button>
-        </div>
+        {!battleOpen && <button className="maps-btn" onClick={() => setBattleOpen(true)}>⚔ Ouvrir la carte de combat</button>}
         <div className="maps-spacer" />
         <button className={`maps-btn ${projecting ? 'gold' : ''}`} onClick={() => (projecting ? stopProjecting() : setProjecting(true))}>
           {projecting ? '■ Arrêter la projection' : '▶ Projeter aux joueurs'}
         </button>
-        {mode === 'carte' && (
+        {!battleOpen && (
           <div className="maps-seg" role="group" aria-label="Affichage">
             <button className={dm ? 'on' : ''} onClick={() => onDm(true)}>MJ</button>
             <button className={!dm ? 'on' : ''} onClick={() => onDm(false)}>Joueurs</button>
@@ -120,10 +120,10 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack }: {
         )}
       </div>
       {projecting && (
-        <p className="maps-live">● Écran joueur : {mode === 'combat' ? `combat (${rec.title})` : map.title} · mis à jour en direct</p>
+        <p className="maps-live">● Écran joueur : {battleOpen ? `carte de combat (${rec.title})` : map.title} · mis à jour en direct</p>
       )}
 
-      {mode === 'combat' ? (
+      {battleOpen ? (
         <BattleMode rec={rec} battle={rec.battle ?? DEFAULT_BATTLE} onBattle={(b) => onUpdate({ battle: b, updatedAt: Date.now() })} />
       ) : (
         <div className="maps-body">
