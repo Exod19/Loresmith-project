@@ -2,8 +2,9 @@
  * Plateau de combat sur grille (5 pieds par case). Sert à la console MJ (interactif) et à l'écran joueur (lecture seule).
  * Le terrain est dessiné avec de vraies textures (SVG), les lieux et créatures avec des icônes.
  */
+import { useEffect, useRef } from 'react';
 import type { PlayerElement, PlayerToken } from '../../present/stage';
-import { TERRAIN, type TerrainKind } from './terrain';
+import type { TerrainKind } from './terrain';
 
 export type BoardToken = PlayerToken & { selected?: boolean; hidden?: boolean };
 
@@ -39,42 +40,58 @@ export const CATEGORY_ICON: Record<string, string> = {
 
 const KIND_FILL: Record<PlayerToken['kind'], string> = { pc: '#54d8c6', monster: '#c0492f', other: '#c9a24a' };
 
-/** Textures du terrain : motifs répétés, en unités de case (le plateau est en coordonnées cases). */
+/** Textures du terrain (public/images/combat-map/textures) : une image par case, posée sur la grille.
+ *  Une répétition de motif donnait des rayures à cette échelle ; chaque case garde ainsi son image exacte. */
+const TEX_URL = (name: string) => `${import.meta.env.BASE_URL}images/combat-map/textures/${name}.webp`;
+const TILE_FILE: Partial<Record<TerrainKind, string>> = {
+  '.': 'sol', '#': 'roche', '~': 'eau', ':': 'eboulis', p: 'couloir', '=': 'pont', X: 'gouffre', ',': 'decor', I: 'roche',
+};
+const TILE_BASE: Record<string, string> = {
+  sol: '#2b241b', roche: '#4a3c2a', eau: '#1d4a5b', eboulis: '#3e3429', couloir: '#6b5a3e', pont: '#8a6a2c', gouffre: '#030303', decor: '#2b241b', stalagmite: '#4a3c2a',
+};
+/** Taille d'une case dans le canevas de terrain (pixels). Le canevas est ensuite mis à l'échelle par le CSS. */
+const CELL_PX = 64;
+const imageCache = new Map<string, Promise<HTMLImageElement>>();
+function loadTile(file: string): Promise<HTMLImageElement> {
+  let p = imageCache.get(file);
+  if (!p) {
+    p = new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = TEX_URL(file);
+    });
+    imageCache.set(file, p);
+  }
+  return p;
+}
+
+/** Dessine le terrain case par case dans le canevas : une texture par type, avec la couleur de base dessous. */
+async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: number, terrain: string | undefined) {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  canvas.width = cols * CELL_PX; canvas.height = rows * CELL_PX;
+  ctx.fillStyle = TILE_BASE.sol;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  if (!terrain) return;
+  const files = [...new Set(Array.from(terrain).map((k) => TILE_FILE[k as TerrainKind] ?? 'sol'))];
+  const images = Object.fromEntries(await Promise.all(files.map(async (f) => [f, await loadTile(f).catch(() => null)])));
+  Array.from(terrain).forEach((k, i) => {
+    const file = TILE_FILE[k as TerrainKind] ?? 'sol';
+    const x = (i % cols) * CELL_PX, y = Math.floor(i / cols) * CELL_PX;
+    ctx.fillStyle = TILE_BASE[file] ?? TILE_BASE.sol;
+    ctx.fillRect(x, y, CELL_PX, CELL_PX);
+    const img = images[file];
+    if (img) ctx.drawImage(img, x, y, CELL_PX, CELL_PX);
+    if (k === 'I') {
+      const col = images['stalagmite'];
+      if (col) ctx.drawImage(col, x, y, CELL_PX, CELL_PX);
+    }
+  });
+}
+
 const TEXTURES = (
   <defs>
-    <pattern id="tex-floor" patternUnits="userSpaceOnUse" width={1} height={1}>
-      <rect width={1} height={1} fill="#2b241b" />
-      <circle cx={0.2} cy={0.3} r={0.03} fill="#382f23" />
-      <circle cx={0.7} cy={0.8} r={0.025} fill="#382f23" />
-    </pattern>
-    <pattern id="tex-rock" patternUnits="userSpaceOnUse" width={1} height={1}>
-      <rect width={1} height={1} fill="#4a3c2a" />
-      <path d="M0 0.25 H1 M0 0.75 H1 M0.25 0 V1 M0.75 0 V1" stroke="#2c2319" strokeWidth={0.07} />
-      <circle cx={0.5} cy={0.5} r={0.08} fill="#5b4a34" />
-    </pattern>
-    <pattern id="tex-water" patternUnits="userSpaceOnUse" width={1} height={1}>
-      <rect width={1} height={1} fill="#1d4a5b" />
-      <path d="M0.05 0.35 q0.225 -0.18 0.45 0 t0.45 0 M0.05 0.8 q0.225 -0.18 0.45 0 t0.45 0" fill="none" stroke="#5fb3c9" strokeWidth={0.06} opacity={0.55} />
-    </pattern>
-    <pattern id="tex-rubble" patternUnits="userSpaceOnUse" width={1} height={1}>
-      <rect width={1} height={1} fill="#3e3429" />
-      <circle cx={0.3} cy={0.35} r={0.17} fill="#6e6152" />
-      <circle cx={0.75} cy={0.7} r={0.13} fill="#5a4e40" />
-      <circle cx={0.7} cy={0.2} r={0.09} fill="#7a6b5a" />
-    </pattern>
-    <pattern id="tex-pass" patternUnits="userSpaceOnUse" width={1} height={1}>
-      <rect width={1} height={1} fill="#6b5a3e" />
-      <path d="M0 0.5 H1" stroke="#7d6a4b" strokeWidth={0.08} strokeDasharray="0.2 0.15" />
-    </pattern>
-    <pattern id="tex-bridge" patternUnits="userSpaceOnUse" width={1} height={1}>
-      <rect width={1} height={1} fill="#8a6a2c" />
-      <path d="M0.33 0 V1 M0.66 0 V1" stroke="#5a4119" strokeWidth={0.08} />
-    </pattern>
-    <radialGradient id="grad-chasm" cx="50%" cy="50%" r="70%">
-      <stop offset="0%" stopColor="#000" />
-      <stop offset="70%" stopColor="#060606" />
-      <stop offset="100%" stopColor="#2a2a2a" />
-    </radialGradient>
     <filter id="grain" x="0" y="0" width="100%" height="100%">
       <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" />
       <feColorMatrix type="saturate" values="0" />
@@ -92,37 +109,17 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
   for (let y = 0; y <= rows; y++) lines.push(`M0 ${y}H${cols}`);
   const cells = interactive ? Array.from({ length: cols * rows }, (_, i) => ({ x: i % cols, y: Math.floor(i / cols) })) : [];
 
-  // Terrain regroupé par type : un seul tracé par type, plus léger qu'un rectangle par case.
-  const byKind = new Map<TerrainKind, number[]>();
-  const decor: number[] = [];
-  if (terrain) Array.from(terrain).forEach((k, i) => {
-    const kind = k as TerrainKind;
-    if (kind === ',') decor.push(i);
-    else if (kind !== '.') byKind.set(kind, [...(byKind.get(kind) ?? []), i]);
-  });
-  const TEX: Partial<Record<TerrainKind, string>> = { '#': 'tex-rock', '~': 'tex-water', ':': 'tex-rubble', p: 'tex-pass', '=': 'tex-bridge' };
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    if (canvasRef.current) void paintTerrain(canvasRef.current, cols, rows, terrain);
+  }, [cols, rows, terrain]);
 
   return (
+    <div className="battle-stack">
+      <canvas ref={canvasRef} className="battle-terrain" aria-hidden="true" />
     <svg className="battle-board" viewBox={`0 0 ${cols} ${rows}`} preserveAspectRatio="xMidYMid meet" role="img" aria-label="Plateau de combat">
       {TEXTURES}
-      <rect x={0} y={0} width={cols} height={rows} fill="url(#tex-floor)" />
-      <rect x={0} y={0} width={cols} height={rows} filter="url(#grain)" opacity={0.6} pointerEvents="none" />
       {backdrop && <image href={backdrop} x={0} y={0} width={cols} height={rows} preserveAspectRatio="xMidYMid slice" opacity={0.55} />}
-
-      {[...byKind.entries()].map(([kind, idx]) => {
-        if (kind === 'X') return <path key={kind} d={cellPath(idx, cols)} fill="url(#grad-chasm)"><title>{TERRAIN.X.label}</title></path>;
-        if (kind === 'I') return idx.map((i) => (
-          <g key={i}>
-            <ellipse cx={(i % cols) + 0.5} cy={Math.floor(i / cols) + 0.7} rx={0.3} ry={0.12} fill="#000" opacity={0.35} />
-            <circle cx={(i % cols) + 0.5} cy={Math.floor(i / cols) + 0.45} r={0.34} fill="#6b5a44" stroke="#0b0906" strokeWidth={0.04} />
-          </g>
-        ));
-        return <path key={kind} d={cellPath(idx, cols)} fill={`url(#${TEX[kind] ?? 'tex-floor'})`}><title>{TERRAIN[kind].label}</title></path>;
-      })}
-      {decor.length > 0 && (
-        <path fill="#7fd1a8" opacity={0.85}
-          d={decor.map((i) => `M${(i % cols) + 0.5} ${Math.floor(i / cols) + 0.5}m-0.14 0a0.14 0.14 0 1 0 0.28 0a0.14 0.14 0 1 0 -0.28 0`).join('')} />
-      )}
 
       <path d={lines.join('')} stroke="rgba(201,162,74,.22)" strokeWidth={0.03} fill="none" pointerEvents="none" />
 
@@ -185,5 +182,6 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
         />
       ))}
     </svg>
+    </div>
   );
 }
