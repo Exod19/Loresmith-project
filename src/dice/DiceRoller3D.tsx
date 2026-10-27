@@ -76,7 +76,7 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
 
       <div
         id="dice-box"
-        className="w-full h-[300px] bg-slate-950 rounded-xl border border-slate-800 shadow-inner relative overflow-hidden mb-3"
+        className="w-full h-[300px] bg-slate-950 rounded-xl border border-slate-800 shadow-inner relative overflow-hidden mb-3 [&>canvas]:block [&>canvas]:w-full [&>canvas]:h-full"
       />
 
       <div className="flex flex-wrap gap-1.5 w-full mb-3">
