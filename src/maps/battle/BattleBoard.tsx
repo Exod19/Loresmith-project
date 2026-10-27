@@ -13,7 +13,8 @@ export type BoardToken = PlayerToken & { selected?: boolean; hidden?: boolean };
 export type BoardElement = PlayerElement & { cells?: number[]; ghost?: boolean; dc?: number };
 
 /** Portées d'une créature (MJ seulement) : cases atteignables, et anneau de portée d'attaque. */
-export type BoardRange = { id: string; x: number; y: number; size: number; move: number[]; attack: number; selected: boolean };
+/** `attack` : allonge au corps à corps (anneau plein). `ranged` : portée courte à distance (anneau en pointillés). */
+export type BoardRange = { id: string; x: number; y: number; size: number; move: number[]; attack: number; ranged: number; selected: boolean };
 
 type Props = {
   cols: number;
@@ -176,10 +177,18 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
       {ranges.map((r) => (
         <g key={`range-${r.id}`} pointerEvents="none">
           {r.move.length > 0 && <path d={cellPath(r.move, cols)} fill="rgba(84,216,198,0.18)" opacity={r.selected ? 1 : 0.7} />}
-          <rect
-            x={r.x - r.attack} y={r.y - r.attack} width={r.size + 2 * r.attack} height={r.size + 2 * r.attack}
-            fill="none" stroke="#e0603f" strokeWidth={r.selected ? 0.1 : 0.05} strokeDasharray="0.25 0.15" opacity={r.selected ? 1 : 0.6}
-          />
+          {r.attack > 0 && (
+            <rect
+              x={r.x - r.attack} y={r.y - r.attack} width={r.size + 2 * r.attack} height={r.size + 2 * r.attack}
+              fill="none" stroke="#e0603f" strokeWidth={r.selected ? 0.1 : 0.05} strokeDasharray="0.25 0.15" opacity={r.selected ? 1 : 0.6}
+            />
+          )}
+          {r.ranged > r.attack && (
+            <rect
+              x={r.x - r.ranged} y={r.y - r.ranged} width={r.size + 2 * r.ranged} height={r.size + 2 * r.ranged}
+              fill="none" stroke="#c9a24a" strokeWidth={0.04} strokeDasharray="0.08 0.12" opacity={r.selected ? 0.8 : 0.4}
+            />
+          )}
         </g>
       ))}
 

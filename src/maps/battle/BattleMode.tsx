@@ -11,7 +11,7 @@ import type { AtlasData, AtlasMap } from '../atlas/types';
 import { DEFAULT_BATTLE, type Battle, type BattleBuild, type BattleToken, type MapMarker, type MapRecord, type PassageLink } from '../mapStore';
 import { blocksCell, effectiveGrid, generateTerrain, pathCost, seedOf, TERRAIN, type LocationHint, type TerrainKind } from './terrain';
 import { buildLocalMap, cellIn } from './local';
-import { attackCells, reachableCells, speedCells } from './ranges';
+import { attackCells, rangedCells, reachableCells, speedCells } from './ranges';
 import { tokenImage } from './vignettes';
 import BuildPanel from './BuildPanel';
 import { DEFAULT_BRUSH, PROP_BY_KEY, PROP_LABEL, propUrl, applyBuild, shapeCells, type Brush } from './build';
@@ -352,7 +352,7 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
   const rangeOf = (t: BattleToken): BoardRange => ({
     id: t.id, x: t.x, y: t.y, size: t.size,
     move: reachableCells(grid, b.cols, b.rows, t, speedCells(statOf(t))),
-    attack: attackCells(statOf(t)), selected: t.id === selectedId,
+    attack: attackCells(statOf(t)), ranged: rangedCells(statOf(t)), selected: t.id === selectedId,
   });
   const ranges: BoardRange[] = showRanges ? b.tokens.map(rangeOf) : [];
 
@@ -562,7 +562,7 @@ export default function BattleMode({ rec, battle, onBattle, context, atlas, plan
           <section className="maps-card battle-sheet">
             <h3>{selected.name}</h3>
             {selected.ac !== undefined && <p>CA <b>{selected.ac}</b>{selected.hp !== undefined && <> · PV <b>{selected.hp}/{selected.maxHp}</b></>}</p>}
-            <p className="maps-sub">Déplacement : {speedCells(stat)} cases ({speedCells(stat) * b.feetPerCell} pieds) · Attaque : {attackCells(stat)} case{attackCells(stat) > 1 ? 's' : ''}</p>
+            <p className="maps-sub">Déplacement : {speedCells(stat)} cases ({speedCells(stat) * b.feetPerCell} pieds) · Allonge : {attackCells(stat)} case{attackCells(stat) > 1 ? 's' : ''}{rangedCells(stat) > 0 && <> · Portée courte : {rangedCells(stat)} cases</>}</p>
             {stat && (
               <>
                 <p className="maps-sub">Vitesse {stat.speed}{speedInCells(stat.speed) !== undefined && ` (≈ ${speedInCells(stat.speed)} cases par tour)`}</p>

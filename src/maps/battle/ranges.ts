@@ -20,17 +20,28 @@ export function speedCells(stat?: Stat): number {
   return Number.isFinite(m) ? Math.round((m * FT_PER_M) / FT_PER_CELL) : DEFAULT_SPEED_CELLS;
 }
 
-/** Portée d'attaque en cases : la plus grande des allonges et des portées courtes de la fiche. */
+const cellsOf = (metres: string) => Math.round((numberIn(metres) * FT_PER_M) / FT_PER_CELL);
+
+/** Allonge au corps à corps en cases : la plus grande de la fiche. 0 si la créature n'attaque pas au contact. */
 export function attackCells(stat?: Stat): number {
   if (!stat) return DEFAULT_REACH_CELLS;
   let best = 0;
   for (const [, text] of stat.actions) {
     const melee = /allonge ([\d,]+) m/i.exec(text);
-    if (melee) best = Math.max(best, Math.round((numberIn(melee[1]) * FT_PER_M) / FT_PER_CELL));
-    const ranged = /portée ([\d,]+)\/[\d,]+ m/i.exec(text);
-    if (ranged) best = Math.max(best, Math.round((numberIn(ranged[1]) * FT_PER_M) / FT_PER_CELL));
+    if (melee) best = Math.max(best, cellsOf(melee[1]));
   }
-  return best || DEFAULT_REACH_CELLS;
+  return best;
+}
+
+/** Portée courte d'une attaque à distance, en cases (0 si aucune). La portée longue n'est pas dessinée. */
+export function rangedCells(stat?: Stat): number {
+  if (!stat) return 0;
+  let best = 0;
+  for (const [, text] of stat.actions) {
+    const ranged = /portée ([\d,]+)\/[\d,]+ m/i.exec(text);
+    if (ranged) best = Math.max(best, cellsOf(ranged[1]));
+  }
+  return best;
 }
 
 /** Cases atteignables depuis une case, avec un budget de cases. Le terrain difficile compte double, les obstacles bloquent. */
