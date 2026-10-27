@@ -2,7 +2,8 @@
  * Liaison permanente d'un univers aux Archives. La liaison est stockée dans l'univers (champ `archives`),
  * donc elle suit l'univers dans les sauvegardes. L'univers Underdark est lié automatiquement.
  */
-import { useUnderdarkFeed, UNDERDARK_LINK } from './underdark';
+import { useEffect } from 'react';
+import { archiveBundle, useUnderdarkFeed, UNDERDARK_LINK, type UnderdarkFeed } from './underdark';
 
 type Universe = { id: string; name: string; archives?: string };
 type Props = {
@@ -16,9 +17,16 @@ export function setArchivesLink(universe: Universe, dispatch: Props['dispatch'],
   dispatch({ type: 'UPDATE_UNIVERSE', id: universe.id, patch: { archives: on ? UNDERDARK_LINK : undefined } });
 }
 
+/** Crée dans la bibliothèque les fiches et images des Archives absentes (jamais d'écrasement d'une fiche déjà modifiée). */
+export function importArchiveLibrary(feed: UnderdarkFeed, universe: Universe, dispatch: Props['dispatch']) {
+  dispatch({ type: 'IMPORT_ARCHIVE_ENTRIES', ...archiveBundle(feed.entries, universe.id) });
+}
+
 export default function ArchivesLinkPanel({ universe, dispatch, flash, setView }: Props) {
   const linked = universe.archives === UNDERDARK_LINK;
   const { feed, error, reload } = useUnderdarkFeed();
+  // À chaque ouverture d'un univers lié, les fiches manquantes rejoignent la bibliothèque.
+  useEffect(() => { if (linked && feed) importArchiveLibrary(feed, universe, dispatch); }, [linked, feed, universe.id]);
 
   if (!linked) {
     return (
@@ -45,7 +53,7 @@ export default function ArchivesLinkPanel({ universe, dispatch, flash, setView }
       <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
         <button className="btn gold" onClick={() => setView('archives')}>Consulter les Archives</button>
         <button className="btn" onClick={() => setView('maps')}>Ouvrir les cartes</button>
-        <button className="btn" onClick={async () => { await reload(); flash('Archives synchronisées'); }}>Synchroniser</button>
+        <button className="btn" onClick={async () => { const f = await reload(); if (f) importArchiveLibrary(f, universe, dispatch); flash('Archives synchronisées et ajoutées à la bibliothèque'); }}>Synchroniser</button>
         <button className="btn" onClick={() => { setArchivesLink(universe, dispatch, false); flash('Liaison retirée'); }}>Délier</button>
       </div>
     </div>

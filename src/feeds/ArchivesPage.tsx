@@ -4,7 +4,7 @@
  */
 import { useMemo, useState } from 'react';
 import '../maps/maps.css';
-import { FEED_TYPE_LABEL, UNDERDARK_LINK, toLibraryEntry, useUnderdarkFeed, type FeedEntry } from './underdark';
+import { FEED_TYPE_LABEL, UNDERDARK_LINK, archiveBundle, useUnderdarkFeed, type FeedEntry } from './underdark';
 import { setArchivesLink } from './ArchivesLink';
 
 type Props = {
@@ -13,7 +13,6 @@ type Props = {
   flash: (m: string) => void;
 };
 
-const uid = () => Math.random().toString(36).slice(2, 10);
 
 export default function ArchivesPage({ universe, dispatch, flash }: Props) {
   const { feed, error, reload } = useUnderdarkFeed();
@@ -52,7 +51,7 @@ export default function ArchivesPage({ universe, dispatch, flash }: Props) {
   };
 
   const addToLibrary = (e: FeedEntry) => {
-    dispatch({ type: 'ADD_LIBRARY_ENTRY', entry: toLibraryEntry(e, uid()) });
+    dispatch({ type: 'IMPORT_ARCHIVE_ENTRIES', ...archiveBundle([e], universe.id) });
     flash(`« ${e.name} » ajoutée à la bibliothèque`);
   };
 

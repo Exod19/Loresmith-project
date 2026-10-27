@@ -4888,6 +4888,14 @@ function reducer(s, a) {
         },
       };
 
+    case 'IMPORT_ARCHIVE_ENTRIES': {
+      // Ajoute les fiches des Archives qui ne sont pas encore dans la bibliothèque de l'univers : jamais d'écrasement.
+      const libraryEntries = { ...(s.libraryEntries || {}) };
+      for (const entry of a.entries) if (!libraryEntries[entry.id]) libraryEntries[entry.id] = entry;
+      const assets = { ...(s.assets || {}) };
+      for (const asset of a.assets || []) if (!assets[asset.id]) assets[asset.id] = asset;
+      return { ...s, libraryEntries, assets };
+    }
     case 'ADD_LIBRARY_ENTRY':
       return {
         ...s,

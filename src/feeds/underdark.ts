@@ -59,7 +59,17 @@ export function useUnderdarkFeed() {
     loadUnderdarkFeed().then((f) => alive && setFeed(f)).catch((e: Error) => alive && setError(e.message));
     return () => { alive = false; };
   }, []);
-  return { feed, error, reload: () => reloadUnderdarkFeed().then(setFeed).catch((e: Error) => setError(e.message)) };
+  const reload = async (): Promise<UnderdarkFeed | null> => {
+    try {
+      const f = await reloadUnderdarkFeed();
+      setFeed(f);
+      return f;
+    } catch (e) {
+      setError((e as Error).message);
+      return null;
+    }
+  };
+  return { feed, error, reload };
 }
 
 /** Type de bibliothèque de Loresmith pour chaque type de fiche des Archives. */
@@ -72,6 +82,7 @@ const LIBRARY_TYPE: Record<string, string> = {
 export function toLibraryEntry(e: FeedEntry, id: string, now = Date.now()) {
   return {
     id,
+    sourceId: e.id,
     archiveType: LIBRARY_TYPE[e.type] ?? 'document',
     title: e.name,
     subtitle: e.scientificName ?? '',
@@ -86,4 +97,17 @@ export function toLibraryEntry(e: FeedEntry, id: string, now = Date.now()) {
     createdAt: now,
     updatedAt: now,
   };
+}
+
+/**
+ * Fiches et images de bibliothèque pour des fiches des Archives. Identifiants stables (arc-<id>, arc-img-…) :
+ * un second import ne crée rien en double. L'image garde le chemin publié : elle n'est pas copiée dans le navigateur.
+ */
+export function archiveBundle(feedEntries: FeedEntry[], universeId: string) {
+  const entries = feedEntries.map((e) => ({ ...toLibraryEntry(e, `arc-${e.id}`), universeId }));
+  const assets = feedEntries.flatMap((e) => e.images.map((img) => ({
+    id: `arc-img-${e.id}-${img.id}`, name: img.caption || img.alt || e.name, category: 'library', targetType: 'library',
+    targetId: `arc-${e.id}`, dataUrl: img.src, source: 'archives', prompt: img.caption ?? '', createdAt: 0, universeId,
+  })));
+  return { entries, assets };
 }
