@@ -2,8 +2,9 @@
  * Page « Cartes » d'un univers : créer une carte vierge, importer une image, importer l'Atlas des profondeurs
  * (et le synchroniser avec les Archives), ouvrir une carte dans la visionneuse.
  */
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Hero } from './battle/CombatPanel';
+import { clearMapIntent, peekMapIntent } from './intent';
 import MapViewer from './MapViewer';
 import { useUnderdarkFeed, ARCHIVES_URL_KEY } from '../feeds/underdark';
 import { ATLAS_MAP_ID, imageFileToDataUrl, type MapRecord } from './mapStore';
@@ -34,7 +35,10 @@ function readKnown(): Set<string> | null {
 }
 
 export default function MapsPage({ universe, maps, dispatch, flash, heroes = [] }: Props) {
-  const [openId, setOpenId] = useState<string | null>(null);
+  // La Table de jeu peut demander d'ouvrir une carte précise (et d'y lancer le combat).
+  const [intent] = useState(peekMapIntent);
+  useEffect(() => { clearMapIntent(); }, []);
+  const [openId, setOpenId] = useState<string | null>(intent?.mapId ?? null);
   const [dm, setDm] = useState(true);
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -133,6 +137,7 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [] 
           onBack={() => setOpenId(null)}
           onUpdate={(patch) => dispatch({ type: 'UPDATE_MAP', id: open.id, patch })}
           heroes={heroes}
+          startInBattle={intent?.mapId === open.id && intent.battle}
         />
       </div>
     );

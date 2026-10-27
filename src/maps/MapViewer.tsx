@@ -17,6 +17,7 @@ import { battleBoard, mapBoard } from './playerBoard';
 import BattleMode from './battle/BattleMode';
 import type { Hero } from './battle/CombatPanel';
 import TrailsPanel, { DangerChip, trailsNear } from './TrailsPanel';
+import { placeNear, withPartyAt } from './party';
 import { detectLabel, noticedPassively, passiveOf, trailProfile } from './atlas/trails';
 import Interactables from './Interactables';
 import { publishStage } from '../present/stage';
@@ -32,16 +33,19 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 /** Repère en cours de placement : le prochain clic sur la carte le crée. */
 type Draft = { kind: MarkerKind; title: string; summary?: string; notes?: string; groups?: MapMarker['groups'] };
 
-export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [] }: {
+export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false }: {
   rec: MapRecord; atlas: AtlasData; dm: boolean; onDm: (v: boolean) => void;
   onUpdate: (patch: Partial<MapRecord>) => void; onBack: () => void;
   /** Personnages du groupe, pour les ajouter au combat. */
   heroes?: Hero[];
+  /** Ouverte depuis la Table de jeu pour un combat : la carte de combat du lieu du groupe s'affiche d'emblée. */
+  startInBattle?: boolean;
 }) {
   const data = activateMap(rec, dm, atlas);
-  const [planId, setPlanId] = useState(rec.kind === 'atlas' ? ATLAS_DEFAULT_PLAN : mapIdOf(rec));
+  // Le plan affiché d'abord : celui où se trouve le groupe, s'il est connu.
+  const [planId, setPlanId] = useState(rec.overlay?.party?.at?.planId ?? (rec.kind === 'atlas' ? ATLAS_DEFAULT_PLAN : mapIdOf(rec)));
   /** Carte de combat ouverte à la place de la carte de navigation (même mise en page). */
-  const [battleOpen, setBattleOpen] = useState(false);
+  const [battleOpen, setBattleOpen] = useState(startInBattle);
   const [projecting, setProjecting] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [enc, setEnc] = useState<{ ctx: EncCtx; e: Encounter } | null>(null);
@@ -96,35 +100,13 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     if (link.kind !== 'anchor') return fallback;
     const a = data.anchors.find((x) => x.id === link.id);
     if (!a) return fallback;
-    const [ax, ay] = a.at as [number, number];
-    const byId = new Map(data.features.map((f) => [f.id, f]));
-    // Le lieu qui porte le nom de l'ancre d'abord, puis les lieux importants ; les détails (flaque, galets) en dernier.
-    const name = link.label.split(' · ')[0];
-    let best: PartyPlace | null = null, bestScore = 0.06;
-    for (const g of data.geometries) {
-      if (g.mapId !== link.planId || g.type !== 'point' || g.featureId.startsWith('mk-')) continue;
-      const f = byId.get(g.featureId);
-      if (!f || f.area) continue;
-      const [x, y] = g.coordinates as [number, number];
-      const d = Math.hypot(x - ax, y - ay);
-      if (d > 0.06) continue;
-      const score = d + (f.title === name ? -1 : 0) + (f.importance === 'detail' ? 0.04 : 0);
-      if (score < bestScore) { bestScore = score; best = { id: f.id, kind: 'feature', title: f.title, planId: link.planId }; }
-    }
-    return best ?? fallback;
+    return placeNear(data, link.planId, a.at as [number, number], { name: link.label.split(' · ')[0] }) ?? fallback;
   };
 
   /** Le lieu sélectionné, tel que le suivi du groupe le retient. */
   const selectedPlace: PartyPlace | null = feature
     ? { id: feature.id, kind: 'feature', title: feature.title, planId: map.id }
     : selectedMarker ? { id: selectedMarker.id, kind: 'marker', title: selectedMarker.title, planId: map.id } : null;
-  /** Déplace le groupe : l'ancienne position rejoint le parcours, et la destination atteinte s'efface. */
-  const withPartyAt = (base: MapOverlay, p: PartyPlace): MapOverlay => {
-    const cur = base.party ?? { trail: [] };
-    if (cur.at?.id === p.id) return base;
-    const trail = cur.at ? [...cur.trail.filter((x) => x.id !== cur.at!.id && x.id !== p.id), cur.at].slice(-8) : cur.trail;
-    return { ...base, party: { at: p, dest: cur.dest?.id === p.id ? undefined : cur.dest, trail } };
-  };
   const setDest = (p: PartyPlace | undefined) => setOverlay({ ...overlay, party: { ...party, dest: p } });
   /** Montre un lieu suivi sur la carte de navigation (et le sélectionne). */
   const showPlace = (p: PartyPlace) => {

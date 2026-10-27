@@ -20,6 +20,8 @@ import React, {
 } from 'react';
 import { Download, Upload, Settings, ExternalLink } from 'lucide-react';
 import MapsPage from './maps/MapsPage';
+import TableMap, { tableMapId } from './maps/TableMap';
+import { setMapIntent } from './maps/intent';
 import ArchivesPage from './feeds/ArchivesPage';
 import ArchivesLinkPanel from './feeds/ArchivesLink';
 import Dossier, { LibraryCard } from './library/Dossier';
@@ -10152,7 +10154,19 @@ Réponds uniquement avec une ou deux répliques en français que ce personnage p
           checks={expanded?.skillChecks || []}
           branches={expanded?.branches || []}
           hasMonsters={getSceneMonsterRows({ expanded, activeScene, npcs }).length > 0}
-          onOpenCombat={() => setView('encounter')}
+          onOpenCombat={() => {
+            // Le combat se mène sur la carte de combat de la carte de jeu ; à défaut, sur l’ancienne page.
+            const mapId = tableMapId(state.maps || {}, universe?.id);
+            if (mapId) { setMapIntent({ mapId, battle: true }); setView('maps'); } else setView('encounter');
+          }}
+        />
+
+        <TableMap
+          maps={state.maps || {}}
+          universeId={universe?.id}
+          heroes={party}
+          dispatch={dispatch}
+          onOpenMaps={() => setView('maps')}
         />
 
         <div className="scene-grid-dialogue">

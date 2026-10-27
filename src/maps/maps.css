@@ -83,3 +83,34 @@
 .maps-sync{margin-top:10px}
 .maps-sync summary{cursor:pointer;color:#ecd289}
 .maps-sync label{display:flex;flex-direction:column;gap:6px;margin-top:8px;font-size:13px}
+
+/* Carte de jeu, dans la Table de jeu */
+.table-map{margin:14px 0}
+.table-map-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.table-map-toggle{display:flex;align-items:center;gap:6px;background:none;border:0;color:inherit;cursor:pointer;padding:0}
+.table-map-actions{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+.table-map-body{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:12px;margin-top:10px}
+@media (max-width: 1000px){.table-map-body{grid-template-columns:1fr}}
+.table-map-canvas{position:relative;height:420px;border:1px solid #3e3320;border-radius:8px;overflow:hidden;background:#0b0f10}
+.table-map-canvas > *{height:100%}
+.table-map-side{display:flex;flex-direction:column;gap:10px;font-size:13px;max-height:420px;overflow:auto}
+.table-map-where{display:flex;flex-direction:column;gap:4px;padding:8px;border:1px solid #3e3320;border-radius:6px;background:rgba(127,224,208,.05)}
+.table-map-where b{color:#fff1c2}
+.table-map-trail{font-size:12px;color:#9c8a5e}
+.table-map-sel{padding:8px;border:1px solid #7d6128;border-radius:6px;background:rgba(201,162,74,.08)}
+.table-map-sel p{margin:4px 0 6px;font-size:12px;line-height:1.4}
+.table-map-btns{display:flex;gap:4px;flex-wrap:wrap}
+.table-map-block .scene-label small{text-transform:none;letter-spacing:0;font-weight:400}
+.table-map-list{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:4px}
+.table-map-list li{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:3px 4px;border-radius:4px}
+.table-map-list li[data-on="1"]{background:rgba(127,224,208,.08)}
+.table-map-trail-name{flex:1 1 120px;min-width:0}
+.table-map-trail-name small{color:#9c8a5e}
+.table-map-warn{color:#e0a03f}
+.table-map{container-type:inline-size}
+@container (max-width: 900px){
+  .table-map-body{grid-template-columns:1fr}
+  .table-map-canvas{height:380px}
+  .table-map-side{max-height:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));align-items:start}
+}
+.table-map-list li{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center}

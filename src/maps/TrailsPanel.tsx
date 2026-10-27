@@ -3,10 +3,10 @@
  * de la position du groupe, avec le DC pour le repérer et sa dangerosité perçue. Le MJ montre aux joueurs
  * ceux qu'ils ont trouvés, un par un ; ceux que le groupe voit sans chercher sont signalés.
  */
-import type { AtlasData, AtlasFeature, AtlasMap } from './atlas/types';
+import type { AtlasData, AtlasFeature, AtlasGeometry, AtlasMap } from './atlas/types';
 import { detectLabel, noticedPassively, trailProfile, type TrailProfile } from './atlas/trails';
 
-export type Trail = { f: AtlasFeature; profile: TrailProfile; noticed: boolean; shown: boolean };
+export type Trail = { f: AtlasFeature; g: AtlasGeometry; profile: TrailProfile; noticed: boolean; shown: boolean };
 
 /** Distance d'un point à un segment, en coordonnées de plan (0–1). */
 function segDist(p: [number, number], a: [number, number], b: [number, number]) {
@@ -29,7 +29,7 @@ export function trailsNear(data: AtlasData, map: AtlasMap, at: [number, number],
     for (let i = 0; i < pts.length - 1; i++) d = Math.min(d, segDist(at, pts[i], pts[i + 1]));
     if (d > radius) continue;
     const profile = trailProfile(f, f.trace === 'secret' ? 15 : undefined);
-    out.push({ f, profile, noticed: noticedPassively(profile.detect, passive), shown: revealed.includes(f.id) });
+    out.push({ f, g, profile, noticed: noticedPassively(profile.detect, passive), shown: revealed.includes(f.id) });
   }
   return out.sort((a, b) => (a.profile.detect?.dc ?? 0) - (b.profile.detect?.dc ?? 0) || a.profile.danger.level - b.profile.danger.level);
 }
