@@ -5365,7 +5365,7 @@ export default function App() {
             ) : view === 'archives' ? (
               <ArchivesPage universe={universe} dispatch={dispatch} flash={flash} />
             ) : view === 'maps' ? (
-              <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} heroes={party} campaigns={campaigns} bestiary={npcs} />
+              <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} heroes={party} campaigns={campaigns} bestiary={npcs} onReturnToTable={() => setView('scene')} />
             ) : view === 'present' ? (
               <StageControl {...{ universe, state, flash }} />
             ) : view === 'quests' ? (
@@ -9234,15 +9234,31 @@ function SceneRunner({
 }) {
   const { ai } = useContext(AIContext);
 
+  // Campagne et scène actives conservées pendant la session : on les retrouve en revenant de la carte de combat.
+  const remembered = (key) => {
+    try {
+      return sessionStorage.getItem(key) || '';
+    } catch {
+      return '';
+    }
+  };
   const [activeCampaignId, setActiveCampaignId] = useState(
-    campaigns[0]?.id || ''
+    () => remembered('loresmith:scene-campaign') || campaigns[0]?.id || ''
   );
   const activeCampaign =
     campaigns.find((c) => c.id === activeCampaignId) || campaigns[0] || null;
 
   const [activeSceneId, setActiveSceneId] = useState(
-    activeCampaign?.scenes?.[0]?.id || ''
+    () => remembered('loresmith:scene-id') || activeCampaign?.scenes?.[0]?.id || ''
   );
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('loresmith:scene-campaign', activeCampaignId || '');
+      sessionStorage.setItem('loresmith:scene-id', activeSceneId || '');
+    } catch {
+      /* stockage indisponible */
+    }
+  }, [activeCampaignId, activeSceneId]);
 
   useEffect(() => {
     if (!activeCampaign && campaigns[0]) {
@@ -9533,6 +9549,8 @@ Réponds uniquement avec une ou deux répliques en français que ce personnage p
           heroes={party}
           dispatch={dispatch}
           onOpenMaps={() => setView('maps')}
+          campaign={activeCampaign}
+          scene={activeScene?.title}
         />
 
         <div className="scene-grid-dialogue">

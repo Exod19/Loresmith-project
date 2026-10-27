@@ -89,6 +89,8 @@ export interface PartyTrack {
   dest?: PartyPlace;
   /** Lieux traversés, du plus ancien au plus récent (les derniers seulement). */
   trail: PartyPlace[];
+  /** Journal de route : épreuves de passage et déplacements notables (les plus récents d'abord). */
+  log?: { t: number; text: string }[];
 }
 
 /** Ce que le MJ sait d'un élément à fouiller : comment le trouver, ce qu'on y trouve, et ce que ça fait. */

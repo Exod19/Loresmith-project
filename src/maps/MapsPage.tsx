@@ -22,6 +22,8 @@ type Props = {
   flash: (m: string) => void;
   /** Personnages du groupe (univers courant), pour le combat. */
   heroes?: Hero[];
+  /** Retour à la Table de jeu, quand la carte a été ouverte depuis elle. */
+  onReturnToTable?: () => void;
   /** Campagnes de l'univers : l'une d'elles peut être invoquée sur la carte. */
   campaigns?: GuideCampaign[];
   /** PNJ & Créatures de l'univers. */
@@ -41,7 +43,7 @@ function readKnown(): Set<string> | null {
   }
 }
 
-export default function MapsPage({ universe, maps, dispatch, flash, heroes = [], campaigns = [], bestiary = [] }: Props) {
+export default function MapsPage({ universe, maps, dispatch, flash, heroes = [], campaigns = [], bestiary = [], onReturnToTable }: Props) {
   // La Table de jeu peut demander d'ouvrir une carte précise (et d'y lancer le combat).
   const [intent] = useState(peekMapIntent);
   useEffect(() => { clearMapIntent(); }, []);
@@ -147,6 +149,7 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
           onUpdate={(patch) => dispatch({ type: 'UPDATE_MAP', id: open.id, patch })}
           heroes={heroes}
           startInBattle={intent?.mapId === open.id && intent.battle}
+          onReturn={intent?.from === 'table' && intent.mapId === open.id ? onReturnToTable : undefined}
           campaigns={campaigns}
           activeCampaignId={universe.activeCampaignId}
           onCampaign={(id) => dispatch({ type: 'UPDATE_UNIVERSE', id: universe.id, patch: { activeCampaignId: id || undefined } })}

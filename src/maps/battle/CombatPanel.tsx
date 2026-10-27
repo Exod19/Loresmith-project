@@ -18,7 +18,8 @@ import type { BestiaryRef } from '../CampaignGuide';
 
 /** Personnage du groupe (fiche de l'application) : seuls les champs utiles au combat. */
 export type Hero = {
-  id: string; name: string; hp?: number | string; maxHp?: number | string; ac?: number | string; dex?: number | string; wis?: number | string;
+  id: string; name: string; hp?: number | string; maxHp?: number | string; ac?: number | string;
+  str?: number | string; dex?: number | string; con?: number | string; int?: number | string; wis?: number | string; cha?: number | string;
   /** Bonus de Perception au-delà de la Sagesse (maîtrise, talents). */
   perceptionBonus?: number | string;
   cls?: string; race?: string; level?: number | string;
