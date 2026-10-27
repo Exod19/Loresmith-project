@@ -106,17 +106,6 @@ const TEXTURES = (
 const cellPath = (cells: number[], cols: number) =>
   cells.map((i) => `M${i % cols} ${Math.floor(i / cols)}h1v1h-1z`).join('');
 
-/** Case d'un passage la plus proche de son centre : là où on pose sa marque. */
-function anchorCell(cells: number[], cols: number): number {
-  const mx = cells.reduce((t, i) => t + (i % cols), 0) / cells.length;
-  const my = cells.reduce((t, i) => t + Math.floor(i / cols), 0) / cells.length;
-  return cells.reduce((best, i) => {
-    const d = (i % cols - mx) ** 2 + (Math.floor(i / cols) - my) ** 2;
-    const db = (best % cols - mx) ** 2 + (Math.floor(best / cols) - my) ** 2;
-    return d < db ? i : best;
-  }, cells[0]);
-}
-
 /** Marque d'un lieu ou d'un objet sur sa case : vignette, image d'objet, ou icône à défaut. */
 function pointMark(e: BoardElement, cell: number, cols: number, onElement?: (id: string) => void) {
   const cx = (cell % cols) + 0.5, cy = Math.floor(cell / cols) + 0.5;
@@ -197,13 +186,12 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
           if (!e.cells) return null;
           // Passage secret non découvert (MJ seulement) : contour pointillé sur ses cases.
           if (e.ghost) return <path key={`g-${e.id}`} d={cellPath(e.cells, cols)} fill="rgba(236,210,137,0.16)" stroke="#ecd289" strokeWidth={0.07} strokeDasharray="0.15 0.1" opacity={0.95} pointerEvents="none"><title>{`${e.title} (secret, visible du MJ seulement)`}</title></path>;
-          // Passage visible : zone cliquable, teinte violette s'il était secret, et une marque au milieu pour les lieux spéciaux.
+          // Passage visible : zone cliquable, et teinte violette s'il était secret. Pas de marque : il y en a des milliers.
           const hit = onElement ? { className: 'battle-hit', onClick: () => onElement(e.id), cursor: 'pointer' } : { pointerEvents: 'none' as const };
           const zone = e.secret
             ? <path d={cellPath(e.cells, cols)} fill="rgba(156,123,214,0.32)" stroke="#9c7bd6" strokeWidth={0.05} {...hit}><title>{`${e.title} (passage secret)`}</title></path>
             : <path d={cellPath(e.cells, cols)} fill="transparent" {...hit}><title>{e.title}</title></path>;
-          // Les couloirs ordinaires n'ont pas de marque : leur zone s'éclaire seulement au survol.
-          return <g key={`p-${e.id}`}>{zone}{e.category !== 'voie' && pointMark(e, anchorCell(e.cells, cols), cols, onElement)}</g>;
+          return <g key={`p-${e.id}`}>{zone}</g>;
         }
         if (e.cell === undefined) return null;
         return pointMark(e, e.cell, cols, onElement);
