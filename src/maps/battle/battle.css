@@ -322,3 +322,32 @@
 .combatant-stats-line{display:flex;flex-wrap:wrap;gap:4px 14px;margin:6px 0 2px;font-size:12px;color:var(--muted,#9a8a63)}
 .combatant-stats-line span:first-child{color:var(--gold-lt,#ecd289);letter-spacing:.02em}
 .combat-ai-panel{display:flex;flex-direction:column;gap:8px}
+
+/* Mise en page adaptable de la carte de combat : selon la largeur de la carte (pas de la fenêtre),
+   pour l'écran partagé et les petites fenêtres. Sélecteurs plus précis que ceux de maps.css, chargé après. */
+.maps-viewer{container-type:inline-size}
+.maps-viewer .battle-body{grid-template-columns:minmax(0,1fr) 360px;min-height:0}
+.maps-viewer .battle-side{min-height:0;overflow:auto}
+.maps-viewer .battle-canvas{min-height:0}
+@container (max-width: 1050px){
+  .maps-viewer .battle-body,.maps-viewer.has-encounter .battle-body{grid-template-columns:minmax(0,1fr);height:auto;min-height:0}
+  .maps-viewer .battle-side{max-height:460px;border-top:1px solid #3e3320;padding-top:8px}
+  .maps-viewer .battle-board{max-height:62vh}
+  .maps-viewer .battle-fiche{width:min(340px,70%)}
+}
+@container (max-width: 640px){
+  .maps-viewer .battle-bar{flex-direction:column;align-items:stretch}
+  .maps-viewer .battle-tools{justify-content:space-between}
+  .maps-viewer .battle-fiche{position:static;width:auto;max-height:none;margin-top:8px}
+  .maps-viewer .battle-place-name{font-size:17px}
+}
+/* Module Combat sous la carte : mêmes règles que l'onglet Combat, selon la largeur de la carte. */
+@container (max-width: 1150px){
+  .maps-viewer .combat-layout-advanced{grid-template-columns:minmax(0,1fr)}
+  .maps-viewer .combat-side-col{display:grid;grid-template-columns:1fr 1fr}
+}
+@container (max-width: 760px){
+  .maps-viewer .combat-side-col{grid-template-columns:minmax(0,1fr)}
+  .maps-viewer .map-encounter-hint{margin-left:0;flex-basis:100%}
+}
+.maps-viewer .battle-tabs{grid-template-columns:repeat(auto-fit,minmax(0,1fr))}
