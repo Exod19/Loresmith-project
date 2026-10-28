@@ -6,10 +6,10 @@
 .present-blank img{width:min(220px,40vw);opacity:.22}
 .present-image{margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:4vh 4vw}
 .present-image img{max-width:100%;max-height:calc(100% - 48px);object-fit:contain;box-shadow:0 0 60px rgba(201,162,74,.12)}
-.present-image figcaption{font-family:'Cinzel',serif;letter-spacing:.14em;font-size:clamp(14px,2vw,22px);color:#ecd289}
+.present-image figcaption{font-family:var(--font-joueurs-titre,'Cinzel Decorative','Cinzel',serif);letter-spacing:.14em;font-size:clamp(14px,2vw,22px);color:#ecd289}
 .present-text{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8vh 8vw;text-align:center}
-.present-text h1{font-family:'Cinzel',serif;font-weight:600;color:#ecd289;font-size:clamp(28px,4vw,56px);margin:0 0 4vh}
-.present-text p{font-size:clamp(20px,2.6vw,36px);line-height:1.5;white-space:pre-wrap;max-width:60ch;margin:0}
+.present-text h1{font-family:var(--font-joueurs-titre,'Cinzel Decorative','Cinzel',serif);font-weight:600;color:#ecd289;font-size:clamp(28px,4vw,56px);margin:0 0 4vh}
+.present-text p{font-family:var(--font-joueurs,'Almendra',serif);font-size:clamp(22px,2.7vw,38px);line-height:1.55;white-space:pre-wrap;max-width:60ch;margin:0}
 .present-wait{display:grid;place-items:center;margin:0;color:#9a8a63;font-family:'Cinzel',serif}
 .present-map{position:absolute;inset:0}
 .present-fs{position:absolute;right:10px;bottom:10px;z-index:5;opacity:.25;background:rgba(0,0,0,.6);color:#c9a24a;border:1px solid #5a481f;border-radius:4px;padding:4px 9px;font:12px 'Cinzel',serif;cursor:pointer}

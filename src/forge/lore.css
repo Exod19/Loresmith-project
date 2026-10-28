@@ -2,7 +2,7 @@
 .lore-details { margin: 10px 0 4px; border: 1px dashed var(--line-2); border-radius: 6px; padding: 6px 10px; background: rgba(0, 0, 0, 0.14); }
 .lore-details > summary { cursor: pointer; font-family: 'Cinzel', serif; font-size: 13px; color: var(--gold-lt); letter-spacing: 0.03em; }
 .lore-wrap { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
-.lore-block { border-left: 2px solid var(--gold-dk); padding: 6px 10px; background: rgba(0, 0, 0, 0.12); border-radius: 0 6px 6px 0; }
+.lore-block { border: 1px solid var(--line, rgba(201, 162, 74, 0.2)); padding: 6px 10px; background: rgba(0, 0, 0, 0.12); border-radius: 6px; }
 .lore-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
 .lore-head b { font-family: 'Cinzel', serif; color: var(--gold-lt); font-size: 13.5px; }
 .lore-head small { color: var(--muted); font-size: 12px; }
@@ -22,4 +22,4 @@
 .lore-sheets { display: flex; flex-wrap: wrap; gap: 6px; }
 .lore-del { align-self: flex-end; }
 .lore-session { border-top: 1px solid var(--line); margin-top: 8px; padding-top: 8px; }
-.lore-add { border-left-color: var(--teal, #54d8c6); }
+.lore-add { border-color: rgba(84, 216, 198, 0.4); }

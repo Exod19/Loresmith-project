@@ -14,6 +14,15 @@
   --lsx-amethyst:#9a7cf0;
   --lsx-amethyst-glow:rgba(146,108,240,.35);
   --lsx-shadow:0 18px 40px rgba(0,0,0,.55);
+  /* Couleur des filets gravés des cadres à coins ; un état peut la changer. */
+  --lsx-frame:rgba(201,162,74,.6);
+  /* Texte destiné aux joueurs : calligraphie elfique lisible (ambiance Moriquendi). */
+  --font-joueurs:'Almendra','Spectral',Georgia,serif;
+  --font-joueurs-titre:'Cinzel Decorative','Cinzel',Georgia,serif;
+  /* Matières procédurales (SVG) : nettes à toute résolution, aucune image à charger. */
+  --lsx-tex-parchemin:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='640'%3E%3Cfilter id='a' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.0045' numOctaves='5' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .28 0 0 0 0 .11 2.3 0 0 0 -.95'/%3E%3C/filter%3E%3Cfilter id='b' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' seed='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .24 0 0 0 0 .1 0 0 0 .5 -.12'/%3E%3C/filter%3E%3Cfilter id='c' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.011 .026' numOctaves='4' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .36 0 0 0 0 .16 0 0 1.25 0 -.6'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)'/%3E%3Crect width='100%25' height='100%25' filter='url(%23c)'/%3E%3Crect width='100%25' height='100%25' filter='url(%23b)'/%3E%3C/svg%3E");
+  --lsx-tex-cuir:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='480'%3E%3Cfilter id='l' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.045' numOctaves='4' seed='5' stitchTiles='stitch' result='n'/%3E%3CfeDiffuseLighting in='n' surfaceScale='3.2' lighting-color='%23b0844f' result='d'%3E%3CfeDistantLight azimuth='225' elevation='58'/%3E%3C/feDiffuseLighting%3E%3CfeColorMatrix in='d' values='.55 0 0 0 0 0 .42 0 0 0 0 0 .3 0 0 .75 0 0 0 -.3'/%3E%3C/filter%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.006' numOctaves='3' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.6 0 0 0 -.55'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23l)'/%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  --lsx-tex-pierre:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='560' height='560'%3E%3Cfilter id='v' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.008' numOctaves='5' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .58 0 0 0 0 .4 0 0 0 0 .86 1 0 0 0 0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 0 0 0 0 0 0 0 0 0 0 .05 .55 .05 0 0 0 0 0 0 0 0 0 0'/%3E%3C/feComponentTransfer%3E%3CfeGaussianBlur stdDeviation='.35'/%3E%3C/filter%3E%3Cfilter id='s' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.03' numOctaves='4' seed='8' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .45 0 0 0 0 .55 0 0 0 0 0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23v)'/%3E%3C/svg%3E");
   /* Grain de papier : SVG procédural, pas d'image à charger. */
   --lsx-grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .78 0 0 0 0 .62 0 0 0 0 .33 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
@@ -31,7 +40,8 @@
 
 /* Panneaux : moins de coins dorés identiques, plus de matière. */
 .lsx-root .panel{background:var(--lsx-grain),linear-gradient(180deg,var(--panel-2),var(--panel));border-color:var(--lsx-edge-2)}
-.lsx-root .panel::before,.lsx-root .panel::after{opacity:.4}
+/* Pas d'équerres dorées sur un contour plat : les coins ornés sont réservés aux cartes à filets gravés. */
+.lsx-root :is(.panel,.modal)::before,.lsx-root :is(.panel,.modal)::after{display:none}
 .lsx-root h1.view{font-size:30px;letter-spacing:.01em}
 
 /* ------------------------------- sidebar ------------------------------- */
@@ -58,7 +68,7 @@
 .lsx-group-head svg:first-child{color:var(--gold)}
 .lsx-group-head:hover{background:rgba(201,162,74,.06)}
 .lsx-group[data-active="1"]>.lsx-group-head{border-color:var(--lsx-edge-2);
-  background:linear-gradient(90deg,rgba(201,162,74,.18),rgba(201,162,74,.04));box-shadow:inset 3px 0 0 var(--gold)}
+  background:linear-gradient(180deg,rgba(201,162,74,.16),rgba(201,162,74,.06));box-shadow:inset 0 0 16px rgba(201,162,74,.12)}
 .lsx-chev{margin-left:auto;color:var(--faint);transition:transform .2s}
 .lsx-group-head[aria-expanded="true"] .lsx-chev{transform:rotate(180deg)}
 .lsx-group-items{display:flex;flex-direction:column;padding:4px 0 8px 20px;margin-left:10px;border-left:1px solid var(--lsx-edge)}
@@ -82,7 +92,7 @@
 .lsx-universe:focus-within{outline:2px solid var(--gold-lt);outline-offset:2px}
 .lsx-universe select{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
 .lsx-universe-img{width:44px;height:44px;flex:none;border-radius:6px;border:1px solid var(--lsx-edge-2);
-  background:url("/images/ui/v-cite.webp") center/cover}
+  background:url("/images/ui/c-tours.webp") center/cover}
 .lsx-universe-name{flex:1;font-family:'Cinzel',serif;font-size:13px;line-height:1.25}
 .lsx-side-foot{padding-top:6px}
 
@@ -128,7 +138,6 @@
 .lsx-home{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start}
 .lsx-home-main{min-width:0}
 .lsx-hero{position:relative;border-radius:14px;overflow:hidden;min-height:330px;display:flex;align-items:flex-end;
-  border:1px solid var(--lsx-edge-2);
   background:
     linear-gradient(90deg,rgba(8,6,4,.94) 0%,rgba(8,6,4,.72) 42%,rgba(8,6,4,.1) 78%),
     linear-gradient(0deg,rgba(8,6,4,.85),transparent 55%),
@@ -176,16 +185,24 @@
 
 .lsx-glance{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
 .lsx-tile,.lsx-rail-card{position:relative;border-radius:10px;padding:14px 16px;border:1px solid var(--lsx-edge-2);
-  background:linear-gradient(180deg,rgba(24,17,10,.9),rgba(14,10,6,.95)),url("/images/ui/cuir-repeat.webp") 0 0/384px repeat,#120d07;
+  background:linear-gradient(180deg,rgba(24,17,10,.82),rgba(14,10,6,.92)),var(--lsx-tex-cuir),#140e08;
   box-shadow:inset 0 1px 0 rgba(236,210,137,.06),0 10px 24px rgba(0,0,0,.35)}
+/* Cartes à coins : pas de contour plat. Les coins se prolongent en filets gravés
+   qui s'estompent vers le milieu des côtés ; la plaque est isolée par l'ombre. */
+.lsx-rail-card{border-color:transparent;box-shadow:0 0 0 1px rgba(0,0,0,.55),0 14px 30px rgba(0,0,0,.5),inset 0 0 30px rgba(0,0,0,.45)}
 /* Coins de laiton : seulement sur les cartes de la colonne et la bannière, pas partout. */
-.lsx-rail-card::before,.lsx-hero-frame{content:"";position:absolute;inset:-3px;pointer-events:none;z-index:2;
+.lsx-rail-card::before,.lsx-hero-frame{content:"";position:absolute;inset:-1px;pointer-events:none;z-index:2;
+  --c:34px;--o:2px;
   background:
-    url("/images/ui/coin-tl.webp") top left/34px no-repeat,
-    url("/images/ui/coin-tr.webp") top right/34px no-repeat,
-    url("/images/ui/coin-bl.webp") bottom left/34px no-repeat,
-    url("/images/ui/coin-br.webp") bottom right/34px no-repeat}
-.lsx-hero-frame{inset:-2px;background-size:52px,52px,52px,52px}
+    url("/images/ui/coin-tl.webp") top left/var(--c) no-repeat,
+    url("/images/ui/coin-tr.webp") top right/var(--c) no-repeat,
+    url("/images/ui/coin-bl.webp") bottom left/var(--c) no-repeat,
+    url("/images/ui/coin-br.webp") bottom right/var(--c) no-repeat,
+    linear-gradient(90deg,var(--lsx-frame) 0,transparent 32%,transparent 68%,var(--lsx-frame) 100%) left 0 top var(--o)/100% 1px no-repeat,
+    linear-gradient(90deg,var(--lsx-frame) 0,transparent 32%,transparent 68%,var(--lsx-frame) 100%) left 0 bottom var(--o)/100% 1px no-repeat,
+    linear-gradient(180deg,var(--lsx-frame) 0,transparent 30%,transparent 70%,var(--lsx-frame) 100%) left var(--o) top 0/1px 100% no-repeat,
+    linear-gradient(180deg,var(--lsx-frame) 0,transparent 30%,transparent 70%,var(--lsx-frame) 100%) right var(--o) top 0/1px 100% no-repeat}
+.lsx-hero-frame{--c:52px;--o:3px;border-radius:14px}
 .lsx-tile-obj{width:24px;height:30px;object-fit:contain;flex:none;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))}
 .lsx-tile-h{display:flex;align-items:center;gap:8px;margin-bottom:10px;color:var(--gold)}
 .lsx-tile-h b{font-family:'Cinzel',serif;font-weight:500;font-size:14px;color:#efdfb6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -273,27 +290,29 @@
 
 /* --------------------------- matières & décor -------------------------- */
 /* Texte à lire aux joueurs et réponses de l'IA : vrai parchemin. */
-.lsx-root .scroll,.lsx-root .msg.ai{background:linear-gradient(175deg,rgba(245,230,195,.55),rgba(220,196,150,.35)),url("/images/ui/parchemin-repeat.webp") 0 0/420px repeat,var(--parch)}
-.lsx-root .panel{background:linear-gradient(180deg,rgba(28,21,12,.9),rgba(18,13,8,.94)),url("/images/ui/cuir-repeat.webp") 0 0/384px repeat,var(--panel)}
-.lsx-empty-card{background:linear-gradient(rgba(10,8,5,.78),rgba(10,8,5,.85)),url("/images/ui/pierre-repeat.webp") 0 0/384px repeat}
+.lsx-root .scroll,.lsx-root .msg.ai,.lsx-parchemin{background:radial-gradient(ellipse at center,transparent 58%,rgba(110,72,28,.3)),var(--lsx-tex-parchemin),#e8d4a4}
+.lsx-root .panel{background:linear-gradient(180deg,rgba(28,21,12,.84),rgba(18,13,8,.92)),var(--lsx-tex-cuir),var(--panel)}
+.lsx-empty-card{background:linear-gradient(rgba(10,8,5,.72),rgba(10,8,5,.82)),var(--lsx-tex-pierre),#110d13}
+/* Texte lu ou montré aux joueurs. */
+.lsx-root .readaloud-panel{background:radial-gradient(ellipse at center,transparent 55%,rgba(110,72,28,.32)),var(--lsx-tex-parchemin),#e8d4a4;border-color:#9c7a3a}
+.lsx-root :is(.scroll,.readaloud-panel p,.readaloud-text,.copilot-next .copilot-text),.dossier-readaloud p,.cs-parchment{font-family:var(--font-joueurs) !important;font-style:normal !important;font-size:17px;line-height:1.6;letter-spacing:.005em}
 .lsx-section-h h2::after{content:"";width:140px;height:14px;margin-left:6px;background:url("/images/ui/separateur.webp") left center/contain no-repeat;opacity:.55}
-/* Table du MJ en bas de page : décor de fin, jamais par-dessus le contenu. */
-.ls-root .wrap.lsx-content{position:relative}
-.lsx-main::after{content:"";display:block;height:220px;margin-top:-140px;pointer-events:none;
-  background:linear-gradient(180deg,var(--bg),rgba(11,9,6,0) 55%),url("/images/ui/bord-table.webp") center bottom/min(2000px,140%) auto no-repeat;opacity:.9}
 .lsx-mobilebar .lsx-mobile-dice img{width:40px;height:40px;object-fit:contain}
 @media (max-width:640px){
   .lsx-section-h h2::after{display:none}
-  .lsx-main::after{height:150px;margin-top:-90px}
 }
 
 /* ------------------------- fonds d'ambiance par écran ------------------------ */
-/* Compositions peu chargées au centre : décor de périphérie, jamais sous la carte
-   ou le plateau (qui ont leur propre fond opaque). Fixées pour ne pas défiler. */
-.lsx-main[data-view]{background-attachment:fixed;background-position:center top;background-size:cover;background-repeat:no-repeat}
-.lsx-main[data-view="chat"]{background-image:linear-gradient(180deg,rgba(10,8,6,.5),rgba(10,8,6,.7)),url("/images/ui/fond-generateur.webp")}
-.lsx-main[data-view="scene"]{background-image:linear-gradient(180deg,rgba(10,8,6,.45),rgba(10,8,6,.7)),url("/images/ui/fond-table.webp")}
-.lsx-main[data-view="maps"]{background-image:linear-gradient(180deg,rgba(10,8,6,.4),rgba(10,8,6,.65)),url("/images/ui/fond-atlas.webp")}
-.lsx-main[data-view="encounter"]{background-image:linear-gradient(180deg,rgba(10,8,6,.45),rgba(10,8,6,.7)),url("/images/ui/fond-combat.webp")}
-.lsx-main[data-view="library"],.lsx-main[data-view="archives"]{background-image:linear-gradient(180deg,rgba(10,8,6,.4),rgba(10,8,6,.65)),url("/images/ui/fond-bibliotheque.webp")}
-@media (max-width:980px){.lsx-main[data-view]{background-attachment:scroll}}
+/* Illustrations HD du dépôt, voilées et légèrement floutées (profondeur de champ
+   voulue, jamais un agrandissement pixellisé). Fixées derrière le contenu. */
+.lsx-main{position:relative;isolation:isolate}
+.lsx-main[data-view="chat"]{--view-bg:url("/images/decor/bureau-1672.webp")}
+.lsx-main[data-view="scene"]{--view-bg:url("/images/archives/atlas/hosten-valak/palier-1-accueil/grande-place.webp")}
+.lsx-main[data-view="maps"]{--view-bg:url("/images/archives/atlas/observatoire-souterrain.webp")}
+.lsx-main[data-view="encounter"]{--view-bg:url("/images/archives/atlas/hosten-valak/palier-0-le-seuil/grand-gouffre.webp")}
+.lsx-main[data-view="library"],.lsx-main[data-view="archives"]{--view-bg:url("/images/decor/salle-1672.webp")}
+.lsx-main:is([data-view="chat"],[data-view="scene"],[data-view="maps"],[data-view="encounter"],[data-view="library"],[data-view="archives"])::before{
+  content:"";position:fixed;inset:0 0 0 var(--lsx-side-w);z-index:-1;pointer-events:none;
+  background:linear-gradient(180deg,rgba(10,8,6,.74),rgba(10,8,6,.88)),var(--view-bg) center/cover no-repeat;
+  filter:blur(2.5px);transform:scale(1.02)}
+@media (max-width:980px){.lsx-main[data-view]::before{inset:0}}

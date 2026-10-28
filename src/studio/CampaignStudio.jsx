@@ -230,7 +230,7 @@ function CampaignPicker({ universe, campaigns, party, quick, setQuick, services,
             const st = STATUS[p.status];
             return (
               <button key={c.id} type="button" className="lsx-camp" onClick={() => onOpen(c.id)}>
-                <span className="lsx-camp-img" style={{ backgroundImage: `url("${UI}${['v-cite', 'v-crypte', 'v-englouti', 'v-marche', 'v-sanctuaire', 'v-champignons'][i % 6]}.webp")` }} />
+                <span className="lsx-camp-img" style={{ backgroundImage: `url("${UI}${['c-tours', 'c-temple', 'c-lac', 'c-bazar', 'c-pont', 'c-champignons'][i % 6]}.webp")` }} />
                 <span className="lsx-camp-body">
                   <b>{c.title}</b>
                   <small>{c.premise || 'Pas encore de prémisse.'}</small>

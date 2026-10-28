@@ -114,7 +114,7 @@
 .library-type-count { font: 600 11px/1 'Cinzel', serif; color: #9a8a63; background: rgba(201,162,74,.1); border-radius: 999px; padding: 4px 8px; }
 
 /* Ce que les joueurs savent : connaissances graduées par DD, avec la façon de les révéler en jeu. */
-.dossier-know { border: 1px solid var(--line-2, rgba(201, 162, 74, 0.4)); border-left: 4px solid var(--teal, #54d8c6); border-radius: 6px; padding: 12px 14px; margin-bottom: 16px; background: rgba(84, 216, 198, 0.05); }
+.dossier-know { border: 1px solid var(--line-2, rgba(201, 162, 74, 0.4)); border-color: rgba(84, 216, 198, 0.45); border-radius: 6px; padding: 12px 14px; margin-bottom: 16px; background: rgba(84, 216, 198, 0.05); }
 .dossier-know-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
 .dossier-know-head h2 { margin: 0; font-size: 17px; }
 .dossier-know ol { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
@@ -157,4 +157,4 @@
 .dossier .archive-chapter p:last-child { padding-bottom: 14px; }
 @media (max-width: 900px) { .dossier .archive-abilities { grid-template-columns: repeat(3, 1fr); } }
 
-.library-shell .lib-card-media img.lib-card-fallback { object-fit: contain; padding: 8px 0; opacity: .8; filter: saturate(.85); }
+.library-shell .lib-card-media img.lib-card-fallback { object-fit: scale-down; padding: 8px 0; opacity: .8; filter: saturate(.85); }

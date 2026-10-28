@@ -15,7 +15,7 @@ import {
 const UI = '/images/ui/';
 export const DECOR = {
   hero: UI + 'hero.webp',
-  cards: ['v-cite', 'v-champignons', 'v-englouti', 'v-crypte', 'v-marche', 'v-sanctuaire'].map((n) => `${UI}${n}.webp`),
+  cards: ['c-tours', 'c-champignons', 'c-lac', 'c-temple', 'c-bazar', 'c-pont'].map((n) => `${UI}${n}.webp`),
   avatar: UI + 'avatar.webp',
 };
 
