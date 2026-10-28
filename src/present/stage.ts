@@ -7,7 +7,12 @@
 import type { AtlasData } from '../maps/atlas/types';
 
 /** `info` : fiche en jeu montrée quand un joueur clique sur le jeton. */
-export type PlayerToken = { id: string; name: string; kind: 'pc' | 'monster' | 'other'; x: number; y: number; size: 1 | 2; icon?: string; image?: string; statId?: string; info?: { subtitle?: string; text?: string; image?: string } };
+export type PlayerToken = { id: string; name: string; kind: 'pc' | 'monster' | 'other'; x: number; y: number; size: 1 | 2; icon?: string; image?: string; statId?: string; info?: { subtitle?: string; text?: string; image?: string };
+  /** C'est son tour. PV : chiffres pour les héros seulement ; les créatures n'ont qu'un état en mots. */
+  active?: boolean; hp?: number; maxHp?: number; state?: string };
+
+/** Ordre d'initiative montré aux joueurs : seulement les combattants visibles. `active` : null si celui qui joue est caché. */
+export type PlayerTurn = { active: string | null; order: { id: string; name: string; kind: PlayerToken['kind']; image?: string; state?: string }[] };
 
 /** Élément visible sur le plateau de combat : un point (cell) ou un passage (cells, déjà creusé dans le terrain). */
 /** `cells` : cases d'un passage ; `secret` : passage découvert par les joueurs (teinte propre). */
@@ -20,7 +25,11 @@ export type PlayerElement = { id: string; kind: 'passage' | 'point'; title: stri
 export type PlayerBoard =
   /** `data` ne contient que le plan montré et ses lieux révélés. */
   | { mode: 'map'; title: string; planId: string; data: AtlasData; focus?: { kind: 'anchor' | 'point'; id: string; tick: number } }
-  | { mode: 'battle'; title: string; backdrop?: string; cols: number; rows: number; feetPerCell: number; round: number; tokens: PlayerToken[]; terrain?: string; elements: PlayerElement[] };
+  | { mode: 'battle'; title: string; backdrop?: string; cols: number; rows: number; feetPerCell: number; round: number; tokens: PlayerToken[]; terrain?: string; elements: PlayerElement[]; turn?: PlayerTurn;
+    /** Brouillard de guerre : cases vues par les héros, et déjà explorées. Absent = tout le plateau est visible. */
+    fog?: { visible: number[]; explored: number[] };
+    /** Sorties au bord du plateau, avec leur destination si les héros la connaissent. */
+    exits?: { cell: number; dir: 'n' | 's' | 'e' | 'w'; label: string; known: boolean }[] };
 
 export type Stage =
   | { kind: 'blank' }

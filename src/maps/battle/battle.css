@@ -532,3 +532,32 @@
 .battle-fiche-hero>div{position:absolute;left:12px;right:36px;bottom:8px;z-index:1}
 .battle-fiche-hero h3{margin:2px 0 0;text-shadow:0 2px 8px rgba(0,0,0,.9)}
 @keyframes fiche-in{from{opacity:0;transform:translateY(-6px)}}
+/* ---------- Écran joueur : bandeau d'initiative ---------- */
+.present-turn{display:flex;align-items:center;gap:2vw;margin:.6vh 0 1vh;min-height:0}
+.present-turn-now{display:flex;align-items:center;gap:1vw;padding:.6vh 1.6vw .6vh .6vh;border:1px solid #c9a24a;border-radius:999px;background:radial-gradient(ellipse 80% 140% at 0% 50%,rgba(201,162,74,.28),transparent 70%),rgba(12,10,7,.92);color:#f6e8c4;cursor:pointer;font:inherit;animation:turn-in .6s cubic-bezier(.2,.7,.2,1) both;box-shadow:0 0 22px rgba(201,162,74,.25)}
+.present-turn-now.kind-monster{border-color:#c0492f;background:radial-gradient(ellipse 80% 140% at 0% 50%,rgba(192,73,47,.3),transparent 70%),rgba(12,10,7,.92);box-shadow:0 0 22px rgba(192,73,47,.3)}
+.present-turn-now.kind-pc{border-color:#54d8c6;background:radial-gradient(ellipse 80% 140% at 0% 50%,rgba(84,216,198,.22),transparent 70%),rgba(12,10,7,.92);box-shadow:0 0 22px rgba(84,216,198,.25)}
+.present-turn-now.waiting{cursor:default;border-color:#5a4724;box-shadow:none;padding-left:1.6vw}
+.present-turn-now img,.present-turn-now .present-turn-initial{width:clamp(48px,6.5vh,84px);height:clamp(48px,6.5vh,84px);border-radius:50%;object-fit:cover;object-position:50% 30%;border:2px solid currentColor;flex:none}
+.present-turn-initial{display:inline-flex;align-items:center;justify-content:center;background:#1b150d;font-family:'Cinzel',serif;color:#c9a24a;font-size:1.4em}
+.present-turn-text{display:flex;flex-direction:column;text-align:left;line-height:1.15}
+.present-turn-text small{font-size:clamp(11px,1.3vh,15px);letter-spacing:.12em;text-transform:uppercase;color:#cdbd96}
+.present-turn-text b{font-family:var(--font-joueurs-titre,'Cinzel Decorative',serif);font-size:clamp(20px,3vh,38px);color:#fff3c4}
+.present-turn-text em{font-style:normal;font-size:clamp(12px,1.5vh,17px);color:#f0b8a0}
+.present-turn-next{display:flex;align-items:center;gap:1.2vw;list-style:none;margin:0;padding:0;min-width:0;overflow:hidden}
+.present-turn-next li{display:flex;align-items:center;gap:.5vw;font-size:clamp(12px,1.5vh,17px);color:#cdbd96;cursor:pointer;opacity:.85;white-space:nowrap}
+.present-turn-next li:nth-child(n+3){opacity:.6}
+.present-turn-next li img,.present-turn-next li .present-turn-initial{width:clamp(28px,3.6vh,44px);height:clamp(28px,3.6vh,44px);border-radius:50%;object-fit:cover;border:1px solid #5a4724}
+.present-turn-next li.kind-monster img{border-color:#8a3a22}.present-turn-next li.kind-pc img{border-color:#2f8a80}
+.present-turn-next .present-turn-label{cursor:default;opacity:1;letter-spacing:.12em;text-transform:uppercase;font-size:clamp(10px,1.2vh,13px)}
+.present-battle .battle-turn-ring{animation:turn-pulse 1.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes turn-in{from{opacity:0;transform:translateX(-14px) scale(.96)}}
+@keyframes turn-pulse{0%,100%{stroke-opacity:1;stroke-width:.07}50%{stroke-opacity:.45;stroke-width:.16}}
+@media (prefers-reduced-motion:reduce){.present-turn-now,.present-battle .battle-turn-ring{animation:none}}
+/* Sorties au bord du plateau (écran joueur) */
+.battle-exit path{stroke:#e9cf86;filter:drop-shadow(0 0 .06px #000);animation:exit-glow 2.4s ease-in-out infinite}
+.battle-exit text{fill:#f3e3b4;paint-order:stroke;stroke:#0b0805;stroke-width:.08px;font-family:'Cinzel',serif;letter-spacing:.01em}
+.battle-exit:not(.known) path{stroke:#a8925f}
+.battle-exit:not(.known) text{fill:#b9a57a}
+@keyframes exit-glow{0%,100%{stroke-opacity:1}50%{stroke-opacity:.45}}
+.battle-move-alerts .battle-exit-btn{margin-top:3px;pointer-events:auto}

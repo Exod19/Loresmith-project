@@ -8,7 +8,7 @@ import { setAtlasData } from '../maps/atlas/model';
 import type { AtlasData, FeatureCategory } from '../maps/atlas/types';
 import BattleBoard, { CATEGORY_ICON } from '../maps/battle/BattleBoard';
 import { CATEGORY_IMG, vignette } from '../maps/battle/vignettes';
-import { openStageChannel, type PlayerBoard, type PlayerElement, type PlayerToken, type Stage } from './stage';
+import { openStageChannel, type PlayerBoard, type PlayerElement, type PlayerToken, type PlayerTurn, type Stage } from './stage';
 import '../maps/maps.css';
 import '../maps/atlas/atlas.css';
 import '../maps/battle/battle.css';
@@ -118,9 +118,10 @@ function PlayerBattle({ board }: { board: Extract<PlayerBoard, { mode: 'battle' 
         <span>{board.title}</span>
         <span>Round {board.round}</span>
       </header>
+      {board.turn && <TurnStrip turn={board.turn} onOpen={(id) => setOpenId((cur) => (cur === id ? null : id))} />}
       <div className="present-battle-body" data-card={card ? 1 : undefined}>
         <BattleBoard
-          cols={board.cols} rows={board.rows} backdrop={board.backdrop} terrain={board.terrain} elements={board.elements} tokens={board.tokens}
+          cols={board.cols} rows={board.rows} backdrop={board.backdrop} terrain={board.terrain} elements={board.elements} tokens={board.tokens} fog={board.fog} exits={board.exits}
           onElement={(id) => setOpenId((cur) => (cur === id ? null : id))}
         />
         {card && (
@@ -143,6 +144,42 @@ function PlayerBattle({ board }: { board: Extract<PlayerBoard, { mode: 'battle' 
   );
 }
 
+/**
+ * Bandeau d'initiative : celui qui joue en grand (avatar ou illustration), puis les suivants en petites vignettes.
+ * Les créatures n'affichent qu'un état en mots. Rejouer l'animation à chaque changement de tour (clé = id actif).
+ */
+function TurnStrip({ turn, onOpen }: { turn: PlayerTurn; onOpen: (id: string) => void }) {
+  const now = turn.active && turn.order[0]?.id === turn.active ? turn.order[0] : null;
+  const next = turn.order.slice(now ? 1 : 0, (now ? 1 : 0) + 3);
+  return (
+    <div className="present-turn" role="status" aria-live="polite">
+      {now ? (
+        <button key={now.id} className={`present-turn-now kind-${now.kind}`} onClick={() => onOpen(now.id)}>
+          {now.image ? <img src={now.image} alt="" /> : <span className="present-turn-initial">{now.name.charAt(0)}</span>}
+          <span className="present-turn-text">
+            <small>Au tour de</small>
+            <b>{now.name}</b>
+            {now.state && <em>{now.state}</em>}
+          </span>
+        </button>
+      ) : (
+        <div className="present-turn-now waiting"><span className="present-turn-text"><small>Le combat continue…</small></span></div>
+      )}
+      {next.length > 0 && (
+        <ol className="present-turn-next" aria-label="Ensuite">
+          <li className="present-turn-label">Ensuite</li>
+          {next.map((o) => (
+            <li key={o.id} className={`kind-${o.kind}`} onClick={() => onOpen(o.id)} title={o.state ? `${o.name} · ${o.state}` : o.name}>
+              {o.image ? <img src={o.image} alt="" /> : <span className="present-turn-initial">{o.name.charAt(0)}</span>}
+              <span>{o.name}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  );
+}
+
 /** Contenu de la fiche d'un élément ou d'un jeton, tel que les joueurs le voient. */
 function cardFor(board: Extract<PlayerBoard, { mode: 'battle' }>, id: string) {
   const el = board.elements.find((e) => e.id === id);
@@ -154,7 +191,7 @@ function cardFor(board: Extract<PlayerBoard, { mode: 'battle' }>, id: string) {
   const token = board.tokens.find((t) => t.id === id);
   if (token) {
     const kind = token.kind === 'monster' ? 'creature' : token.kind === 'pc' ? 'pc' : 'repere';
-    return { kind, title: token.name, subtitle: token.info?.subtitle ?? KIND_NAME_TOKEN[token.kind], icon: undefined, text: token.info?.text, image: token.info?.image };
+    return { kind, title: token.name, subtitle: [token.info?.subtitle ?? KIND_NAME_TOKEN[token.kind], token.state].filter(Boolean).join(' · '), icon: undefined, text: token.info?.text, image: token.info?.image };
   }
   return null;
 }

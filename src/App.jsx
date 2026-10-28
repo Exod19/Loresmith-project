@@ -25,6 +25,7 @@ import { setMapIntent } from './maps/intent';
 import { placeTokens as placeOnBoard, effectiveOf } from './maps/battle/placement';
 import { tacticalNotes, profileFromStat } from './maps/battle/tactics';
 import MiniBattle from './maps/battle/MiniBattle';
+import { sightFor } from './maps/battle/combat';
 import { propose as proposeEncounter, placeTactically, rate as rateEncounter, thresholds as encounterThresholds, xpOf, crOf, THEMES as SKIRMISH_THEMES } from './maps/battle/skirmish';
 import { registerStat, quickStat, QUICK_CRS, customStats } from './maps/atlas/customStats';
 import ArchivesPage from './feeds/ArchivesPage';
@@ -14780,7 +14781,7 @@ function SkirmishPanel({ battle, setBattle, combatants, party, dispatch, place, 
   const proposal = useMemo(() => proposeEncounter(pstate, target, theme, seed, customStats()), [JSON.stringify(pstate), target, theme, seed]);
 
   const heroTokens = () => party.map((h) => ({
-    id: `pc-${h.id}-${uid()}`, name: h.name, kind: 'pc', size: 1, visible: true, heroId: h.id,
+    id: `pc-${h.id}-${uid()}`, name: h.name, kind: 'pc', size: 1, visible: true, heroId: h.id, sight: sightFor(h.race),
     hp: Number(h.hp || h.maxHp || 20), maxHp: Number(h.hp || h.maxHp || 20), ac: Number(h.ac || 14),
   }));
   const addGroups = (groups, opts = {}) => {
@@ -16411,6 +16412,7 @@ function tokenFromCombatant(c) {
     ac: Number(c.ac),
     init: c.init === '' || c.init === undefined ? undefined : Number(c.init),
     heroId: c.isPC ? c.sourceId || undefined : undefined,
+    sight: c.isPC ? sightFor(c.kind) : undefined,
     npcId: !c.isPC && c.sourceId && !srd ? c.sourceId : undefined,
     statId: srd,
     image: c.image || undefined,

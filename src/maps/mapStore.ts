@@ -149,6 +149,8 @@ export interface Battle {
   /** Jeton dont c'est le tour, et journal des derniers jets. */
   turn?: string;
   log?: { id: string; text: string; tone?: 'hit' | 'miss' | 'crit' | 'info' }[];
+  /** Brouillard de guerre (écran joueur) : actif ou non, et cases déjà explorées pour ce terrain (`source`). */
+  fog?: { on: boolean; source?: string; explored: number[] };
 }
 
 /** `edits` : index de case → type de terrain, posé à la main. `props` : objets déposés sur une case. */

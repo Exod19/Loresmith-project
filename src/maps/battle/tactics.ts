@@ -10,6 +10,7 @@ import type { Battle, BattleToken } from '../mapStore';
 import { cellKind, TERRAIN } from './terrain';
 import { attackCells, rangedCells } from './ranges';
 import { isOut, statOf } from './combat';
+import { trailMoveNotes, trailNotes } from './trailRules';
 
 export type Note = { tone: 'buff' | 'malus' | 'alert' | 'chance'; label: string; why: string };
 
@@ -192,7 +193,7 @@ export function tacticalNotes(b: Battle, grid: string | undefined, id: string, p
     const open = foes.filter((f) => gap(me, f) <= mine.ranged && coverAgainst(b, grid, me, f).level === 0 && !within(me, f, 1));
     if (open.length) notes.push({ tone: 'chance', label: `À découvert à portée de tir : ${plural(open.map((f) => f.name))}`, why: `Aucun abri entre ${me.name} et ${plural(open.map((f) => f.name))}, à moins de ${mine.ranged * 1.5} m (portée courte).` });
   }
-  return notes;
+  return [...notes, ...trailNotes(b, grid, me)];
 }
 
 /**
@@ -213,5 +214,5 @@ export function moveAlerts(b: Battle, id: string, to: { x: number; y: number }, 
   if (entering.length) {
     notes.push({ tone: 'malus', label: `Entre à l’allonge de ${plural(entering.map((f) => f.name))}`, why: `En finissant ici, ${me.name} s’expose aux attaques de ${plural(entering.map((f) => f.name))}, et partir ensuite provoquera une attaque d’opportunité.` });
   }
-  return notes;
+  return [...notes, ...trailMoveNotes(b, me, to)];
 }
