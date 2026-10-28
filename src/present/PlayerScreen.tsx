@@ -126,21 +126,14 @@ function PlayerBattle({ board }: { board: Extract<PlayerBoard, { mode: 'battle' 
         {card && (
           <aside key={openId} className="present-card" data-kind={card.kind} role="dialog" aria-label={card.title}>
             <button className="present-info-close" onClick={() => setOpenId(null)} aria-label="Fermer">×</button>
-            {card.image ? (
+            {card.image && (
               <figure className="present-card-hero">
                 <img src={card.image} alt="" />
-                <figcaption>
-                  <span className="present-info-kind">{card.icon && <>{card.icon} </>}{card.subtitle}</span>
-                  <h3>{card.title}</h3>
-                </figcaption>
               </figure>
-            ) : (
-              <header className="present-card-head">
-                <span className="present-info-kind">{card.icon && <>{card.icon} </>}{card.subtitle}</span>
-                <h3>{card.title}</h3>
-              </header>
             )}
             <div className="present-card-body">
+              <span className="present-info-kind">{card.icon && <>{card.icon} </>}{card.subtitle}</span>
+              <h3>{card.title}</h3>
               {card.text && card.text.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
             </div>
           </aside>

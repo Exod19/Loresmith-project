@@ -5389,7 +5389,7 @@ export default function App() {
               <ArchivesPage universe={universe} dispatch={dispatch} flash={flash} />
             ) : view === 'maps' ? (
               <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} heroes={party} campaigns={campaigns} bestiary={npcs} onReturnToTable={() => setView('scene')}
-                artOf={(name) => libraryImageOf(state, name)}
+                artOf={(name) => creatureArtOf(state, name, faunaFeed)}
                 renderCombat={(slot) => slot.area === 'card'
                   ? <TokenSheet state={state} dispatch={dispatch} id={slot.selectedId} onClose={() => slot.onSelect(null)} />
                   : <MapEncounter {...{ state, dispatch, party, npcs, flash }} {...slot} />}
@@ -13724,8 +13724,24 @@ function libraryImageOf(state, name) {
   return a ? a.dataUrl || a.url || '' : '';
 }
 
+/** Pleine illustration d'une créature, par son nom : portrait importé sur sa fiche PNJ, puis
+ *  bibliothèque, puis Archives. Jamais le jeton rond. */
+function creatureArtOf(state, name, feed) {
+  const key = normalizeCreatureName(name);
+  if (!key) return '';
+  const npc = Object.values(state.npcs || {}).find((n) => normalizeCreatureName(n.name) === key);
+  const asset = npc ? getPrimaryAsset(state, 'creature', npc.id) || getPrimaryAsset(state, 'npc', npc.id) : null;
+  if (asset?.dataUrl || asset?.url) return asset.dataUrl || asset.url;
+  const fromLibrary = libraryImageOf(state, name);
+  if (fromLibrary) return fromLibrary;
+  const entry = feed?.entries?.find((e) => normalizeCreatureName(e.name) === key);
+  const src = entry?.images?.find((i) => i.kind !== 'anatomie')?.src || entry?.images?.[0]?.src || '';
+  return !src || /^(data:|https?:|\/)/.test(src) ? src : `/${src}`;
+}
+
 /** Aperçu de la fiche du jeton sélectionné sur la carte de combat : l’essentiel pour jouer son tour. */
 function TokenSheet({ state, dispatch, id, onClose }) {
+  const { feed: archiveFeed } = useUnderdarkFeed();
   const [amount, setAmount] = useState('');
   const [open, setOpen] = useState(null);
   const combatants = state.combat?.combatants || [];
@@ -13741,7 +13757,7 @@ function TokenSheet({ state, dispatch, id, onClose }) {
   const npcAsset = npc ? getPrimaryAsset(state, 'creature', npc.id) || getPrimaryAsset(state, 'npc', npc.id) : null;
   const illustration = (pcAsset && (pcAsset.dataUrl || pcAsset.url))
     || (npcAsset && (npcAsset.dataUrl || npcAsset.url))
-    || libraryImageOf(state, t.name) || (npc && libraryImageOf(state, npc.name)) || '';
+    || creatureArtOf(state, t.name, archiveFeed) || (npc && creatureArtOf(state, npc.name, archiveFeed)) || '';
   const picture = illustration
     || (npc && portraitOf(state, npc))
     || (src.startsWith('srd:') && tokenImage({ kind: 'monster', statId: src.slice(4) }))
