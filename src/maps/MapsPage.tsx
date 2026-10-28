@@ -31,6 +31,8 @@ type Props = {
   campaigns?: GuideCampaign[];
   /** PNJ & Créatures de l'univers. */
   bestiary?: BestiaryRef[];
+  /** Illustration d'une créature par son nom, pour l'écran joueur. */
+  artOf?: (name: string, id: string) => string;
 };
 
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -46,7 +48,7 @@ function readKnown(): Set<string> | null {
   }
 }
 
-export default function MapsPage({ universe, maps, dispatch, flash, heroes = [], campaigns = [], bestiary = [], onReturnToTable, renderCombat }: Props) {
+export default function MapsPage({ universe, maps, dispatch, flash, heroes = [], campaigns = [], bestiary = [], onReturnToTable, renderCombat, artOf }: Props) {
   // La Table de jeu peut demander d'ouvrir une carte précise (et d'y lancer le combat).
   const [intent] = useState(peekMapIntent);
   useEffect(() => { clearMapIntent(); }, []);
@@ -159,6 +161,7 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
           onCampaign={(id) => dispatch({ type: 'UPDATE_UNIVERSE', id: universe.id, patch: { activeCampaignId: id || undefined } })}
           onCampaignProgress={(id, progress) => dispatch({ type: 'UPDATE_CAMPAIGN', id, patch: { progress } })}
           bestiary={bestiary}
+          artOf={artOf}
         />
       </div>
     );

@@ -1,0 +1,134 @@
+[
+  {
+    "id": "durn-kheled",
+    "nom": "Durn Kheled",
+    "description": "La cité-barrage souterraine",
+    "image": "/images/villes/durn-kheled.webp",
+    "taille": [
+      1672,
+      941
+    ],
+    "source": "Durn Kheled_ The Underground Dam City-6.png"
+  },
+  {
+    "id": "grik-grak",
+    "nom": "Grik-Grak",
+    "description": "La cité dans les côtes du Léviathan",
+    "image": "/images/villes/grik-grak.webp",
+    "taille": [
+      1672,
+      941
+    ],
+    "source": "Grik-Grak_ City of the Leviathan’s Ribs-7.png"
+  },
+  {
+    "id": "khord-varr",
+    "nom": "Khord Varr",
+    "description": "La cité du puits de fer",
+    "image": "/images/villes/khord-varr.webp",
+    "taille": [
+      1672,
+      941
+    ],
+    "source": "Khord Varr_ Iron Pit City-5.png"
+  },
+  {
+    "id": "nhal-sereth",
+    "nom": "Nhal Sereth",
+    "description": "La cité des stalactites suspendues",
+    "image": "/images/villes/nhal-sereth.webp",
+    "taille": [
+      1672,
+      941
+    ],
+    "source": "Nhal Sereth_ City of Hanging Stalactites-1.png"
+  },
+  {
+    "id": "oruum",
+    "nom": "Oruum",
+    "description": "Sous le champignon titan",
+    "image": "/images/villes/oruum.webp",
+    "taille": [
+      1672,
+      941
+    ],
+    "source": "Oruum Beneath the Titan Mushroom-9.png"
+  },
+  {
+    "id": "ssilume",
+    "nom": "Ssilume",
+    "description": "La cité de la cascade fongique",
+    "image": "/images/villes/ssilume.webp",
+    "taille": [
+      1672,
+      941
+    ],
+    "source": "Ssilume, the fungal waterfall city-10.png"
+  },
+  {
+    "id": "ssyr-vael",
+    "nom": "Ssyr Vael",
+    "description": "La cité des lames jumelles",
+    "image": "/images/villes/ssyr-vael.webp",
+    "taille": [
+      1672,
+      941
+    ],
+    "source": "Ssyr Vael, city of twin blades-4.png"
+  },
+  {
+    "id": "vasecroche",
+    "nom": "Vasecroche",
+    "description": "La cité gobeline sur radeaux",
+    "image": "/images/villes/vasecroche.webp",
+    "taille": [
+      1672,
+      941
+    ],
+    "source": "Vasecroche_ Goblin City on Rafts-8.png"
+  },
+  {
+    "id": "vel-ashael",
+    "nom": "Vel Ashael",
+    "description": "Sous l’arche en croissant",
+    "image": "/images/villes/vel-ashael.webp",
+    "taille": [
+      1672,
+      941
+    ],
+    "source": "Vel Ashael beneath the crescent arch-2.png"
+  },
+  {
+    "id": "zhaer-velyss",
+    "nom": "Zhaer Velyss",
+    "description": "La toile abyssale",
+    "image": "/images/villes/zhaer-velyss.webp",
+    "taille": [
+      1672,
+      941
+    ],
+    "source": "Zhaer Velyss_ The Abyssal Spiderweb-3.png"
+  },
+  {
+    "id": "cite-gothique-cristaux",
+    "nom": "Cité gothique sous la terre",
+    "description": "Bannière : cité de cristal",
+    "image": "/images/villes/cite-gothique-cristaux.webp",
+    "taille": [
+      1983,
+      793
+    ],
+    "source": "Gothic Crystal City Beneath the Earth-2.png"
+  },
+  {
+    "id": "cite-gothique-underdark",
+    "nom": "Panorama gothique de l’Underdark",
+    "description": "Bannière : vue de cité",
+    "image": "/images/villes/cite-gothique-underdark.webp",
+    "taille": [
+      2043,
+      770
+    ],
+    "source": "Gothic Underdark Cityscape-1.png"
+  }
+]

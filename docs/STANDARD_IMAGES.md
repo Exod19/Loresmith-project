@@ -33,3 +33,34 @@ Ce standard vaut pour toute image ajoutée à l'interface (décors, illustration
 ## Ce qui n'a plus besoin d'image
 
 Les matières (parchemin, cuir, pierre veinée) sont générées en SVG procédural dans `src/shell/shell.css`. Elles restent nettes à toute résolution et ne pèsent rien. Une texture image n'est utile que si elle est **raccordable sur les quatre bords**, générée nativement en **2048 × 2048**.
+
+## Inventaire des images d'interface
+
+Toutes les images ci-dessous sont versionnées dans le dépôt : elles ne dépendent plus du Drive.
+Source : dossier Drive « Loresmith », envoi du 28 octobre 2026 (originaux PNG 1672 × 941 et plus).
+
+| Fichier (`public/images/ui/`) | Rôle | Original |
+|---|---|---|
+| `hero.webp` | Bannière de l'univers (accueil) | Gothic City Beneath the Cavern Depths |
+| `hero-campagne.webp` | Bannière du Campaign Studio | Gothic City Beneath the Crystals |
+| `repli-artifact.webp` | Fiche sans image : artefact | Amethyst Astrolabe on Obsidian |
+| `repli-place.webp` | Fiche sans image : lieu | Amber Light at the Stone Sanctuary |
+| `repli-person.webp` | Fiche sans image : personnage | Ancient Draconic Humanoid in Cave Shadows |
+| `repli-vivant.webp` | Fiche sans image : espèce | Giant Blind Salamander of the Underdark |
+| `repli-faction.webp` | Fiche sans image : faction | Heraldic Spider on a Frayed Amethyst Banner |
+| `repli-mystery.webp` | Fiche sans image : mystère | The obsidian monolith's amethyst fissure |
+| `repli-document.webp` | Fiche sans image : document | Ancient Sealed Parchment Dispatch |
+| `repli-event.webp` | Fiche sans image : événement | Eclipse Over an Ancient Stone Circle |
+| `bord-table.webp` | Bas de chaque page | Ancient Dungeon Master's Desk Edge |
+| `avatar.webp` | Personnage sans portrait | Spider-marked Warral deep elf |
+| `d20.webp` | Bouton flottant du dé | Antique Brass Medallion with Faceted Amethyst Die |
+| `fond-table.webp` | Fond : Table de jeu | Subterranean obsidian gaming table |
+| `fond-generateur.webp` | Fond : Générateur & voix | Obsidian Creator's Mineral Workshop |
+| `fond-atlas.webp` | Fond : Cartes | Obsidian Cartographer's Chamber |
+| `fond-combat.webp` | Fond : Combat | Obsidian Siege Ruins |
+| `fond-bibliotheque.webp` | Fond : Bibliothèque et Archives | Obsidian archive of ancient books |
+| `fond-campagnes.webp` | Fond : Campagnes | Obsidian Cavern Gateway |
+
+**Villes** (`public/images/villes/`, liste dans `villes.json`) : Durn Kheled, Grik-Grak, Khord Varr, Nhal Sereth, Oruum, Ssilume, Ssyr Vael, Vasecroche, Vel Ashael, Zhaer Velyss, et deux panoramas gothiques. Réservées à la création de villes (Myconides, Duergars, etc.) ; pas encore affichées.
+
+**Réserve** (`assets/reserve/`, hors du site) : *Hosten Valak assiégée par les Illithids*, réservée à une campagne précise. **Ne pas l'utiliser ailleurs.**

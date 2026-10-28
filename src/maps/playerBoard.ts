@@ -20,7 +20,8 @@ export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus
 }
 
 /** Combat tel que les joueurs le voient : jetons visibles seulement, sans points de vie ni CA. */
-export function battleBoard(rec: MapRecord): PlayerBoard {
+/** `artOf` : illustration d'une créature par son nom (fiches des Archives), montrée en grand aux joueurs. */
+export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) => string): PlayerBoard {
   const b = rec.battle ?? DEFAULT_BATTLE;
   const tokens: PlayerToken[] = b.tokens
     .filter((t) => t.visible)
@@ -28,7 +29,7 @@ export function battleBoard(rec: MapRecord): PlayerBoard {
       const portrait = tokenImage({ kind, statId, image });
       return {
         id, name, kind, x, y, size, icon, image: portrait, statId,
-        info: { subtitle: (statId && STATS[statId]?.meta) || undefined, text: (statId && CREATURE_LORE[statId]) || KIND_LORE[kind], image: portrait },
+        info: { subtitle: (statId && STATS[statId]?.meta) || undefined, text: (statId && CREATURE_LORE[statId]) || KIND_LORE[kind], image: artOf?.(name, id) || portrait },
       };
     });
   const local = b.local;

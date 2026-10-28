@@ -5393,6 +5393,7 @@ export default function App() {
               <ArchivesPage universe={universe} dispatch={dispatch} flash={flash} />
             ) : view === 'maps' ? (
               <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} heroes={party} campaigns={campaigns} bestiary={npcs} onReturnToTable={() => setView('scene')}
+                artOf={(name, id) => combatantArtOf(state, (state.combat?.combatants || []).find((c) => c.id === id), faunaFeed) || creatureArtOf(state, name, faunaFeed)}
                 renderCombat={(slot) => slot.area === 'card'
                   ? <TokenSheet state={state} dispatch={dispatch} id={slot.selectedId} battle={slot.battle} onClose={() => slot.onSelect(null)} />
                   : <MapEncounter {...{ state, dispatch, party, npcs, flash }} {...slot} />}
@@ -14076,8 +14077,73 @@ function MapEncounter({ state, dispatch, party, npcs, flash, battle, setBattle, 
   );
 }
 
+/** « name Discrétion, bonus +6, desc … » (objets aplatis en texte), tableaux ou objets → « Discrétion +6, … ». */
+function formatBonuses(v) {
+  if (!v) return '';
+  if (Array.isArray(v)) return v.map((x) => (typeof x === 'string' ? x : `${x.name || x.label || ''} ${x.bonus ?? x.value ?? ''}`.trim())).filter(Boolean).join(', ');
+  if (typeof v === 'object') return Object.entries(v).map(([k, b]) => `${k} ${b}`).join(', ');
+  const str = String(v);
+  const pairs = [...str.matchAll(/name\s+([^,]+?),\s*bonus\s+([+-]?\d+)/gi)];
+  return pairs.length ? pairs.map((m) => `${m[1].trim()} ${m[2]}`).join(', ') : str;
+}
+
+function normalizeCreatureName(name) {
+  return String(name || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[’']/g, "'")
+    .replace(/^(?:les\s+|le\s+|la\s+|l')/, '').replace(/\s*#?\d+$/, '').trim();
+}
+
+/** Illustration de la créature dans la bibliothèque (fiches importées des Archives comprises), par son nom. */
+function libraryImageOf(state, name) {
+  const key = normalizeCreatureName(name);
+  if (!key) return '';
+  const entry = Object.values(state.libraryEntries || {}).find((e) => normalizeCreatureName(e.title) === key);
+  const a = entry ? getPrimaryAsset(state, 'library', entry.id) : null;
+  return a ? a.dataUrl || a.url || '' : '';
+}
+
+/** Portrait importé sur une fiche PNJ ou créature. La vignette ronde du SRD, posée à défaut
+ *  d'illustration, n'en est pas un : c'est un jeton. */
+function sheetPortraitOf(state, npc) {
+  const pick = (type) => Object.values(state.assets || {})
+    .filter((a) => a.targetType === type && a.targetId === npc.id && a.source !== 'srd' && (a.dataUrl || a.url))
+    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0];
+  const a = pick('creature') || pick('npc');
+  return a ? a.dataUrl || a.url : '';
+}
+
+/** Illustration d'un combattant : le joueur par son portrait, la créature par sa fiche
+ *  (sourceId), puis par son nom. Même règle pour la fiche MJ et l'écran joueur. */
+function combatantArtOf(state, t, feed) {
+  if (!t) return '';
+  const src = String(t.sourceId || '');
+  if (t.isPC) {
+    const a = src ? getPrimaryAsset(state, 'player', src) : null;
+    return a ? a.dataUrl || a.url || '' : '';
+  }
+  const npc = src && !src.startsWith('srd:') ? state.npcs?.[src] : null;
+  return (npc && sheetPortraitOf(state, npc)) || creatureArtOf(state, t.name, feed) || (npc ? creatureArtOf(state, npc.name, feed) : '');
+}
+
+/** Pleine illustration d'une créature, par son nom : portrait importé sur sa fiche PNJ, puis
+ *  bibliothèque, puis Archives. Jamais le jeton rond. */
+function creatureArtOf(state, name, feed) {
+  const key = normalizeCreatureName(name);
+  if (!key) return '';
+  const npc = Object.values(state.npcs || {}).find((n) => normalizeCreatureName(n.name) === key);
+  const fromSheet = npc ? sheetPortraitOf(state, npc) : '';
+  if (fromSheet) return fromSheet;
+  const fromLibrary = libraryImageOf(state, name);
+  if (fromLibrary) return fromLibrary;
+  const entry = feed?.entries?.find((e) => normalizeCreatureName(e.name) === key);
+  const src = entry?.images?.find((i) => i.kind !== 'anatomie')?.src || entry?.images?.[0]?.src || '';
+  return !src || /^(data:|https?:|\/)/.test(src) ? src : `/${src}`;
+}
+
 /** Aperçu de la fiche du jeton sélectionné sur la carte de combat : l’essentiel pour jouer son tour. */
 function TokenSheet({ state, dispatch, id, battle, onClose }) {
+  const { feed: archiveFeed } = useUnderdarkFeed();
   const [amount, setAmount] = useState('');
   const [open, setOpen] = useState(null);
   const combatants = state.combat?.combatants || [];
@@ -14089,7 +14155,10 @@ function TokenSheet({ state, dispatch, id, battle, onClose }) {
   const src = String(t.sourceId || '');
   const npc = !t.isPC && src && !src.startsWith('srd:') ? state.npcs?.[src] : null;
   const pcAsset = t.isPC && src ? getPrimaryAsset(state, 'player', src) : null;
-  const picture = (pcAsset && (pcAsset.dataUrl || pcAsset.url))
+  // Une vraie illustration (portrait importé ou image des Archives) s'affiche en grand ;
+  // à défaut, on garde le petit jeton rond.
+  const illustration = combatantArtOf(state, t, archiveFeed);
+  const picture = illustration
     || (npc && portraitOf(state, npc))
     || (src.startsWith('srd:') && tokenImage({ kind: 'monster', statId: src.slice(4) }))
     || t.image || '';
@@ -14098,7 +14167,9 @@ function TokenSheet({ state, dispatch, id, battle, onClose }) {
   const pct = Math.round((hp / maxHp) * 100);
   const col = pct > 50 ? 'var(--verdant)' : pct > 20 ? 'var(--ember)' : 'var(--blood)';
   const sign = (n) => (n >= 0 ? `+${n}` : `${n}`);
-  const perception = String(t.skills || '').match(/perception\s*\+?(-?\d+)/i);
+  const saves = formatBonuses(t.saves);
+  const skills = formatBonuses(t.skills);
+  const perception = skills.match(/perception\s*\+?(-?\d+)/i);
   const passive = 10 + (perception ? Number(perception[1]) : abilityMod(t.wis || 10));
   const active = (t.effects || []).filter((e) => e.active);
   const traits = (t.effects || []).filter((e) => !e.active && e.source === 'Trait');
@@ -14110,21 +14181,32 @@ function TokenSheet({ state, dispatch, id, battle, onClose }) {
     setAmount('');
   };
   const lines = [
-    ['Sauvegardes', t.saves], ['Compétences', t.skills], ['Sens', t.senses], ['Langues', t.languages],
+    ['Vitesse', t.speed], ['Sauvegardes', saves], ['Compétences', skills], ['Sens', toText(t.senses)], ['Langues', toText(t.languages)],
   ].filter(([, v]) => v);
 
   return (
-    <div className="token-sheet">
-      <div className="token-sheet-head">
-        <div className={`token-sheet-picture ${t.isPC ? 'pc' : 'foe'}`}>
-          {picture ? <img src={picture} alt="" /> : <span title="Aucune image : ajoute un portrait à la fiche">{(t.name || '?').charAt(0)}</span>}
+    <div className="token-sheet" data-kind={t.isPC ? 'pc' : 'creature'}>
+      {illustration ? (
+        <div className="token-sheet-hero">
+          <img src={illustration} alt="" />
+          <div className="token-sheet-name">
+            <b>{t.name}</b>
+            <span>{[t.kind, t.cr ? `FP ${t.cr}` : '', t.isPC && t.level ? `niv. ${t.level}` : ''].filter(Boolean).join(' · ')}</span>
+          </div>
+          <button type="button" className="token-sheet-close" onClick={onClose} aria-label="Fermer la fiche">✕</button>
         </div>
-        <div className="token-sheet-name">
-          <b>{t.name}</b>
-          <span>{[t.kind, t.cr ? `FP ${t.cr}` : '', t.isPC && t.level ? `niv. ${t.level}` : ''].filter(Boolean).join(' · ')}</span>
+      ) : (
+        <div className="token-sheet-head">
+          <div className={`token-sheet-picture ${t.isPC ? 'pc' : 'foe'}`}>
+            {picture ? <img src={picture} alt="" /> : <span title="Aucune image : ajoute un portrait à la fiche">{(t.name || '?').charAt(0)}</span>}
+          </div>
+          <div className="token-sheet-name">
+            <b>{t.name}</b>
+            <span>{[t.kind, t.cr ? `FP ${t.cr}` : '', t.isPC && t.level ? `niv. ${t.level}` : ''].filter(Boolean).join(' · ')}</span>
+          </div>
+          <button type="button" className="token-sheet-close" onClick={onClose} aria-label="Fermer la fiche">✕</button>
         </div>
-        <button type="button" className="token-sheet-close" onClick={onClose} aria-label="Fermer la fiche">✕</button>
-      </div>
+      )}
 
       <div className="token-sheet-hp">
         <div className="token-sheet-bar"><i style={{ width: `${pct}%`, background: col }} /></div>
@@ -14143,7 +14225,6 @@ function TokenSheet({ state, dispatch, id, battle, onClose }) {
       <div className="token-sheet-stats">
         <div><span>CA</span><b>{derived.ac}</b></div>
         <div><span>Init.</span><b>{t.init === '' || t.init === undefined ? '—' : t.init}</b></div>
-        <div><span>Vitesse</span><b>{t.speed || '—'}</b></div>
         <div><span title="Perception passive">Perc. pass.</span><b>{passive}</b></div>
       </div>
 

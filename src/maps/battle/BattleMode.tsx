@@ -452,6 +452,10 @@ export default function BattleMode({
   const infoSearch = info ? search.find((s) => s.id === info.id) ?? null : null;
   const infoPassage = info ? passages.find((p) => p.id === info.id) ?? null : null;
   const infoMarker = info?.id.startsWith('mk-') ? markers.find((m) => `mk-${m.id}` === info.id) ?? null : null;
+  const infoKind = infoSearch ? (infoSearch.entry.loot ? 'butin' : 'fouille') : infoPassage ? (infoPassage.secret ? 'secret' : 'passage') : infoMarker ? 'repere' : 'lieu';
+  const infoKindLabel = !info ? '' : infoSearch ? `${infoSearch.label} · à fouiller`
+    : infoPassage ? `${secrets.find((s) => s.id === info.id)?.label ?? exits.find((e) => e.id === info.id)?.label ?? 'Galerie'} · ${infoPassage.secret ? 'passage secret' : 'passage'}`
+    : info.info?.subtitle ?? 'Élément';
   /** Visibilité d'un élément pour les joueurs : lieu de l'Atlas, repère du MJ ou objet déposé. */
   const toggleShown = (id: string) => {
     if (id.startsWith('pr-')) {
@@ -603,97 +607,6 @@ export default function BattleMode({
             )}
           </div>
 
-          {info && (
-            <aside className="battle-fiche" role="dialog" aria-label={info.title}>
-              <button className="present-info-close" onClick={() => setInfoId(null)} aria-label="Fermer">×</button>
-              <span className="present-info-kind">
-                {infoSearch ? `${infoSearch.label} · à fouiller` : infoPassage ? `${secrets.find((s) => s.id === info.id)?.label ?? exits.find((e) => e.id === info.id)?.label ?? 'Galerie'} · ${infoPassage.secret ? 'passage secret' : 'passage'}` : info.info?.subtitle ?? 'Élément'}
-              </span>
-              {info.info?.image && <img className="present-info-img" src={info.info.image} alt="" />}
-              <h3>{info.title}</h3>
-              {info.info?.subtitle && !infoSearch && <p className="maps-sub">{info.info.subtitle}</p>}
-
-              {infoSearch && (() => {
-                const near = infoSearch.entry.passage ? passageNear(info.cell) : null;
-                const nearLink = near ? linkOf(near.id) : undefined;
-                return (
-                  <dl className="fiche-facts">
-                    <dt>Pour le trouver</dt><dd><b>{infoSearch.entry.skill} DC {infoSearch.entry.dc}</b></dd>
-                    <dt>Ce qu’on trouve</dt><dd>{infoSearch.entry.find}</dd>
-                    {infoSearch.entry.loot && <><dt>Butin</dt><dd>{infoSearch.entry.loot}</dd></>}
-                    {infoSearch.entry.effect && <><dt>Effet</dt><dd>{infoSearch.entry.effect}</dd></>}
-                    {infoSearch.entry.passage && (
-                      <>
-                        <dt>Passage</dt>
-                        <dd>
-                          {infoSearch.entry.passage.text}{infoSearch.entry.passage.dc ? ` (${infoSearch.entry.passage.skill} DC ${infoSearch.entry.passage.dc})` : ''}
-                          {near && (
-                            <span className="fiche-actions">
-                              {near.secret && !near.found && <button className="maps-btn gold" onClick={() => toggleShown(near.id)}>Révéler {secrets.find((s) => s.id === near.id)?.label ?? 'le passage'}</button>}
-                              {nearLink && <button className="maps-btn" onClick={() => onFollow(nearLink)}>Suivre ➜ {nearLink.label}</button>}
-                            </span>
-                          )}
-                        </dd>
-                      </>
-                    )}
-                    {info.info?.text && <><dt>Atlas</dt><dd className="maps-sub">{info.info.text}</dd></>}
-                  </dl>
-                );
-              })()}
-
-              {infoPassage && (() => {
-                const link = linkOf(infoPassage.id);
-                const diff = passageDifficulty(infoPassage.trace);
-                const current = rec.overlay?.passageLinks?.[infoPassage.id];
-                return (
-                  <dl className="fiche-facts">
-                    {infoPassage.summary && <><dt>Description</dt><dd>{infoPassage.summary}</dd></>}
-                    {(() => {
-                      const t = profileOf(infoPassage);
-                      return (
-                        <>
-                          <dt>Pour le repérer</dt><dd><b>{detectLabel(t.detect)}</b></dd>
-                          <dt>Dangerosité</dt><dd><span className={`trail-danger lvl-${t.danger.level}`}>{t.danger.label}</span> {t.danger.text} <span className="maps-sub">({t.danger.why.join(', ')})</span></dd>
-                        </>
-                      );
-                    })()}
-                    {diff && <><dt>Pour le suivre</dt><dd>{diff.text}</dd></>}
-                    <dt>Destination</dt>
-                    <dd>
-                      {link ? <>{link.label}{towardDest(link) && ' 🎯'}</> : <span className="battle-missing">non inscrite</span>}
-                      <select className="maps-btn" value={current ? `${current.kind}:${current.id}` : ''} onChange={(e) => {
-                        const opt = options.find((o) => o.value === e.target.value);
-                        onLink(infoPassage.id, opt ? opt.link : null);
-                      }}>
-                        <option value="">{link && !current ? 'Celle de l’Atlas' : 'Choisir une destination…'}</option>
-                        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                      </select>
-                    </dd>
-                  </dl>
-                );
-              })()}
-
-              {!infoSearch && !infoPassage && info.info?.text && info.info.text.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
-              {infoMarker?.notes && <p className="maps-sub">Notes : {infoMarker.notes}</p>}
-
-              <div className="fiche-actions">
-                <button className={`maps-btn ${isShown(info.id) ? '' : 'gold'}`} onClick={() => toggleShown(info.id)}>
-                  {isShown(info.id) ? '👁 Visible des joueurs' : '🙈 Caché : le montrer'}
-                </button>
-                {infoPassage && linkOf(infoPassage.id) && (!infoPassage.secret || infoPassage.found) && (
-                  <button className="maps-btn gold" onClick={() => onFollow(linkOf(infoPassage.id)!)}>Suivre ➜</button>
-                )}
-                {infoSearch && !infoSearch.id.startsWith('mk-') && (
-                  <>
-                    <button className="maps-btn" disabled={rewrite.busy || !aiReady()} title={aiReady() ? 'Réécrire la fiche pour ce lieu' : 'Configure une clé d’IA dans Réglages'}
-                      onClick={() => rewriteSearch(infoSearch.id, infoSearch.title, infoSearch.entry)}>{rewrite.busy ? 'L’IA écrit…' : '✨ Détailler avec l’IA'}</button>
-                    {notes[infoSearch.id] && <button className="maps-btn" onClick={() => onSearchNote?.(infoSearch.id, null)}>Rétablir</button>}
-                  </>
-                )}
-              </div>
-              {rewrite.error && <p className="combat-ai-error">{rewrite.error}</p>}
-            </aside>
-          )}
         </div>
         <p className="battle-hint">
           {building ? 'Construction : peins le terrain ou glisse des objets sur le plateau.'
@@ -703,6 +616,107 @@ export default function BattleMode({
       </div>
 
       <aside className="maps-panel battle-side">
+        {info && (
+          <aside className="battle-fiche battle-fiche-side" role="dialog" aria-label={info.title}
+            data-kind={infoKind}>
+            <button className="present-info-close" onClick={() => setInfoId(null)} aria-label="Fermer">×</button>
+            {info.info?.image ? (
+              <div className="battle-fiche-hero">
+                <img src={info.info.image} alt="" />
+                <div>
+                  <span className="present-info-kind">{infoKindLabel}</span>
+                  <h3>{info.title}</h3>
+                </div>
+              </div>
+            ) : (
+              <>
+                <span className="present-info-kind">{infoKindLabel}</span>
+                <h3>{info.title}</h3>
+              </>
+            )}
+            {info.info?.subtitle && !infoSearch && <p className="maps-sub">{info.info.subtitle}</p>}
+
+            {infoSearch && (() => {
+              const near = infoSearch.entry.passage ? passageNear(info.cell) : null;
+              const nearLink = near ? linkOf(near.id) : undefined;
+              return (
+                <dl className="fiche-facts">
+                  <dt>Pour le trouver</dt><dd><b>{infoSearch.entry.skill} DC {infoSearch.entry.dc}</b></dd>
+                  <dt>Ce qu’on trouve</dt><dd>{infoSearch.entry.find}</dd>
+                  {infoSearch.entry.loot && <><dt>Butin</dt><dd>{infoSearch.entry.loot}</dd></>}
+                  {infoSearch.entry.effect && <><dt>Effet</dt><dd>{infoSearch.entry.effect}</dd></>}
+                  {infoSearch.entry.passage && (
+                    <>
+                      <dt>Passage</dt>
+                      <dd>
+                        {infoSearch.entry.passage.text}{infoSearch.entry.passage.dc ? ` (${infoSearch.entry.passage.skill} DC ${infoSearch.entry.passage.dc})` : ''}
+                        {near && (
+                          <span className="fiche-actions">
+                            {near.secret && !near.found && <button className="maps-btn gold" onClick={() => toggleShown(near.id)}>Révéler {secrets.find((s) => s.id === near.id)?.label ?? 'le passage'}</button>}
+                            {nearLink && <button className="maps-btn" onClick={() => onFollow(nearLink)}>Suivre ➜ {nearLink.label}</button>}
+                          </span>
+                        )}
+                      </dd>
+                    </>
+                  )}
+                  {info.info?.text && <><dt>Atlas</dt><dd className="maps-sub">{info.info.text}</dd></>}
+                </dl>
+              );
+            })()}
+
+            {infoPassage && (() => {
+              const link = linkOf(infoPassage.id);
+              const diff = passageDifficulty(infoPassage.trace);
+              const current = rec.overlay?.passageLinks?.[infoPassage.id];
+              return (
+                <dl className="fiche-facts">
+                  {infoPassage.summary && <><dt>Description</dt><dd>{infoPassage.summary}</dd></>}
+                  {(() => {
+                    const t = profileOf(infoPassage);
+                    return (
+                      <>
+                        <dt>Pour le repérer</dt><dd><b>{detectLabel(t.detect)}</b></dd>
+                        <dt>Dangerosité</dt><dd><span className={`trail-danger lvl-${t.danger.level}`}>{t.danger.label}</span> {t.danger.text} <span className="maps-sub">({t.danger.why.join(', ')})</span></dd>
+                      </>
+                    );
+                  })()}
+                  {diff && <><dt>Pour le suivre</dt><dd>{diff.text}</dd></>}
+                  <dt>Destination</dt>
+                  <dd>
+                    {link ? <>{link.label}{towardDest(link) && ' 🎯'}</> : <span className="battle-missing">non inscrite</span>}
+                    <select className="maps-btn" value={current ? `${current.kind}:${current.id}` : ''} onChange={(e) => {
+                      const opt = options.find((o) => o.value === e.target.value);
+                      onLink(infoPassage.id, opt ? opt.link : null);
+                    }}>
+                      <option value="">{link && !current ? 'Celle de l’Atlas' : 'Choisir une destination…'}</option>
+                      {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
+                  </dd>
+                </dl>
+              );
+            })()}
+
+            {!infoSearch && !infoPassage && info.info?.text && info.info.text.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
+            {infoMarker?.notes && <p className="maps-sub">Notes : {infoMarker.notes}</p>}
+
+            <div className="fiche-actions">
+              <button className={`maps-btn ${isShown(info.id) ? '' : 'gold'}`} onClick={() => toggleShown(info.id)}>
+                {isShown(info.id) ? '👁 Visible des joueurs' : '🙈 Caché : le montrer'}
+              </button>
+              {infoPassage && linkOf(infoPassage.id) && (!infoPassage.secret || infoPassage.found) && (
+                <button className="maps-btn gold" onClick={() => onFollow(linkOf(infoPassage.id)!)}>Suivre ➜</button>
+              )}
+              {infoSearch && !infoSearch.id.startsWith('mk-') && (
+                <>
+                  <button className="maps-btn" disabled={rewrite.busy || !aiReady()} title={aiReady() ? 'Réécrire la fiche pour ce lieu' : 'Configure une clé d’IA dans Réglages'}
+                    onClick={() => rewriteSearch(infoSearch.id, infoSearch.title, infoSearch.entry)}>{rewrite.busy ? 'L’IA écrit…' : '✨ Détailler avec l’IA'}</button>
+                  {notes[infoSearch.id] && <button className="maps-btn" onClick={() => onSearchNote?.(infoSearch.id, null)}>Rétablir</button>}
+                </>
+              )}
+            </div>
+            {rewrite.error && <p className="combat-ai-error">{rewrite.error}</p>}
+          </aside>
+        )}
         {renderCombat && selected && !building && (
           <div className="battle-token-card">
             {renderCombat({ battle: b, setBattle: onBattle, place: placeTitle, combatKey, selectedId, onSelect: setSelectedId, area: 'card' })}
