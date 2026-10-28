@@ -124,6 +124,8 @@ export interface BattleToken {
   spent?: string[];
   /** Identifiant du personnage du groupe dont vient ce jeton. */
   heroId?: string;
+  /** Fiche de PNJ & Créatures (bestiaire de l'univers) dont vient ce jeton. */
+  npcId?: string;
   /** Portée de vue en cases (vision dans le noir ou torche), et Perception passive. */
   sight?: number;
   passive?: number;

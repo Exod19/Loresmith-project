@@ -22,6 +22,7 @@ import { Download, Upload, Settings, ExternalLink } from 'lucide-react';
 import MapsPage from './maps/MapsPage';
 import TableMap, { tableMapId } from './maps/TableMap';
 import { setMapIntent } from './maps/intent';
+import { placeTokens as placeOnBoard } from './maps/battle/placement';
 import ArchivesPage from './feeds/ArchivesPage';
 import ArchivesLinkPanel from './feeds/ArchivesLink';
 import Dossier, { LibraryCard } from './library/Dossier';
@@ -5371,7 +5372,9 @@ export default function App() {
             ) : view === 'archives' ? (
               <ArchivesPage universe={universe} dispatch={dispatch} flash={flash} />
             ) : view === 'maps' ? (
-              <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} heroes={party} campaigns={campaigns} bestiary={npcs} onReturnToTable={() => setView('scene')} />
+              <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} heroes={party} campaigns={campaigns} bestiary={npcs} onReturnToTable={() => setView('scene')}
+                renderCombat={(slot) => <MapEncounter {...{ state, dispatch, party, npcs, flash }} {...slot} />}
+              />
             ) : view === 'present' ? (
               <StageControl {...{ universe, state, flash }} />
             ) : view === 'quests' ? (
@@ -12991,11 +12994,17 @@ function getLinkedSceneLabels(sceneIds, campaigns) {
 }
 
 /* ----------------------------- Encounter / Combat ----------------------- */
-function Encounter({ dispatch, state, party, npcs, flash }) {
+/**
+ * Module Combat. Utilisé tel quel dans l’onglet Combat, et sous la carte de combat (`embedded`) :
+ * la sélection est alors partagée avec le plateau, et la mini-carte cède la place au vrai plateau.
+ */
+function Encounter({ dispatch, state, party, npcs, flash, embedded }) {
   const c = state.combat || { combatants: [], round: 1 };
   const [dmg, setDmg] = useState({});
   const [infoModal, setInfoModal] = useState(null);
-  const [selectedTokenId, setSelectedTokenId] = useState('');
+  const [localSelection, setLocalSelection] = useState('');
+  const selectedTokenId = embedded ? embedded.selectedId || '' : localSelection;
+  const setSelectedTokenId = embedded ? (id) => embedded.onSelect?.(id || null) : setLocalSelection;
   const [mapMode, setMapMode] = useState('move');
 
   const setC = (patch) => dispatch({ type: 'COMBAT_SET', patch });
@@ -13228,16 +13237,20 @@ function Encounter({ dispatch, state, party, npcs, flash }) {
 
   return (
     <>
-      <h1 className="view">Combat</h1>
-      <p className="sub">
-        Suivi d’initiative, HP, attaques, buffs/malus, ressources limitées et
-        positionnement tactique.
-      </p>
-      <p className="sub" style={{ color: 'var(--gold-lt)' }}>
-        Nouveau : le combat se mène aussi directement sur la carte de combat
-        (Cartes → ⚔ Ouvrir la carte de combat → onglet Combat), avec le
-        plateau, l’initiative, les attaques et les conseils tactiques.
-      </p>
+      {!embedded && (
+        <>
+        <h1 className="view">Combat</h1>
+        <p className="sub">
+          Suivi d’initiative, HP, attaques, buffs/malus, ressources limitées et
+          positionnement tactique.
+        </p>
+        <p className="sub" style={{ color: 'var(--gold-lt)' }}>
+          Nouveau : le combat se mène aussi directement sur la carte de combat
+          (Cartes → ⚔ Ouvrir la carte de combat → onglet Combat), avec le
+          plateau, l’initiative, les attaques et les conseils tactiques.
+        </p>
+        </>
+      )}
 
       <div className="combat-layout-advanced">
         <main className="combat-main-col">
@@ -13381,6 +13394,7 @@ function Encounter({ dispatch, state, party, npcs, flash }) {
         </main>
 
         <aside className="combat-side-col">
+          {!embedded && (
           <div className="panel combat-map-panel">
             <div className="combat-panel-head">
               <div>
@@ -13427,6 +13441,7 @@ function Encounter({ dispatch, state, party, npcs, flash }) {
               onToggleBlocked={toggleBlockedCell}
             />
           </div>
+          )}
 
           <div className="panel dm-strategy-panel">
             <div className="combat-panel-head">
@@ -13438,6 +13453,14 @@ function Encounter({ dispatch, state, party, npcs, flash }) {
 
             <DmStrategyPanel strategy={dmStrategy} />
           </div>
+
+          <CombatAiPanel
+            combatants={sorted}
+            active={activeCombatant}
+            round={c.round}
+            place={embedded?.place}
+            positions={embedded?.positions}
+          />
         </aside>
       </div>
 
@@ -13447,6 +13470,142 @@ function Encounter({ dispatch, state, party, npcs, flash }) {
     </>
   );
 }
+/** Aide de l’IA pour le combat : plan du round, cibles, capacités, rebondissements (IA configurée dans Réglages). */
+function CombatAiPanel({ combatants, active, round, place, positions }) {
+  const { ai } = useContext(AIContext);
+  const [state, setState] = useState({ busy: false });
+  async function ask() {
+    setState({ busy: true });
+    const lines = combatants.map((t) => {
+      const pos = positions?.[t.id];
+      const atk = (t.attacks || [])
+        .map((a) => `${a.name}${a.attackBonus != null ? ` +${a.attackBonus}` : ''}${a.damageDice ? ` ${a.damageDice}${a.damageBonus ? `+${a.damageBonus}` : ''}` : ''}${a.range ? ` (${a.range})` : ''}`)
+        .join('; ');
+      const fx = (t.effects || []).filter((e) => e.active || e.source === 'Trait').map((e) => e.name).join(', ');
+      return `- ${t.id === active?.id ? '▶ ' : ''}${t.name} [${t.isPC ? 'joueur' : 'créature'}] init ${t.init}, PV ${t.hp}/${t.maxHp}, CA ${t.ac}${pos ? `, case (${pos.x},${pos.y})${pos.visible === false ? ', cachée aux joueurs' : ''}` : ''}${atk ? `. Actions : ${atk}` : ''}${fx ? `. Traits et effets : ${fx}` : ''}${t.skills ? `. Compétences : ${t.skills}` : ''}`;
+    });
+    try {
+      const text = await callAIMessages(ai, [
+        { role: 'system', content: 'Tu es un maître du jeu expert de D&D 5e. Tu aides le MJ à mener un combat tactique, lisible et cinématique. Réponds en français, en 6 points maximum, une phrase chacun, sans titre : l’ordre des actions des créatures ce round, la cible de chacune et pourquoi, la capacité, le trait ou le don à utiliser, le terrain à exploiter, et un rebondissement pour garder la tension. N’invente aucune statistique.' },
+        { role: 'user', content: `Lieu : ${place || 'inconnu'}. Round ${round}. Une case = 5 pieds.\n${lines.join('\n')}\n\nTour actuel : ${active?.name || 'personne'}.` },
+      ], false);
+      setState({ busy: false, text });
+    } catch (e) {
+      setState({ busy: false, error: e.message });
+    }
+  }
+  return (
+    <div className="panel combat-ai-panel">
+      <div className="combat-panel-head">
+        <div>
+          <b>Aide de l’IA</b>
+          <span>Plan du round, cibles, capacités et rebondissements</span>
+        </div>
+      </div>
+      <button className="btn primary sm" disabled={state.busy || !ai?.apiKey || !combatants.length} onClick={ask}>
+        {state.busy ? 'L’IA réfléchit…' : '✨ Que faire ce round ?'}
+      </button>
+      {!ai?.apiKey && <p className="muted" style={{ fontSize: 12 }}>Configure une clé d’IA dans Réglages pour l’activer.</p>}
+      {state.error && <p className="combat-ai-error">{state.error}</p>}
+      {state.text && (
+        <ul className="combat-ai-answer">
+          {state.text.split('\n').map((l) => l.replace(/^[\s*•\-–\d.)]+/, '').trim()).filter(Boolean).map((l, i) => <li key={i}>{l}</li>)}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Module Combat sous la carte de combat : les combattants et les jetons sont les mêmes (même identifiant).
+ * Ajouter un combattant pose son jeton ; un jeton ajouté sur la carte devient un combattant ; retirer l’un retire
+ * l’autre ; PV, CA, nom, initiative et tour en cours se reportent sur le plateau. Un autre lieu = un autre combat.
+ */
+function MapEncounter({ state, dispatch, party, npcs, flash, battle, setBattle, place, combatKey, selectedId, onSelect }) {
+  const c = state.combat || { combatants: [], round: 1 };
+  const combatants = c.combatants || [];
+  const bound = c.battleKey === combatKey;
+
+  // Entrée dans ce combat : on reprend les combattants préparés dans l’onglet Combat (s’ils ne sont liés à aucune
+  // carte), sinon ceux du plateau.
+  useEffect(() => {
+    if (bound) return;
+    if (!c.battleKey && combatants.length) {
+      dispatch({ type: 'COMBAT_SET', patch: { battleKey: combatKey, syncedIds: [] } });
+      return;
+    }
+    const fresh = battle.tokens.map((t) => combatantFromToken(t, party, npcs));
+    dispatch({ type: 'COMBAT_SET', patch: { battleKey: combatKey, combatants: fresh, syncedIds: fresh.map((x) => x.id), round: battle.round || 1, turnIndex: 0 } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [combatKey, bound]);
+
+  // Synchronisation dans les deux sens, à chaque changement d’un côté ou de l’autre.
+  useEffect(() => {
+    if (!bound) return;
+    const tokens = battle.tokens;
+    const tById = new Map(tokens.map((t) => [t.id, t]));
+    const cById = new Map(combatants.map((x) => [x.id, x]));
+    const known = new Set(c.syncedIds || tokens.filter((t) => cById.has(t.id)).map((t) => t.id));
+    const goneOnMap = [...known].filter((id) => !tById.has(id) && cById.has(id));
+    const goneInCombat = [...known].filter((id) => !cById.has(id) && tById.has(id));
+    const newTokens = tokens.filter((t) => !cById.has(t.id) && !known.has(t.id));
+    const newCombatants = combatants.filter((x) => !tById.has(x.id) && !known.has(x.id));
+
+    let nextComb = combatants.filter((x) => !goneOnMap.includes(x.id));
+    if (newTokens.length) nextComb = [...nextComb, ...newTokens.map((t) => combatantFromToken(t, party, npcs))];
+    let nextTokens = tokens.filter((t) => !goneInCombat.includes(t.id));
+    if (newCombatants.length) nextTokens = [...nextTokens, ...placeOnBoard({ ...battle, tokens: nextTokens }, newCombatants.map(tokenFromCombatant))];
+
+    // Ce que le module Combat décide (PV, CA, nom, initiative) se voit sur le plateau.
+    const byId = new Map(nextComb.map((x) => [x.id, x]));
+    nextTokens = nextTokens.map((t) => {
+      const x = byId.get(t.id);
+      if (!x) return t;
+      const ac = getCombatantDerivedStats(x).ac;
+      const init = x.init === '' || x.init === undefined ? undefined : Number(x.init);
+      const same = t.hp === Number(x.hp) && t.maxHp === Number(x.maxHp) && t.ac === Number(ac) && t.name === x.name && t.init === init;
+      return same ? t : { ...t, hp: Number(x.hp), maxHp: Number(x.maxHp), ac: Number(ac), name: x.name, init };
+    });
+
+    const sorted = [...nextComb].sort((a, b) => (Number(b.init) || 0) - (Number(a.init) || 0));
+    const active = sorted.length ? sorted[Math.min(Number(c.turnIndex || 0), sorted.length - 1)] : null;
+    const turn = active?.id;
+    const round = Number(c.round || 1);
+    const synced = nextComb.filter((x) => nextTokens.some((t) => t.id === x.id)).map((x) => x.id);
+
+    const combChanged = nextComb.length !== combatants.length || nextComb.some((x, i) => x !== combatants[i]);
+    const syncedChanged = synced.length !== (c.syncedIds || []).length || synced.some((id, i) => id !== c.syncedIds[i]);
+    if (combChanged || syncedChanged) dispatch({ type: 'COMBAT_SET', patch: { ...(combChanged ? { combatants: nextComb } : {}), syncedIds: synced } });
+    const tokensChanged = nextTokens.length !== tokens.length || nextTokens.some((t, i) => t !== tokens[i]);
+    if (tokensChanged || battle.turn !== turn || battle.round !== round) setBattle({ ...battle, tokens: nextTokens, turn, round });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bound, combatants, battle.tokens, c.turnIndex, c.round, c.syncedIds]);
+
+  const positions = Object.fromEntries(battle.tokens.map((t) => [t.id, { x: t.x, y: t.y, visible: t.visible }]));
+  const setVisible = (id, visible) => setBattle({ ...battle, tokens: battle.tokens.map((t) => (t.id === id ? { ...t, visible } : t)) });
+
+  if (!bound) return <p className="muted">Préparation du combat…</p>;
+  return (
+    <div className="map-encounter">
+      <div className="map-encounter-tokens">
+        <span className="muted">Vu par les joueurs :</span>
+        {battle.tokens.map((t) => (
+          <button
+            key={t.id}
+            className={`map-encounter-chip ${t.visible ? 'on' : ''} ${selectedId === t.id ? 'sel' : ''}`}
+            onClick={() => setVisible(t.id, !t.visible)}
+            title={t.visible ? 'Visible des joueurs (clic : cacher)' : 'Caché aux joueurs (clic : montrer)'}
+          >
+            {t.visible ? '👁' : '🙈'} {t.name}
+          </button>
+        ))}
+        <span className="muted map-encounter-hint">Glisse les jetons sur le plateau ; tout le reste se gère ici.</span>
+      </div>
+      <Encounter {...{ dispatch, state, party, npcs, flash }} embedded={{ selectedId, onSelect, place, positions }} />
+    </div>
+  );
+}
+
 function CombatantRowAdvanced({
   t,
   sourceNpc,
@@ -13589,6 +13748,17 @@ function CombatantRowAdvanced({
           </button>
         </div>
       </div>
+
+      {t.str !== undefined && (
+        <div className="combatant-stats-line" onClick={(e) => e.stopPropagation()}>
+          <span>FOR {t.str} · DEX {t.dex} · CON {t.con} · INT {t.int} · SAG {t.wis} · CHA {t.cha}</span>
+          {t.saves && <span>Sauvegardes : {t.saves}</span>}
+          {t.skills && <span>Compétences : {t.skills}</span>}
+          {t.senses && <span>Sens : {t.senses}</span>}
+          {t.languages && <span>Langues : {t.languages}</span>}
+          {t.cr && <span>FP {t.cr}</span>}
+        </div>
+      )}
 
       {editing && (
         <CombatantEditPanel
@@ -14292,6 +14462,92 @@ function buildNpcCombatant(n) {
     effects: normalizeCombatEffects(n.effects || []),
     token: makeDefaultToken(false),
     image: n.token || '',
+    saves: asSheetText(n.saves),
+    skills: asSheetText(n.skills),
+    senses: asSheetText(n.senses),
+    languages: asSheetText(n.languages),
+    cr: asSheetText(n.cr || n.challenge),
+  };
+}
+
+/** Champ de fiche en texte lisible (« Perception +4, Discrétion +6 »), quelle que soit sa forme. */
+function asSheetText(v) {
+  if (!v) return '';
+  if (Array.isArray(v)) return v.map(asSheetText).filter(Boolean).join(', ');
+  if (typeof v === 'object') return Object.entries(v).map(([k, x]) => `${k} ${x}`).join(', ');
+  return String(v);
+}
+
+/** Fiche SRD (créature de la carte de combat) au format d’une fiche de PNJ, pour en faire un combattant complet. */
+function npcFromSrd(stat) {
+  const lead = (x) => parseInt(String(x || ''), 10);
+  const [str, dex, con, int, wis, cha] = stat.abil;
+  return {
+    id: `srd:${stat.id}`,
+    name: stat.name,
+    kind: stat.meta,
+    hp: lead(stat.hp) || 10,
+    ac: lead(stat.ac) || 12,
+    speed: stat.speed,
+    str, dex, con, int, wis, cha,
+    actions: [
+      ...stat.actions.map(([name, desc]) => ({ name, desc, type: 'action' })),
+      ...(stat.reactions || []).map(([name, desc]) => ({ name, desc, type: 'reaction' })),
+    ],
+    effects: (stat.traits || []).map(([name, desc]) => ({ name, desc, short: desc.split('.')[0], source: 'Trait' })),
+    saves: stat.saves,
+    skills: stat.skills,
+    senses: stat.senses,
+    languages: stat.languages,
+    cr: stat.cr,
+  };
+}
+
+/** Combattant tiré d’un jeton de la carte de combat (même identifiant) : fiche du groupe, du bestiaire ou du SRD. */
+function combatantFromToken(t, party, npcs) {
+  const hero = t.heroId && party.find((p) => p.id === t.heroId);
+  const npc = t.npcId && npcs.find((n) => n.id === t.npcId);
+  const isPC = t.kind === 'pc';
+  const base = hero
+    ? buildPcCombatant(hero)
+    : npc
+      ? buildNpcCombatant(npc)
+      : t.statId && STATS[t.statId]
+        ? buildNpcCombatant(npcFromSrd(STATS[t.statId]))
+        : {
+            sourceId: '', isPC, maxHp: 10, hp: 10, ac: 12, baseAc: 12, init: 0, speed: '30 ft.',
+            attacks: [], effects: getDefaultCombatEffects(isPC), token: makeDefaultToken(isPC),
+          };
+  return {
+    ...base,
+    id: t.id,
+    name: t.name,
+    isPC,
+    hp: t.hp ?? base.hp,
+    maxHp: t.maxHp ?? base.maxHp,
+    ac: t.ac ?? base.ac,
+    baseAc: t.ac ?? base.baseAc,
+    init: t.init ?? base.init,
+  };
+}
+
+/** Jeton de carte tiré d’un combattant (même identifiant) ; les créatures arrivent cachées aux joueurs. */
+function tokenFromCombatant(c) {
+  const srd = String(c.sourceId || '').startsWith('srd:') ? String(c.sourceId).slice(4) : undefined;
+  return {
+    id: c.id,
+    name: c.name,
+    kind: c.isPC ? 'pc' : 'monster',
+    size: 1,
+    visible: !!c.isPC,
+    hp: Number(c.hp),
+    maxHp: Number(c.maxHp),
+    ac: Number(c.ac),
+    init: c.init === '' || c.init === undefined ? undefined : Number(c.init),
+    heroId: c.isPC ? c.sourceId || undefined : undefined,
+    npcId: !c.isPC && c.sourceId && !srd ? c.sourceId : undefined,
+    statId: srd,
+    image: c.image || undefined,
   };
 }
 function refreshCombatantFromNpc(current, source) {
@@ -14405,6 +14661,8 @@ function parseDamageParts(text) {
   const raw = (text || '').toString();
 
   const patterns = [
+    // SRD en français : « Touché : 4 (1d6 + 1) tranchants ».
+    /touch[ée]\s*:\s*\d+\s*\(\s*(\d+d\d+(?:\s*[+-]\s*\d+)?)\s*\)\s*(?:dégâts?\s+(?:d[e'’]\s*)?)?([a-zA-Zéûîôàèùç-]+)?/i,
     /hit\s*:?\s*\d*\s*\(?\s*(\d+d\d+(?:\s*[+-]\s*\d+)?)\s*\)?\s*([a-zA-Zéûîôàèùç -]+)?\s*damage/i,
     /(\d+d\d+(?:\s*[+-]\s*\d+)?)\s*([a-zA-Zéûîôàèùç -]+)?\s*damage/i,
     /(\d+d\d+(?:\s*[+-]\s*\d+)?)\s*dégâts?\s*([a-zA-Zéûîôàèùç -]+)?/i,

@@ -2,9 +2,10 @@
  * Page « Cartes » d'un univers : créer une carte vierge, importer une image, importer l'Atlas des profondeurs
  * (et le synchroniser avec les Archives), ouvrir une carte dans la visionneuse.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Hero } from './battle/CombatPanel';
 import { clearMapIntent, peekMapIntent } from './intent';
+import type { CombatSlot } from './battle/BattleMode';
 import MapViewer from './MapViewer';
 import { useUnderdarkFeed, ARCHIVES_URL_KEY } from '../feeds/underdark';
 import { bestiaryEncounters } from '../feeds/bestiary';
@@ -24,6 +25,8 @@ type Props = {
   heroes?: Hero[];
   /** Retour à la Table de jeu, quand la carte a été ouverte depuis elle. */
   onReturnToTable?: () => void;
+  /** Module Combat de l'application, affiché sous la carte de combat. */
+  renderCombat?: (slot: CombatSlot) => ReactNode;
   /** Campagnes de l'univers : l'une d'elles peut être invoquée sur la carte. */
   campaigns?: GuideCampaign[];
   /** PNJ & Créatures de l'univers. */
@@ -43,7 +46,7 @@ function readKnown(): Set<string> | null {
   }
 }
 
-export default function MapsPage({ universe, maps, dispatch, flash, heroes = [], campaigns = [], bestiary = [], onReturnToTable }: Props) {
+export default function MapsPage({ universe, maps, dispatch, flash, heroes = [], campaigns = [], bestiary = [], onReturnToTable, renderCombat }: Props) {
   // La Table de jeu peut demander d'ouvrir une carte précise (et d'y lancer le combat).
   const [intent] = useState(peekMapIntent);
   useEffect(() => { clearMapIntent(); }, []);
@@ -150,6 +153,7 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
           heroes={heroes}
           startInBattle={intent?.mapId === open.id && intent.battle}
           onReturn={intent?.from === 'table' && intent.mapId === open.id ? onReturnToTable : undefined}
+          renderCombat={renderCombat}
           campaigns={campaigns}
           activeCampaignId={universe.activeCampaignId}
           onCampaign={(id) => dispatch({ type: 'UPDATE_UNIVERSE', id: universe.id, patch: { activeCampaignId: id || undefined } })}
