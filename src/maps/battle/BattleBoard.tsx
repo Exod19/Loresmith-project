@@ -8,7 +8,7 @@ import type { TerrainKind } from './terrain';
 import { CATEGORY_IMG, vignette } from './vignettes';
 
 /** `active` : c'est son tour. `hp`/`maxHp` : barre de vie (MJ seulement). */
-export type BoardToken = PlayerToken & { selected?: boolean; hidden?: boolean; active?: boolean; hp?: number; maxHp?: number; out?: boolean };
+export type BoardToken = PlayerToken & { selected?: boolean; hidden?: boolean; active?: boolean; hp?: number; maxHp?: number; out?: boolean; conditions?: string[] };
 
 /** Repère MJ posé sur une case : S1 (passage secret), E1 (sortie), F1 (élément à fouiller). */
 export type BoardLabel = { cell: number; text: string; tone: 'secret' | 'exit' | 'search' | 'dest'; noticed?: boolean };
@@ -331,6 +331,13 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
             {t.out && (
               <path d={`M${cx - r * 0.7} ${cy - r * 0.7}L${cx + r * 0.7} ${cy + r * 0.7}M${cx + r * 0.7} ${cy - r * 0.7}L${cx - r * 0.7} ${cy + r * 0.7}`} stroke="#c0492f" strokeWidth={0.1} strokeLinecap="round" pointerEvents="none" />
             )}
+            {t.conditions?.length ? (
+              <g className="battle-token-conds">
+                <title>{t.conditions.join(' · ')}</title>
+                <circle cx={cx + r * 0.78} cy={cy - r * 0.78} r={0.17} fill="#ad97d8" stroke="#0b0906" strokeWidth={0.04} />
+                <text x={cx + r * 0.78} y={cy - r * 0.78 + 0.075} textAnchor="middle" fontSize={0.2} fontWeight={700} fill="#1a1026" pointerEvents="none">{t.conditions.length}</text>
+              </g>
+            ) : null}
             {t.active && <circle className="battle-turn-ring" cx={cx} cy={cy} r={r + 0.1} fill="none" stroke="#fff1c2" strokeWidth={0.07} pointerEvents="none" />}
             {t.maxHp ? (
               <g pointerEvents="none">

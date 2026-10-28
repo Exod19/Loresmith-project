@@ -13124,6 +13124,33 @@ const COMBAT_CONDITIONS = [
 ];
 const conditionOf = (name) => COMBAT_CONDITIONS.find((x) => x.name === name) || { name, icon: '•', rule: '' };
 
+/** États d’un combattant, compacts : pastilles à retirer d’un clic et liste pour en ajouter (fiche du jeton, carte). */
+function ConditionPicker({ conditions = [], onChange }) {
+  return (
+    <div className="cond-picker">
+      {conditions.map((name) => {
+        const cd = conditionOf(name);
+        return (
+          <button key={name} type="button" className="cond-picker-chip" title={`${cd.rule}\nClic : retirer`} onClick={() => onChange(conditions.filter((n) => n !== name))}>
+            <span aria-hidden="true">{cd.icon}</span> {name} <span aria-hidden="true">×</span>
+          </button>
+        );
+      })}
+      <select
+        className="cond-picker-add"
+        value=""
+        aria-label="Ajouter un état"
+        onChange={(e) => e.target.value && onChange([...conditions, e.target.value])}
+      >
+        <option value="">+ État…</option>
+        {COMBAT_CONDITIONS.filter((cd) => !conditions.includes(cd.name)).map((cd) => (
+          <option key={cd.name} value={cd.name} title={cd.rule}>{cd.name}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 /** Jet de dés : « 2d8 +4 », « d20 +7 1d4 adv. » ; les dés sont doublés en cas de critique. */
 function rollDiceText(text, { crit = false } = {}) {
   const src = String(text || '');
@@ -13244,10 +13271,13 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
     if (!last) return;
     // Le lien avec le plateau reste celui d’aujourd’hui : la synchronisation replace ou retire les jetons d’elle-même.
     const entry = { id: uid(), at: Date.now(), round: Number(last.combat.round || 1), text: `Annulé : ${last.label}`, tone: 'undo' };
+    // Les états restaurés doivent repartir vers les jetons : on garde le dernier accord fiche ↔ jeton d’aujourd’hui.
+    const agreed = new Map((c.combatants || []).map((x) => [x.id, x.condsAt]));
     dispatch({
       type: 'COMBAT_SET',
       patch: {
         ...last.combat,
+        combatants: (last.combat.combatants || []).map((x) => (agreed.has(x.id) ? { ...x, condsAt: agreed.get(x.id) } : x)),
         battleKey: c.battleKey,
         syncedIds: c.syncedIds,
         journal: [entry, ...(last.combat.journal || [])].slice(0, COMBAT_JOURNAL_MAX),
@@ -15107,6 +15137,26 @@ function useBattleSync({ state, dispatch, party, npcs, battle, setBattle, combat
     let nextTokens = tokens.filter((t) => !goneInCombat.includes(t.id));
     if (newCombatants.length) nextTokens = [...nextTokens, ...placeOnBoard({ ...battle, tokens: nextTokens }, newCombatants.map(tokenFromCombatant))];
 
+    // États (À terre, Empoisonné…) synchronisés dans les deux sens. `condsAt` garde, sur le combattant, les états du
+    // dernier accord avec son jeton : le côté qui s’en écarte est celui qui vient de changer, l’autre le suit.
+    const condKey = (list) => [...new Set(list || [])].sort().join('|');
+    const conds = new Map();
+    for (const t of nextTokens) {
+      const x = nextComb.find((q) => q.id === t.id);
+      if (!x) continue;
+      const tk = condKey(t.conditions);
+      const ck = condKey(x.conditions);
+      const last = x.condsAt;
+      const fromToken = tk !== ck && (last === undefined ? !x.conditions?.length : last === ck);
+      conds.set(t.id, fromToken ? [...(t.conditions || [])] : [...(x.conditions || [])]);
+    }
+    nextComb = nextComb.map((x) => {
+      if (!conds.has(x.id)) return x;
+      const list = conds.get(x.id);
+      const key = condKey(list);
+      return condKey(x.conditions) === key && x.condsAt === key ? x : { ...x, conditions: list, condsAt: key };
+    });
+
     // Ce que le module Combat décide (PV, CA, nom, initiative) se voit sur le plateau.
     const byId = new Map(nextComb.map((x) => [x.id, x]));
     nextTokens = nextTokens.map((t) => {
@@ -15114,8 +15164,9 @@ function useBattleSync({ state, dispatch, party, npcs, battle, setBattle, combat
       if (!x) return t;
       const ac = getCombatantDerivedStats(x).ac;
       const init = x.init === '' || x.init === undefined ? undefined : Number(x.init);
-      const same = t.hp === Number(x.hp) && t.maxHp === Number(x.maxHp) && t.ac === Number(ac) && t.name === x.name && t.init === init;
-      return same ? t : { ...t, hp: Number(x.hp), maxHp: Number(x.maxHp), ac: Number(ac), name: x.name, init };
+      const sameConds = condKey(t.conditions) === condKey(x.conditions);
+      const same = t.hp === Number(x.hp) && t.maxHp === Number(x.maxHp) && t.ac === Number(ac) && t.name === x.name && t.init === init && sameConds;
+      return same ? t : { ...t, hp: Number(x.hp), maxHp: Number(x.maxHp), ac: Number(ac), name: x.name, init, ...(sameConds ? {} : { conditions: [...(x.conditions || [])] }) };
     });
 
     const sorted = [...nextComb].sort((a, b) => (Number(b.init) || 0) - (Number(a.init) || 0));
@@ -15540,6 +15591,11 @@ function TokenSheet({ state, dispatch, id, battle, onClose }) {
         <div><span title="Perception passive">Perc. pass.</span><b>{passive}</b></div>
       </div>
 
+      <div className="token-sheet-block">
+        <div className="token-sheet-title">États</div>
+        <ConditionPicker conditions={t.conditions || []} onChange={(conditions) => patch({ conditions })} />
+      </div>
+
       <div className="token-sheet-abil">
         {['str', 'dex', 'con', 'int', 'wis', 'cha'].map((k, i) => (
           <div key={k}><span>{['FOR', 'DEX', 'CON', 'INT', 'SAG', 'CHA'][i]}</span><b>{sign(abilityMod(t[k] || 10))}</b><small>{t[k] || 10}</small></div>
@@ -15757,6 +15813,10 @@ function CombatantRowAdvanced({
           {t.cr && <span>FP {t.cr}</span>}
         </div>
       )}
+
+      <div className="combatant-conds" onClick={(e) => e.stopPropagation()}>
+        <ConditionPicker conditions={t.conditions || []} onChange={(conditions) => onUpdate({ conditions })} />
+      </div>
 
       {editing && (
         <CombatantEditPanel
@@ -16620,6 +16680,7 @@ function combatantFromToken(t, party, npcs) {
     ac: t.ac ?? base.ac,
     baseAc: t.ac ?? base.baseAc,
     init: t.init ?? base.init,
+    conditions: [...(t.conditions || [])],
   };
 }
 
@@ -16641,6 +16702,7 @@ function tokenFromCombatant(c) {
     npcId: !c.isPC && c.sourceId && !srd ? c.sourceId : undefined,
     statId: srd,
     image: c.image || undefined,
+    conditions: c.conditions?.length ? [...c.conditions] : undefined,
   };
 }
 function refreshCombatantFromNpc(current, source) {
