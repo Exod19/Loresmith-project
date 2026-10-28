@@ -388,3 +388,36 @@
 .token-sheet-lines dt{color:#a8925f;flex:none}
 .token-sheet-lines dd{margin:0}
 .token-sheet-tactics{margin:0;font-size:12px;color:#cdbd96}
+
+/* ---------- Fiche de créature : grande illustration, mise en page compacte ---------- */
+.token-sheet{gap:7px}
+.token-sheet-hero{position:relative;margin:-12px -13px 0;aspect-ratio:4/3;max-height:250px;overflow:hidden;border-radius:7px 7px 0 0;background:#0d0a06}
+.token-sheet-hero img{width:100%;height:100%;object-fit:cover;object-position:50% 35%;display:block}
+.token-sheet-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,6,4,.35) 0,transparent 30%,transparent 52%,rgba(8,6,4,.92) 100%);pointer-events:none}
+.token-sheet-hero .token-sheet-name{position:absolute;left:12px;right:40px;bottom:9px;z-index:1}
+.token-sheet-hero .token-sheet-name b{display:block;font-family:'Cinzel',serif;font-size:19px;line-height:1.15;color:#f6e8c4;text-shadow:0 2px 8px rgba(0,0,0,.9)}
+.token-sheet-hero .token-sheet-name span{font-size:12px;color:#d8c8a0;text-shadow:0 1px 4px rgba(0,0,0,.9)}
+.token-sheet-hero .token-sheet-close{position:absolute;top:7px;right:7px;z-index:1;width:28px;height:28px;border-radius:50%;background:rgba(8,6,4,.7);font-size:14px}
+.token-sheet-hp>span{margin:2px 0 4px}
+.token-sheet-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.token-sheet-stats div,.token-sheet-abil div{padding:3px 2px}
+.token-sheet-abil{gap:3px}
+.token-sheet-lines{gap:2px}
+.token-sheet-lines dt{min-width:84px}
+
+/* ---------- Couleur et matière selon ce qu'on observe ---------- */
+/* Tout le cadre prend la couleur du type (pas de bande latérale). --fiche-overlay
+   accueillera une texture par type quand elle sera fournie. */
+.battle-token-card:has(.token-sheet[data-kind="creature"]){--fiche:#c0492f;--fiche-tint:rgba(192,73,47,.2)}
+.battle-token-card:has(.token-sheet[data-kind="pc"]){--fiche:#54d8c6;--fiche-tint:rgba(84,216,198,.14)}
+.battle-fiche[data-kind="butin"]{--fiche:#e0b85a;--fiche-tint:rgba(224,184,90,.2)}
+.battle-fiche[data-kind="fouille"]{--fiche:#d08a3a;--fiche-tint:rgba(208,138,58,.17)}
+.battle-fiche[data-kind="passage"]{--fiche:#6fb3c4;--fiche-tint:rgba(111,179,196,.16)}
+.battle-fiche[data-kind="secret"]{--fiche:#9a7cf0;--fiche-tint:rgba(154,124,240,.2)}
+.battle-fiche[data-kind="repere"],.battle-fiche[data-kind="lieu"]{--fiche:#bda36e;--fiche-tint:rgba(189,163,110,.14)}
+.battle-token-card,.battle-fiche{
+  border-color:var(--fiche,#7d6128);
+  background:var(--fiche-overlay,none),radial-gradient(ellipse 120% 70% at 50% -10%,var(--fiche-tint,transparent),transparent 65%),rgba(12,10,7,.96);
+  box-shadow:0 10px 30px rgba(0,0,0,.6),inset 0 0 0 1px rgba(0,0,0,.5),0 0 18px var(--fiche-tint,transparent)}
+.battle-fiche .present-info-kind{color:var(--fiche,#c9a24a)}
+.battle-fiche .present-info-img{display:block;width:calc(100% + 32px);max-height:none;aspect-ratio:16/10;object-fit:cover;margin:8px -16px 6px}

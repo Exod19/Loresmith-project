@@ -579,7 +579,8 @@ export default function BattleMode({
           </div>
 
           {info && (
-            <aside className="battle-fiche" role="dialog" aria-label={info.title}>
+            <aside className="battle-fiche" role="dialog" aria-label={info.title}
+              data-kind={infoSearch ? (infoSearch.entry.loot ? 'butin' : 'fouille') : infoPassage ? (infoPassage.secret ? 'secret' : 'passage') : infoMarker ? 'repere' : 'lieu'}>
               <button className="present-info-close" onClick={() => setInfoId(null)} aria-label="Fermer">×</button>
               <span className="present-info-kind">
                 {infoSearch ? `${infoSearch.label} · à fouiller` : infoPassage ? `${secrets.find((s) => s.id === info.id)?.label ?? exits.find((e) => e.id === info.id)?.label ?? 'Galerie'} · ${infoPassage.secret ? 'passage secret' : 'passage'}` : info.info?.subtitle ?? 'Élément'}

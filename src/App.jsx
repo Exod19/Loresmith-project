@@ -13697,6 +13697,32 @@ function MapEncounter({ state, dispatch, party, npcs, flash, battle, setBattle, 
   );
 }
 
+/** « name Discrétion, bonus +6, desc … » (objets aplatis en texte), tableaux ou objets → « Discrétion +6, … ». */
+function formatBonuses(v) {
+  if (!v) return '';
+  if (Array.isArray(v)) return v.map((x) => (typeof x === 'string' ? x : `${x.name || x.label || ''} ${x.bonus ?? x.value ?? ''}`.trim())).filter(Boolean).join(', ');
+  if (typeof v === 'object') return Object.entries(v).map(([k, b]) => `${k} ${b}`).join(', ');
+  const str = String(v);
+  const pairs = [...str.matchAll(/name\s+([^,]+?),\s*bonus\s+([+-]?\d+)/gi)];
+  return pairs.length ? pairs.map((m) => `${m[1].trim()} ${m[2]}`).join(', ') : str;
+}
+
+function normalizeCreatureName(name) {
+  return String(name || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[’']/g, "'")
+    .replace(/^(?:les\s+|le\s+|la\s+|l')/, '').replace(/\s*#?\d+$/, '').trim();
+}
+
+/** Illustration de la créature dans la bibliothèque (fiches importées des Archives comprises), par son nom. */
+function libraryImageOf(state, name) {
+  const key = normalizeCreatureName(name);
+  if (!key) return '';
+  const entry = Object.values(state.libraryEntries || {}).find((e) => normalizeCreatureName(e.title) === key);
+  const a = entry ? getPrimaryAsset(state, 'library', entry.id) : null;
+  return a ? a.dataUrl || a.url || '' : '';
+}
+
 /** Aperçu de la fiche du jeton sélectionné sur la carte de combat : l’essentiel pour jouer son tour. */
 function TokenSheet({ state, dispatch, id, onClose }) {
   const [amount, setAmount] = useState('');
@@ -13709,7 +13735,13 @@ function TokenSheet({ state, dispatch, id, onClose }) {
   const src = String(t.sourceId || '');
   const npc = !t.isPC && src && !src.startsWith('srd:') ? state.npcs?.[src] : null;
   const pcAsset = t.isPC && src ? getPrimaryAsset(state, 'player', src) : null;
-  const picture = (pcAsset && (pcAsset.dataUrl || pcAsset.url))
+  // Une vraie illustration (portrait importé ou image des Archives) s'affiche en grand ;
+  // à défaut, on garde le petit jeton rond.
+  const npcAsset = npc ? getPrimaryAsset(state, 'creature', npc.id) || getPrimaryAsset(state, 'npc', npc.id) : null;
+  const illustration = (pcAsset && (pcAsset.dataUrl || pcAsset.url))
+    || (npcAsset && (npcAsset.dataUrl || npcAsset.url))
+    || libraryImageOf(state, t.name) || (npc && libraryImageOf(state, npc.name)) || '';
+  const picture = illustration
     || (npc && portraitOf(state, npc))
     || (src.startsWith('srd:') && tokenImage({ kind: 'monster', statId: src.slice(4) }))
     || t.image || '';
@@ -13718,7 +13750,9 @@ function TokenSheet({ state, dispatch, id, onClose }) {
   const pct = Math.round((hp / maxHp) * 100);
   const col = pct > 50 ? 'var(--verdant)' : pct > 20 ? 'var(--ember)' : 'var(--blood)';
   const sign = (n) => (n >= 0 ? `+${n}` : `${n}`);
-  const perception = String(t.skills || '').match(/perception\s*\+?(-?\d+)/i);
+  const saves = formatBonuses(t.saves);
+  const skills = formatBonuses(t.skills);
+  const perception = skills.match(/perception\s*\+?(-?\d+)/i);
   const passive = 10 + (perception ? Number(perception[1]) : abilityMod(t.wis || 10));
   const active = (t.effects || []).filter((e) => e.active);
   const traits = (t.effects || []).filter((e) => !e.active && e.source === 'Trait');
@@ -13730,21 +13764,32 @@ function TokenSheet({ state, dispatch, id, onClose }) {
     setAmount('');
   };
   const lines = [
-    ['Sauvegardes', t.saves], ['Compétences', t.skills], ['Sens', t.senses], ['Langues', t.languages],
+    ['Vitesse', t.speed], ['Sauvegardes', saves], ['Compétences', skills], ['Sens', toText(t.senses)], ['Langues', toText(t.languages)],
   ].filter(([, v]) => v);
 
   return (
-    <div className="token-sheet">
-      <div className="token-sheet-head">
-        <div className={`token-sheet-picture ${t.isPC ? 'pc' : 'foe'}`}>
-          {picture ? <img src={picture} alt="" /> : <span title="Aucune image : ajoute un portrait à la fiche">{(t.name || '?').charAt(0)}</span>}
+    <div className="token-sheet" data-kind={t.isPC ? 'pc' : 'creature'}>
+      {illustration ? (
+        <div className="token-sheet-hero">
+          <img src={illustration} alt="" />
+          <div className="token-sheet-name">
+            <b>{t.name}</b>
+            <span>{[t.kind, t.cr ? `FP ${t.cr}` : '', t.isPC && t.level ? `niv. ${t.level}` : ''].filter(Boolean).join(' · ')}</span>
+          </div>
+          <button type="button" className="token-sheet-close" onClick={onClose} aria-label="Fermer la fiche">✕</button>
         </div>
-        <div className="token-sheet-name">
-          <b>{t.name}</b>
-          <span>{[t.kind, t.cr ? `FP ${t.cr}` : '', t.isPC && t.level ? `niv. ${t.level}` : ''].filter(Boolean).join(' · ')}</span>
+      ) : (
+        <div className="token-sheet-head">
+          <div className={`token-sheet-picture ${t.isPC ? 'pc' : 'foe'}`}>
+            {picture ? <img src={picture} alt="" /> : <span title="Aucune image : ajoute un portrait à la fiche">{(t.name || '?').charAt(0)}</span>}
+          </div>
+          <div className="token-sheet-name">
+            <b>{t.name}</b>
+            <span>{[t.kind, t.cr ? `FP ${t.cr}` : '', t.isPC && t.level ? `niv. ${t.level}` : ''].filter(Boolean).join(' · ')}</span>
+          </div>
+          <button type="button" className="token-sheet-close" onClick={onClose} aria-label="Fermer la fiche">✕</button>
         </div>
-        <button type="button" className="token-sheet-close" onClick={onClose} aria-label="Fermer la fiche">✕</button>
-      </div>
+      )}
 
       <div className="token-sheet-hp">
         <div className="token-sheet-bar"><i style={{ width: `${pct}%`, background: col }} /></div>
@@ -13763,7 +13808,6 @@ function TokenSheet({ state, dispatch, id, onClose }) {
       <div className="token-sheet-stats">
         <div><span>CA</span><b>{derived.ac}</b></div>
         <div><span>Init.</span><b>{t.init === '' || t.init === undefined ? '—' : t.init}</b></div>
-        <div><span>Vitesse</span><b>{t.speed || '—'}</b></div>
         <div><span title="Perception passive">Perc. pass.</span><b>{passive}</b></div>
       </div>
 
