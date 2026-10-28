@@ -12,16 +12,18 @@ import './lore.css';
  * Crée la fiche complète d'une créature de rencontre dans PNJ & Créatures (IA), avec son FP et son nom.
  * Renvoie la fiche créée, pour pouvoir la rattacher à la campagne.
  */
-export async function createCreatureSheet({ call, creature, universe, state, feed, party, camp, dispatch, flash }) {
+export async function createCreatureSheet({ call, creature, universe, state, feed, party, camp, dispatch, flash, mode = 'monster' }) {
   try {
     const ctx = buildLoreContext({ universe, state, feed, party, budget: 6000, noNamedPersons: true, focus: `${creature.name} ${camp?.title || ''}` });
+    const notes = mode === 'npc' ? `PNJ de la campagne. ${creature.note || ''}` : `Créature de rencontre, quantité prévue : ${creature.count || 1}`;
     const [entity] = await generateEntities(call, {
       ctx: `${ctx}\n\nCAMPAGNE : ${camp?.title || ''} — ${camp?.premise || ''}`,
-      items: [{ mode: 'monster', name: creature.name, cr: creature.cr || '', notes: `Créature de rencontre, quantité prévue : ${creature.count || 1}` }],
+      items: [{ mode, name: creature.name, cr: creature.cr || '', notes }],
       level: party[0]?.level || 3,
       size: party.length || 4,
     });
-    const n = { ...entity, id: Math.random().toString(36).slice(2, 10), createdAt: Date.now(), campaignIds: camp ? [camp.id] : [] };
+    // La fiche garde le nom utilisé dans la campagne : c'est lui qui la relie aux scènes et au registre.
+    const n = { ...entity, name: creature.name || entity.name, id: Math.random().toString(36).slice(2, 10), createdAt: Date.now(), campaignIds: camp ? [camp.id] : [] };
     dispatch({ type: 'ADD_NPC', n });
     flash(`Fiche créée : ${n.name} (PNJ & Créatures).`);
     return n;

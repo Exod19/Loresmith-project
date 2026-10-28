@@ -43,6 +43,8 @@ import {
   synthesizeSpeech,
 } from './voice/elevenlabs';
 import { SceneLore, SessionLore, createCreatureSheet } from './forge/LoreEditor';
+import CampaignStudio from './studio/CampaignStudio';
+import { migrateCampaign, migrateState } from './studio/migrate';
 import { atlasPlaces, buildLoreContext, feedFor, norm as normName } from './ai/loreContext';
 import {
   BRIEF_FIELDS,
@@ -4762,7 +4764,8 @@ function seedUniverse() {
   };
 }
 function reducer(s, a) {
-  if (a.type === 'HYDRATE') return a.state;
+  // Chaque chargement (et chaque import de sauvegarde) passe par la migration des campagnes vers le format V3.
+  if (a.type === 'HYDRATE') return migrateState(a.state);
   if (!s) return seedUniverse();
   const U = s.activeUniverseId;
   switch (a.type) {
@@ -4821,7 +4824,7 @@ function reducer(s, a) {
     case 'ADD_CAMPAIGN':
       return {
         ...s,
-        campaigns: { ...s.campaigns, [a.c.id]: { ...a.c, universeId: U } },
+        campaigns: { ...s.campaigns, [a.c.id]: migrateCampaign({ ...a.c, universeId: U }) },
       };
     case 'UPDATE_SCENE': {
       const c = s.campaigns[a.cid];
@@ -5303,15 +5306,22 @@ export default function App() {
             ) : view === 'library' ? (
               <Library {...{ state, dispatch, universe, campaigns, flash }} />
             ) : view === 'forge' ? (
-              <Forge
-                {...{
-                  state,
-                  dispatch,
-                  universe,
-                  party,
-                  campaigns,
-                  flash,
-                  setView,
+              <CampaignStudio
+                {...{ universe, state, campaigns, party, npcs, dispatch, flash }}
+                setView={goTo}
+                call={(o) => callAI(ai, o)}
+                services={{
+                  renderCampaign: (camp, feed) => (
+                    <CampaignCard key={camp.id} camp={camp} defaultOpen feed={feed} {...{ state, dispatch, universe, party, flash, setView: goTo }} />
+                  ),
+                  renderScene: (camp, scene, session, idx, feed) => (
+                    <SceneRow key={scene.id} scene={scene} idx={idx} camp={camp} session={session} feed={feed} {...{ state, dispatch, universe, party, flash, setView: goTo }} />
+                  ),
+                  renderQuickForge: () => <Forge {...{ state, dispatch, universe, party, campaigns, flash, setView }} hideList />,
+                  forge: (camp, { brief, writeAll, onStep, feed }) =>
+                    forgeCampaign({ ai, universe, state, party, feed, brief, dispatch, writeAll, onStep, campaignId: camp.id, keep: { foundations: camp.foundations, createdAt: camp.createdAt } }),
+                  createSheet: ({ camp, name, mode, count }, feed) =>
+                    createCreatureSheet({ call: (o) => callAI(ai, o), creature: { name, count }, universe, state, feed, party, camp, dispatch, flash, mode }),
                 }}
               />
             ) : view === 'chat' ? (
@@ -6377,7 +6387,7 @@ async function writeCampaignSession({ ai, universe, state, party, camp, sessionN
   const d = await forgeSession((o) => callAI(ai, o), ctx, camp, session, brief, previousDigest(camp, sessionNumber));
   if (d._parseFailed || !Array.isArray(d.scenes) || !d.scenes.length)
     throw new Error(`La séance ${sessionNumber} n’a pas pu être écrite (réponse illisible). Réessaie ou change de modèle.`);
-  const fresh = d.scenes.map((sc) => toScene(sc, session));
+  const fresh = d.scenes.map((sc) => ({ ...toScene(sc, session), actId: session.actId || '' }));
   const sessions = camp.sessions.map((s) =>
     s.sessionNumber === sessionNumber
       ? {
@@ -6399,7 +6409,85 @@ async function writeCampaignSession({ ai, universe, state, party, camp, sessionN
   return { sessions, scenes };
 }
 
-function Forge({ state, dispatch, universe, party, campaigns, flash, setView }) {
+/**
+ * Forge une campagne complète : bible, puis chaque séance scène par scène (si `writeAll`).
+ * `campaignId` : réécrit le canevas d'une campagne existante (Campaign Studio) en gardant ses fondations.
+ * `onStep(label, status, note)` suit l'avancement. Renvoie l'identifiant et le nombre de séances en échec.
+ */
+async function forgeCampaign({ ai, universe, state, party, feed, brief, dispatch, writeAll = true, onStep = () => {}, campaignId, keep = {} }) {
+  const call = (o) => callAI(ai, o);
+  const ctx = buildLoreContext({ universe, state, feed, party, focus: [brief.mindDump, ...BRIEF_FIELDS.map((f) => brief[f.key])].join(' ') });
+  onStep('Bible de campagne', 'run');
+  const bible = await forgeBible(call, ctx, brief);
+  if (bible._parseFailed || (!bible.title && !bible.sessions))
+    throw new Error('L’IA n’a pas renvoyé une campagne lisible. Réessaie, ou choisis un modèle plus puissant dans Réglages.');
+  const sessions = (bible.sessions || []).map((s, i) => ({ ...s, sessionNumber: Number(s.sessionNumber) || i + 1, detailed: false }));
+  const id = campaignId || uid();
+
+  // Ce que la bibliothèque connaît déjà est lié à la campagne ; le reste est proposé à la création.
+  const lib = Object.values(state.libraryEntries || {}).filter((e) => e.universeId === universe.id);
+  const libByName = new Map(lib.map((e) => [normName(e.title), e]));
+  const suggestions = librarySuggestionsFrom(bible);
+  const linked = [...new Set(suggestions.map((s) => libByName.get(normName(s.title))).filter(Boolean))];
+
+  let camp = {
+    id,
+    title: cleanCampaignTitle(bible.title, brief.title || brief.theme),
+    premise: bible.premise || '',
+    hook: bible.hook || '',
+    setting: bible.setting || '',
+    campaignMode: brief.format,
+    brief: { ...brief },
+    mindDump: brief.mindDump || '',
+    campaignCanon: bible.campaignCanon || '',
+    dmOverview: bible.dmOverview || '',
+    finalTruth: bible.finalTruth || '',
+    failureState: bible.failureState || '',
+    campaignThemes: bible.campaignThemes || [],
+    campaignQuestions: bible.campaignQuestions || [],
+    acts: bible.acts || [],
+    sessions,
+    recurringNpcs: bible.recurringNpcs || [],
+    factions: bible.factions || [],
+    majorLocations: bible.majorLocations || [],
+    mysteries: bible.mysteries || [],
+    monsters: bible.monsters || [],
+    librarySuggestions: suggestions.filter((s) => !libByName.has(normName(s.title))),
+    linkedLibraryEntryIds: linked.map((e) => e.id),
+    hours: brief.hours,
+    level: brief.level,
+    theme: brief.theme,
+    createdAt: now(),
+    scenes: sessions.flatMap(outlineScenes),
+  };
+  camp = migrateCampaign({ ...camp, foundations: keep.foundations, createdAt: keep.createdAt || camp.createdAt });
+  if (campaignId) dispatch({ type: 'UPDATE_CAMPAIGN', id, patch: camp });
+  else dispatch({ type: 'ADD_CAMPAIGN', c: camp });
+  linked.forEach((e) =>
+    dispatch({ type: 'UPDATE_LIBRARY_ENTRY', id: e.id, patch: { linkedCampaignIds: [...new Set([...(e.linkedCampaignIds || []), id])] } })
+  );
+  onStep('Bible de campagne', 'ok', `${sessions.length} séance(s), ${camp.recurringNpcs.length} PNJ, ${camp.majorLocations.length} lieux`);
+
+  let failed = 0;
+  if (writeAll) {
+    for (const s of sessions) {
+      const label = `Séance ${s.sessionNumber} · ${s.title || ''}`;
+      onStep(label, 'run');
+      try {
+        const patch = await writeCampaignSession({ ai, universe, state, party, camp, sessionNumber: s.sessionNumber, feed });
+        camp = { ...camp, ...patch };
+        dispatch({ type: 'UPDATE_CAMPAIGN', id, patch });
+        onStep(label, 'ok', `${patch.scenes.filter((sc) => sc.sessionNumber === s.sessionNumber).length} scènes`);
+      } catch (e) {
+        failed++;
+        onStep(label, 'err', e.message);
+      }
+    }
+  }
+  return { id, failed };
+}
+
+function Forge({ state, dispatch, universe, party, campaigns, flash, setView, hideList }) {
   const { ai } = useContext(AIContext);
   const feed = useUniverseFeed(universe);
   const startLevel = party[0]?.level || 3;
@@ -6462,77 +6550,12 @@ function Forge({ state, dispatch, universe, party, campaigns, flash, setView }) 
     setErr('');
     setSteps([]);
     try {
-      const ctx = context();
-      step('Bible de campagne', 'run');
-      const bible = await forgeBible(call, ctx, brief);
-      if (bible._parseFailed || (!bible.title && !bible.sessions))
-        throw new Error('L’IA n’a pas renvoyé une campagne lisible. Réessaie, ou choisis un modèle plus puissant dans Réglages.');
-      const sessions = (bible.sessions || []).map((s, i) => ({ ...s, sessionNumber: Number(s.sessionNumber) || i + 1, detailed: false }));
-      const id = uid();
-
-      // Ce que la bibliothèque connaît déjà est lié à la campagne ; le reste est proposé à la création.
-      const lib = Object.values(state.libraryEntries || {}).filter((e) => e.universeId === universe.id);
-      const libByName = new Map(lib.map((e) => [normName(e.title), e]));
-      const suggestions = librarySuggestionsFrom(bible);
-      const linked = [...new Set(suggestions.map((s) => libByName.get(normName(s.title))).filter(Boolean))];
-
-      let camp = {
-        id,
-        title: cleanCampaignTitle(bible.title, brief.title || brief.theme),
-        premise: bible.premise || '',
-        hook: bible.hook || '',
-        setting: bible.setting || '',
-        campaignMode: brief.format,
-        brief: { ...brief },
-        mindDump: brief.mindDump || '',
-        campaignCanon: bible.campaignCanon || '',
-        dmOverview: bible.dmOverview || '',
-        finalTruth: bible.finalTruth || '',
-        failureState: bible.failureState || '',
-        campaignThemes: bible.campaignThemes || [],
-        campaignQuestions: bible.campaignQuestions || [],
-        acts: bible.acts || [],
-        sessions,
-        recurringNpcs: bible.recurringNpcs || [],
-        factions: bible.factions || [],
-        majorLocations: bible.majorLocations || [],
-        mysteries: bible.mysteries || [],
-        monsters: bible.monsters || [],
-        librarySuggestions: suggestions.filter((s) => !libByName.has(normName(s.title))),
-        linkedLibraryEntryIds: linked.map((e) => e.id),
-        hours: brief.hours,
-        level: brief.level,
-        theme: brief.theme,
-        createdAt: now(),
-        scenes: sessions.flatMap(outlineScenes),
-      };
-      dispatch({ type: 'ADD_CAMPAIGN', c: camp });
-      linked.forEach((e) =>
-        dispatch({ type: 'UPDATE_LIBRARY_ENTRY', id: e.id, patch: { linkedCampaignIds: [...new Set([...(e.linkedCampaignIds || []), id])] } })
-      );
-      step('Bible de campagne', 'ok', `${sessions.length} séance(s), ${camp.recurringNpcs.length} PNJ, ${camp.majorLocations.length} lieux`);
-
-      let failed = 0;
-      if (writeAll) {
-        for (const s of sessions) {
-          const label = `Séance ${s.sessionNumber} · ${s.title || ''}`;
-          step(label, 'run');
-          try {
-            const patch = await writeCampaignSession({ ai, universe, state, party, camp, sessionNumber: s.sessionNumber, feed });
-            camp = { ...camp, ...patch };
-            dispatch({ type: 'UPDATE_CAMPAIGN', id, patch });
-            step(label, 'ok', `${patch.scenes.filter((sc) => sc.sessionNumber === s.sessionNumber).length} scènes`);
-          } catch (e) {
-            failed++;
-            step(label, 'err', e.message);
-          }
-        }
-      }
+      const { failed } = await forgeCampaign({ ai, universe, state, party, feed, brief, dispatch, writeAll, onStep: step });
       flash(
         failed
           ? `Campagne forgée : ${failed} séance(s) à reprendre depuis sa fiche.`
           : writeAll
-          ? 'Campagne forgée et entièrement écrite : prête à jouer.'
+          ? 'Campagne forgée et écrite : passe-la au contrôle de préparation.'
           : 'Bible forgée : écris les séances depuis la fiche de la campagne.'
       );
     } catch (e) {
@@ -6679,6 +6702,8 @@ function Forge({ state, dispatch, universe, party, campaigns, flash, setView }) 
         )}
       </div>
 
+      {!hideList && (
+        <>
       <div className="eyebrow">Campagnes forgées</div>
 
       {campaigns.length === 0 ? (
@@ -6692,6 +6717,8 @@ function Forge({ state, dispatch, universe, party, campaigns, flash, setView }) 
             <CampaignCard key={c.id} camp={c} {...{ state, dispatch, universe, party, flash, setView, feed }} />
           ))}
         </div>
+      )}
+        </>
       )}
     </>
   );
@@ -6862,8 +6889,9 @@ function CampaignCard({
   flash,
   setView,
   feed,
+  defaultOpen = false,
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const { ai } = useContext(AIContext);
   const [brainNotes, setBrainNotes] = useState(camp.brainScratch || '');
   const [brainBusy, setBrainBusy] = useState(false);
@@ -7505,7 +7533,7 @@ function CampaignCard({
                         dispatch={dispatch}
                         flash={flash}
                         onAddScene={(sc) => {
-                          const next = toScene(sc, s);
+                          const next = { ...toScene(sc, s), actId: s.actId || '' };
                           dispatch({ type: 'UPDATE_CAMPAIGN', id: camp.id, patch: { scenes: [...camp.scenes, next] } });
                           flash(`Scène ajoutée : ${next.title}`);
                         }}
