@@ -23,7 +23,7 @@ import MapsPage from './maps/MapsPage';
 import TableMap, { tableMapId } from './maps/TableMap';
 import { setMapIntent } from './maps/intent';
 import { placeTokens as placeOnBoard, effectiveOf } from './maps/battle/placement';
-import { tacticalNotes, profileFromStat } from './maps/battle/tactics';
+import { tacticalNotes, profileFromStat, coverAgainst } from './maps/battle/tactics';
 import MiniBattle from './maps/battle/MiniBattle';
 import { sightFor } from './maps/battle/combat';
 import { propose as proposeEncounter, placeTactically, rate as rateEncounter, thresholds as encounterThresholds, xpOf, crOf, THEMES as SKIRMISH_THEMES } from './maps/battle/skirmish';
@@ -5396,7 +5396,9 @@ export default function App() {
             ) : view === 'maps' ? (
               <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} heroes={party} campaigns={campaigns} bestiary={npcs} onReturnToTable={() => setView('scene')}
                 artOf={(name, id) => combatantArtOf(state, (state.combat?.combatants || []).find((c) => c.id === id), faunaFeed) || creatureArtOf(state, name, faunaFeed)}
-                renderCombat={(slot) => slot.area === 'card'
+                renderCombat={(slot) => slot.area === 'attack'
+                  ? <AttackPanel key={slot.battle.aim?.at} state={state} dispatch={dispatch} battle={slot.battle} setBattle={slot.setBattle} />
+                  : slot.area === 'card'
                   ? <TokenSheet state={state} dispatch={dispatch} id={slot.selectedId} battle={slot.battle} onClose={() => slot.onSelect(null)} />
                   : <MapEncounter {...{ state, dispatch, party, npcs, flash }} {...slot} />}
               />
@@ -15088,6 +15090,229 @@ function creatureArtOf(state, name, feed) {
   return !src || /^(data:|https?:|\/)/.test(src) ? src : `/${src}`;
 }
 
+/** Types de dégâts saisis en anglais dans les fiches de héros, en français pour l’affichage. */
+const TYPE_FR = { slashing: 'tranchants', piercing: 'perforants', bludgeoning: 'contondants', fire: 'de feu', cold: 'de froid', force: 'de force', 'force/fire': 'de force', poison: 'de poison', necrotic: 'nécrotiques', radiant: 'radiants', lightning: 'de foudre', thunder: 'de tonnerre', acid: 'd’acide', psychic: 'psychiques', weapon: '' };
+const frDamage = (text) => String(text || '').replace(/\b(slashing|piercing|bludgeoning|force\/fire|fire|cold|force|poison|necrotic|radiant|lightning|thunder|acid|psychic|weapon)\b/gi, (m) => TYPE_FR[m.toLowerCase()] ?? m).trim();
+
+/** Portée d’une attaque, en cases : allonge au contact, ou portée courte / longue à distance. */
+function attackReach(a) {
+  const text = `${a.range || ''} ${a.desc || ''}`;
+  const cells = (m) => Math.round((parseFloat(String(m).replace(',', '.')) * 3.28084) / 5);
+  const al = /allonge\s*([\d,]+)\s*m/i.exec(text);
+  const po = /portée\s*([\d,]+)\s*\/\s*([\d,]+)\s*m/i.exec(text);
+  const ft = /(\d+)\s*(?:[–/-]\s*(\d+)\s*)?ft/i.exec(a.range || '');
+  const melee = al ? cells(al[1]) : 0;
+  let short = po ? cells(po[1]) : 0, long = po ? cells(po[2]) : 0;
+  if (!al && !po && ft) {
+    const n = Number(ft[1]) / 5;
+    if (n <= 2) return { melee: n, short: 0, long: 0 };
+    short = n; long = ft[2] ? Number(ft[2]) / 5 : n;
+  }
+  if (!melee && !short && /corps à corps|mêlée|melee/i.test(text)) return { melee: 1, short: 0, long: 0 };
+  return { melee: melee || (!short ? 1 : 0), short, long };
+}
+
+/** Une arme qu’on tient en main (une épée, un arc) : pas une morsure, un sort ni un trait. */
+const isWieldedWeapon = (a) => !/morsure|griffe|coup|poing|frappe|tentacule|dard|queue|corne|souffle|sort|cantrip|trait mystique|rayon|onde|incantation|attaques multiples/i.test(`${a.name} ${a.type || ''}`);
+const isTwoHanded = (a) => /deux mains|two-handed|arc|arbalète lourde|arbalete lourde|pique|coutille|glaive|maillet|lance d.arçon/i.test(`${a.name} ${a.desc || ''}`);
+const rollDie = (f) => 1 + Math.floor(Math.random() * f);
+const rollDice = (expr) => (String(expr).match(/(\d*)d(\d+)/g) || []).reduce((s, d) => { const [n, f] = d.split('d').map((x) => Number(x || 1)); let t = 0; for (let i = 0; i < n; i++) t += rollDie(f); return s + t; }, 0);
+const doubleDice = (expr) => String(expr).replace(/(\d*)d(\d+)/g, (_, n, f) => `${Number(n || 1) * 2}d${f}`);
+
+/**
+ * Attaque sur la carte : l’attaquant vise une cible (trait tracé, aussi chez les joueurs). Le panneau dit quoi lancer
+ * (bonus, avantage ou désavantage selon la position, abri de la cible), bloque une attaque hors de portée ou avec une
+ * arme qu’on ne tient pas, puis applique les dégâts à partir du résultat des dés.
+ */
+function AttackPanel({ state, dispatch, battle, setBattle }) {
+  const aim = battle.aim;
+  const c = state.combat || {};
+  const combatants = c.combatants || [];
+  const A = combatants.find((x) => x.id === aim.from);
+  const T = combatants.find((x) => x.id === aim.to);
+  const tA = battle.tokens.find((t) => t.id === aim.from);
+  const tT = battle.tokens.find((t) => t.id === aim.to);
+  const [pick, setPick] = useState(null);
+  const [d20, setD20] = useState(['', '']);
+  const [dmg, setDmg] = useState('');
+  const [save, setSave] = useState('');
+  const [done, setDone] = useState(null);
+  const close = () => setBattle({ ...battle, aim: undefined });
+  if (!A || !T || !tA || !tT) return <div className="attack-panel"><p className="muted">Attaquant ou cible absent du combat.</p><button className="btn sm" onClick={close}>Fermer</button></div>;
+
+  const grid = effectiveOf(battle);
+  const dist = Math.max(Math.max(0, tA.x - (tT.x + tT.size - 1), tT.x - (tA.x + tA.size - 1)), Math.max(0, tA.y - (tT.y + tT.size - 1), tT.y - (tA.y + tA.size - 1)));
+  const cover = coverAgainst(battle, grid, tA, tT);
+  const notes = battleTactics(battle, combatants)[A.id] || [];
+  const derived = getCombatantDerivedStats(A);
+  const targetAc = getCombatantDerivedStats(T).ac;
+  const turnKey = `${c.round || 1}:${c.turnIndex || 0}`;
+  const weapons = (A.attacks || []).filter(isWieldedWeapon);
+  const inHand = A.isPC ? (A.wield && weapons.some((w) => w.name === A.wield) ? A.wield : weapons[0]?.name) : null;
+
+  const options = (A.attacks || []).map((a, i) => {
+    const calc = calculateAttackLine(A, a, derived);
+    const reach = attackReach(a);
+    const saveM = /sauvegarde de (\w+)\s*DD\s*(\d+)/i.exec(a.desc || '');
+    const isSave = !!saveM && !/au toucher/i.test(a.desc || '');
+    const melee = reach.melee > 0 && dist <= reach.melee;
+    const ranged = !melee && reach.long > 0 && dist <= reach.long;
+    const why = [];
+    let blocked = '';
+    if (/attaques multiples/i.test(a.name)) blocked = 'Résume les attaques : choisis chacune des attaques ci-dessous.';
+    else if (!melee && !ranged) blocked = `Hors de portée : ${T.name} est à ${dist * 5} pieds (${reach.melee ? `allonge ${reach.melee * 5} pi` : `portée ${reach.short * 5}/${reach.long * 5} pi`}).`;
+    else if (A.isPC && isWieldedWeapon(a) && inHand && inHand !== a.name) {
+      const cur = weapons.find((w) => w.name === inHand);
+      blocked = `${A.name} tient ${cur ? `« ${cur.name} »${isTwoHanded(cur) ? ' à deux mains' : ''}` : 'autre chose'}. Pour utiliser « ${a.name} », il faut changer d’arme.`;
+    }
+    let adv = derived.advantage, dis = derived.disadvantage;
+    if (ranged && dist > reach.short) { dis = true; why.push(`portée longue (au-delà de ${reach.short * 5} pi) : désavantage`); }
+    if (ranged && notes.some((n) => n.label.startsWith('Désavantage à distance'))) { dis = true; why.push('ennemi au contact : désavantage à distance'); }
+    if (melee && notes.some((n) => n.label === `Avantage contre ${T.name} (Tactique de groupe)`)) { adv = true; why.push('Tactique de groupe : avantage'); }
+    if (melee && notes.some((n) => n.label === `Prise en tenaille de ${T.name}`)) why.push('prise en tenaille possible (règle optionnelle : avantage)');
+    const mode = adv && dis ? 'normal' : adv ? 'adv' : dis ? 'dis' : 'normal';
+    return { a, i, calc, reach, melee, ranged, blocked, why, mode, isSave, saveAbility: saveM?.[1], saveDc: saveM ? Number(saveM[2]) : 0 };
+  });
+  const usable = options.filter((o) => !o.blocked);
+  if (!options.length) return <div className="attack-panel"><p className="muted">{A.name} n’a aucune attaque sur sa fiche.</p><button className="btn sm" onClick={close}>Fermer</button></div>;
+  const sel = options.find((o) => o.i === pick) || usable[0] || options[0];
+  const coverAc = cover.level === 3 ? null : cover.ac;
+  const dc = targetAc + (coverAc || 0);
+
+  const switchTo = (name) => {
+    const used = A.interactAt === turnKey;
+    const patch = { wield: name, interactAt: turnKey, dropped: inHand && inHand !== name ? [...new Set([...(A.dropped || []), inHand])] : A.dropped };
+    dispatch({ type: 'COMBAT_SET', patch: { combatants: combatants.map((x) => (x.id === A.id ? { ...x, ...patch } : x)) } });
+    setPick(options.find((o) => o.a.name === name)?.i ?? null);
+    return used;
+  };
+
+  // Jet d’attaque : le dé naturel (deux avec avantage ou désavantage), le bonus s’ajoute.
+  const nat = (() => {
+    const v = d20.map((x) => parseInt(x, 10)).filter((x) => x >= 1 && x <= 20);
+    if (!v.length) return null;
+    if (sel.mode === 'normal' || v.length < 2) return v[0];
+    return sel.mode === 'adv' ? Math.max(...v) : Math.min(...v);
+  })();
+  const total = nat === null ? null : nat + Number(sel.calc.attackBonus || 0);
+  const crit = nat === 20, fumble = nat === 1;
+  const hit = nat === null ? null : fumble ? false : crit ? true : total >= dc;
+
+  // Dégâts : la somme des dés (doublés sur un critique) plus le bonus, ajustée aux résistances de la cible.
+  const stat = tT.statId ? STATS[tT.statId] : null;
+  const rawType = String(sel.calc.damageType || '').toLowerCase();
+  const type = rawType in TYPE_FR ? TYPE_FR[rawType] : rawType;
+  const has = (field) => !!(type && field && skNorm(field).includes(skNorm(type).replace(/s$/, '')));
+  const factor = has(stat?.immune) ? 0 : has(stat?.resist) ? 0.5 : has(stat?.vuln) ? 2 : 1;
+  const dice = sel.calc.damageDice ? (crit ? doubleDice(sel.calc.damageDice) : sel.calc.damageDice) : '';
+  const raw = dmg === '' ? null : Math.max(0, parseInt(dmg, 10) + Number(sel.calc.damageBonus || 0));
+  const saveOk = save === '' ? null : parseInt(save, 10) >= sel.saveDc;
+  const final = raw === null ? null : Math.floor((sel.isSave && saveOk ? raw / 2 : raw) * factor);
+
+  const apply = () => {
+    const hp = Math.max(0, Number(T.hp) - (final || 0));
+    dispatch({ type: 'COMBAT_SET', patch: { combatants: combatants.map((x) => (x.id === T.id ? { ...x, hp } : x)) } });
+    const text = sel.isSave
+      ? `${A.name} → ${T.name} : ${saveOk ? 'sauvegarde réussie' : 'sauvegarde ratée'}, ${final} dégâts`
+      : `${A.name} → ${T.name} : ${crit ? 'Coup critique !' : 'Touché !'} ${final} dégâts${type ? ` ${type}` : ''}`;
+    setBattle({ ...battle, aim: { ...aim, text, tone: crit ? 'crit' : 'hit' } });
+    setDone({ text, hp });
+  };
+  const miss = () => {
+    const text = `${A.name} → ${T.name} : ${fumble ? 'Échec critique !' : 'Raté'}`;
+    setBattle({ ...battle, aim: { ...aim, text, tone: 'miss' } });
+    setDone({ text });
+  };
+  const again = () => { setD20(['', '']); setDmg(''); setSave(''); setDone(null); setBattle({ ...battle, aim: { ...aim, text: undefined, tone: undefined } }); };
+
+  return (
+    <div className="attack-panel">
+      <div className="attack-head">
+        <b>🎯 {A.name} → {T.name}</b>
+        <button type="button" className="token-sheet-close" onClick={close} aria-label="Terminer l’attaque">✕</button>
+      </div>
+      <div className="attack-facts">
+        <span>{dist * 5} pi</span>
+        <span>CA {targetAc}{coverAc ? ` +${coverAc} (abri)` : ''}</span>
+        {cover.level > 0 && <span className="tac-chip tone-buff" tabIndex={0}>🛡 {cover.label}<span className="tac-why" role="tooltip">{cover.why}</span></span>}
+        {aim.by === 'joueurs' && <span className="attack-by">déclarée par les joueurs</span>}
+      </div>
+      {cover.level === 3 && <p className="attack-block">Pas de ligne de vue : {T.name} ne peut pas être pris pour cible directement.</p>}
+
+      <div className="attack-options">
+        {options.map((o) => (
+          <button key={o.i} type="button" className={`attack-option ${o === sel ? 'on' : ''} ${o.blocked ? 'blocked' : ''}`} onClick={() => setPick(o.i)}>
+            <b>{o.a.name}</b>
+            <small>{o.isSave ? `Sauv. ${o.saveAbility} DD ${o.saveDc}` : o.calc.toHit} · {frDamage(o.calc.damage)}</small>
+          </button>
+        ))}
+      </div>
+
+      {sel.blocked ? (
+        <div className="attack-block">
+          <p>⛔ {sel.blocked}</p>
+          {A.isPC && isWieldedWeapon(sel.a) && inHand && inHand !== sel.a.name && sel.ranged + sel.melee > 0 && (
+            <>
+              <p className="muted">Lâcher une arme est gratuit ; dégainer l’autre utilise l’interaction d’objet du tour{A.interactAt === turnKey ? ' — déjà utilisée : il faudra une action' : ' (gratuite)'}.</p>
+              <button className="btn sm" onClick={() => switchTo(sel.a.name)}>Lâcher « {inHand} » et prendre « {sel.a.name} »{A.interactAt === turnKey ? ' (action)' : ''}</button>
+            </>
+          )}
+        </div>
+      ) : done ? (
+        <div className="attack-done">
+          <p><b>{done.text}</b>{done.hp !== undefined ? ` · ${T.name} : ${done.hp}/${T.maxHp} PV` : ''}</p>
+          <div className="skirmish-row wrap">
+            <button className="btn sm" onClick={again}>Attaque suivante</button>
+            <button className="btn sm primary" onClick={close}>Terminer</button>
+          </div>
+        </div>
+      ) : sel.isSave ? (
+        <div className="attack-steps">
+          <p>{T.name} fait une <b>sauvegarde de {sel.saveAbility} DD {sel.saveDc}</b>. Résultat de son jet (total) :</p>
+          <div className="skirmish-row"><input className="input" type="number" value={save} onChange={(e) => setSave(e.target.value)} placeholder="Total" /></div>
+          {saveOk !== null && (
+            <>
+              <p>{saveOk ? 'Réussite : moitié des dégâts.' : 'Échec : dégâts complets.'} Lance <b>{dice || '—'}</b>{sel.calc.damageBonus ? ` ${signed(sel.calc.damageBonus)}` : ''}.</p>
+              <div className="skirmish-row">
+                <input className="input" type="number" value={dmg} onChange={(e) => setDmg(e.target.value)} placeholder="Somme des dés" />
+                <button className="btn sm" onClick={() => setDmg(String(rollDice(dice)))}>🎲 Lancer</button>
+              </div>
+              {final !== null && <button className="btn sm primary" onClick={apply}>Appliquer {final} dégâts à {T.name}{factor !== 1 ? ` (${factor === 0 ? 'immunité' : factor < 1 ? 'résistance' : 'vulnérabilité'})` : ''}</button>}
+            </>
+          )}
+        </div>
+      ) : (
+        <div className="attack-steps">
+          <p>Lance <b>{sel.mode === 'normal' ? '1d20' : `2d20 (${sel.mode === 'adv' ? 'garde le meilleur' : 'garde le pire'})`} {signed(sel.calc.attackBonus)}</b>{sel.calc.attackDice?.length ? ` ${sel.calc.attackDice.join(' ')}` : ''} contre <b>{dc}</b>.</p>
+          {sel.why.length > 0 && <p className="muted attack-why">{sel.why.join(' · ')}</p>}
+          <div className="skirmish-row">
+            <input className="input" type="number" min="1" max="20" value={d20[0]} onChange={(e) => setD20([e.target.value, d20[1]])} placeholder="d20" />
+            {sel.mode !== 'normal' && <input className="input" type="number" min="1" max="20" value={d20[1]} onChange={(e) => setD20([d20[0], e.target.value])} placeholder="2e d20" />}
+            <button className="btn sm" onClick={() => setD20([String(rollDie(20)), String(rollDie(20))])}>🎲 Lancer</button>
+          </div>
+          {hit !== null && (
+            <p className={`attack-verdict ${hit ? 'hit' : 'miss'}`}>
+              {nat}{sel.mode !== 'normal' && d20[1] ? ` (sur ${d20[0]} et ${d20[1]})` : ''} {signed(sel.calc.attackBonus)} = <b>{total}</b> → {crit ? 'Coup critique !' : fumble ? 'Échec critique' : hit ? 'Touché' : 'Raté'}
+            </p>
+          )}
+          {hit === false && <button className="btn sm" onClick={miss}>Annoncer : raté</button>}
+          {hit && (
+            <>
+              <p>Dégâts : lance <b>{dice || '—'}</b>{sel.calc.damageBonus ? ` ${signed(sel.calc.damageBonus)}` : ''}{type ? ` ${type}` : ''}{crit ? ' (dés doublés)' : ''}.</p>
+              <div className="skirmish-row">
+                <input className="input" type="number" value={dmg} onChange={(e) => setDmg(e.target.value)} placeholder="Somme des dés" />
+                <button className="btn sm" onClick={() => setDmg(String(rollDice(dice)))}>🎲 Lancer</button>
+              </div>
+              {final !== null && <button className="btn sm primary" onClick={apply}>Appliquer {final} dégâts à {T.name}{factor !== 1 ? ` (${factor === 0 ? 'immunité' : factor < 1 ? 'résistance' : 'vulnérabilité'})` : ''}</button>}
+            </>
+          )}
+        </div>
+      )}
+      {A.isPC && inHand && <p className="muted attack-hand">En main : {inHand}{A.dropped?.length ? ` · au sol : ${A.dropped.join(', ')}` : ''}</p>}
+    </div>
+  );
+}
+
 /** Aperçu de la fiche du jeton sélectionné sur la carte de combat : l’essentiel pour jouer son tour. */
 function TokenSheet({ state, dispatch, id, battle, onClose }) {
   const { feed: archiveFeed } = useUnderdarkFeed();
@@ -16515,6 +16740,12 @@ function calculateAttackLine(combatant, attack, derived) {
           totalDamageBonus ? ` ${dmgSign}${totalDamageBonus}` : ''
         }${damageType ? ' ' + damageType : ''}`
       : '—',
+    // Valeurs brutes, pour résoudre l’attaque sur la carte (jet du d20, puis des dégâts).
+    attackBonus: flatAttack,
+    attackDice: derived.attackDice || [],
+    damageDice,
+    damageBonus: totalDamageBonus,
+    damageType,
   };
 }
 function abilityMod(score) {

@@ -29,7 +29,9 @@ export type PlayerBoard =
     /** Brouillard de guerre : cases vues par les héros, et déjà explorées. Absent = tout le plateau est visible. */
     fog?: { visible: number[]; explored: number[] };
     /** Sorties au bord du plateau, avec leur destination si les héros la connaissent. */
-    exits?: { cell: number; dir: 'n' | 's' | 'e' | 'w'; label: string; known: boolean }[] };
+    exits?: { cell: number; dir: 'n' | 's' | 'e' | 'w'; label: string; known: boolean }[];
+    /** Attaque en cours : trait de l'attaquant à la cible, et résultat annoncé. */
+    aim?: { from: string; to: string; text?: string; tone?: 'hit' | 'miss' | 'crit' | 'info' } };
 
 export type Stage =
   | { kind: 'blank' }
@@ -37,7 +39,8 @@ export type Stage =
   | { kind: 'image'; title: string; dataUrl: string }
   | { kind: 'board'; board: PlayerBoard };
 
-export type StageMessage = { type: 'hello' } | { type: 'stage'; stage: Stage };
+/** `aim` : depuis l'écran joueur, un héros déclare qu'il attaque une cible (le MJ résout). */
+export type StageMessage = { type: 'hello' } | { type: 'stage'; stage: Stage } | { type: 'aim'; from: string; to: string };
 
 const CHANNEL = 'loresmith:stage:v1';
 
@@ -59,12 +62,14 @@ export function openStageChannel(onMessage: (m: StageMessage) => void) {
 let host: BroadcastChannel | null = null;
 let current: Stage = { kind: 'blank' };
 const helloListeners = new Set<() => void>();
+const aimListeners = new Set<(from: string, to: string) => void>();
 
 /** À appeler une fois dans la console MJ : répond aux écrans joueurs qui se connectent. */
 export function hostStage() {
   if (host) return;
   host = new BroadcastChannel(CHANNEL);
   host.onmessage = (e: MessageEvent<StageMessage>) => {
+    if (e.data?.type === 'aim') { const { from, to } = e.data; aimListeners.forEach((f) => f(from, to)); return; }
     if (e.data?.type !== 'hello') return;
     host?.postMessage({ type: 'stage', stage: current } satisfies StageMessage);
     helloListeners.forEach((f) => f());
@@ -86,4 +91,11 @@ export function onPlayerHello(listener: () => void) {
   hostStage();
   helloListeners.add(listener);
   return () => { helloListeners.delete(listener); };
+}
+
+/** Préviens quand un joueur déclare une attaque depuis l'écran joueur. Renvoie la fonction de désinscription. */
+export function onPlayerAim(listener: (from: string, to: string) => void) {
+  hostStage();
+  aimListeners.add(listener);
+  return () => { aimListeners.delete(listener); };
 }

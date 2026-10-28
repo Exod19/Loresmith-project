@@ -50,6 +50,8 @@ type Props = {
   fog?: { visible: number[]; explored: number[]; dm?: boolean };
   /** Sorties au bord du plateau (écran joueur) : flèche vers l'extérieur et destination si elle est connue. */
   exits?: { cell: number; dir: 'n' | 's' | 'e' | 'w'; label: string; known: boolean }[];
+  /** Trait d'attaque : du centre de l'attaquant à celui de la cible (en cases). `pending` : la cible n'est pas encore choisie. */
+  aim?: { x1: number; y1: number; x2: number; y2: number; tone?: 'hit' | 'miss' | 'crit' | 'info'; pending?: boolean; label?: string };
 };
 
 /** Icône de chaque catégorie de lieu. */
@@ -202,7 +204,7 @@ function cellUnder(ev: ReactMouseEvent<SVGElement>, cols: number, rows: number) 
   return x >= 0 && y >= 0 && x < cols && y < rows ? { x, y } : undefined;
 }
 
-export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview, labels = [], highlight, fog, exits = [] }: Props) {
+export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview, labels = [], highlight, fog, exits = [], aim }: Props) {
   const lines: string[] = [];
   for (let x = 0; x <= cols; x++) lines.push(`M${x} 0V${rows}`);
   for (let y = 0; y <= rows; y++) lines.push(`M0 ${y}H${cols}`);
@@ -348,6 +350,19 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
         );
       })}
 
+      {aim && (() => {
+        const dx = aim.x2 - aim.x1, dy = aim.y2 - aim.y1, len = Math.hypot(dx, dy) || 1;
+        const ux = dx / len, uy = dy / len, end = Math.max(0, len - 0.45);
+        const ex = aim.x1 + ux * end, ey = aim.y1 + uy * end;
+        return (
+          <g className={`battle-aim tone-${aim.tone ?? 'info'} ${aim.pending ? 'pending' : ''}`} pointerEvents="none">
+            <line x1={aim.x1 + ux * 0.45} y1={aim.y1 + uy * 0.45} x2={ex} y2={ey} strokeWidth={0.09} strokeLinecap="round" />
+            <path d={`M${ex + ux * 0.22} ${ey + uy * 0.22} L${ex - uy * 0.16 - ux * 0.1} ${ey + ux * 0.16 - uy * 0.1} L${ex + uy * 0.16 - ux * 0.1} ${ey - ux * 0.16 - uy * 0.1}Z`} />
+            {!aim.pending && <circle cx={aim.x2} cy={aim.y2} r={0.52} fill="none" strokeWidth={0.06} strokeDasharray="0.18 0.1" />}
+            {aim.label && <text x={(aim.x1 + aim.x2) / 2} y={(aim.y1 + aim.y2) / 2 - 0.25} textAnchor="middle" fontSize={0.32}>{aim.label}</text>}
+          </g>
+        );
+      })()}
     </svg>
     </div>
   );

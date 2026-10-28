@@ -151,6 +151,8 @@ export interface Battle {
   log?: { id: string; text: string; tone?: 'hit' | 'miss' | 'crit' | 'info' }[];
   /** Brouillard de guerre (écran joueur) : actif ou non, et cases déjà explorées pour ce terrain (`source`). */
   fog?: { on: boolean; source?: string; explored: number[] };
+  /** Attaque en cours sur le plateau : qui vise qui (trait tracé, aussi chez les joueurs) et le résultat annoncé. */
+  aim?: { from: string; to: string; at: number; text?: string; tone?: 'hit' | 'miss' | 'crit' | 'info'; by?: 'joueurs' };
 }
 
 /** `edits` : index de case → type de terrain, posé à la main. `props` : objets déposés sur une case. */
