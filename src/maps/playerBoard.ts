@@ -12,7 +12,16 @@ import { CREATURE_LORE, KIND_LORE } from './battle/lore';
 import { isSearchable } from './battle/search';
 import { describeLite } from './atlas/lore';
 import { STATS } from './atlas/statblocks';
-import type { PlayerBoard, PlayerElement, PlayerToken } from '../present/stage';
+import type { PlayerBoard, PlayerElement, PlayerToken, PlayerTurn } from '../present/stage';
+import { initiativeOrder } from './battle/combat';
+import type { BattleToken } from './mapStore';
+
+/** État d'une créature en mots, comme le perçoivent les héros (jamais ses PV). */
+export function woundState(t: Pick<BattleToken, 'hp' | 'maxHp'>): string | undefined {
+  if (t.hp === undefined || !t.maxHp) return undefined;
+  const r = t.hp / t.maxHp;
+  return r <= 0 ? 'Hors de combat' : r >= 1 ? 'Indemne' : r > 0.5 ? 'Blessé' : r > 0.25 ? 'En sang' : 'À l’agonie';
+}
 
 /** Carte telle que les joueurs la voient, sur le plan choisi, centrée sur `focus` si le MJ l'a demandé. */
 export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus?: { kind: 'anchor' | 'point'; id: string; tick: number }): PlayerBoard {
@@ -25,10 +34,12 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
   const b = rec.battle ?? DEFAULT_BATTLE;
   const tokens: PlayerToken[] = b.tokens
     .filter((t) => t.visible)
-    .map(({ id, name, kind, x, y, size, icon, image, statId }) => {
+    .map(({ id, name, kind, x, y, size, icon, image, statId, hp, maxHp }) => {
       const portrait = tokenImage({ kind, statId, image });
       return {
         id, name, kind, x, y, size, icon, image: portrait, statId,
+        active: id === b.turn || undefined,
+        ...(kind === 'pc' ? { hp, maxHp } : { state: woundState({ hp, maxHp }) }),
         info: { subtitle: (statId && STATS[statId]?.meta) || undefined, text: (statId && CREATURE_LORE[statId]) || KIND_LORE[kind], image: artOf?.(name, id) || portrait },
       };
     });
@@ -63,8 +74,21 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
   const terrain = b.terrain
     ? applyBuild(effectiveGrid(b.terrain.grid, local?.elements ?? [], revealed, (local?.elements ?? []).map((e) => e.id)), b.build)
     : undefined;
+  // Ordre d'initiative : les combattants cachés n'y figurent pas, et leur tour ne désigne personne.
+  const shown = new Map(tokens.map((t) => [t.id, t]));
+  const ordered = initiativeOrder(b.tokens.filter((t) => t.init !== undefined));
+  const turn: PlayerTurn | undefined = ordered.length && b.turn
+    ? {
+      active: shown.has(b.turn) ? b.turn : null,
+      // Rangé à partir de celui qui joue (ou, s'il est caché, du prochain visible) : « ensuite » suit le vrai ordre.
+      order: [...ordered.slice(Math.max(0, ordered.findIndex((t) => t.id === b.turn))), ...ordered.slice(0, Math.max(0, ordered.findIndex((t) => t.id === b.turn)))].filter((t) => shown.has(t.id)).map((t) => {
+        const p = shown.get(t.id)!;
+        return { id: t.id, name: t.name, kind: t.kind, image: p.info?.image || p.image, state: t.kind === 'pc' ? undefined : p.state };
+      }),
+    }
+    : undefined;
   return {
     mode: 'battle', title: local?.place ?? rec.title, backdrop: rec.image, cols: b.cols, rows: b.rows,
-    feetPerCell: b.feetPerCell, round: b.round, tokens, terrain, elements,
+    feetPerCell: b.feetPerCell, round: b.round, tokens, terrain, elements, turn,
   };
 }
