@@ -26,7 +26,7 @@ import { advanceBattle, isOut, passiveOfToken, sightOf, statOf } from './combat'
 import { moveAlerts, type Note } from './tactics';
 import { partyVision } from './fog';
 import { exitAt, exitsOf } from './trailRules';
-import { onPlayerAim } from '../../present/stage';
+import { onPlayerAim, onPlayerMove } from '../../present/stage';
 import { detectLabel, trailProfile } from '../atlas/trails';
 import { describeLite } from '../atlas/lore';
 import { placeEncounter, type EncounterGroup } from './encounter';
@@ -127,7 +127,17 @@ export default function BattleMode({
   useEffect(() => onPlayerAim((from, to) => {
     const cur = latest.current;
     if (!cur.tokens.some((t) => t.id === from) || !cur.tokens.some((t) => t.id === to)) return;
+    // Un héros ne déclare une attaque que pendant son tour.
+    if (cur.turn && cur.turn !== from && cur.tokens.find((t) => t.id === from)?.kind === 'pc') return;
     onBattle({ ...cur, aim: { from, to, at: Date.now(), by: 'joueurs' } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), []);
+  // Un jeton glissé sur l'écran joueur : déplacé ici si la case est libre et praticable (jamais un jeton caché).
+  useEffect(() => onPlayerMove((id, x, y) => {
+    const cur = latest.current;
+    const t = cur.tokens.find((q) => q.id === id);
+    if (!t || !t.visible || (t.x === x && t.y === y) || !fits(latestView.current, id, t.size, x, y)) return;
+    onBattle({ ...cur, tokens: cur.tokens.map((q) => (q.id === id ? { ...q, x, y } : q)) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), []);
   const build: BattleBuild = b.build ?? { edits: {}, props: [] };
@@ -138,6 +148,8 @@ export default function BattleMode({
   // Une seule source de vérité : les éléments révélés de la fiche (« Montrer aux joueurs »).
   const discovered = rec.overlay?.revealed ?? [];
   const bv: Battle = b.local ? { ...b, local: { ...b.local, discovered } } : b;
+  const latestView = useRef(bv);
+  latestView.current = bv;
   const grid = effectiveOf(bv);
   const placeTitle = context?.title ?? b.local?.place ?? rec.title;
 
@@ -631,7 +643,7 @@ export default function BattleMode({
               cols={b.cols} rows={b.rows} backdrop={rec.image} terrain={grid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
               onCell={onBoardCell} onElement={(id) => { if (boardElements.some((e) => e.id === id)) setInfoId(id); }} onHover={(x, y) => setHover({ x, y })}
               preview={stroke && brush.tool === 'terrain' ? stroke.cells : undefined}
-              labels={labels} highlight={highlight} fog={fogLayer} exits={dmExits} aim={aimLine}
+              labels={labels} highlight={highlight} fog={fogLayer} exits={dmExits} aim={aimLine} hits={b.hits}
             />
             {(() => {
               const live = dragged && drag ? moveAlerts(bv, dragged.id, { x: drag.origin.x + drag.cur.x - drag.start.x, y: drag.origin.y + drag.cur.y - drag.start.y }) : null;

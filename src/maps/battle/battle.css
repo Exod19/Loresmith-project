@@ -599,3 +599,64 @@
 .attack-verdict.hit b{color:#ff9a6e}.attack-verdict.miss b{color:#9aa6b4}
 .attack-done p{margin:0 0 6px}
 .attack-hand{font-size:11.5px;margin:0}
+
+/* Dégâts et soins écrits en grand au-dessus des jetons (MJ et écran joueur). */
+.battle-hit{font-family:'Cinzel',serif;font-weight:700;stroke:#0b0906;stroke-width:.09px;transform-box:fill-box;transform-origin:center;
+  animation:battle-hit 3.8s cubic-bezier(.2,.7,.2,1) forwards}
+.battle-hit.dmg{fill:#ff5a3c;filter:drop-shadow(0 0 .08px rgba(255,90,60,.9))}
+.battle-hit.heal{fill:#9be37b;filter:drop-shadow(0 0 .08px rgba(155,227,123,.9))}
+@keyframes battle-hit{0%{opacity:0;transform:translateY(.4px) scale(.4)}10%{opacity:1;transform:translateY(0) scale(1.25)}20%{transform:scale(1)}75%{opacity:1}100%{opacity:0;transform:translateY(-1.2px) scale(.95)}}
+@media (prefers-reduced-motion:reduce){.battle-hit{animation:battle-hit-fade 3.8s linear forwards}@keyframes battle-hit-fade{0%,75%{opacity:1}100%{opacity:0}}}
+
+/* ---------------- Écran joueur : lisible de loin ---------------- */
+/* Interrupteurs de déplacement et de portée du héros dont c'est le tour. */
+.present-battle-head{align-items:center;gap:1.5vw}
+.present-toggles{display:flex;gap:.8vw;flex-wrap:wrap;justify-content:center;letter-spacing:0}
+.present-toggles button{font:inherit;font-family:'EB Garamond',Georgia,serif;font-size:clamp(14px,1.9vh,22px);padding:.5vh 1.2vw;border-radius:999px;cursor:pointer;
+  border:1px solid #5a4724;background:rgba(12,10,7,.85);color:#cdbd96}
+.present-toggles button[data-on]{border-color:#54d8c6;color:#e8fffb;background:rgba(84,216,198,.14);box-shadow:0 0 14px rgba(84,216,198,.25)}
+.present-battle-body{touch-action:none}
+.present-battle-body .battle-token{cursor:grab}
+.present-battle-body[data-dragging] .battle-token{cursor:grabbing}
+.present-aim-wait{margin-top:10px;color:#cdbd96;font-style:italic}
+
+/* Initiative en grand : visage et nom de celui qui joue, puis les suivants. */
+.present-turn{gap:2.4vw;margin:.4vh 0 1.2vh}
+.present-turn-now{gap:1.4vw;padding:.8vh 2.2vw .8vh .8vh}
+.present-turn-now img,.present-turn-now .present-turn-initial{width:clamp(72px,12vh,150px);height:clamp(72px,12vh,150px);border-width:3px}
+.present-turn-text small{font-size:clamp(13px,1.8vh,20px)}
+.present-turn-text b{font-size:clamp(28px,5vh,64px)}
+.present-turn-text em{font-size:clamp(15px,2.2vh,24px)}
+.present-turn-next{gap:1.8vw}
+.present-turn-next li{gap:.7vw;font-size:clamp(16px,2.6vh,30px);color:#e6d7ae;font-family:'Cinzel',serif}
+.present-turn-next li img,.present-turn-next li .present-turn-initial{width:clamp(46px,7.5vh,96px);height:clamp(46px,7.5vh,96px);border-width:2px}
+.present-turn-next .present-turn-label{font-size:clamp(12px,1.6vh,18px)}
+
+/* Verdict d'une attaque : en très grand, la phrase de récit, puis les dégâts. */
+.present-verdict{align-self:center;max-width:min(92vw,1300px);margin:0 0 1vh;padding:1.2vh 2.6vw 1.4vh;border-radius:18px;text-align:center;
+  border:2px solid #c9a24a;background:radial-gradient(ellipse at 50% 0%,rgba(201,162,74,.22),transparent 70%),rgba(10,8,5,.94);
+  box-shadow:0 0 40px rgba(201,162,74,.25);animation:verdict-in .55s cubic-bezier(.2,.9,.25,1.2) both}
+.present-verdict-top{display:flex;align-items:center;justify-content:center;gap:2vw}
+.present-verdict-top b{font-family:var(--font-joueurs-titre,'Cinzel Decorative','Cinzel',serif);font-size:clamp(34px,7vh,92px);line-height:1;color:#fff3c4;text-shadow:0 0 24px rgba(255,220,140,.5)}
+.present-verdict-roll{font-family:'Cinzel',serif;font-size:clamp(22px,4vh,52px);color:#e6d7ae;padding:.2vh 1vw;border-radius:12px;border:1px solid #5a4724;background:rgba(0,0,0,.35)}
+.present-verdict-dmg{display:inline-flex;align-items:baseline;gap:.5vw;font-family:'Cinzel',serif;font-weight:700;font-size:clamp(40px,8.5vh,110px);line-height:1;color:#ff5a3c;
+  text-shadow:0 0 28px rgba(255,90,60,.6);animation:verdict-dmg .6s cubic-bezier(.2,.9,.25,1.4) both}
+.present-verdict-dmg small{font-size:.32em;font-weight:400;color:#f0b8a0}
+.present-verdict-who{margin:.6vh 0 0;font-family:'Cinzel',serif;font-size:clamp(14px,2vh,24px);letter-spacing:.06em;color:#cdbd96}
+.present-verdict-line{margin:.6vh auto 0;max-width:62ch;font-family:var(--font-joueurs,'Almendra',Georgia,serif);font-size:clamp(18px,3vh,38px);line-height:1.3;color:#f6e8c4}
+.present-verdict.v-hit{border-color:#ff8a5c;box-shadow:0 0 40px rgba(255,138,92,.35)}
+.present-verdict.v-crit{border-color:#ffcf5c;box-shadow:0 0 60px rgba(255,190,80,.55)}
+.present-verdict.v-crit .present-verdict-top b{color:#ffe08a}
+.present-verdict.v-miss{border-color:#7d8794;box-shadow:0 0 30px rgba(125,135,148,.25)}
+.present-verdict.v-miss .present-verdict-top b{color:#d5dbe2;text-shadow:none}
+.present-verdict.v-fumble{border-color:#9c7bd6;box-shadow:0 0 40px rgba(156,123,214,.4)}
+.present-verdict.v-fumble .present-verdict-top b{color:#d8c6ff}
+@keyframes verdict-in{from{opacity:0;transform:scale(.8) translateY(-1vh)}to{opacity:1;transform:none}}
+@keyframes verdict-dmg{from{opacity:0;transform:scale(2.2)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.present-verdict,.present-verdict-dmg{animation:none}}
+
+/* Panneau d'attaque MJ : cible et phrase annoncée. */
+.attack-target{display:flex;align-items:center;gap:8px;margin:6px 0}
+.attack-target span{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.08em;color:var(--gold,#c9a24a)}
+.attack-target select{flex:1}
+.attack-line{font-style:italic;color:#e6d7ae;margin:4px 0}

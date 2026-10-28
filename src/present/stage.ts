@@ -9,7 +9,12 @@ import type { AtlasData } from '../maps/atlas/types';
 /** `info` : fiche en jeu montrée quand un joueur clique sur le jeton. */
 export type PlayerToken = { id: string; name: string; kind: 'pc' | 'monster' | 'other'; x: number; y: number; size: 1 | 2; icon?: string; image?: string; statId?: string; info?: { subtitle?: string; text?: string; image?: string };
   /** C'est son tour. PV : chiffres pour les héros seulement ; les créatures n'ont qu'un état en mots. */
-  active?: boolean; hp?: number; maxHp?: number; state?: string };
+  active?: boolean; hp?: number; maxHp?: number; state?: string;
+  /** Héros : déplacement en cases et portée de l'arme en main (allonge, portée courte et longue, en cases). */
+  move?: number; reach?: { melee: number; short: number; long: number; weapon?: string } };
+
+/** Dégâts (amount < 0) ou soins reçus par un jeton, écrits en grand au-dessus de lui. */
+export type BoardHit = { id: string; to: string; amount: number; at: number };
 
 /** Ordre d'initiative montré aux joueurs : seulement les combattants visibles. `active` : null si celui qui joue est caché. */
 export type PlayerTurn = { active: string | null; order: { id: string; name: string; kind: PlayerToken['kind']; image?: string; state?: string }[] };
@@ -31,7 +36,11 @@ export type PlayerBoard =
     /** Sorties au bord du plateau, avec leur destination si les héros la connaissent. */
     exits?: { cell: number; dir: 'n' | 's' | 'e' | 'w'; label: string; known: boolean }[];
     /** Attaque en cours : trait de l'attaquant à la cible, et résultat annoncé. */
-    aim?: { from: string; to: string; text?: string; tone?: 'hit' | 'miss' | 'crit' | 'info' } };
+    aim?: { from: string; to: string; text?: string; tone?: 'hit' | 'miss' | 'crit' | 'info'; at?: number;
+      /** Verdict du jet pour toucher, total obtenu, phrase de récit, et dégâts infligés une fois appliqués. */
+      verdict?: 'hit' | 'crit' | 'miss' | 'fumble'; roll?: number; line?: string; damage?: number; weapon?: string };
+    /** Dégâts et soins récents, à écrire en grand sur le plateau. */
+    hits?: BoardHit[] };
 
 export type Stage =
   | { kind: 'blank' }
@@ -40,7 +49,8 @@ export type Stage =
   | { kind: 'board'; board: PlayerBoard };
 
 /** `aim` : depuis l'écran joueur, un héros déclare qu'il attaque une cible (le MJ résout). */
-export type StageMessage = { type: 'hello' } | { type: 'stage'; stage: Stage } | { type: 'aim'; from: string; to: string };
+/** `move` : depuis l'écran joueur, un jeton est glissé sur une autre case (le MJ valide). */
+export type StageMessage = { type: 'hello' } | { type: 'stage'; stage: Stage } | { type: 'aim'; from: string; to: string } | { type: 'move'; id: string; x: number; y: number };
 
 const CHANNEL = 'loresmith:stage:v1';
 
@@ -63,6 +73,7 @@ let host: BroadcastChannel | null = null;
 let current: Stage = { kind: 'blank' };
 const helloListeners = new Set<() => void>();
 const aimListeners = new Set<(from: string, to: string) => void>();
+const moveListeners = new Set<(id: string, x: number, y: number) => void>();
 
 /** À appeler une fois dans la console MJ : répond aux écrans joueurs qui se connectent. */
 export function hostStage() {
@@ -70,6 +81,7 @@ export function hostStage() {
   host = new BroadcastChannel(CHANNEL);
   host.onmessage = (e: MessageEvent<StageMessage>) => {
     if (e.data?.type === 'aim') { const { from, to } = e.data; aimListeners.forEach((f) => f(from, to)); return; }
+    if (e.data?.type === 'move') { const { id, x, y } = e.data; moveListeners.forEach((f) => f(id, x, y)); return; }
     if (e.data?.type !== 'hello') return;
     host?.postMessage({ type: 'stage', stage: current } satisfies StageMessage);
     helloListeners.forEach((f) => f());
@@ -98,4 +110,11 @@ export function onPlayerAim(listener: (from: string, to: string) => void) {
   hostStage();
   aimListeners.add(listener);
   return () => { aimListeners.delete(listener); };
+}
+
+/** Préviens quand un jeton est glissé depuis l'écran joueur. Renvoie la fonction de désinscription. */
+export function onPlayerMove(listener: (id: string, x: number, y: number) => void) {
+  hostStage();
+  moveListeners.add(listener);
+  return () => { moveListeners.delete(listener); };
 }

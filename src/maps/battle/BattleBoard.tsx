@@ -52,6 +52,8 @@ type Props = {
   exits?: { cell: number; dir: 'n' | 's' | 'e' | 'w'; label: string; known: boolean }[];
   /** Trait d'attaque : du centre de l'attaquant à celui de la cible (en cases). `pending` : la cible n'est pas encore choisie. */
   aim?: { x1: number; y1: number; x2: number; y2: number; tone?: 'hit' | 'miss' | 'crit' | 'info'; pending?: boolean; label?: string };
+  /** Dégâts (amount < 0) et soins récents, écrits en grand au-dessus des jetons quelques secondes. */
+  hits?: { id: string; to: string; amount: number; at: number }[];
 };
 
 /** Icône de chaque catégorie de lieu. */
@@ -204,7 +206,7 @@ function cellUnder(ev: ReactMouseEvent<SVGElement>, cols: number, rows: number) 
   return x >= 0 && y >= 0 && x < cols && y < rows ? { x, y } : undefined;
 }
 
-export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview, labels = [], highlight, fog, exits = [], aim }: Props) {
+export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview, labels = [], highlight, fog, exits = [], aim, hits = [] }: Props) {
   const lines: string[] = [];
   for (let x = 0; x <= cols; x++) lines.push(`M${x} 0V${rows}`);
   for (let y = 0; y <= rows; y++) lines.push(`M0 ${y}H${cols}`);
@@ -363,6 +365,23 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
           </g>
         );
       })()}
+
+      {/* Dégâts et soins : un grand chiffre qui monte et s'efface au-dessus du jeton touché. */}
+      {hits.map((h) => {
+        const t = tokens.find((q) => q.id === h.to);
+        if (!t || Date.now() - h.at > 4000) return null;
+        const stack = hits.filter((o) => o.to === h.to && o.at < h.at && Date.now() - o.at <= 4000).length;
+        const cx = t.x + t.size / 2, cy = t.y - 0.15 - stack * 0.75;
+        const heal = h.amount > 0;
+        return (
+          <text
+            key={h.id} className={`battle-hit ${heal ? 'heal' : 'dmg'}`} x={cx} y={cy} textAnchor="middle"
+            fontSize={0.95 + Math.min(0.6, Math.abs(h.amount) / 40)} pointerEvents="none" paintOrder="stroke"
+          >
+            {heal ? `+${h.amount}` : h.amount}
+          </text>
+        );
+      })}
     </svg>
     </div>
   );

@@ -29,6 +29,7 @@ import { sightFor } from './maps/battle/combat';
 import { propose as proposeEncounter, placeTactically, rate as rateEncounter, thresholds as encounterThresholds, xpOf, crOf, THEMES as SKIRMISH_THEMES } from './maps/battle/skirmish';
 import { registerStat, quickStat, QUICK_CRS, customStats } from './maps/atlas/customStats';
 import ArchivesPage from './feeds/ArchivesPage';
+import { attackFamily, attackLine } from './combat/flavour';
 import ArchivesLinkPanel from './feeds/ArchivesLink';
 import Dossier, { LibraryCard } from './library/Dossier';
 import StageControl from './present/StageControl';
@@ -13465,6 +13466,24 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
   function rollAttack(t, index) {
     const attack = (t?.attacks || [])[index];
     if (!attack) return;
+    if (t.isPC && activeCombatant && activeCombatant.id !== t.id) {
+      flash(`Ce n’est pas le tour de ${t.name} : un héros n’attaque que pendant son tour.`);
+      return;
+    }
+    // Sur la carte de combat, l’attaque passe par le panneau d’attaque : cible la plus proche, arme choisie.
+    if (embedded?.battle) {
+      const b = embedded.battle;
+      const me = b.tokens.find((q) => q.id === t.id);
+      if (me) {
+        const gap = (q) => Math.max(Math.abs(q.x - me.x), Math.abs(q.y - me.y));
+        const foes = b.tokens.filter((q) => q.id !== t.id && (q.kind === 'pc') !== (me.kind === 'pc') && Number(q.hp ?? 1) > 0);
+        const target = [...foes].sort((x, y) => gap(x) - gap(y))[0] || b.tokens.find((q) => q.id !== t.id);
+        if (target) {
+          embedded.setBattle({ ...b, aim: { from: t.id, to: target.id, at: Date.now(), pick: index } });
+          return;
+        }
+      }
+    }
     const r = rollCombatAttack(t, attack);
     setLastRoll(r);
     const verdict = r.crit ? ' — CRITIQUE' : r.fumble ? ' — échec automatique' : '';
@@ -13954,7 +13973,7 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
                 <button
                   type="button"
                   className="wt-btn"
-                  disabled={!selectedCombatant.attacks?.length}
+                  disabled={!selectedCombatant.attacks?.length || (selectedCombatant.isPC && selectedCombatant.id !== activeCombatant?.id)}
                   onClick={() => rollAttack(selectedCombatant, 0)}
                   title="Lancer la première attaque (A)"
                 >
@@ -14208,7 +14227,7 @@ function WarInspector({
       <section className="wt-sec">
         <div className="wt-sec-head">
           <h4>Attaques rapides</h4>
-          <span className="wt-note">Cliquer pour lancer</span>
+          <span className="wt-note">{t.isPC && !isActive ? 'À son tour seulement' : 'Cliquer pour lancer'}</span>
         </div>
         {roll && (
           <div key={roll.key} className="wt-roll" data-crit={roll.crit ? 1 : 0} data-fumble={roll.fumble ? 1 : 0} aria-live="polite">
@@ -14239,7 +14258,7 @@ function WarInspector({
               const left = Number(attack.usesLeft ?? max);
               return (
                 <div key={i} className="wt-attack" data-spent={max > 0 && left <= 0 ? 1 : 0}>
-                  <button type="button" className="wt-attack-roll" onClick={() => ops.rollAttack(t, i)} title={`Lancer : ${ac.toHit} · ${ac.damage}`}>
+                  <button type="button" className="wt-attack-roll" disabled={t.isPC && !isActive} onClick={() => ops.rollAttack(t, i)} title={t.isPC && !isActive ? `${t.name} attaquera à son tour` : `Lancer : ${ac.toHit} · ${ac.damage}`}>
                     <span className="wt-attack-ico" aria-hidden="true"><Dices size={16} /></span>
                     <span className="wt-attack-text">
                       <b>{attack.name}</b>
@@ -14987,16 +15006,26 @@ function useBattleSync({ state, dispatch, party, npcs, battle, setBattle, combat
       return condKey(x.conditions) === key && x.condsAt === key ? x : { ...x, conditions: list, condsAt: key };
     });
 
-    // Ce que le module Combat décide (PV, CA, nom, initiative) se voit sur le plateau.
+    // Ce que le module Combat décide (PV, CA, nom, initiative, états ; déplacement et arme en main des héros) se voit
+    // sur le plateau. Chaque perte ou gain de PV est noté pour être écrit en grand au-dessus du jeton.
     const byId = new Map(nextComb.map((x) => [x.id, x]));
+    const now = Date.now();
+    const hits = [];
     nextTokens = nextTokens.map((t) => {
       const x = byId.get(t.id);
       if (!x) return t;
       const ac = getCombatantDerivedStats(x).ac;
       const init = x.init === '' || x.init === undefined ? undefined : Number(x.init);
       const sameConds = condKey(t.conditions) === condKey(x.conditions);
-      const same = t.hp === Number(x.hp) && t.maxHp === Number(x.maxHp) && t.ac === Number(ac) && t.name === x.name && t.init === init && sameConds;
-      return same ? t : { ...t, hp: Number(x.hp), maxHp: Number(x.maxHp), ac: Number(ac), name: x.name, init, ...(sameConds ? {} : { conditions: [...(x.conditions || [])] }) };
+      const hero = x.isPC ? heroReachOf(x) : null;
+      const sameHero = !hero || (t.move === hero.move && JSON.stringify(t.reach) === JSON.stringify(hero.reach));
+      const same = t.hp === Number(x.hp) && t.maxHp === Number(x.maxHp) && t.ac === Number(ac) && t.name === x.name && t.init === init && sameConds && sameHero;
+      if (t.hp !== undefined && Number(x.hp) !== t.hp) hits.push({ id: uid(), to: t.id, amount: Number(x.hp) - t.hp, at: now });
+      return same ? t : {
+        ...t, hp: Number(x.hp), maxHp: Number(x.maxHp), ac: Number(ac), name: x.name, init,
+        ...(sameConds ? {} : { conditions: [...(x.conditions || [])] }),
+        ...(hero ? { move: hero.move, reach: hero.reach } : {}),
+      };
     });
 
     const sorted = [...nextComb].sort((a, b) => (Number(b.init) || 0) - (Number(a.init) || 0));
@@ -15009,7 +15038,8 @@ function useBattleSync({ state, dispatch, party, npcs, battle, setBattle, combat
     const syncedChanged = synced.length !== (c.syncedIds || []).length || synced.some((id, i) => id !== c.syncedIds[i]);
     if (combChanged || syncedChanged) dispatch({ type: 'COMBAT_SET', patch: { ...(combChanged ? { combatants: nextComb } : {}), syncedIds: synced } });
     const tokensChanged = nextTokens.length !== tokens.length || nextTokens.some((t, i) => t !== tokens[i]);
-    if (tokensChanged || battle.turn !== turn || battle.round !== round) setBattle({ ...battle, tokens: nextTokens, turn, round });
+    const recentHits = hits.length ? [...(battle.hits || []).filter((h) => now - h.at < 8000), ...hits].slice(-12) : battle.hits;
+    if (tokensChanged || battle.turn !== turn || battle.round !== round) setBattle({ ...battle, tokens: nextTokens, turn, round, hits: recentHits });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bound, combatants, battle.tokens, c.turnIndex, c.round, c.syncedIds]);
   return bound;
@@ -15095,6 +15125,18 @@ const TYPE_FR = { slashing: 'tranchants', piercing: 'perforants', bludgeoning: '
 const frDamage = (text) => String(text || '').replace(/\b(slashing|piercing|bludgeoning|force\/fire|fire|cold|force|poison|necrotic|radiant|lightning|thunder|acid|psychic|weapon)\b/gi, (m) => TYPE_FR[m.toLowerCase()] ?? m).trim();
 
 /** Portée d’une attaque, en cases : allonge au contact, ou portée courte / longue à distance. */
+/** Déplacement (en cases) et portée de l’arme en main d’un héros, pour l’écran joueur. */
+function heroReachOf(x) {
+  const sp = String(x.speed || '30 ft.');
+  const n = parseFloat(sp.replace(',', '.')) || 30;
+  const move = Math.max(1, Math.round((/\bm\b|mètre/i.test(sp) ? n * 3.28084 : n) / 5));
+  const weapons = (x.attacks || []).filter(isWieldedWeapon);
+  const name = x.wield && weapons.some((w) => w.name === x.wield) ? x.wield : weapons[0]?.name;
+  const a = (x.attacks || []).find((q) => q.name === name) || (x.attacks || [])[0];
+  if (!a) return { move, reach: { melee: 1, short: 0, long: 0 } };
+  return { move, reach: { ...attackReach(a), weapon: a.name } };
+}
+
 function attackReach(a) {
   const text = `${a.range || ''} ${a.desc || ''}`;
   const cells = (m) => Math.round((parseFloat(String(m).replace(',', '.')) * 3.28084) / 5);
@@ -15132,11 +15174,17 @@ function AttackPanel({ state, dispatch, battle, setBattle }) {
   const T = combatants.find((x) => x.id === aim.to);
   const tA = battle.tokens.find((t) => t.id === aim.from);
   const tT = battle.tokens.find((t) => t.id === aim.to);
-  const [pick, setPick] = useState(null);
+  const [pick, setPick] = useState(aim.pick ?? null);
   const [d20, setD20] = useState(['', '']);
   const [dmg, setDmg] = useState('');
   const [save, setSave] = useState('');
   const [done, setDone] = useState(null);
+  const [reaction, setReaction] = useState(false);
+  const announceTimer = useRef(null);
+  // L’annonce part après une courte pause de saisie : elle s’applique au plateau tel qu’il est à ce moment-là.
+  const battleRef = useRef(battle);
+  battleRef.current = battle;
+  useEffect(() => () => clearTimeout(announceTimer.current), []);
   const close = () => setBattle({ ...battle, aim: undefined });
   if (!A || !T || !tA || !tT) return <div className="attack-panel"><p className="muted">Attaquant ou cible absent du combat.</p><button className="btn sm" onClick={close}>Fermer</button></div>;
 
@@ -15179,6 +15227,43 @@ function AttackPanel({ state, dispatch, battle, setBattle }) {
   const coverAc = cover.level === 3 ? null : cover.ac;
   const dc = targetAc + (coverAc || 0);
 
+  // Un héros n’attaque que pendant son tour (sauf réaction : attaque d’opportunité).
+  const offTurn = A.isPC && battle.turn && battle.turn !== A.id && !reaction;
+  const foes = combatants.filter((x) => x.id !== A.id && battle.tokens.some((t) => t.id === x.id));
+  const retarget = (to) => {
+    clearTimeout(announceTimer.current);
+    setD20(['', '']); setDmg(''); setSave(''); setDone(null);
+    setBattle({ ...battle, aim: { from: aim.from, to, at: aim.at, by: aim.by } });
+  };
+  const family = attackFamily(sel.a, String(sel.calc.damageType || ''), sel.ranged);
+
+  /** Verdict d’un jet pour toucher (les d20 saisis), annoncé aux joueurs avec une phrase de récit. */
+  const verdictOf = (dice) => {
+    const v = dice.map((x) => parseInt(x, 10)).filter((x) => x >= 1 && x <= 20);
+    if (!v.length || (sel.mode !== 'normal' && v.length < 2)) return null;
+    const n = sel.mode === 'normal' ? v[0] : sel.mode === 'adv' ? Math.max(...v) : Math.min(...v);
+    const tot = n + Number(sel.calc.attackBonus || 0);
+    const verdict = n === 20 ? 'crit' : n === 1 ? 'fumble' : tot >= dc ? 'hit' : 'miss';
+    return { verdict, roll: tot };
+  };
+  const announce = (dice, delay = 700) => {
+    clearTimeout(announceTimer.current);
+    const v = verdictOf(dice);
+    if (!v) return;
+    announceTimer.current = setTimeout(() => {
+      const cur = battleRef.current;
+      if (cur.aim?.at !== aim.at || cur.aim?.to !== aim.to) return;
+      const keep = cur.aim?.verdict === v.verdict && cur.aim?.line;
+      const line = keep || attackLine(family, v.verdict, { A: A.name, T: T.name, W: sel.a.name });
+      const label = { crit: 'Coup critique !', hit: 'Touché !', miss: 'Raté', fumble: 'Échec critique !' }[v.verdict];
+      setBattle({
+        ...cur,
+        aim: { ...cur.aim, verdict: v.verdict, roll: v.roll, line, weapon: sel.a.name, damage: undefined, text: `${A.name} → ${T.name} : ${label}`, tone: v.verdict === 'crit' ? 'crit' : v.verdict === 'hit' ? 'hit' : 'miss' },
+      });
+    }, delay);
+  };
+  const setDice = (next, delay) => { setD20(next); announce(next, delay); };
+
   const switchTo = (name) => {
     const used = A.interactAt === turnKey;
     const patch = { wield: name, interactAt: turnKey, dropped: inHand && inHand !== name ? [...new Set([...(A.dropped || []), inHand])] : A.dropped };
@@ -15215,15 +15300,25 @@ function AttackPanel({ state, dispatch, battle, setBattle }) {
     const text = sel.isSave
       ? `${A.name} → ${T.name} : ${saveOk ? 'sauvegarde réussie' : 'sauvegarde ratée'}, ${final} dégâts`
       : `${A.name} → ${T.name} : ${crit ? 'Coup critique !' : 'Touché !'} ${final} dégâts${type ? ` ${type}` : ''}`;
-    setBattle({ ...battle, aim: { ...aim, text, tone: crit ? 'crit' : 'hit' } });
+    clearTimeout(announceTimer.current);
+    const verdict = sel.isSave ? 'hit' : crit ? 'crit' : 'hit';
+    const line = sel.isSave ? '' : battle.aim?.line || attackLine(family, verdict, { A: A.name, T: T.name, W: sel.a.name });
+    setBattle({ ...battle, aim: { ...aim, text, tone: crit ? 'crit' : 'hit', verdict, roll: total ?? undefined, line, weapon: sel.a.name, damage: final } });
     setDone({ text, hp });
   };
   const miss = () => {
+    clearTimeout(announceTimer.current);
+    const verdict = fumble ? 'fumble' : 'miss';
     const text = `${A.name} → ${T.name} : ${fumble ? 'Échec critique !' : 'Raté'}`;
-    setBattle({ ...battle, aim: { ...aim, text, tone: 'miss' } });
+    const line = battle.aim?.verdict === verdict && battle.aim?.line ? battle.aim.line : attackLine(family, verdict, { A: A.name, T: T.name, W: sel.a.name });
+    setBattle({ ...battle, aim: { ...aim, text, tone: 'miss', verdict, roll: total ?? undefined, line, weapon: sel.a.name } });
     setDone({ text });
   };
-  const again = () => { setD20(['', '']); setDmg(''); setSave(''); setDone(null); setBattle({ ...battle, aim: { ...aim, text: undefined, tone: undefined } }); };
+  const again = () => {
+    clearTimeout(announceTimer.current);
+    setD20(['', '']); setDmg(''); setSave(''); setDone(null);
+    setBattle({ ...battle, aim: { from: aim.from, to: aim.to, at: aim.at, by: aim.by } });
+  };
 
   return (
     <div className="attack-panel">
@@ -15231,6 +15326,12 @@ function AttackPanel({ state, dispatch, battle, setBattle }) {
         <b>🎯 {A.name} → {T.name}</b>
         <button type="button" className="token-sheet-close" onClick={close} aria-label="Terminer l’attaque">✕</button>
       </div>
+      <label className="attack-target">
+        <span>Cible</span>
+        <select className="input" value={T.id} onChange={(e) => retarget(e.target.value)}>
+          {foes.map((x) => <option key={x.id} value={x.id}>{x.name}{x.isPC ? ' (héros)' : ''} · {x.hp}/{x.maxHp} PV</option>)}
+        </select>
+      </label>
       <div className="attack-facts">
         <span>{dist * 5} pi</span>
         <span>CA {targetAc}{coverAc ? ` +${coverAc} (abri)` : ''}</span>
@@ -15248,7 +15349,15 @@ function AttackPanel({ state, dispatch, battle, setBattle }) {
         ))}
       </div>
 
-      {sel.blocked ? (
+      {offTurn ? (
+        <div className="attack-block">
+          <p>⛔ Ce n’est pas le tour de {A.name} : un héros n’attaque que pendant son tour.</p>
+          <div className="skirmish-row wrap">
+            <button className="btn sm" onClick={() => setReaction(true)} title="Réaction : attaque d’opportunité quand un ennemi quitte son allonge">C’est une réaction (attaque d’opportunité)</button>
+            <button className="btn sm" onClick={close}>Fermer</button>
+          </div>
+        </div>
+      ) : sel.blocked ? (
         <div className="attack-block">
           <p>⛔ {sel.blocked}</p>
           {A.isPC && isWieldedWeapon(sel.a) && inHand && inHand !== sel.a.name && sel.ranged + sel.melee > 0 && (
@@ -15286,16 +15395,17 @@ function AttackPanel({ state, dispatch, battle, setBattle }) {
           <p>Lance <b>{sel.mode === 'normal' ? '1d20' : `2d20 (${sel.mode === 'adv' ? 'garde le meilleur' : 'garde le pire'})`} {signed(sel.calc.attackBonus)}</b>{sel.calc.attackDice?.length ? ` ${sel.calc.attackDice.join(' ')}` : ''} contre <b>{dc}</b>.</p>
           {sel.why.length > 0 && <p className="muted attack-why">{sel.why.join(' · ')}</p>}
           <div className="skirmish-row">
-            <input className="input" type="number" min="1" max="20" value={d20[0]} onChange={(e) => setD20([e.target.value, d20[1]])} placeholder="d20" />
-            {sel.mode !== 'normal' && <input className="input" type="number" min="1" max="20" value={d20[1]} onChange={(e) => setD20([d20[0], e.target.value])} placeholder="2e d20" />}
-            <button className="btn sm" onClick={() => setD20([String(rollDie(20)), String(rollDie(20))])}>🎲 Lancer</button>
+            <input className="input" type="number" min="1" max="20" value={d20[0]} onChange={(e) => setDice([e.target.value, d20[1]])} onKeyDown={(e) => { if (e.key === 'Enter') announce(d20, 0); }} placeholder="d20" aria-label="Résultat du d20" />
+            {sel.mode !== 'normal' && <input className="input" type="number" min="1" max="20" value={d20[1]} onChange={(e) => setDice([d20[0], e.target.value])} onKeyDown={(e) => { if (e.key === 'Enter') announce(d20, 0); }} placeholder="2e d20" aria-label="Second d20" />}
+            <button className="btn sm" onClick={() => setDice([String(rollDie(20)), String(rollDie(20))], 0)}>🎲 Lancer</button>
           </div>
           {hit !== null && (
             <p className={`attack-verdict ${hit ? 'hit' : 'miss'}`}>
               {nat}{sel.mode !== 'normal' && d20[1] ? ` (sur ${d20[0]} et ${d20[1]})` : ''} {signed(sel.calc.attackBonus)} = <b>{total}</b> → {crit ? 'Coup critique !' : fumble ? 'Échec critique' : hit ? 'Touché' : 'Raté'}
             </p>
           )}
-          {hit === false && <button className="btn sm" onClick={miss}>Annoncer : raté</button>}
+          {hit !== null && battle.aim?.line && <p className="attack-line">« {battle.aim.line} »</p>}
+          {hit === false && <button className="btn sm" onClick={miss}>Terminer : raté</button>}
           {hit && (
             <>
               <p>Dégâts : lance <b>{dice || '—'}</b>{sel.calc.damageBonus ? ` ${signed(sel.calc.damageBonus)}` : ''}{type ? ` ${type}` : ''}{crit ? ' (dés doublés)' : ''}.</p>

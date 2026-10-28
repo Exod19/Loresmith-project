@@ -467,3 +467,4 @@
   .wt[data-inmap="1"] .wt-desk-foot{bottom:176px}
   .ls-root .wrap.lsx-content:has(.wt[data-inmap="1"]){padding-bottom:230px}
 }
+.wt-attack-roll:disabled{opacity:.5;cursor:not-allowed;box-shadow:none;border-color:var(--wt-edge)}
