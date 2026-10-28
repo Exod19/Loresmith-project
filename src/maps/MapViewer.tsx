@@ -2,7 +2,7 @@
  * Visionneuse de carte : plan interactif, repères, rencontres, combat sur grille, et projection vers l'écran joueur.
  * Mode MJ : tout est visible, notes comprises. La projection montre aux joueurs ce qu'ils doivent voir, et se met à jour en direct.
  */
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import MapCanvas, { type Layers, type MapMark } from './atlas/MapCanvas';
 import { CATEGORIES } from './atlas/model';
 import { describe as describeFeature, dmFeature } from './atlas/lore';
@@ -34,8 +34,10 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 /** Repère en cours de placement : le prochain clic sur la carte le crée. */
 type Draft = { kind: MarkerKind; title: string; summary?: string; notes?: string; groups?: MapMarker['groups'] };
 
-export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false, onReturn, renderCombat, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [] }: {
+export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false, onReturn, renderCombat, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [], artOf }: {
   rec: MapRecord; atlas: AtlasData; dm: boolean; onDm: (v: boolean) => void;
+  /** Illustration d'une créature par son nom, pour l'écran joueur. */
+  artOf?: (name: string) => string;
   onUpdate: (patch: Partial<MapRecord>) => void; onBack: () => void;
   /** Personnages du groupe, pour les ajouter au combat. */
   heroes?: Hero[];
@@ -171,10 +173,14 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     [atlas, map.id, rec.kind],
   );
 
+  // Fonction changée à chaque rendu : lue par référence pour ne pas relancer la projection.
+  const artRef = useRef(artOf);
+  artRef.current = artOf;
+
   // Projection : toute modification de la carte, du repérage ou du combat part vers l'écran joueur.
   useEffect(() => {
     if (!projecting) return;
-    publishStage({ kind: 'board', board: battleOpen ? battleBoard(rec) : mapBoard(rec, atlas, map.id, focus ?? undefined) });
+    publishStage({ kind: 'board', board: battleOpen ? battleBoard(rec, (name) => artRef.current?.(name) ?? '') : mapBoard(rec, atlas, map.id, focus ?? undefined) });
   }, [projecting, battleOpen, rec, atlas, map.id, focus]);
 
   /** Amène la vue joueurs sur ce lieu : le révèle si besoin, centre la carte chez eux, et démarre la projection. */

@@ -118,21 +118,34 @@ function PlayerBattle({ board }: { board: Extract<PlayerBoard, { mode: 'battle' 
         <span>{board.title}</span>
         <span>Round {board.round}</span>
       </header>
-      <BattleBoard
-        cols={board.cols} rows={board.rows} backdrop={board.backdrop} terrain={board.terrain} elements={board.elements} tokens={board.tokens}
-        onElement={(id) => setOpenId((cur) => (cur === id ? null : id))}
-      />
-      {card && (
-        <aside className="present-card" role="dialog" aria-label={card.title}>
-          {card.image && <img className="present-card-img" src={card.image} alt={card.title} />}
-          <div className="present-card-body">
+      <div className="present-battle-body" data-card={card ? 1 : undefined}>
+        <BattleBoard
+          cols={board.cols} rows={board.rows} backdrop={board.backdrop} terrain={board.terrain} elements={board.elements} tokens={board.tokens}
+          onElement={(id) => setOpenId((cur) => (cur === id ? null : id))}
+        />
+        {card && (
+          <aside key={openId} className="present-card" data-kind={card.kind} role="dialog" aria-label={card.title}>
             <button className="present-info-close" onClick={() => setOpenId(null)} aria-label="Fermer">×</button>
-            <span className="present-info-kind">{card.icon && <>{card.icon} </>}{card.subtitle}</span>
-            <h3>{card.title}</h3>
-            {card.text && card.text.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
-          </div>
-        </aside>
-      )}
+            {card.image ? (
+              <figure className="present-card-hero">
+                <img src={card.image} alt="" />
+                <figcaption>
+                  <span className="present-info-kind">{card.icon && <>{card.icon} </>}{card.subtitle}</span>
+                  <h3>{card.title}</h3>
+                </figcaption>
+              </figure>
+            ) : (
+              <header className="present-card-head">
+                <span className="present-info-kind">{card.icon && <>{card.icon} </>}{card.subtitle}</span>
+                <h3>{card.title}</h3>
+              </header>
+            )}
+            <div className="present-card-body">
+              {card.text && card.text.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
+            </div>
+          </aside>
+        )}
+      </div>
     </div>
   );
 }
@@ -142,10 +155,14 @@ function cardFor(board: Extract<PlayerBoard, { mode: 'battle' }>, id: string) {
   const el = board.elements.find((e) => e.id === id);
   if (el) {
     const image = el.info?.image ?? (CATEGORY_IMG[el.category] ? vignette(CATEGORY_IMG[el.category]) : undefined);
-    return { title: el.title, subtitle: el.info?.subtitle ?? KIND_NAME[el.kind], icon: CATEGORY_ICON[el.category], text: el.info?.text, image };
+    const kind = el.kind === 'passage' ? (el.secret ? 'secret' : 'passage') : el.info?.subtitle === 'Objet' ? 'butin' : 'lieu';
+    return { kind, title: el.title, subtitle: el.info?.subtitle ?? KIND_NAME[el.kind], icon: CATEGORY_ICON[el.category], text: el.info?.text, image };
   }
   const token = board.tokens.find((t) => t.id === id);
-  if (token) return { title: token.name, subtitle: token.info?.subtitle ?? KIND_NAME_TOKEN[token.kind], icon: undefined, text: token.info?.text, image: token.info?.image };
+  if (token) {
+    const kind = token.kind === 'monster' ? 'creature' : token.kind === 'pc' ? 'pc' : 'repere';
+    return { kind, title: token.name, subtitle: token.info?.subtitle ?? KIND_NAME_TOKEN[token.kind], icon: undefined, text: token.info?.text, image: token.info?.image };
+  }
   return null;
 }
 
