@@ -449,3 +449,15 @@
 .combat-tactics{display:flex;flex-direction:column;gap:4px;margin-bottom:6px}
 @container (max-width: 760px){ .maps-viewer .skirmish-add{grid-template-columns:minmax(0,1fr)} .maps-viewer .skirmish-now{margin-left:0;flex-basis:100%} }
 .skirmish-body>.btn{align-self:flex-start}
+/* Page Combat : carte de combat à droite au lieu de la mini-map */
+.combat-layout-advanced.with-board{grid-template-columns:minmax(0,1fr) minmax(420px,46%)}
+.combat-side-switch{display:flex;gap:4px}
+.combat-side-switch button{padding:3px 8px;font-size:12px;border-radius:5px;border:1px solid #4a3c22;background:#17130c;color:#cdbd96;cursor:pointer}
+.combat-side-switch button[data-on="1"]{background:#5a4320;border-color:#c9a24a;color:#f3e6c2}
+.combat-board-pick{width:100%;margin-bottom:6px}
+.mini-battle{display:flex;flex-direction:column;gap:6px}
+.mini-battle-board{position:relative;touch-action:none;cursor:pointer}
+.mini-battle-board.dragging{cursor:grabbing}
+.mini-battle-board .battle-stack{position:relative}
+.mini-battle-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px}
+@media (max-width:1100px){.combat-layout-advanced.with-board{grid-template-columns:1fr}}

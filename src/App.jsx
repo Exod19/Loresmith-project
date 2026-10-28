@@ -24,6 +24,7 @@ import TableMap, { tableMapId } from './maps/TableMap';
 import { setMapIntent } from './maps/intent';
 import { placeTokens as placeOnBoard, effectiveOf } from './maps/battle/placement';
 import { tacticalNotes, profileFromStat } from './maps/battle/tactics';
+import MiniBattle from './maps/battle/MiniBattle';
 import { propose as proposeEncounter, placeTactically, rate as rateEncounter, thresholds as encounterThresholds, xpOf, crOf, THEMES as SKIRMISH_THEMES } from './maps/battle/skirmish';
 import { registerStat, quickStat, QUICK_CRS, customStats } from './maps/atlas/customStats';
 import ArchivesPage from './feeds/ArchivesPage';
@@ -13096,6 +13097,15 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded }) {
   const c = state.combat || { combatants: [], round: 1 };
   const [dmg, setDmg] = useState({});
   const [infoModal, setInfoModal] = useState(null);
+  const [sideMap, setSideMap] = useState(() => { try { return localStorage.getItem('loresmith:combat-side-map') || 'mini'; } catch { return 'mini'; } });
+  const chooseSideMap = (v) => { setSideMap(v); try { localStorage.setItem('loresmith:combat-side-map', v); } catch { /* préférence non gardée */ } };
+  // Page Combat avec la carte à droite : la situation tactique (abri, menaces) vient du plateau lié au combat.
+  const boundMap = !embedded && sideMap === 'board' ? state.maps?.[String(state.combat?.battleKey || '').split(':')[0]] : null;
+  const boardTactics = useMemo(
+    () => (boundMap?.battle && battleKeyOf(boundMap) === state.combat?.battleKey ? battleTactics(boundMap.battle, state.combat?.combatants || []) : null),
+    [boundMap, state.combat],
+  );
+  const tacticsById = embedded?.tactics || boardTactics;
   const [localSelection, setLocalSelection] = useState('');
   const selectedTokenId = embedded ? embedded.selectedId || '' : localSelection;
   const setSelectedTokenId = embedded ? (id) => embedded.onSelect?.(id || null) : setLocalSelection;
@@ -13346,7 +13356,7 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded }) {
         </>
       )}
 
-      <div className="combat-layout-advanced">
+      <div className={`combat-layout-advanced ${!embedded && sideMap === 'board' ? 'with-board' : ''}`}>
         <main className="combat-main-col">
           <div className="panel combat-control-panel">
             <div className="row" style={{ alignItems: 'center' }}>
@@ -13458,7 +13468,7 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded }) {
                 sourceNpc={npcs.find((n) => n.id === t.sourceId)}
                 dmg={dmg[t.id] || ''}
                 selected={selectedTokenId === t.id}
-                tactics={embedded?.tactics?.[t.id]}
+                tactics={tacticsById?.[t.id]}
                 onSelect={() => setSelectedTokenId(t.id)}
                 onDmgChange={(v) => setDmg((d) => ({ ...d, [t.id]: v }))}
                 onHit={() => applyHp(t.id, +1)}
@@ -13493,10 +13503,17 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded }) {
           <div className="panel combat-map-panel">
             <div className="combat-panel-head">
               <div>
-                <b>Mini-map</b>
-                <span>1 case = 5 ft.</span>
+                <b>{sideMap === 'board' ? 'Carte de combat' : 'Mini-map'}</b>
+                <span>{sideMap === 'board' ? 'Le plateau de la carte, synchronisé' : '1 case = 5 ft.'}</span>
+              </div>
+              <div className="combat-side-switch" role="tablist">
+                <button type="button" data-on={sideMap === 'mini' ? 1 : 0} onClick={() => chooseSideMap('mini')}>Mini-map</button>
+                <button type="button" data-on={sideMap === 'board' ? 1 : 0} onClick={() => chooseSideMap('board')}>Carte de combat</button>
               </div>
             </div>
+            {sideMap === 'board' ? (
+              <CombatBoardPanel state={state} dispatch={dispatch} party={party} npcs={npcs} selectedId={selectedTokenId} onSelect={setSelectedTokenId} />
+            ) : (<>
 
             <div className="combat-map-tools">
               <button
@@ -13535,6 +13552,7 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded }) {
               onMove={moveToken}
               onToggleBlocked={toggleBlockedCell}
             />
+            </>)}
           </div>
           )}
 
@@ -13555,7 +13573,7 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded }) {
             round={c.round}
             place={embedded?.place}
             positions={embedded?.positions}
-            tactics={embedded?.tactics}
+            tactics={tacticsById}
           />
         </aside>
       </div>
@@ -13928,7 +13946,43 @@ function SkirmishPanel({ battle, setBattle, combatants, party, dispatch, place, 
  * Ajouter un combattant pose son jeton ; un jeton ajouté sur la carte devient un combattant ; retirer l’un retire
  * l’autre ; PV, CA, nom, initiative et tour en cours se reportent sur le plateau. Un autre lieu = un autre combat.
  */
-function MapEncounter({ state, dispatch, party, npcs, flash, battle, setBattle, place, combatKey, selectedId, onSelect }) {
+/** Clé du combat d’un plateau (même calcul que la carte de combat) : une autre zone = un autre combat. */
+const battleKeyOf = (m) => `${m.id}:${m.battle?.local?.source ?? m.battle?.terrain?.source ?? 'plateau'}`;
+
+/**
+ * Carte de combat dans la page Combat (à la place de la mini-map) : le plateau de la carte liée au combat, synchronisé
+ * avec les combattants comme sous la carte.
+ */
+function CombatBoardPanel({ state, dispatch, party, npcs, selectedId, onSelect }) {
+  const maps = Object.values(state.maps || {}).filter((m) => m.battle && (!state.activeUniverseId || m.universeId === state.activeUniverseId));
+  const boundId = String(state.combat?.battleKey || '').split(':')[0];
+  const [pick, setPick] = useState(null);
+  const rec = maps.find((m) => m.id === (pick || boundId)) || maps.find((m) => m.battle.tokens?.length) || maps[0];
+  if (!rec) return <p className="combat-map-help">Aucune carte de combat pour l’instant : ouvre une carte, puis « ⚔ Ouvrir la carte de combat ».</p>;
+  return (
+    <>
+      {maps.length > 1 && (
+        <select className="input combat-board-pick" value={rec.id} onChange={(e) => setPick(e.target.value)}>
+          {maps.map((m) => <option key={m.id} value={m.id}>{m.battle.local?.place || m.title}</option>)}
+        </select>
+      )}
+      <CombatBoardSync key={battleKeyOf(rec)} {...{ state, dispatch, party, npcs, selectedId, onSelect, rec }} />
+    </>
+  );
+}
+
+function CombatBoardSync({ state, dispatch, party, npcs, selectedId, onSelect, rec }) {
+  const setBattle = (b) => dispatch({ type: 'UPDATE_MAP', id: rec.id, patch: { battle: b, updatedAt: Date.now() } });
+  const bound = useBattleSync({ state, dispatch, party, npcs, battle: rec.battle, setBattle, combatKey: battleKeyOf(rec) });
+  if (!bound) return <p className="muted">Préparation du combat…</p>;
+  return <MiniBattle battle={rec.battle} onBattle={setBattle} selectedId={selectedId || null} onSelect={(id) => onSelect(id || '')} />;
+}
+
+/**
+ * Synchronise le module Combat et un plateau de carte de combat (mêmes identifiants) : entrée dans le combat, ajouts,
+ * retraits, PV, CA, nom, initiative et tour en cours. Renvoie `true` une fois le combat lié à ce plateau.
+ */
+function useBattleSync({ state, dispatch, party, npcs, battle, setBattle, combatKey }) {
   const c = state.combat || { combatants: [], round: 1 };
   const combatants = c.combatants || [];
   const bound = c.battleKey === combatKey;
@@ -13987,6 +14041,13 @@ function MapEncounter({ state, dispatch, party, npcs, flash, battle, setBattle, 
     if (tokensChanged || battle.turn !== turn || battle.round !== round) setBattle({ ...battle, tokens: nextTokens, turn, round });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bound, combatants, battle.tokens, c.turnIndex, c.round, c.syncedIds]);
+  return bound;
+}
+
+function MapEncounter({ state, dispatch, party, npcs, flash, battle, setBattle, place, combatKey, selectedId, onSelect }) {
+  const c = state.combat || { combatants: [], round: 1 };
+  const combatants = c.combatants || [];
+  const bound = useBattleSync({ state, dispatch, party, npcs, battle, setBattle, combatKey });
 
   const positions = Object.fromEntries(battle.tokens.map((t) => [t.id, { x: t.x, y: t.y, visible: t.visible }]));
   const tactics = useMemo(() => battleTactics(battle, combatants), [battle, combatants]);
