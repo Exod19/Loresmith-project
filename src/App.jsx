@@ -5389,7 +5389,9 @@ export default function App() {
               <ArchivesPage universe={universe} dispatch={dispatch} flash={flash} />
             ) : view === 'maps' ? (
               <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} heroes={party} campaigns={campaigns} bestiary={npcs} onReturnToTable={() => setView('scene')}
-                renderCombat={(slot) => <MapEncounter {...{ state, dispatch, party, npcs, flash }} {...slot} />}
+                renderCombat={(slot) => slot.area === 'card'
+                  ? <TokenSheet state={state} dispatch={dispatch} id={slot.selectedId} onClose={() => slot.onSelect(null)} />
+                  : <MapEncounter {...{ state, dispatch, party, npcs, flash }} {...slot} />}
               />
             ) : view === 'present' ? (
               <StageControl {...{ universe, state, flash }} />
@@ -13691,6 +13693,122 @@ function MapEncounter({ state, dispatch, party, npcs, flash, battle, setBattle, 
         <span className="muted map-encounter-hint">Glisse les jetons sur le plateau ; tout le reste se gère ici.</span>
       </div>
       <Encounter {...{ dispatch, state, party, npcs, flash }} embedded={{ selectedId, onSelect, place, positions }} />
+    </div>
+  );
+}
+
+/** Aperçu de la fiche du jeton sélectionné sur la carte de combat : l’essentiel pour jouer son tour. */
+function TokenSheet({ state, dispatch, id, onClose }) {
+  const [amount, setAmount] = useState('');
+  const [open, setOpen] = useState(null);
+  const combatants = state.combat?.combatants || [];
+  const t = combatants.find((x) => x.id === id);
+  if (!t) return <p className="muted token-sheet-empty">Ce jeton n’est pas (encore) dans le combat.</p>;
+
+  const derived = getCombatantDerivedStats(t);
+  const hp = Number(t.hp || 0);
+  const maxHp = Math.max(1, Number(t.maxHp || 1));
+  const pct = Math.round((hp / maxHp) * 100);
+  const col = pct > 50 ? 'var(--verdant)' : pct > 20 ? 'var(--ember)' : 'var(--blood)';
+  const sign = (n) => (n >= 0 ? `+${n}` : `${n}`);
+  const perception = String(t.skills || '').match(/perception\s*\+?(-?\d+)/i);
+  const passive = 10 + (perception ? Number(perception[1]) : abilityMod(t.wis || 10));
+  const active = (t.effects || []).filter((e) => e.active);
+  const traits = (t.effects || []).filter((e) => !e.active && e.source === 'Trait');
+  const patch = (p) => dispatch({ type: 'COMBAT_SET', patch: { combatants: combatants.map((x) => (x.id === t.id ? { ...x, ...p } : x)) } });
+  const applyHp = (dir) => {
+    const v = parseInt(amount, 10);
+    if (!v) return;
+    patch({ hp: Math.max(0, Math.min(maxHp, hp - dir * v)) });
+    setAmount('');
+  };
+  const lines = [
+    ['Sauvegardes', t.saves], ['Compétences', t.skills], ['Sens', t.senses], ['Langues', t.languages],
+  ].filter(([, v]) => v);
+
+  return (
+    <div className="token-sheet">
+      <div className="token-sheet-head">
+        <div>
+          <b>{t.name}</b>
+          <span>{[t.kind, t.cr ? `FP ${t.cr}` : '', t.isPC && t.level ? `niv. ${t.level}` : ''].filter(Boolean).join(' · ')}</span>
+        </div>
+        <button type="button" className="token-sheet-close" onClick={onClose} aria-label="Fermer la fiche">✕</button>
+      </div>
+
+      <div className="token-sheet-hp">
+        <div className="token-sheet-bar"><i style={{ width: `${pct}%`, background: col }} /></div>
+        <span><b>{hp}</b> / {maxHp} PV{hp === 0 ? ' · à terre' : ''}</span>
+        <div className="token-sheet-hp-row">
+          <input
+            type="number" min="0" placeholder="PV" value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') applyHp(+1); }}
+          />
+          <button type="button" className="btn sm danger" onClick={() => applyHp(+1)}>Dégâts</button>
+          <button type="button" className="btn sm" onClick={() => applyHp(-1)}>Soin</button>
+        </div>
+      </div>
+
+      <div className="token-sheet-stats">
+        <div><span>CA</span><b>{derived.ac}</b></div>
+        <div><span>Init.</span><b>{t.init === '' || t.init === undefined ? '—' : t.init}</b></div>
+        <div><span>Vitesse</span><b>{t.speed || '—'}</b></div>
+        <div><span title="Perception passive">Perc. pass.</span><b>{passive}</b></div>
+      </div>
+
+      <div className="token-sheet-abil">
+        {['str', 'dex', 'con', 'int', 'wis', 'cha'].map((k, i) => (
+          <div key={k}><span>{['FOR', 'DEX', 'CON', 'INT', 'SAG', 'CHA'][i]}</span><b>{sign(abilityMod(t[k] || 10))}</b><small>{t[k] || 10}</small></div>
+        ))}
+      </div>
+
+      {active.length > 0 && (
+        <div className="token-sheet-chips">
+          {active.map((e, i) => <span key={i} title={e.desc || e.short || ''}>{e.name}</span>)}
+        </div>
+      )}
+
+      {(t.attacks || []).length > 0 && (
+        <div className="token-sheet-block">
+          <div className="token-sheet-title">Attaques / actions</div>
+          {t.attacks.map((a, i) => {
+            const calc = calculateAttackLine(t, a, derived);
+            const key = `a${i}`;
+            return (
+              <div key={key} className="token-sheet-attack">
+                <button type="button" onClick={() => setOpen(open === key ? null : key)}>
+                  <b>{a.name}</b>
+                  <span>{calc.toHit} · {calc.damage}</span>
+                </button>
+                {open === key && a.desc && <p>{a.desc}</p>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {traits.length > 0 && (
+        <div className="token-sheet-block">
+          <div className="token-sheet-title">Traits</div>
+          {traits.map((e, i) => {
+            const key = `t${i}`;
+            return (
+              <div key={key} className="token-sheet-attack">
+                <button type="button" onClick={() => setOpen(open === key ? null : key)}><b>{e.name}</b></button>
+                {open === key && <p>{e.desc || e.short}</p>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {lines.length > 0 && (
+        <dl className="token-sheet-lines">
+          {lines.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
+        </dl>
+      )}
+      {t.tactics && <p className="token-sheet-tactics"><b>Tactique :</b> {t.tactics}</p>}
     </div>
   );
 }

@@ -59,6 +59,8 @@ export type CombatSlot = {
   combatKey: string;
   selectedId: string | null;
   onSelect: (id: string | null) => void;
+  /** 'encounter' : le module sous le plateau ; 'card' : l'aperçu de la fiche du jeton sélectionné, à droite. */
+  area: 'encounter' | 'card';
 };
 
 export default function BattleMode({
@@ -676,6 +678,11 @@ export default function BattleMode({
       </div>
 
       <aside className="maps-panel battle-side">
+        {renderCombat && selected && !building && (
+          <div className="battle-token-card">
+            {renderCombat({ battle: b, setBattle: onBattle, place: placeTitle, combatKey, selectedId, onSelect: setSelectedId, area: 'card' })}
+          </div>
+        )}
         <div className="battle-tabs" role="tablist">
           {([['combat', '⚔ Combat'], ['lieu', '🧭 Lieu'], ['construction', '🛠 Construire']] as const).filter(([id]) => !(renderCombat && id === 'combat')).map(([id, label]) => (
             <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? 'on' : ''} onClick={() => { setTab(id); setStroke(null); }}>
@@ -713,7 +720,7 @@ export default function BattleMode({
     </div>
     {renderCombat && (
       <section className="battle-encounter" aria-label="Combat">
-        {renderCombat({ battle: b, setBattle: onBattle, place: placeTitle, combatKey, selectedId, onSelect: setSelectedId })}
+        {renderCombat({ battle: b, setBattle: onBattle, place: placeTitle, combatKey, selectedId, onSelect: setSelectedId, area: 'encounter' })}
       </section>
     )}
     </>

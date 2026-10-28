@@ -351,3 +351,35 @@
   .maps-viewer .map-encounter-hint{margin-left:0;flex-basis:100%}
 }
 .maps-viewer .battle-tabs{grid-template-columns:repeat(auto-fit,minmax(0,1fr))}
+/* Aperçu de la fiche du jeton sélectionné (carte de combat, panneau de droite) */
+.battle-token-card{margin-bottom:10px;padding:12px 13px;background:rgba(12,10,7,.92);border:1px solid #7d6128;border-radius:8px;color:#e7d8b0;font-size:13px}
+.token-sheet{display:flex;flex-direction:column;gap:9px}
+.token-sheet-empty{margin:0}
+.token-sheet-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.token-sheet-head b{display:block;font-family:'Cinzel',serif;color:#ecd289;font-size:17px;line-height:1.2}
+.token-sheet-head span{font-size:12px;color:#b8a57a}
+.token-sheet-close{background:none;border:0;color:#c9a24a;font-size:16px;cursor:pointer;padding:0 2px}
+.token-sheet-bar{height:8px;border-radius:4px;background:#2a2318;overflow:hidden}
+.token-sheet-bar i{display:block;height:100%;transition:width .25s}
+.token-sheet-hp>span{display:block;margin:4px 0 6px;font-size:12px}
+.token-sheet-hp>span b{font-size:15px;color:#f3e6c2}
+.token-sheet-hp-row{display:flex;gap:6px}
+.token-sheet-hp-row input{width:64px;min-width:0;padding:4px 6px;background:#14110b;border:1px solid #4a3c22;border-radius:5px;color:#f3e6c2}
+.token-sheet-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+.token-sheet-stats div,.token-sheet-abil div{display:flex;flex-direction:column;align-items:center;padding:4px 2px;background:#17130c;border:1px solid #3e3320;border-radius:5px;text-align:center}
+.token-sheet-stats span,.token-sheet-abil span{font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:#a8925f}
+.token-sheet-stats b{font-size:13px;color:#f3e6c2}
+.token-sheet-abil{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
+.token-sheet-abil b{font-size:14px;color:#f3e6c2}
+.token-sheet-abil small{font-size:10px;color:#8d7b55}
+.token-sheet-chips{display:flex;flex-wrap:wrap;gap:4px}
+.token-sheet-chips span{padding:2px 7px;border-radius:10px;background:#3a2414;border:1px solid #8a4a22;font-size:11px}
+.token-sheet-title{font-family:'Cinzel',serif;font-size:12px;color:#c9a24a;margin-bottom:3px}
+.token-sheet-attack button{display:flex;justify-content:space-between;gap:8px;width:100%;padding:4px 0;background:none;border:0;border-bottom:1px dashed #3e3320;color:inherit;text-align:left;cursor:pointer;font-size:13px}
+.token-sheet-attack button span{color:#d9c08a;white-space:nowrap;font-size:12px}
+.token-sheet-attack p{margin:4px 0 6px;font-size:12px;color:#cdbd96;line-height:1.4}
+.token-sheet-lines{margin:0;display:flex;flex-direction:column;gap:3px;font-size:12px}
+.token-sheet-lines div{display:flex;gap:6px}
+.token-sheet-lines dt{color:#a8925f;flex:none}
+.token-sheet-lines dd{margin:0}
+.token-sheet-tactics{margin:0;font-size:12px;color:#cdbd96}
