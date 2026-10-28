@@ -188,7 +188,7 @@ export default function CampaignStudio({ universe, state, campaigns, party, npcs
 function CampaignPicker({ universe, campaigns, party, quick, setQuick, services, onOpen, onNew }) {
   return (
     <div className="cs">
-      <section className="lsx-hero cs-hero" style={{ '--hero': `url("${UI}hero.webp")` }}>
+      <section className="lsx-hero cs-hero" style={{ '--hero': `url("${UI}hero-campagne.webp")` }}>
         <span className="lsx-hero-frame" aria-hidden="true" />
         <div className="lsx-hero-body">
           <span className="lsx-kicker">Campaign Studio · {universe.name}</span>
@@ -264,7 +264,7 @@ function CommandCenter({ camp, prep, universe, setTab, openScene }) {
 
   return (
     <>
-      <section className="lsx-hero cs-hero" style={{ '--hero': `url("${UI}hero.webp")` }}>
+      <section className="lsx-hero cs-hero" style={{ '--hero': `url("${UI}hero-campagne.webp")` }}>
         <span className="lsx-hero-frame" aria-hidden="true" />
         <div className="lsx-hero-body">
           <span className="lsx-kicker">Centre de commandement · {universe.name}</span>
