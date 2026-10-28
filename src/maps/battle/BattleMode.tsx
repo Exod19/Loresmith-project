@@ -23,6 +23,7 @@ import PlacePanel, { type ExitItem, type SearchItem, type SecretItem } from './P
 import { DEFAULT_BRUSH, PROP_BY_KEY, PROP_LABEL, propUrl, shapeCells, type Brush } from './build';
 import { passageDifficulty, searchFor, type SearchEntry } from './search';
 import { advanceBattle, isOut, passiveOfToken, sightOf, statOf } from './combat';
+import { moveAlerts, type Note } from './tactics';
 import { detectLabel, trailProfile } from '../atlas/trails';
 import { describeLite } from '../atlas/lore';
 import { placeEncounter, type EncounterGroup } from './encounter';
@@ -92,6 +93,8 @@ export default function BattleMode({
   const [hoverId, setHoverId] = useState<string | null>(null);
   /** Portées affichées sur le plateau : réservé au MJ, jamais envoyé aux joueurs. */
   const [showRanges, setShowRanges] = useState(false);
+  /** Alertes du dernier déplacement (attaque d'opportunité, allonge ennemie), gardées jusqu'au prochain. */
+  const [lastMove, setLastMove] = useState<{ name: string; notes: Note[] } | null>(null);
   /** Construction manuelle : outil, tracé en cours, et historique pour « Annuler ». */
   const building = tab === 'construction';
   const [brush, setBrush] = useState<Brush>(DEFAULT_BRUSH);
@@ -231,7 +234,11 @@ export default function BattleMode({
       const t = b.tokens.find((q) => q.id === drag.id);
       if (t && drag.moved) {
         const x = drag.origin.x + drag.cur.x - drag.start.x, y = drag.origin.y + drag.cur.y - drag.start.y;
-        if (fits(bv, t.id, t.size, x, y)) patchToken(t.id, { x, y });
+        if (fits(bv, t.id, t.size, x, y)) {
+          const notes = moveAlerts(bv, t.id, { x, y });
+          setLastMove(notes.length ? { name: t.name, notes } : null);
+          patchToken(t.id, { x, y });
+        }
         justDropped.current = true;
         setTimeout(() => { justDropped.current = false; }, 0);
       } else if (drag.wasSelected) {
@@ -572,6 +579,21 @@ export default function BattleMode({
               preview={stroke && brush.tool === 'terrain' ? stroke.cells : undefined}
               labels={labels} highlight={highlight}
             />
+            {(() => {
+              const live = dragged && drag ? moveAlerts(bv, dragged.id, { x: drag.origin.x + drag.cur.x - drag.start.x, y: drag.origin.y + drag.cur.y - drag.start.y }) : null;
+              const shown = live ? { name: dragged!.name, notes: live } : drag ? null : lastMove;
+              if (!shown?.notes.length) return null;
+              return (
+                <div className={`battle-move-alerts ${live ? 'live' : ''}`} role="status">
+                  {shown.notes.map((n, i) => (
+                    <div key={i} className={`battle-move-alert tone-${n.tone}`}>
+                      <b>{n.label}</b><span>{n.why}</span>
+                    </div>
+                  ))}
+                  {!live && <button className="present-info-close" onClick={() => setLastMove(null)} aria-label="Fermer">×</button>}
+                </div>
+              );
+            })()}
             {readout && (
               <div className="battle-readout">
                 {walk === null ? 'Chemin coupé' : <>{walk * b.feetPerCell} pieds de marche</>}

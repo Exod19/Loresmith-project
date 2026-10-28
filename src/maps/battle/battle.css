@@ -389,3 +389,19 @@
 .token-sheet-lines dd{margin:0}
 .token-sheet-tactics{margin:0;font-size:12px;color:#cdbd96}
 .battle-tab-chev{font-style:normal;font-size:10px;opacity:.6;margin-left:4px}
+/* Alertes de déplacement (attaque d'opportunité) et situation tactique */
+.battle-move-alerts{position:absolute;left:10px;bottom:10px;z-index:5;max-width:min(420px,80%);display:flex;flex-direction:column;gap:5px;padding:8px 30px 8px 10px;background:rgba(12,10,7,.94);border:1px solid #7d6128;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.5);font-size:12px;color:#e7d8b0}
+.battle-move-alerts.live{pointer-events:none}
+.battle-move-alerts .present-info-close{position:absolute;right:6px;top:2px;background:none;border:0;color:#c9a24a;font-size:18px;cursor:pointer}
+.battle-move-alert{display:flex;flex-direction:column;gap:2px;padding-left:8px;border-left:3px solid #c9a24a}
+.battle-move-alert b{font-size:13px}
+.battle-move-alert.tone-alert{border-color:#d0452c}.battle-move-alert.tone-alert b{color:#ff8c6e}
+.battle-move-alert.tone-malus{border-color:#d08a2c}.battle-move-alert.tone-malus b{color:#f0b866}
+.tac-notes{display:flex;flex-wrap:wrap;gap:5px}
+.tac-chip{position:relative;display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:12px;font-size:11.5px;line-height:1.3;cursor:help;border:1px solid}
+.tac-chip.tone-buff{background:#16301f;border-color:#3f8a55;color:#bfe8c9}
+.tac-chip.tone-chance{background:#182634;border-color:#4a7fb0;color:#c6def5}
+.tac-chip.tone-malus{background:#33240f;border-color:#a8722a;color:#f3d29a}
+.tac-chip.tone-alert{background:#3a1712;border-color:#c0452c;color:#ffc2b3}
+.tac-chip .tac-why{display:none;position:absolute;z-index:30;left:0;top:calc(100% + 6px);width:max-content;max-width:300px;white-space:pre-line;padding:8px 10px;background:#0f0c08;border:1px solid #7d6128;border-radius:6px;box-shadow:0 8px 20px rgba(0,0,0,.6);color:#e7d8b0;font-size:12px;line-height:1.4;cursor:auto}
+.tac-chip:hover .tac-why,.tac-chip:focus .tac-why{display:block}

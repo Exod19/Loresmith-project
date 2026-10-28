@@ -22,7 +22,8 @@ import { Download, Upload, Settings, ExternalLink } from 'lucide-react';
 import MapsPage from './maps/MapsPage';
 import TableMap, { tableMapId } from './maps/TableMap';
 import { setMapIntent } from './maps/intent';
-import { placeTokens as placeOnBoard } from './maps/battle/placement';
+import { placeTokens as placeOnBoard, effectiveOf } from './maps/battle/placement';
+import { tacticalNotes, profileFromStat } from './maps/battle/tactics';
 import ArchivesPage from './feeds/ArchivesPage';
 import ArchivesLinkPanel from './feeds/ArchivesLink';
 import Dossier, { LibraryCard } from './library/Dossier';
@@ -5390,7 +5391,7 @@ export default function App() {
             ) : view === 'maps' ? (
               <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} heroes={party} campaigns={campaigns} bestiary={npcs} onReturnToTable={() => setView('scene')}
                 renderCombat={(slot) => slot.area === 'card'
-                  ? <TokenSheet state={state} dispatch={dispatch} id={slot.selectedId} onClose={() => slot.onSelect(null)} />
+                  ? <TokenSheet state={state} dispatch={dispatch} id={slot.selectedId} battle={slot.battle} onClose={() => slot.onSelect(null)} />
                   : <MapEncounter {...{ state, dispatch, party, npcs, flash }} {...slot} />}
               />
             ) : view === 'present' ? (
@@ -13455,6 +13456,7 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded }) {
                 sourceNpc={npcs.find((n) => n.id === t.sourceId)}
                 dmg={dmg[t.id] || ''}
                 selected={selectedTokenId === t.id}
+                tactics={embedded?.tactics?.[t.id]}
                 onSelect={() => setSelectedTokenId(t.id)}
                 onDmgChange={(v) => setDmg((d) => ({ ...d, [t.id]: v }))}
                 onHit={() => applyHp(t.id, +1)}
@@ -13551,6 +13553,7 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded }) {
             round={c.round}
             place={embedded?.place}
             positions={embedded?.positions}
+            tactics={embedded?.tactics}
           />
         </aside>
       </div>
@@ -13562,7 +13565,7 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded }) {
   );
 }
 /** Aide de l’IA pour le combat : plan du round, cibles, capacités, rebondissements (IA configurée dans Réglages). */
-function CombatAiPanel({ combatants, active, round, place, positions }) {
+function CombatAiPanel({ combatants, active, round, place, positions, tactics }) {
   const { ai } = useContext(AIContext);
   const [state, setState] = useState({ busy: false });
   async function ask() {
@@ -13573,7 +13576,7 @@ function CombatAiPanel({ combatants, active, round, place, positions }) {
         .map((a) => `${a.name}${a.attackBonus != null ? ` +${a.attackBonus}` : ''}${a.damageDice ? ` ${a.damageDice}${a.damageBonus ? `+${a.damageBonus}` : ''}` : ''}${a.range ? ` (${a.range})` : ''}`)
         .join('; ');
       const fx = (t.effects || []).filter((e) => e.active || e.source === 'Trait').map((e) => e.name).join(', ');
-      return `- ${t.id === active?.id ? '▶ ' : ''}${t.name} [${t.isPC ? 'joueur' : 'créature'}] init ${t.init}, PV ${t.hp}/${t.maxHp}, CA ${t.ac}${pos ? `, case (${pos.x},${pos.y})${pos.visible === false ? ', cachée aux joueurs' : ''}` : ''}${atk ? `. Actions : ${atk}` : ''}${fx ? `. Traits et effets : ${fx}` : ''}${t.skills ? `. Compétences : ${t.skills}` : ''}`;
+      return `- ${t.id === active?.id ? '▶ ' : ''}${t.name} [${t.isPC ? 'joueur' : 'créature'}] init ${t.init}, PV ${t.hp}/${t.maxHp}, CA ${t.ac}${pos ? `, case (${pos.x},${pos.y})${pos.visible === false ? ', cachée aux joueurs' : ''}` : ''}${atk ? `. Actions : ${atk}` : ''}${fx ? `. Traits et effets : ${fx}` : ''}${t.skills ? `. Compétences : ${t.skills}` : ''}${tactics?.[t.id]?.length ? `. Situation : ${tactics[t.id].map((n) => n.label).join(' ; ')}` : ''}`;
     });
     try {
       const text = await callAIMessages(ai, [
@@ -13673,6 +13676,7 @@ function MapEncounter({ state, dispatch, party, npcs, flash, battle, setBattle, 
   }, [bound, combatants, battle.tokens, c.turnIndex, c.round, c.syncedIds]);
 
   const positions = Object.fromEntries(battle.tokens.map((t) => [t.id, { x: t.x, y: t.y, visible: t.visible }]));
+  const tactics = useMemo(() => battleTactics(battle, combatants), [battle, combatants]);
   const setVisible = (id, visible) => setBattle({ ...battle, tokens: battle.tokens.map((t) => (t.id === id ? { ...t, visible } : t)) });
 
   if (!bound) return <p className="muted">Préparation du combat…</p>;
@@ -13692,13 +13696,13 @@ function MapEncounter({ state, dispatch, party, npcs, flash, battle, setBattle, 
         ))}
         <span className="muted map-encounter-hint">Glisse les jetons sur le plateau ; tout le reste se gère ici.</span>
       </div>
-      <Encounter {...{ dispatch, state, party, npcs, flash }} embedded={{ selectedId, onSelect, place, positions }} />
+      <Encounter {...{ dispatch, state, party, npcs, flash }} embedded={{ selectedId, onSelect, place, positions, tactics }} />
     </div>
   );
 }
 
 /** Aperçu de la fiche du jeton sélectionné sur la carte de combat : l’essentiel pour jouer son tour. */
-function TokenSheet({ state, dispatch, id, onClose }) {
+function TokenSheet({ state, dispatch, id, battle, onClose }) {
   const [amount, setAmount] = useState('');
   const [open, setOpen] = useState(null);
   const combatants = state.combat?.combatants || [];
@@ -13706,6 +13710,7 @@ function TokenSheet({ state, dispatch, id, onClose }) {
   if (!t) return <p className="muted token-sheet-empty">Ce jeton n’est pas (encore) dans le combat.</p>;
 
   const derived = getCombatantDerivedStats(t);
+  const tactics = battle ? battleTactics(battle, combatants)[t.id] || [] : [];
   const src = String(t.sourceId || '');
   const npc = !t.isPC && src && !src.startsWith('srd:') ? state.npcs?.[src] : null;
   const pcAsset = t.isPC && src ? getPrimaryAsset(state, 'player', src) : null;
@@ -13773,6 +13778,13 @@ function TokenSheet({ state, dispatch, id, onClose }) {
         ))}
       </div>
 
+      {tactics.length > 0 && (
+        <div className="token-sheet-block">
+          <div className="token-sheet-title">Position (auto)</div>
+          <TacticalChips notes={tactics} />
+        </div>
+      )}
+
       {active.length > 0 && (
         <div className="token-sheet-chips">
           {active.map((e, i) => <span key={i} title={e.desc || e.short || ''}>{e.name}</span>)}
@@ -13825,6 +13837,7 @@ function TokenSheet({ state, dispatch, id, onClose }) {
 
 function CombatantRowAdvanced({
   t,
+  tactics,
   sourceNpc,
   dmg,
   selected,
@@ -13997,6 +14010,7 @@ function CombatantRowAdvanced({
 
         <CombatEffectsPanel
           combatant={t}
+          tactics={tactics}
           onToggleEffect={onToggleEffect}
           onEffectUses={onEffectUses}
           onInfo={onInfo}
@@ -14291,17 +14305,71 @@ function CombatAttacksPanel({ combatant, derived, onActionUses, onInfo }) {
   );
 }
 
+/** Allonge, portée et Tactique de groupe d’un combattant, lues dans ses attaques (sinon dans la fiche SRD du jeton). */
+function profileOfCombatant(c, token) {
+  if (!c) return profileFromStat(token);
+  const cells = (m) => Math.round((parseFloat(String(m).replace(',', '.')) * 3.28084) / 5);
+  let reach = 0, ranged = 0;
+  for (const a of c.attacks || []) {
+    const text = `${a.range || ''} ${a.desc || ''}`;
+    const al = /allonge\s*([\d,]+)\s*m/i.exec(text);
+    const po = /portée\s*([\d,]+)\s*\/?/i.exec(text);
+    const ft = /(\d+)\s*(?:[–-]\s*\d+\s*)?ft/i.exec(a.range || '');
+    if (al) reach = Math.max(reach, cells(al[1]));
+    if (po) ranged = Math.max(ranged, cells(po[1]));
+    if (!al && !po && ft) { const n = Number(ft[1]) / 5; if (n <= 2) reach = Math.max(reach, n); else ranged = Math.max(ranged, n); }
+    if (!al && !po && !ft && /corps à corps|mêlée|melee/i.test(text)) reach = Math.max(reach, 1);
+  }
+  const fromStat = profileFromStat(token);
+  return {
+    reach: reach || fromStat.reach || 1,
+    ranged: ranged || fromStat.ranged,
+    pack: fromStat.pack || (c.effects || []).some((e) => /tactique de groupe/i.test(e.name || '')),
+  };
+}
+
+/** Situation tactique de chaque jeton du plateau (abri, avantages, menaces), avec le profil de son combattant. */
+function battleTactics(battle, combatants) {
+  const grid = effectiveOf(battle);
+  const byId = new Map((combatants || []).map((c) => [c.id, c]));
+  const profileOf = (t) => profileOfCombatant(byId.get(t.id), t);
+  return Object.fromEntries(battle.tokens.map((t) => [t.id, tacticalNotes(battle, grid, t.id, profileOf)]));
+}
+
+/** Pastilles de situation tactique ; la justification s’affiche en bulle au survol. */
+function TacticalChips({ notes }) {
+  if (!notes?.length) return null;
+  const icon = { buff: '🛡', chance: '🎯', malus: '⚠', alert: '⚔' };
+  return (
+    <div className="tac-notes">
+      {notes.map((n, i) => (
+        <span key={i} className={`tac-chip tone-${n.tone}`} tabIndex={0}>
+          {icon[n.tone]} {n.label}
+          <span className="tac-why" role="tooltip">{n.why}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function CombatEffectsPanel({
   combatant,
   onToggleEffect,
   onEffectUses,
   onInfo,
+  tactics,
 }) {
   const effects = combatant.effects || [];
 
   return (
     <div className="combat-subpanel">
       <div className="combat-subtitle">Buffs / malus / ressources</div>
+      {tactics?.length > 0 && (
+        <div className="combat-tactics">
+          <span className="combat-small-muted">Position sur la carte (auto) :</span>
+          <TacticalChips notes={tactics} />
+        </div>
+      )}
 
       {effects.length === 0 ? (
         <p className="combat-small-muted">Aucun buff ou malus actif.</p>
