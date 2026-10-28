@@ -11,6 +11,7 @@
  * Les corrections manuelles sont listées dans OVERRIDES et doivent être relues par le MJ.
  */
 import type { FeedEntry } from './underdark';
+import { sentienceOf } from './fauna';
 
 type Zone = 'sauvage' | 'transit' | 'cite';
 
@@ -28,6 +29,12 @@ export interface BestiaryEncounter {
   peaceful: boolean;
   /** Identifiant de la fiche des Archives. */
   source: string;
+  /** Faune : ne parle pas, réagit par instinct (voir fauna.ts). */
+  faune: boolean;
+  /** Peut parler et négocier. */
+  talks: boolean;
+  /** Libellé de statut affiché au MJ. */
+  statut: string;
 }
 
 /** Corrections manuelles : zones, profondeurs ou effectifs pour une fiche précise. */
@@ -62,6 +69,7 @@ export function bestiaryEncounters(entries: FeedEntry[]): BestiaryEncounter[] {
     const colony = COLONY.test(social) || COLONY.test(text);
     const dice = solitary ? '1' : colony ? '2d4' : '1d3';
     const deep = DEEP.test(text), shallow = SHALLOW.test(text) && !deep;
+    const nature = sentienceOf(e);
     const enc: BestiaryEncounter = {
       kind: 'Créature',
       title: e.name,
@@ -75,6 +83,9 @@ export function bestiaryEncounters(entries: FeedEntry[]): BestiaryEncounter[] {
       weight: e.threat === 'inoffensif' ? 1 : 2,
       peaceful: e.threat === 'inoffensif',
       source: e.id,
+      faune: nature?.status !== 'sentient',
+      talks: nature?.canSpeak ?? false,
+      statut: nature?.label ?? '',
       ...OVERRIDES[e.id],
     };
     out.push(enc);

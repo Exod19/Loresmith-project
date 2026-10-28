@@ -591,6 +591,7 @@ function EncounterBox({ enc, onRoll, onPlace }: { enc: { ctx: EncCtx; e: Encount
       {e.happens && e.entry && (
         <>
           <p><strong>{e.entry.kind} · {e.entry.title}</strong></p>
+          {e.entry.statut && <p className="maps-sub">{e.entry.statut}{e.entry.faune ? ' — réagit par instinct, ne parle pas' : ''}</p>}
           <p>{e.entry.text}</p>
           {e.attitude && <p><em>Attitude :</em> {e.attitude}</p>}
           {e.wants && <p><em>Veut :</em> {e.wants}</p>}
