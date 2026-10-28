@@ -13992,7 +13992,7 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
           activeId={activeCombatant?.id}
           selectedId={selectedCombatant?.id}
           round={c.round || 1}
-          art={(t) => combatantArtOf(state, t)}
+          art={(t) => combatantPictureOf(state, t)}
           boardTokens={boardTokens}
           onPick={(id) => { setSelectedTokenId(id); setTab('tour'); }}
           onNext={advanceTurn}
@@ -15103,6 +15103,17 @@ function combatantArtOf(state, t, feed) {
   }
   const npc = src && !src.startsWith('srd:') ? state.npcs?.[src] : null;
   return (npc && sheetPortraitOf(state, npc)) || creatureArtOf(state, t.name, feed) || (npc ? creatureArtOf(state, npc.name, feed) : '');
+}
+
+/** Image d’un combattant pour l’initiative : son illustration, sinon le portrait de sa fiche, sinon son jeton. */
+function combatantPictureOf(state, t) {
+  if (!t) return '';
+  const src = String(t.sourceId || '');
+  const npc = !t.isPC && src && !src.startsWith('srd:') ? state.npcs?.[src] : null;
+  return combatantArtOf(state, t)
+    || (npc && portraitOf(state, npc))
+    || (src.startsWith('srd:') && tokenImage({ kind: 'monster', statId: src.slice(4) }))
+    || t.image || '';
 }
 
 /** Pleine illustration d'une créature, par son nom : portrait importé sur sa fiche PNJ, puis

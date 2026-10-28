@@ -2,7 +2,7 @@
  * Écran joueur : la fenêtre à partager. Plein écran, sans menus ; elle affiche ce que la console MJ projette.
  * Les données reçues sont déjà filtrées (cf. maps/playerBoard.ts) : aucune note ni repère secret n'arrive ici.
  */
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import MapCanvas, { type Layers } from '../maps/atlas/MapCanvas';
 import { setAtlasData } from '../maps/atlas/model';
 import type { AtlasData, FeatureCategory } from '../maps/atlas/types';
@@ -211,20 +211,6 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
         <span>Round {board.round}</span>
       </header>
       {board.turn && <TurnStrip turn={board.turn} onOpen={(id) => setOpenId((cur) => (cur === id ? null : id))} />}
-      {aimer && <div className="present-aim-hint">🎯 {board.tokens.find((t) => t.id === aimer)?.name} vise : touche la cible sur le plateau.</div>}
-      {!aimer && board.aim?.verdict ? (
-        <div key={`${board.aim.at}-${board.aim.verdict}-${board.aim.damage ?? ''}`} className={`present-verdict v-${board.aim.verdict}`} role="status" aria-live="assertive">
-          <div className="present-verdict-top">
-            <b>{VERDICT_LABEL[board.aim.verdict]}</b>
-            {board.aim.roll !== undefined && <span className="present-verdict-roll">{board.aim.roll}</span>}
-            {board.aim.damage !== undefined && (board.aim.verdict === 'hit' || board.aim.verdict === 'crit') && (
-              <span className="present-verdict-dmg">−{board.aim.damage}<small>dégâts</small></span>
-            )}
-          </div>
-          <p className="present-verdict-who">{fromName} → {toName}{board.aim.weapon ? ` · ${board.aim.weapon}` : ''}</p>
-          {board.aim.line && <p className="present-verdict-line">{board.aim.line}</p>}
-        </div>
-      ) : !aimer && board.aim?.text ? <div key={board.aim.text} className={`present-aim-result tone-${board.aim.tone ?? 'info'}`}>{board.aim.text}</div> : null}
       <div
         className="present-battle-body" data-card={card ? 1 : undefined} data-dragging={drag ? 1 : undefined}
         ref={wrapRef} onPointerDown={down} onPointerMove={move}
@@ -233,6 +219,25 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
           cols={board.cols} rows={board.rows} backdrop={board.backdrop} terrain={board.terrain} elements={board.elements} tokens={tokens} fog={board.fog} exits={board.exits}
           onElement={pick} aim={aim} ranges={ranges} hits={board.hits}
         />
+        {aimer && <div className="present-aim-hint">🎯 {board.tokens.find((t) => t.id === aimer)?.name} vise : touche la cible sur le plateau.</div>}
+        {!aimer && board.aim?.verdict ? (
+          board.aim.damage !== undefined && (board.aim.verdict === 'hit' || board.aim.verdict === 'crit') ? (
+            // Dégâts appliqués : ils prennent la place du « Touché ».
+            <div key={`${board.aim.at}-dmg-${board.aim.damage}`} className={`present-verdict present-damage v-${board.aim.verdict}`} role="status" aria-live="assertive">
+              <span className="present-verdict-dmg">−{board.aim.damage}<small>dégâts{board.aim.verdict === 'crit' ? ' · critique' : ''}</small></span>
+              <p className="present-verdict-who">{fromName} → {toName}{board.aim.weapon ? ` · ${board.aim.weapon}` : ''}</p>
+            </div>
+          ) : (
+            <div key={`${board.aim.at}-${board.aim.verdict}`} className={`present-verdict v-${board.aim.verdict}`} role="status" aria-live="assertive">
+              <div className="present-verdict-top">
+                <b>{VERDICT_LABEL[board.aim.verdict]}</b>
+                {board.aim.roll !== undefined && <span className="present-verdict-roll">{board.aim.roll}</span>}
+              </div>
+              <p className="present-verdict-who">{fromName} → {toName}{board.aim.weapon ? ` · ${board.aim.weapon}` : ''}</p>
+              {board.aim.line && <p className="present-verdict-line">{board.aim.line}</p>}
+            </div>
+          )
+        ) : !aimer && board.aim?.text ? <div key={board.aim.text} className={`present-aim-result tone-${board.aim.tone ?? 'info'}`}>{board.aim.text}</div> : null}
         {card && (
           <aside key={openId} className="present-card" data-kind={card.kind} role="dialog" aria-label={card.title}>
             <button className="present-info-close" onClick={() => setOpenId(null)} aria-label="Fermer">×</button>
@@ -264,12 +269,15 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
  */
 function TurnStrip({ turn, onOpen }: { turn: PlayerTurn; onOpen: (id: string) => void }) {
   const now = turn.active && turn.order[0]?.id === turn.active ? turn.order[0] : null;
-  const next = turn.order.slice(now ? 1 : 0, (now ? 1 : 0) + 4);
+  const next = turn.order.slice(now ? 1 : 0, (now ? 1 : 0) + 5);
+  const face = (o: PlayerTurn['order'][number]) => (o.image
+    ? <img src={o.image} alt="" />
+    : <span className="present-turn-initial">{o.name.charAt(0)}</span>);
   return (
     <div className="present-turn" role="status" aria-live="polite">
       {now ? (
         <button key={now.id} className={`present-turn-now kind-${now.kind}`} onClick={() => onOpen(now.id)}>
-          {now.image ? <img src={now.image} alt="" /> : <span className="present-turn-initial">{now.name.charAt(0)}</span>}
+          <span className="present-turn-portrait">{face(now)}</span>
           <span className="present-turn-text">
             <small>Au tour de</small>
             <b>{now.name}</b>
@@ -282,10 +290,10 @@ function TurnStrip({ turn, onOpen }: { turn: PlayerTurn; onOpen: (id: string) =>
       {next.length > 0 && (
         <ol className="present-turn-next" aria-label="Ensuite">
           <li className="present-turn-label">Ensuite</li>
-          {next.map((o) => (
-            <li key={o.id} className={`kind-${o.kind}`} onClick={() => onOpen(o.id)} title={o.state ? `${o.name} · ${o.state}` : o.name}>
-              {o.image ? <img src={o.image} alt="" /> : <span className="present-turn-initial">{o.name.charAt(0)}</span>}
-              <span>{o.name}</span>
+          {next.map((o, i) => (
+            <li key={o.id} className={`kind-${o.kind}`} style={{ '--i': i } as CSSProperties} onClick={() => onOpen(o.id)} title={o.state ? `${o.name} · ${o.state}` : o.name}>
+              <span className="present-turn-portrait">{face(o)}</span>
+              <span className="present-turn-name">{o.name}</span>
             </li>
           ))}
         </ol>
