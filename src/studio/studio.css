@@ -1,0 +1,186 @@
+/* Campaign Studio : bâti sur les variables et les décors du shell Loresmith (shell.css). */
+.cs { display: flex; flex-direction: column; gap: 0; min-width: 0; }
+.cs-note { color: var(--faint); font-size: 13px; }
+
+/* ---------- Barre du studio : fil d'Ariane, état, onglets ---------- */
+.cs-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.cs-crumbs { display: flex; align-items: center; gap: 8px; font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); min-width: 0; }
+.cs-crumbs button { background: none; border: 0; padding: 0; color: var(--muted); font: inherit; letter-spacing: inherit; text-transform: inherit; }
+.cs-crumbs button:hover { color: var(--gold-lt); }
+.cs-crumbs b { color: #f1e3bd; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cs-top-actions { display: flex; align-items: center; gap: 10px; }
+
+.cs-tabs { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: thin; border-bottom: 1px solid var(--lsx-edge-2); margin-bottom: 22px; }
+.cs-tabs button { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px 11px; background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  font-family: 'Cinzel', serif; font-size: 13.5px; letter-spacing: 0.04em; color: var(--muted); }
+.cs-tabs button:hover { color: var(--gold-lt); }
+.cs-tabs button[data-on='1'] { color: #f6e7bf; border-bottom-color: var(--gold); background: linear-gradient(0deg, rgba(201, 162, 74, 0.1), transparent); }
+.cs-tabs button:focus-visible { outline: 2px solid var(--gold-lt); outline-offset: -2px; }
+.cs-tabs small { font-family: 'JetBrains Mono', monospace; font-size: 11px; min-width: 20px; padding: 1px 6px; border-radius: 99px; background: rgba(192, 73, 47, 0.25); color: #f0b39f; border: 1px solid rgba(192, 73, 47, 0.5); }
+
+/* ---------- Disposition : surface + Scribe ---------- */
+.cs-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
+.cs-main { min-width: 0; }
+@media (max-width: 1180px) { .cs-layout { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- Badges d'état (toujours avec un libellé, jamais la couleur seule) ---------- */
+.cs-badge { display: inline-flex; align-items: center; gap: 4px; flex: none; white-space: nowrap; font-family: 'Cinzel', serif; font-size: 10.5px; letter-spacing: 0.06em; padding: 2px 9px; border-radius: 99px; border: 1px solid var(--lsx-edge-2); color: var(--gold-lt); background: rgba(0, 0, 0, 0.3); }
+.cs-badge.tone-verdant { color: #b9dc98; border-color: rgba(127, 176, 90, 0.55); background: rgba(127, 176, 90, 0.1); }
+.cs-badge.tone-blood { color: #f0b39f; border-color: rgba(192, 73, 47, 0.6); background: rgba(192, 73, 47, 0.12); }
+.cs-badge.tone-ember { color: #f2c27a; border-color: rgba(224, 162, 59, 0.55); background: rgba(224, 162, 59, 0.1); }
+.cs-badge.tone-teal { color: #9be6db; border-color: rgba(84, 216, 198, 0.5); background: rgba(84, 216, 198, 0.08); margin-left: 8px; }
+.cs-badge.tone-faint { color: var(--muted); border-color: var(--lsx-edge); }
+
+.cs-bar { display: block; height: 5px; border-radius: 3px; background: rgba(201, 162, 74, 0.13); overflow: hidden; flex: 1; min-width: 60px; }
+.cs-bar > i { display: block; height: 100%; background: linear-gradient(90deg, var(--gold-dk), var(--gold-lt)); }
+
+/* ---------- Bannière ---------- */
+.cs-hero { min-height: 270px; margin-bottom: 4px; }
+.cs-hero .lsx-cta:disabled { opacity: 0.55; cursor: wait; }
+.cs-quick { margin-top: 20px; }
+
+/* ---------- Compteurs ---------- */
+.cs-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+.cs-stats .lsx-tile { display: flex; flex-direction: column; gap: 4px; }
+.cs-stat-label { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); }
+.cs-stat { font-family: 'Cinzel', serif; font-weight: 500; font-size: 34px; line-height: 1.1; color: #f6e8c4; }
+.cs-stat small { font-size: 16px; color: var(--muted); }
+.cs-stat-sub { font-size: 13.5px; color: var(--muted); }
+
+/* ---------- Trajectoire : actes → scènes ---------- */
+.cs-acts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.cs-act { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 10px; border: 1px solid var(--lsx-edge-2);
+  background: linear-gradient(180deg, rgba(24, 17, 10, 0.92), rgba(14, 10, 6, 0.96)), url('/images/ui/cuir.webp') center/cover, #120d07; }
+.cs-act > header { display: flex; flex-direction: column; gap: 2px; padding: 2px 4px 6px; border-bottom: 1px solid var(--lsx-edge); }
+.cs-act > header b { font-family: 'Cinzel', serif; font-weight: 500; font-size: 16px; color: #f3e4bd; }
+.cs-act > header small { color: var(--muted); font-size: 13px; }
+.cs-scene { display: flex; flex-direction: column; gap: 5px; width: 100%; padding: 9px 11px; text-align: left; border-radius: 7px; border: 1px solid var(--lsx-edge); background: rgba(0, 0, 0, 0.32); color: var(--txt); transition: border-color 0.15s, transform 0.15s; }
+.cs-scene:hover { border-color: var(--gold); transform: translateY(-1px); }
+.cs-scene:focus-visible { outline: 2px solid var(--gold-lt); outline-offset: 2px; }
+.cs-scene b { font-family: 'Cinzel', serif; font-weight: 500; font-size: 14.5px; color: #f1e3bd; }
+.cs-scene-meta, .cs-scene-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; color: var(--faint); }
+.cs-scene-meta span:first-child { font-family: 'Cinzel', serif; letter-spacing: 0.08em; color: var(--gold); }
+.cs-note-bar { margin: 16px 0 0; padding: 10px 14px; border-left: 3px solid var(--gold-dk); background: rgba(201, 162, 74, 0.06); font-size: 14px; color: var(--muted); border-radius: 0 6px 6px 0; }
+
+/* ---------- Inventaire et couverture ---------- */
+.cs-inventory { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 14px; }
+@media (max-width: 860px) { .cs-inventory { grid-template-columns: 1fr; } }
+.cs-inv-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.cs-inv-head b { font-family: 'Cinzel', serif; font-weight: 500; font-size: 17px; color: #f3e4bd; }
+.cs-inv-pct { display: flex; align-items: center; gap: 14px; margin: 6px 0 10px; }
+.cs-inv-pct b { font-family: 'Cinzel', serif; font-weight: 500; font-size: 38px; color: var(--gold-lt); }
+.cs-cover { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 7px; font-size: 14.5px; }
+.cs-cover li { display: grid; grid-template-columns: 18px 1fr; column-gap: 6px; }
+.cs-cover li > span { color: var(--verdant); font-weight: 700; }
+.cs-cover li[data-ok='0'] > span { color: var(--ember); }
+.cs-cover li[data-ok='0'][data-critical='1'] > span { color: var(--blood); }
+.cs-cover li small { grid-column: 2; color: var(--muted); font-size: 13px; }
+
+/* ---------- Listes d'actions ---------- */
+.cs-actions { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.cs-actions li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 14px; border-radius: 8px; border: 1px solid var(--lsx-edge-2);
+  background: linear-gradient(180deg, rgba(24, 17, 10, 0.9), rgba(14, 10, 6, 0.95)); }
+.cs-actions li > span { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.cs-actions li b { font-size: 15px; color: #f1e3bd; font-weight: 600; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.cs-actions li small { color: var(--muted); font-size: 13px; }
+.cs-actions .lsx-tile-btn { flex: none; }
+
+/* ---------- Séances ---------- */
+.cs-sessions { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.cs-sessions .lsx-tile { display: flex; flex-direction: column; gap: 6px; }
+.cs-session-time { display: flex; align-items: baseline; gap: 6px; }
+.cs-session-time b { font-family: 'Cinzel', serif; font-size: 20px; color: #f6e8c4; font-weight: 500; }
+.cs-session-time small { color: var(--muted); }
+.cs-session-time .cs-badge { margin-left: auto; }
+.cs-warn { color: var(--ember); font-size: 12.5px; }
+
+/* ---------- Choix de campagne ---------- */
+.cs-camp-prep { display: flex; align-items: center; gap: 10px; margin-top: 8px; font-size: 13px; color: var(--gold-lt); }
+.cs-empty { align-items: center; text-align: center; }
+
+/* ---------- En-têtes de page ---------- */
+.cs-page-head { margin: 0 0 18px; }
+.cs-page-head h1 { font-family: 'Cinzel', serif; font-weight: 500; font-size: clamp(26px, 3.2vw, 38px); line-height: 1.1; margin: 8px 0 8px; color: #f6e8c4; }
+.cs-page-head p { margin: 0; max-width: 760px; font-size: 16px; line-height: 1.55; color: var(--muted); }
+
+/* ---------- Fondations ---------- */
+.cs-wizard { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 760px) { .cs-wizard { grid-template-columns: 1fr; } }
+.cs-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+@media (max-width: 760px) { .cs-steps { flex-direction: row; overflow-x: auto; } .cs-steps li { flex: none; } }
+.cs-steps button { width: 100%; display: flex; flex-direction: column; gap: 3px; text-align: left; padding: 11px 13px; border-radius: 8px; border: 1px solid var(--lsx-edge); background: rgba(0, 0, 0, 0.3); color: var(--txt); }
+.cs-steps button b { font-family: 'Cinzel', serif; font-weight: 500; font-size: 14.5px; color: #efdfb6; }
+.cs-steps button small { font-size: 12.5px; color: var(--muted); }
+.cs-steps button:hover { border-color: var(--gold); }
+.cs-steps button[data-on='1'] { border-color: var(--gold); background: rgba(201, 162, 74, 0.12); box-shadow: inset 3px 0 0 var(--gold); }
+.cs-step { padding: 22px 24px; }
+.cs-step h2 { font-family: 'Cinzel', serif; font-weight: 500; font-size: clamp(20px, 2.4vw, 27px); color: #f6e8c4; margin: 8px 0 8px; }
+.cs-world { margin: 0 0 12px; color: var(--muted); }
+.cs-world b { color: var(--gold-lt); font-family: 'Cinzel', serif; font-weight: 500; }
+.cs-answer { margin: 12px 0; }
+.cs-answer .fl { display: flex; align-items: center; }
+.cs-answer textarea.in, .cs-answer input.in { width: 100%; }
+.cs-answer.primary textarea.in { min-height: 110px; font-size: 16px; }
+.cs-answer-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.cs-extras { margin: 10px 0; border-top: 1px solid var(--lsx-edge); padding-top: 8px; }
+.cs-extras > summary { cursor: pointer; font-family: 'Cinzel', serif; font-size: 13px; color: var(--gold-lt); letter-spacing: 0.04em; }
+.cs-step-nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--lsx-edge); }
+.cs-canvas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 14px; margin: 10px 0; }
+.cs-canvas-grid .fl { display: flex; flex-direction: column; gap: 4px; }
+.cs-canvas-actions { margin-top: 14px; display: flex; flex-direction: column; gap: 12px; }
+.cs-check { display: flex; align-items: center; gap: 8px; font-size: 15px; }
+.cs-check small { color: var(--muted); }
+.cs-party-list { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
+
+/* ---------- Dossiers des scènes ---------- */
+.cs-dossiers { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 860px) { .cs-dossiers { grid-template-columns: 1fr; } }
+.cs-scene-list { position: sticky; top: calc(var(--lsx-top-h) + 12px); max-height: calc(100vh - var(--lsx-top-h) - 24px); overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 12px; border-radius: 10px; border: 1px solid var(--lsx-edge-2); background: rgba(14, 10, 6, 0.92); }
+@media (max-width: 860px) { .cs-scene-list { position: static; max-height: 40vh; } }
+.cs-scene-list > div { display: flex; flex-direction: column; gap: 5px; }
+.cs-scene-list button { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 100%; padding: 7px 9px; text-align: left; border-radius: 6px; border: 1px solid transparent; background: none; color: var(--txt); }
+.cs-scene-list button b { font-size: 14px; font-weight: 600; color: #efdfb6; }
+.cs-scene-list button:hover { background: rgba(201, 162, 74, 0.07); }
+.cs-scene-list button[data-on='1'] { border-color: var(--gold-dk); background: rgba(201, 162, 74, 0.13); }
+.cs-dossier { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+.cs-dossier .cs-page-head { margin: 0; }
+.cs-dossier-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 13.5px; color: var(--muted); }
+.cs-essentials { display: flex; flex-direction: column; gap: 10px; }
+.cs-essentials .fl { display: flex; flex-direction: column; gap: 4px; }
+.cs-essentials textarea.in { width: 100%; }
+.cs-parchment { background: linear-gradient(180deg, rgba(241, 228, 195, 0.96), rgba(228, 210, 166, 0.96)), url('/images/ui/parchemin.webp') center/cover !important; color: #2b200e !important; font-family: 'Spectral', 'EB Garamond', serif; font-style: italic; font-size: 16px; line-height: 1.6; border-color: #b4924c !important; }
+
+/* ---------- Registre ---------- */
+.cs-registry { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+.cs-registry .lsx-tile { display: flex; flex-direction: column; gap: 6px; }
+.cs-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.cs-chips button { font-size: 12px; padding: 1px 8px; border-radius: 99px; border: 1px solid var(--lsx-edge-2); background: none; color: var(--gold-lt); font-family: 'Cinzel', serif; }
+.cs-chips button:hover { border-color: var(--gold); }
+
+/* ---------- Avant la séance 1 ---------- */
+.cs-gate { display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px; border-left-width: 4px !important; }
+.cs-gate b { font-family: 'Cinzel', serif; font-weight: 500; font-size: 22px; color: #f6e8c4; }
+.cs-gate span { color: var(--txt); }
+.cs-gate small { color: var(--muted); }
+.cs-gate.tone-blood { border-left-color: var(--blood) !important; }
+.cs-gate.tone-gold { border-left-color: var(--gold) !important; }
+.cs-gate.tone-verdant { border-left-color: var(--verdant) !important; }
+
+/* ---------- Le Scribe ---------- */
+.cs-scribe { position: sticky; top: calc(var(--lsx-top-h) + 12px); display: flex; flex-direction: column; gap: 14px; }
+@media (max-width: 1180px) { .cs-scribe { position: static; } }
+.cs-scribe-head { display: flex; align-items: center; gap: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--lsx-edge); }
+.cs-scribe-head img { width: 30px; height: 38px; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6)); }
+.cs-scribe-head b { display: block; font-family: 'Cinzel', serif; font-weight: 500; font-size: 18px; color: #f3e4bd; }
+.cs-scribe-head small { color: var(--muted); font-size: 13px; }
+.cs-scribe .lsx-rail-card { display: flex; flex-direction: column; gap: 6px; }
+.cs-watch { margin: 4px 0 0; padding-left: 18px; font-size: 14px; line-height: 1.7; color: var(--txt); }
+.cs-ask textarea.in { width: 100%; }
+.cs-ask .btn { justify-content: center; }
+.cs-answer-text { white-space: pre-wrap; font-size: 14.5px; line-height: 1.55; padding: 10px 12px; border-radius: 6px; border: 1px solid var(--lsx-edge); background: rgba(0, 0, 0, 0.3); max-height: 360px; overflow: auto; }
+
+@media (prefers-reduced-motion: reduce) { .cs-scene, .cs-scene:hover { transition: none; transform: none; } }
+@media (max-width: 640px) {
+  .cs-actions li { flex-direction: column; align-items: flex-start; }
+  .cs-step { padding: 16px; }
+}

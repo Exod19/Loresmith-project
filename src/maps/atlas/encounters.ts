@@ -10,6 +10,8 @@ export type Entry = {
   kind: 'Créature' | 'Convoi' | 'Travailleurs' | 'Voyageurs' | 'Patrouille' | 'Signe';
   title: string; text: string; groups?: Group[]; wants?: string[]; hook?: string;
   zones: Zone[]; min?: number; max?: number; weight?: number; peaceful?: boolean; assassins?: boolean;
+  /** Faune (ne parle pas) ou capable de parler : une créature qui parle négocie comme un personnage. */
+  faune?: boolean; talks?: boolean; statut?: string;
 };
 
 const E: Entry[] = [
@@ -153,7 +155,7 @@ export function rollEncounter(ctx: EncCtx, force = false): Encounter {
   const sum = pool.reduce((a, e) => a + (e.weight ?? 1), 0); let r = Math.random() * sum; let entry = pool[0];
   for (const e of pool) { r -= e.weight ?? 1; if (r <= 0) { entry = e; break; } }
   const r2 = roll('2d6'); const att = entry.kind === 'Signe' ? undefined
-    : `2d6 = ${r2.total} → ${(entry.kind === 'Créature' ? 'Hostile ou affamée : elle attaque si elle a l’avantage, sinon elle guette.' : ATT.find(([n]) => r2.total <= n)?.[1] ?? 'Amical : propose son aide ou un échange avantageux.')}`;
+    : `2d6 = ${r2.total} → ${(entry.kind === 'Créature' && !entry.talks ? 'Hostile ou affamée : elle attaque si elle a l’avantage, sinon elle guette.' : ATT.find(([n]) => r2.total <= n)?.[1] ?? 'Amical : propose son aide ou un échange avantageux.')}`;
   const attitude = att && entry.peaceful && r2.total <= 2 ? `2d6 = ${r2.total} → Méfiant : ils ont été attaqués récemment et tirent à vue si on les surprend.` : att;
   return { d20, check, happens, entry, attitude, wants: entry.wants?.[Math.floor(Math.random() * entry.wants.length)],
     groups: entry.groups?.map((g) => { const r = roll(g.dice); return { stat: g.stat, role: g.role, label: g.label, n: r.total, detail: r.detail }; }) };

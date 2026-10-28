@@ -22,6 +22,7 @@ import { Download, Upload, Settings, ExternalLink } from 'lucide-react';
 import MapsPage from './maps/MapsPage';
 import TableMap, { tableMapId } from './maps/TableMap';
 import { setMapIntent } from './maps/intent';
+import { placeTokens as placeOnBoard } from './maps/battle/placement';
 import ArchivesPage from './feeds/ArchivesPage';
 import ArchivesLinkPanel from './feeds/ArchivesLink';
 import Dossier, { LibraryCard } from './library/Dossier';
@@ -30,6 +31,7 @@ import { DiceFloater } from './dice/DiceRoller3D';
 import DmCopilot from './copilot/DmCopilot';
 import { hostStage } from './present/stage';
 import { UNDERDARK_LINK, useUnderdarkFeed } from './feeds/underdark';
+import { FAUNA_RULE, faunaNames, speaksByName } from './feeds/fauna';
 import { Sidebar, Topbar, MobileBar, CommandPalette, NAV } from './shell/Shell';
 import UniverseHome from './shell/Home';
 import { askPersistence, loadState, saveState as persistState } from './store/persist';
@@ -42,6 +44,9 @@ import {
   resolveVoiceProfile,
   synthesizeSpeech,
 } from './voice/elevenlabs';
+import { SceneLore, SessionLore, createCreatureSheet } from './forge/LoreEditor';
+import CampaignStudio from './studio/CampaignStudio';
+import { migrateCampaign, migrateState } from './studio/migrate';
 import { atlasPlaces, buildLoreContext, feedFor, norm as normName } from './ai/loreContext';
 import {
   BRIEF_FIELDS,
@@ -4761,7 +4766,8 @@ function seedUniverse() {
   };
 }
 function reducer(s, a) {
-  if (a.type === 'HYDRATE') return a.state;
+  // Chaque chargement (et chaque import de sauvegarde) passe par la migration des campagnes vers le format V3.
+  if (a.type === 'HYDRATE') return migrateState(a.state);
   if (!s) return seedUniverse();
   const U = s.activeUniverseId;
   switch (a.type) {
@@ -4820,7 +4826,7 @@ function reducer(s, a) {
     case 'ADD_CAMPAIGN':
       return {
         ...s,
-        campaigns: { ...s.campaigns, [a.c.id]: { ...a.c, universeId: U } },
+        campaigns: { ...s.campaigns, [a.c.id]: migrateCampaign({ ...a.c, universeId: U }) },
       };
     case 'UPDATE_SCENE': {
       const c = s.campaigns[a.cid];
@@ -5061,6 +5067,9 @@ function Spin() {
 export default function App() {
   const [state, dispatch] = useReducer(reducer, null, () => null);
   const [hydrated, setHydrated] = useState(false);
+  // Garde de parole : les créatures de faune ne parlent pas (feeds/fauna.ts).
+  const { feed: faunaFeed } = useUnderdarkFeed();
+  const faunaSet = useMemo(() => faunaNames(faunaFeed?.entries ?? []), [faunaFeed]);
   const [view, setView] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get('view') || 'dashboard';
@@ -5302,15 +5311,22 @@ export default function App() {
             ) : view === 'library' ? (
               <Library {...{ state, dispatch, universe, campaigns, flash }} />
             ) : view === 'forge' ? (
-              <Forge
-                {...{
-                  state,
-                  dispatch,
-                  universe,
-                  party,
-                  campaigns,
-                  flash,
-                  setView,
+              <CampaignStudio
+                {...{ universe, state, campaigns, party, npcs, dispatch, flash }}
+                setView={goTo}
+                call={(o) => callAI(ai, o)}
+                services={{
+                  renderCampaign: (camp, feed) => (
+                    <CampaignCard key={camp.id} camp={camp} defaultOpen feed={feed} {...{ state, dispatch, universe, party, flash, setView: goTo }} />
+                  ),
+                  renderScene: (camp, scene, session, idx, feed) => (
+                    <SceneRow key={scene.id} scene={scene} idx={idx} camp={camp} session={session} feed={feed} {...{ state, dispatch, universe, party, flash, setView: goTo }} />
+                  ),
+                  renderQuickForge: () => <Forge {...{ state, dispatch, universe, party, campaigns, flash, setView }} hideList />,
+                  forge: (camp, { brief, writeAll, onStep, feed }) =>
+                    forgeCampaign({ ai, universe, state, party, feed, brief, dispatch, writeAll, onStep, campaignId: camp.id, keep: { foundations: camp.foundations, createdAt: camp.createdAt } }),
+                  createSheet: ({ camp, name, mode, count }, feed) =>
+                    createCreatureSheet({ call: (o) => callAI(ai, o), creature: { name, count }, universe, state, feed, party, camp, dispatch, flash, mode }),
                 }}
               />
             ) : view === 'chat' ? (
@@ -5371,7 +5387,9 @@ export default function App() {
             ) : view === 'archives' ? (
               <ArchivesPage universe={universe} dispatch={dispatch} flash={flash} />
             ) : view === 'maps' ? (
-              <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} heroes={party} campaigns={campaigns} bestiary={npcs} onReturnToTable={() => setView('scene')} />
+              <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} heroes={party} campaigns={campaigns} bestiary={npcs} onReturnToTable={() => setView('scene')}
+                renderCombat={(slot) => <MapEncounter {...{ state, dispatch, party, npcs, flash }} {...slot} />}
+              />
             ) : view === 'present' ? (
               <StageControl {...{ universe, state, flash }} />
             ) : view === 'quests' ? (
@@ -6379,7 +6397,7 @@ async function writeCampaignSession({ ai, universe, state, party, camp, sessionN
   const d = await forgeSession((o) => callAI(ai, o), ctx, camp, session, brief, previousDigest(camp, sessionNumber));
   if (d._parseFailed || !Array.isArray(d.scenes) || !d.scenes.length)
     throw new Error(`La séance ${sessionNumber} n’a pas pu être écrite (réponse illisible). Réessaie ou change de modèle.`);
-  const fresh = d.scenes.map((sc) => toScene(sc, session));
+  const fresh = d.scenes.map((sc) => ({ ...toScene(sc, session), actId: session.actId || '' }));
   const sessions = camp.sessions.map((s) =>
     s.sessionNumber === sessionNumber
       ? {
@@ -6401,7 +6419,85 @@ async function writeCampaignSession({ ai, universe, state, party, camp, sessionN
   return { sessions, scenes };
 }
 
-function Forge({ state, dispatch, universe, party, campaigns, flash, setView }) {
+/**
+ * Forge une campagne complète : bible, puis chaque séance scène par scène (si `writeAll`).
+ * `campaignId` : réécrit le canevas d'une campagne existante (Campaign Studio) en gardant ses fondations.
+ * `onStep(label, status, note)` suit l'avancement. Renvoie l'identifiant et le nombre de séances en échec.
+ */
+async function forgeCampaign({ ai, universe, state, party, feed, brief, dispatch, writeAll = true, onStep = () => {}, campaignId, keep = {} }) {
+  const call = (o) => callAI(ai, o);
+  const ctx = buildLoreContext({ universe, state, feed, party, focus: [brief.mindDump, ...BRIEF_FIELDS.map((f) => brief[f.key])].join(' ') });
+  onStep('Bible de campagne', 'run');
+  const bible = await forgeBible(call, ctx, brief);
+  if (bible._parseFailed || (!bible.title && !bible.sessions))
+    throw new Error('L’IA n’a pas renvoyé une campagne lisible. Réessaie, ou choisis un modèle plus puissant dans Réglages.');
+  const sessions = (bible.sessions || []).map((s, i) => ({ ...s, sessionNumber: Number(s.sessionNumber) || i + 1, detailed: false }));
+  const id = campaignId || uid();
+
+  // Ce que la bibliothèque connaît déjà est lié à la campagne ; le reste est proposé à la création.
+  const lib = Object.values(state.libraryEntries || {}).filter((e) => e.universeId === universe.id);
+  const libByName = new Map(lib.map((e) => [normName(e.title), e]));
+  const suggestions = librarySuggestionsFrom(bible);
+  const linked = [...new Set(suggestions.map((s) => libByName.get(normName(s.title))).filter(Boolean))];
+
+  let camp = {
+    id,
+    title: cleanCampaignTitle(bible.title, brief.title || brief.theme),
+    premise: bible.premise || '',
+    hook: bible.hook || '',
+    setting: bible.setting || '',
+    campaignMode: brief.format,
+    brief: { ...brief },
+    mindDump: brief.mindDump || '',
+    campaignCanon: bible.campaignCanon || '',
+    dmOverview: bible.dmOverview || '',
+    finalTruth: bible.finalTruth || '',
+    failureState: bible.failureState || '',
+    campaignThemes: bible.campaignThemes || [],
+    campaignQuestions: bible.campaignQuestions || [],
+    acts: bible.acts || [],
+    sessions,
+    recurringNpcs: bible.recurringNpcs || [],
+    factions: bible.factions || [],
+    majorLocations: bible.majorLocations || [],
+    mysteries: bible.mysteries || [],
+    monsters: bible.monsters || [],
+    librarySuggestions: suggestions.filter((s) => !libByName.has(normName(s.title))),
+    linkedLibraryEntryIds: linked.map((e) => e.id),
+    hours: brief.hours,
+    level: brief.level,
+    theme: brief.theme,
+    createdAt: now(),
+    scenes: sessions.flatMap(outlineScenes),
+  };
+  camp = migrateCampaign({ ...camp, foundations: keep.foundations, createdAt: keep.createdAt || camp.createdAt });
+  if (campaignId) dispatch({ type: 'UPDATE_CAMPAIGN', id, patch: camp });
+  else dispatch({ type: 'ADD_CAMPAIGN', c: camp });
+  linked.forEach((e) =>
+    dispatch({ type: 'UPDATE_LIBRARY_ENTRY', id: e.id, patch: { linkedCampaignIds: [...new Set([...(e.linkedCampaignIds || []), id])] } })
+  );
+  onStep('Bible de campagne', 'ok', `${sessions.length} séance(s), ${camp.recurringNpcs.length} PNJ, ${camp.majorLocations.length} lieux`);
+
+  let failed = 0;
+  if (writeAll) {
+    for (const s of sessions) {
+      const label = `Séance ${s.sessionNumber} · ${s.title || ''}`;
+      onStep(label, 'run');
+      try {
+        const patch = await writeCampaignSession({ ai, universe, state, party, camp, sessionNumber: s.sessionNumber, feed });
+        camp = { ...camp, ...patch };
+        dispatch({ type: 'UPDATE_CAMPAIGN', id, patch });
+        onStep(label, 'ok', `${patch.scenes.filter((sc) => sc.sessionNumber === s.sessionNumber).length} scènes`);
+      } catch (e) {
+        failed++;
+        onStep(label, 'err', e.message);
+      }
+    }
+  }
+  return { id, failed };
+}
+
+function Forge({ state, dispatch, universe, party, campaigns, flash, setView, hideList }) {
   const { ai } = useContext(AIContext);
   const feed = useUniverseFeed(universe);
   const startLevel = party[0]?.level || 3;
@@ -6464,77 +6560,12 @@ function Forge({ state, dispatch, universe, party, campaigns, flash, setView }) 
     setErr('');
     setSteps([]);
     try {
-      const ctx = context();
-      step('Bible de campagne', 'run');
-      const bible = await forgeBible(call, ctx, brief);
-      if (bible._parseFailed || (!bible.title && !bible.sessions))
-        throw new Error('L’IA n’a pas renvoyé une campagne lisible. Réessaie, ou choisis un modèle plus puissant dans Réglages.');
-      const sessions = (bible.sessions || []).map((s, i) => ({ ...s, sessionNumber: Number(s.sessionNumber) || i + 1, detailed: false }));
-      const id = uid();
-
-      // Ce que la bibliothèque connaît déjà est lié à la campagne ; le reste est proposé à la création.
-      const lib = Object.values(state.libraryEntries || {}).filter((e) => e.universeId === universe.id);
-      const libByName = new Map(lib.map((e) => [normName(e.title), e]));
-      const suggestions = librarySuggestionsFrom(bible);
-      const linked = [...new Set(suggestions.map((s) => libByName.get(normName(s.title))).filter(Boolean))];
-
-      let camp = {
-        id,
-        title: cleanCampaignTitle(bible.title, brief.title || brief.theme),
-        premise: bible.premise || '',
-        hook: bible.hook || '',
-        setting: bible.setting || '',
-        campaignMode: brief.format,
-        brief: { ...brief },
-        mindDump: brief.mindDump || '',
-        campaignCanon: bible.campaignCanon || '',
-        dmOverview: bible.dmOverview || '',
-        finalTruth: bible.finalTruth || '',
-        failureState: bible.failureState || '',
-        campaignThemes: bible.campaignThemes || [],
-        campaignQuestions: bible.campaignQuestions || [],
-        acts: bible.acts || [],
-        sessions,
-        recurringNpcs: bible.recurringNpcs || [],
-        factions: bible.factions || [],
-        majorLocations: bible.majorLocations || [],
-        mysteries: bible.mysteries || [],
-        monsters: bible.monsters || [],
-        librarySuggestions: suggestions.filter((s) => !libByName.has(normName(s.title))),
-        linkedLibraryEntryIds: linked.map((e) => e.id),
-        hours: brief.hours,
-        level: brief.level,
-        theme: brief.theme,
-        createdAt: now(),
-        scenes: sessions.flatMap(outlineScenes),
-      };
-      dispatch({ type: 'ADD_CAMPAIGN', c: camp });
-      linked.forEach((e) =>
-        dispatch({ type: 'UPDATE_LIBRARY_ENTRY', id: e.id, patch: { linkedCampaignIds: [...new Set([...(e.linkedCampaignIds || []), id])] } })
-      );
-      step('Bible de campagne', 'ok', `${sessions.length} séance(s), ${camp.recurringNpcs.length} PNJ, ${camp.majorLocations.length} lieux`);
-
-      let failed = 0;
-      if (writeAll) {
-        for (const s of sessions) {
-          const label = `Séance ${s.sessionNumber} · ${s.title || ''}`;
-          step(label, 'run');
-          try {
-            const patch = await writeCampaignSession({ ai, universe, state, party, camp, sessionNumber: s.sessionNumber, feed });
-            camp = { ...camp, ...patch };
-            dispatch({ type: 'UPDATE_CAMPAIGN', id, patch });
-            step(label, 'ok', `${patch.scenes.filter((sc) => sc.sessionNumber === s.sessionNumber).length} scènes`);
-          } catch (e) {
-            failed++;
-            step(label, 'err', e.message);
-          }
-        }
-      }
+      const { failed } = await forgeCampaign({ ai, universe, state, party, feed, brief, dispatch, writeAll, onStep: step });
       flash(
         failed
           ? `Campagne forgée : ${failed} séance(s) à reprendre depuis sa fiche.`
           : writeAll
-          ? 'Campagne forgée et entièrement écrite : prête à jouer.'
+          ? 'Campagne forgée et écrite : passe-la au contrôle de préparation.'
           : 'Bible forgée : écris les séances depuis la fiche de la campagne.'
       );
     } catch (e) {
@@ -6681,6 +6712,8 @@ function Forge({ state, dispatch, universe, party, campaigns, flash, setView }) 
         )}
       </div>
 
+      {!hideList && (
+        <>
       <div className="eyebrow">Campagnes forgées</div>
 
       {campaigns.length === 0 ? (
@@ -6694,6 +6727,8 @@ function Forge({ state, dispatch, universe, party, campaigns, flash, setView }) 
             <CampaignCard key={c.id} camp={c} {...{ state, dispatch, universe, party, flash, setView, feed }} />
           ))}
         </div>
+      )}
+        </>
       )}
     </>
   );
@@ -6864,8 +6899,9 @@ function CampaignCard({
   flash,
   setView,
   feed,
+  defaultOpen = false,
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const { ai } = useContext(AIContext);
   const [brainNotes, setBrainNotes] = useState(camp.brainScratch || '');
   const [brainBusy, setBrainBusy] = useState(false);
@@ -7494,8 +7530,28 @@ function CampaignCard({
                         />
                       </Block>
                     )}
+                    <details className="lore-details">
+                      <summary>Lore de la séance : brief, PNJ, rencontres, fils, ajouter une scène</summary>
+                      <SessionLore
+                        camp={camp}
+                        session={s}
+                        universe={universe}
+                        state={state}
+                        party={party}
+                        feed={feed}
+                        call={(o) => callAI(ai, o)}
+                        dispatch={dispatch}
+                        flash={flash}
+                        onAddScene={(sc) => {
+                          const next = { ...toScene(sc, s), actId: s.actId || '' };
+                          dispatch({ type: 'UPDATE_CAMPAIGN', id: camp.id, patch: { scenes: [...camp.scenes, next] } });
+                          flash(`Scène ajoutée : ${next.title}`);
+                        }}
+                        onCreatureSheet={(c) => createCreatureSheet({ call: (o) => callAI(ai, o), creature: c, universe, state, feed, party, camp, dispatch, flash })}
+                      />
+                    </details>
                     {scenes.map((sc, i) => (
-                      <SceneRow key={sc.id} scene={sc} idx={i} camp={camp} {...{ state, dispatch, universe, party, flash, setView }} />
+                      <SceneRow key={sc.id} scene={sc} idx={i} camp={camp} session={s} feed={feed} {...{ state, dispatch, universe, party, flash, setView }} />
                     ))}
                     {s.cliffhanger && (
                       <div className="muted" style={{ fontSize: 13.5, margin: '6px 0' }}>
@@ -7948,8 +8004,11 @@ function SceneRow({
   party,
   flash,
   setView,
+  feed,
+  session,
 }) {
   const { ai } = useContext(AIContext);
+  const call = (o) => callAI(ai, o);
   const [busy, setBusy] = useState(false);
   const [show, setShow] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -7978,6 +8037,7 @@ function SceneRow({
           - All read-aloud narration must be in French.
           - All NPC dialogue must be in French.
           - Dialogue must reflect the speaker's species, personality, status, and emotional state.
+          - ${FAUNA_RULE}
           - Frog-like characters may include occasional "croa".
           - Serpent-like characters may stretch s sounds, like "sssecret" or "sssi".
           - Goblins should sound nervous, twitchy, hesitant, opportunistic, and slightly chaotic.
@@ -8281,6 +8341,22 @@ JSON: {
           )}
         </div>
       )}
+      <details className="lore-details">
+        <summary>Lore : PNJ, rencontres, DD, environnement, dialogues</summary>
+        <SceneLore
+          camp={camp}
+          scene={scene}
+          session={session}
+          universe={universe}
+          state={state}
+          party={party}
+          feed={feed}
+          call={call}
+          dispatch={dispatch}
+          flash={flash}
+          onCreatureSheet={(c) => createCreatureSheet({ call, creature: c, universe, state, feed, party, camp, dispatch, flash })}
+        />
+      </details>
     </div>
   );
 }
@@ -8535,7 +8611,16 @@ function Chat({
     return thread;
   }
 
+  // Vrai si le locuteur courant peut parler ; sinon un message l'explique.
+  function canSpeakNow() {
+    if (mode !== 'npc' || !selectedSpeaker) return true;
+    if (speaksByName(selectedSpeaker.name || '', faunaSet, selectedNpc)) return true;
+    flash(`${selectedSpeaker.name} ne parle pas : c'est de la faune.`);
+    return false;
+  }
+
   async function playLine(text, idx) {
+    if (!canSpeakNow()) return;
     if (playingIdx === idx) {
       audioRef.current?.pause();
       setPlayingIdx(-1);
@@ -8621,6 +8706,7 @@ function Chat({
 
     if (mode === 'npc') {
       return `${base}
+  ${FAUNA_RULE}
   
   Tu INCARNES le PNJ suivant:
   Nom: ${selectedSpeaker?.name || 'PNJ de la scène courante'}
@@ -8654,6 +8740,7 @@ function Chat({
   }
 
   async function send() {
+    if (!canSpeakNow()) return;
     const text = input.trim();
     if (!text || busy) return;
 
@@ -12994,11 +13081,17 @@ function getLinkedSceneLabels(sceneIds, campaigns) {
 }
 
 /* ----------------------------- Encounter / Combat ----------------------- */
-function Encounter({ dispatch, state, party, npcs, flash }) {
+/**
+ * Module Combat. Utilisé tel quel dans l’onglet Combat, et sous la carte de combat (`embedded`) :
+ * la sélection est alors partagée avec le plateau, et la mini-carte cède la place au vrai plateau.
+ */
+function Encounter({ dispatch, state, party, npcs, flash, embedded }) {
   const c = state.combat || { combatants: [], round: 1 };
   const [dmg, setDmg] = useState({});
   const [infoModal, setInfoModal] = useState(null);
-  const [selectedTokenId, setSelectedTokenId] = useState('');
+  const [localSelection, setLocalSelection] = useState('');
+  const selectedTokenId = embedded ? embedded.selectedId || '' : localSelection;
+  const setSelectedTokenId = embedded ? (id) => embedded.onSelect?.(id || null) : setLocalSelection;
   const [mapMode, setMapMode] = useState('move');
 
   const setC = (patch) => dispatch({ type: 'COMBAT_SET', patch });
@@ -13231,16 +13324,20 @@ function Encounter({ dispatch, state, party, npcs, flash }) {
 
   return (
     <>
-      <h1 className="view">Combat</h1>
-      <p className="sub">
-        Suivi d’initiative, HP, attaques, buffs/malus, ressources limitées et
-        positionnement tactique.
-      </p>
-      <p className="sub" style={{ color: 'var(--gold-lt)' }}>
-        Nouveau : le combat se mène aussi directement sur la carte de combat
-        (Cartes → ⚔ Ouvrir la carte de combat → onglet Combat), avec le
-        plateau, l’initiative, les attaques et les conseils tactiques.
-      </p>
+      {!embedded && (
+        <>
+        <h1 className="view">Combat</h1>
+        <p className="sub">
+          Suivi d’initiative, HP, attaques, buffs/malus, ressources limitées et
+          positionnement tactique.
+        </p>
+        <p className="sub" style={{ color: 'var(--gold-lt)' }}>
+          Nouveau : le combat se mène aussi directement sur la carte de combat
+          (Cartes → ⚔ Ouvrir la carte de combat → onglet Combat), avec le
+          plateau, l’initiative, les attaques et les conseils tactiques.
+        </p>
+        </>
+      )}
 
       <div className="combat-layout-advanced">
         <main className="combat-main-col">
@@ -13384,6 +13481,7 @@ function Encounter({ dispatch, state, party, npcs, flash }) {
         </main>
 
         <aside className="combat-side-col">
+          {!embedded && (
           <div className="panel combat-map-panel">
             <div className="combat-panel-head">
               <div>
@@ -13430,6 +13528,7 @@ function Encounter({ dispatch, state, party, npcs, flash }) {
               onToggleBlocked={toggleBlockedCell}
             />
           </div>
+          )}
 
           <div className="panel dm-strategy-panel">
             <div className="combat-panel-head">
@@ -13441,6 +13540,14 @@ function Encounter({ dispatch, state, party, npcs, flash }) {
 
             <DmStrategyPanel strategy={dmStrategy} />
           </div>
+
+          <CombatAiPanel
+            combatants={sorted}
+            active={activeCombatant}
+            round={c.round}
+            place={embedded?.place}
+            positions={embedded?.positions}
+          />
         </aside>
       </div>
 
@@ -13450,6 +13557,142 @@ function Encounter({ dispatch, state, party, npcs, flash }) {
     </>
   );
 }
+/** Aide de l’IA pour le combat : plan du round, cibles, capacités, rebondissements (IA configurée dans Réglages). */
+function CombatAiPanel({ combatants, active, round, place, positions }) {
+  const { ai } = useContext(AIContext);
+  const [state, setState] = useState({ busy: false });
+  async function ask() {
+    setState({ busy: true });
+    const lines = combatants.map((t) => {
+      const pos = positions?.[t.id];
+      const atk = (t.attacks || [])
+        .map((a) => `${a.name}${a.attackBonus != null ? ` +${a.attackBonus}` : ''}${a.damageDice ? ` ${a.damageDice}${a.damageBonus ? `+${a.damageBonus}` : ''}` : ''}${a.range ? ` (${a.range})` : ''}`)
+        .join('; ');
+      const fx = (t.effects || []).filter((e) => e.active || e.source === 'Trait').map((e) => e.name).join(', ');
+      return `- ${t.id === active?.id ? '▶ ' : ''}${t.name} [${t.isPC ? 'joueur' : 'créature'}] init ${t.init}, PV ${t.hp}/${t.maxHp}, CA ${t.ac}${pos ? `, case (${pos.x},${pos.y})${pos.visible === false ? ', cachée aux joueurs' : ''}` : ''}${atk ? `. Actions : ${atk}` : ''}${fx ? `. Traits et effets : ${fx}` : ''}${t.skills ? `. Compétences : ${t.skills}` : ''}`;
+    });
+    try {
+      const text = await callAIMessages(ai, [
+        { role: 'system', content: 'Tu es un maître du jeu expert de D&D 5e. Tu aides le MJ à mener un combat tactique, lisible et cinématique. Réponds en français, en 6 points maximum, une phrase chacun, sans titre : l’ordre des actions des créatures ce round, la cible de chacune et pourquoi, la capacité, le trait ou le don à utiliser, le terrain à exploiter, et un rebondissement pour garder la tension. N’invente aucune statistique.' },
+        { role: 'user', content: `Lieu : ${place || 'inconnu'}. Round ${round}. Une case = 5 pieds.\n${lines.join('\n')}\n\nTour actuel : ${active?.name || 'personne'}.` },
+      ], false);
+      setState({ busy: false, text });
+    } catch (e) {
+      setState({ busy: false, error: e.message });
+    }
+  }
+  return (
+    <div className="panel combat-ai-panel">
+      <div className="combat-panel-head">
+        <div>
+          <b>Aide de l’IA</b>
+          <span>Plan du round, cibles, capacités et rebondissements</span>
+        </div>
+      </div>
+      <button className="btn primary sm" disabled={state.busy || !ai?.apiKey || !combatants.length} onClick={ask}>
+        {state.busy ? 'L’IA réfléchit…' : '✨ Que faire ce round ?'}
+      </button>
+      {!ai?.apiKey && <p className="muted" style={{ fontSize: 12 }}>Configure une clé d’IA dans Réglages pour l’activer.</p>}
+      {state.error && <p className="combat-ai-error">{state.error}</p>}
+      {state.text && (
+        <ul className="combat-ai-answer">
+          {state.text.split('\n').map((l) => l.replace(/^[\s*•\-–\d.)]+/, '').trim()).filter(Boolean).map((l, i) => <li key={i}>{l}</li>)}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Module Combat sous la carte de combat : les combattants et les jetons sont les mêmes (même identifiant).
+ * Ajouter un combattant pose son jeton ; un jeton ajouté sur la carte devient un combattant ; retirer l’un retire
+ * l’autre ; PV, CA, nom, initiative et tour en cours se reportent sur le plateau. Un autre lieu = un autre combat.
+ */
+function MapEncounter({ state, dispatch, party, npcs, flash, battle, setBattle, place, combatKey, selectedId, onSelect }) {
+  const c = state.combat || { combatants: [], round: 1 };
+  const combatants = c.combatants || [];
+  const bound = c.battleKey === combatKey;
+
+  // Entrée dans ce combat : on reprend les combattants préparés dans l’onglet Combat (s’ils ne sont liés à aucune
+  // carte), sinon ceux du plateau.
+  useEffect(() => {
+    if (bound) return;
+    if (!c.battleKey && combatants.length) {
+      dispatch({ type: 'COMBAT_SET', patch: { battleKey: combatKey, syncedIds: [] } });
+      return;
+    }
+    const fresh = battle.tokens.map((t) => combatantFromToken(t, party, npcs));
+    dispatch({ type: 'COMBAT_SET', patch: { battleKey: combatKey, combatants: fresh, syncedIds: fresh.map((x) => x.id), round: battle.round || 1, turnIndex: 0 } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [combatKey, bound]);
+
+  // Synchronisation dans les deux sens, à chaque changement d’un côté ou de l’autre.
+  useEffect(() => {
+    if (!bound) return;
+    const tokens = battle.tokens;
+    const tById = new Map(tokens.map((t) => [t.id, t]));
+    const cById = new Map(combatants.map((x) => [x.id, x]));
+    const known = new Set(c.syncedIds || tokens.filter((t) => cById.has(t.id)).map((t) => t.id));
+    const goneOnMap = [...known].filter((id) => !tById.has(id) && cById.has(id));
+    const goneInCombat = [...known].filter((id) => !cById.has(id) && tById.has(id));
+    const newTokens = tokens.filter((t) => !cById.has(t.id) && !known.has(t.id));
+    const newCombatants = combatants.filter((x) => !tById.has(x.id) && !known.has(x.id));
+
+    let nextComb = combatants.filter((x) => !goneOnMap.includes(x.id));
+    if (newTokens.length) nextComb = [...nextComb, ...newTokens.map((t) => combatantFromToken(t, party, npcs))];
+    let nextTokens = tokens.filter((t) => !goneInCombat.includes(t.id));
+    if (newCombatants.length) nextTokens = [...nextTokens, ...placeOnBoard({ ...battle, tokens: nextTokens }, newCombatants.map(tokenFromCombatant))];
+
+    // Ce que le module Combat décide (PV, CA, nom, initiative) se voit sur le plateau.
+    const byId = new Map(nextComb.map((x) => [x.id, x]));
+    nextTokens = nextTokens.map((t) => {
+      const x = byId.get(t.id);
+      if (!x) return t;
+      const ac = getCombatantDerivedStats(x).ac;
+      const init = x.init === '' || x.init === undefined ? undefined : Number(x.init);
+      const same = t.hp === Number(x.hp) && t.maxHp === Number(x.maxHp) && t.ac === Number(ac) && t.name === x.name && t.init === init;
+      return same ? t : { ...t, hp: Number(x.hp), maxHp: Number(x.maxHp), ac: Number(ac), name: x.name, init };
+    });
+
+    const sorted = [...nextComb].sort((a, b) => (Number(b.init) || 0) - (Number(a.init) || 0));
+    const active = sorted.length ? sorted[Math.min(Number(c.turnIndex || 0), sorted.length - 1)] : null;
+    const turn = active?.id;
+    const round = Number(c.round || 1);
+    const synced = nextComb.filter((x) => nextTokens.some((t) => t.id === x.id)).map((x) => x.id);
+
+    const combChanged = nextComb.length !== combatants.length || nextComb.some((x, i) => x !== combatants[i]);
+    const syncedChanged = synced.length !== (c.syncedIds || []).length || synced.some((id, i) => id !== c.syncedIds[i]);
+    if (combChanged || syncedChanged) dispatch({ type: 'COMBAT_SET', patch: { ...(combChanged ? { combatants: nextComb } : {}), syncedIds: synced } });
+    const tokensChanged = nextTokens.length !== tokens.length || nextTokens.some((t, i) => t !== tokens[i]);
+    if (tokensChanged || battle.turn !== turn || battle.round !== round) setBattle({ ...battle, tokens: nextTokens, turn, round });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bound, combatants, battle.tokens, c.turnIndex, c.round, c.syncedIds]);
+
+  const positions = Object.fromEntries(battle.tokens.map((t) => [t.id, { x: t.x, y: t.y, visible: t.visible }]));
+  const setVisible = (id, visible) => setBattle({ ...battle, tokens: battle.tokens.map((t) => (t.id === id ? { ...t, visible } : t)) });
+
+  if (!bound) return <p className="muted">Préparation du combat…</p>;
+  return (
+    <div className="map-encounter">
+      <div className="map-encounter-tokens">
+        <span className="muted">Vu par les joueurs :</span>
+        {battle.tokens.map((t) => (
+          <button
+            key={t.id}
+            className={`map-encounter-chip ${t.visible ? 'on' : ''} ${selectedId === t.id ? 'sel' : ''}`}
+            onClick={() => setVisible(t.id, !t.visible)}
+            title={t.visible ? 'Visible des joueurs (clic : cacher)' : 'Caché aux joueurs (clic : montrer)'}
+          >
+            {t.visible ? '👁' : '🙈'} {t.name}
+          </button>
+        ))}
+        <span className="muted map-encounter-hint">Glisse les jetons sur le plateau ; tout le reste se gère ici.</span>
+      </div>
+      <Encounter {...{ dispatch, state, party, npcs, flash }} embedded={{ selectedId, onSelect, place, positions }} />
+    </div>
+  );
+}
+
 function CombatantRowAdvanced({
   t,
   sourceNpc,
@@ -13592,6 +13835,17 @@ function CombatantRowAdvanced({
           </button>
         </div>
       </div>
+
+      {t.str !== undefined && (
+        <div className="combatant-stats-line" onClick={(e) => e.stopPropagation()}>
+          <span>FOR {t.str} · DEX {t.dex} · CON {t.con} · INT {t.int} · SAG {t.wis} · CHA {t.cha}</span>
+          {t.saves && <span>Sauvegardes : {t.saves}</span>}
+          {t.skills && <span>Compétences : {t.skills}</span>}
+          {t.senses && <span>Sens : {t.senses}</span>}
+          {t.languages && <span>Langues : {t.languages}</span>}
+          {t.cr && <span>FP {t.cr}</span>}
+        </div>
+      )}
 
       {editing && (
         <CombatantEditPanel
@@ -14295,6 +14549,92 @@ function buildNpcCombatant(n) {
     effects: normalizeCombatEffects(n.effects || []),
     token: makeDefaultToken(false),
     image: n.token || '',
+    saves: asSheetText(n.saves),
+    skills: asSheetText(n.skills),
+    senses: asSheetText(n.senses),
+    languages: asSheetText(n.languages),
+    cr: asSheetText(n.cr || n.challenge),
+  };
+}
+
+/** Champ de fiche en texte lisible (« Perception +4, Discrétion +6 »), quelle que soit sa forme. */
+function asSheetText(v) {
+  if (!v) return '';
+  if (Array.isArray(v)) return v.map(asSheetText).filter(Boolean).join(', ');
+  if (typeof v === 'object') return Object.entries(v).map(([k, x]) => `${k} ${x}`).join(', ');
+  return String(v);
+}
+
+/** Fiche SRD (créature de la carte de combat) au format d’une fiche de PNJ, pour en faire un combattant complet. */
+function npcFromSrd(stat) {
+  const lead = (x) => parseInt(String(x || ''), 10);
+  const [str, dex, con, int, wis, cha] = stat.abil;
+  return {
+    id: `srd:${stat.id}`,
+    name: stat.name,
+    kind: stat.meta,
+    hp: lead(stat.hp) || 10,
+    ac: lead(stat.ac) || 12,
+    speed: stat.speed,
+    str, dex, con, int, wis, cha,
+    actions: [
+      ...stat.actions.map(([name, desc]) => ({ name, desc, type: 'action' })),
+      ...(stat.reactions || []).map(([name, desc]) => ({ name, desc, type: 'reaction' })),
+    ],
+    effects: (stat.traits || []).map(([name, desc]) => ({ name, desc, short: desc.split('.')[0], source: 'Trait' })),
+    saves: stat.saves,
+    skills: stat.skills,
+    senses: stat.senses,
+    languages: stat.languages,
+    cr: stat.cr,
+  };
+}
+
+/** Combattant tiré d’un jeton de la carte de combat (même identifiant) : fiche du groupe, du bestiaire ou du SRD. */
+function combatantFromToken(t, party, npcs) {
+  const hero = t.heroId && party.find((p) => p.id === t.heroId);
+  const npc = t.npcId && npcs.find((n) => n.id === t.npcId);
+  const isPC = t.kind === 'pc';
+  const base = hero
+    ? buildPcCombatant(hero)
+    : npc
+      ? buildNpcCombatant(npc)
+      : t.statId && STATS[t.statId]
+        ? buildNpcCombatant(npcFromSrd(STATS[t.statId]))
+        : {
+            sourceId: '', isPC, maxHp: 10, hp: 10, ac: 12, baseAc: 12, init: 0, speed: '30 ft.',
+            attacks: [], effects: getDefaultCombatEffects(isPC), token: makeDefaultToken(isPC),
+          };
+  return {
+    ...base,
+    id: t.id,
+    name: t.name,
+    isPC,
+    hp: t.hp ?? base.hp,
+    maxHp: t.maxHp ?? base.maxHp,
+    ac: t.ac ?? base.ac,
+    baseAc: t.ac ?? base.baseAc,
+    init: t.init ?? base.init,
+  };
+}
+
+/** Jeton de carte tiré d’un combattant (même identifiant) ; les créatures arrivent cachées aux joueurs. */
+function tokenFromCombatant(c) {
+  const srd = String(c.sourceId || '').startsWith('srd:') ? String(c.sourceId).slice(4) : undefined;
+  return {
+    id: c.id,
+    name: c.name,
+    kind: c.isPC ? 'pc' : 'monster',
+    size: 1,
+    visible: !!c.isPC,
+    hp: Number(c.hp),
+    maxHp: Number(c.maxHp),
+    ac: Number(c.ac),
+    init: c.init === '' || c.init === undefined ? undefined : Number(c.init),
+    heroId: c.isPC ? c.sourceId || undefined : undefined,
+    npcId: !c.isPC && c.sourceId && !srd ? c.sourceId : undefined,
+    statId: srd,
+    image: c.image || undefined,
   };
 }
 function refreshCombatantFromNpc(current, source) {
@@ -14408,6 +14748,8 @@ function parseDamageParts(text) {
   const raw = (text || '').toString();
 
   const patterns = [
+    // SRD en français : « Touché : 4 (1d6 + 1) tranchants ».
+    /touch[ée]\s*:\s*\d+\s*\(\s*(\d+d\d+(?:\s*[+-]\s*\d+)?)\s*\)\s*(?:dégâts?\s+(?:d[e'’]\s*)?)?([a-zA-Zéûîôàèùç-]+)?/i,
     /hit\s*:?\s*\d*\s*\(?\s*(\d+d\d+(?:\s*[+-]\s*\d+)?)\s*\)?\s*([a-zA-Zéûîôàèùç -]+)?\s*damage/i,
     /(\d+d\d+(?:\s*[+-]\s*\d+)?)\s*([a-zA-Zéûîôàèùç -]+)?\s*damage/i,
     /(\d+d\d+(?:\s*[+-]\s*\d+)?)\s*dégâts?\s*([a-zA-Zéûîôàèùç -]+)?/i,

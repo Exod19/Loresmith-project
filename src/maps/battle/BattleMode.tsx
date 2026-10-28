@@ -6,7 +6,7 @@
  * Le lieu choisi donne la zone locale : ses passages (tracés réels de l'Atlas) et ses éléments y sont à leur position.
  * « Suivre » un passage ramène sur la carte de navigation, à sa destination, et y déplace le groupe.
  */
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import BattleBoard, { anchorOf, type BoardElement, type BoardLabel, type BoardRange, type BoardToken } from './BattleBoard';
 import type { AtlasData, AtlasMap } from '../atlas/types';
 import {
@@ -20,13 +20,14 @@ import BuildPanel from './BuildPanel';
 import CombatPanel, { type Hero } from './CombatPanel';
 import type { BestiaryRef } from '../CampaignGuide';
 import PlacePanel, { type ExitItem, type SearchItem, type SecretItem } from './PlacePanel';
-import { DEFAULT_BRUSH, PROP_BY_KEY, PROP_LABEL, propUrl, applyBuild, shapeCells, type Brush } from './build';
+import { DEFAULT_BRUSH, PROP_BY_KEY, PROP_LABEL, propUrl, shapeCells, type Brush } from './build';
 import { passageDifficulty, searchFor, type SearchEntry } from './search';
 import { advanceBattle, isOut, passiveOfToken, sightOf, statOf } from './combat';
 import { detectLabel, trailProfile } from '../atlas/trails';
 import { describeLite } from '../atlas/lore';
 import { placeEncounter, type EncounterGroup } from './encounter';
 import { askAI, aiReady, parseJson } from '../../ai/client';
+import { effectiveOf, fits, placeTokens as placeOnBoard } from './placement';
 import './battle.css';
 
 /** Niveaux de zoom du plateau (même logique que la carte de navigation). */
@@ -47,32 +48,21 @@ export function feetBetween(a: Box, b: Box, feetPerCell: number) {
   return { cells, feet: cells * feetPerCell };
 }
 
-/** Terrain effectif : passages creusés, passages secrets fermés tant qu'ils ne sont pas découverts. */
-function effectiveOf(b: Battle): string | undefined {
-  if (!b.terrain) return undefined;
-  const local = b.local;
-  return applyBuild(effectiveGrid(b.terrain.grid, local?.elements ?? [], local?.discovered ?? [], (local?.elements ?? []).map((e) => e.id)), b.build);
-}
-
-/** Le jeton peut-il occuper ce coin sans chevaucher un autre jeton, un obstacle, ni sortir du plateau ? */
-function fits(b: Battle, id: string | null, size: number, x: number, y: number) {
-  if (x < 0 || y < 0 || x + size > b.cols || y + size > b.rows) return false;
-  const grid = effectiveOf(b);
-  for (let dy = 0; dy < size; dy++) for (let dx = 0; dx < size; dx++) if (blocksCell(grid, b.cols, x + dx, y + dy)) return false;
-  return !b.tokens.some((t) => t.id !== id && t.x < x + size && x < t.x + t.size && t.y < y + size && y < t.y + t.size);
-}
-
-/** Case libre la plus proche du centre du plateau. */
-function freeNear(b: Battle, size: 1 | 2): { x: number; y: number } | null {
-  const cx = Math.floor(b.cols / 2), cy = Math.floor(b.rows / 2);
-  const spots: { x: number; y: number; d: number }[] = [];
-  for (let y = 0; y < b.rows; y++) for (let x = 0; x < b.cols; x++) spots.push({ x, y, d: Math.max(Math.abs(x - cx), Math.abs(y - cy)) + Math.abs(x - cx) * 0.01 });
-  spots.sort((p, q) => p.d - q.d);
-  return spots.find((p) => fits(b, null, size, p.x, p.y)) ?? null;
-}
+/**
+ * Ce que reçoit le module Combat affiché sous le plateau : le combat de la carte (jetons, tour), le lieu,
+ * une clé propre à ce combat (une autre zone = un autre combat), et la sélection partagée avec le plateau.
+ */
+export type CombatSlot = {
+  battle: Battle;
+  setBattle: (b: Battle) => void;
+  place: string;
+  combatKey: string;
+  selectedId: string | null;
+  onSelect: (id: string | null) => void;
+};
 
 export default function BattleMode({
-  rec, battle, onBattle, context, atlas, plan, markers, onFollow, onLink, onMarker, onReveal, heroes = [], party, onSearchNote, bestiary = [],
+  rec, battle, onBattle, context, atlas, plan, markers, onFollow, onLink, onMarker, onReveal, heroes = [], party, onSearchNote, bestiary = [], renderCombat,
 }: {
   rec: MapRecord; battle: Battle; onBattle: (b: Battle) => void;
   /** Lieu sélectionné : sa zone locale est placée sur la grille à l'ouverture ; une rencontre y place ses créatures. */
@@ -89,9 +79,11 @@ export default function BattleMode({
   party?: PartyTrack;
   /** Réécrit (ou rétablit, avec null) la fiche de fouille d'un élément. */
   onSearchNote?: (id: string, note: SearchNote | null) => void;
+  /** Module Combat de l'application, affiché sous le plateau (à la place de l'onglet Combat). */
+  renderCombat?: (slot: CombatSlot) => ReactNode;
 }) {
   const b = battle ?? DEFAULT_BATTLE;
-  const [tab, setTab] = useState<Tab>(b.tokens.some((t) => t.kind === 'monster') ? 'combat' : 'lieu');
+  const [tab, setTab] = useState<Tab>(!renderCombat && b.tokens.some((t) => t.kind === 'monster') ? 'combat' : 'lieu');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hover, setHover] = useState<{ x: number; y: number } | null>(null);
   /** Élément survolé dans les listes : éclairé sur le plateau, pour le MJ seulement. */
@@ -268,15 +260,7 @@ export default function BattleMode({
 
   /** Pose des jetons près du centre, chacun sur la première case libre. */
   function placeTokens(list: Omit<BattleToken, 'x' | 'y'>[]) {
-    let next = bv;
-    const placed: BattleToken[] = [];
-    for (const t of list) {
-      const spot = freeNear(next, t.size);
-      if (!spot) break;
-      const token = { ...t, ...spot } as BattleToken;
-      placed.push(token);
-      next = { ...next, tokens: [...next.tokens, token] };
-    }
+    const placed = placeOnBoard(bv, list);
     if (placed.length) set({ tokens: [...b.tokens, ...placed] });
   }
 
@@ -297,7 +281,8 @@ export default function BattleMode({
   keyRef.current = (e: KeyboardEvent) => {
     const typing = e.target instanceof HTMLElement && /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName);
     if (e.key === 'Escape') { setSelectedId(null); setInfoId(null); return; }
-    if (typing || e.ctrlKey || e.metaKey || e.altKey || !b.tokens.some((t) => t.init !== undefined)) return;
+    // Avec le module Combat sous le plateau, c'est lui qui mène l'initiative et les tours.
+    if (renderCombat || typing || e.ctrlKey || e.metaKey || e.altKey || !b.tokens.some((t) => t.init !== undefined)) return;
     if (e.key === 'n' || e.key === 'N' || e.key === ' ') { e.preventDefault(); advance(1); }
     else if (e.key === 'b' || e.key === 'B') { e.preventDefault(); advance(-1); }
   };
@@ -511,7 +496,10 @@ export default function BattleMode({
     </details>
   ) : null;
 
+  const combatKey = `${rec.id}:${b.local?.source ?? b.terrain?.source ?? 'plateau'}`;
+
   return (
+    <>
     <div className="maps-body battle-body">
       <div className="maps-canvas battle-canvas">
         <div className="battle-bar">
@@ -689,7 +677,7 @@ export default function BattleMode({
 
       <aside className="maps-panel battle-side">
         <div className="battle-tabs" role="tablist">
-          {([['combat', '⚔ Combat'], ['lieu', '🧭 Lieu'], ['construction', '🛠 Construire']] as const).map(([id, label]) => (
+          {([['combat', '⚔ Combat'], ['lieu', '🧭 Lieu'], ['construction', '🛠 Construire']] as const).filter(([id]) => !(renderCombat && id === 'combat')).map(([id, label]) => (
             <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? 'on' : ''} onClick={() => { setTab(id); setStroke(null); }}>
               {label}
               {id === 'lieu' && search.length + secrets.length > 0 && <small>{search.length + secrets.length}</small>}
@@ -697,7 +685,7 @@ export default function BattleMode({
           ))}
         </div>
 
-        {tab === 'combat' && (
+        {tab === 'combat' && !renderCombat && (
           <CombatPanel
             b={b} grid={grid} place={placeTitle} selectedId={selectedId} onSelect={setSelectedId} set={set} heroes={heroes} bestiary={bestiary}
             onPlace={placeTokens}
@@ -723,5 +711,11 @@ export default function BattleMode({
         )}
       </aside>
     </div>
+    {renderCombat && (
+      <section className="battle-encounter" aria-label="Combat">
+        {renderCombat({ battle: b, setBattle: onBattle, place: placeTitle, combatKey, selectedId, onSelect: setSelectedId })}
+      </section>
+    )}
+    </>
   );
 }

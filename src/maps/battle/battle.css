@@ -311,3 +311,14 @@
 .place-list.is-search .place-title{min-width:0}
 .place-list.is-passages .place-title{flex:1 1 calc(100% - 44px)}
 .place-list.is-passages .place-meta{flex-direction:row;align-items:center;flex-wrap:wrap;gap:4px 6px;margin-left:32px}
+
+/* Module Combat sous la carte de combat */
+.battle-encounter{margin-top:14px;padding-top:12px;border-top:1px solid #3e3320}
+.map-encounter-tokens{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:10px;font-size:13px}
+.map-encounter-chip{font:inherit;font-size:12px;padding:2px 9px;border-radius:999px;border:1px dashed #7d6128;background:rgba(0,0,0,.3);color:#c9b98f;cursor:pointer}
+.map-encounter-chip.on{border-style:solid;color:#fff1c2;background:rgba(201,162,74,.14)}
+.map-encounter-chip.sel{box-shadow:0 0 0 2px #fff1c2}
+.map-encounter-hint{margin-left:auto;font-size:12px}
+.combatant-stats-line{display:flex;flex-wrap:wrap;gap:4px 14px;margin:6px 0 2px;font-size:12px;color:var(--muted,#9a8a63)}
+.combatant-stats-line span:first-child{color:var(--gold-lt,#ecd289);letter-spacing:.02em}
+.combat-ai-panel{display:flex;flex-direction:column;gap:8px}

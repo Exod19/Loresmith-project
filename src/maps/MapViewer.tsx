@@ -14,7 +14,7 @@ import {
   type MapMarker, type MapOverlay, type MapRecord, type MarkerKind, type PartyPlace, type PartyTrack, type PassageLink, type PointRecord,
 } from './mapStore';
 import { battleBoard, mapBoard } from './playerBoard';
-import BattleMode from './battle/BattleMode';
+import BattleMode, { type CombatSlot } from './battle/BattleMode';
 import type { Hero } from './battle/CombatPanel';
 import TrailsPanel, { DangerChip, trailsNear } from './TrailsPanel';
 import { placeNear, withPartyAt } from './party';
@@ -34,7 +34,7 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 /** Repère en cours de placement : le prochain clic sur la carte le crée. */
 type Draft = { kind: MarkerKind; title: string; summary?: string; notes?: string; groups?: MapMarker['groups'] };
 
-export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false, onReturn, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [] }: {
+export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false, onReturn, renderCombat, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [] }: {
   rec: MapRecord; atlas: AtlasData; dm: boolean; onDm: (v: boolean) => void;
   onUpdate: (patch: Partial<MapRecord>) => void; onBack: () => void;
   /** Personnages du groupe, pour les ajouter au combat. */
@@ -43,6 +43,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   startInBattle?: boolean;
   /** Ouverte depuis la Table de jeu : y revenir d'un clic, là où on l'avait laissée. */
   onReturn?: () => void;
+  /** Module Combat de l'application, affiché sous la carte de combat. */
+  renderCombat?: (slot: CombatSlot) => ReactNode;
   /** Campagnes de l'univers, et celle qui est invoquée sur la carte. */
   campaigns?: GuideCampaign[];
   activeCampaignId?: string;
@@ -249,7 +251,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   };
 
   return (
-    <div className="atlas-page maps-viewer">
+    <div className={`atlas-page maps-viewer ${battleOpen && renderCombat ? 'has-encounter' : ''}`}>
       <div className="maps-toolbar">
         {onReturn && <button className="maps-btn gold" onClick={onReturn} title="Revenir à la Table de jeu, là où tu l’avais laissée">← Table de jeu</button>}
         {battleOpen
@@ -292,7 +294,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
           onFollow={followPassage} onLink={setPassageLink} onMarker={(id, patch) => updateMarker(id, patch)}
           onReveal={(id) => toggleReveal(id)}
           onBattle={(b) => onUpdate({ battle: b, updatedAt: Date.now() })}
-          heroes={heroes} party={party} bestiary={bestiary}
+          heroes={heroes} party={party} bestiary={bestiary} renderCombat={renderCombat}
           onSearchNote={(id, note) => {
             const notesMap = { ...(overlay.searchNotes ?? {}) };
             if (note) notesMap[id] = note; else delete notesMap[id];
@@ -591,6 +593,7 @@ function EncounterBox({ enc, onRoll, onPlace }: { enc: { ctx: EncCtx; e: Encount
       {e.happens && e.entry && (
         <>
           <p><strong>{e.entry.kind} · {e.entry.title}</strong></p>
+          {e.entry.statut && <p className="maps-sub">{e.entry.statut}{e.entry.faune ? ' — réagit par instinct, ne parle pas' : ''}</p>}
           <p>{e.entry.text}</p>
           {e.attitude && <p><em>Attitude :</em> {e.attitude}</p>}
           {e.wants && <p><em>Veut :</em> {e.wants}</p>}
