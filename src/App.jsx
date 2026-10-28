@@ -13706,6 +13706,13 @@ function TokenSheet({ state, dispatch, id, onClose }) {
   if (!t) return <p className="muted token-sheet-empty">Ce jeton n’est pas (encore) dans le combat.</p>;
 
   const derived = getCombatantDerivedStats(t);
+  const src = String(t.sourceId || '');
+  const npc = !t.isPC && src && !src.startsWith('srd:') ? state.npcs?.[src] : null;
+  const pcAsset = t.isPC && src ? getPrimaryAsset(state, 'player', src) : null;
+  const picture = (pcAsset && (pcAsset.dataUrl || pcAsset.url))
+    || (npc && portraitOf(state, npc))
+    || (src.startsWith('srd:') && tokenImage({ kind: 'monster', statId: src.slice(4) }))
+    || t.image || '';
   const hp = Number(t.hp || 0);
   const maxHp = Math.max(1, Number(t.maxHp || 1));
   const pct = Math.round((hp / maxHp) * 100);
@@ -13729,7 +13736,10 @@ function TokenSheet({ state, dispatch, id, onClose }) {
   return (
     <div className="token-sheet">
       <div className="token-sheet-head">
-        <div>
+        <div className={`token-sheet-picture ${t.isPC ? 'pc' : 'foe'}`}>
+          {picture ? <img src={picture} alt="" /> : <span title="Aucune image : ajoute un portrait à la fiche">{(t.name || '?').charAt(0)}</span>}
+        </div>
+        <div className="token-sheet-name">
           <b>{t.name}</b>
           <span>{[t.kind, t.cr ? `FP ${t.cr}` : '', t.isPC && t.level ? `niv. ${t.level}` : ''].filter(Boolean).join(' · ')}</span>
         </div>
