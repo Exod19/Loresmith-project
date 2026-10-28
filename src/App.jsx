@@ -5340,6 +5340,7 @@ export default function App() {
                   npcs,
                   flash,
                   setSettingsOpen,
+                  faunaSet,
                 }}
               />
             ) : view === 'scene' ? (
@@ -8407,6 +8408,7 @@ function Chat({
   npcs,
   flash,
   setSettingsOpen,
+  faunaSet,
 }) {
   const { ai, setAI } = useContext(AIContext);
 
