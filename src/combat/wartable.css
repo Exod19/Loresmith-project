@@ -428,3 +428,13 @@
 @media (prefers-reduced-motion:reduce){
   .wt *,.wt *::before,.wt *::after{animation:none !important;transition:none !important}
 }
+
+/* ---------------- États compacts (fiche du jeton, onglet Combat de la carte) ---------------- */
+.cond-picker{display:flex;flex-wrap:wrap;align-items:center;gap:5px}
+.cond-picker-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;font-size:12.5px;
+  color:#f3dcd4;border:1px solid rgba(199,109,96,.6);background:rgba(120,40,28,.32)}
+.cond-picker-chip:hover{border-color:#f0a08a}
+.cond-picker-add{padding:3px 6px;border-radius:999px;font-size:12.5px;color:var(--muted);border:1px dashed var(--line-2);background:rgba(0,0,0,.35)}
+.cond-picker-add:hover{color:var(--gold-lt)}
+.combatant-conds{margin:8px 0 2px}
+.battle-token-conds{cursor:help}

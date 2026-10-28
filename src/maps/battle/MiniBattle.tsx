@@ -69,7 +69,7 @@ export default function MiniBattle({ battle, onBattle, selectedId, onSelect }: {
     const at = drag?.moved && drag.id === t.id ? drag.cur : t;
     return {
       id: t.id, name: t.name, kind: t.kind, x: at.x, y: at.y, size: t.size, icon: t.icon, image: tokenImage(t),
-      selected: t.id === selectedId, hidden: !t.visible, active: t.id === b.turn, hp: t.hp, maxHp: t.maxHp, out: isOut(t),
+      selected: t.id === selectedId, hidden: !t.visible, active: t.id === b.turn, hp: t.hp, maxHp: t.maxHp, out: isOut(t), conditions: t.conditions,
     };
   });
   const selected = b.tokens.find((t) => t.id === selectedId);
