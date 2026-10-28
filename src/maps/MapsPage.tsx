@@ -32,7 +32,7 @@ type Props = {
   /** PNJ & Créatures de l'univers. */
   bestiary?: BestiaryRef[];
   /** Illustration d'une créature par son nom, pour l'écran joueur. */
-  artOf?: (name: string) => string;
+  artOf?: (name: string, id: string) => string;
 };
 
 const uid = () => Math.random().toString(36).slice(2, 10);

@@ -5389,7 +5389,7 @@ export default function App() {
               <ArchivesPage universe={universe} dispatch={dispatch} flash={flash} />
             ) : view === 'maps' ? (
               <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} heroes={party} campaigns={campaigns} bestiary={npcs} onReturnToTable={() => setView('scene')}
-                artOf={(name) => creatureArtOf(state, name, faunaFeed)}
+                artOf={(name, id) => combatantArtOf(state, (state.combat?.combatants || []).find((c) => c.id === id), faunaFeed) || creatureArtOf(state, name, faunaFeed)}
                 renderCombat={(slot) => slot.area === 'card'
                   ? <TokenSheet state={state} dispatch={dispatch} id={slot.selectedId} onClose={() => slot.onSelect(null)} />
                   : <MapEncounter {...{ state, dispatch, party, npcs, flash }} {...slot} />}
@@ -13724,14 +13724,37 @@ function libraryImageOf(state, name) {
   return a ? a.dataUrl || a.url || '' : '';
 }
 
+/** Portrait importé sur une fiche PNJ ou créature. La vignette ronde du SRD, posée à défaut
+ *  d'illustration, n'en est pas un : c'est un jeton. */
+function sheetPortraitOf(state, npc) {
+  const pick = (type) => Object.values(state.assets || {})
+    .filter((a) => a.targetType === type && a.targetId === npc.id && a.source !== 'srd' && (a.dataUrl || a.url))
+    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0];
+  const a = pick('creature') || pick('npc');
+  return a ? a.dataUrl || a.url : '';
+}
+
+/** Illustration d'un combattant : le joueur par son portrait, la créature par sa fiche
+ *  (sourceId), puis par son nom. Même règle pour la fiche MJ et l'écran joueur. */
+function combatantArtOf(state, t, feed) {
+  if (!t) return '';
+  const src = String(t.sourceId || '');
+  if (t.isPC) {
+    const a = src ? getPrimaryAsset(state, 'player', src) : null;
+    return a ? a.dataUrl || a.url || '' : '';
+  }
+  const npc = src && !src.startsWith('srd:') ? state.npcs?.[src] : null;
+  return (npc && sheetPortraitOf(state, npc)) || creatureArtOf(state, t.name, feed) || (npc ? creatureArtOf(state, npc.name, feed) : '');
+}
+
 /** Pleine illustration d'une créature, par son nom : portrait importé sur sa fiche PNJ, puis
  *  bibliothèque, puis Archives. Jamais le jeton rond. */
 function creatureArtOf(state, name, feed) {
   const key = normalizeCreatureName(name);
   if (!key) return '';
   const npc = Object.values(state.npcs || {}).find((n) => normalizeCreatureName(n.name) === key);
-  const asset = npc ? getPrimaryAsset(state, 'creature', npc.id) || getPrimaryAsset(state, 'npc', npc.id) : null;
-  if (asset?.dataUrl || asset?.url) return asset.dataUrl || asset.url;
+  const fromSheet = npc ? sheetPortraitOf(state, npc) : '';
+  if (fromSheet) return fromSheet;
   const fromLibrary = libraryImageOf(state, name);
   if (fromLibrary) return fromLibrary;
   const entry = feed?.entries?.find((e) => normalizeCreatureName(e.name) === key);
@@ -13754,10 +13777,7 @@ function TokenSheet({ state, dispatch, id, onClose }) {
   const pcAsset = t.isPC && src ? getPrimaryAsset(state, 'player', src) : null;
   // Une vraie illustration (portrait importé ou image des Archives) s'affiche en grand ;
   // à défaut, on garde le petit jeton rond.
-  const npcAsset = npc ? getPrimaryAsset(state, 'creature', npc.id) || getPrimaryAsset(state, 'npc', npc.id) : null;
-  const illustration = (pcAsset && (pcAsset.dataUrl || pcAsset.url))
-    || (npcAsset && (npcAsset.dataUrl || npcAsset.url))
-    || creatureArtOf(state, t.name, archiveFeed) || (npc && creatureArtOf(state, npc.name, archiveFeed)) || '';
+  const illustration = combatantArtOf(state, t, archiveFeed);
   const picture = illustration
     || (npc && portraitOf(state, npc))
     || (src.startsWith('srd:') && tokenImage({ kind: 'monster', statId: src.slice(4) }))
