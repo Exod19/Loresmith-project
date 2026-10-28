@@ -46,6 +46,8 @@ type Props = {
   /** Repères numérotés et cases mises en évidence (MJ seulement : jamais sur l'écran joueur). */
   labels?: BoardLabel[];
   highlight?: number[];
+  /** Brouillard de guerre : cases vues maintenant, et déjà explorées. `dm` : voile léger, le MJ voit à travers. */
+  fog?: { visible: number[]; explored: number[]; dm?: boolean };
 };
 
 /** Icône de chaque catégorie de lieu. */
@@ -53,6 +55,23 @@ export const CATEGORY_ICON: Record<string, string> = {
   eau: '💧', danger: '☠️', ruine: '🏛️', grotte: '🪨', ressource: '💎', vivant: '🍄', garde: '🛡️',
   sanctuaire: '🕯️', institution: '🏛️', cite: '🏘️', voie: '🚪', indetermine: '❔',
 };
+
+/** Voile du brouillard : noir où rien n'a été vu, assombri où l'on est passé mais qu'on ne voit plus. */
+function FogLayer({ cols, rows, fog }: { cols: number; rows: number; fog: NonNullable<Props['fog']> }) {
+  const visible = new Set(fog.visible), explored = new Set(fog.explored);
+  const dark: string[] = [], dim: string[] = [];
+  for (let i = 0; i < cols * rows; i++) {
+    if (visible.has(i)) continue;
+    const d = `M${i % cols} ${Math.floor(i / cols)}h1v1h-1z`;
+    (explored.has(i) ? dim : dark).push(d);
+  }
+  return (
+    <g className={`battle-fog ${fog.dm ? 'dm' : ''}`} pointerEvents="none">
+      <path d={dark.join('')} fill="#030202" fillOpacity={fog.dm ? 0.5 : 1} />
+      <path d={dim.join('')} fill="#030202" fillOpacity={fog.dm ? 0.22 : 0.62} />
+    </g>
+  );
+}
 
 const KIND_FILL: Record<PlayerToken['kind'], string> = { pc: '#54d8c6', monster: '#c0492f', other: '#c9a24a' };
 
@@ -181,7 +200,7 @@ function cellUnder(ev: ReactMouseEvent<SVGElement>, cols: number, rows: number) 
   return x >= 0 && y >= 0 && x < cols && y < rows ? { x, y } : undefined;
 }
 
-export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview, labels = [], highlight }: Props) {
+export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview, labels = [], highlight, fog }: Props) {
   const lines: string[] = [];
   for (let x = 0; x <= cols; x++) lines.push(`M${x} 0V${rows}`);
   for (let y = 0; y <= rows; y++) lines.push(`M0 ${y}H${cols}`);
@@ -267,6 +286,8 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
           </g>
         );
       })}
+
+      {fog && <FogLayer cols={cols} rows={rows} fog={fog} />}
 
       {tokens.map((t) => {
         const r = t.size * 0.42;

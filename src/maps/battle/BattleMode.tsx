@@ -24,6 +24,7 @@ import { DEFAULT_BRUSH, PROP_BY_KEY, PROP_LABEL, propUrl, shapeCells, type Brush
 import { passageDifficulty, searchFor, type SearchEntry } from './search';
 import { advanceBattle, isOut, passiveOfToken, sightOf, statOf } from './combat';
 import { moveAlerts, type Note } from './tactics';
+import { partyVision } from './fog';
 import { detectLabel, trailProfile } from '../atlas/trails';
 import { describeLite } from '../atlas/lore';
 import { placeEncounter, type EncounterGroup } from './encounter';
@@ -433,6 +434,19 @@ export default function BattleMode({
   const liveAt = (t: BattleToken) => (drag?.moved && drag.id === t.id
     ? { x: drag.origin.x + drag.cur.x - drag.start.x, y: drag.origin.y + drag.cur.y - drag.start.y }
     : { x: t.x, y: t.y });
+  // Brouillard de guerre : ce que voient les héros, et la mémoire des cases explorées (propre à ce terrain).
+  const fogSource = b.terrain?.source ?? 'plateau';
+  const vision = b.fog?.on ? partyVision(bv, grid) : null;
+  const explored = b.fog?.on && b.fog.source === fogSource ? b.fog.explored : [];
+  useEffect(() => {
+    if (!vision) return;
+    const known = new Set(explored);
+    const fresh = [...vision].filter((c) => !known.has(c));
+    if (fresh.length || b.fog?.source !== fogSource) set({ fog: { on: true, source: fogSource, explored: [...explored, ...fresh] } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vision && [...vision].sort().join(','), fogSource]);
+  const fogLayer = vision ? { visible: [...vision], explored, dm: true } : undefined;
+
   const boardTokens: BoardToken[] = b.tokens.map((t) => {
     const at = liveAt(t);
     return {
@@ -546,6 +560,8 @@ export default function BattleMode({
               <button className="maps-btn" onClick={() => zoomBy(1)} disabled={zoom >= ZOOMS[ZOOMS.length - 1]} aria-label="Zoomer">+</button>
             </div>
             <button className={`maps-btn ${showRanges ? 'gold' : ''}`} title="Déplacements et portées d'attaque (MJ seulement)" onClick={() => setShowRanges((v) => !v)}>◎ Portées</button>
+            <button className={`maps-btn ${b.fog?.on ? 'gold' : ''}`} title="Brouillard de guerre : les joueurs ne voient que ce que voient leurs héros (portée de vue et ligne de vue). Les cases explorées restent en mémoire." onClick={() => set({ fog: { on: !b.fog?.on, source: fogSource, explored: b.fog?.source === fogSource ? b.fog.explored : [] } })}>🌫 Brouillard</button>
+            {b.fog?.on && explored.length > 0 && <button className="maps-btn" title="Oublier les cases explorées" onClick={() => set({ fog: { on: true, source: fogSource, explored: [] } })}>↺</button>}
           </div>
         </div>
 
@@ -581,7 +597,7 @@ export default function BattleMode({
               cols={b.cols} rows={b.rows} backdrop={rec.image} terrain={grid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
               onCell={onBoardCell} onElement={(id) => { if (boardElements.some((e) => e.id === id)) setInfoId(id); }} onHover={(x, y) => setHover({ x, y })}
               preview={stroke && brush.tool === 'terrain' ? stroke.cells : undefined}
-              labels={labels} highlight={highlight}
+              labels={labels} highlight={highlight} fog={fogLayer}
             />
             {(() => {
               const live = dragged && drag ? moveAlerts(bv, dragged.id, { x: drag.origin.x + drag.cur.x - drag.start.x, y: drag.origin.y + drag.cur.y - drag.start.y }) : null;

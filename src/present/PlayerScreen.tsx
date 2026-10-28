@@ -121,7 +121,7 @@ function PlayerBattle({ board }: { board: Extract<PlayerBoard, { mode: 'battle' 
       {board.turn && <TurnStrip turn={board.turn} onOpen={(id) => setOpenId((cur) => (cur === id ? null : id))} />}
       <div className="present-battle-body" data-card={card ? 1 : undefined}>
         <BattleBoard
-          cols={board.cols} rows={board.rows} backdrop={board.backdrop} terrain={board.terrain} elements={board.elements} tokens={board.tokens}
+          cols={board.cols} rows={board.rows} backdrop={board.backdrop} terrain={board.terrain} elements={board.elements} tokens={board.tokens} fog={board.fog}
           onElement={(id) => setOpenId((cur) => (cur === id ? null : id))}
         />
         {card && (

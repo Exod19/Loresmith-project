@@ -14,6 +14,7 @@ import { describeLite } from './atlas/lore';
 import { STATS } from './atlas/statblocks';
 import type { PlayerBoard, PlayerElement, PlayerToken, PlayerTurn } from '../present/stage';
 import { initiativeOrder } from './battle/combat';
+import { inSight, partyVision } from './battle/fog';
 import type { BattleToken } from './mapStore';
 
 /** État d'une créature en mots, comme le perçoivent les héros (jamais ses PV). */
@@ -74,6 +75,23 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
   const terrain = b.terrain
     ? applyBuild(effectiveGrid(b.terrain.grid, local?.elements ?? [], revealed, (local?.elements ?? []).map((e) => e.id)), b.build)
     : undefined;
+  // Brouillard de guerre : seuls les héros et ce qu'ils voient ; le reste du plateau est noir, ou assombri s'il a été exploré.
+  let fog: { visible: number[]; explored: number[] } | undefined;
+  if (b.fog?.on) {
+    const seen = partyVision({ ...b, tokens: b.tokens }, terrain);
+    const explored = new Set([...(b.fog.source === (b.terrain?.source ?? 'plateau') ? b.fog.explored : []), ...seen]);
+    fog = { visible: [...seen], explored: [...explored] };
+    const byId = new Map(b.tokens.map((t) => [t.id, t]));
+    for (let i = tokens.length - 1; i >= 0; i--) {
+      const t = byId.get(tokens[i].id);
+      if (t && t.kind !== 'pc' && !inSight(b, seen, t)) tokens.splice(i, 1);
+    }
+    for (let i = elements.length - 1; i >= 0; i--) {
+      const e = elements[i];
+      const cells = e.cells ?? (e.cell !== undefined ? [e.cell] : []);
+      if (!cells.some((c) => explored.has(c))) elements.splice(i, 1);
+    }
+  }
   // Ordre d'initiative : les combattants cachés n'y figurent pas, et leur tour ne désigne personne.
   const shown = new Map(tokens.map((t) => [t.id, t]));
   const ordered = initiativeOrder(b.tokens.filter((t) => t.init !== undefined));
@@ -89,6 +107,6 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
     : undefined;
   return {
     mode: 'battle', title: local?.place ?? rec.title, backdrop: rec.image, cols: b.cols, rows: b.rows,
-    feetPerCell: b.feetPerCell, round: b.round, tokens, terrain, elements, turn,
+    feetPerCell: b.feetPerCell, round: b.round, tokens, terrain, elements, turn, fog,
   };
 }

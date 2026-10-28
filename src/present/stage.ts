@@ -25,7 +25,9 @@ export type PlayerElement = { id: string; kind: 'passage' | 'point'; title: stri
 export type PlayerBoard =
   /** `data` ne contient que le plan montré et ses lieux révélés. */
   | { mode: 'map'; title: string; planId: string; data: AtlasData; focus?: { kind: 'anchor' | 'point'; id: string; tick: number } }
-  | { mode: 'battle'; title: string; backdrop?: string; cols: number; rows: number; feetPerCell: number; round: number; tokens: PlayerToken[]; terrain?: string; elements: PlayerElement[]; turn?: PlayerTurn };
+  | { mode: 'battle'; title: string; backdrop?: string; cols: number; rows: number; feetPerCell: number; round: number; tokens: PlayerToken[]; terrain?: string; elements: PlayerElement[]; turn?: PlayerTurn;
+    /** Brouillard de guerre : cases vues par les héros, et déjà explorées. Absent = tout le plateau est visible. */
+    fog?: { visible: number[]; explored: number[] } };
 
 export type Stage =
   | { kind: 'blank' }
