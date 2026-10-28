@@ -24,6 +24,8 @@ import TableMap, { tableMapId } from './maps/TableMap';
 import { setMapIntent } from './maps/intent';
 import { placeTokens as placeOnBoard, effectiveOf } from './maps/battle/placement';
 import { tacticalNotes, profileFromStat } from './maps/battle/tactics';
+import { propose as proposeEncounter, placeTactically, rate as rateEncounter, thresholds as encounterThresholds, xpOf, crOf, THEMES as SKIRMISH_THEMES } from './maps/battle/skirmish';
+import { registerStat, quickStat, QUICK_CRS, customStats } from './maps/atlas/customStats';
 import ArchivesPage from './feeds/ArchivesPage';
 import ArchivesLinkPanel from './feeds/ArchivesLink';
 import Dossier, { LibraryCard } from './library/Dossier';
@@ -13610,6 +13612,317 @@ function CombatAiPanel({ combatants, active, round, place, positions, tactics })
   );
 }
 
+/** Niveaux et PV restants du groupe : les héros du combat, sinon tous les personnages de l’univers (PV pleins). */
+function partyStateOf(combatants, party) {
+  const pcs = combatants.filter((c) => c.isPC);
+  if (pcs.length) {
+    const hp = pcs.reduce((s, c) => s + Math.max(0, Number(c.hp) || 0), 0);
+    const max = pcs.reduce((s, c) => s + Math.max(1, Number(c.maxHp) || 1), 0);
+    return { levels: pcs.map((c) => Number(c.level) || 1), hpRatio: hp / max, size: pcs.length };
+  }
+  return { levels: party.map((h) => Number(h.level) || 1), hpRatio: 1, size: party.length };
+}
+
+/** XP d’un combattant ennemi : sa fiche SRD, son FP, sinon une estimation d’après ses PV max. */
+function xpOfCombatant(c, token) {
+  const st = token?.statId ? STATS[token.statId] : null;
+  const xp = xpOf(st || { cr: c.cr || '' });
+  if (xp) return xp;
+  const hp = Number(c.maxHp) || 0;
+  return hp <= 10 ? 25 : hp <= 20 ? 50 : hp <= 35 ? 100 : hp <= 60 ? 200 : hp <= 90 ? 450 : 1100;
+}
+
+/** Famille de créatures la plus représentée parmi les ennemis (pour des renforts cohérents). */
+function themeOfEnemies(tokens) {
+  let best = 'all', n = 0;
+  for (const th of SKIRMISH_THEMES) {
+    if (!th.ids.length) continue;
+    const k = tokens.filter((t) => th.ids.includes(t.statId)).length;
+    if (k > n) { best = th.id; n = k; }
+  }
+  return best;
+}
+
+const LEVELS = ['Facile', 'Moyen', 'Difficile', 'Mortel'];
+const skNorm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+/**
+ * Champ de bataille improvisé, sous la carte de combat : ajouter des créatures génériques (bestiaire SRD, fiche rapide
+ * ou écrite par l’IA), proposer une rencontre à la difficulté voulue et la placer de façon tactique, et suivre la
+ * difficulté en cours de combat pour la doser.
+ */
+function SkirmishPanel({ battle, setBattle, combatants, party, dispatch, place, flash }) {
+  const { ai } = useContext(AIContext);
+  const [tab, setTab] = useState(null);
+  const [query, setQuery] = useState('');
+  const [qty, setQty] = useState(1);
+  const [quick, setQuick] = useState({ name: '', cr: '1/2', style: 'brute' });
+  const [aiAsk, setAiAsk] = useState({ text: '', busy: false });
+  const [target, setTarget] = useState(2);
+  const [theme, setTheme] = useState('all');
+  const [seed, setSeed] = useState(1);
+  const [withParty, setWithParty] = useState(true);
+  const [replace, setReplace] = useState(false);
+  const [aiPlan, setAiPlan] = useState({ busy: false });
+  const [intent, setIntent] = useState(0);
+  const [advice, setAdvice] = useState({ busy: false });
+
+  const pstate = partyStateOf(combatants, party);
+  const heroesOnBoard = battle.tokens.filter((t) => t.kind === 'pc');
+  const byId = new Map(battle.tokens.map((t) => [t.id, t]));
+  const foes = combatants.filter((c) => !c.isPC && Number(c.hp) > 0 && byId.has(c.id));
+  const current = rateEncounter(foes.map((c) => xpOfCombatant(c, byId.get(c.id))), pstate);
+  const proposal = useMemo(() => proposeEncounter(pstate, target, theme, seed, customStats()), [JSON.stringify(pstate), target, theme, seed]);
+
+  const heroTokens = () => party.map((h) => ({
+    id: `pc-${h.id}-${uid()}`, name: h.name, kind: 'pc', size: 1, visible: true, heroId: h.id,
+    hp: Number(h.hp || h.maxHp || 20), maxHp: Number(h.hp || h.maxHp || 20), ac: Number(h.ac || 14),
+  }));
+  const addGroups = (groups, opts = {}) => {
+    const base = opts.replace ? { ...battle, tokens: battle.tokens.filter((t) => t.kind !== 'monster') } : battle;
+    const needParty = opts.party && !base.tokens.some((t) => t.kind === 'pc') && party.length > 0;
+    const added = placeTactically(base, groups, Date.now() % 100000, { party: needParty ? heroTokens() : undefined, extra: customStats() });
+    if (!added.length) { flash('Plus de place libre sur le plateau.'); return; }
+    setBattle({ ...base, tokens: [...base.tokens, ...added] });
+    const n = added.filter((t) => t.kind === 'monster').length;
+    flash(`${n} créature${n > 1 ? 's' : ''} placée${n > 1 ? 's' : ''} (cachée${n > 1 ? 's' : ''} aux joueurs).`);
+  };
+
+  const q = skNorm(query);
+  const matches = Object.values(STATS)
+    .filter((s) => !q || skNorm(`${s.name} ${s.meta} ${s.id}`).includes(q))
+    .sort((a, b) => crOf(a) - crOf(b) || a.name.localeCompare(b.name))
+    .slice(0, q ? 12 : 8);
+
+  async function createWithAI() {
+    if (!aiAsk.text.trim()) return;
+    setAiAsk((s) => ({ ...s, busy: true, error: '' }));
+    try {
+      const r = await callAIMessages(ai, [
+        { role: 'system', content: 'Tu écris des fiches de créatures D&D 5e en français, au format du SRD 5.1. Réponds UNIQUEMENT en JSON : {"name","meta","ac","hp","speed","abil":[FOR,DEX,CON,INT,SAG,CHA],"saves","skills","senses","languages","cr","traits":[[nom,texte]],"actions":[[nom,texte]],"reactions":[[nom,texte]]}. "meta" : « Type de taille X, alignement ». "ac" : « 13 (armure de cuir) ». "hp" : « 22 (5d8) ». "speed" en mètres (« 9 m »). "cr" : « 1/2 (100 PX) ». Chaque attaque s’écrit exactement : « Attaque d’arme au corps à corps : +4 au toucher, allonge 1,5 m. Touché : 5 (1d6 + 2) tranchants. » ou « Attaque d’arme à distance : +4 au toucher, portée 24/96 m. Touché : … ». Valeurs équilibrées selon le FP (Guide du maître).' },
+        { role: 'user', content: `Créature : ${aiAsk.text}\nGroupe : ${pstate.size || 4} héros de niveau ${pstate.levels.join(', ') || 1}. Lieu : ${place || 'souterrain'}.` },
+      ], true);
+      if (r._parseFailed || !Array.isArray(r.abil) || r.abil.length !== 6 || !Array.isArray(r.actions) || !r.name) throw new Error('Fiche incomplète reçue de l’IA, réessaie.');
+      const st = registerStat({
+        id: `ai-${Date.now().toString(36)}`, name: String(r.name), meta: String(r.meta || 'Créature'), ac: String(r.ac || '12'), hp: String(r.hp || '10'),
+        speed: String(r.speed || '9 m'), abil: r.abil.map((x) => Number(x) || 10), saves: r.saves || undefined, skills: r.skills || undefined,
+        senses: String(r.senses || 'Perception passive 10'), languages: String(r.languages || '—'), cr: String(r.cr || '1 (200 PX)'),
+        traits: (r.traits || []).filter((x) => Array.isArray(x) && x.length === 2), actions: r.actions.filter((x) => Array.isArray(x) && x.length === 2),
+        reactions: (r.reactions || []).filter((x) => Array.isArray(x) && x.length === 2),
+      });
+      addGroups([{ stat: st.id, n: Math.max(1, Number(qty) || 1) }]);
+      setAiAsk({ text: '', busy: false });
+    } catch (e) {
+      setAiAsk((s) => ({ ...s, busy: false, error: e.message }));
+    }
+  }
+
+  async function proposeWithAI() {
+    setAiPlan({ busy: true });
+    const catalogue = [...Object.values(STATS)].filter((s) => xpOf(s) > 0).map((s) => `${s.id} = ${s.name} (FP ${s.cr.split(' ')[0]}, ${xpOf(s)} PX)`).join('\n');
+    const th = encounterThresholds(pstate);
+    try {
+      const r = await callAIMessages(ai, [
+        { role: 'system', content: 'Tu es un MJ expert de D&D 5e. Tu composes une rencontre cohérente avec le lieu, à la difficulté demandée (règles du Guide du maître : XP × multiplicateur selon le nombre de créatures). Réponds UNIQUEMENT en JSON : {"groups":[{"stat":"id du catalogue","n":nombre}],"why":"2 phrases : qui sont-ils, pourquoi ici, et leur plan de combat"}. N’utilise que des id du catalogue.' },
+        { role: 'user', content: `Lieu : ${place || 'souterrain'}. Groupe : ${pstate.size || 4} héros, niveaux ${pstate.levels.join(', ') || '1'}, PV restants ${Math.round(pstate.hpRatio * 100)} %. Difficulté visée : ${LEVELS[target - 1]} (seuils XP ajustés facile/moyen/difficile/mortel : ${th.join(' / ')}).${theme !== 'all' ? ` Thème : ${SKIRMISH_THEMES.find((t) => t.id === theme)?.label}.` : ''}\nCatalogue :\n${catalogue}` },
+      ], true);
+      const groups = (r.groups || []).filter((g) => STATS[g.stat] && Number(g.n) > 0).map((g) => ({ stat: g.stat, n: Math.min(10, Number(g.n)) }));
+      if (!groups.length) throw new Error('Proposition vide, réessaie.');
+      const rating = rateEncounter(groups.flatMap((g) => Array.from({ length: g.n }, () => xpOf(STATS[g.stat]))), pstate);
+      setAiPlan({ busy: false, groups, rating, why: r.why });
+    } catch (e) {
+      setAiPlan({ busy: false, error: e.message });
+    }
+  }
+
+  // Doser la difficulté en cours de combat.
+  const patchFoes = (fn) => dispatch({ type: 'COMBAT_SET', patch: { combatants: combatants.map((c) => (!c.isPC && Number(c.hp) > 0 && byId.has(c.id) ? { ...c, ...fn(c) } : c)) } });
+  const reinforcements = () => {
+    const goal = Math.min(4.6, current.score + Math.max(1, intent));
+    const th = themeOfEnemies(battle.tokens.filter((t) => t.kind === 'monster'));
+    const ids = SKIRMISH_THEMES.find((t) => t.id === th)?.ids ?? [];
+    const avg = pstate.levels.length ? pstate.levels.reduce((s, l) => s + l, 0) / pstate.levels.length : 1;
+    const pool = (ids.length ? ids.map((id) => STATS[id]).filter(Boolean) : Object.values(STATS)).filter((s) => xpOf(s) > 0 && crOf(s) <= Math.max(1, avg + 1) && !/bon,|bon$/.test(s.meta));
+    const base = foes.map((c) => xpOfCombatant(c, byId.get(c.id)));
+    let best = null;
+    for (const s of pool) for (let n = 1; n <= 4; n++) {
+      const r = rateEncounter([...base, ...Array(n).fill(xpOf(s))], pstate);
+      const miss = Math.abs(r.score - goal);
+      if (!best || miss < best.miss) best = { stat: s.id, n, miss, r };
+    }
+    return best;
+  };
+  const reinf = intent > 0 ? reinforcements() : null;
+  const hurt = [...foes].sort((a, b) => Number(a.hp) / Number(a.maxHp) - Number(b.hp) / Number(b.maxHp))[0];
+  const leaderStat = foes.map((c) => byId.get(c.id)?.statId).filter(Boolean).map((id) => STATS[id]).sort((a, b) => crOf(b) - crOf(a))[0];
+  const leaderMoves = leaderStat ? [...(leaderStat.traits || []), ...leaderStat.actions].filter(([n, d]) => /recharge|incantation|1\/jour|commandement|invisib|agrandissement|régénération/i.test(`${n} ${d}`)).slice(0, 2) : [];
+
+  async function askAdvice() {
+    setAdvice({ busy: true });
+    const lines = combatants.filter((c) => byId.has(c.id)).map((c) => `- ${c.name} [${c.isPC ? 'joueur' : 'créature'}] PV ${c.hp}/${c.maxHp}, CA ${c.ac}${(c.attacks || []).length ? `, actions : ${c.attacks.map((a) => a.name).join(', ')}` : ''}`);
+    try {
+      const text = await callAIMessages(ai, [
+        { role: 'system', content: 'Tu es un MJ expert de D&D 5e. Le MJ veut doser la difficulté d’un combat en cours sans que les joueurs le remarquent. Réponds en français, 5 points au plus, une phrase chacun, sans titre, chacun commençant par un verbe à l’impératif (« Utilise… », « Invoque… », « Fais fuir… ») : capacités ou sorts des créatures à utiliser ou à oublier, renforts plausibles (créatures du SRD), terrain, moral, alliés inattendus. Reste cohérent avec le lieu. N’invente pas de statistiques.' },
+        { role: 'user', content: `Lieu : ${place || 'inconnu'}. Difficulté actuelle : ${current.label} (${current.adjusted} XP ajustés). Le MJ veut ${intent > 0 ? `corser le combat (${intent > 1 ? 'nettement' : 'un peu'})` : intent < 0 ? `faciliter le combat (${intent < -1 ? 'nettement' : 'un peu'})` : 'garder la tension sans changer la difficulté'}. Groupe à ${Math.round(pstate.hpRatio * 100)} % de ses PV.\n${lines.join('\n')}` },
+      ], false);
+      setAdvice({ busy: false, text });
+    } catch (e) {
+      setAdvice({ busy: false, error: e.message });
+    }
+  }
+
+  const Gauge = ({ rating, small }) => (
+    <div className={`skirmish-gauge ${small ? 'small' : ''}`} title={`Seuils ajustés facile / moyen / difficile / mortel : ${rating.thresholds.join(' / ')} XP`}>
+      <div className="skirmish-gauge-bar">
+        {['Trivial', 'Facile', 'Moyen', 'Difficile', 'Mortel'].map((l) => <span key={l}>{l}</span>)}
+        <i style={{ left: `${Math.min(99, (rating.score / 5) * 100)}%` }} />
+      </div>
+      <small><b>{rating.label}</b> · {rating.adjusted} XP ajustés ({rating.xp} XP){pstate.hpRatio < 0.99 ? ` · groupe à ${Math.round(pstate.hpRatio * 100)} % de PV` : ''}</small>
+    </div>
+  );
+  const groupText = (groups) => groups.map((g) => `${g.n} × ${STATS[g.stat]?.name ?? g.stat}`).join(', ');
+
+  return (
+    <div className="panel skirmish-panel">
+      <div className="skirmish-head">
+        <b>⚔ Champ de bataille improvisé</b>
+        <div className="skirmish-tabs" role="tablist">
+          {[['add', '➕ Ajouter des créatures'], ['gen', '🎲 Générer une rencontre'], ['dose', '📊 Difficulté']].map(([id, label]) => (
+            <button key={id} role="tab" aria-selected={tab === id} className={`btn sm ${tab === id ? 'primary' : ''}`} onClick={() => setTab(tab === id ? null : id)}>{label}</button>
+          ))}
+        </div>
+        <div className="skirmish-now" onClick={() => setTab('dose')}><Gauge rating={current} small /></div>
+      </div>
+
+      {tab === 'add' && (
+        <div className="skirmish-body skirmish-add">
+          <div className="skirmish-col">
+            <div className="skirmish-row">
+              <input className="input" placeholder="Chercher : gobelin, orc, squelette, loup…" value={query} onChange={(e) => setQuery(e.target.value)} />
+              <label className="skirmish-qty">× <input className="input" type="number" min="1" max="12" value={qty} onChange={(e) => setQty(e.target.value)} /></label>
+            </div>
+            <ul className="skirmish-list">
+              {matches.map((s) => (
+                <li key={s.id}>
+                  <img src={tokenImage({ kind: 'monster', statId: s.id })} alt="" />
+                  <span><b>{s.name}</b><small>FP {s.cr.split(' ')[0]} · PV {parseInt(s.hp, 10)} · CA {parseInt(s.ac, 10)}</small></span>
+                  <button className="btn sm" onClick={() => addGroups([{ stat: s.id, n: Math.max(1, Number(qty) || 1) }])}>Ajouter</button>
+                </li>
+              ))}
+              {!matches.length && <li className="muted">Rien de tel au bestiaire : crée-la à droite.</li>}
+            </ul>
+          </div>
+          <div className="skirmish-col">
+            <div className="skirmish-sub">Créature générique rapide</div>
+            <div className="skirmish-row">
+              <input className="input" placeholder="Nom (ex. Sentinelle de basalte)" value={quick.name} onChange={(e) => setQuick({ ...quick, name: e.target.value })} />
+            </div>
+            <div className="skirmish-row">
+              <select className="input" value={quick.cr} onChange={(e) => setQuick({ ...quick, cr: e.target.value })}>{QUICK_CRS.map((c) => <option key={c} value={c}>FP {c}</option>)}</select>
+              <select className="input" value={quick.style} onChange={(e) => setQuick({ ...quick, style: e.target.value })}>
+                <option value="brute">Brute (contact)</option><option value="tireur">Tireur</option><option value="mage">Lanceur de sorts</option>
+              </select>
+              <button className="btn sm" onClick={() => { const st = registerStat(quickStat(quick.name || 'Créature', quick.cr, quick.style)); addGroups([{ stat: st.id, n: Math.max(1, Number(qty) || 1) }]); setQuick({ ...quick, name: '' }); }}>Créer et placer</button>
+            </div>
+            <div className="skirmish-sub">Ou décrite à l’IA</div>
+            <div className="skirmish-row">
+              <input className="input" placeholder="ex. chaman gobelin qui invoque des rats" value={aiAsk.text} onChange={(e) => setAiAsk({ ...aiAsk, text: e.target.value })} onKeyDown={(e) => { if (e.key === 'Enter') createWithAI(); }} />
+              <button className="btn sm primary" disabled={aiAsk.busy || !ai?.apiKey || !aiAsk.text.trim()} onClick={createWithAI}>{aiAsk.busy ? 'Écriture…' : '✨ Créer'}</button>
+            </div>
+            {!ai?.apiKey && <p className="muted skirmish-note">Configure une clé d’IA dans Réglages pour cette option.</p>}
+            {aiAsk.error && <p className="combat-ai-error">{aiAsk.error}</p>}
+            <p className="muted skirmish-note">Les fiches créées ici restent dans ton bestiaire de ce navigateur et se retrouvent dans la recherche.</p>
+          </div>
+        </div>
+      )}
+
+      {tab === 'gen' && (
+        <div className="skirmish-body">
+          <div className="skirmish-row wrap">
+            <span className="muted">Groupe : {pstate.size || 0} héros, niv. {pstate.levels.join(', ') || '—'} · PV {Math.round(pstate.hpRatio * 100)} %</span>
+          </div>
+          <div className="skirmish-row wrap">
+            {LEVELS.map((l, i) => <button key={l} className={`btn sm ${target === i + 1 ? 'primary' : ''}`} onClick={() => setTarget(i + 1)}>{l}</button>)}
+            <select className="input" value={theme} onChange={(e) => setTheme(e.target.value)}>{SKIRMISH_THEMES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}</select>
+          </div>
+          {proposal ? (
+            <div className="skirmish-proposal">
+              <div><b>{groupText(proposal.groups)}</b></div>
+              <Gauge rating={proposal.rating} />
+              <div className="skirmish-row wrap">
+                <button className="btn sm" onClick={() => setSeed(seed + 1)}>🔄 Autre proposition</button>
+                <button className="btn sm primary" onClick={() => addGroups(proposal.groups, { party: withParty, replace })}>📍 Placer sur la carte</button>
+                {ai?.apiKey && <button className="btn sm" disabled={aiPlan.busy} onClick={proposeWithAI}>{aiPlan.busy ? 'L’IA compose…' : '✨ Proposition de l’IA'}</button>}
+              </div>
+            </div>
+          ) : <p className="muted">Aucune créature de ce thème ne convient à ce groupe.</p>}
+          {aiPlan.error && <p className="combat-ai-error">{aiPlan.error}</p>}
+          {aiPlan.groups && (
+            <div className="skirmish-proposal ai">
+              <div><b>✨ {groupText(aiPlan.groups)}</b></div>
+              {aiPlan.why && <p className="skirmish-note">{aiPlan.why}</p>}
+              <Gauge rating={aiPlan.rating} />
+              <button className="btn sm primary" onClick={() => addGroups(aiPlan.groups, { party: withParty, replace })}>📍 Placer sur la carte</button>
+            </div>
+          )}
+          <div className="skirmish-row wrap">
+            {!heroesOnBoard.length && party.length > 0 && <label><input type="checkbox" checked={withParty} onChange={(e) => setWithParty(e.target.checked)} /> Placer aussi le groupe ({party.length} héros) à gauche</label>}
+            {battle.tokens.some((t) => t.kind === 'monster') && <label><input type="checkbox" checked={replace} onChange={(e) => setReplace(e.target.checked)} /> Remplacer les créatures déjà sur la carte</label>}
+          </div>
+          <p className="muted skirmish-note">Placement tactique : combattants au contact, tireurs et chef en retrait à l’abri, rôdeurs sur les flancs. Tout arrive caché aux joueurs.</p>
+        </div>
+      )}
+
+      {tab === 'dose' && (
+        <div className="skirmish-body">
+          {foes.length ? <Gauge rating={current} /> : <p className="muted">Aucune créature debout pour l’instant.</p>}
+          <div className="skirmish-intent">
+            <span>Faciliter</span>
+            <input type="range" min="-2" max="2" step="1" value={intent} onChange={(e) => setIntent(Number(e.target.value))} />
+            <span>Corser</span>
+            <b>{['Nettement plus facile', 'Un peu plus facile', 'Garder la tension', 'Un peu plus dur', 'Nettement plus dur'][intent + 2]}</b>
+          </div>
+          <ul className="skirmish-moves">
+            {intent > 0 && reinf && (
+              <li><span>📯 <b>Renforts :</b> {reinf.n} × {STATS[reinf.stat]?.name} {reinf.n > 1 ? 'surgissent' : 'surgit'} ({reinf.r.label}, {reinf.r.adjusted} XP ajustés).</span>
+                <button className="btn sm" onClick={() => addGroups([{ stat: reinf.stat, n: reinf.n }])}>Faire entrer</button></li>
+            )}
+            {intent > 0 && (
+              <li><span>🛡 <b>Formation serrée :</b> +2 CA pour les créatures (bouclier levé, couvert pris).</span>
+                <button className="btn sm" onClick={() => patchFoes((c) => ({ effects: [...(c.effects || []), { name: 'Formation serrée', icon: '🛡', source: 'MJ', desc: '+2 CA, ajouté pour corser le combat.', short: '+2 CA', active: true, modifier: { ac: 2 }, usesMax: 0, usesLeft: 0, reset: 'none' }] }))}>Appliquer</button></li>
+            )}
+            {intent > 1 && (
+              <li><span>🧪 <b>Potions :</b> les créatures sous la moitié de leurs PV en récupèrent 7 (2d4 + 2).</span>
+                <button className="btn sm" onClick={() => patchFoes((c) => (Number(c.hp) < Number(c.maxHp) / 2 ? { hp: Math.min(Number(c.maxHp), Number(c.hp) + 7) } : {}))}>Appliquer</button></li>
+            )}
+            {intent > 0 && leaderMoves.map(([n, d]) => (
+              <li key={n}><span>✨ <b>{leaderStat.name} : utilise « {n} »</b> — {d.slice(0, 140)}{d.length > 140 ? '…' : ''}</span></li>
+            ))}
+            {intent < 0 && hurt && (
+              <li><span>🏃 <b>Moral brisé :</b> {hurt.name} ({hurt.hp}/{hurt.maxHp} PV) prend la fuite.</span>
+                <button className="btn sm" onClick={() => setBattle({ ...battle, tokens: battle.tokens.filter((t) => t.id !== hurt.id) })}>Faire fuir</button></li>
+            )}
+            {intent < 0 && (
+              <li><span>🩸 <b>Blessures cachées :</b> les créatures perdent 25 % de leurs PV restants.</span>
+                <button className="btn sm" onClick={() => patchFoes((c) => ({ hp: Math.max(1, Math.round(Number(c.hp) * 0.75)) }))}>Appliquer</button></li>
+            )}
+            {intent < -1 && <li><span>🕯 <b>Allié inattendu :</b> un PNJ du coin intervient, ou une créature se retourne contre les siens.</span></li>}
+            {intent < 0 && leaderMoves.length > 0 && <li><span>🙈 <b>Oublie</b> « {leaderMoves[0][0]} » de {leaderStat.name} ce round.</span></li>}
+            {intent === 0 && <li><span>⚖ Le dosage actuel convient : joue les créatures intelligemment, et fais bouger le terrain pour garder la tension.</span></li>}
+          </ul>
+          <button className="btn sm primary" disabled={advice.busy || !ai?.apiKey} onClick={askAdvice}>{advice.busy ? 'L’IA réfléchit…' : '✨ Conseils de l’IA'}</button>
+          {advice.error && <p className="combat-ai-error">{advice.error}</p>}
+          {advice.text && (
+            <ul className="combat-ai-answer">
+              {advice.text.split('\n').map((l) => l.replace(/^[\s*•\-–\d.)]+/, '').trim()).filter(Boolean).map((l, i) => <li key={i}>{l}</li>)}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /**
  * Module Combat sous la carte de combat : les combattants et les jetons sont les mêmes (même identifiant).
  * Ajouter un combattant pose son jeton ; un jeton ajouté sur la carte devient un combattant ; retirer l’un retire
@@ -13696,6 +14009,7 @@ function MapEncounter({ state, dispatch, party, npcs, flash, battle, setBattle, 
         ))}
         <span className="muted map-encounter-hint">Glisse les jetons sur le plateau ; tout le reste se gère ici.</span>
       </div>
+      <SkirmishPanel {...{ battle, setBattle, combatants, party, dispatch, place, flash }} />
       <Encounter {...{ dispatch, state, party, npcs, flash }} embedded={{ selectedId, onSelect, place, positions, tactics }} />
     </div>
   );
