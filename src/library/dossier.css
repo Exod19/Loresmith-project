@@ -156,3 +156,5 @@
 .dossier .archive-chapter p { padding: 0 16px 8px; line-height: 1.75; }
 .dossier .archive-chapter p:last-child { padding-bottom: 14px; }
 @media (max-width: 900px) { .dossier .archive-abilities { grid-template-columns: repeat(3, 1fr); } }
+
+.library-shell .lib-card-media img.lib-card-fallback { object-fit: contain; padding: 8px 0; opacity: .8; filter: saturate(.85); }
