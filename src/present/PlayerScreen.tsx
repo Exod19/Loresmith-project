@@ -17,16 +17,34 @@ import './present.css';
 const LAYERS: Layers = { points: true, etiquettes: true, galeries: true, connexions: true, ambiance: true };
 const HIDDEN = new Set<FeatureCategory>();
 
+// Ce qui est montré : un nouvel élément déclenche un fondu ; une mise à jour du même
+// élément (jeton déplacé, repère révélé…) s'applique sans transition.
+function stageKey(stage: Stage): string {
+  if (stage.kind === 'image') return `image:${stage.title}:${stage.dataUrl.length}:${stage.dataUrl.slice(-48)}`;
+  if (stage.kind === 'text') return `text:${stage.title}\n${stage.body}`;
+  if (stage.kind === 'board') return stage.board.mode === 'map' ? `map:${stage.board.planId}` : 'battle';
+  return 'blank';
+}
+
+type Layer = { id: number; key: string; stage: Stage; rev: number; leaving: boolean };
+const FADE_OUT_MS = 700;
+
 export default function PlayerScreen() {
-  const [stage, setStage] = useState<Stage>({ kind: 'blank' });
-  // Compteur à chaque envoi : force la carte à relire ses données même si le plan ne change pas.
-  const [rev, setRev] = useState(0);
+  const [layers, setLayers] = useState<Layer[]>([{ id: 0, key: 'blank', stage: { kind: 'blank' }, rev: 0, leaving: false }]);
 
   useEffect(() => {
+    let next = 1;
     const link = openStageChannel((m) => {
       if (m.type !== 'stage') return;
-      setStage(m.stage);
-      setRev((r) => r + 1);
+      const key = stageKey(m.stage);
+      setLayers((ls) => {
+        const current = ls.find((l) => !l.leaving);
+        // Même élément : on met à jour sur place (rev force la carte à relire ses données).
+        if (current && current.key === key) return ls.map((l) => (l === current ? { ...l, stage: m.stage, rev: l.rev + 1 } : l));
+        const id = next++;
+        setTimeout(() => setLayers((now) => now.filter((l) => !l.leaving || l.id > id)), FADE_OUT_MS + 50);
+        return [...ls.map((l) => ({ ...l, leaving: true })), { id, key, stage: m.stage, rev: 0, leaving: false }];
+      });
     });
     link.send({ type: 'hello' });
     return () => link.close();
@@ -34,7 +52,11 @@ export default function PlayerScreen() {
 
   return (
     <div className="present-screen">
-      <Scene stage={stage} rev={rev} />
+      {layers.map((l) => (
+        <div key={l.id} className="present-layer" data-leaving={l.leaving ? 1 : undefined} aria-hidden={l.leaving || undefined}>
+          <Scene stage={l.stage} rev={l.rev} />
+        </div>
+      ))}
       <button className="present-fs" onClick={() => document.documentElement.requestFullscreen?.()}>
         Plein écran
       </button>
