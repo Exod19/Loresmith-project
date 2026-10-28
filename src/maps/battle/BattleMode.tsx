@@ -85,7 +85,7 @@ export default function BattleMode({
   renderCombat?: (slot: CombatSlot) => ReactNode;
 }) {
   const b = battle ?? DEFAULT_BATTLE;
-  const [tab, setTab] = useState<Tab>(!renderCombat && b.tokens.some((t) => t.kind === 'monster') ? 'combat' : 'lieu');
+  const [tab, setTab] = useState<Tab | null>(!renderCombat && b.tokens.some((t) => t.kind === 'monster') ? 'combat' : 'lieu');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hover, setHover] = useState<{ x: number; y: number } | null>(null);
   /** Élément survolé dans les listes : éclairé sur le plateau, pour le MJ seulement. */
@@ -106,6 +106,9 @@ export default function BattleMode({
   const [zoom, setZoom] = useState(1);
   /** Élément dont la fiche est ouverte sur le plateau. */
   const [infoId, setInfoId] = useState<string | null>(null);
+  // Une seule fiche ouverte à la fois : celle d'un jeton ou celle d'un élément du lieu.
+  useEffect(() => { if (selectedId) setInfoId(null); }, [selectedId]);
+  useEffect(() => { if (infoId) setSelectedId(null); }, [infoId]);
   const [rewrite, setRewrite] = useState<{ busy: boolean; error?: string }>({ busy: false });
 
   const selected = b.tokens.find((t) => t.id === selectedId) ?? null;
@@ -154,7 +157,7 @@ export default function BattleMode({
       ...(groups?.length ? { turn: undefined, round: 1, log: [] } : {}),
     });
     setHistory([]);
-    if (groups?.length) setTab('combat');
+    if (groups?.length && !renderCombat) setTab('combat');
   };
 
   useEffect(() => {
@@ -198,7 +201,7 @@ export default function BattleMode({
       e.preventDefault();
       setDrag({ id: t.id, origin: { x: t.x, y: t.y }, start: c, cur: c, moved: false, wasSelected: selectedId === t.id });
       setSelectedId(t.id);
-      if (b.turn) setTab('combat');
+      if (b.turn && !renderCombat) setTab('combat');
       return;
     }
     const c = cellAt(e.clientX, e.clientY);
@@ -685,9 +688,10 @@ export default function BattleMode({
         )}
         <div className="battle-tabs" role="tablist">
           {([['combat', '⚔ Combat'], ['lieu', '🧭 Lieu'], ['construction', '🛠 Construire']] as const).filter(([id]) => !(renderCombat && id === 'combat')).map(([id, label]) => (
-            <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? 'on' : ''} onClick={() => { setTab(id); setStroke(null); }}>
+            <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? 'on' : ''} onClick={() => { setTab(tab === id ? null : id); setStroke(null); }} title={tab === id ? 'Rabattre' : undefined}>
               {label}
               {id === 'lieu' && search.length + secrets.length > 0 && <small>{search.length + secrets.length}</small>}
+              <i className="battle-tab-chev" aria-hidden>{tab === id ? '▴' : '▾'}</i>
             </button>
           ))}
         </div>
