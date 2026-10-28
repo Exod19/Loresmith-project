@@ -48,6 +48,8 @@ type Props = {
   highlight?: number[];
   /** Brouillard de guerre : cases vues maintenant, et déjà explorées. `dm` : voile léger, le MJ voit à travers. */
   fog?: { visible: number[]; explored: number[]; dm?: boolean };
+  /** Sorties au bord du plateau (écran joueur) : flèche vers l'extérieur et destination si elle est connue. */
+  exits?: { cell: number; dir: 'n' | 's' | 'e' | 'w'; label: string; known: boolean }[];
 };
 
 /** Icône de chaque catégorie de lieu. */
@@ -200,7 +202,7 @@ function cellUnder(ev: ReactMouseEvent<SVGElement>, cols: number, rows: number) 
   return x >= 0 && y >= 0 && x < cols && y < rows ? { x, y } : undefined;
 }
 
-export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview, labels = [], highlight, fog }: Props) {
+export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview, labels = [], highlight, fog, exits = [] }: Props) {
   const lines: string[] = [];
   for (let x = 0; x <= cols; x++) lines.push(`M${x} 0V${rows}`);
   for (let y = 0; y <= rows; y++) lines.push(`M0 ${y}H${cols}`);
@@ -288,6 +290,21 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
       })}
 
       {fog && <FogLayer cols={cols} rows={rows} fog={fog} />}
+
+      {exits.map((e) => {
+        const x = e.cell % cols, y = Math.floor(e.cell / cols), cx = x + 0.5, cy = y + 0.5;
+        const rot = { n: 0, e: 90, s: 180, w: 270 }[e.dir];
+        // Libellé vers l'intérieur du plateau, pour qu'il reste lisible au bord.
+        const lx = e.dir === 'w' ? x + 1.15 : e.dir === 'e' ? x - 0.15 : cx;
+        const ly = e.dir === 'n' ? y + 1.35 : e.dir === 's' ? y - 0.3 : cy + 0.1;
+        const anchor = e.dir === 'w' ? 'start' : e.dir === 'e' ? 'end' : 'middle';
+        return (
+          <g key={`ex-${e.cell}`} className={`battle-exit ${e.known ? 'known' : ''}`} pointerEvents="none">
+            <path d="M-0.2 0.08 L0 -0.14 L0.2 0.08" transform={`translate(${cx} ${cy}) rotate(${rot})`} fill="none" strokeWidth={0.09} strokeLinecap="round" strokeLinejoin="round" />
+            {e.label && <text x={lx} y={ly} textAnchor={anchor} fontSize={0.3}>{e.label}</text>}
+          </g>
+        );
+      })}
 
       {tokens.map((t) => {
         const r = t.size * 0.42;

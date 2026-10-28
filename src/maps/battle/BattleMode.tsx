@@ -25,6 +25,7 @@ import { passageDifficulty, searchFor, type SearchEntry } from './search';
 import { advanceBattle, isOut, passiveOfToken, sightOf, statOf } from './combat';
 import { moveAlerts, type Note } from './tactics';
 import { partyVision } from './fog';
+import { exitAt } from './trailRules';
 import { detectLabel, trailProfile } from '../atlas/trails';
 import { describeLite } from '../atlas/lore';
 import { placeEncounter, type EncounterGroup } from './encounter';
@@ -95,7 +96,7 @@ export default function BattleMode({
   /** Portées affichées sur le plateau : réservé au MJ, jamais envoyé aux joueurs. */
   const [showRanges, setShowRanges] = useState(false);
   /** Alertes du dernier déplacement (attaque d'opportunité, allonge ennemie), gardées jusqu'au prochain. */
-  const [lastMove, setLastMove] = useState<{ name: string; notes: Note[] } | null>(null);
+  const [lastMove, setLastMove] = useState<{ name: string; notes: Note[]; exit?: { id: string; label: string } } | null>(null);
   /** Construction manuelle : outil, tracé en cours, et historique pour « Annuler ». */
   const building = tab === 'construction';
   const [brush, setBrush] = useState<Brush>(DEFAULT_BRUSH);
@@ -237,7 +238,8 @@ export default function BattleMode({
         const x = drag.origin.x + drag.cur.x - drag.start.x, y = drag.origin.y + drag.cur.y - drag.start.y;
         if (fits(bv, t.id, t.size, x, y)) {
           const notes = moveAlerts(bv, t.id, { x, y });
-          setLastMove(notes.length ? { name: t.name, notes } : null);
+          const exit = exitAt(bv, { x, y, size: t.size });
+          setLastMove(notes.length || exit ? { name: t.name, notes, exit: exit && { id: t.id, label: exit.label } } : null);
           patchToken(t.id, { x, y });
         }
         justDropped.current = true;
@@ -602,7 +604,8 @@ export default function BattleMode({
             {(() => {
               const live = dragged && drag ? moveAlerts(bv, dragged.id, { x: drag.origin.x + drag.cur.x - drag.start.x, y: drag.origin.y + drag.cur.y - drag.start.y }) : null;
               const shown = live ? { name: dragged!.name, notes: live } : drag ? null : lastMove;
-              if (!shown?.notes.length) return null;
+              if (!shown?.notes.length && !(shown && 'exit' in shown && shown.exit)) return null;
+              const exit = !live && lastMove?.exit;
               return (
                 <div className={`battle-move-alerts ${live ? 'live' : ''}`} role="status">
                   {shown.notes.map((n, i) => (
@@ -610,6 +613,12 @@ export default function BattleMode({
                       <b>{n.label}</b><span>{n.why}</span>
                     </div>
                   ))}
+                  {exit && (
+                    <div className="battle-move-alert tone-chance">
+                      <b>🚪 {shown!.name} est sur la sortie {exit.label}</b>
+                      <span><button className="maps-btn gold battle-exit-btn" onClick={() => { set({ tokens: b.tokens.filter((q) => q.id !== exit.id), turn: b.turn === exit.id ? undefined : b.turn }); setLastMove(null); }}>Quitter la carte</button></span>
+                    </div>
+                  )}
                   {!live && <button className="present-info-close" onClick={() => setLastMove(null)} aria-label="Fermer">×</button>}
                 </div>
               );

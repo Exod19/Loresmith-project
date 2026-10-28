@@ -15,6 +15,7 @@ import { STATS } from './atlas/statblocks';
 import type { PlayerBoard, PlayerElement, PlayerToken, PlayerTurn } from '../present/stage';
 import { initiativeOrder } from './battle/combat';
 import { inSight, partyVision } from './battle/fog';
+import { exitsOf } from './battle/trailRules';
 import type { BattleToken } from './mapStore';
 
 /** État d'une créature en mots, comme le perçoivent les héros (jamais ses PV). */
@@ -92,6 +93,21 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
       if (!cells.some((c) => explored.has(c))) elements.splice(i, 1);
     }
   }
+  // Sorties au bord : la destination n'est nommée que si les héros connaissent ce lieu (révélé sur la carte).
+  const withFound = b.local ? { ...b, local: { ...b.local, discovered: revealed } } : b;
+  // Seules les galeries qui mènent quelque part sont des sorties, une par destination (comme dans la liste du MJ).
+  const linkOf = (id: string) => rec.overlay?.passageLinks?.[id] ?? local?.elements.find((e) => e.id === id)?.auto;
+  const seenDest = new Set<string>();
+  let exits = exitsOf(withFound, (p) => {
+    const link = linkOf(p.id);
+    return link && revealed.includes(link.id) ? link.label.split(' · ')[0] : null;
+  }).filter((e) => {
+    const link = linkOf(e.id);
+    if (!link || seenDest.has(link.id)) return false;
+    seenDest.add(link.id);
+    return true;
+  }).map(({ cell, dir, label, known }) => ({ cell, dir, label: known ? label : '', known }));
+  if (fog) { const ex = new Set(fog.explored); exits = exits.filter((e) => ex.has(e.cell)); }
   // Ordre d'initiative : les combattants cachés n'y figurent pas, et leur tour ne désigne personne.
   const shown = new Map(tokens.map((t) => [t.id, t]));
   const ordered = initiativeOrder(b.tokens.filter((t) => t.init !== undefined));
@@ -107,6 +123,6 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
     : undefined;
   return {
     mode: 'battle', title: local?.place ?? rec.title, backdrop: rec.image, cols: b.cols, rows: b.rows,
-    feetPerCell: b.feetPerCell, round: b.round, tokens, terrain, elements, turn, fog,
+    feetPerCell: b.feetPerCell, round: b.round, tokens, terrain, elements, turn, fog, exits: exits.length ? exits : undefined,
   };
 }
