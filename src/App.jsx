@@ -191,7 +191,7 @@ const STYLE = `
    .tag.ember{color:#f0c474;border-color:rgba(224,162,59,.5)}
    .tag.blood{color:#eaa093;border-color:rgba(192,73,47,.5)}
    .scroll{position:relative;background:linear-gradient(175deg,#f0e2bd,var(--parch) 45%,#dcc99e);color:var(--parch-ink);border:1px solid var(--parch-line);border-radius:8px;padding:20px;font-family:'Spectral','EB Garamond',serif;font-size:16px;line-height:1.62;box-shadow:inset 0 0 60px rgba(120,90,40,.2),0 3px 0 rgba(0,0,0,.22);margin-top:14px}
-   .scroll::before{content:"\\276F READ-ALOUD";position:absolute;top:-10px;left:14px;background:var(--parch);font-family:'Cinzel',serif;font-size:10px;letter-spacing:.18em;color:#8a6a2c;padding:2px 8px;border:1px solid var(--parch-line);border-radius:6px}
+   .scroll::before{content:"\\276F À LIRE AUX JOUEURS";position:absolute;top:-10px;left:14px;background:var(--parch);font-family:'Cinzel',serif;font-size:10px;letter-spacing:.18em;color:#8a6a2c;padding:2px 8px;border:1px solid var(--parch-line);border-radius:6px}
    .token{border-radius:50%;border:2px solid var(--gold-dk);flex:none;overflow:hidden;background:var(--ink-2)}
    .statblock{font-size:13px;line-height:1.55}
    .abil{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:12px 0;text-align:center}
@@ -7818,7 +7818,7 @@ function SceneEditModal({
         />
       </Field>
 
-      <Field label="Read-aloud">
+      <Field label="Texte à lire aux joueurs">
         <textarea
           className="in"
           rows={5}
@@ -9585,7 +9585,7 @@ Réponds uniquement avec une ou deux répliques en français que ce personnage p
         </div>
 
         <section className="readaloud-panel">
-          <div className="scene-label dark">Read-Aloud Text</div>
+          <div className="scene-label dark">À lire aux joueurs</div>
 
           {mainSceneImage && (
             <div className="readaloud-banner-wrap">

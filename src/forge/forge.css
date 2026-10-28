@@ -37,7 +37,7 @@
 .camp-session-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; justify-content: space-between; }
 .camp-session-head h4 { margin: 0; font-family: 'Cinzel', serif; color: var(--gold-lt); font-size: 15px; }
 .camp-session-meta { font-size: 13.5px; color: var(--muted); margin: 4px 0 8px; line-height: 1.5; }
-.scene-guidance { border-left: 3px solid var(--teal); padding: 6px 10px; margin: 8px 0; background: rgba(84, 216, 198, 0.06); font-size: 14px; }
+.scene-guidance { border: 1px solid rgba(84, 216, 198, 0.4); border-radius: 6px; padding: 6px 10px; margin: 8px 0; background: rgba(84, 216, 198, 0.06); font-size: 14px; }
 .scene-guidance b { color: var(--teal); }
 .scene-creatures { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .scene-creatures span { font-size: 12.5px; border: 1px solid var(--line-2); border-radius: 10px; padding: 1px 8px; }

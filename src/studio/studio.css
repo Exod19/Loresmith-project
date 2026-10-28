@@ -50,7 +50,7 @@
 /* ---------- Trajectoire : actes → scènes ---------- */
 .cs-acts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
 .cs-act { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 10px; border: 1px solid var(--lsx-edge-2);
-  background: linear-gradient(180deg, rgba(24, 17, 10, 0.92), rgba(14, 10, 6, 0.96)), url('/images/ui/cuir.webp') center/cover, #120d07; }
+  background: linear-gradient(180deg, rgba(24, 17, 10, 0.92), rgba(14, 10, 6, 0.96)), var(--lsx-tex-cuir), #120d07; }
 .cs-act > header { display: flex; flex-direction: column; gap: 2px; padding: 2px 4px 6px; border-bottom: 1px solid var(--lsx-edge); }
 .cs-act > header b { font-family: 'Cinzel', serif; font-weight: 500; font-size: 16px; color: #f3e4bd; }
 .cs-act > header small { color: var(--muted); font-size: 13px; }
@@ -60,7 +60,7 @@
 .cs-scene b { font-family: 'Cinzel', serif; font-weight: 500; font-size: 14.5px; color: #f1e3bd; }
 .cs-scene-meta, .cs-scene-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; color: var(--faint); }
 .cs-scene-meta span:first-child { font-family: 'Cinzel', serif; letter-spacing: 0.08em; color: var(--gold); }
-.cs-note-bar { margin: 16px 0 0; padding: 10px 14px; border-left: 3px solid var(--gold-dk); background: rgba(201, 162, 74, 0.06); font-size: 14px; color: var(--muted); border-radius: 0 6px 6px 0; }
+.cs-note-bar { margin: 16px 0 0; padding: 10px 14px; border: 1px solid var(--lsx-edge); background: rgba(201, 162, 74, 0.06); font-size: 14px; color: var(--muted); border-radius: 6px; }
 
 /* ---------- Inventaire et couverture ---------- */
 .cs-inventory { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 14px; }
@@ -112,7 +112,7 @@
 .cs-steps button b { font-family: 'Cinzel', serif; font-weight: 500; font-size: 14.5px; color: #efdfb6; }
 .cs-steps button small { font-size: 12.5px; color: var(--muted); }
 .cs-steps button:hover { border-color: var(--gold); }
-.cs-steps button[data-on='1'] { border-color: var(--gold); background: rgba(201, 162, 74, 0.12); box-shadow: inset 3px 0 0 var(--gold); }
+.cs-steps button[data-on='1'] { border-color: var(--gold); background: rgba(201, 162, 74, 0.12); box-shadow: inset 0 0 14px rgba(201, 162, 74, 0.14); }
 .cs-step { padding: 22px 24px; }
 .cs-step h2 { font-family: 'Cinzel', serif; font-weight: 500; font-size: clamp(20px, 2.4vw, 27px); color: #f6e8c4; margin: 8px 0 8px; }
 .cs-world { margin: 0 0 12px; color: var(--muted); }
@@ -148,7 +148,7 @@
 .cs-essentials { display: flex; flex-direction: column; gap: 10px; }
 .cs-essentials .fl { display: flex; flex-direction: column; gap: 4px; }
 .cs-essentials textarea.in { width: 100%; }
-.cs-parchment { background: linear-gradient(180deg, rgba(241, 228, 195, 0.96), rgba(228, 210, 166, 0.96)), url('/images/ui/parchemin.webp') center/cover !important; color: #2b200e !important; font-family: 'Spectral', 'EB Garamond', serif; font-style: italic; font-size: 16px; line-height: 1.6; border-color: #b4924c !important; }
+.cs-parchment { background: radial-gradient(ellipse at center, transparent 58%, rgba(110, 72, 28, 0.3)), var(--lsx-tex-parchemin), #e8d4a4 !important; color: #2b200e !important; border-color: #b4924c !important; }
 
 /* ---------- Registre ---------- */
 .cs-registry { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
@@ -158,13 +158,18 @@
 .cs-chips button:hover { border-color: var(--gold); }
 
 /* ---------- Avant la séance 1 ---------- */
-.cs-gate { display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px; border-left-width: 4px !important; }
+/* L'état colore tout le cadre (filets, coins, lueur, titre), pas une bande latérale. */
+.cs-gate { display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px; }
 .cs-gate b { font-family: 'Cinzel', serif; font-weight: 500; font-size: 22px; color: #f6e8c4; }
 .cs-gate span { color: var(--txt); }
 .cs-gate small { color: var(--muted); }
-.cs-gate.tone-blood { border-left-color: var(--blood) !important; }
-.cs-gate.tone-gold { border-left-color: var(--gold) !important; }
-.cs-gate.tone-verdant { border-left-color: var(--verdant) !important; }
+.cs-gate.tone-blood { --lsx-frame: rgba(222, 92, 64, 0.9); background: radial-gradient(ellipse at 50% 0%, rgba(192, 73, 47, 0.28), transparent 70%), linear-gradient(180deg, rgba(38, 14, 9, 0.9), rgba(20, 9, 6, 0.95)), var(--lsx-tex-cuir), #1a0b07; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55), 0 14px 30px rgba(0, 0, 0, 0.5), inset 0 0 34px rgba(192, 73, 47, 0.22), 0 0 22px rgba(192, 73, 47, 0.18); }
+.cs-gate.tone-blood::before { filter: hue-rotate(-28deg) saturate(1.9) brightness(1.05); }
+.cs-gate.tone-blood b { color: #f2a08c; text-shadow: 0 0 14px rgba(222, 92, 64, 0.45); }
+.cs-gate.tone-gold { --lsx-frame: rgba(236, 210, 137, 0.85); }
+.cs-gate.tone-verdant { --lsx-frame: rgba(127, 176, 90, 0.85); }
+.cs-gate.tone-verdant::before { filter: hue-rotate(40deg) saturate(1.2); }
+.cs-gate.tone-verdant b { color: #bfe0a4; }
 
 /* ---------- Le Scribe ---------- */
 .cs-scribe { position: sticky; top: calc(var(--lsx-top-h) + 12px); display: flex; flex-direction: column; gap: 14px; }
