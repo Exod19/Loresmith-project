@@ -25,7 +25,8 @@ import { passageDifficulty, searchFor, type SearchEntry } from './search';
 import { advanceBattle, isOut, passiveOfToken, sightOf, statOf } from './combat';
 import { moveAlerts, type Note } from './tactics';
 import { partyVision } from './fog';
-import { exitAt } from './trailRules';
+import { exitAt, exitsOf } from './trailRules';
+import { onPlayerAim } from '../../present/stage';
 import { detectLabel, trailProfile } from '../atlas/trails';
 import { describeLite } from '../atlas/lore';
 import { placeEncounter, type EncounterGroup } from './encounter';
@@ -63,7 +64,7 @@ export type CombatSlot = {
   selectedId: string | null;
   onSelect: (id: string | null) => void;
   /** 'encounter' : le module sous le plateau ; 'card' : l'aperçu de la fiche du jeton sélectionné, à droite. */
-  area: 'encounter' | 'card';
+  area: 'encounter' | 'card' | 'attack';
 };
 
 export default function BattleMode({
@@ -118,6 +119,17 @@ export default function BattleMode({
 
   const selected = b.tokens.find((t) => t.id === selectedId) ?? null;
   const set = (patch: Partial<Battle>) => onBattle({ ...b, ...patch });
+  /** Attaque : jeton qui vise, en attente de sa cible (clic sur un autre jeton). */
+  const [aiming, setAiming] = useState<string | null>(null);
+  const latest = useRef(b);
+  latest.current = b;
+  // Un joueur déclare une attaque depuis l'écran joueur : le trait apparaît ici, le MJ la résout.
+  useEffect(() => onPlayerAim((from, to) => {
+    const cur = latest.current;
+    if (!cur.tokens.some((t) => t.id === from) || !cur.tokens.some((t) => t.id === to)) return;
+    onBattle({ ...cur, aim: { from, to, at: Date.now(), by: 'joueurs' } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), []);
   const build: BattleBuild = b.build ?? { edits: {}, props: [] };
   const commitBuild = (next: BattleBuild | undefined) => {
     setHistory((h) => [...h.slice(-49), b.build]);
@@ -202,6 +214,12 @@ export default function BattleMode({
       // Saisir un jeton : il est sélectionné, et le glisser le déplace. Sans mouvement, c'est un simple clic.
       const c = cellAt(e.clientX, e.clientY);
       const t = c && b.tokens.find((q) => c.x >= q.x && c.x < q.x + q.size && c.y >= q.y && c.y < q.y + q.size);
+      if (aiming) {
+        e.preventDefault();
+        if (t && t.id !== aiming) set({ aim: { from: aiming, to: t.id, at: Date.now() } });
+        setAiming(null);
+        return;
+      }
       if (!c || !t) return;
       e.preventDefault();
       setDrag({ id: t.id, origin: { x: t.x, y: t.y }, start: c, cur: c, moved: false, wasSelected: selectedId === t.id });
@@ -295,7 +313,7 @@ export default function BattleMode({
   const keyRef = useRef<(e: KeyboardEvent) => void>(() => {});
   keyRef.current = (e: KeyboardEvent) => {
     const typing = e.target instanceof HTMLElement && /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName);
-    if (e.key === 'Escape') { setSelectedId(null); setInfoId(null); return; }
+    if (e.key === 'Escape') { if (aiming) { setAiming(null); return; } setSelectedId(null); setInfoId(null); return; }
     // Avec le module Combat sous le plateau, c'est lui qui mène l'initiative et les tours.
     if (renderCombat || typing || e.ctrlKey || e.metaKey || e.altKey || !b.tokens.some((t) => t.init !== undefined)) return;
     if (e.key === 'n' || e.key === 'N' || e.key === ' ') { e.preventDefault(); advance(1); }
@@ -449,6 +467,17 @@ export default function BattleMode({
   }, [vision && [...vision].sort().join(','), fogSource]);
   const fogLayer = vision ? { visible: [...vision], explored, dm: true } : undefined;
 
+  // Flèches de sortie (comme chez les joueurs) : une par sortie listée dans le panneau.
+  const exitIds = new Set(exits.map((e) => e.id));
+  const dmExits = exitsOf(bv).filter((e) => exitIds.has(e.id)).map((e) => ({ ...e, label: '', known: true }));
+  // Trait d'attaque : en visée, il suit la case survolée ; une fois la cible choisie, il relie les deux jetons.
+  const centre = (t: { x: number; y: number; size: number }) => ({ x: t.x + t.size / 2, y: t.y + t.size / 2 });
+  const aimFrom = aiming ? b.tokens.find((t) => t.id === aiming) : b.aim ? b.tokens.find((t) => t.id === b.aim!.from) : undefined;
+  const aimTo = aiming ? (hover ? { x: hover.x, y: hover.y, size: 1 } : undefined) : b.aim ? b.tokens.find((t) => t.id === b.aim!.to) : undefined;
+  const aimLine = aimFrom && aimTo
+    ? { x1: centre(aimFrom).x, y1: centre(aimFrom).y, x2: centre(aimTo).x, y2: centre(aimTo).y, tone: b.aim?.tone, pending: !!aiming }
+    : undefined;
+
   const boardTokens: BoardToken[] = b.tokens.map((t) => {
     const at = liveAt(t);
     return {
@@ -561,6 +590,9 @@ export default function BattleMode({
               <span>{Math.round(zoom * 100)} %</span>
               <button className="maps-btn" onClick={() => zoomBy(1)} disabled={zoom >= ZOOMS[ZOOMS.length - 1]} aria-label="Zoomer">+</button>
             </div>
+            {renderCombat && selected && !building && (
+              <button className={`maps-btn ${aiming ? 'gold' : ''}`} title="Attaquer : clique ensuite la cible sur le plateau (Échap pour annuler)" onClick={() => setAiming(aiming ? null : selected.id)}>🎯 Attaquer</button>
+            )}
             <button className={`maps-btn ${showRanges ? 'gold' : ''}`} title="Déplacements et portées d'attaque (MJ seulement)" onClick={() => setShowRanges((v) => !v)}>◎ Portées</button>
             <button className={`maps-btn ${b.fog?.on ? 'gold' : ''}`} title="Brouillard de guerre : les joueurs ne voient que ce que voient leurs héros (portée de vue et ligne de vue). Les cases explorées restent en mémoire." onClick={() => set({ fog: { on: !b.fog?.on, source: fogSource, explored: b.fog?.source === fogSource ? b.fog.explored : [] } })}>🌫 Brouillard</button>
             {b.fog?.on && explored.length > 0 && <button className="maps-btn" title="Oublier les cases explorées" onClick={() => set({ fog: { on: true, source: fogSource, explored: [] } })}>↺</button>}
@@ -599,7 +631,7 @@ export default function BattleMode({
               cols={b.cols} rows={b.rows} backdrop={rec.image} terrain={grid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
               onCell={onBoardCell} onElement={(id) => { if (boardElements.some((e) => e.id === id)) setInfoId(id); }} onHover={(x, y) => setHover({ x, y })}
               preview={stroke && brush.tool === 'terrain' ? stroke.cells : undefined}
-              labels={labels} highlight={highlight} fog={fogLayer}
+              labels={labels} highlight={highlight} fog={fogLayer} exits={dmExits} aim={aimLine}
             />
             {(() => {
               const live = dragged && drag ? moveAlerts(bv, dragged.id, { x: drag.origin.x + drag.cur.x - drag.start.x, y: drag.origin.y + drag.cur.y - drag.start.y }) : null;
@@ -634,7 +666,8 @@ export default function BattleMode({
 
         </div>
         <p className="battle-hint">
-          {building ? 'Construction : peins le terrain ou glisse des objets sur le plateau.'
+          {aiming ? `🎯 ${b.tokens.find((t) => t.id === aiming)?.name ?? ''} attaque : clique la cible (Échap pour annuler).`
+            : building ? 'Construction : peins le terrain ou glisse des objets sur le plateau.'
             : selected ? `${selected.name} sélectionné : glisse-le pour le déplacer, clique à côté ou Échap pour le désélectionner.`
               : 'Glisse un jeton pour le déplacer · clique un élément pour sa fiche · survole une ligne du panneau pour la repérer.'}
         </p>
@@ -742,7 +775,12 @@ export default function BattleMode({
             {rewrite.error && <p className="combat-ai-error">{rewrite.error}</p>}
           </aside>
         )}
-        {renderCombat && selected && !building && (
+        {renderCombat && b.aim && !building && (
+          <div className="battle-token-card battle-attack-card">
+            {renderCombat({ battle: b, setBattle: onBattle, place: placeTitle, combatKey, selectedId, onSelect: setSelectedId, area: 'attack' })}
+          </div>
+        )}
+        {renderCombat && selected && !b.aim && !building && (
           <div className="battle-token-card">
             {renderCombat({ battle: b, setBattle: onBattle, place: placeTitle, combatKey, selectedId, onSelect: setSelectedId, area: 'card' })}
           </div>

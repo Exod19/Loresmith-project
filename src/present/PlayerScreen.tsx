@@ -8,7 +8,7 @@ import { setAtlasData } from '../maps/atlas/model';
 import type { AtlasData, FeatureCategory } from '../maps/atlas/types';
 import BattleBoard, { CATEGORY_ICON } from '../maps/battle/BattleBoard';
 import { CATEGORY_IMG, vignette } from '../maps/battle/vignettes';
-import { openStageChannel, type PlayerBoard, type PlayerElement, type PlayerToken, type PlayerTurn, type Stage } from './stage';
+import { openStageChannel, type PlayerBoard, type PlayerElement, type PlayerToken, type PlayerTurn, type Stage, type StageMessage } from './stage';
 import '../maps/maps.css';
 import '../maps/atlas/atlas.css';
 import '../maps/battle/battle.css';
@@ -29,6 +29,9 @@ function stageKey(stage: Stage): string {
 type Layer = { id: number; key: string; stage: Stage; rev: number; leaving: boolean };
 const FADE_OUT_MS = 700;
 
+/** Lien vers la console MJ, pour les déclarations d'attaque faites depuis l'écran joueur. */
+let sendToHost: ((m: StageMessage) => void) | null = null;
+
 export default function PlayerScreen() {
   const [layers, setLayers] = useState<Layer[]>([{ id: 0, key: 'blank', stage: { kind: 'blank' }, rev: 0, leaving: false }]);
 
@@ -46,8 +49,9 @@ export default function PlayerScreen() {
         return [...ls.map((l) => ({ ...l, leaving: true })), { id, key, stage: m.stage, rev: 0, leaving: false }];
       });
     });
+    sendToHost = link.send;
     link.send({ type: 'hello' });
-    return () => link.close();
+    return () => { sendToHost = null; link.close(); };
   }, []);
 
   return (
@@ -84,7 +88,7 @@ function Scene({ stage, rev }: { stage: Stage; rev: number }) {
   if (stage.kind === 'board') {
     return stage.board.mode === 'map'
       ? <PlayerMap board={stage.board} rev={rev} />
-      : <PlayerBattle board={stage.board} />;
+      : <PlayerBattle board={stage.board} onAim={(from, to) => sendToHost?.({ type: 'aim', from, to })} />;
   }
   return (
     <div className="present-blank">
@@ -109,9 +113,22 @@ function PlayerMap({ board, rev }: { board: Extract<PlayerBoard, { mode: 'map' }
   );
 }
 
-function PlayerBattle({ board }: { board: Extract<PlayerBoard, { mode: 'battle' }> }) {
+function PlayerBattle({ board, onAim }: { board: Extract<PlayerBoard, { mode: 'battle' }>; onAim?: (from: string, to: string) => void }) {
   const [openId, setOpenId] = useState<string | null>(null);
+  // Un héros vise : le prochain jeton touché devient sa cible, et la déclaration part vers le MJ.
+  const [aimer, setAimer] = useState<string | null>(null);
   const card = openId ? cardFor(board, openId) : null;
+  const pick = (id: string) => {
+    if (aimer) {
+      if (id !== aimer && board.tokens.some((t) => t.id === id)) onAim?.(aimer, id);
+      setAimer(null);
+      return;
+    }
+    setOpenId((cur) => (cur === id ? null : id));
+  };
+  const centre = (id: string) => { const t = board.tokens.find((q) => q.id === id); return t && { x: t.x + t.size / 2, y: t.y + t.size / 2 }; };
+  const a1 = board.aim && centre(board.aim.from), a2 = board.aim && centre(board.aim.to);
+  const aim = a1 && a2 ? { x1: a1.x, y1: a1.y, x2: a2.x, y2: a2.y, tone: board.aim!.tone } : undefined;
   return (
     <div className="present-battle">
       <header className="present-battle-head">
@@ -119,10 +136,12 @@ function PlayerBattle({ board }: { board: Extract<PlayerBoard, { mode: 'battle' 
         <span>Round {board.round}</span>
       </header>
       {board.turn && <TurnStrip turn={board.turn} onOpen={(id) => setOpenId((cur) => (cur === id ? null : id))} />}
+      {aimer && <div className="present-aim-hint">🎯 {board.tokens.find((t) => t.id === aimer)?.name} vise : touche la cible sur le plateau.</div>}
+      {!aimer && board.aim?.text && <div key={board.aim.text} className={`present-aim-result tone-${board.aim.tone ?? 'info'}`}>{board.aim.text}</div>}
       <div className="present-battle-body" data-card={card ? 1 : undefined}>
         <BattleBoard
           cols={board.cols} rows={board.rows} backdrop={board.backdrop} terrain={board.terrain} elements={board.elements} tokens={board.tokens} fog={board.fog} exits={board.exits}
-          onElement={(id) => setOpenId((cur) => (cur === id ? null : id))}
+          onElement={pick} aim={aim}
         />
         {card && (
           <aside key={openId} className="present-card" data-kind={card.kind} role="dialog" aria-label={card.title}>
@@ -136,6 +155,9 @@ function PlayerBattle({ board }: { board: Extract<PlayerBoard, { mode: 'battle' 
               <span className="present-info-kind">{card.icon && <>{card.icon} </>}{card.subtitle}</span>
               <h3>{card.title}</h3>
               {card.text && card.text.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
+              {card.kind === 'pc' && onAim && board.tokens.some((t) => t.kind !== 'pc') && (
+                <button className="present-aim-btn" onClick={() => { setAimer(openId); setOpenId(null); }}>🎯 Attaquer une cible</button>
+              )}
             </div>
           </aside>
         )}

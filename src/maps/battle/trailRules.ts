@@ -96,7 +96,8 @@ export function exitsOf(b: Battle, labelOf: (p: Passage) => string | null = () =
   const out: Exit[] = [];
   for (const p of openPassages(b)) {
     const edge = p.cells.find((c) => { const x = c % b.cols, y = Math.floor(c / b.cols); return x === 0 || y === 0 || x === b.cols - 1 || y === b.rows - 1; });
-    if (edge === undefined) continue;
+    // Deux galeries qui sortent par la même case : une seule flèche.
+    if (edge === undefined || out.some((e) => e.cell === edge)) continue;
     const x = edge % b.cols, y = Math.floor(edge / b.cols);
     const dir = y === 0 ? 'n' : y === b.rows - 1 ? 's' : x === 0 ? 'w' : 'e';
     const label = labelOf(p);
