@@ -5,6 +5,13 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { criticalOutcome, type DieGroup } from './criticalOutcome';
+import { criticalFromNatural, parseD20, resolveD20, rollNotation, type RollMode } from './rollMode';
+
+const MODE_LABELS: Record<RollMode, string> = {
+  normal: 'Normal',
+  advantage: 'Avantage',
+  disadvantage: 'Désavantage',
+};
 
 
 interface DiceBoxInstance {
@@ -45,15 +52,17 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
   const boxRef = useRef<DiceBoxInstance | null>(null);
   const creating = useRef(false);
   const [notation, setNotation] = useState<string>('1d20');
-  const [label, setLabel] = useState<string>('');
   const [total, setTotal] = useState<number | null>(null);
-  const [groups, setGroups] = useState<DieGroup[]>([]);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [theme, setTheme] = useState<DiceTheme>(DICE_THEMES[0]);
   const [arene, setArene] = useState<Arene>('classique');
   const [themeLoading, setThemeLoading] = useState(false);
-  const crit = criticalOutcome(groups);
+  const [mode, setMode] = useState<RollMode>('normal');
+  const [crit, setCrit] = useState<'success' | 'failure' | null>(null);
+  const [detail, setDetail] = useState<string>('');
+  // Jet en cours : mode et modificateur sont lus au moment où les dés s'arrêtent.
+  const pendingRef = useRef<{ mode: RollMode; modifier: number; label: string } | null>(null);
   // Thème actuellement chargé dans le moteur (roll() ne charge pas de nouveau thème).
   const loadedThemeRef = useRef<string>(DICE_THEMES[0].id);
 
@@ -74,8 +83,20 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
           offscreen: false,
           // Appelé dès que les dés sont immobiles. `value` = total du groupe (ex. 2d6 → somme).
           onRollComplete: (results: DieGroup[]) => {
-            setGroups(results);
+            const pending = pendingRef.current;
+            const rolls = results[0]?.rolls?.map((r) => r.value) ?? [];
+            if (pending && pending.mode !== 'normal' && rolls.length === 2) {
+              const r = resolveD20(rolls, pending.mode, pending.modifier);
+              const word = pending.mode === 'advantage' ? 'avantage' : 'désavantage';
+              const mod = pending.modifier === 0 ? '' : pending.modifier > 0 ? ` + ${pending.modifier}` : ` - ${-pending.modifier}`;
+              setTotal(r.total);
+              setCrit(criticalFromNatural(r.kept));
+              setDetail(`${pending.label} (${word}) → [${rolls.join(', ')}] → retenu ${r.kept}${mod}`);
+              return;
+            }
             setTotal(results.reduce((sum, d) => sum + d.value, 0));
+            setCrit(criticalOutcome(results));
+            setDetail(`${pending?.label ?? ''} → ${results.map((g) => `[${(g.rolls ?? []).map((r) => r.value).join(', ') || g.value}]`).join(' + ')}`);
           },
         });
         boxRef.current = box;
@@ -92,9 +113,13 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
     const box = boxRef.current;
     if (!box || !ready || !f) return;
     setNotation(f);
-    setLabel(f);
     setTotal(null);
-    setGroups([]);
+    setCrit(null);
+    setDetail('');
+    // Avantage/désavantage ne s'appliquent qu'à un d20 seul ; sinon le jet reste normal.
+    const d20 = parseD20(f);
+    const effective: RollMode = d20 ? mode : 'normal';
+    pendingRef.current = { mode: effective, modifier: d20?.modifier ?? 0, label: f };
     try {
       if (loadedThemeRef.current !== theme.id) {
         // Charge la texture choisie avant de lancer (le thème doit être chargé dans le moteur).
@@ -107,7 +132,7 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
         }
       }
       // roll() vide la table avant de lancer : pas besoin d'appeler clear().
-      box.roll(f);
+      box.roll(rollNotation(f, effective));
     } catch (err) {
       console.error('Dice-Box roll a échoué :', err);
       setError(`Notation invalide : ${f}`);
@@ -156,6 +181,27 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
         ))}
       </div>
 
+      <div className="flex gap-1.5 w-full mb-1" role="radiogroup" aria-label="Mode de jet">
+        {(Object.keys(MODE_LABELS) as RollMode[]).map((m) => (
+          <button
+            key={m}
+            type="button"
+            role="radio"
+            aria-checked={mode === m}
+            onClick={() => setMode(m)}
+            className={`flex-1 min-w-0 px-2 py-1 rounded-md border text-[11px] font-['Cinzel'] tracking-wide transition-all ${
+              mode === m
+                ? 'border-[#ecd289] bg-[#c9a24a]/15 text-[#ecd289] shadow-[0_0_10px_rgba(236,210,137,0.3)]'
+                : 'border-[#c9a24a]/25 bg-[#1c150c] text-[#f3e6c0]/80 hover:border-[#c9a24a]/60'
+            }`}
+          >
+            {MODE_LABELS[m]}
+          </button>
+        ))}
+      </div>
+      {mode !== 'normal' && !parseD20(notation) && (
+        <p className="text-[11px] text-[#c9a24a]/70 font-['Cinzel'] mb-1">Avantage et désavantage s'appliquent à un d20 seul.</p>
+      )}
       <div className="flex gap-1.5 w-full mb-1" role="radiogroup" aria-label="Texture des dés">
         {DICE_THEMES.map((t) => (
           <button
@@ -272,7 +318,7 @@ export const DiceRoller3D: React.FC<{ active: boolean }> = ({ active }) => {
           <div className="text-xs text-[#c9a24a]/60 font-mono mt-2">
             {total === null
               ? 'Lancez un dé pour voir le résultat'
-              : <>{label} → {groups.map((g) => `[${(g.rolls ?? []).map((r) => r.value).join(', ') || g.value}]`).join(' + ')}</>}
+              : detail}
           </div>
           </div>
       </div>
