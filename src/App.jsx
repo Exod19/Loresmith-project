@@ -30,6 +30,7 @@ import { DiceFloater } from './dice/DiceRoller3D';
 import DmCopilot from './copilot/DmCopilot';
 import { hostStage } from './present/stage';
 import { UNDERDARK_LINK, useUnderdarkFeed } from './feeds/underdark';
+import { FAUNA_RULE, faunaNames, speaksByName } from './feeds/fauna';
 import { Sidebar, Topbar, MobileBar, CommandPalette, NAV } from './shell/Shell';
 import UniverseHome from './shell/Home';
 import { askPersistence, loadState, saveState as persistState } from './store/persist';
@@ -5065,6 +5066,9 @@ function Spin() {
 export default function App() {
   const [state, dispatch] = useReducer(reducer, null, () => null);
   const [hydrated, setHydrated] = useState(false);
+  // Garde de parole : les créatures de faune ne parlent pas (feeds/fauna.ts).
+  const { feed: faunaFeed } = useUnderdarkFeed();
+  const faunaSet = useMemo(() => faunaNames(faunaFeed?.entries ?? []), [faunaFeed]);
   const [view, setView] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get('view') || 'dashboard';
@@ -8027,6 +8031,7 @@ function SceneRow({
           - All read-aloud narration must be in French.
           - All NPC dialogue must be in French.
           - Dialogue must reflect the speaker's species, personality, status, and emotional state.
+          - ${FAUNA_RULE}
           - Frog-like characters may include occasional "croa".
           - Serpent-like characters may stretch s sounds, like "sssecret" or "sssi".
           - Goblins should sound nervous, twitchy, hesitant, opportunistic, and slightly chaotic.
@@ -8600,7 +8605,16 @@ function Chat({
     return thread;
   }
 
+  // Vrai si le locuteur courant peut parler ; sinon un message l'explique.
+  function canSpeakNow() {
+    if (mode !== 'npc' || !selectedSpeaker) return true;
+    if (speaksByName(selectedSpeaker.name || '', faunaSet, selectedNpc)) return true;
+    flash(`${selectedSpeaker.name} ne parle pas : c'est de la faune.`);
+    return false;
+  }
+
   async function playLine(text, idx) {
+    if (!canSpeakNow()) return;
     if (playingIdx === idx) {
       audioRef.current?.pause();
       setPlayingIdx(-1);
@@ -8686,6 +8700,7 @@ function Chat({
 
     if (mode === 'npc') {
       return `${base}
+  ${FAUNA_RULE}
   
   Tu INCARNES le PNJ suivant:
   Nom: ${selectedSpeaker?.name || 'PNJ de la scène courante'}
@@ -8719,6 +8734,7 @@ function Chat({
   }
 
   async function send() {
+    if (!canSpeakNow()) return;
     const text = input.trim();
     if (!text || busy) return;
 

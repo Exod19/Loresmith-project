@@ -1,3 +1,4 @@
+import { FAUNA_RULE } from '../feeds/fauna';
 /**
  * Lore de campagne, à tous les niveaux (séance, scène) : définition des rubriques et génération par l'IA.
  *
@@ -112,6 +113,7 @@ export async function generateLoreItems({ call, def, universe, state, feed, part
       : `Retourne : { "items": [ ${def.schema} ] }`;
   const data = await call({
     system: `Tu es le co-auteur d'une campagne de jeu de rôle (D&D 5e) pour Loresmith. Tu écris en français, pour un MJ qui joue ce soir.
+${FAUNA_RULE}
 Réponds UNIQUEMENT en JSON valide, sans Markdown. Les DD sont réalistes, les créatures existent dans le bestiaire 5e ou le lore, les répliques sont dites à voix haute.
 ${LORE_RULES}`,
     prompt: `${ctx}

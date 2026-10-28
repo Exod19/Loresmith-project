@@ -1,3 +1,4 @@
+import { FAUNA_RULE } from '../feeds/fauna';
 /**
  * Forge de campagnes : génération en plusieurs passes, pour obtenir une campagne prête à jouer.
  *
@@ -149,6 +150,7 @@ export async function forgeSession(call, ctx, bible, session, brief, previous = 
   return call({
     system: `${SYSTEM}
 Les dialogues reflètent l'espèce, le statut et l'émotion de qui parle (tics de langage légers).
+${FAUNA_RULE}
 Le butin est rare et modeste : souvent banal, abîmé, personnel ou porteur d'indice.`,
     prompt: `${ctx.slice(0, 9000)}
 

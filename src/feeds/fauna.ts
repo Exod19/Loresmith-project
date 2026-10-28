@@ -30,7 +30,16 @@ export interface Classification {
  * Surcharges du MJ, par identifiant de fiche : « faune », « sentient » ou « inconnu ».
  * Elles l'emportent sur tout le reste. Exemple : { 'cr-chuchoteur': 'sentient' }.
  */
-export const OVERRIDES: Record<string, Sentience> = {};
+export const OVERRIDES: Record<string, Sentience> = {
+  // Décisions du MJ : faune, sans sentience.
+  'tome-animalia-panthere-des-flux': 'faune',
+  'tome-animalia-orbweaver-cavernicole': 'faune',
+  'tome-animalia-orbweaver-des-tenebres': 'faune',
+  'tome-animalia-trappeuse-des-ombres': 'faune',
+  'tome-animalia-tarentule-cavernicole': 'faune',
+  'tome-animalia-tarentule-dobsidienne': 'faune',
+  'tome-annelida-ver-chuchoteur-chuchoteur-regent': 'faune',
+};
 
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 /** Mots qui suggèrent une conscience ou une parole. « Langage » et « communication » n'y figurent pas : les animaux communiquent. */
@@ -57,4 +66,29 @@ export function sentienceOf(e: FeedEntry): Classification | null {
   }
   if (e.type === 'peuple' || e.type === 'personnage' || e.type === 'divinite') return make('sentient', 'type');
   return null;
+}
+
+/** Règle à donner à toute génération de répliques : la faune ne parle pas. */
+export const FAUNA_RULE = 'Les créatures de faune (animaux, organismes sans conscience) ne parlent pas : ne leur attribue jamais de réplique, de nom de locuteur ni de voix. Elles réagissent par instinct, décrites par leurs actions et leurs sons.';
+
+const key = (s: string) => norm(s).replace(/[^a-z0-9]+/g, ' ').trim();
+
+/** Noms des créatures que les Archives classent comme faune (ou à trancher) : elles ne parlent pas. */
+export function faunaNames(entries: FeedEntry[]): Set<string> {
+  const out = new Set<string>();
+  for (const e of entries) {
+    const c = sentienceOf(e);
+    if (c && c.status !== 'sentient' && (e.type === 'creature' || e.type === 'fungus')) out.add(key(e.name));
+  }
+  return out;
+}
+
+/**
+ * Garde de parole pour un nom de locuteur. Le statut propre au PNJ (sentience) l'emporte ; à défaut,
+ * le nom est comparé aux créatures de faune des Archives. Un nom inconnu parle.
+ */
+export function speaksByName(name: string, fauna: Set<string>, npc?: { sentience?: string } | null): boolean {
+  if (npc?.sentience === 'sentient') return true;
+  if (npc?.sentience === 'faune' || npc?.sentience === 'inconnu') return false;
+  return !fauna.has(key(name));
 }
