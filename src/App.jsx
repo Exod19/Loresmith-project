@@ -5262,7 +5262,7 @@ export default function App() {
             open={sideOpen}
             onClose={() => setSideOpen(false)}
           />
-          <div className="lsx-main">
+          <div className="lsx-main" data-view={view}>
             <Topbar
               view={view}
               onMenu={() => setSideOpen(true)}
@@ -5634,7 +5634,10 @@ function Dashboard({
         log={(state.log || []).filter((l) => l.universeId === universe.id)}
         campaignImage={(c) => assetSrc(getPrimaryAsset(state, 'campaign', c.id))}
         portrait={(p) => assetSrc(getPrimaryAsset(state, 'player', p.id))}
-        libraryImage={(e) => assetSrc(getPrimaryAsset(state, 'library', e.id))}
+        libraryImage={(e) =>
+          assetSrc(getPrimaryAsset(state, 'library', e.id)) ||
+          (LIBRARY_TYPES[e.archiveType] ? `/images/ui/repli-${e.archiveType}.webp` : '')
+        }
         setView={setView}
       />
       {!ai.apiKey && (

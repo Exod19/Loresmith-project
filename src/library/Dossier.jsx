@@ -19,11 +19,22 @@ const paras = (text) => String(text || '')
 const filled = (rows) => rows.filter(([, v]) => v && String(v).trim());
 
 /** Carte de grille : même hauteur, même cadrage d'image, même ordre de lecture pour tous les types. */
+// Illustration de repli par type, tant que la fiche n'a pas sa propre image.
+const FALLBACK = Object.fromEntries(
+  ['artifact', 'vivant', 'person', 'place', 'event', 'faction', 'mystery', 'document'].map((t) => [t, `/images/ui/repli-${t}.webp`])
+);
+
 export function LibraryCard({ entry, img, typeLabel, selected, onClick }) {
   return (
     <button type="button" className="lib-card" data-on={selected ? 1 : 0} onClick={onClick}>
       <span className="lib-card-media">
-        {img?.dataUrl ? <img src={img.dataUrl} alt="" loading="lazy" /> : <span className="lib-card-ph">{GLYPH[entry.archiveType] || '❦'}</span>}
+        {img?.dataUrl ? (
+          <img src={img.dataUrl} alt="" loading="lazy" />
+        ) : FALLBACK[entry.archiveType] ? (
+          <img className="lib-card-fallback" src={FALLBACK[entry.archiveType]} alt="" loading="lazy" />
+        ) : (
+          <span className="lib-card-ph">{GLYPH[entry.archiveType] || '❦'}</span>
+        )}
       </span>
       <span className="lib-card-body">
         <span className="lib-card-type">{typeLabel}</span>

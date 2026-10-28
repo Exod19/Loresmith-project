@@ -134,7 +134,8 @@
     linear-gradient(0deg,rgba(8,6,4,.85),transparent 55%),
     var(--hero) right center/cover no-repeat;
   box-shadow:var(--lsx-shadow),inset 0 0 80px rgba(0,0,0,.55)}
-.lsx-hero::after{content:"";position:absolute;inset:0;background:var(--lsx-grain);mix-blend-mode:overlay;pointer-events:none}
+.lsx-hero::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:url("/images/ui/poussiere.webp") right -40px top -60px/420px no-repeat,var(--lsx-grain);mix-blend-mode:screen;opacity:.75}
 .lsx-hero-body{position:relative;z-index:1;padding:34px 36px;max-width:640px}
 .lsx-kicker{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold)}
 .lsx-hero h1{font-family:'Cinzel',serif;font-weight:500;font-size:clamp(30px,4vw,50px);line-height:1.05;margin:8px 0 12px;color:#f6e8c4;text-shadow:0 2px 18px rgba(0,0,0,.8)}
@@ -175,7 +176,7 @@
 
 .lsx-glance{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
 .lsx-tile,.lsx-rail-card{position:relative;border-radius:10px;padding:14px 16px;border:1px solid var(--lsx-edge-2);
-  background:linear-gradient(180deg,rgba(24,17,10,.9),rgba(14,10,6,.95)),url("/images/ui/cuir.webp") center/cover,#120d07;
+  background:linear-gradient(180deg,rgba(24,17,10,.9),rgba(14,10,6,.95)),url("/images/ui/cuir-repeat.webp") 0 0/384px repeat,#120d07;
   box-shadow:inset 0 1px 0 rgba(236,210,137,.06),0 10px 24px rgba(0,0,0,.35)}
 /* Coins de laiton : seulement sur les cartes de la colonne et la bannière, pas partout. */
 .lsx-rail-card::before,.lsx-hero-frame{content:"";position:absolute;inset:-3px;pointer-events:none;z-index:2;
@@ -272,16 +273,27 @@
 
 /* --------------------------- matières & décor -------------------------- */
 /* Texte à lire aux joueurs et réponses de l'IA : vrai parchemin. */
-.lsx-root .scroll,.lsx-root .msg.ai{background:linear-gradient(175deg,rgba(245,230,195,.55),rgba(220,196,150,.35)),url("/images/ui/parchemin.webp") center/cover,var(--parch)}
-.lsx-root .panel{background:linear-gradient(180deg,rgba(28,21,12,.9),rgba(18,13,8,.94)),url("/images/ui/cuir.webp") center/cover,var(--panel)}
-.lsx-empty-card{background:linear-gradient(rgba(10,8,5,.78),rgba(10,8,5,.85)),url("/images/ui/marbre.webp") center/cover}
+.lsx-root .scroll,.lsx-root .msg.ai{background:linear-gradient(175deg,rgba(245,230,195,.55),rgba(220,196,150,.35)),url("/images/ui/parchemin-repeat.webp") 0 0/420px repeat,var(--parch)}
+.lsx-root .panel{background:linear-gradient(180deg,rgba(28,21,12,.9),rgba(18,13,8,.94)),url("/images/ui/cuir-repeat.webp") 0 0/384px repeat,var(--panel)}
+.lsx-empty-card{background:linear-gradient(rgba(10,8,5,.78),rgba(10,8,5,.85)),url("/images/ui/pierre-repeat.webp") 0 0/384px repeat}
 .lsx-section-h h2::after{content:"";width:140px;height:14px;margin-left:6px;background:url("/images/ui/separateur.webp") left center/contain no-repeat;opacity:.55}
 /* Table du MJ en bas de page : décor de fin, jamais par-dessus le contenu. */
 .ls-root .wrap.lsx-content{position:relative}
 .lsx-main::after{content:"";display:block;height:220px;margin-top:-140px;pointer-events:none;
-  background:linear-gradient(180deg,var(--bg),rgba(11,9,6,0) 55%),url("/images/ui/footer.webp") center bottom/min(1400px,100%) auto no-repeat;opacity:.9}
+  background:linear-gradient(180deg,var(--bg),rgba(11,9,6,0) 55%),url("/images/ui/bord-table.webp") center bottom/min(2000px,140%) auto no-repeat;opacity:.9}
 .lsx-mobilebar .lsx-mobile-dice img{width:40px;height:40px;object-fit:contain}
 @media (max-width:640px){
   .lsx-section-h h2::after{display:none}
   .lsx-main::after{height:150px;margin-top:-90px}
 }
+
+/* ------------------------- fonds d'ambiance par écran ------------------------ */
+/* Compositions peu chargées au centre : décor de périphérie, jamais sous la carte
+   ou le plateau (qui ont leur propre fond opaque). Fixées pour ne pas défiler. */
+.lsx-main[data-view]{background-attachment:fixed;background-position:center top;background-size:cover;background-repeat:no-repeat}
+.lsx-main[data-view="chat"]{background-image:linear-gradient(180deg,rgba(10,8,6,.5),rgba(10,8,6,.7)),url("/images/ui/fond-generateur.webp")}
+.lsx-main[data-view="scene"]{background-image:linear-gradient(180deg,rgba(10,8,6,.45),rgba(10,8,6,.7)),url("/images/ui/fond-table.webp")}
+.lsx-main[data-view="maps"]{background-image:linear-gradient(180deg,rgba(10,8,6,.4),rgba(10,8,6,.65)),url("/images/ui/fond-atlas.webp")}
+.lsx-main[data-view="encounter"]{background-image:linear-gradient(180deg,rgba(10,8,6,.45),rgba(10,8,6,.7)),url("/images/ui/fond-combat.webp")}
+.lsx-main[data-view="library"],.lsx-main[data-view="archives"]{background-image:linear-gradient(180deg,rgba(10,8,6,.4),rgba(10,8,6,.65)),url("/images/ui/fond-bibliotheque.webp")}
+@media (max-width:980px){.lsx-main[data-view]{background-attachment:scroll}}
