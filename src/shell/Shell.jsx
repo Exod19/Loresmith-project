@@ -92,8 +92,9 @@ export function Sidebar({
   onClose,
 }) {
   const current = findNav(view).group.id;
-  const [openGroups, setOpenGroups] = useState(() => ({ [current]: true, monde: true }));
-  useEffect(() => setOpenGroups((g) => ({ ...g, [current]: true })), [current]);
+  // Accordéon : un seul groupe ouvert à la fois, celui de la page courante par défaut.
+  const [openGroups, setOpenGroups] = useState(() => ({ [current]: true }));
+  useEffect(() => setOpenGroups({ [current]: true }), [current]);
 
   function go(v) {
     setView(v);
@@ -125,7 +126,7 @@ export function Sidebar({
                 <button
                   className="lsx-group-head"
                   aria-expanded={isOpen}
-                  onClick={() => setOpenGroups((s) => ({ ...s, [g.id]: !s[g.id] }))}
+                  onClick={() => setOpenGroups((s) => (s[g.id] ? {} : { [g.id]: true }))}
                 >
                   <GIcon size={19} strokeWidth={1.6} aria-hidden="true" />
                   <span>{g.label}</span>
@@ -190,6 +191,7 @@ export function Sidebar({
             <Settings size={17} strokeWidth={1.6} aria-hidden="true" /> Réglages de l'IA
           </button>
         </div>
+        <div className="lsx-side-decor" aria-hidden="true" />
       </aside>
     </>
   );
@@ -260,7 +262,7 @@ export function MobileBar({ view, setView, onOpenDice, onMenu }) {
         </button>
       ))}
       <button className="lsx-mobile-dice" onClick={onOpenDice} aria-label="Lanceur de dés">
-        <D20Glyph />
+        <img src="/images/ui/d20.webp" alt="" />
       </button>
       {items.slice(2).map(([v, l, Icon]) => (
         <button key={v} data-on={view === v ? 1 : 0} onClick={() => setView(v)}>
@@ -273,16 +275,6 @@ export function MobileBar({ view, setView, onOpenDice, onMenu }) {
         <span>Menu</span>
       </button>
     </nav>
-  );
-}
-
-export function D20Glyph({ size = 30 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true" className="lsx-d20">
-      <path d="M32 3 58 18v28L32 61 6 46V18z" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinejoin="round" />
-      <path d="M32 3 18 26h28zM18 26 6 18M46 26l12-8M18 26l-12 20M46 26l12 20M18 26l14 23 14-23M32 49v12M32 49 6 46M32 49l26-3" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" opacity=".75" />
-      <text x="32" y="42" textAnchor="middle" fontFamily="Cinzel, serif" fontSize="11" fontWeight="700" fill="currentColor">20</text>
-    </svg>
   );
 }
 

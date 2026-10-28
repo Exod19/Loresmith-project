@@ -4,6 +4,7 @@
  * chapitres, statistiques de jeu, comportement MJ).
  */
 import { useState } from 'react';
+import { sentienceOf } from '../feeds/fauna';
 
 const paras = (text) => String(text || '')
   .replace(/\*\*(.+?)\*\*/g, '$1').replace(/__(.+?)__/g, '$1').replace(/^#+\s*/gm, '')
@@ -68,7 +69,8 @@ export default function ArchiveDetail({ a }) {
   const [openChapter, setOpenChapter] = useState(null);
   const chapters = a.document?.chapters ?? [];
   const abilityGroups = Object.keys(ABILITY_KIND).map((k) => [k, (a.abilities ?? []).filter((x) => x.kind === k)]).filter(([, l]) => l.length);
-  const facts = [a.threat && ['Menace', a.threat], a.warral != null && ['Échelle Warral', a.warral], a.sentience && ['Sentience', a.sentience]].filter(Boolean);
+  const nature = sentienceOf(a);
+  const facts = [nature && ['Nature', nature.label], a.threat && ['Menace', a.threat], a.warral != null && ['Échelle Warral', a.warral]].filter(Boolean);
 
   return (
     <>
@@ -77,6 +79,7 @@ export default function ArchiveDetail({ a }) {
           {facts.map(([k, v]) => <span key={k}><small>{k}</small> {String(v)}</span>)}
         </div>
       )}
+      {nature && <p className="archive-muted">{nature.detail}</p>}
 
       {a.statBlock && (
         <Block title="Statistiques de jeu">
