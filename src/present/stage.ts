@@ -58,7 +58,7 @@ export type Stage =
 /** `aim` : depuis l'écran joueur, un héros déclare qu'il attaque une cible (le MJ résout). */
 /** `move` : depuis l'écran joueur, un jeton est glissé sur une autre case (le MJ valide). */
 /** `follow` : depuis la carte de navigation des joueurs, le groupe demande à suivre un chemin (le MJ valide ou fait l'épreuve). */
-export type StageMessage = { type: 'hello' } | { type: 'stage'; stage: Stage } | { type: 'aim'; from: string; to: string } | { type: 'move'; id: string; x: number; y: number } | { type: 'follow'; featureId: string; dir?: 'a' | 'b' };
+export type StageMessage = { type: 'hello' } | { type: 'stage'; stage: Stage; at?: number } | { type: 'aim'; from: string; to: string } | { type: 'move'; id: string; x: number; y: number } | { type: 'follow'; featureId: string; dir?: 'a' | 'b' };
 
 const CHANNEL = 'loresmith:stage:v1';
 
@@ -79,6 +79,9 @@ export function openStageChannel(onMessage: (m: StageMessage) => void) {
 
 let host: BroadcastChannel | null = null;
 let current: Stage = { kind: 'blank' };
+/** Moment de la dernière scène publiée par cet onglet ; si un autre onglet MJ publie après, celui-ci se tait. */
+let currentAt = 0;
+let superseded = false;
 const helloListeners = new Set<() => void>();
 const aimListeners = new Set<(from: string, to: string) => void>();
 const moveListeners = new Set<(id: string, x: number, y: number) => void>();
@@ -92,8 +95,9 @@ export function hostStage() {
     if (e.data?.type === 'aim') { const { from, to } = e.data; aimListeners.forEach((f) => f(from, to)); return; }
     if (e.data?.type === 'move') { const { id, x, y } = e.data; moveListeners.forEach((f) => f(id, x, y)); return; }
     if (e.data?.type === 'follow') { const { featureId, dir } = e.data; followListeners.forEach((f) => f(featureId, dir)); return; }
-    if (e.data?.type !== 'hello') return;
-    host?.postMessage({ type: 'stage', stage: current } satisfies StageMessage);
+    if (e.data?.type === 'stage') { if ((e.data.at ?? 0) > currentAt) superseded = true; return; }
+    if (e.data?.type !== 'hello' || superseded) return;
+    host?.postMessage({ type: 'stage', stage: current, at: currentAt } satisfies StageMessage);
     helloListeners.forEach((f) => f());
   };
 }
@@ -102,7 +106,9 @@ export function hostStage() {
 export function publishStage(stage: Stage) {
   hostStage();
   current = stage;
-  host?.postMessage({ type: 'stage', stage } satisfies StageMessage);
+  currentAt = Date.now();
+  superseded = false;
+  host?.postMessage({ type: 'stage', stage, at: currentAt } satisfies StageMessage);
 }
 
 /** Scène actuellement affichée côté joueurs. */

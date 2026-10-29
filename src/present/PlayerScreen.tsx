@@ -40,8 +40,11 @@ export default function PlayerScreen() {
 
   useEffect(() => {
     let next = 1;
+    // Deux onglets MJ ouverts : seule compte la scène publiée en dernier (l'autre onglet renverrait un état périmé).
+    let lastAt = 0;
     const link = openStageChannel((m) => {
       if (m.type !== 'stage') return;
+      if (m.at !== undefined) { if (m.at < lastAt) return; lastAt = m.at; }
       const key = stageKey(m.stage);
       setLayers((ls) => {
         const current = ls.find((l) => !l.leaving);

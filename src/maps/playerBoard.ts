@@ -35,8 +35,8 @@ export function seedExplored(data: AtlasData, rec: MapRecord, planId: string, at
 /** Rayon de vision du groupe sur la carte de navigation (en largeur de plan). */
 export const VISION_R = 0.035;
 
-/** Durée pendant laquelle un dégât reste écrit sur le plateau. */
-export const HIT_SHOW_MS = 4000;
+/** Fenêtre pendant laquelle un dégât récent est transmis aux joueurs (l'écran joueur l'affiche 4 s dès réception). */
+export const HIT_SHOW_MS = 10000;
 
 /** État d'une créature en mots, comme le perçoivent les héros (jamais ses PV). */
 export function woundState(t: Pick<BattleToken, 'hp' | 'maxHp'>): string | undefined {
