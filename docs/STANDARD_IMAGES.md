@@ -60,6 +60,12 @@ Source : dossier Drive « Loresmith », envoi du 28 octobre 2026 (originaux PNG 
 | `fond-combat.webp` | Fond : Combat | Obsidian Siege Ruins |
 | `fond-bibliotheque.webp` | Fond : Bibliothèque et Archives | Obsidian archive of ancient books |
 | `fond-campagnes.webp` | Fond : Campagnes | Obsidian Cavern Gateway |
+| `coin-tl/tr/bl/br.webp` | Coins des cartes ornées (bras prolongés par les filets CSS) | Antique brass L-corner filigree *(envoi du 29 octobre)* |
+| `separateur.webp` | Séparateurs (barre latérale, titres de section) | Patinated Brass Compass Rose Divider *(29 octobre)* |
+| `embleme-araignee.webp` | Sceau de l'univers Underdark sur la bannière | Underdark Brass Spider Emblem *(29 octobre)* |
+| `embleme-boussole.webp` | Sceau des autres univers ; fiches de passage | Antique Brass Compass Rose Medallion *(29 octobre)* |
+| `embleme-patte.webp` | Fiches de créature (écran joueur) | Four-toed beast paw medallion *(29 octobre)* |
+| `embleme-forge.webp` | « Forger une première campagne » | LoreSmith anvil and hammer emblem *(29 octobre)* |
 
 **Villes** (`public/images/villes/`, liste dans `villes.json`) : Durn Kheled, Grik-Grak, Khord Varr, Nhal Sereth, Oruum, Ssilume, Ssyr Vael, Vasecroche, Vel Ashael, Zhaer Velyss, et deux panoramas gothiques. Réservées à la création de villes (Myconides, Duergars, etc.) ; pas encore affichées.
 
