@@ -4,7 +4,7 @@
  * Sans serveur joignable ou sans compte, rien ne change au fonctionnement local.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { currentAccount, forgetDeletions, resolveOne, serverReachable, signIn, signOut, signUp, syncOnce } from './client';
+import { acceptInvitation, currentAccount, forgetDeletions, resolveOne, serverReachable, signIn, signOut, signUp, syncOnce } from './client';
 
 const PERIOD = 5 * 60 * 1000;
 
@@ -112,5 +112,27 @@ export function useSync({ state, dispatch, hydrated, flash }) {
     await syncNow({ confirmDeletes: confirm });
   }, [pendingDeletes, syncNow]);
 
-  return { server, account, status, lastSync, conflicts, pendingDeletes, error, syncNow, login, logout, resolve, recheck, decideDeletes };
+  /** Accepte une invitation, puis synchronise pour recevoir l'univers et l'ouvrir. */
+  const focus = useRef(null);
+  const acceptInvite = useCallback(async (token) => {
+    const { universeId } = await acceptInvitation(token);
+    focus.current = universeId;
+    // Une synchronisation en cours se termine d'abord ; la suivante reçoit l'univers rejoint.
+    for (let i = 0; i < 50 && busy.current; i++) await new Promise((r) => setTimeout(r, 200));
+    setAccount(await currentAccount());
+    return universeId;
+  }, []);
+
+  // L'univers rejoint est ouvert dès qu'il est arrivé dans le grimoire.
+  useEffect(() => {
+    if (focus.current && state?.universes?.[focus.current]) {
+      dispatch({ type: 'SET_UNIVERSE', id: focus.current });
+      focus.current = null;
+    }
+  }, [state, dispatch]);
+
+  const activeUniverse = state?.universes?.[state?.activeUniverseId] ?? null;
+  const campaignsOf = (universeId) => Object.values(state?.campaigns || {}).filter((c) => c.universeId === universeId);
+
+  return { server, account, status, lastSync, conflicts, pendingDeletes, error, syncNow, login, logout, resolve, recheck, decideDeletes, acceptInvite, activeUniverse, campaignsOf, refreshAccount: async () => setAccount(await currentAccount()) };
 }

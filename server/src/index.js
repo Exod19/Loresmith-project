@@ -9,6 +9,7 @@ import { can } from '../../src/shared/policy.js';
 import { authFor } from './auth.js';
 import { HttpError, createDoc, getDoc, listDocs, updateDoc } from './documents.js';
 import { mountSync } from './sync.js';
+import { mountPublicInvitations, mountSharing } from './sharing.js';
 
 const app = new Hono();
 
@@ -26,6 +27,9 @@ app.onError((err, c) => {
 app.get('/api/health', (c) => c.json({ ok: true, service: 'loresmith-api' }));
 
 app.on(['GET', 'POST'], '/api/auth/*', (c) => authFor(c.env).handler(c.req.raw));
+
+// Aperçu d'une invitation, lisible avant de se connecter (lot 6).
+mountPublicInvitations(app);
 
 /** Session obligatoire pour tout le reste : sans elle, 401. Les rôles du compte sont chargés une fois. */
 app.use('/api/*', async (c, next) => {
@@ -148,6 +152,10 @@ app.put('/api/campaigns/:id', async (c) => {
 /* ——— Synchronisation et images (lot 5) ——— */
 
 mountSync(app);
+
+/* ——— Partage : invitations, membres, co-MJ (lot 6) ——— */
+
+mountSharing(app);
 
 app.notFound((c) => c.json({ error: 'Route inconnue.' }, 404));
 

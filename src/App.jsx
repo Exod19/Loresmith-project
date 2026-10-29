@@ -46,6 +46,7 @@ import { openGrimoire, toPersisted } from './store/images';
 import { ExportDialog, ImportDialog } from './store/ArchiveDialogs';
 import { useSync } from './sync/useSync';
 import { ConflictDialog, DeleteConfirm, SyncPanel, syncBadge } from './sync/SyncUI';
+import { InvitationGate } from './sync/SharingUI';
 import { applyChanges } from './sync/apply';
 import { IMAGE_MAX } from './store/imageRefs';
 import StorageInfo from './store/StorageInfo';
@@ -5438,6 +5439,7 @@ export default function App() {
           )}
           {syncDialog === 'conflicts' && sync.conflicts.length > 0 && <ConflictDialog sync={sync} flash={flash} onClose={() => setSyncDialog(null)} />}
           {syncDialog === 'deletes' && sync.pendingDeletes && <DeleteConfirm sync={sync} onClose={() => setSyncDialog(null)} />}
+          <InvitationGate sync={sync} flash={flash} />
           {toast && <div className="toast">{toast}</div>}
         </div>
       </>
@@ -5604,7 +5606,7 @@ function SettingsModal({ onClose, flash, sync }) {
         local). Ne publie jamais le site en ligne avec ta clé en clair.
       </div>
       <StorageInfo />
-      <SyncPanel sync={sync} />
+      <SyncPanel sync={sync} flash={flash} />
     </Modal>
   );
 }

@@ -3,6 +3,7 @@
  */
 import { useState } from 'react';
 import { apiUrl, setApiUrl } from './client';
+import { SharingDialog } from './SharingUI';
 
 const TYPE_LABEL = {
   universe: 'Univers',
@@ -36,7 +37,8 @@ export function syncBadge(sync) {
 
 const box = { border: '1px solid var(--line)', borderRadius: 6, padding: 12, marginTop: 14 };
 
-export function SyncPanel({ sync }) {
+export function SyncPanel({ sync, flash = () => {} }) {
+  const [sharing, setSharing] = useState(false);
   const [mode, setMode] = useState('signin');
   const [f, setF] = useState({ name: '', email: '', password: '' });
   const [busy, setBusy] = useState(false);
@@ -95,10 +97,16 @@ export function SyncPanel({ sync }) {
             <button className="btn primary" style={{ flex: 'none' }} disabled={sync.status === 'syncing'} onClick={() => sync.syncNow()}>
               Synchroniser maintenant
             </button>
+            {sync.activeUniverse && (
+              <button className="btn" style={{ flex: 'none' }} onClick={() => setSharing(true)}>
+                Partager « {sync.activeUniverse.name} »
+              </button>
+            )}
             <button className="btn ghost" style={{ flex: 'none' }} onClick={sync.logout}>
               Se déconnecter
             </button>
           </div>
+          {sharing && <SharingDialog sync={sync} flash={flash} onClose={() => setSharing(false)} />}
         </>
       ) : (
         <form onSubmit={submit}>

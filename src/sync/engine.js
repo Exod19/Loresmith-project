@@ -13,7 +13,7 @@ import { documentsOf } from '../shared/schema.js';
 import { collectStrings, idOfRef, isRef } from '../store/imageRefs.js';
 
 export const keyOf = (type, id) => `${type}:${id}`;
-export const emptyMeta = (userId) => ({ userId, cursor: 0, docs: {}, images: {} });
+export const emptyMeta = (userId) => ({ userId, cursor: 0, docs: {}, images: {}, universes: {}, detached: {} });
 
 /** Empreinte rapide (cyrb53) du contenu d'un document. */
 export function hashOf(data) {
@@ -60,8 +60,8 @@ async function uploadImages(doc, meta, api) {
  * Retourne { meta, changes: { upserts, deletes }, conflicts, pendingDeletes, offline, signedOut, stats }.
  */
 export async function runSync({ persisted, meta: before, userId, api, skip = () => false, confirmDeletes = false, deleteThreshold = 5 }) {
-  const meta = structuredClone(before?.userId === userId ? before : emptyMeta(userId));
-  const result = { meta, changes: { upserts: [], deletes: [] }, conflicts: [], pendingDeletes: null, offline: false, signedOut: false, stats: { pulled: 0, pushed: 0, deleted: 0 } };
+  const meta = { ...emptyMeta(userId), ...structuredClone(before?.userId === userId ? before : emptyMeta(userId)) };
+  const result = { meta, changes: { upserts: [], deletes: [] }, conflicts: [], pendingDeletes: null, offline: false, signedOut: false, joined: [], lostAccess: [], stats: { pulled: 0, pushed: 0, deleted: 0 } };
   const local = new Map(documentsOf(persisted, userId).docs.map((d) => [keyOf(d.type, d.id), d]));
   const handled = new Set();
 
@@ -75,6 +75,29 @@ export async function runSync({ persisted, meta: before, userId, api, skip = () 
     if (!result.offline && !result.signedOut) throw e;
     return result;
   }
+
+  // Univers rejoints depuis la dernière fois : tout leur contenu existant est reçu (pas seulement les changements récents).
+  const known = meta.universes || {};
+  const now = pulled.universes || {};
+  result.joined = Object.keys(now).filter((u) => !(u in known));
+  result.lostAccess = Object.keys(known).filter((u) => !(u in now));
+  if (result.joined.length && meta.cursor > 0) {
+    try {
+      pulled = { ...(await api.pull(0)), universes: now };
+    } catch (e) {
+      result.offline = isNetwork(e);
+      if (!result.offline) throw e;
+      return result;
+    }
+  }
+  for (const u of result.joined) delete meta.detached[u];
+  // Accès perdu (retiré de l'univers) : la copie locale reste, mais elle n'est plus envoyée.
+  for (const u of result.lostAccess) {
+    meta.detached[u] = true;
+    for (const [key, m] of Object.entries(meta.docs)) if (m.u === u) delete meta.docs[key];
+  }
+  meta.universes = now;
+
   for (const r of pulled.docs) {
     const key = keyOf(r.type, r.id);
     const m = meta.docs[key];
@@ -92,7 +115,7 @@ export async function runSync({ persisted, meta: before, userId, api, skip = () 
       } else {
         result.changes.upserts.push({ type: r.type, id: r.id, universeId: r.universeId, data: r.data });
         local.set(key, { ...r });
-        meta.docs[key] = { v: r.version, h: hashOf(r.data) };
+        meta.docs[key] = { v: r.version, h: hashOf(r.data), u: r.universeId };
       }
       result.stats.pulled++;
     } else if (r.deleted && !mine) {
@@ -110,11 +133,11 @@ export async function runSync({ persisted, meta: before, userId, api, skip = () 
       if (handled.has(key) && !meta.docs[key]) continue;
       const m = meta.docs[key];
       const h = hashOf(doc.data);
-      if ((m && m.h === h) || result.conflicts.some((c) => c.key === key) || (!m && skip(doc))) continue;
+      if ((m && m.h === h) || result.conflicts.some((c) => c.key === key) || (!m && skip(doc)) || meta.detached[doc.universeId]) continue;
       await uploadImages(doc, meta, api);
       try {
         const res = await api.put({ type: doc.type, id: doc.id, universeId: doc.universeId, campaignId: doc.campaignId, version: m ? m.v : 0, data: doc.data });
-        meta.docs[key] = { v: res.version, h };
+        meta.docs[key] = { v: res.version, h, u: doc.universeId };
         result.stats.pushed++;
       } catch (e) {
         if (isNetwork(e)) throw e;
@@ -165,7 +188,7 @@ export async function resolveConflict({ conflict, choice, meta: before, api }) {
       delete meta.docs[key];
     } else {
       changes.upserts.push({ type, id, universeId: remote.universeId, data: remote.data });
-      meta.docs[key] = { v: remote.version, h: hashOf(remote.data) };
+      meta.docs[key] = { v: remote.version, h: hashOf(remote.data), u: remote.universeId };
     }
     return { meta, changes, conflict: null };
   }
@@ -177,7 +200,7 @@ export async function resolveConflict({ conflict, choice, meta: before, api }) {
       const doc = { type, id, universeId: conflict.universeId ?? remote?.universeId, campaignId: conflict.campaignId ?? remote?.campaignId ?? null, data: local };
       await uploadImages(doc, meta, api);
       const res = await api.put({ ...doc, version: remote ? remote.version : 0 });
-      meta.docs[key] = { v: res.version, h: hashOf(local) };
+      meta.docs[key] = { v: res.version, h: hashOf(local), u: doc.universeId };
     }
     return { meta, changes, conflict: null };
   } catch (e) {

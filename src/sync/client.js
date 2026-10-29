@@ -143,3 +143,18 @@ export async function forgetDeletions(keys) {
   meta.cursor = 0;
   await saveKv(META_KEY, meta);
 }
+
+/* ——— Partage (lot 6) ——— */
+
+const U = (id) => `/api/universes/${encodeURIComponent(id)}`;
+const K = (id) => `/api/campaigns/${encodeURIComponent(id)}`;
+export const listMembers = (universeId) => request('GET', `${U(universeId)}/members`);
+export const invite = (universeId, email, role) => request('POST', `${U(universeId)}/invitations`, { json: { email, role } });
+export const revokeInvitation = (universeId, id) => request('DELETE', `${U(universeId)}/invitations/${encodeURIComponent(id)}`);
+export const setMemberRole = (universeId, userId, role) => request('PUT', `${U(universeId)}/members/${encodeURIComponent(userId)}`, { json: { role } });
+export const removeMember = (universeId, userId) => request('DELETE', `${U(universeId)}/members/${encodeURIComponent(userId)}`);
+export const campaignMembers = (campaignId) => request('GET', `${K(campaignId)}/members`);
+export const addCoGm = (campaignId, userId) => request('PUT', `${K(campaignId)}/members/${encodeURIComponent(userId)}`, { json: {} });
+export const removeCoGm = (campaignId, userId) => request('DELETE', `${K(campaignId)}/members/${encodeURIComponent(userId)}`);
+export const invitationInfo = (token) => request('GET', `/api/invitations/${encodeURIComponent(token)}`);
+export const acceptInvitation = (token) => request('POST', `/api/invitations/${encodeURIComponent(token)}/accept`, { json: {} });

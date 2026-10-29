@@ -117,7 +117,7 @@ Chaque lot se termine par un commit, puis par une validation de l'utilisateur. L
 
 ### Lot 5 : synchronisation
 
-- **Statut** : à valider
+- **Statut** : validé
 - **Modèle conseillé** : `claude-opus-5-5`
 - **Objectif** : envoyer et recevoir univers et campagnes partagés, avec un numéro de version.
 - **Règles** : le local reste la copie de travail. En cas de conflit (réponse 409), proposer à l'utilisateur de choisir la version à garder. Pas de synchronisation en temps réel.
@@ -125,7 +125,7 @@ Chaque lot se termine par un commit, puis par une validation de l'utilisateur. L
 
 ### Lot 6 : partage
 
-- **Statut** : à faire
+- **Statut** : à valider
 - **Modèle conseillé** : `claude-sonnet-5-5`
 - **Objectif** : invitations par courriel, gestion des rôles dans l'interface.
 - **Critères d'acceptation** : une invitation expire ; un invité sans compte peut en créer un puis accepter ; un rôle retiré prend effet immédiatement côté serveur.

@@ -29,8 +29,17 @@ npm run dev                      # API sur http://localhost:8787
 | `PUT /api/docs/:type/:id` | création (`version: 0`) ou mise à jour versionnée de tout document du grimoire |
 | `DELETE /api/docs/:type/:id?version=N` | suppression (le document est seulement marqué, l'historique est gardé) |
 | `PUT, GET /api/images/:universeId/:id` | images partagées dans R2 ; l'identifiant est l'empreinte SHA-256 du contenu |
+| `GET /api/universes/:id/members` | membres et rôles ; invitations en attente (propriétaire seulement) |
+| `POST /api/universes/:id/invitations` | invitation par courriel (7 jours) ; renvoie le lien, et l'envoie par Resend si configuré |
+| `DELETE /api/universes/:id/invitations/:invitationId` | annule une invitation |
+| `GET /api/invitations/:token` | aperçu d'une invitation, sans compte |
+| `POST /api/invitations/:token/accept` | accepte, avec un compte au courriel invité |
+| `PUT, DELETE /api/universes/:id/members/:userId` | change le rôle d'un membre, le retire (ou le membre quitte) |
+| `GET /api/campaigns/:id/members`, `PUT, DELETE /api/campaigns/:id/members/:userId` | co-MJ d'une campagne |
 
-Sans session, toute route autre que la santé et l'authentification répond `401`.
+Sans session, toute route autre que la santé, l'authentification et l'aperçu d'une invitation répond `401`.
+
+Courriels : sans `RESEND_API_KEY` (secret) et `MAIL_FROM`, aucun courriel ne part ; le lien d'invitation est montré à celui qui invite.
 Les droits sont ceux de `src/shared/policy.js`. Chaque version écrite est gardée dans `document_versions`.
 
 ## Tests

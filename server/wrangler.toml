@@ -10,6 +10,11 @@ compatibility_flags = ["nodejs_compat"]
 BETTER_AUTH_URL = "http://localhost:8787"
 # Origine du site (Vite en développement) autorisée à appeler l'API avec ses cookies.
 FRONT_ORIGIN = "http://localhost:5173"
+# Adresse du site dans les liens d'invitation (par défaut : FRONT_ORIGIN).
+# APP_URL = "https://…"
+# Courriels (Resend, offre gratuite) : MAIL_FROM ici, RESEND_API_KEY en secret (.dev.vars ou `wrangler secret`).
+# Sans eux, le lien d'invitation est seulement montré à celui qui invite.
+# MAIL_FROM = "Loresmith <invitations@exemple.org>"
 
 [[d1_databases]]
 binding = "DB"
