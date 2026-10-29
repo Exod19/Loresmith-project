@@ -66,8 +66,12 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   const [placing, setPlacing] = useState<Draft | null>(null);
   /** Lieu que les joueurs doivent voir au centre de l'écran (demandé depuis la fiche). */
   const [focus, setFocus] = useState<{ kind: 'anchor' | 'point'; id: string; tick: number } | null>(null);
+  /** Colonne de droite de la carte de navigation (MJ) : un onglet à la fois. */
+  const [side, setSide] = useState<'lieu' | 'groupe' | 'campagne' | 'reperes'>('lieu');
+  useEffect(() => { if (selectedId) setSide('lieu'); }, [selectedId]);
 
   const overlay = rec.overlay ?? EMPTY_OVERLAY;
+  const pv = overlay.playerView ?? {};
   const map = data.maps.find((m) => m.id === planId) ?? data.maps[0];
   const markers = overlay.markers.filter((m) => m.planId === map.id);
   const markerId = selectedId?.startsWith('mk-') ? selectedId.slice(3) : null;
@@ -112,6 +116,12 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     const at = hs[0].at.planId === map.id ? placeCoords(data, rec, hs[0].at) : null;
     if (at) partyMarks.push({ id: `hero-${hs[0].at.id}`, x: at[0], y: at[1], label: hs.map((h) => h.name).join(', '), tone: 'hero' });
   }
+  /** Aperçu « Joueurs » : mêmes jetons et même brouillard que sur l'écran joueur. */
+  const playerPreview = useMemo(() => {
+    if (dm) return { marks: [] as MapMark[], fog: null };
+    const pb = mapBoard(rec, atlas, map.id);
+    return pb.mode === 'map' ? { marks: (pb.marks ?? []) as MapMark[], fog: pb.fog ?? null } : { marks: [] as MapMark[], fog: null };
+  }, [dm, rec, atlas, map.id]);
   /** Un héros sort seul du plateau de combat : il attend au bout de sa sortie, sur la carte de navigation. */
   const leaveBattle = (t: BattleToken, link: PassageLink | undefined) => {
     if (t.kind !== 'pc' || !link) return;
@@ -287,10 +297,21 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
             {atlas.maps.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
           </select>
         )}
-        {!battleOpen && <button className="maps-btn" onClick={openBattle} title={locationHint ? `Carte de combat : ${locationHint.title}` : 'Sélectionne un lieu, ou place le groupe'}>⚔ Ouvrir la carte de combat</button>}
+        {!battleOpen && <button className="maps-btn" onClick={openBattle} title={locationHint ? `Ouvrir la carte de combat : ${locationHint.title}` : 'Ouvrir la carte de combat (sélectionne un lieu, ou place le groupe)'}>⚔ Combat</button>}
         <div className="maps-spacer" />
-        <button className={`maps-btn ${projecting ? 'gold' : ''}`} onClick={() => (projecting ? stopProjecting() : setProjecting(true))}>
-          {projecting ? '■ Arrêter la projection' : '▶ Projeter aux joueurs'}
+        {dm && !battleOpen && (
+          <div className="maps-pv" role="group" aria-label="Ce que voient les joueurs sur la carte de navigation">
+            <span>Vue joueurs</span>
+            {([['fog', '🌫 Brouillard', 'Brouillard de guerre : les joueurs ne voient que les lieux explorés ou révélés'],
+              ['party', '👥 Groupe', 'Montrer le jeton du groupe aux joueurs'],
+              ['heroes', '🧭 Séparés', 'Montrer aux joueurs les héros partis seuls']] as const).map(([k, label, title]) => (
+              <button key={k} className={`maps-btn ${pv[k] ? 'gold on-soft' : ''}`} aria-pressed={!!pv[k]} title={title}
+                onClick={() => setOverlay({ ...overlay, playerView: { ...pv, [k]: !pv[k] } })}>{label}</button>
+            ))}
+          </div>
+        )}
+        <button className={`maps-btn ${projecting ? 'gold' : ''}`} onClick={() => (projecting ? stopProjecting() : setProjecting(true))} title={projecting ? 'Arrêter la projection aux joueurs' : 'Projeter aux joueurs (écran joueur)'}>
+          {projecting ? '■ Projection en cours' : '▶ Projeter aux joueurs'}
         </button>
         {!battleOpen && (
           <div className="maps-seg" role="group" aria-label="Affichage">
@@ -336,7 +357,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               hidden={new Set<FeatureCategory>()}
               selectedId={selectedId}
               onSelect={(f: AtlasFeature) => { setSelectedId(f.id); setEnc(null); }}
-              marks={dm ? partyMarks : []}
+              marks={dm ? partyMarks : playerPreview.marks}
+              fog={dm ? null : playerPreview.fog}
               onAnchor={() => {}}
               onPlace={dm && placing ? addMarker : undefined}
               dataKey={rec.updatedAt}
@@ -346,8 +368,18 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
             />
           </div>
 
-          <aside className="maps-panel">
-            {dm && campaigns.length > 0 && (
+          <aside className="maps-panel maps-side">
+            {dm && (
+              <nav className="maps-tabs" role="tablist" aria-label="Panneau de la carte">
+                {([['lieu', '📍 Lieu'], ['groupe', '👥 Groupe'], ...(campaigns.length ? [['campagne', '📜 Campagne']] : []), ['reperes', '🔖 Repères']] as [typeof side, string][]).map(([id, label]) => (
+                  <button key={id} role="tab" aria-selected={side === id} className={side === id ? 'on' : ''} onClick={() => setSide(id)}>
+                    {label}
+                    {id === 'groupe' && (party.apart?.length ?? 0) > 0 && <small>{party.apart!.length}</small>}
+                  </button>
+                ))}
+              </nav>
+            )}
+            {dm && side === 'campagne' && campaigns.length > 0 && (
               <CampaignGuide
                 campaigns={campaigns}
                 activeId={activeCampaignId}
@@ -369,7 +401,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               </p>
             )}
 
-            {dm && selectedMarker && (
+            {(!dm || side === 'lieu') && dm && selectedMarker && (
               <MarkerEditor
                 m={selectedMarker}
                 onChange={(patch) => updateMarker(selectedMarker.id, patch)}
@@ -378,7 +410,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               />
             )}
 
-            {feature && !markerId && (
+            {(!dm || side === 'lieu') && feature && !markerId && (
               <FeaturePanel
                 f={feature} dm={dm} notes={point?.notes ?? ''}
                 defaultCtx={{ zone: point?.zone ?? 'sauvage', depth: point?.depth ?? 3, place: feature.title }}
@@ -394,15 +426,35 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               />
             )}
 
-            {!feature && !selectedMarker && (
+            {(!dm || side === 'lieu') && !feature && !selectedMarker && (
               <p className="maps-hint">
                 {dm
-                  ? 'Touche un lieu pour le lire, ou place un repère ci-dessous. Tout ce que tu révèles apparaît en direct chez les joueurs.'
+                  ? 'Touche un lieu pour le lire. Objets, passages secrets et rencontres placées : onglet Repères. Tout ce que tu révèles apparaît en direct chez les joueurs.'
                   : 'Mode joueurs : seules les informations partagées sont visibles.'}
               </p>
             )}
 
-            {dm && party.at && partyAt && (
+            {dm && side === 'groupe' && (
+              <div className="maps-card">
+                <h3>Groupe</h3>
+                <p className="maps-sub">
+                  {party.at ? <>Au lieu : <b>{party.at.title}</b> <button className="maps-link" onClick={() => showPlace(party.at!)}>centrer</button></> : 'Position inconnue : choisis un lieu, puis « Le groupe est ici ».'}
+                </p>
+                {party.dest && <p className="maps-sub">Objectif : <b>{party.dest.title}</b> <button className="maps-link" onClick={() => showPlace(party.dest!)}>centrer</button></p>}
+                {(party.apart ?? []).length > 0 && (
+                  <ul className="maps-list">
+                    {party.apart!.map((h) => (
+                      <li key={h.id}>
+                        <button className="maps-link" onClick={() => showPlace(h.at)}>🧭 {h.name} · {h.at.title}</button>
+                        <button className="maps-btn" onClick={() => rejoin(h.id)} title="Rejoint le groupe">Rejoint</button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+
+            {dm && side === 'groupe' && party.at && partyAt && (
               <TrailsPanel
                 placeTitle={party.at.title} trails={trails} passive={best.pp} passiveWho={best.who}
                 onToggle={(id) => toggleReveal(id)}
@@ -411,7 +463,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               />
             )}
 
-            {dm && rec.kind === 'atlas' && (
+            {dm && side === 'groupe' && rec.kind === 'atlas' && (
               <div className="maps-card">
                 <h3>Révélations</h3>
                 <p className="maps-sub">{overlay.revealed.length} lieu(x) visible(s) des joueurs, sur l'ensemble de l'Atlas.</p>
@@ -422,7 +474,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               </div>
             )}
 
-            {dm && markers.some((m) => m.kind === 'rencontre') && (
+            {dm && side === 'reperes' && markers.some((m) => m.kind === 'rencontre') && (
               <div className="maps-card">
                 <h3>Rencontres placées</h3>
                 <ul className="maps-list">
@@ -438,7 +490,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               </div>
             )}
 
-            {dm && enc && (
+            {dm && side === 'lieu' && enc && (
               <EncounterBox
                 enc={enc}
                 onRoll={(force) => setEnc({ ctx: enc.ctx, e: rollEncounter(enc.ctx, force) })}
@@ -452,21 +504,23 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               />
             )}
 
-            {dm && rec.kind === 'custom' && (
+            {dm && side === 'reperes' && (
+              <Interactables
+                markers={markers.filter((m) => m.kind !== 'rencontre')}
+                onChange={(id, patch) => updateMarker(id, patch)}
+                onRemove={(id) => removeMarker(id)}
+                onAdd={(kind) => setPlacing({ kind, title: DEFAULT_TITLE[kind] })}
+              />
+            )}
+
+            {dm && side === 'reperes' && rec.kind === 'custom' && (
               <PointEditor rec={rec} onUpdate={onUpdate} selectedId={selectedId} onSelect={setSelectedId} />
             )}
           </aside>
         </div>
       )}
 
-      {dm && !battleOpen && (
-        <Interactables
-          markers={markers.filter((m) => m.kind !== 'rencontre')}
-          onChange={(id, patch) => updateMarker(id, patch)}
-          onRemove={(id) => removeMarker(id)}
-          onAdd={(kind) => setPlacing({ kind, title: DEFAULT_TITLE[kind] })}
-        />
-      )}
+
 
       <p className="maps-footer">
         {dm && rec.kind === 'atlas' && <>Statistiques : {SRD_CREDIT} </>}

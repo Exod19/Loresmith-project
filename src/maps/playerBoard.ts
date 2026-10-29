@@ -3,7 +3,7 @@
  * il part de la vue joueurs (sans notes, repères secrets ni jetons cachés) et ne garde que le plan montré.
  */
 import type { AtlasData } from './atlas/types';
-import { mapDataFor, restrictToPlan, DEFAULT_BATTLE, type MapRecord } from './mapStore';
+import { mapDataFor, placeCoords, restrictToPlan, DEFAULT_BATTLE, type MapRecord, type PartyPlace } from './mapStore';
 import { effectiveGrid } from './battle/terrain';
 import { cellIn } from './battle/local';
 import { tokenImage } from './battle/vignettes';
@@ -30,7 +30,38 @@ export function woundState(t: Pick<BattleToken, 'hp' | 'maxHp'>): string | undef
 
 /** Carte telle que les joueurs la voient, sur le plan choisi, centrée sur `focus` si le MJ l'a demandé. */
 export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus?: { kind: 'anchor' | 'point'; id: string; tick: number }): PlayerBoard {
-  return { mode: 'map', title: rec.title, planId, data: restrictToPlan(mapDataFor(rec, atlas, false), planId), focus };
+  const data = restrictToPlan(mapDataFor(rec, atlas, false), planId);
+  const view = rec.overlay?.playerView ?? {};
+  const party = rec.overlay?.party;
+  // Positions : calculées sur la carte complète du MJ, mais seules les coordonnées partent chez les joueurs.
+  const full = view.party || view.heroes || view.fog ? mapDataFor(rec, atlas, true) : null;
+  const at = (p?: PartyPlace) => (p && full && p.planId === planId ? placeCoords(full, rec, p) : null);
+  const marks: NonNullable<Extract<PlayerBoard, { mode: 'map' }>['marks']> = [];
+  const groupAt = at(party?.at);
+  if (view.party && groupAt) marks.push({ id: 'party', x: groupAt[0], y: groupAt[1], label: 'Groupe', tone: 'party' });
+  if (view.heroes) {
+    const byPlace = new Map<string, string[]>();
+    for (const h of party?.apart ?? []) byPlace.set(h.at.id, [...(byPlace.get(h.at.id) ?? []), h.name]);
+    for (const [id, names] of byPlace) {
+      const h = party!.apart!.find((x) => x.at.id === id)!;
+      const c = at(h.at);
+      if (c) marks.push({ id: `hero-${id}`, x: c[0], y: c[1], label: names.join(', '), tone: 'hero' });
+    }
+  }
+  // Brouillard de guerre : se dévoile autour des lieux révélés, du groupe, de son parcours et des héros partis devant.
+  let fog: { holes: [number, number][]; r: number } | undefined;
+  if (view.fog) {
+    const holes: [number, number][] = [];
+    for (const g of data.geometries) {
+      if (g.mapId !== planId) continue;
+      if (g.type === 'point') holes.push(g.coordinates as [number, number]);
+      else (g.coordinates as [number, number][]).forEach((c, i, all) => { if (i % 3 === 0 || i === all.length - 1) holes.push(c); });
+    }
+    for (const p of [party?.at, ...(party?.trail ?? []), ...(party?.apart ?? []).map((h) => h.at)]) { const c = at(p); if (c) holes.push(c); }
+    for (const m of rec.overlay?.markers ?? []) if (m.revealed && m.planId === planId) holes.push([m.x, m.y]);
+    fog = { holes, r: 0.045 };
+  }
+  return { mode: 'map', title: rec.title, planId, data, focus, marks: marks.length ? marks : undefined, fog };
 }
 
 /** Combat tel que les joueurs le voient : jetons visibles seulement, sans points de vie ni CA. */

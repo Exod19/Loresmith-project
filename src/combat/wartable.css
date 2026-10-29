@@ -576,3 +576,31 @@
   .maps-viewer.has-encounter .maps-live{margin:2px 0;font-size:12px}
 }
 .party-apart-hero,.party-apart-hero button{white-space:nowrap}
+
+/* ===== Carte de combat MJ : encore plus de place pour le plateau ===== */
+@media (min-width:1101px){
+  .maps-viewer.has-encounter > .party-bar,.maps-viewer.has-encounter > .maps-live{display:none}
+  .maps-viewer.has-encounter > .maps-toolbar{padding:4px 6px}
+  .maps-viewer.has-encounter > .maps-toolbar .maps-btn{padding:4px 10px}
+  .maps-viewer.has-encounter .battle-bar{gap:6px}
+  .maps-viewer.has-encounter .battle-place-name{font-size:16px}
+  .maps-viewer.has-encounter .battle-tools .maps-btn{padding:4px 9px}
+  /* Fil d'initiative compact sur la carte. */
+  .wt[data-inmap="1"] .wt-init{padding:4px 8px 6px}
+  .wt[data-inmap="1"] .wt-init-head{padding:0 4px 3px}
+  .wt[data-inmap="1"] .wt-init-head h2{font-size:12px}
+  .wt[data-inmap="1"] .wt-init-head > span:not(.wt-init-count){display:none}
+  .wt[data-inmap="1"] .wt-init-card{height:50px;width:156px}
+  .wt[data-inmap="1"] .wt-init-actions{flex-direction:row;align-items:stretch}
+  .wt[data-inmap="1"] .wt-btn.big{min-height:48px}
+  .ls-root .wrap.lsx-content:has(.maps-viewer.has-encounter){padding:6px 10px 0}
+  .maps-page:has(.maps-viewer.has-encounter){padding:4px 6px 0}
+  .ls-root .wrap.lsx-content:has(.wt[data-inmap="1"]){padding-bottom:96px}
+  .maps-viewer.has-encounter{height:calc(100vh - var(--lsx-top-h) - 104px);height:calc(100dvh - var(--lsx-top-h) - 104px)}
+}
+@media (min-width:1101px){
+  .lsx-main:has(.maps-viewer)::after{display:none}
+  .maps-viewer.has-encounter{height:calc(100vh - var(--lsx-top-h) - 132px);height:calc(100dvh - var(--lsx-top-h) - 132px)}
+}
+.battle-place-hint{display:block}
+.battle-place-hint small{display:block}

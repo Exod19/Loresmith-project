@@ -765,3 +765,7 @@
 .present-verdict-line.narration-told.imp-major{color:#ffe7b0;animation:narr-major .8s cubic-bezier(.2,.7,.2,1) .25s both}
 .present-verdict-line.narration-told.imp-epic{color:#fff1d6;text-shadow:0 0 18px rgba(224,80,58,.45);animation:narr-epic 1.2s cubic-bezier(.2,.7,.2,1) .25s both}
 @media (prefers-reduced-motion:reduce){.present-verdict-line.narration-told{animation:none}}
+/* Héros en attente de placement (MJ). */
+.battle-place-hint{position:absolute;left:50%;top:8px;transform:translateX(-50%);z-index:9;display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:6px 14px;border-radius:10px;border:1px solid #54d8c6;background:rgba(8,20,20,.92);color:#e8fffb;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.5);pointer-events:none;text-align:center}
+.battle-place-hint small{color:#9fc9c4;font-size:11.5px}

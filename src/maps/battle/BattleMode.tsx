@@ -282,7 +282,7 @@ export default function BattleMode({
           setLastMove(notes.length || exit ? { name: t.name, notes, exit: exit && { id: t.id, label: exit.label, passage: exit.id } } : null);
           // Sur une sortie : sa fiche s'ouvre (praticabilité, test à faire, destination).
           if (exit) setInfoId(exit.id);
-          patchToken(t.id, { x, y });
+          patchToken(t.id, t.unplaced ? { x, y, unplaced: undefined, visible: true } : { x, y });
         }
         justDropped.current = true;
         setTimeout(() => { justDropped.current = false; }, 0);
@@ -322,8 +322,17 @@ export default function BattleMode({
   }
 
   /** Clic sur une case vide : désélectionne le jeton et ferme la fiche. Les jetons se déplacent par glisser-déposer. */
-  function onBoardCell() {
+  function onBoardCell(x: number, y: number) {
     if (justDropped.current) return;
+    // Un héros attend sa place : le clic le pose (visible des joueurs, sa vision compte dès lors).
+    const waiting = b.tokens.find((t) => t.unplaced);
+    if (waiting && !aiming && !building) {
+      if (fits(bv, waiting.id, waiting.size, x, y)) {
+        patchToken(waiting.id, { x, y, unplaced: undefined, visible: true });
+        setSelectedId(waiting.id);
+      }
+      return;
+    }
     setInfoId(null);
     setSelectedId(null);
   }
@@ -500,6 +509,16 @@ export default function BattleMode({
     return { ...e, label: `${x.label} · vers ${x.link.label.split(' · ')[0]}`, known: true, goal: x.toward };
   });
   const goalExits = exits.filter((e) => e.toward);
+  // Entrée du lieu : la sortie qui mène à l'endroit d'où vient le groupe. Les héros ajoutés au combat y arrivent.
+  const cameFrom = party?.trail?.[party.trail.length - 1];
+  const entryExit = cameFrom ? exitsOf(bv).find((e) => linkOf(e.id)?.id === cameFrom.id) : undefined;
+  const entryCell = entryExit ? { x: entryExit.cell % b.cols, y: Math.floor(entryExit.cell / b.cols) } : undefined;
+  const waiting = b.tokens.filter((t) => t.unplaced);
+  useEffect(() => {
+    if (entryCell?.x === b.entry?.x && entryCell?.y === b.entry?.y) return;
+    set({ entry: entryCell });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entryCell?.x, entryCell?.y]);
   // Trait d'attaque : en visée, il suit la case survolée ; une fois la cible choisie, il relie les deux jetons.
   const centre = (t: { x: number; y: number; size: number }) => ({ x: t.x + t.size / 2, y: t.y + t.size / 2 });
   const aimFrom = aiming ? b.tokens.find((t) => t.id === aiming) : b.aim ? b.tokens.find((t) => t.id === b.aim!.from) : undefined;
@@ -833,6 +852,12 @@ export default function BattleMode({
             )}
           </div>
 
+          {waiting.length > 0 && !building && (
+            <div className="battle-place-hint" role="status">
+              📍 Où arrive <b>{waiting[0].name}</b> ? Clique une case libre (ou glisse son jeton fantôme){waiting.length > 1 ? ` · ensuite : ${waiting.slice(1).map((t) => t.name).join(', ')}` : ''}.
+              <small>Caché aux joueurs tant qu’il n’est pas posé.</small>
+            </div>
+          )}
           {renderCombat && (fiche || (b.aim && !building)) && (
             <div className="battle-overlays">
               {b.aim && !building && (

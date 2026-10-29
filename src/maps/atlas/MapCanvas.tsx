@@ -104,7 +104,7 @@ function buildings(m: AtlasMap) {
 /** Repère MJ dessiné au-dessus de la carte (position du groupe, destination), en coordonnées de plan 0–1. */
 export type MapMark = { id: string; x: number; y: number; label: string; tone: 'party' | 'dest' | 'hero' };
 
-export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, dataKey, dm, marks = [] }: {
+export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, dataKey, dm, marks = [], fog }: {
   map: AtlasMap; layers: Layers; hidden: Set<FeatureCategory>;
   /** Mode MJ : révèle les passages secrets. Hors MJ, la carte est une carte de lore. */
   dm: boolean;
@@ -116,6 +116,8 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   onPlace?: (x: number, y: number) => void;
   dataKey?: string | number;
   marks?: MapMark[];
+  /** Brouillard de guerre (vue joueurs) : tout est voilé sauf autour des points explorés (coordonnées 0–1, rayon en largeur de plan). */
+  fog?: { holes: [number, number][]; r: number } | null;
 }) {
   const svg = useRef<SVGSVGElement>(null);
   const W = map.width, H = map.height;
@@ -417,6 +419,22 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
               </g>
             );
           })}
+          {fog && (
+            <g className="am-fog" pointerEvents="none">
+              <defs>
+                <radialGradient id="am-fog-hole">
+                  <stop offset="0" stopColor="#000" />
+                  <stop offset=".55" stopColor="#000" />
+                  <stop offset="1" stopColor="#000" stopOpacity="0" />
+                </radialGradient>
+                <mask id="am-fog-mask" maskUnits="userSpaceOnUse" x={-W} y={-H} width={W * 3} height={H * 3}>
+                  <rect x={-W} y={-H} width={W * 3} height={H * 3} fill="#fff" />
+                  {fog.holes.map(([x, y], i) => <circle key={i} cx={x * W} cy={y * H} r={fog.r * W} fill="url(#am-fog-hole)" />)}
+                </mask>
+              </defs>
+              <rect x={-W} y={-H} width={W * 3} height={H * 3} fill="#050707" opacity={0.96} mask="url(#am-fog-mask)" />
+            </g>
+          )}
           {marks.map((m) => (
             <g key={m.id} className={`am-mark am-mark-${m.tone}`} transform={`translate(${m.x * W} ${m.y * H}) scale(${s})`} pointerEvents="none">
               <circle r={24} className="am-mark-ring" />
@@ -437,7 +455,7 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
       </div>
       <div className="atlas-density">Échelle : <b>{densityOf(rz).label}</b> · ×{rz.toFixed(1)}</div>
       {detailEmpty && <div className="atlas-empty-scale">Aucun relevé plus précis disponible.</div>}
-      {kind !== 'site' && <MiniMap map={map} t={t} />}
+      {kind !== 'site' && !fog && <MiniMap map={map} t={t} />}
       <VisibleList points={points.map((g) => features.get(g.featureId)!)} onSelect={onSelect} />
     </div>
   );

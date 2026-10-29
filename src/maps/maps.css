@@ -168,3 +168,24 @@
 .party-apart { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; color: #d6c8ff; }
 .party-apart-hero { display: inline-flex; align-items: center; gap: 2px; padding: 1px 4px 1px 2px; border: 1px solid rgba(185,156,255,.45); border-radius: 999px; background: rgba(40,28,64,.35); }
 .party-apart-hero img { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 4px; }
+
+/* ---- Carte de navigation (MJ) : carte d'abord, une colonne à onglets à droite ---- */
+.maps-viewer:not(.has-encounter) { display: flex; flex-direction: column; }
+.maps-viewer:not(.has-encounter) > .maps-body { flex: 1; min-height: 0; grid-template-columns: minmax(0, 1fr) clamp(300px, 24vw, 380px); }
+.maps-side { padding: 0 10px 12px; gap: 10px; }
+.maps-tabs { position: sticky; top: 0; z-index: 2; display: flex; gap: 2px; margin: 0 -10px; padding: 6px 6px 0; background: linear-gradient(180deg, #0f1416 85%, rgba(15,20,22,0)); border-bottom: 1px solid #2e373a; }
+.maps-tabs button { flex: 1; font: inherit; font-size: .8rem; padding: 7px 4px 8px; border: 0; border-bottom: 2px solid transparent; background: none; color: #a9aaa5; cursor: pointer; white-space: nowrap; }
+.maps-tabs button:hover { color: #e9d7b4; }
+.maps-tabs button.on { color: #f3e3b4; border-bottom-color: #bea27b; }
+.maps-tabs small { margin-left: 4px; padding: 0 5px; border-radius: 8px; font-size: .7rem; background: #b99cff; color: #1a1026; }
+.maps-pv { display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px 2px 8px; border: 1px solid #2e373a; border-radius: 999px; }
+.maps-pv > span { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: #a9aaa5; margin-right: 2px; }
+.maps-pv .maps-btn { padding: 3px 8px; border-radius: 999px; font-size: .78rem; }
+.maps-btn.on-soft { background: rgba(190,162,123,.18); }
+.maps-toolbar { gap: 6px; }
+/* Barre d'outils de la carte de navigation sur une ligne ; le suivi du groupe vit dans l'onglet Groupe. */
+.maps-toolbar select.maps-btn { max-width: 190px; }
+.maps-viewer:not(.has-encounter) > .party-bar, .maps-viewer:not(.has-encounter) > .maps-live { display: none; }
+.maps-pv > span { display: none; }
+.maps-pv { padding: 2px 4px; }
+@media (max-width: 1360px) { .maps-pv .maps-btn { font-size: .72rem; padding: 3px 6px; } }
