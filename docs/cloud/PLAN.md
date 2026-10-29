@@ -32,6 +32,10 @@ Statut global : en cours. Chaque lot porte son propre statut : « à faire », �
 | Images intégrées | Restent dans `public/`, converties en WebP et chargées à la demande | Acquis |
 | Clés d'IA | Restent dans le navigateur de l'utilisateur | Acquis |
 | Joueurs | Pas de compte. La fenêtre joueur est locale | Acquis |
+| Données de jeu de l'appareil | Le combat en cours, le journal, les fils de discussion IA et l'univers actif suivent le compte et sont synchronisés, quel que soit l'appareil | Acquis (Q1) |
+| Secrets de la bibliothèque | Visibles par tous les membres de l'univers, qui sont tous des MJ | Acquis (Q3) |
+| PNJ et créatures | Appartiennent à l'univers, partagés par toutes ses campagnes | Acquis (Q4) |
+| Historique | Le serveur garde un historique des versions de chaque document, pour permettre un retour arrière | Acquis (Q5) |
 
 Les décisions marquées « à confirmer » doivent être validées par l'utilisateur à la fin du lot 0.
 
