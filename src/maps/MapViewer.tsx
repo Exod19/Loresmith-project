@@ -28,6 +28,7 @@ import { detectLabel, noticedPassively, passiveOf, trailProfile } from './atlas/
 import Interactables from './Interactables';
 import CampaignGuide, { type BestiaryRef, type GuideCampaign, type GuidePlace } from './CampaignGuide';
 import { onPlayerFollow, onPlayerPick, publishStage } from '../present/stage';
+import { zoneOf, inZone, trailInZone } from './zone';
 import { buildRoutes, distancesTo, goalNodes, judgeTrail, nodeOf, verdictText, type TrailVerdict } from './route';
 import './maps.css';
 
@@ -142,8 +143,10 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   const [playerPick, setPlayerPick] = useState<{ id: string; at: number } | null>(null);
 
   /** Ce qu'il y a à découvrir autour du groupe : lieux à fouiller, repères du MJ, chemins qu'il faut chercher. */
+  /** La salle (ou le tunnel) où se tient le groupe : « À découvrir ici » ne montre que ce qui s'y trouve. */
+  const zone = useMemo(() => (partyAt ? zoneOf(data, map.id, partyAt) : null), [data, map.id, partyAt?.[0], partyAt?.[1]]);
   const finds = useMemo(() => {
-    if (!partyAt) return [];
+    if (!partyAt || !zone) return [];
     const byId = new Map(data.features.map((f) => [f.id, f]));
     const out: { f: AtlasFeature; entry: SearchEntry; d: number }[] = [];
     for (const g of data.geometries) {
@@ -152,7 +155,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
       if (!f || f.area || f.trace) continue;
       const [x, y] = g.coordinates as [number, number];
       const d = Math.hypot(x - partyAt[0], y - partyAt[1]);
-      if (d > 0.045) continue;
+      if (!inZone(zone, [x, y])) continue;
       const marker = f.id.startsWith('mk-') ? overlay.markers.find((m) => `mk-${m.id}` === f.id) : undefined;
       if (marker && marker.kind === 'rencontre') continue;
       const entry: SearchEntry | null = marker
@@ -160,10 +163,16 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
         : searchFor(f.title, overlay.searchNotes?.[f.id]);
       if (entry) out.push({ f, entry, d });
     }
-    return out.sort((a, b) => a.d - b.d).slice(0, 8);
+    return out.sort((a, b) => a.d - b.d).slice(0, 12);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, map.id, partyAt?.[0], partyAt?.[1], overlay.markers, overlay.searchNotes]);
-  const hiddenTrails = trails.filter((t) => !t.noticed && !t.shown && t.profile.detect);
+  }, [data, map.id, zone, overlay.markers, overlay.searchNotes]);
+  // Chemins cachés qui débouchent dans cette salle (pas ceux de la caverne voisine).
+  const hiddenTrails = useMemo(
+    () => (partyAt && zone && rec.kind === 'atlas' ? trailsNear(data, map, partyAt, overlay.revealed, best.pp, Infinity) : [])
+      .filter((t) => !t.noticed && !t.shown && t.profile.detect && trailInZone(zone!, t.g.coordinates as [number, number][])),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [data, map.id, zone, overlay.revealed, best.pp],
+  );
   /** Épreuve de passage en cours (le groupe veut suivre un chemin difficile). */
   const [trial, setTrial] = useState<{ trailId: string; trail: string; to: PartyPlace; hazard: Hazard; by?: 'joueurs'; leg: Leg } | null>(null);
   /** Demande des joueurs qu'on ne peut pas suivre d'ici (le groupe n'est pas au départ du chemin). */
