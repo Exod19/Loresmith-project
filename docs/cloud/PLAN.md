@@ -89,7 +89,7 @@ Chaque lot se termine par un commit, puis par une validation de l'utilisateur. L
 
 ### Lot 2 : export et import
 
-- **Statut** : à valider
+- **Statut** : validé
 - **Modèle conseillé** : `claude-sonnet-5-5`
 - **Objectif** : exporter et importer un univers, une campagne, ou la totalité des données, sous forme de fichier ZIP.
 - **Contenu du ZIP** : un fichier JSON du grimoire ou de l'élément choisi, et un dossier `images/`.
@@ -98,12 +98,12 @@ Chaque lot se termine par un commit, puis par une validation de l'utilisateur. L
 
 ### Lot 3 : modèle de données et permissions
 
-- **Statut** : à faire
+- **Statut** : à valider
 - **Modèle conseillé** : `claude-opus-5-5`
 - **Objectif** : définir le schéma cible, et un module `policy` pur, sans serveur.
 - **Fichiers probables** : `src/shared/policy.*`, `src/shared/schema.*`, tests associés.
 - **Règles** : une fonction `can(user, action, ressource)` par ressource. Les rôles sont ceux de la section 3.
-- **Critères d'acceptation** : tests couvrant chaque rôle et chaque action, y compris les cas refusés. Les secrets de campagne ne sont accessibles qu'aux MJ et co-MJ.
+- **Critères d'acceptation** : tests couvrant chaque rôle et chaque action, y compris les cas refusés. Les secrets de campagne ne sont accessibles qu'aux MJ et co-MJ. Mise à jour après le lot 0 : tous les comptes étant des MJ, les secrets sont lisibles par tout membre de l'univers (réglage `SECRETS_VISIBLE_TO` dans `policy.js`) ; un non-membre n'y a jamais accès.
 
 ### Lot 4 : backend
 

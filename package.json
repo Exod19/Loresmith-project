@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "node --test src/combat/narration/narrator.test.mjs src/store/imageRefs.test.mjs src/store/archive.test.mjs"
+    "test": "node --test \"src/**/*.test.mjs\""
   },
   "dependencies": {
     "@3d-dice/dice-box": "^1.1.4",
