@@ -63,8 +63,10 @@ export type CombatSlot = {
   combatKey: string;
   selectedId: string | null;
   onSelect: (id: string | null) => void;
-  /** 'encounter' : le module sous le plateau ; 'card' : l'aperçu de la fiche du jeton sélectionné, à droite. */
+  /** 'encounter' : le pupitre de combat, à droite du plateau ; 'attack' : le panneau de l'attaque en cours. */
   area: 'encounter' | 'card' | 'attack';
+  /** Onglets propres à la carte (Lieu, Construire), rangés dans le pupitre à côté de ceux du combat. */
+  side?: { tabs: { id: string; label: string; badge?: number }[]; active: string | null; onPick: (id: string | null) => void; render: (id: string) => ReactNode };
 };
 
 export default function BattleMode({
@@ -89,7 +91,7 @@ export default function BattleMode({
   renderCombat?: (slot: CombatSlot) => ReactNode;
 }) {
   const b = battle ?? DEFAULT_BATTLE;
-  const [tab, setTab] = useState<Tab | null>(!renderCombat && b.tokens.some((t) => t.kind === 'monster') ? 'combat' : 'lieu');
+  const [tab, setTab] = useState<Tab | null>(renderCombat ? null : b.tokens.some((t) => t.kind === 'monster') ? 'combat' : 'lieu');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hover, setHover] = useState<{ x: number; y: number } | null>(null);
   /** Élément survolé dans les listes : éclairé sur le plateau, pour le MJ seulement. */
@@ -481,7 +483,13 @@ export default function BattleMode({
 
   // Flèches de sortie (comme chez les joueurs) : une par sortie listée dans le panneau.
   const exitIds = new Set(exits.map((e) => e.id));
-  const dmExits = exitsOf(bv).filter((e) => exitIds.has(e.id)).map((e) => ({ ...e, label: '', known: true }));
+  // Côté MJ, chaque flèche dit où elle mène (code E du panneau Lieu et destination), et celles vers l'objectif ressortent.
+  const exitById = new Map(exits.map((e) => [e.id, e]));
+  const dmExits = exitsOf(bv).filter((e) => exitIds.has(e.id)).map((e) => {
+    const x = exitById.get(e.id)!;
+    return { ...e, label: `${x.label} · vers ${x.link.label.split(' · ')[0]}`, known: true, goal: x.toward };
+  });
+  const goalExits = exits.filter((e) => e.toward);
   // Trait d'attaque : en visée, il suit la case survolée ; une fois la cible choisie, il relie les deux jetons.
   const centre = (t: { x: number; y: number; size: number }) => ({ x: t.x + t.size / 2, y: t.y + t.size / 2 });
   const aimFrom = aiming ? b.tokens.find((t) => t.id === aiming) : b.aim ? b.tokens.find((t) => t.id === b.aim!.from) : undefined;
@@ -569,6 +577,22 @@ export default function BattleMode({
     </details>
   ) : null;
 
+  const placePanel = (
+    <PlacePanel
+            title={placeTitle} text={context?.text} dest={dest}
+            search={search} secrets={secrets} exits={exits} others={others} options={options}
+            onOpen={(id) => setInfoId(id)} onHover={setHoverId} onToggle={toggleShown} onFollow={onFollow} onLink={onLink}
+            legend={legend}
+          />
+  );
+  const buildPanel = (
+    <BuildPanel
+            brush={brush} onBrush={setBrush} propVisible={propVisible} onPropVisible={setPropVisible}
+            canUndo={history.length > 0} onUndo={undo} propCount={build.props.length}
+            onClear={() => { if (window.confirm('Effacer toutes les modifications à la main ?')) commitBuild(undefined); }}
+          />
+  );
+
   const combatKey = `${rec.id}:${b.local?.source ?? b.terrain?.source ?? 'plateau'}`;
 
   return (
@@ -581,6 +605,12 @@ export default function BattleMode({
             <span className="battle-turn-chip">
               Round {b.round}{activeToken ? <> · tour de <b>{activeToken.name}</b></> : null}
             </span>
+            {dest && (
+              <span className={`battle-goal-chip ${goalExits.length ? 'on' : ''}`} title={goalExits.length ? 'Sorties qui mènent à l’objectif (en doré sur le plateau)' : 'Aucune sortie de ce plateau ne mène directement à l’objectif'}>
+                🎯 Objectif : <b>{dest.title}</b>
+                {goalExits.length ? <> · par {goalExits.map((e) => e.label).join(', ')}</> : <> · aucune sortie directe</>}
+              </span>
+            )}
           </div>
           <div className="battle-tools">
             <details className="battle-menu">
@@ -792,52 +822,41 @@ export default function BattleMode({
             {renderCombat({ battle: b, setBattle: onBattle, place: placeTitle, combatKey, selectedId, onSelect: setSelectedId, area: 'attack' })}
           </div>
         )}
-        {renderCombat && selected && !b.aim && !building && (
-          <div className="battle-token-card">
-            {renderCombat({ battle: b, setBattle: onBattle, place: placeTitle, combatKey, selectedId, onSelect: setSelectedId, area: 'card' })}
-          </div>
-        )}
-        <div className="battle-tabs" role="tablist">
-          {([['combat', '⚔ Combat'], ['lieu', '🧭 Lieu'], ['construction', '🛠 Construire']] as const).filter(([id]) => !(renderCombat && id === 'combat')).map(([id, label]) => (
-            <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? 'on' : ''} onClick={() => { setTab(tab === id ? null : id); setStroke(null); }} title={tab === id ? 'Rabattre' : undefined}>
-              {label}
-              {id === 'lieu' && search.length + secrets.length > 0 && <small>{search.length + secrets.length}</small>}
-              <i className="battle-tab-chev" aria-hidden>{tab === id ? '▴' : '▾'}</i>
-            </button>
-          ))}
-        </div>
+        {renderCombat ? (
+          renderCombat({
+            battle: b, setBattle: onBattle, place: placeTitle, combatKey, selectedId, onSelect: setSelectedId, area: 'encounter',
+            side: {
+              tabs: [{ id: 'lieu', label: 'Lieu', badge: search.length + secrets.length || undefined }, { id: 'construction', label: 'Construire' }],
+              active: tab,
+              onPick: (id) => { setTab(id as Tab | null); setStroke(null); },
+              render: (id) => (id === 'lieu' ? placePanel : buildPanel),
+            },
+          })
+        ) : (
+          <>
+            <div className="battle-tabs" role="tablist">
+              {([['combat', '⚔ Combat'], ['lieu', '🧭 Lieu'], ['construction', '🛠 Construire']] as const).map(([id, label]) => (
+                <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? 'on' : ''} onClick={() => { setTab(tab === id ? null : id); setStroke(null); }} title={tab === id ? 'Rabattre' : undefined}>
+                  {label}
+                  {id === 'lieu' && search.length + secrets.length > 0 && <small>{search.length + secrets.length}</small>}
+                  <i className="battle-tab-chev" aria-hidden>{tab === id ? '▴' : '▾'}</i>
+                </button>
+              ))}
+            </div>
 
-        {tab === 'combat' && !renderCombat && (
-          <CombatPanel
-            b={b} grid={grid} place={placeTitle} selectedId={selectedId} onSelect={setSelectedId} set={set} heroes={heroes} bestiary={bestiary}
-            onPlace={placeTokens}
-            onRemove={(id) => { set({ tokens: b.tokens.filter((t) => t.id !== id), turn: b.turn === id ? undefined : b.turn }); setSelectedId(null); }}
-          />
-        )}
-
-        {tab === 'lieu' && (
-          <PlacePanel
-            title={placeTitle} text={context?.text} dest={dest}
-            search={search} secrets={secrets} exits={exits} others={others} options={options}
-            onOpen={(id) => setInfoId(id)} onHover={setHoverId} onToggle={toggleShown} onFollow={onFollow} onLink={onLink}
-            legend={legend}
-          />
-        )}
-
-        {tab === 'construction' && (
-          <BuildPanel
-            brush={brush} onBrush={setBrush} propVisible={propVisible} onPropVisible={setPropVisible}
-            canUndo={history.length > 0} onUndo={undo} propCount={build.props.length}
-            onClear={() => { if (window.confirm('Effacer toutes les modifications à la main ?')) commitBuild(undefined); }}
-          />
+            {tab === 'combat' && (
+              <CombatPanel
+                b={b} grid={grid} place={placeTitle} selectedId={selectedId} onSelect={setSelectedId} set={set} heroes={heroes} bestiary={bestiary}
+                onPlace={placeTokens}
+                onRemove={(id) => { set({ tokens: b.tokens.filter((t) => t.id !== id), turn: b.turn === id ? undefined : b.turn }); setSelectedId(null); }}
+              />
+            )}
+            {tab === 'lieu' && placePanel}
+            {tab === 'construction' && buildPanel}
+          </>
         )}
       </aside>
     </div>
-    {renderCombat && (
-      <section className="battle-encounter" aria-label="Combat">
-        {renderCombat({ battle: b, setBattle: onBattle, place: placeTitle, combatKey, selectedId, onSelect: setSelectedId, area: 'encounter' })}
-      </section>
-    )}
     </>
   );
 }

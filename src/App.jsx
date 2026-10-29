@@ -5399,8 +5399,6 @@ export default function App() {
                 artOf={(name, id) => combatantArtOf(state, (state.combat?.combatants || []).find((c) => c.id === id), faunaFeed) || creatureArtOf(state, name, faunaFeed)}
                 renderCombat={(slot) => slot.area === 'attack'
                   ? <AttackPanel key={slot.battle.aim?.at} state={state} dispatch={dispatch} battle={slot.battle} setBattle={slot.setBattle} />
-                  : slot.area === 'card'
-                  ? <TokenSheet state={state} dispatch={dispatch} id={slot.selectedId} battle={slot.battle} onClose={() => slot.onSelect(null)} />
                   : <MapEncounter {...{ state, dispatch, party, npcs, flash }} {...slot} />}
               />
             ) : view === 'present' ? (
@@ -13125,33 +13123,6 @@ const COMBAT_CONDITIONS = [
 ];
 const conditionOf = (name) => COMBAT_CONDITIONS.find((x) => x.name === name) || { name, icon: '•', rule: '' };
 
-/** États d’un combattant, compacts : pastilles à retirer d’un clic et liste pour en ajouter (fiche du jeton, carte). */
-function ConditionPicker({ conditions = [], onChange }) {
-  return (
-    <div className="cond-picker">
-      {conditions.map((name) => {
-        const cd = conditionOf(name);
-        return (
-          <button key={name} type="button" className="cond-picker-chip" title={`${cd.rule}\nClic : retirer`} onClick={() => onChange(conditions.filter((n) => n !== name))}>
-            <span aria-hidden="true">{cd.icon}</span> {name} <span aria-hidden="true">×</span>
-          </button>
-        );
-      })}
-      <select
-        className="cond-picker-add"
-        value=""
-        aria-label="Ajouter un état"
-        onChange={(e) => e.target.value && onChange([...conditions, e.target.value])}
-      >
-        <option value="">+ État…</option>
-        {COMBAT_CONDITIONS.filter((cd) => !conditions.includes(cd.name)).map((cd) => (
-          <option key={cd.name} value={cd.name} title={cd.rule}>{cd.name}</option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
 /** Jet de dés : « 2d8 +4 », « d20 +7 1d4 adv. » ; les dés sont doublés en cas de critique. */
 function rollDiceText(text, { crit = false } = {}) {
   const src = String(text || '');
@@ -13666,7 +13637,16 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
 
   // Raccourcis clavier de la Table de guerre (jamais pendant la saisie).
   const keysRef = useRef(null);
-  keysRef.current = { advanceTurn, previousTurn, undo, sorted, selectedCombatant, rollAttack, setTab, setShowKeys, setSelectedTokenId };
+  // Sur la carte, les onglets Lieu et Construire de la carte partagent le pupitre : choisir un onglet du combat les referme.
+  const side = embedded?.side;
+  const pickWarTab = (id) => { setTab(id); if (side?.active) side.onPick(null); };
+  // Un jeton choisi sur la carte ouvre sa fiche (onglet Tour), sauf pendant la construction.
+  useEffect(() => {
+    if (!embedded?.selectedId || side?.active === 'construction') return;
+    pickWarTab('tour');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [embedded?.selectedId]);
+  keysRef.current = { advanceTurn, previousTurn, undo, sorted, selectedCombatant, rollAttack, setTab: pickWarTab, setShowKeys, setSelectedTokenId };
   useEffect(() => {
     const onKey = (e) => {
       const k = keysRef.current;
@@ -13721,7 +13701,8 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
     const place = embedded?.place || boardBattle?.local?.place || boundMapRec?.title || '';
     const pcs = combatants.filter((x) => x.isPC);
     const avgLevel = pcs.length ? Math.round(pcs.reduce((s, x) => s + (Number(x.level) || 1), 0) / pcs.length) : null;
-    const tabFor = combatants.length ? tab : tab === 'tour' ? 'groupe' : tab;
+    const sideActive = side?.active && side.tabs.some((x) => x.id === side.active) ? side.active : null;
+    const tabFor = sideActive || (combatants.length ? tab : tab === 'tour' ? 'groupe' : tab);
 
     return (
       <div className="wt" data-empty={combatants.length ? 0 : 1} data-inmap={embedded ? 1 : 0}>
@@ -13844,15 +13825,30 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
                   role="tab"
                   aria-selected={tabFor === x.id}
                   data-on={tabFor === x.id ? 1 : 0}
-                  onClick={() => setTab(x.id)}
+                  onClick={() => pickWarTab(x.id)}
                   title={`${x.label} (${i + 1})`}
                 >
                   {x.label}
                   {x.id === 'journal' && (c.journal || []).length > 0 && <small>{Math.min(99, c.journal.length)}</small>}
                 </button>
               ))}
+              {side?.tabs.map((x) => (
+                <button
+                  key={x.id}
+                  type="button"
+                  role="tab"
+                  className="wt-tab-side"
+                  aria-selected={tabFor === x.id}
+                  data-on={tabFor === x.id ? 1 : 0}
+                  onClick={() => side.onPick(sideActive === x.id ? null : x.id)}
+                >
+                  {x.label}
+                  {x.badge ? <small>{x.badge}</small> : null}
+                </button>
+              ))}
             </nav>
             <div className="wt-desk-body" role="tabpanel">
+              {sideActive && <div className="wt-side-panel">{side.render(sideActive)}</div>}
               {tabFor === 'tour' && selectedCombatant && (
                 <WarInspector
                   key={selectedCombatant.id}
@@ -15045,7 +15041,7 @@ function useBattleSync({ state, dispatch, party, npcs, battle, setBattle, combat
   return bound;
 }
 
-function MapEncounter({ state, dispatch, party, npcs, flash, battle, setBattle, place, combatKey, selectedId, onSelect }) {
+function MapEncounter({ state, dispatch, party, npcs, flash, battle, setBattle, place, combatKey, selectedId, onSelect, side }) {
   const c = state.combat || { combatants: [], round: 1 };
   const combatants = c.combatants || [];
   const bound = useBattleSync({ state, dispatch, party, npcs, battle, setBattle, combatKey });
@@ -15053,7 +15049,7 @@ function MapEncounter({ state, dispatch, party, npcs, flash, battle, setBattle, 
   const positions = Object.fromEntries(battle.tokens.map((t) => [t.id, { x: t.x, y: t.y, visible: t.visible }]));
   const tactics = useMemo(() => battleTactics(battle, combatants), [battle, combatants]);
   if (!bound) return <p className="muted">Préparation du combat…</p>;
-  return <Encounter {...{ dispatch, state, party, npcs, flash }} embedded={{ selectedId, onSelect, place, positions, tactics, battle, setBattle }} />;
+  return <Encounter {...{ dispatch, state, party, npcs, flash }} embedded={{ selectedId, onSelect, place, positions, tactics, battle, setBattle, side }} />;
 }
 
 /** « name Discrétion, bonus +6, desc … » (objets aplatis en texte), tableaux ou objets → « Discrétion +6, … ». */
@@ -15430,161 +15426,6 @@ function AttackPanel({ state, dispatch, battle, setBattle }) {
         </div>
       )}
       {A.isPC && inHand && <p className="muted attack-hand">En main : {inHand}{A.dropped?.length ? ` · au sol : ${A.dropped.join(', ')}` : ''}</p>}
-    </div>
-  );
-}
-
-/** Aperçu de la fiche du jeton sélectionné sur la carte de combat : l’essentiel pour jouer son tour. */
-function TokenSheet({ state, dispatch, id, battle, onClose }) {
-  const { feed: archiveFeed } = useUnderdarkFeed();
-  const [amount, setAmount] = useState('');
-  const [open, setOpen] = useState(null);
-  const combatants = state.combat?.combatants || [];
-  const t = combatants.find((x) => x.id === id);
-  if (!t) return <p className="muted token-sheet-empty">Ce jeton n’est pas (encore) dans le combat.</p>;
-
-  const derived = getCombatantDerivedStats(t);
-  const tactics = battle ? battleTactics(battle, combatants)[t.id] || [] : [];
-  const src = String(t.sourceId || '');
-  const npc = !t.isPC && src && !src.startsWith('srd:') ? state.npcs?.[src] : null;
-  const pcAsset = t.isPC && src ? getPrimaryAsset(state, 'player', src) : null;
-  // Une vraie illustration (portrait importé ou image des Archives) s'affiche en grand ;
-  // à défaut, on garde le petit jeton rond.
-  const illustration = combatantArtOf(state, t, archiveFeed);
-  const picture = illustration
-    || (npc && portraitOf(state, npc))
-    || (src.startsWith('srd:') && tokenImage({ kind: 'monster', statId: src.slice(4) }))
-    || t.image || '';
-  const hp = Number(t.hp || 0);
-  const maxHp = Math.max(1, Number(t.maxHp || 1));
-  const pct = Math.round((hp / maxHp) * 100);
-  const col = pct > 50 ? 'var(--verdant)' : pct > 20 ? 'var(--ember)' : 'var(--blood)';
-  const sign = (n) => (n >= 0 ? `+${n}` : `${n}`);
-  const saves = formatBonuses(t.saves);
-  const skills = formatBonuses(t.skills);
-  const perception = skills.match(/perception\s*\+?(-?\d+)/i);
-  const passive = 10 + (perception ? Number(perception[1]) : abilityMod(t.wis || 10));
-  const active = (t.effects || []).filter((e) => e.active);
-  const traits = (t.effects || []).filter((e) => !e.active && e.source === 'Trait');
-  const patch = (p) => dispatch({ type: 'COMBAT_SET', patch: { combatants: combatants.map((x) => (x.id === t.id ? { ...x, ...p } : x)) } });
-  const applyHp = (dir) => {
-    const v = parseInt(amount, 10);
-    if (!v) return;
-    patch({ hp: Math.max(0, Math.min(maxHp, hp - dir * v)) });
-    setAmount('');
-  };
-  const lines = [
-    ['Vitesse', t.speed], ['Sauvegardes', saves], ['Compétences', skills], ['Sens', toText(t.senses)], ['Langues', toText(t.languages)],
-  ].filter(([, v]) => v);
-
-  return (
-    <div className="token-sheet" data-kind={t.isPC ? 'pc' : 'creature'}>
-      {illustration ? (
-        <div className="token-sheet-hero">
-          <img src={illustration} alt="" />
-          <div className="token-sheet-name">
-            <b>{t.name}</b>
-            <span>{[t.kind, t.cr ? `FP ${t.cr}` : '', t.isPC && t.level ? `niv. ${t.level}` : ''].filter(Boolean).join(' · ')}</span>
-          </div>
-          <button type="button" className="token-sheet-close" onClick={onClose} aria-label="Fermer la fiche">✕</button>
-        </div>
-      ) : (
-        <div className="token-sheet-head">
-          <div className={`token-sheet-picture ${t.isPC ? 'pc' : 'foe'}`}>
-            {picture ? <img src={picture} alt="" /> : <span title="Aucune image : ajoute un portrait à la fiche">{(t.name || '?').charAt(0)}</span>}
-          </div>
-          <div className="token-sheet-name">
-            <b>{t.name}</b>
-            <span>{[t.kind, t.cr ? `FP ${t.cr}` : '', t.isPC && t.level ? `niv. ${t.level}` : ''].filter(Boolean).join(' · ')}</span>
-          </div>
-          <button type="button" className="token-sheet-close" onClick={onClose} aria-label="Fermer la fiche">✕</button>
-        </div>
-      )}
-
-      <div className="token-sheet-hp">
-        <div className="token-sheet-bar"><i style={{ width: `${pct}%`, background: col }} /></div>
-        <span><b>{hp}</b> / {maxHp} PV{hp === 0 ? ' · à terre' : ''}</span>
-        <div className="token-sheet-hp-row">
-          <input
-            type="number" min="0" placeholder="PV" value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') applyHp(+1); }}
-          />
-          <button type="button" className="btn sm danger" onClick={() => applyHp(+1)}>Dégâts</button>
-          <button type="button" className="btn sm" onClick={() => applyHp(-1)}>Soin</button>
-        </div>
-      </div>
-
-      <div className="token-sheet-stats">
-        <div><span>CA</span><b>{derived.ac}</b></div>
-        <div><span>Init.</span><b>{t.init === '' || t.init === undefined ? '—' : t.init}</b></div>
-        <div><span title="Perception passive">Perc. pass.</span><b>{passive}</b></div>
-      </div>
-
-      <div className="token-sheet-block">
-        <div className="token-sheet-title">États</div>
-        <ConditionPicker conditions={t.conditions || []} onChange={(conditions) => patch({ conditions })} />
-      </div>
-
-      <div className="token-sheet-abil">
-        {['str', 'dex', 'con', 'int', 'wis', 'cha'].map((k, i) => (
-          <div key={k}><span>{['FOR', 'DEX', 'CON', 'INT', 'SAG', 'CHA'][i]}</span><b>{sign(abilityMod(t[k] || 10))}</b><small>{t[k] || 10}</small></div>
-        ))}
-      </div>
-
-      {tactics.length > 0 && (
-        <div className="token-sheet-block">
-          <div className="token-sheet-title">Position (auto)</div>
-          <TacticalChips notes={tactics} />
-        </div>
-      )}
-
-      {active.length > 0 && (
-        <div className="token-sheet-chips">
-          {active.map((e, i) => <span key={i} title={e.desc || e.short || ''}>{e.name}</span>)}
-        </div>
-      )}
-
-      {(t.attacks || []).length > 0 && (
-        <div className="token-sheet-block">
-          <div className="token-sheet-title">Attaques / actions</div>
-          {t.attacks.map((a, i) => {
-            const calc = calculateAttackLine(t, a, derived);
-            const key = `a${i}`;
-            return (
-              <div key={key} className="token-sheet-attack">
-                <button type="button" onClick={() => setOpen(open === key ? null : key)}>
-                  <b>{a.name}</b>
-                  <span>{calc.toHit} · {calc.damage}</span>
-                </button>
-                {open === key && a.desc && <p>{a.desc}</p>}
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {traits.length > 0 && (
-        <div className="token-sheet-block">
-          <div className="token-sheet-title">Traits</div>
-          {traits.map((e, i) => {
-            const key = `t${i}`;
-            return (
-              <div key={key} className="token-sheet-attack">
-                <button type="button" onClick={() => setOpen(open === key ? null : key)}><b>{e.name}</b></button>
-                {open === key && <p>{e.desc || e.short}</p>}
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {lines.length > 0 && (
-        <dl className="token-sheet-lines">
-          {lines.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
-        </dl>
-      )}
-      {t.tactics && <p className="token-sheet-tactics"><b>Tactique :</b> {t.tactics}</p>}
     </div>
   );
 }

@@ -49,7 +49,7 @@ type Props = {
   /** Brouillard de guerre : cases vues maintenant, et déjà explorées. `dm` : voile léger, le MJ voit à travers. */
   fog?: { visible: number[]; explored: number[]; dm?: boolean };
   /** Sorties au bord du plateau (écran joueur) : flèche vers l'extérieur et destination si elle est connue. */
-  exits?: { cell: number; dir: 'n' | 's' | 'e' | 'w'; label: string; known: boolean }[];
+  exits?: { cell: number; dir: 'n' | 's' | 'e' | 'w'; label: string; known: boolean; goal?: boolean }[];
   /** Trait d'attaque : du centre de l'attaquant à celui de la cible (en cases). `pending` : la cible n'est pas encore choisie. */
   aim?: { x1: number; y1: number; x2: number; y2: number; tone?: 'hit' | 'miss' | 'crit' | 'info'; pending?: boolean; label?: string };
   /** Dégâts (amount < 0) et soins récents, écrits en grand au-dessus des jetons quelques secondes. */
@@ -303,9 +303,9 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
         const ly = e.dir === 'n' ? y + 1.35 : e.dir === 's' ? y - 0.3 : cy + 0.1;
         const anchor = e.dir === 'w' ? 'start' : e.dir === 'e' ? 'end' : 'middle';
         return (
-          <g key={`ex-${e.cell}`} className={`battle-exit ${e.known ? 'known' : ''}`} pointerEvents="none">
+          <g key={`ex-${e.cell}`} className={`battle-exit ${e.known ? 'known' : ''} ${e.goal ? 'goal' : ''}`} pointerEvents="none">
             <path d="M-0.2 0.08 L0 -0.14 L0.2 0.08" transform={`translate(${cx} ${cy}) rotate(${rot})`} fill="none" strokeWidth={0.09} strokeLinecap="round" strokeLinejoin="round" />
-            {e.label && <text x={lx} y={ly} textAnchor={anchor} fontSize={0.3}>{e.label}</text>}
+            {e.label && <text x={lx} y={ly} textAnchor={anchor} fontSize={e.goal ? 0.36 : 0.3}>{e.goal ? `🎯 ${e.label}` : e.label}</text>}
           </g>
         );
       })}
