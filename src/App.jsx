@@ -78,7 +78,9 @@ import {
 } from './forge/campaignPipeline';
 import './forge/forge.css';
 import './combat/wartable.css';
-import { entityFromSrd, generateEntities } from './bestiary/entityGen';
+import { entityFromSrd, generateEntities, normalizeEntity } from './bestiary/entityGen';
+import UnderdarkImport from './bestiary/UnderdarkImport';
+import { underdarkIdOf } from './bestiary/underdark.js';
 import StatSheet from './bestiary/StatSheet';
 import ArchiveImagePicker from './media/ArchiveImagePicker';
 import { CLANS, archiveImageIndex, clanPaintBrief, compressImage, fileToCompressed, generatePortrait, makeToken, matchArchiveImages, matchPortrait } from './media/images';
@@ -4852,6 +4854,12 @@ function reducer(s, a) {
     }
     case 'ADD_NPC':
       return { ...s, npcs: { ...s.npcs, [a.n.id]: { ...a.n, universeId: U } } };
+    case 'ADD_NPCS': {
+      // Ajout en lot (bestiaire Underdark) : jamais d'écrasement d'une fiche existante.
+      const npcs = { ...s.npcs };
+      for (const n of a.list) if (!npcs[n.id]) npcs[n.id] = { ...n, universeId: U };
+      return { ...s, npcs };
+    }
     case 'UPDATE_NPC':
       return {
         ...s,
@@ -12495,6 +12503,8 @@ function Bestiary({ dispatch, state, universe, npcs, party, campaigns, flash }) 
   const [err, setErr] = useState('');
   const [filter, setFilter] = useState('all');
   const [q, setQ] = useState('');
+  /** Filtres du bestiaire Underdark (fiches importées) : famille, rôle, taille, danger, sentience, habitat. */
+  const [ud, setUd] = useState({ on: false, family: '', role: '', size: '', danger: 0, sentience: 0, habitat: '' });
   const [selectedId, setSelectedId] = useState(() => {
     try {
       return localStorage.getItem(BESTIARY_SEL_KEY) || '';
@@ -12511,14 +12521,41 @@ function Bestiary({ dispatch, state, universe, npcs, party, campaigns, flash }) 
   const size = party.length || 4;
   const isMon = (n) => n.entityType === 'monster' || n.isMonster;
 
+  const udCount = useMemo(() => npcs.filter((n) => underdarkIdOf(n)).length, [npcs]);
+  const udOptions = useMemo(() => {
+    const fams = new Set(), roles = new Set(), sizes = new Set();
+    for (const n of npcs) {
+      const u = n.underdark;
+      if (!u) continue;
+      if (u.category) fams.add(u.category);
+      (u.roles || []).forEach((r) => roles.add(r));
+      if (u.size) sizes.add(u.size);
+    }
+    const sort = (x) => [...x].sort((a, b) => a.localeCompare(b, 'fr'));
+    return { fams: sort(fams), roles: sort(roles), sizes: sort(sizes) };
+  }, [npcs]);
+  const udMatch = (n) => {
+    if (!ud.on) return true;
+    const u = n.underdark;
+    if (!u) return false;
+    if (ud.family && u.category !== ud.family) return false;
+    if (ud.role && !(u.roles || []).includes(ud.role)) return false;
+    if (ud.size && u.size !== ud.size) return false;
+    if (ud.danger && (u.danger?.tier ?? 0) < ud.danger) return false;
+    if (ud.sentience && (u.sentience?.tier ?? 0) < ud.sentience) return false;
+    if (ud.habitat && !normName((u.habitat || []).join(' ')).includes(normName(ud.habitat))) return false;
+    return true;
+  };
   const list = useMemo(() => {
     const k = normName(q);
     return npcs.filter(
       (n) =>
         (filter === 'all' || (filter === 'monster') === isMon(n)) &&
-        (!k || normName(`${n.name} ${n.kind} ${n.type} ${n.role} ${n.shortDescription} ${n.faction}`).includes(k))
+        udMatch(n) &&
+        (!k || normName(`${n.name} ${n.kind} ${n.type} ${n.role} ${n.shortDescription} ${n.faction} ${(n.habitat || []).join(' ')}`).includes(k))
     );
-  }, [npcs, filter, q]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [npcs, filter, q, ud]);
   const selected = npcs.find((n) => n.id === selectedId) || list[0] || null;
   const pos = selected ? list.findIndex((n) => n.id === selected.id) : -1;
 
@@ -12805,6 +12842,13 @@ function Bestiary({ dispatch, state, universe, npcs, party, campaigns, flash }) 
             Importer
           </button>
         </div>
+        {universe.archives === 'underdark' && (
+          <UnderdarkImport
+            npcs={npcs} universe={universe}
+            normalize={(e) => ({ ...normalizeEntity(e, 'monster'), id: uid(), createdAt: now() })}
+            onImport={(list) => { dispatch({ type: 'ADD_NPCS', list }); flash(`${list.length} fiches du bestiaire Underdark ajoutées.`); }}
+          />
+        )}
         <div className="faint" style={{ fontSize: 12 }}>
           Équilibré pour {size} héros de niveau {lvl}.
         </div>
@@ -12831,6 +12875,32 @@ function Bestiary({ dispatch, state, universe, npcs, party, campaigns, flash }) 
                 </button>
               ))}
             </div>
+            {udCount > 0 && (
+              <div className="bx-ud">
+                <button type="button" className="bx-ud-toggle" data-on={ud.on ? 1 : 0} onClick={() => setUd({ ...ud, on: !ud.on })}>
+                  Underdark · {udCount}
+                </button>
+                {ud.on && (
+                  <div className="bx-ud-filters">
+                    <select className="in" value={ud.family} onChange={(e) => setUd({ ...ud, family: e.target.value })}>
+                      <option value="">Toutes les familles</option>
+                      {udOptions.fams.map((x) => <option key={x} value={x}>{x}</option>)}
+                    </select>
+                    <select className="in" value={ud.role} onChange={(e) => setUd({ ...ud, role: e.target.value })}>
+                      <option value="">Tous les rôles</option>
+                      {udOptions.roles.map((x) => <option key={x} value={x}>{x}</option>)}
+                    </select>
+                    <select className="in" value={ud.size} onChange={(e) => setUd({ ...ud, size: e.target.value })}>
+                      <option value="">Toutes tailles</option>
+                      {udOptions.sizes.map((x) => <option key={x} value={x}>{x}</option>)}
+                    </select>
+                    <label>Danger ≥ <input className="in" type="number" min="0" max="10" value={ud.danger} onChange={(e) => setUd({ ...ud, danger: Number(e.target.value) || 0 })} /></label>
+                    <label>Sentience ≥ <input className="in" type="number" min="0" max="5" value={ud.sentience} onChange={(e) => setUd({ ...ud, sentience: Number(e.target.value) || 0 })} /></label>
+                    <input className="in" placeholder="Habitat (ex. mine, forêt fongique)" value={ud.habitat} onChange={(e) => setUd({ ...ud, habitat: e.target.value })} />
+                  </div>
+                )}
+              </div>
+            )}
             <ul className="bx-items">
               {list.map((n) => {
                 const img = n.token || portraitOf(state, n);

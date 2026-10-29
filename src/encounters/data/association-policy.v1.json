@@ -1,0 +1,49 @@
+{
+  "version": "1.0.0",
+  "universe": "Underdark",
+  "status": "regles_lore_confirmees_et_parametres_de_jeu_proposes_distincts",
+  "factions": {
+    "moriquendi": {"kind": "nation", "clans": ["Norrianiss", "Warral", "Iznogood", "Bois-de-l'Est", "Drehjur"], "clanCoexistence": "normal", "outsiderResidence": "exceptional", "commerce": "commerce inter-Palissades supervise par les Patrons; guildes et corporations pour les metiers civils", "sourceStatus": "canon_confirme"},
+    "gobelin": {"kind": "people"}, "kobold": {"kind": "people"}, "orc": {"kind": "people"},
+    "hobgobelin": {"kind": "people"}, "duergar": {"kind": "people"}, "drow": {"kind": "people"},
+    "svirfneblin": {"kind": "people"}, "myconide": {"kind": "people"}, "kuo-toa": {"kind": "people"},
+    "gnoll": {"kind": "people"}, "grimlock": {"kind": "people"}, "derro": {"kind": "people"},
+    "independent": {"kind": "umbrella, do not assume mixed group"}, "fauna": {"kind": "nonsapient"}
+  },
+  "relationTypes": ["same_clan", "same_nation", "family", "guild", "employee", "employer", "contract_guard", "servant", "subordinate", "client", "merchant_partner", "temporary_trade", "allied", "rival", "captive", "coerced_labor", "escort", "mount", "beast_of_burden", "domesticated", "wild_follower", "parasite", "symbiont", "prey", "predator", "neutral_bystander"],
+  "leadershipRules": {
+    "moriUnderOutsider": "DENY in randomly generated groups (especially servant, captive, subordinate, employee, escort); manual canon decision required for any changed rule",
+    "moriWithMoriOtherClan": "ALLOW: same nation; different clans do not imply foreigners",
+    "moriLeadingOutsiders": "REQUIRES_NAMED_APPROVED_EXCEPTION: possible Moriquendi renowned merchant with kobold servants, never automatic",
+    "mixedEqualMoriOutsider": "DENY by default; unusual named contacts may be reviewed by MJ",
+    "outsiderInsideMoriSite": "DENY routine outsider-populated streets; exception or specific authorized visit only",
+    "nonMoriMixed": "ALLOW if explicit commercial/contractual/social motivation; cannot assume automatic friendship",
+    "faunaLeadership": "DENY animals/oozes mindless as independent merchant/strategist/leader; allow mounts, trained pack animals, ecological encounters",
+    "explicitOverride": "Only MJ can approve named exceptional cases; never silently generated"
+  },
+  "associationStrength": {
+    "same_faction": 1.0, "same_clan": 1.0, "mori_cross_clan": 0.9,
+    "contracted_external_non_mori": 0.55, "temporary_trade_non_mori": 0.45,
+    "predator_prey_in_same_space": 0.8, "symbiotic_species": 0.6,
+    "mori_ordinary_mixed": 0.0, "mori_named_exception": 0.03,
+    "mori_subordinate_to_outsider": 0.0
+  },
+  "sentienceRules": {
+    "0": {"canNegotiate": false, "canLead": false, "canOwnCargo": false, "behavior": "stimulus_response"},
+    "1": {"canNegotiate": false, "canLead": false, "canOwnCargo": false, "behavior": "instinctive"},
+    "2": {"canNegotiate": false, "canLead": false, "canOwnCargo": false, "behavior": "animal_cunning"},
+    "3": {"canNegotiate": "limited", "canLead": "simple", "canOwnCargo": "possible", "behavior": "limited_culture"},
+    "4": {"canNegotiate": true, "canLead": true, "canOwnCargo": true, "behavior": "social_and_cultural"},
+    "5": {"canNegotiate": true, "canLead": true, "canOwnCargo": true, "behavior": "complex"}
+  },
+  "diplomacy": {
+    "initialStances": ["friendly", "neutral", "wary", "hostile", "afraid", "unaware"],
+    "aggressionTriggers": ["territory_violation", "attack", "theft", "threat", "nest_protection", "hunger", "fear", "order", "faction_feud"],
+    "deescalation": ["withdraw", "pay_toll", "apologize", "prove_identity", "help", "trade", "escort", "offer_food"],
+    "morale": ["withdraw_if_outnumbered", "flee_if_leader_falls", "surrender_if_possible", "hold_position", "protect_young", "do_not_chase_beyond_territory"]
+  },
+  "economy": {"cargoIsLoot": false, "ownershipRequired": true, "prices": "region_and_story_driven_not_automatically_canonical", "tradeGoods": ["vivres", "outils", "sel", "minerais", "champignons", "cordages", "eau", "lampes", "parchemins", "pieces_de_rechange"]},
+  "loot": {"sources": ["carried", "worn", "camp", "cargo", "nest", "biological_harvest", "ingested", "environment"], "defaultWorthlessChance": 0.65, "alwaysPlausible": true, "animalsHaveCoins": false, "cargoOnlyIfAvailable": true, "condition": ["intact", "damaged", "broken", "spoiled"], "ownership": ["personal", "merchant", "faction", "wild", "abandoned", "disputed"]},
+  "worldState": ["territorial_control", "clan", "trade_traffic", "security", "ecology", "war", "disease", "shortage", "weather_equivalent", "route_open", "recent_attacks", "faction_reputation", "time_since_visit"],
+  "canonicalOverrides": {"approvedByMJ": [], "namedExceptionsOnly": true, "writeBackCanon": false, "preserveSourceProvenance": true}
+}
