@@ -39,9 +39,11 @@ export function DangerChip({ profile }: { profile: TrailProfile }) {
   return <span className={`trail-danger lvl-${d.level}`} title={`${d.text} (${d.why.join(', ')})`}>{d.label}</span>;
 }
 
-export default function TrailsPanel({ placeTitle, trails, passive, passiveWho, onToggle, onSelect, onRevealNoticed }: {
+export default function TrailsPanel({ placeTitle, trails, passive, passiveWho, onToggle, onSelect, onRevealNoticed, onFollow }: {
   placeTitle: string; trails: Trail[]; passive: number; passiveWho?: string;
   onToggle: (id: string) => void; onSelect: (f: AtlasFeature) => void; onRevealNoticed: () => void;
+  /** Faire suivre ce sentier au groupe (épreuve de passage si besoin). */
+  onFollow?: (id: string) => void;
 }) {
   const hiddenNoticed = trails.filter((t) => t.noticed && !t.shown).length;
   return (
@@ -64,6 +66,7 @@ export default function TrailsPanel({ placeTitle, trails, passive, passiveWho, o
               {detectLabel(t.profile.detect)}{t.noticed ? ' · vu' : ''}
             </small>
             <button className="place-eye" onClick={() => onToggle(t.f.id)} title={t.shown ? 'Visible des joueurs (clic : cacher)' : 'Caché aux joueurs (clic : montrer)'}>{t.shown ? '👁' : '🙈'}</button>
+            {onFollow && <button className="place-eye" onClick={() => onFollow(t.f.id)} title="Faire suivre ce sentier au groupe">🚶</button>}
           </li>
         ))}
       </ul>

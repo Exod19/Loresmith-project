@@ -5,7 +5,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import MapCanvas, { type Layers } from '../maps/atlas/MapCanvas';
 import { setAtlasData } from '../maps/atlas/model';
-import type { AtlasData, FeatureCategory } from '../maps/atlas/types';
+import type { AtlasData, AtlasFeature, FeatureCategory } from '../maps/atlas/types';
 import BattleBoard, { CATEGORY_ICON, type BoardRange } from '../maps/battle/BattleBoard';
 import { reachableCells } from '../maps/battle/ranges';
 import { CATEGORY_IMG, vignette } from '../maps/battle/vignettes';
@@ -88,7 +88,7 @@ function Scene({ stage, rev }: { stage: Stage; rev: number }) {
   }
   if (stage.kind === 'board') {
     return stage.board.mode === 'map'
-      ? <PlayerMap board={stage.board} rev={rev} />
+      ? <PlayerMap board={stage.board} rev={rev} onFollow={(featureId) => sendToHost?.({ type: 'follow', featureId })} />
       : <PlayerBattle board={stage.board} onAim={(from, to) => sendToHost?.({ type: 'aim', from, to })} onMove={(id, x, y) => sendToHost?.({ type: 'move', id, x, y })} />;
   }
   return (
@@ -98,19 +98,36 @@ function Scene({ stage, rev }: { stage: Stage; rev: number }) {
   );
 }
 
-function PlayerMap({ board, rev }: { board: Extract<PlayerBoard, { mode: 'map' }>; rev: number }) {
+function PlayerMap({ board, rev, onFollow }: { board: Extract<PlayerBoard, { mode: 'map' }>; rev: number; onFollow?: (featureId: string) => void }) {
   setAtlasData(board.data as AtlasData);
+  // Un lieu ou un chemin touché : sa fiche ; un chemin peut être suivi (le MJ valide, ou fait passer l'épreuve).
+  const [picked, setPicked] = useState<AtlasFeature | null>(null);
+  const [asked, setAsked] = useState<string | null>(null);
+  useEffect(() => { setAsked(null); }, [board.travel?.key]);
   const map = board.data.maps.find((m) => m.id === board.planId) ?? board.data.maps[0];
   if (!map) return <p className="present-wait">Carte vide.</p>;
   return (
     <div className="maps-canvas present-map">
       <MapCanvas
-        key={map.id} map={map} layers={LAYERS} hidden={HIDDEN} selectedId={null} onSelect={() => {}} onAnchor={() => {}} dm={false}
+        key={map.id} map={map} layers={LAYERS} hidden={HIDDEN} selectedId={picked?.id ?? null} onSelect={(f) => setPicked((cur) => (cur?.id === f.id ? null : f))} onAnchor={() => {}} dm={false}
         dataKey={rev}
         focus={board.focus ? { kind: board.focus.kind, id: board.focus.id } : null}
         focusKey={board.focus ? String(board.focus.tick) : undefined}
-        marks={board.marks} fog={board.fog}
+        marks={board.marks} fog={board.fog} journey={board.travel}
       />
+      {picked && (
+        <aside className="present-map-card" role="dialog" aria-label={picked.title}>
+          <button className="present-info-close" onClick={() => setPicked(null)} aria-label="Fermer">×</button>
+          <span className="present-info-kind">{picked.trace ? 'Chemin' : 'Lieu'}</span>
+          <h3>{picked.title}</h3>
+          {picked.subtitle && <p>{picked.subtitle}</p>}
+          {picked.trace && onFollow && (
+            asked === picked.id
+              ? <p className="present-aim-wait">Le MJ décide si le groupe s’y engage…</p>
+              : <button className="present-aim-btn" onClick={() => { onFollow(picked.id); setAsked(picked.id); }}>🚶 Suivre ce chemin</button>
+          )}
+        </aside>
+      )}
     </div>
   );
 }

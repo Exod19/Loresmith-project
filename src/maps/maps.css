@@ -189,3 +189,15 @@
 .maps-pv > span { display: none; }
 .maps-pv { padding: 2px 4px; }
 @media (max-width: 1360px) { .maps-pv .maps-btn { font-size: .72rem; padding: 3px 6px; } }
+/* Suivre un chemin (fiche MJ), épreuve en cours, détections à faire. */
+.trail-follow { margin-top: 10px; padding: 10px; border: 1px solid #3f4b4d; border-radius: 6px; background: rgba(0,0,0,.25); }
+.trail-follow h4 { margin: 0 0 6px; font-size: .9rem; color: #e9d7b4; }
+.trail-hazard { margin: 6px 0 8px; padding: 8px; border-left: 3px solid #d6a43a; background: rgba(214,164,58,.08); font-size: .85rem; }
+.trail-hazard p { margin: 0 0 4px; }
+.trail-hazard .ok { color: #9be37b; font-weight: 600; }
+.trail-hazard .ko { color: #ff8a6e; font-weight: 600; }
+.maps-trial { border: 1px solid #bea27b; border-radius: 6px; padding: 8px; background: rgba(190,162,123,.08); }
+.maps-asknote { border: 1px dashed #bea27b; padding: 6px 8px; border-radius: 6px; }
+.finds-list li { display: flex; align-items: center; gap: 6px; }
+.finds-dc { flex: none; font-size: .72rem; padding: 1px 6px; border-radius: 8px; border: 1px solid #5a4a2a; color: #e9d7b4; white-space: nowrap; }
+.finds-list .maps-link { flex: 1; text-align: left; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

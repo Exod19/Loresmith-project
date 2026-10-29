@@ -104,7 +104,12 @@ function buildings(m: AtlasMap) {
 /** Repère MJ dessiné au-dessus de la carte (position du groupe, destination), en coordonnées de plan 0–1. */
 export type MapMark = { id: string; x: number; y: number; label: string; tone: 'party' | 'dest' | 'hero' };
 
-export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, dataKey, dm, marks = [], fog }: {
+/** Brouillard de guerre : `vision` (cercles éclairés, rayon r), `explored` (déjà découvert, assombri, rayon er) ; le reste est noir. */
+export type MapFog = { vision: [number, number][]; explored: [number, number][]; r: number; er: number };
+/** Le groupe en chemin : il glisse le long des points du tracé (coins compris), de `points[0]` au dernier. */
+export type MapTravel = { key: string; points: [number, number][]; at: number; label?: string };
+
+export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, dataKey, dm, marks = [], fog, journey }: {
   map: AtlasMap; layers: Layers; hidden: Set<FeatureCategory>;
   /** Mode MJ : révèle les passages secrets. Hors MJ, la carte est une carte de lore. */
   dm: boolean;
@@ -116,9 +121,43 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   onPlace?: (x: number, y: number) => void;
   dataKey?: string | number;
   marks?: MapMark[];
-  /** Brouillard de guerre (vue joueurs) : tout est voilé sauf autour des points explorés (coordonnées 0–1, rayon en largeur de plan). */
-  fog?: { holes: [number, number][]; r: number } | null;
+  /** Brouillard de guerre (vue joueurs), en coordonnées 0–1 du plan ; rayons en largeur de plan. */
+  fog?: MapFog | null;
+  /** Déplacement du groupe à animer (ignoré s'il date de plus de quelques secondes). */
+  journey?: MapTravel | null;
 }) {
+  // Le groupe en chemin : position courante le long du tracé, image par image.
+  const [walker, setWalker] = useState<[number, number] | null>(null);
+  useEffect(() => {
+    if (!journey || journey.points.length < 2 || Date.now() - journey.at > 6000) { setWalker(null); return; }
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { setWalker(null); return; }
+    const pts = journey.points.map(([x, y]) => [x * map.width, y * map.height] as [number, number]);
+    const seg: number[] = [0];
+    for (let i = 1; i < pts.length; i++) seg.push(seg[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+    const total = seg[seg.length - 1] || 1;
+    const duration = Math.min(5200, Math.max(1800, (total / map.width) * 9000));
+    const start = performance.now();
+    let raf = 0;
+    const step = (now: number) => {
+      const k = Math.min(1, (now - start) / duration);
+      const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      const d = e * total;
+      let i = 1;
+      while (i < seg.length - 1 && seg[i] < d) i++;
+      const t = (d - seg[i - 1]) / ((seg[i] - seg[i - 1]) || 1);
+      const [ax, ay] = journey.points[i - 1], [bx, by] = journey.points[i];
+      setWalker([ax + (bx - ax) * t, ay + (by - ay) * t]);
+      if (k < 1) raf = requestAnimationFrame(step); else setWalker(null);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [journey?.key]);
+  const travelEnd = journey ? journey.points[journey.points.length - 1] : undefined;
+  const near = (a: [number, number], b?: [number, number]) => !!b && Math.hypot(a[0] - b[0], a[1] - b[1]) < 0.012;
+  // Pendant le trajet, la vision suit le groupe en marche (pas encore à destination).
+  const vision = fog ? (walker ? [...fog.vision.filter((p) => !near(p, travelEnd)), walker] : fog.vision) : [];
+  const shownMarks = walker ? marks.filter((m) => !(m.tone === 'party' && near([m.x, m.y], travelEnd))) : marks;
   const svg = useRef<SVGSVGElement>(null);
   const W = map.width, H = map.height;
   /** Facteur d'échelle du plan par rapport aux plans saisis (1240 de large) : les seuils de zoom en dépendent. */
@@ -427,15 +466,34 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
                   <stop offset=".55" stopColor="#000" />
                   <stop offset="1" stopColor="#000" stopOpacity="0" />
                 </radialGradient>
-                <mask id="am-fog-mask" maskUnits="userSpaceOnUse" x={-W} y={-H} width={W * 3} height={H * 3}>
+                {/* Noir : tout sauf le découvert et la vision. Voile : tout sauf la vision. */}
+                <mask id="am-fog-dark" maskUnits="userSpaceOnUse" x={-W} y={-H} width={W * 3} height={H * 3}>
                   <rect x={-W} y={-H} width={W * 3} height={H * 3} fill="#fff" />
-                  {fog.holes.map(([x, y], i) => <circle key={i} cx={x * W} cy={y * H} r={fog.r * W} fill="url(#am-fog-hole)" />)}
+                  {fog.explored.map(([x, y], i) => <circle key={`e${i}`} cx={x * W} cy={y * H} r={fog.er * W} fill="url(#am-fog-hole)" />)}
+                  {vision.map(([x, y], i) => <circle key={`v${i}`} cx={x * W} cy={y * H} r={fog.r * W} fill="url(#am-fog-hole)" />)}
+                </mask>
+                <mask id="am-fog-dim" maskUnits="userSpaceOnUse" x={-W} y={-H} width={W * 3} height={H * 3}>
+                  <rect x={-W} y={-H} width={W * 3} height={H * 3} fill="#fff" />
+                  {vision.map(([x, y], i) => <circle key={`v${i}`} cx={x * W} cy={y * H} r={fog.r * W} fill="url(#am-fog-hole)" />)}
                 </mask>
               </defs>
-              <rect x={-W} y={-H} width={W * 3} height={H * 3} fill="#050707" opacity={0.96} mask="url(#am-fog-mask)" />
+              <rect x={-W} y={-H} width={W * 3} height={H * 3} fill="#030404" opacity={0.985} mask="url(#am-fog-dark)" />
+              <rect x={-W} y={-H} width={W * 3} height={H * 3} fill="#04060a" opacity={0.55} mask="url(#am-fog-dim)" />
             </g>
           )}
-          {marks.map((m) => (
+          {walker && (
+            <g className="am-mark am-mark-party am-walker" transform={`translate(${walker[0] * W} ${walker[1] * H}) scale(${s})`} pointerEvents="none">
+              <circle r={24} className="am-mark-ring" />
+              <circle r={7} className="am-mark-dot" />
+              {journey?.label && (
+                <g transform="translate(0 -34)">
+                  <rect x={-(journey.label.length * 3.6 + 10)} y={-11} width={journey.label.length * 7.2 + 20} height={20} rx={10} className="am-mark-flag" />
+                  <text textAnchor="middle" y={4} className="am-mark-text">{journey.label}</text>
+                </g>
+              )}
+            </g>
+          )}
+          {shownMarks.map((m) => (
             <g key={m.id} className={`am-mark am-mark-${m.tone}`} transform={`translate(${m.x * W} ${m.y * H}) scale(${s})`} pointerEvents="none">
               <circle r={24} className="am-mark-ring" />
               <circle r={6} className="am-mark-dot" />

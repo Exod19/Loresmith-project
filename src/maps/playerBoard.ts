@@ -18,6 +18,9 @@ import { inSight, partyVision } from './battle/fog';
 import { exitsOf } from './battle/trailRules';
 import type { BattleToken } from './mapStore';
 
+/** Rayon de vision du groupe sur la carte de navigation (en largeur de plan). */
+export const VISION_R = 0.035;
+
 /** Durée pendant laquelle un dégât reste écrit sur le plateau. */
 export const HIT_SHOW_MS = 4000;
 
@@ -48,20 +51,25 @@ export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus
       if (c) marks.push({ id: `hero-${id}`, x: c[0], y: c[1], label: names.join(', '), tone: 'hero' });
     }
   }
-  // Brouillard de guerre : se dévoile autour des lieux révélés, du groupe, de son parcours et des héros partis devant.
-  let fog: { holes: [number, number][]; r: number } | undefined;
+  // Brouillard de guerre : la vision du groupe et des héros séparés est éclairée ; ce qui a été découvert (lieux
+  // révélés, parcours, chemins suivis) reste visible mais sombre ; le reste est noir.
+  let fog: { vision: [number, number][]; explored: [number, number][]; r: number; er: number } | undefined;
   if (view.fog) {
-    const holes: [number, number][] = [];
+    const vision: [number, number][] = [];
+    for (const p of [party?.at, ...(party?.apart ?? []).map((h) => h.at)]) { const c = at(p); if (c) vision.push(c); }
+    const explored: [number, number][] = [...(rec.overlay?.explored?.[planId] ?? [])];
     for (const g of data.geometries) {
       if (g.mapId !== planId) continue;
-      if (g.type === 'point') holes.push(g.coordinates as [number, number]);
-      else (g.coordinates as [number, number][]).forEach((c, i, all) => { if (i % 3 === 0 || i === all.length - 1) holes.push(c); });
+      if (g.type === 'point') explored.push(g.coordinates as [number, number]);
+      else (g.coordinates as [number, number][]).forEach((c, i, all) => { if (i % 2 === 0 || i === all.length - 1) explored.push(c); });
     }
-    for (const p of [party?.at, ...(party?.trail ?? []), ...(party?.apart ?? []).map((h) => h.at)]) { const c = at(p); if (c) holes.push(c); }
-    for (const m of rec.overlay?.markers ?? []) if (m.revealed && m.planId === planId) holes.push([m.x, m.y]);
-    fog = { holes, r: 0.045 };
+    for (const p of party?.trail ?? []) { const c = at(p); if (c) explored.push(c); }
+    for (const m of rec.overlay?.markers ?? []) if (m.revealed && m.planId === planId) explored.push([m.x, m.y]);
+    fog = { vision, explored, r: VISION_R, er: 0.022 };
   }
-  return { mode: 'map', title: rec.title, planId, data, focus, marks: marks.length ? marks : undefined, fog };
+  const t = rec.overlay?.travel;
+  const travel = t && t.planId === planId && Date.now() - t.at < 6000 && view.party !== false ? { key: t.key, points: t.points, at: t.at, label: 'Groupe' } : undefined;
+  return { mode: 'map', title: rec.title, planId, data, focus, marks: marks.length ? marks : undefined, fog, travel };
 }
 
 /** Combat tel que les joueurs le voient : jetons visibles seulement, sans points de vie ni CA. */

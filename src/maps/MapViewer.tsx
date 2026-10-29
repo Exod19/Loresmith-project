@@ -17,11 +17,15 @@ import { battleBoard, mapBoard } from './playerBoard';
 import BattleMode, { type CombatSlot } from './battle/BattleMode';
 import type { Hero } from './battle/CombatPanel';
 import TrailsPanel, { DangerChip, trailsNear } from './TrailsPanel';
-import { placeNear, withPartyAt } from './party';
+import { farEnd, placeNear, withPartyAt } from './party';
+import { trailHazard, type Hazard } from './atlas/hazards';
+import TrialPanel from './TrialPanel';
+import { searchFor, type SearchEntry } from './battle/search';
+import { VISION_R } from './playerBoard';
 import { detectLabel, noticedPassively, passiveOf, trailProfile } from './atlas/trails';
 import Interactables from './Interactables';
 import CampaignGuide, { type BestiaryRef, type GuideCampaign, type GuidePlace } from './CampaignGuide';
-import { publishStage } from '../present/stage';
+import { onPlayerFollow, publishStage } from '../present/stage';
 import './maps.css';
 
 const LAYERS: Layers = { points: true, etiquettes: true, galeries: true, connexions: true, ambiance: true };
@@ -103,6 +107,39 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [data, map.id, partyAt?.[0], partyAt?.[1], overlay.revealed, best.pp, rec.kind],
   );
+  /** Chaque chemin qui part du groupe, avec le lieu où il mène et l'épreuve qu'il demande (s'il en demande une). */
+  const trailsTo = useMemo(
+    () => (partyAt ? trails.map((t) => ({ ...t, to: placeNear(data, map.id, farEnd(t.g, partyAt), { radius: 0.04, exclude: party.at?.id }), hazard: trailHazard(t.f, t.profile) })) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [trails, party.at?.id],
+  );
+  /** Ce qu'il y a à découvrir autour du groupe : lieux à fouiller, repères du MJ, chemins qu'il faut chercher. */
+  const finds = useMemo(() => {
+    if (!partyAt) return [];
+    const byId = new Map(data.features.map((f) => [f.id, f]));
+    const out: { f: AtlasFeature; entry: SearchEntry; d: number }[] = [];
+    for (const g of data.geometries) {
+      if (g.mapId !== map.id || g.type !== 'point') continue;
+      const f = byId.get(g.featureId);
+      if (!f || f.area || f.trace) continue;
+      const [x, y] = g.coordinates as [number, number];
+      const d = Math.hypot(x - partyAt[0], y - partyAt[1]);
+      if (d > 0.045) continue;
+      const marker = f.id.startsWith('mk-') ? overlay.markers.find((m) => `mk-${m.id}` === f.id) : undefined;
+      if (marker && marker.kind === 'rencontre') continue;
+      const entry: SearchEntry | null = marker
+        ? { skill: 'Investigation', dc: marker.dcInvestigate ?? 12, find: marker.reading || marker.summary || 'À décrire.', loot: marker.keep, effect: marker.effect }
+        : searchFor(f.title, overlay.searchNotes?.[f.id]);
+      if (entry) out.push({ f, entry, d });
+    }
+    return out.sort((a, b) => a.d - b.d).slice(0, 8);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, map.id, partyAt?.[0], partyAt?.[1], overlay.markers, overlay.searchNotes]);
+  const hiddenTrails = trails.filter((t) => !t.noticed && !t.shown && t.profile.detect);
+  /** Épreuve de passage en cours (le groupe veut suivre un chemin difficile). */
+  const [trial, setTrial] = useState<{ trailId: string; trail: string; to: PartyPlace; hazard: Hazard; by?: 'joueurs' } | null>(null);
+  /** Demande des joueurs qu'on ne peut pas suivre d'ici (le groupe n'est pas au départ du chemin). */
+  const [askNote, setAskNote] = useState<string | null>(null);
 
   /** Repères du groupe sur le plan affiché (MJ) : où il est, et où il veut aller. */
   const partyMarks: MapMark[] = ([['party', party.at, 'Groupe'], ['dest', party.dest, 'Destination']] as const).flatMap(([tone, p, label]) => {
@@ -246,6 +283,65 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   }
 
   const setOverlay = (next: MapOverlay) => onUpdate({ overlay: next, updatedAt: Date.now() });
+
+  /**
+   * Le groupe suit un chemin jusqu'au lieu où il mène : il glisse le long du tracé (animé chez le MJ et les joueurs),
+   * le chemin parcouru reste découvert dans le brouillard, et ce qui est évident autour de l'arrivée se révèle.
+   * Ce qui demande un jet (passage secret, fissure cachée…) reste caché tant que le MJ ne le révèle pas.
+   */
+  const travelTo = (to: PartyPlace, t?: (typeof trailsTo)[number], note?: string) => {
+    let next = withPartyAt(overlay, to);
+    const dest = placeCoords(data, rec, to);
+    const reveal = new Set(next.revealed);
+    if (t) reveal.add(t.f.id);
+    if (to.kind === 'feature') reveal.add(to.id);
+    let points: [number, number][] = [];
+    if (t && partyAt && dest) {
+      const pts = [...(t.g.coordinates as [number, number][])];
+      const d0 = Math.hypot(pts[0][0] - partyAt[0], pts[0][1] - partyAt[1]);
+      const d1 = Math.hypot(pts[pts.length - 1][0] - partyAt[0], pts[pts.length - 1][1] - partyAt[1]);
+      if (d1 < d0) pts.reverse();
+      points = [partyAt, ...pts, dest];
+    }
+    if (dest && rec.kind === 'atlas') {
+      const byId = new Map(data.features.map((f) => [f.id, f]));
+      for (const g of data.geometries) {
+        if (g.mapId !== to.planId || g.featureId.startsWith('mk-')) continue;
+        const f = byId.get(g.featureId);
+        if (!f || reveal.has(f.id)) continue;
+        const pts = (g.type === 'point' ? [g.coordinates] : g.coordinates) as [number, number][];
+        const close = pts.some(([x, y]) => Math.hypot(x - dest[0], y - dest[1]) <= VISION_R);
+        if (!close) continue;
+        // Évident : un lieu à découvert, ou un sentier qui se voit sans chercher. Le reste attend un jet.
+        const evident = f.trace ? !trailProfile(f, f.trace === 'secret' ? 15 : undefined).detect : !f.area;
+        if (evident) reveal.add(f.id);
+      }
+    }
+    next = { ...next, revealed: [...reveal] };
+    const seen = [...(next.explored?.[to.planId] ?? []), ...points.filter((_, i) => i % 2 === 0), ...(dest ? [dest] : [])].slice(-1500);
+    next = { ...next, explored: { ...(next.explored ?? {}), [to.planId]: seen } };
+    if (points.length > 1) next = { ...next, travel: { key: `${Date.now()}`, planId: to.planId, points, at: Date.now() } };
+    if (note) next = { ...next, party: { ...next.party!, log: [{ t: Date.now(), text: note }, ...(next.party?.log ?? [])].slice(0, 12) } };
+    setOverlay(next);
+    setTrial(null);
+    setAskNote(null);
+    setFocus({ kind: to.kind === 'anchor' ? 'anchor' : 'point', id: to.kind === 'marker' ? `mk-${to.id}` : to.id, tick: Date.now() });
+  };
+  /** Suivre un chemin : directement s'il est sûr ou praticable, sinon par l'épreuve de passage (le MJ la fait jouer). */
+  const followTrail = (t: (typeof trailsTo)[number], by?: 'joueurs') => {
+    if (!t.to) { setAskNote(`« ${t.f.title} » ne mène à aucun lieu connu : déplace le groupe à la main.`); return; }
+    if (t.hazard) { setTrial({ trailId: t.f.id, trail: t.f.title, to: t.to, hazard: t.hazard, by }); setSide('lieu'); return; }
+    travelTo(t.to, t);
+  };
+  // Les joueurs demandent à suivre un chemin depuis leur écran.
+  const followRef = useRef<(id: string) => void>(() => {});
+  followRef.current = (id) => {
+    const t = trailsTo.find((x) => x.f.id === id);
+    if (!t) { setAskNote(`Les joueurs veulent suivre « ${data.features.find((f) => f.id === id)?.title ?? 'un chemin'} », mais le groupe n'est pas à son départ.`); return; }
+    setSelectedId(id);
+    followTrail(t, 'joueurs');
+  };
+  useEffect(() => onPlayerFollow((id) => followRef.current(id)), []);
   const toggleReveal = (id: string) => setOverlay({
     ...overlay,
     revealed: overlay.revealed.includes(id) ? overlay.revealed.filter((x) => x !== id) : [...overlay.revealed, id],
@@ -359,6 +455,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               onSelect={(f: AtlasFeature) => { setSelectedId(f.id); setEnc(null); }}
               marks={dm ? partyMarks : playerPreview.marks}
               fog={dm ? null : playerPreview.fog}
+              journey={overlay.travel && overlay.travel.planId === map.id ? { ...overlay.travel, label: 'Groupe' } : null}
               onAnchor={() => {}}
               onPlace={dm && placing ? addMarker : undefined}
               dataKey={rec.updatedAt}
@@ -378,6 +475,19 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                   </button>
                 ))}
               </nav>
+            )}
+            {dm && askNote && (
+              <p className="maps-hint maps-asknote">{askNote} <button className="maps-link" onClick={() => setAskNote(null)}>OK</button></p>
+            )}
+            {dm && trial && (
+              <div className="maps-trial">
+                {trial.by === 'joueurs' && <p className="maps-sub">Les joueurs veulent suivre ce chemin : faites l’épreuve.</p>}
+                <TrialPanel
+                  trail={trial.trail} to={trial.to.title} hazard={trial.hazard} heroes={heroes}
+                  onPass={(summary) => { const t = trailsTo.find((x) => x.f.id === trial.trailId); travelTo(trial.to, t, summary); }}
+                  onCancel={() => setTrial(null)}
+                />
+              </div>
             )}
             {dm && side === 'campagne' && campaigns.length > 0 && (
               <CampaignGuide
@@ -423,6 +533,10 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 partyHere={party.at?.id === feature.id} partyDest={party.dest?.id === feature.id}
                 onPartyHere={() => setOverlay(withPartyAt(overlay, { id: feature.id, kind: 'feature', title: feature.title, planId: map.id }))}
                 onPartyDest={() => setDest(party.dest?.id === feature.id ? undefined : { id: feature.id, kind: 'feature', title: feature.title, planId: map.id })}
+                follow={dm && feature.trace ? (() => {
+                  const t = trailsTo.find((x) => x.f.id === feature.id);
+                  return { near: !!t, to: t?.to ?? null, hazard: t?.hazard ?? (feature.trace ? trailHazard(feature, trailProfile(feature, feature.trace === 'secret' ? 15 : undefined)) : null), onFollow: () => t && followTrail(t) };
+                })() : undefined}
               />
             )}
 
@@ -455,7 +569,34 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
             )}
 
             {dm && side === 'groupe' && party.at && partyAt && (
+              <div className="maps-card finds-card">
+                <h3>À découvrir ici</h3>
+                <p className="maps-sub">Jets à faire faire au groupe à <b>{party.at.title}</b> (Perception passive {best.pp}{best.who ? `, ${best.who}` : ''}).</p>
+                {finds.length === 0 && hiddenTrails.length === 0 && <p className="maps-sub">Rien de caché ni à fouiller ici.</p>}
+                <ul className="maps-list finds-list">
+                  {hiddenTrails.map((t) => (
+                    <li key={t.f.id}>
+                      <span className="finds-dc">{detectLabel(t.profile.detect)}</span>
+                      <button className="maps-link" onClick={() => setSelectedId(t.f.id)}>{t.f.trace === 'secret' ? '🔒 ' : '〰 '}{t.f.title}</button>
+                      <button className="maps-btn" onClick={() => toggleReveal(t.f.id)} title="Réussi : le révéler sur la carte des joueurs">Trouvé</button>
+                    </li>
+                  ))}
+                  {finds.map(({ f, entry }) => (
+                    <li key={f.id} title={[entry.find, entry.loot && `Butin : ${entry.loot}`, entry.effect].filter(Boolean).join('\n')}>
+                      <span className="finds-dc">{entry.skill} {entry.dc}</span>
+                      <button className="maps-link" onClick={() => setSelectedId(f.id)}>🔍 {f.title}</button>
+                      {rec.kind === 'atlas' && !f.id.startsWith('mk-') && (
+                        <button className="maps-btn" onClick={() => toggleReveal(f.id)}>{overlay.revealed.includes(f.id) ? 'Visible' : 'Révéler'}</button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {dm && side === 'groupe' && party.at && partyAt && (
               <TrailsPanel
+                onFollow={(id) => { const t = trailsTo.find((x) => x.f.id === id); if (t) followTrail(t); }}
                 placeTitle={party.at.title} trails={trails} passive={best.pp} passiveWho={best.who}
                 onToggle={(id) => toggleReveal(id)}
                 onSelect={(f) => { setSelectedId(f.id); setEnc(null); }}
@@ -571,12 +712,14 @@ function PartyBar({ party, inBattle, onShow, onBattle, onClearDest, onRejoin }: 
   );
 }
 
-function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring, partyHere, partyDest, onPartyHere, onPartyDest, passive = 10 }: {
+function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring, partyHere, partyDest, onPartyHere, onPartyDest, passive = 10, follow }: {
   f: AtlasFeature; dm: boolean; notes: string; defaultCtx: EncCtx; onClose: () => void; onRoll: (ctx: EncCtx) => void;
   revealed?: boolean; onToggleReveal?: () => void; onBring?: () => void;
   partyHere?: boolean; partyDest?: boolean; onPartyHere?: () => void; onPartyDest?: () => void;
   /** Perception passive du groupe, pour dire si un sentier se voit sans chercher. */
   passive?: number;
+  /** Chemin (MJ) : où il mène depuis le groupe, l'épreuve qu'il demande, et l'action de le suivre. */
+  follow?: { near: boolean; to: PartyPlace | null; hazard: Hazard | null; onFollow: () => void };
 }) {
   const [zone, setZone] = useState<Zone>(defaultCtx.zone);
   const [depth, setDepth] = useState(defaultCtx.depth);
@@ -606,6 +749,27 @@ function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onT
           </div>
         );
       })()}
+      {follow && (
+        <div className="trail-follow">
+          <h4>🚶 Suivre ce chemin</h4>
+          {!follow.near ? (
+            <p className="maps-sub">Le groupe n’est pas au départ de ce chemin : place-le d’abord à un bout (« Le groupe est ici »).</p>
+          ) : (
+            <>
+              <p className="maps-sub">Mène à : <b>{follow.to?.title ?? 'aucun lieu connu au bout'}</b></p>
+              {f.trace === 'etroit' && <p className="maps-sub">Étroit : on y passe en file indienne, un à la fois.</p>}
+              {follow.hazard ? (
+                <div className="trail-hazard">
+                  <p><b>Épreuve : {follow.hazard.check} DC {follow.hazard.dc}</b> (chacun, ou l’aventurier de tête)</p>
+                  <p><span className="ok">Réussite :</span> {follow.hazard.success}</p>
+                  <p><span className="ko">Échec :</span> {follow.hazard.fail}{follow.hazard.damage ? ` ${follow.hazard.damage} dégâts.` : ''}{follow.hazard.setback ? ` ${follow.hazard.setback}` : ''}</p>
+                </div>
+              ) : <p className="maps-sub">Se suit sans jet.</p>}
+              <button className="maps-btn gold" disabled={!follow.to} onClick={follow.onFollow}>{follow.hazard ? 'Faire l’épreuve et suivre ➜' : 'Faire suivre au groupe ➜'}</button>
+            </>
+          )}
+        </div>
+      )}
       {dm && notes && <Block title="Notes du MJ">{notes}</Block>}
       {guide && guide.checks.length > 0 && (
         <Block title="Jets suggérés">

@@ -74,6 +74,10 @@ export interface MapOverlay {
   revealed: string[];
   /** Carte de navigation chez les joueurs : brouillard de guerre, jeton du groupe, héros séparés. */
   playerView?: { fog?: boolean; party?: boolean; heroes?: boolean };
+  /** Brouillard : points déjà découverts par plan (chemins parcourus, lieux traversés), qui restent visibles mais sombres. */
+  explored?: Record<string, [number, number][]>;
+  /** Dernier trajet du groupe le long d'un chemin, pour l'animer (MJ et joueurs). */
+  travel?: { key: string; planId: string; points: [number, number][]; at: number };
   markers: MapMarker[];
   /** Destinations inscrites par le MJ, par identifiant de passage (tracé de l'Atlas). */
   passageLinks?: Record<string, PassageLink>;
