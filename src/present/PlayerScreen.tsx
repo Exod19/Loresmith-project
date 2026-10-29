@@ -8,6 +8,7 @@ import { setAtlasData } from '../maps/atlas/model';
 import type { AtlasData, AtlasFeature, FeatureCategory } from '../maps/atlas/types';
 import BattleBoard, { CATEGORY_ICON, type BoardRange } from '../maps/battle/BattleBoard';
 import { reachableCells } from '../maps/battle/ranges';
+import { trailProfile } from '../maps/atlas/trails';
 import { CATEGORY_IMG, vignette } from '../maps/battle/vignettes';
 import { openStageChannel, type PlayerBoard, type PlayerElement, type PlayerToken, type PlayerTurn, type Stage, type StageMessage } from './stage';
 import '../maps/maps.css';
@@ -118,9 +119,22 @@ function PlayerMap({ board, rev, onFollow }: { board: Extract<PlayerBoard, { mod
       {picked && (
         <aside className="present-map-card" role="dialog" aria-label={picked.title}>
           <button className="present-info-close" onClick={() => setPicked(null)} aria-label="Fermer">×</button>
-          <span className="present-info-kind">{picked.trace ? 'Chemin' : 'Lieu'}</span>
+          <span className="present-info-kind">{picked.trace ? TRACE_FR[picked.trace] ?? 'Chemin' : 'Lieu'}</span>
           <h3>{picked.title}</h3>
           {picked.subtitle && <p>{picked.subtitle}</p>}
+          {picked.trace && (() => {
+            const danger = trailProfile(picked).danger;
+            const dir = directionOf(board, picked.id);
+            return (
+              <>
+                <p className="present-path-facts">
+                  <span className={`present-danger lvl-${danger.level}`}>{danger.label}</span>
+                  {dir && <span className="present-path-dir">🧭 {dir}</span>}
+                </p>
+                <p className="present-path-why">{danger.text} <small>({danger.why.join(', ')})</small></p>
+              </>
+            );
+          })()}
           {picked.trace && onFollow && (
             asked === picked.id
               ? <p className="present-aim-wait">Le MJ décide si le groupe s’y engage…</p>
@@ -339,3 +353,35 @@ function cardFor(board: Extract<PlayerBoard, { mode: 'battle' }>, id: string) {
 
 const KIND_NAME_TOKEN: Record<PlayerToken['kind'], string> = { pc: 'Compagnon', monster: 'Créature', other: 'Présence' };
 const KIND_NAME: Record<PlayerElement['kind'], string> = { passage: 'Passage', point: 'Lieu' };
+
+const TRACE_FR: Record<string, string> = {
+  tunnel: 'Tunnel', galerie: 'Galerie', boyau: 'Boyau', etroit: 'Passage étroit', crevasse: 'Crevasse',
+  ruisseau: 'Ruisseau souterrain', secret: 'Passage dérobé',
+};
+const COMPASS = ['l’est', 'le nord-est', 'le nord', 'le nord-ouest', 'l’ouest', 'le sud-ouest', 'le sud', 'le sud-est'];
+const toward = (dx: number, dy: number) => COMPASS[((Math.round(Math.atan2(-dy, dx) / (Math.PI / 4)) % 8) + 8) % 8];
+
+/** Direction d'un chemin vue du groupe : il part vers… (depuis le bout le plus proche), sinon d'où à où il s'étire. */
+function directionOf(board: Extract<PlayerBoard, { mode: 'map' }>, id: string): string | null {
+  const g = board.data.geometries.find((x) => x.featureId === id && x.mapId === board.planId && x.type === 'polyline');
+  if (!g) return null;
+  const pts = g.coordinates as [number, number][];
+  let a = pts[0], b = pts[pts.length - 1];
+  if (board.here) {
+    const h = board.here;
+    // Le groupe touche ce chemin : il part vers le bout le plus éloigné (là où il mène), comme chez le MJ.
+    const seg = (p: [number, number], q: [number, number]) => {
+      const dx = q[0] - p[0], dy = q[1] - p[1], L = dx * dx + dy * dy || 1;
+      const k = Math.max(0, Math.min(1, ((h[0] - p[0]) * dx + (h[1] - p[1]) * dy) / L));
+      return Math.hypot(p[0] + k * dx - h[0], p[1] + k * dy - h[1]);
+    };
+    let d = Infinity;
+    for (let i = 0; i < pts.length - 1; i++) d = Math.min(d, seg(pts[i], pts[i + 1]));
+    if (d < 0.04) {
+      const far = Math.hypot(a[0] - h[0], a[1] - h[1]) > Math.hypot(b[0] - h[0], b[1] - h[1]) ? a : b;
+      return `Part vers ${toward(far[0] - h[0], far[1] - h[1])}`;
+    }
+  }
+  const from = toward(a[0] - b[0], a[1] - b[1]).replace(/^le /, 'du ').replace(/^l’/, 'de l’');
+  return `S’étire ${from} vers ${toward(b[0] - a[0], b[1] - a[1])}`;
+}

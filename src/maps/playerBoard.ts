@@ -78,7 +78,8 @@ export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus
   }
   const t = rec.overlay?.travel;
   const travel = t && t.planId === planId && Date.now() - t.at < 30000 && view.party !== false ? { key: t.key, points: t.points, at: t.at, label: 'Groupe' } : undefined;
-  return { mode: 'map', title: rec.title, planId, data, focus, marks: marks.length ? marks : undefined, fog, travel };
+  const here = party?.at && party.at.planId === planId ? placeCoords(full ?? mapDataFor(rec, atlas, true), rec, party.at) ?? undefined : undefined;
+  return { mode: 'map', title: rec.title, planId, data, focus, marks: marks.length ? marks : undefined, fog, travel, here };
 }
 
 /** Combat tel que les joueurs le voient : jetons visibles seulement, sans points de vie ni CA. */

@@ -779,3 +779,9 @@
 .present-map-card .present-info-close{position:absolute;right:6px;top:6px}
 /* Le groupe en marche. */
 .am-walker .am-mark-ring{animation:none;stroke-width:4}
+.present-path-facts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.present-danger{padding:2px 10px;border-radius:999px;font-family:'Cinzel',serif;font-size:clamp(11px,1.5vmin,14px);border:1px solid currentColor}
+.present-danger.lvl-1{color:#9be37b}.present-danger.lvl-2{color:#cfe08a}.present-danger.lvl-3{color:#f0c867}.present-danger.lvl-4{color:#ff9a6e}.present-danger.lvl-5{color:#ff5a5a}
+.present-path-dir{color:#e6d7ae}
+.present-path-why{color:#cdbd96}
+.present-path-why small{color:#9a8a63}

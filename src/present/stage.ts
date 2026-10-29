@@ -33,6 +33,8 @@ export type PlayerBoard =
     /** Jetons du groupe et des héros séparés (si le MJ les montre), et brouillard de guerre. */
     marks?: { id: string; x: number; y: number; label: string; tone: 'party' | 'dest' | 'hero' }[];
     fog?: { vision: [number, number][]; explored: [number, number][]; r: number; er: number };
+    /** Où se tient le groupe sur ce plan (pour orienter les chemins), même si son jeton n'est pas montré. */
+    here?: [number, number];
     /** Le groupe en chemin (animé chez les joueurs). */
     travel?: { key: string; points: [number, number][]; at: number; label?: string } }
   | { mode: 'battle'; title: string; backdrop?: string; cols: number; rows: number; feetPerCell: number; round: number; tokens: PlayerToken[]; terrain?: string; elements: PlayerElement[]; turn?: PlayerTurn;
