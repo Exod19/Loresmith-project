@@ -5266,6 +5266,14 @@ export default function App() {
             universe={universe}
             universeImage={universeImage}
             onSwitchUniverse={(id) => dispatch({ type: 'SET_UNIVERSE', id })}
+            onCreateUniverse={() => {
+              dispatch({
+                type: 'ADD_UNIVERSE',
+                u: { id: uid(), name: 'Nouvel univers', tone: '', lore: '', createdAt: now() },
+              });
+              goTo('dashboard');
+              flash('Nouvel univers créé : donne-lui un nom, un ton et un lore.');
+            }}
             onOpenSearch={() => setSearchOpen(true)}
             onOpenDice={() => setDiceOpen(true)}
             onSettings={() => setSettingsOpen(true)}

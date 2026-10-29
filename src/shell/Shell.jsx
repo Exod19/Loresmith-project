@@ -13,6 +13,7 @@ import {
   Map as MapIcon,
   Menu,
   Monitor,
+  Plus,
   ScrollText,
   Search,
   Settings,
@@ -85,6 +86,7 @@ export function Sidebar({
   universe,
   universeImage,
   onSwitchUniverse,
+  onCreateUniverse,
   onOpenSearch,
   onOpenDice,
   onSettings,
@@ -185,6 +187,11 @@ export function Sidebar({
             ))}
           </select>
         </label>
+        {onCreateUniverse && (
+          <button className="lsx-tool" onClick={() => { onCreateUniverse(); onClose?.(); }}>
+            <Plus size={17} strokeWidth={1.6} aria-hidden="true" /> Créer un nouvel univers
+          </button>
+        )}
 
         <div className="lsx-side-foot">
           <button className="lsx-tool" onClick={() => { onSettings(); onClose?.(); }}>
