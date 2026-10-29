@@ -29,3 +29,17 @@ test('empreinte : stable, et différente dès qu’un champ change', () => {
   assert.equal(hashOf({ a: 1, b: [1, 2] }), hashOf({ a: 1, b: [1, 2] }));
   assert.notEqual(hashOf({ a: 1 }), hashOf({ a: 2 }));
 });
+
+test('renommage : références suivies, identifiants fixes intacts', async () => {
+  const { renameIds, renameMapFor } = await import('./apply.js');
+  const s = { activeUniverseId: 'u1', universes: { u1: { id: 'u1' } }, npcs: { n1: { id: 'n1', universeId: 'u1' } }, campaigns: { k1: { id: 'k1', universeId: 'u1' } }, chatThreads: { t1: { id: 't1', universeId: 'u1', campaignId: 'k1' } }, maps: { 'atlas-profondeurs': { id: 'atlas-profondeurs', universeId: 'u1' } } };
+  let n = 0;
+  const map = renameMapFor(s, [{ type: 'universe', id: 'u1' }], () => `x${++n}`);
+  assert.deepEqual([...map.keys()].sort(), ['k1', 'n1', 't1', 'u1']);
+  const r = renameIds(s, map);
+  const U = map.get('u1');
+  assert.equal(r.activeUniverseId, U);
+  assert.deepEqual(r.npcs[map.get('n1')], { id: map.get('n1'), universeId: U });
+  assert.equal(r.chatThreads[map.get('t1')].campaignId, map.get('k1'));
+  assert.deepEqual(r.maps['atlas-profondeurs'], { id: 'atlas-profondeurs', universeId: U });
+});

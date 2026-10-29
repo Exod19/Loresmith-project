@@ -28,7 +28,7 @@ npm run dev                      # API sur http://localhost:8787
 | `GET /api/sync?since=<ms>` | synchronisation : documents lisibles modifiés depuis le curseur, suppressions comprises |
 | `PUT /api/docs/:type/:id` | création (`version: 0`) ou mise à jour versionnée de tout document du grimoire |
 | `DELETE /api/docs/:type/:id?version=N` | suppression (le document est seulement marqué, l'historique est gardé) |
-| `PUT, GET /api/images/:universeId/:id` | images partagées dans R2 ; l'identifiant est l'empreinte SHA-256 du contenu |
+| `PUT, GET /api/images/:universeId/:id` | images partagées (Workers KV) ; l'identifiant est l'empreinte SHA-256 du contenu |
 | `GET /api/universes/:id/members` | membres et rôles ; invitations en attente (propriétaire seulement) |
 | `POST /api/universes/:id/invitations` | invitation par courriel (7 jours) ; renvoie le lien, et l'envoie par Resend si configuré |
 | `DELETE /api/universes/:id/invitations/:invitationId` | annule une invitation |
@@ -36,6 +36,10 @@ npm run dev                      # API sur http://localhost:8787
 | `POST /api/invitations/:token/accept` | accepte, avec un compte au courriel invité |
 | `PUT, DELETE /api/universes/:id/members/:userId` | change le rôle d'un membre, le retire (ou le membre quitte) |
 | `GET /api/campaigns/:id/members`, `PUT, DELETE /api/campaigns/:id/members/:userId` | co-MJ d'une campagne |
+| `GET /api/me` | profil, rôles, conditions acceptées ou non |
+| `POST /api/me/terms` | accepte les avis et conditions en vigueur (exigé avant tout le reste) |
+| `GET /api/me/export` | renseignements du compte en JSON |
+| `DELETE /api/me` | supprime le compte (courriel à retaper ; univers partagés à libérer d'abord) |
 
 Sans session, toute route autre que la santé, l'authentification et l'aperçu d'une invitation répond `401`.
 
@@ -53,12 +57,12 @@ Jamais de courriel, de contenu, de jeton ni de mot de passe. Niveau réglable av
 
 ## Sauvegardes
 
-Chaque jour (cron `17 7 * * *`, vers 3 h à Montréal), le Worker copie la base dans R2 : `backups/d1-<date>.json.gz`.
+Chaque jour (cron `17 7 * * *`, vers 3 h à Montréal), le Worker copie la base dans Workers KV : `backups/d1-<date>.json.gz`.
 Les `BACKUP_KEEP` plus récentes (30 par défaut) sont gardées. Les sessions et jetons éphémères n'y sont pas.
 
 ### Restaurer une sauvegarde
 
-1. Télécharger la sauvegarde depuis R2 (tableau de bord Cloudflare, ou `npx wrangler r2 object get loresmith-images/backups/<fichier> --file <fichier>`).
+1. Télécharger la sauvegarde depuis Workers KV (tableau de bord Cloudflare, ou `npx wrangler kv key get --binding BLOBS --remote "backups/<fichier>" > <fichier>`).
 2. Créer une base neuve et y appliquer les migrations : `npx wrangler d1 migrations apply DB` (ajouter `--local` pour un essai local).
 3. Convertir puis appliquer :
 

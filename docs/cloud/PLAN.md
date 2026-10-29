@@ -21,7 +21,7 @@ Statut global : en cours. Chaque lot porte son propre statut : « à faire », �
 
 | Sujet | Décision | Statut |
 |---|---|---|
-| Hébergement | Cloudflare Pages (front), Worker (API), D1 (base), R2 (images partagées) | Acquis |
+| Hébergement | Cloudflare Pages (front), Worker (API), D1 (base), Workers KV (images partagées, sauvegardes : R2 exigerait un moyen de paiement) | Acquis |
 | Authentification | Better Auth, avec envoi de courriels via Resend (plan gratuit) | Acquis |
 | Base de données | D1 (SQLite), migrations versionnées | Acquis |
 | Rôles univers | propriétaire, éditeur, contributeur, lecteur | Acquis |
@@ -132,10 +132,24 @@ Chaque lot se termine par un commit, puis par une validation de l'utilisateur. L
 
 ### Lot 7 : durcissement
 
-- **Statut** : à valider
+- **Statut** : validé
 - **Modèle conseillé** : `claude-sonnet-5-5`
 - **Objectif** : tests de bout en bout, sauvegarde régulière de D1 vers R2, journalisation, check-list de conformité.
 - **Critères d'acceptation** : une restauration depuis une sauvegarde est testée ; la check-list de conformité (Loi 25 du Québec, conditions d'utilisation, licences des contenus tiers) est rédigée et marquée à valider par un professionnel.
+
+### Lot 8 : conformité et mise en ligne
+
+- **Statut** : à valider
+- **Modèle conseillé** : `claude-opus-5-5`
+- **Objectif** : avis et conditions acceptés à la première connexion, export et suppression du compte, mentions et licences ; mise en ligne gratuite de l'API.
+- **Fait** :
+  - avis et conditions (`src/shared/terms.js`, version datée) : exigés par le serveur avant toute synchronisation ;
+  - export des renseignements du compte (JSON) et suppression du compte (univers partagés protégés) ;
+  - fenêtre « Mentions, licences et confidentialité » ;
+  - stockage des images et des sauvegardes dans Workers KV plutôt que R2 (R2 exige un moyen de paiement) ;
+  - identifiants déjà pris par un autre compte (même archive importée deux fois) : renommés automatiquement ;
+  - Pages Function `functions/api/[[path]].js` : l'API est servie à l'adresse du site.
+- **Décision de l'utilisateur** : pas de commercialisation prévue ; une curation des contenus hors SRD précédera tout lancement public.
 
 ## 6. Points à vérifier avant commercialisation
 

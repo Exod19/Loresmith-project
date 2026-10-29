@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { apiUrl, setApiUrl } from './client';
 import { SharingDialog } from './SharingUI';
+import { AccountTools, LegalDialog } from './AccountUI';
 
 const TYPE_LABEL = {
   universe: 'Univers',
@@ -26,6 +27,7 @@ export const describe = (c) => `${TYPE_LABEL[c.type] || c.type}${nameOf(c) ? ` �
 /** Petit état affiché dans la barre du haut (rien si aucun compte n'est connecté). */
 export function syncBadge(sync) {
   if (!sync.account) return null;
+  if (!sync.account.termsAccepted) return { tone: 'pending', text: 'Conditions à accepter' };
   if (sync.conflicts.length) return { tone: 'error', text: `${sync.conflicts.length} conflit${sync.conflicts.length > 1 ? 's' : ''}` };
   if (sync.pendingDeletes) return { tone: 'error', text: 'Suppressions à confirmer' };
   return {
@@ -39,6 +41,7 @@ const box = { border: '1px solid var(--line)', borderRadius: 6, padding: 12, mar
 
 export function SyncPanel({ sync, flash = () => {} }) {
   const [sharing, setSharing] = useState(false);
+  const [legal, setLegal] = useState(false);
   const [mode, setMode] = useState('signin');
   const [f, setF] = useState({ name: '', email: '', password: '' });
   const [busy, setBusy] = useState(false);
@@ -107,6 +110,7 @@ export function SyncPanel({ sync, flash = () => {} }) {
             </button>
           </div>
           {sharing && <SharingDialog sync={sync} flash={flash} onClose={() => setSharing(false)} />}
+          <AccountTools sync={sync} flash={flash} />
         </>
       ) : (
         <form onSubmit={submit}>
@@ -135,6 +139,10 @@ export function SyncPanel({ sync, flash = () => {} }) {
           </div>
         </form>
       )}
+      <button type="button" className="btn ghost sm" style={{ marginTop: 10 }} onClick={() => setLegal(true)}>
+        Mentions, licences et confidentialité
+      </button>
+      {legal && <LegalDialog onClose={() => setLegal(false)} />}
     </div>
   );
 }

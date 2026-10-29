@@ -6,6 +6,9 @@ import { betterAuth } from 'better-auth';
 
 const cache = new WeakMap();
 
+/** Origines du site autorisées (`FRONT_ORIGIN`, séparées par des virgules : site principal, aperçu…). */
+export const originsOf = (env) => String(env.FRONT_ORIGIN || '').split(',').map((o) => o.trim()).filter(Boolean);
+
 /** Instance Better Auth pour un environnement de Worker (une par environnement, réutilisée). */
 export function authFor(env) {
   if (!env.BETTER_AUTH_SECRET || env.BETTER_AUTH_SECRET.length < 32) {
@@ -18,7 +21,7 @@ export function authFor(env) {
       secret: env.BETTER_AUTH_SECRET,
       baseURL: env.BETTER_AUTH_URL,
       basePath: '/api/auth',
-      trustedOrigins: [env.FRONT_ORIGIN].filter(Boolean),
+      trustedOrigins: originsOf(env),
       emailAndPassword: { enabled: true, minPasswordLength: 10 },
       // Aucun envoi de statistiques d'usage vers un service tiers.
       telemetry: { enabled: false },

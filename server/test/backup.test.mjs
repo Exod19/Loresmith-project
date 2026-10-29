@@ -1,5 +1,5 @@
 /**
- * Sauvegarde et restauration (lot 7) : la tâche planifiée écrit la sauvegarde dans R2 ; elle est convertie en SQL
+ * Sauvegarde et restauration (lot 7) : la tâche planifiée écrit la sauvegarde dans le stockage KV ; elle est convertie en SQL
  * avec le script de restauration, appliquée sur une base neuve avec la commande de production
  * (`wrangler d1 execute --file`), et l'application fonctionne sur la base restaurée : connexion, données, historique.
  */
@@ -12,6 +12,7 @@ import { join } from 'node:path';
 import { getPlatformProxy } from 'wrangler';
 import worker from '../src/index.js';
 import { BACKUP_PREFIX, TABLES } from '../src/backup.js';
+import { blobStore } from '../src/store.js';
 import { account, device, empty, env, image, setupServer } from './helpers.mjs';
 
 setupServer();
@@ -24,7 +25,7 @@ async function cron() {
   await worker.scheduled({ cron: '17 7 * * *', scheduledTime: Date.now() }, env, { waitUntil: (p) => pending.push(p) });
   await Promise.all(pending);
 }
-const backups = async () => (await env.IMAGES.list({ prefix: BACKUP_PREFIX })).objects.map((o) => o.key).sort();
+const backups = async () => (await blobStore(env).keys(BACKUP_PREFIX)).sort();
 
 test('sauvegarde quotidienne, puis restauration complète sur une base neuve', async () => {
   // Des données réelles : deux comptes, un univers partagé, un document modifié deux fois, une image, une invitation.
@@ -39,11 +40,11 @@ test('sauvegarde quotidienne, puis restauration complète sur une base neuve', a
   const bob = await account('bob');
   await bob.call('POST', `/api/invitations/${new URL(inv.body.link).searchParams.get('invitation')}/accept`);
 
-  // La tâche planifiée écrit une sauvegarde compressée dans R2.
+  // La tâche planifiée écrit une sauvegarde compressée dans le stockage de fichiers.
   await cron();
   const [key] = await backups();
   assert.match(key, /^backups\/d1-\d{4}-\d{2}-\d{2}T.*\.json\.gz$/);
-  const gz = new Uint8Array(await (await env.IMAGES.get(key)).arrayBuffer());
+  const gz = (await blobStore(env).get(key)).bytes;
   const file = join(mkdtempSync(join(tmpdir(), 'loresmith-backup-')), 'sauvegarde.json.gz');
   writeFileSync(file, gz);
 
@@ -91,7 +92,7 @@ test('sauvegarde quotidienne, puis restauration complète sur une base neuve', a
 });
 
 test('rotation : seules les BACKUP_KEEP sauvegardes les plus récentes sont gardées', async () => {
-  for (let i = 1; i <= 5; i++) await env.IMAGES.put(`${BACKUP_PREFIX}d1-2000-01-0${i}T00-00-00-000Z.json.gz`, 'ancienne');
+  for (let i = 1; i <= 5; i++) await blobStore(env).put(`${BACKUP_PREFIX}d1-2000-01-0${i}T00-00-00-000Z.json.gz`, new TextEncoder().encode('ancienne'));
   const keep = env.BACKUP_KEEP;
   env.BACKUP_KEEP = '3';
   try {

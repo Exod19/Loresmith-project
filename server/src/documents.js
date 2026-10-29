@@ -46,7 +46,7 @@ export async function createDoc(db, { type, id, universeId = null, campaignId = 
   if (!ID_PATTERN.test(id)) throw new HttpError(400, 'Identifiant invalide.');
   const json = serialize(data);
   const taken = await db.prepare('select 1 from documents where type = ? and id = ?').bind(type, id).first();
-  if (taken) throw new HttpError(409, 'Cet identifiant existe déjà.');
+  if (taken) throw new HttpError(409, 'Cet identifiant existe déjà.', { code: 'id_taken' });
   const now = Date.now();
   await db.batch([
     db.prepare('insert into documents (type, id, universe_id, campaign_id, owner_id, created_by, version, updated_by, updated_at, data) values (?, ?, ?, ?, ?, ?, 1, ?, ?, ?)')

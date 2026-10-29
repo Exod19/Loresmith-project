@@ -11,7 +11,8 @@ import { join } from 'node:path';
 import { getPlatformProxy } from 'wrangler';
 import app from '../src/index.js';
 import { runSync, resolveConflict } from '../../src/sync/engine.js';
-import { applyChanges } from '../../src/sync/apply.js';
+import { applyChanges, renameIds, renameMapFor } from '../../src/sync/apply.js';
+import { TERMS_VERSION } from '../../src/shared/terms.js';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const BASE = 'http://localhost:8787';
@@ -57,6 +58,8 @@ export async function account(name) {
   };
   const r = await call('POST', '/api/auth/sign-up/email', { email: `${name}@exemple.org`, password: 'un-mot-de-passe-solide', name });
   assert.equal(r.status, 200);
+  // Comme dans l'interface : les conditions d'utilisation sont acceptées à la première connexion.
+  assert.equal((await call('POST', '/api/me/terms', { version: TERMS_VERSION })).status, 200);
   return { call, id: r.body.user.id };
 }
 
@@ -99,6 +102,8 @@ export function device(user, state) {
     const res = await runSync({ persisted: d.state, meta: d.meta, userId: user.id, api: d.api, ...opts });
     d.meta = res.meta;
     d.state = applyChanges(d.state, res.changes);
+    // Comme useSync : identifiants pris par un autre compte, renommés ici avant la synchronisation suivante.
+    if (res.idTaken?.length) d.state = renameIds(d.state, renameMapFor(d.state, res.idTaken));
     return res;
   };
   d.resolve = async (conflict, choice) => {

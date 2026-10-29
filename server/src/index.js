@@ -1,18 +1,20 @@
 /**
  * API de Loresmith (Worker Cloudflare). Routes de base du lot 4 : santé, comptes, profil, univers, campagnes ;
  * synchronisation et images au lot 5 (`sync.js`) ; partage au lot 6 (`sharing.js`) ;
- * journalisation et sauvegarde quotidienne de la base au lot 7 (`log.js`, `backup.js`).
+ * journalisation et sauvegarde quotidienne de la base au lot 7 (`log.js`, `backup.js`) ;
+ * conditions d'utilisation, export et suppression du compte au lot 8 (`account.js`).
  * Toutes les décisions d'accès passent par `src/shared/policy.js` ; le navigateur n'est jamais cru sur parole.
  */
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { can } from '../../src/shared/policy.js';
-import { authFor } from './auth.js';
+import { authFor, originsOf } from './auth.js';
 import { HttpError, createDoc, getDoc, listDocs, updateDoc } from './documents.js';
 import { mountSync } from './sync.js';
 import { mountPublicInvitations, mountSharing } from './sharing.js';
 import { log } from './log.js';
-import { backupToR2 } from './backup.js';
+import { backupNow } from './backup.js';
+import { mountAccount, termsAccepted, termsGuard } from './account.js';
 
 const app = new Hono();
 
@@ -24,8 +26,7 @@ app.use('*', async (c, next) => {
 });
 
 app.use('/api/*', async (c, next) => {
-  const origin = c.env.FRONT_ORIGIN;
-  return cors({ origin: origin ? [origin] : [], credentials: true, allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], allowHeaders: ['Content-Type'] })(c, next);
+  return cors({ origin: originsOf(c.env), credentials: true, allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], allowHeaders: ['Content-Type'] })(c, next);
 });
 
 app.onError((err, c) => {
@@ -51,6 +52,7 @@ app.use('/api/*', async (c, next) => {
     db.prepare('select campaign_id, role from campaign_members where user_id = ?').bind(session.user.id),
   ]);
   c.set('user', session.user);
+  c.set('termsAccepted', await termsAccepted(db, session.user.id));
   c.set('actor', {
     id: session.user.id,
     universes: Object.fromEntries(u.results.map((r) => [r.universe_id, r.role])),
@@ -75,11 +77,10 @@ async function body(c) {
 const resourceOf = (doc) => ({ type: doc.type, id: doc.id, universeId: doc.universeId, campaignId: doc.campaignId, createdBy: doc.createdBy, ownerId: doc.ownerId });
 const out = (doc, actor) => ({ id: doc.id, version: doc.version, updatedAt: doc.updatedAt, data: doc.data, role: actor.universes[doc.universeId] ?? null, campaignRole: doc.campaignId ? actor.campaigns[doc.campaignId] ?? null : null });
 
-app.get('/api/me', (c) => {
-  const { id, email, name } = c.get('user');
-  const actor = c.get('actor');
-  return c.json({ user: { id, email, name }, universes: actor.universes, campaigns: actor.campaigns });
-});
+/* ——— Compte : conditions d'utilisation, export, suppression (lot 8) ——— */
+
+app.use('/api/*', termsGuard());
+mountAccount(app);
 
 /* ——— Univers ——— */
 
@@ -169,10 +170,10 @@ mountSharing(app);
 
 app.notFound((c) => c.json({ error: 'Route inconnue.' }, 404));
 
-/** Tâche planifiée (cron) : sauvegarde quotidienne de la base dans R2. */
+/** Tâche planifiée (cron) : sauvegarde quotidienne de la base (stockage KV). */
 async function scheduled(event, env, ctx) {
   ctx.waitUntil(
-    backupToR2(env).then(
+    backupNow(env).then(
       (r) => log(env, 'info', 'sauvegarde', r),
       (err) => log(env, 'error', 'sauvegarde échouée', { message: err?.message }),
     ),

@@ -158,3 +158,14 @@ export const addCoGm = (campaignId, userId) => request('PUT', `${K(campaignId)}/
 export const removeCoGm = (campaignId, userId) => request('DELETE', `${K(campaignId)}/members/${encodeURIComponent(userId)}`);
 export const invitationInfo = (token) => request('GET', `/api/invitations/${encodeURIComponent(token)}`);
 export const acceptInvitation = (token) => request('POST', `/api/invitations/${encodeURIComponent(token)}/accept`, { json: {} });
+
+/* ——— Compte (lot 8) ——— */
+
+export const acceptTerms = (version) => request('POST', '/api/me/terms', { json: { version } });
+export const exportAccount = () => request('GET', '/api/me/export');
+export const deleteAccount = (confirm) => request('DELETE', '/api/me', { json: { confirm } });
+
+/** Oublie l'état de synchronisation de cet appareil (après suppression du compte). */
+export async function forgetSync() {
+  await saveKv(META_KEY, null);
+}

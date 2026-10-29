@@ -11,9 +11,10 @@
  */
 import { documentsOf } from '../shared/schema.js';
 import { collectStrings, idOfRef, isRef } from '../store/imageRefs.js';
+import { FIXED_IDS } from './apply.js';
 
 export const keyOf = (type, id) => `${type}:${id}`;
-export const emptyMeta = (userId) => ({ userId, cursor: 0, docs: {}, images: {}, universes: {}, detached: {} });
+export const emptyMeta = (userId) => ({ userId, cursor: 0, docs: {}, images: {}, universes: {}, detached: {}, localOnly: {} });
 
 /** Empreinte rapide (cyrb53) du contenu d'un document. */
 export function hashOf(data) {
@@ -61,7 +62,7 @@ async function uploadImages(doc, meta, api) {
  */
 export async function runSync({ persisted, meta: before, userId, api, skip = () => false, confirmDeletes = false, deleteThreshold = 5 }) {
   const meta = { ...emptyMeta(userId), ...structuredClone(before?.userId === userId ? before : emptyMeta(userId)) };
-  const result = { meta, changes: { upserts: [], deletes: [] }, conflicts: [], pendingDeletes: null, offline: false, signedOut: false, joined: [], lostAccess: [], stats: { pulled: 0, pushed: 0, deleted: 0 } };
+  const result = { meta, changes: { upserts: [], deletes: [] }, conflicts: [], pendingDeletes: null, offline: false, signedOut: false, joined: [], lostAccess: [], idTaken: [], stats: { pulled: 0, pushed: 0, deleted: 0 } };
   const local = new Map(documentsOf(persisted, userId).docs.map((d) => [keyOf(d.type, d.id), d]));
   const handled = new Set();
 
@@ -127,13 +128,16 @@ export async function runSync({ persisted, meta: before, userId, api, skip = () 
   meta.cursor = pulled.serverTime;
 
   /* ——— Envoi ——— */
+  // Univers ou campagne dont l'identifiant est pris ailleurs : leur contenu attend qu'ils soient renommés.
+  const blocked = new Set();
   try {
     for (const doc of [...local.values()].sort(byOrder)) {
       const key = keyOf(doc.type, doc.id);
       if (handled.has(key) && !meta.docs[key]) continue;
       const m = meta.docs[key];
       const h = hashOf(doc.data);
-      if ((m && m.h === h) || result.conflicts.some((c) => c.key === key) || (!m && skip(doc)) || meta.detached[doc.universeId]) continue;
+      if ((m && m.h === h) || result.conflicts.some((c) => c.key === key) || (!m && skip(doc)) || meta.detached[doc.universeId] || meta.localOnly[key]) continue;
+      if (blocked.has(doc.universeId) || (doc.campaignId && blocked.has(doc.campaignId))) continue;
       await uploadImages(doc, meta, api);
       try {
         const res = await api.put({ type: doc.type, id: doc.id, universeId: doc.universeId, campaignId: doc.campaignId, version: m ? m.v : 0, data: doc.data });
@@ -141,7 +145,15 @@ export async function runSync({ persisted, meta: before, userId, api, skip = () 
         result.stats.pushed++;
       } catch (e) {
         if (isNetwork(e)) throw e;
-        if (e.status === 409) result.conflicts.push({ key, type: doc.type, id: doc.id, universeId: doc.universeId, campaignId: doc.campaignId, local: doc.data, remote: e.body?.current ?? null });
+        // Identifiant pris par le document d'un autre compte : à renommer ici, puis à renvoyer (cf. renameIds).
+        if (e.status === 409 && e.body?.code === 'id_taken') {
+          if (FIXED_IDS.has(doc.id)) meta.localOnly[key] = true; // ne peut pas être renommé : reste sur cet appareil
+          else {
+            result.idTaken.push({ type: doc.type, id: doc.id });
+            if (doc.type === 'universe' || doc.type === 'campaign') blocked.add(doc.id);
+          }
+        }
+        else if (e.status === 409) result.conflicts.push({ key, type: doc.type, id: doc.id, universeId: doc.universeId, campaignId: doc.campaignId, local: doc.data, remote: e.body?.current ?? null });
         else result.conflicts.push({ key, type: doc.type, id: doc.id, universeId: doc.universeId, campaignId: doc.campaignId, local: doc.data, remote: null, refused: e.status, message: e.body?.error });
       }
     }

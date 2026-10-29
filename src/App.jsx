@@ -47,7 +47,8 @@ import { ExportDialog, ImportDialog } from './store/ArchiveDialogs';
 import { useSync } from './sync/useSync';
 import { ConflictDialog, DeleteConfirm, SyncPanel, syncBadge } from './sync/SyncUI';
 import { InvitationGate } from './sync/SharingUI';
-import { applyChanges } from './sync/apply';
+import { TermsGate } from './sync/AccountUI';
+import { applyChanges, renameIds } from './sync/apply';
 import { IMAGE_MAX } from './store/imageRefs';
 import StorageInfo from './store/StorageInfo';
 import { repairJson } from './ai/json';
@@ -5011,6 +5012,8 @@ function reducer(s, a) {
     // Documents reçus du serveur par la synchronisation (src/sync).
     case 'SYNC_APPLY':
       return applyChanges(s, a.changes);
+    case 'SYNC_RENAME':
+      return renameIds(s, new Map(a.map));
     case 'ADD_LOG':
       return {
         ...s,
@@ -5440,6 +5443,7 @@ export default function App() {
           {syncDialog === 'conflicts' && sync.conflicts.length > 0 && <ConflictDialog sync={sync} flash={flash} onClose={() => setSyncDialog(null)} />}
           {syncDialog === 'deletes' && sync.pendingDeletes && <DeleteConfirm sync={sync} onClose={() => setSyncDialog(null)} />}
           <InvitationGate sync={sync} flash={flash} />
+          <TermsGate sync={sync} flash={flash} />
           {toast && <div className="toast">{toast}</div>}
         </div>
       </>

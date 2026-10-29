@@ -1,19 +1,21 @@
 /**
- * Sauvegarde de la base D1 vers R2 (lot 7), et conversion d'une sauvegarde en SQL pour la restaurer.
+ * Sauvegarde de la base D1 dans le stockage de fichiers (KV, cf. store.js), et conversion d'une sauvegarde en SQL.
  *
  * - Une tâche planifiée (cron du Worker) copie chaque jour les tables utiles dans un fichier JSON compressé
- *   `backups/d1-<date>.json.gz` du bucket R2. Les sessions et jetons de vérification, éphémères, n'y sont pas :
+ *   `backups/d1-<date>.json.gz` du stockage de fichiers. Les sessions et jetons de vérification, éphémères, n'y sont pas :
  *   après une restauration, chacun se reconnecte simplement.
  * - Les `BACKUP_KEEP` sauvegardes les plus récentes sont gardées (30 par défaut) ; les plus anciennes sont retirées.
  * - Restauration : `npm run backup:sql -- fichier.json.gz > restauration.sql`, puis
  *   `wrangler d1 execute DB --file restauration.sql` sur une base neuve, déjà migrée (cf. server/README.md).
  */
 
+import { blobStore } from './store.js';
+
 export const BACKUP_FORMAT = 'loresmith-d1-backup';
 export const BACKUP_PREFIX = 'backups/';
 
 /** Tables sauvegardées, dans l'ordre où les restaurer (un compte avant ce qui s'y rattache). */
-export const TABLES = ['user', 'account', 'universe_members', 'campaign_members', 'documents', 'document_versions', 'images', 'invitations'];
+export const TABLES = ['user', 'account', 'universe_members', 'campaign_members', 'documents', 'document_versions', 'images', 'invitations', 'terms_acceptances'];
 
 /** Copie des tables. Retourne un objet sérialisable. */
 export async function dumpDatabase(db, now = Date.now()) {
@@ -41,22 +43,17 @@ export async function readBackup(bytes) {
   return backup;
 }
 
-/** Sauvegarde du jour dans R2, puis rotation. Retourne la clé écrite et le nombre de lignes par table. */
-export async function backupToR2(env, now = Date.now()) {
+/** Sauvegarde du jour dans le stockage de fichiers, puis rotation. Retourne la clé écrite et le nombre de lignes par table. */
+export async function backupNow(env, now = Date.now()) {
+  const store = blobStore(env);
   const dump = await dumpDatabase(env.DB, now);
   const key = `${BACKUP_PREFIX}d1-${new Date(now).toISOString().replace(/[:.]/g, '-')}.json.gz`;
-  await env.IMAGES.put(key, await gzip(JSON.stringify(dump)), { httpMetadata: { contentType: 'application/gzip' } });
+  await store.put(key, await gzip(JSON.stringify(dump)), { contentType: 'application/gzip' });
   const keep = Number(env.BACKUP_KEEP) || 30;
-  const listed = [];
-  let cursor;
-  do {
-    const page = await env.IMAGES.list({ prefix: BACKUP_PREFIX, cursor });
-    listed.push(...page.objects.map((o) => o.key));
-    cursor = page.truncated ? page.cursor : undefined;
-  } while (cursor);
+  const listed = await store.keys(BACKUP_PREFIX);
   // Les noms commencent par la date ISO : l'ordre alphabétique est l'ordre chronologique.
   const old = listed.sort().slice(0, Math.max(0, listed.length - keep));
-  if (old.length) await env.IMAGES.delete(old);
+  if (old.length) await store.delete(old);
   return { key, rows: Object.fromEntries(Object.entries(dump.tables).map(([t, r]) => [t, r.length])), removed: old.length };
 }
 

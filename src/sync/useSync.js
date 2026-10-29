@@ -4,7 +4,8 @@
  * Sans serveur joignable ou sans compte, rien ne change au fonctionnement local.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { acceptInvitation, currentAccount, forgetDeletions, resolveOne, serverReachable, signIn, signOut, signUp, syncOnce } from './client';
+import { renameMapFor } from './apply';
+import { acceptInvitation, acceptTerms, currentAccount, deleteAccount, forgetDeletions, forgetSync, resolveOne, serverReachable, signIn, signOut, signUp, syncOnce } from './client';
 
 const PERIOD = 5 * 60 * 1000;
 
@@ -19,18 +20,25 @@ export function useSync({ state, dispatch, hydrated, flash }) {
   const stateRef = useRef(state);
   stateRef.current = state;
   const busy = useRef(false);
+  const resync = useRef(false);
 
   const apply = useCallback((changes) => {
     if (changes.upserts.length || changes.deletes.length) dispatch({ type: 'SYNC_APPLY', changes });
   }, [dispatch]);
 
   const syncNow = useCallback(async ({ confirmDeletes = false, quiet = false } = {}) => {
-    if (!account || busy.current || !stateRef.current) return;
+    // Rien ne part tant que les avis et conditions ne sont pas acceptés (le serveur refuserait de toute façon).
+    if (!account?.termsAccepted || busy.current || !stateRef.current) return;
     busy.current = true;
     setStatus('syncing');
     try {
       const res = await syncOnce(stateRef.current, account.user.id, { confirmDeletes });
       apply(res.changes);
+      // Identifiants pris par un autre compte : renommés ici, puis renvoyés à la synchronisation suivante.
+      if (res.idTaken?.length) {
+        dispatch({ type: 'SYNC_RENAME', map: [...renameMapFor(stateRef.current, res.idTaken)] });
+        resync.current = true;
+      }
       if (res.signedOut) {
         setAccount(null);
         setStatus('off');
@@ -51,7 +59,15 @@ export function useSync({ state, dispatch, hydrated, flash }) {
     } finally {
       busy.current = false;
     }
-  }, [account, apply, flash]);
+  }, [account, apply, dispatch, flash]);
+
+  // Après un renommage, une synchronisation de plus envoie les éléments sous leurs nouveaux identifiants.
+  useEffect(() => {
+    if (resync.current && !busy.current) {
+      resync.current = false;
+      syncNow({ quiet: true });
+    }
+  }, [state, syncNow]);
 
   // Au démarrage : le serveur répond-il, et y a-t-il une session ?
   useEffect(() => {
@@ -65,7 +81,7 @@ export function useSync({ state, dispatch, hydrated, flash }) {
 
   // Compte connecté : une synchronisation tout de suite, puis toutes les 5 minutes et au retour du réseau.
   useEffect(() => {
-    if (!account) return;
+    if (!account?.termsAccepted) return;
     syncNow({ quiet: true });
     const timer = setInterval(() => syncNow({ quiet: true }), PERIOD);
     const online = () => syncNow({ quiet: true });
@@ -131,8 +147,23 @@ export function useSync({ state, dispatch, hydrated, flash }) {
     }
   }, [state, dispatch]);
 
+  const agree = useCallback(async () => {
+    await acceptTerms(account.termsVersion);
+    setAccount(await currentAccount());
+  }, [account]);
+
+  /** Supprime le compte sur le serveur. Le grimoire de ce navigateur, lui, reste. */
+  const removeAccount = useCallback(async (confirm) => {
+    await deleteAccount(confirm);
+    await forgetSync().catch(() => {});
+    setAccount(null);
+    setStatus('off');
+    setConflicts([]);
+    setPendingDeletes(null);
+  }, []);
+
   const activeUniverse = state?.universes?.[state?.activeUniverseId] ?? null;
   const campaignsOf = (universeId) => Object.values(state?.campaigns || {}).filter((c) => c.universeId === universeId);
 
-  return { server, account, status, lastSync, conflicts, pendingDeletes, error, syncNow, login, logout, resolve, recheck, decideDeletes, acceptInvite, activeUniverse, campaignsOf, refreshAccount: async () => setAccount(await currentAccount()) };
+  return { server, account, status, lastSync, conflicts, pendingDeletes, error, syncNow, login, logout, resolve, recheck, decideDeletes, acceptInvite, activeUniverse, campaignsOf, agree, removeAccount, refreshAccount: async () => setAccount(await currentAccount()) };
 }

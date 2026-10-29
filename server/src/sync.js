@@ -5,7 +5,7 @@
  *   Le curseur à renvoyer la fois suivante est `serverTime` (horloge du serveur, pas du navigateur).
  * - `PUT /api/docs/:type/:id` : crée (version 0) ou met à jour (version lue) un document. 409 si elle a changé.
  * - `DELETE /api/docs/:type/:id?version=N` : marque le document supprimé (rien n'est effacé).
- * - `PUT|GET /api/images/:universeId/:id` : images dans R2, identifiées par l'empreinte de leur contenu.
+ * - `PUT|GET /api/images/:universeId/:id` : images (stockage KV, cf. store.js), identifiées par l'empreinte de leur contenu.
  *
  * La portée d'un document existant (univers, campagne, titulaire) est celle enregistrée sur le serveur :
  * un client ne peut pas déplacer un document vers un univers où il n'a pas de droits.
@@ -13,6 +13,7 @@
 import { can } from '../../src/shared/policy.js';
 import { DOC_TYPES } from '../../src/shared/schema.js';
 import { HttpError, ID_PATTERN, createDoc, getDocAny, updateDoc } from './documents.js';
+import { blobStore } from './store.js';
 
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
@@ -98,6 +99,9 @@ export function mountSync(app) {
       if (type === 'campaign') actor.campaigns[id] = 'gm';
       return c.json(wire(doc), 201);
     }
+    // Identifiant déjà pris par un document d'un autre (ex. deux MJ ont importé la même archive) : le client
+    // renommera le sien. On ne révèle rien d'autre que l'existence de l'identifiant.
+    if (!body.version && !can(actor, 'read', resourceOf(current))) throw new HttpError(409, 'Identifiant déjà utilisé.', { code: 'id_taken' });
     guard(actor, 'read', resourceOf(current), true);
     guard(actor, 'update', resourceOf(current));
     return c.json(wire(await updateDoc(db, current, { version: body.version, data: body.data, userId: actor.id })));
@@ -130,7 +134,7 @@ export function mountSync(app) {
     const type = (c.req.header('Content-Type') || 'application/octet-stream').split(';')[0];
     if (!type.startsWith('image/')) throw new HttpError(415, 'Seules les images sont acceptées.');
     const key = `${universeId}/${id}`;
-    await c.env.IMAGES.put(key, bytes, { httpMetadata: { contentType: type } });
+    await blobStore(c.env).put(key, bytes, { contentType: type });
     await c.env.DB.prepare('insert or ignore into images (universe_id, id, r2_key, type, size, created_by, created_at) values (?, ?, ?, ?, ?, ?, ?)')
       .bind(universeId, id, key, type, bytes.byteLength, actor.id, Date.now()).run();
     return c.json({ id, universeId }, 201);
@@ -141,8 +145,8 @@ export function mountSync(app) {
     const { universeId, id } = c.req.param();
     guard(actor, 'read', { type: 'asset', universeId }, true);
     const found = await c.env.DB.prepare('select r2_key, type from images where universe_id = ? and id = ?').bind(universeId, id).first();
-    const obj = found && (await c.env.IMAGES.get(found.r2_key));
+    const obj = found && (await blobStore(c.env).get(found.r2_key));
     if (!obj) throw new HttpError(404, 'Introuvable.');
-    return new Response(obj.body, { headers: { 'Content-Type': found.type, 'Cache-Control': 'private, max-age=31536000, immutable' } });
+    return new Response(obj.bytes, { headers: { 'Content-Type': found.type, 'Cache-Control': 'private, max-age=31536000, immutable' } });
   });
 }

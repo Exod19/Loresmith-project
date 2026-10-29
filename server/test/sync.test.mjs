@@ -110,3 +110,39 @@ test('synchronisation entre appareils et comptes, conflits, hors ligne, suppress
   assert.deepEqual([refused.conflicts.length, refused.conflicts[0].refused], [1, 403]);
   assert.equal((await alice.call('GET', '/api/sync?since=0')).body.docs.find((d) => d.id === 'n1').data.name, 'Yemena v3 (Bob)');
 });
+
+test('deux comptes importent la même archive : le second renomme ses éléments, rien n’est mélangé', async () => {
+  const same = () => ({
+    ...empty(),
+    activeUniverseId: 'uz',
+    universes: { uz: { id: 'uz', name: 'Archive partagée' } },
+    npcs: { nz: { id: 'nz', universeId: 'uz', name: 'Garde' } },
+    campaigns: { kz: { id: 'kz', universeId: 'uz', title: 'Campagne' } },
+    chatThreads: { tz: { id: 'tz', universeId: 'uz', campaignId: 'kz', messages: [] } },
+    maps: { 'atlas-profondeurs': { id: 'atlas-profondeurs', universeId: 'uz', kind: 'atlas', title: 'Atlas' } },
+  });
+  const una = await account('una');
+  const vic = await account('vic');
+  const u = device(una, same());
+  const v = device(vic, same());
+  await u.sync();
+  const clash = await v.sync();
+  assert.deepEqual(clash.idTaken.map((x) => x.id), ['uz'], 'l’univers est refusé ; son contenu attend');
+  assert.equal(clash.conflicts.length, 0, 'pas de faux conflit à régler à la main');
+  const newU = v.state.activeUniverseId;
+  assert.notEqual(newU, 'uz');
+  const npc = Object.values(v.state.npcs)[0];
+  const camp = Object.values(v.state.campaigns)[0];
+  const chat = Object.values(v.state.chatThreads)[0];
+  assert.deepEqual([npc.universeId, camp.universeId, chat.universeId, chat.campaignId], [newU, newU, newU, camp.id], 'les liens suivent les nouveaux identifiants');
+  assert.ok(v.state.maps['atlas-profondeurs'], 'l’Atlas garde son identifiant fixe');
+
+  const second = await v.sync();
+  assert.deepEqual([second.idTaken.length, second.conflicts.length], [0, 0]);
+  assert.equal((await v.sync()).stats.pushed, 0, 'tout est parti');
+  const mine = (await vic.call('GET', '/api/sync?since=0')).body.docs;
+  assert.ok(mine.some((d) => d.type === 'universe' && d.id === newU));
+  assert.equal(mine.some((d) => d.id === 'uz' || d.id === 'nz'), false, 'Vic ne voit pas les éléments d’Una');
+  const unas = (await una.call('GET', '/api/sync?since=0')).body.docs;
+  assert.equal(unas.find((d) => d.id === 'nz').data.name, 'Garde', 'ceux d’Una sont intacts');
+});

@@ -5,7 +5,8 @@
  *   1. une ancienne sauvegarde (images en base64) est migrée sans perte ;
  *   2. un export .zip se réimporte dans un navigateur vierge, images comprises ;
  *   5. un compte synchronise deux navigateurs, et un conflit se règle dans l'interface ;
- *   6. une invitation est acceptée par un invité qui crée son compte sur place.
+ *   6. une invitation est acceptée par un invité qui crée son compte sur place ;
+ *   8. les avis et conditions sont exigés à la première connexion, et un compte se supprime depuis Réglages.
  * Usage : `npm run test:e2e` (Playwright et Chromium requis : `npm i -D playwright && npx playwright install chromium`).
  */
 const { spawn, execFileSync } = require('node:child_process');
@@ -135,6 +136,15 @@ async function signUp(page, name, email) {
   await page.getByPlaceholder('Courriel').fill(email);
   await page.getByPlaceholder('Mot de passe (10 caractères minimum)').fill(PASS);
   await page.getByRole('button', { name: 'Créer mon compte' }).click();
+  await acceptTerms(page);
+}
+/** Première connexion : la fenêtre des avis et conditions doit être acceptée. */
+async function acceptTerms(page) {
+  const gate = page.locator('.modal', { hasText: 'Avant de commencer' });
+  await gate.waitFor({ timeout: 10000 });
+  await gate.getByRole('checkbox').check();
+  await gate.getByRole('button', { name: 'Accepter', exact: true }).click();
+  await gate.waitFor({ state: 'detached' });
 }
 async function signIn(page, email) {
   await page.getByPlaceholder('Courriel').fill(email);
@@ -240,6 +250,40 @@ const SCENARIOS = {
     await a.getByRole('button', { name: 'Synchroniser maintenant' }).click();
     await a.waitForTimeout(3000);
     check((await disk(a)).state.npcs.n1.name === 'Yemena (B)', 'le choix de B n’est pas arrivé chez A');
+  },
+
+  async 'Lot 8 : avis à accepter, puis suppression du compte'(browser) {
+    const email = `zoe-${randomUUID().slice(0, 8)}@exemple.org`;
+    const page = await browserPage(browser, 'lot 8');
+    await seedLegacy(page);
+    await page.goto(SITE + '/?view=bestiary');
+    await page.waitForTimeout(2500);
+    await openSettings(page);
+    await page.getByRole('button', { name: 'Créer un compte' }).click();
+    await page.getByPlaceholder('Nom affiché').fill('Zoé');
+    await page.getByPlaceholder('Courriel').fill(email);
+    await page.getByPlaceholder('Mot de passe (10 caractères minimum)').fill(PASS);
+    await page.getByRole('button', { name: 'Créer mon compte' }).click();
+    const gate = page.locator('.modal', { hasText: 'Avant de commencer' });
+    await gate.waitFor();
+    check(await gate.getByRole('button', { name: 'Accepter', exact: true }).isDisabled(), 'on peut accepter sans cocher');
+    await page.waitForTimeout(1500);
+    check((await badge(page)) === 'Conditions à accepter', `badge avant acceptation : ${await badge(page)}`);
+    await gate.getByRole('checkbox').check();
+    await gate.getByRole('button', { name: 'Accepter', exact: true }).click();
+    await page.waitForTimeout(3000);
+    check((await badge(page)) === 'Synchronisé', `badge après acceptation : ${await badge(page)}`);
+    await page.getByRole('button', { name: 'Supprimer mon compte…' }).click();
+    await page.getByPlaceholder(`Retape ${email}`).fill(email);
+    await page.getByRole('button', { name: 'Supprimer définitivement' }).click();
+    await page.waitForTimeout(2000);
+    const panel = await page.locator('text=Compte et synchronisation').locator('..').innerText().catch(() => '');
+    check(!(await page.locator('text=Connecté :').isVisible()), `toujours connecté après suppression : ${panel.replace(/\n+/g, ' | ').slice(0, 300)}`);
+    const d = await disk(page);
+    // Les identifiants ont pu être renommés (déjà pris par un autre compte du test) : on cherche par le nom.
+    check(Object.values(d.state.npcs).some((n) => n.name === 'Yemena'), 'le grimoire local a disparu');
+    const res = await fetch(API + '/api/auth/sign-in/email', { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: SITE }, body: JSON.stringify({ email, password: PASS }) });
+    check(res.status !== 200, 'le compte supprimé permet encore de se connecter');
   },
 
   async 'Lot 6 : invitation acceptée par un invité qui crée son compte'(browser) {

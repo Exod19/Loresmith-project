@@ -10,6 +10,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { getPlatformProxy } from 'wrangler';
 import app from '../src/index.js';
+import { TERMS_VERSION } from '../../src/shared/terms.js';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const BASE = 'http://localhost:8787';
@@ -48,6 +49,7 @@ async function signUp(name) {
   const call = client();
   const r = await call('POST', '/api/auth/sign-up/email', { email: `${name}@exemple.org`, password: 'un-mot-de-passe-solide', name });
   assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal((await call('POST', '/api/me/terms', { version: TERMS_VERSION })).status, 200);
   return { call, id: r.body.user.id };
 }
 
