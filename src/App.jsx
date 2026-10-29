@@ -79,6 +79,8 @@ import {
 import './forge/forge.css';
 import UniverseForge from './universe/UniverseForge';
 import { buildUniverse } from './universe/forgeBrief';
+import DeleteUniverseDialog from './universe/DeleteUniverseDialog';
+import { removeUniverse, canDeleteUniverse } from './universe/deleteUniverse';
 import './combat/wartable.css';
 import { entityFromSrd, generateEntities } from './bestiary/entityGen';
 import StatSheet from './bestiary/StatSheet';
@@ -4809,12 +4811,8 @@ function reducer(s, a) {
           [a.id]: { ...s.universes[a.id], ...a.patch },
         },
       };
-    case 'DELETE_UNIVERSE': {
-      const un = { ...s.universes };
-      delete un[a.id];
-      const rest = Object.keys(un);
-      return { ...s, universes: un, activeUniverseId: rest[0] || null };
-    }
+    case 'DELETE_UNIVERSE':
+      return removeUniverse(s, a.id);
     case 'SET_UNIVERSE':
       return { ...s, activeUniverseId: a.id };
     case 'ADD_CHARACTER':
@@ -5678,6 +5676,7 @@ function Dashboard({
   setExportOpen,
 }) {
   const { ai } = useContext(AIContext);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const library = Object.values(state.libraryEntries || {})
     .filter((e) => e.universeId === universe.id)
     .map((e) => ({ ...e, typeLabel: LIBRARY_TYPES[e.archiveType]?.singular || '' }));
@@ -5787,19 +5786,27 @@ function Dashboard({
           >
             ✦ Nouvel univers
           </button>
-          {Object.keys(state.universes).length > 1 && (
-            <button
-              className="btn ghost danger"
-              style={{ flex: 'none' }}
-              onClick={() => {
-                if (confirm('Supprimer cet univers et basculer vers un autre ?')) {
-                  dispatch({ type: 'DELETE_UNIVERSE', id: universe.id });
-                  flash('Univers supprimé');
-                }
+          <button
+            className="btn ghost danger"
+            style={{ flex: 'none' }}
+            disabled={!canDeleteUniverse(state, universe.id)}
+            title={canDeleteUniverse(state, universe.id) ? undefined : 'Crée un autre univers avant de supprimer celui-ci.'}
+            onClick={() => setDeleteOpen(true)}
+          >
+            Supprimer l’univers
+          </button>
+          {deleteOpen && (
+            <DeleteUniverseDialog
+              state={state}
+              universe={universe}
+              flash={flash}
+              onClose={() => setDeleteOpen(false)}
+              onConfirm={() => {
+                dispatch({ type: 'DELETE_UNIVERSE', id: universe.id });
+                setDeleteOpen(false);
+                flash('Univers supprimé');
               }}
-            >
-              Supprimer l’univers
-            </button>
+            />
           )}
         </div>
       </div>
