@@ -15,6 +15,7 @@ import { STATS } from './atlas/statblocks';
 import type { PlayerBoard, PlayerElement, PlayerToken, PlayerTurn } from '../present/stage';
 import { initiativeOrder } from './battle/combat';
 import { inSight, partyVision } from './battle/fog';
+import { visionShapes, memoryShapes } from './zone';
 import { exitsOf } from './battle/trailRules';
 import type { BattleToken } from './mapStore';
 
@@ -31,6 +32,13 @@ export function seedExplored(data: AtlasData, rec: MapRecord, planId: string, at
   for (const m of rec.overlay?.markers ?? []) if (m.revealed && m.planId === planId) out.push([m.x, m.y]);
   return out;
 }
+
+type Shapes = { polys: [number, number][][]; lines: [number, number][][] };
+/** Brouillard de la carte de navigation envoyé aux joueurs. `see` : ce que le groupe voit (arrêté par les parois) ;
+ *  `memory` : cavernes visitées et tracés parcourus ; `clip` : seule région où la mémoire ponctuelle peut s'éclaircir. */
+export type MapFogData = { vision: [number, number][]; explored: [number, number][]; r: number; er: number; see?: Shapes; memory?: Shapes; clip?: Shapes; lit?: number };
+/** Lueur du groupe (torche, vision dans le noir) : un petit halo, arrêté par les parois. En largeur de plan. */
+export const LIT_R = 0.009;
 
 /** Rayon de vision du groupe sur la carte de navigation (en largeur de plan). */
 export const VISION_R = 0.035;
@@ -67,7 +75,7 @@ export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus
   }
   // Brouillard de guerre : la vision du groupe et des héros séparés est éclairée ; ce qui a été découvert (lieux
   // révélés, parcours, chemins suivis) reste visible mais sombre ; le reste est noir.
-  let fog: { vision: [number, number][]; explored: [number, number][]; r: number; er: number } | undefined;
+  let fog: MapFogData | undefined;
   if (view.fog) {
     const vision: [number, number][] = [];
     for (const p of [party?.at, ...(party?.apart ?? []).map((h) => h.at)]) { const c = at(p); if (c) vision.push(c); }
@@ -75,6 +83,16 @@ export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus
     // des lieux révélés et du parcours du groupe.
     const explored = rec.overlay?.explored?.[planId] ?? seedExplored(data, rec, planId, at);
     fog = { vision, explored, r: VISION_R, er: 0.022 };
+    // La vue s'arrête aux parois : la caverne du groupe (pas la voisine) et l'entrée des tunnels ; la mémoire ne
+    // dévoile que les cavernes où le groupe s'est tenu et les tracés parcourus.
+    if (full && rec.kind === 'atlas') {
+      const see = { polys: [] as [number, number][][], lines: [] as [number, number][][] };
+      for (const c of vision) { const v = visionShapes(full, planId, c); see.polys.push(...v.polys); see.lines.push(...v.lines); }
+      // Mémoire : les cavernes déjà quittées où il reste un souvenir (le MJ peut les replonger dans le noir), et les
+      // bouts de tunnel parcourus. La caverne actuelle n'est éclairée que par la lueur du groupe.
+      const memory = memoryShapes(full, planId, explored, see.polys);
+      fog = { ...fog, er: 0.008, lit: LIT_R, see, memory, clip: { polys: memory.polys, lines: memory.lines } };
+    }
   }
   const t = rec.overlay?.travel;
   const travel = t && t.planId === planId && (t.hold || Date.now() - t.at < 30000) ? { key: t.key, points: t.points, at: t.at, label: 'Groupe', hold: t.hold } : undefined;

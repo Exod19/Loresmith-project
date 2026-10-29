@@ -155,11 +155,8 @@ export function validate(d: AtlasData = ATLAS): string[] {
   return errs;
 }
 
-/**
- * Contour organique stable d'une cavité (graine déterministe), en unités de plan :
- * quelques lobes de basse fréquence, un relief plus fin, puis lissage par courbes.
- */
-export function cavityPath(c: Cavity, W: number, H: number, grow = 0, n = 44) {
+/** Sommets du contour d'une cavité (même tirage que le dessin) : sert aussi à savoir ce qui est dedans. */
+export function cavityPoints(c: Cavity, W: number, H: number, grow = 0, n = 44): [number, number][] {
   let z = (c.seed * 2654435761) >>> 0;
   const r = () => ((z = (1664525 * z + 1013904223) >>> 0) / 4294967296);
   const harm = [2, 3, 5, 7].map((f, i) => ({ f, a: [0.13, 0.09, 0.05, 0.03][i] * (0.6 + r() * 0.8), p: r() * Math.PI * 2 }));
@@ -170,6 +167,15 @@ export function cavityPath(c: Cavity, W: number, H: number, grow = 0, n = 44) {
     for (const h of harm) k += h.a * Math.sin(h.f * a + h.p);
     P.push([c.cx * W + Math.cos(a) * (c.rx * W * k + grow), c.cy * H + Math.sin(a) * (c.ry * H * k + grow)]);
   }
+  return P;
+}
+
+/**
+ * Contour organique stable d'une cavité (graine déterministe), en unités de plan :
+ * quelques lobes de basse fréquence, un relief plus fin, puis lissage par courbes.
+ */
+export function cavityPath(c: Cavity, W: number, H: number, grow = 0, n = 44) {
+  const P = cavityPoints(c, W, H, grow, n);
   const f = (v: number) => v.toFixed(1);
   const m = (i: number) => { const a = P[i % n], b = P[(i + 1) % n]; return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; };
   let d = `M${f(m(0)[0])} ${f(m(0)[1])}`;
