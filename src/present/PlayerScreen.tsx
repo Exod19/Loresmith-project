@@ -9,6 +9,7 @@ import type { AtlasData, AtlasFeature, FeatureCategory } from '../maps/atlas/typ
 import BattleBoard, { CATEGORY_ICON, type BoardRange } from '../maps/battle/BattleBoard';
 import { reachableCells } from '../maps/battle/ranges';
 import { trailProfile } from '../maps/atlas/trails';
+import { lengthOf, project, subpath, towardOf } from '../maps/journey';
 import { CATEGORY_IMG, vignette } from '../maps/battle/vignettes';
 import { openStageChannel, type PlayerBoard, type PlayerElement, type PlayerToken, type PlayerTurn, type Stage, type StageMessage } from './stage';
 import '../maps/maps.css';
@@ -89,7 +90,7 @@ function Scene({ stage, rev }: { stage: Stage; rev: number }) {
   }
   if (stage.kind === 'board') {
     return stage.board.mode === 'map'
-      ? <PlayerMap board={stage.board} rev={rev} onFollow={(featureId) => sendToHost?.({ type: 'follow', featureId })} />
+      ? <PlayerMap board={stage.board} rev={rev} onFollow={(featureId, dir) => sendToHost?.({ type: 'follow', featureId, dir })} />
       : <PlayerBattle board={stage.board} onAim={(from, to) => sendToHost?.({ type: 'aim', from, to })} onMove={(id, x, y) => sendToHost?.({ type: 'move', id, x, y })} />;
   }
   return (
@@ -99,7 +100,7 @@ function Scene({ stage, rev }: { stage: Stage; rev: number }) {
   );
 }
 
-function PlayerMap({ board, rev, onFollow }: { board: Extract<PlayerBoard, { mode: 'map' }>; rev: number; onFollow?: (featureId: string) => void }) {
+function PlayerMap({ board, rev, onFollow }: { board: Extract<PlayerBoard, { mode: 'map' }>; rev: number; onFollow?: (featureId: string, dir?: 'a' | 'b') => void }) {
   setAtlasData(board.data as AtlasData);
   // Un lieu ou un chemin touché : sa fiche ; un chemin peut être suivi (le MJ valide, ou fait passer l'épreuve).
   const [picked, setPicked] = useState<AtlasFeature | null>(null);
@@ -138,7 +139,17 @@ function PlayerMap({ board, rev, onFollow }: { board: Extract<PlayerBoard, { mod
           {picked.trace && onFollow && (
             asked === picked.id
               ? <p className="present-aim-wait">Le MJ décide si le groupe s’y engage…</p>
-              : <button className="present-aim-btn" onClick={() => { onFollow(picked.id); setAsked(picked.id); }}>🚶 Suivre ce chemin</button>
+              : (() => {
+                const dirs = directionsOf(board, picked.id);
+                if (!dirs.length) return <p className="present-aim-wait">Le groupe n’est pas sur ce chemin.</p>;
+                return (
+                  <div className="present-path-go">
+                    {dirs.map((d) => (
+                      <button key={d.dir} className="present-aim-btn" onClick={() => { onFollow(picked.id, d.dir); setAsked(picked.id); }}>🚶 Vers {d.toward}</button>
+                    ))}
+                  </div>
+                );
+              })()
           )}
         </aside>
       )}
@@ -384,4 +395,23 @@ function directionOf(board: Extract<PlayerBoard, { mode: 'map' }>, id: string): 
   }
   const from = toward(a[0] - b[0], a[1] - b[1]).replace(/^le /, 'du ').replace(/^l’/, 'de l’');
   return `S’étire ${from} vers ${toward(b[0] - a[0], b[1] - a[1])}`;
+}
+
+/** Directions que le groupe peut prendre sur un chemin qu'il touche : vers l'un ou l'autre bout (sans dire où il mène). */
+function directionsOf(board: Extract<PlayerBoard, { mode: 'map' }>, id: string): { dir: 'a' | 'b'; toward: string }[] {
+  const g = board.data.geometries.find((x) => x.featureId === id && x.mapId === board.planId && x.type === 'polyline');
+  if (!g || !board.here) return [];
+  const pts = g.coordinates as [number, number][];
+  const here = project(pts, board.here);
+  if (here.d > 0.04) return [];
+  const L = lengthOf(pts);
+  const out: { dir: 'a' | 'b'; toward: string }[] = [];
+  for (const dir of ['a', 'b'] as const) {
+    const end = dir === 'b' ? L : 0;
+    if (Math.abs(end - here.s) < 0.012) continue;
+    const route = subpath(pts, here.s, dir === 'b' ? Math.min(L, here.s + 0.05) : Math.max(0, here.s - 0.05));
+    const far = route[route.length - 1];
+    out.push({ dir, toward: towardOf(far[0] - board.here[0], far[1] - board.here[1]) });
+  }
+  return out;
 }

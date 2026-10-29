@@ -77,7 +77,7 @@ export interface MapOverlay {
   /** Brouillard : points déjà découverts par plan (chemins parcourus, lieux traversés), qui restent visibles mais sombres. */
   explored?: Record<string, [number, number][]>;
   /** Dernier trajet du groupe le long d'un chemin, pour l'animer (MJ et joueurs). */
-  travel?: { key: string; planId: string; points: [number, number][]; at: number };
+  travel?: { key: string; planId: string; points: [number, number][]; at: number; hold?: boolean };
   markers: MapMarker[];
   /** Destinations inscrites par le MJ, par identifiant de passage (tracé de l'Atlas). */
   passageLinks?: Record<string, PassageLink>;
@@ -99,6 +99,11 @@ export interface PartyTrack {
   log?: { t: number; text: string }[];
   /** Héros séparés du groupe : sortis seuls d'une carte de combat, ils attendent là où leur sortie mène. */
   apart?: { id: string; name: string; heroId?: string; image?: string; at: PartyPlace; since: number }[];
+  /** Heures de marche (jeu) depuis le dernier jet de rencontre, et seuil du prochain (1 à 2 h, tiré au hasard). */
+  walked?: number;
+  nextCheck?: number;
+  /** Halte en chemin pour un jet de rencontre : où le groupe s'est arrêté, et la suite de la route jusqu'à l'étape. */
+  halt?: { trailId: string; trail: string; planId: string; point: [number, number]; rest: [number, number][]; to: PartyPlace; back: [number, number][]; from?: PartyPlace; hours: number; restHours: number; encounter?: boolean };
 }
 
 /** Ce que le MJ sait d'un élément à fouiller : comment le trouver, ce qu'on y trouve, et ce que ça fait. */

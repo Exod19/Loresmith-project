@@ -201,3 +201,9 @@
 .finds-list li { display: flex; align-items: center; gap: 6px; }
 .finds-dc { flex: none; font-size: .72rem; padding: 1px 6px; border-radius: 8px; border: 1px solid #5a4a2a; color: #e9d7b4; white-space: nowrap; }
 .finds-list .maps-link { flex: 1; text-align: left; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.maps-halt { border: 1px solid #b99cff; border-radius: 6px; padding: 8px 10px; background: rgba(60,40,100,.18); }
+.maps-halt h4 { margin: 0 0 4px; color: #e6dcff; font-size: .9rem; }
+.maps-halt p { margin: 0 0 6px; }
+.maps-halt-btns, .trail-legs { display: flex; flex-direction: column; gap: 6px; }
+.trail-legs .maps-btn { text-align: left; }
+.trail-legs small { color: #a9aaa5; margin-left: 4px; }

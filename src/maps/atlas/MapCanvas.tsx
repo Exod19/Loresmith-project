@@ -107,7 +107,14 @@ export type MapMark = { id: string; x: number; y: number; label: string; tone: '
 /** Brouillard de guerre : `vision` (cercles éclairés, rayon r), `explored` (déjà découvert, assombri, rayon er) ; le reste est noir. */
 export type MapFog = { vision: [number, number][]; explored: [number, number][]; r: number; er: number };
 /** Le groupe en chemin : il glisse le long des points du tracé (coins compris), de `points[0]` au dernier. */
-export type MapTravel = { key: string; points: [number, number][]; at: number; label?: string };
+export type MapTravel = { key: string; points: [number, number][]; at: number; label?: string; hold?: boolean };
+
+/** Durée de l'animation d'un trajet (ms) : de 8 à 24 s selon la longueur du chemin. Partagée avec la console MJ. */
+export function journeyMs(points: [number, number][], W: number, H: number) {
+  let total = 0;
+  for (let i = 1; i < points.length; i++) total += Math.hypot((points[i][0] - points[i - 1][0]) * W, (points[i][1] - points[i - 1][1]) * H);
+  return Math.min(24000, Math.max(8000, (total / W) * 48000));
+}
 
 export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, dataKey, dm, marks = [], fog, journey }: {
   map: AtlasMap; layers: Layers; hidden: Set<FeatureCategory>;
@@ -129,8 +136,11 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   // Le groupe en chemin : position courante le long du tracé, image par image.
   const [walker, setWalker] = useState<[number, number] | null>(null);
   useEffect(() => {
-    if (!journey || journey.points.length < 2 || Date.now() - journey.at > 30000) { setWalker(null); return; }
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { setWalker(null); return; }
+    if (!journey || journey.points.length < 2) { setWalker(null); return; }
+    const last = journey.points[journey.points.length - 1];
+    // Halte en chemin : le groupe reste là où il s'est arrêté (sans rejouer le trajet s'il est ancien).
+    const stale = Date.now() - journey.at > journeyMs(journey.points, map.width, map.height) + 2000;
+    if (stale || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { setWalker(journey.hold ? last : null); return; }
     // Tracé adouci (coins arrondis, deux passes de Chaikin) : le jeton prend les virages sans à-coups.
     let route = journey.points;
     for (let pass = 0; pass < 2; pass++) {
@@ -147,14 +157,15 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
     for (let i = 1; i < pts.length; i++) seg.push(seg[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
     const total = seg[seg.length - 1] || 1;
     // Lent et lisible : de 8 à 24 secondes selon la longueur du chemin.
-    const duration = Math.min(24000, Math.max(8000, (total / map.width) * 48000));
+    const duration = journeyMs(journey.points, map.width, map.height);
+    void total;
     const start = performance.now();
     let raf = 0;
-    let last = start;
+    let prev = start;
     // Suivi de caméra au temps écoulé (et non à l'image) : il rattrape le jeton même si l'écran rafraîchit lentement.
     const follow = (x: number, y: number, now: number) => {
-      const a = 1 - Math.exp(-(now - last) / 600);
-      last = now;
+      const a = 1 - Math.exp(-(now - prev) / 600);
+      prev = now;
       setT((o) => { const g = fit(map, x, y, o.k); return { k: o.k, tx: o.tx + (g.tx - o.tx) * a, ty: o.ty + (g.ty - o.ty) * a }; });
     };
     const step = (now: number) => {
@@ -162,7 +173,7 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
       if (now - start > duration) {
         const [ex, ey] = journey.points[journey.points.length - 1];
         follow(ex, ey, now);
-        if (now - start < duration + 1800) raf = requestAnimationFrame(step); else setWalker(null);
+        if (now - start < duration + 1800) raf = requestAnimationFrame(step); else setWalker(journey.hold ? last : null);
         return;
       }
       const k = Math.min(1, (now - start) / duration);
@@ -187,8 +198,9 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   const travelEnd = journey ? journey.points[journey.points.length - 1] : undefined;
   const near = (a: [number, number], b?: [number, number]) => !!b && Math.hypot(a[0] - b[0], a[1] - b[1]) < 0.012;
   // Pendant le trajet, la vision suit le groupe en marche (pas encore à destination).
-  const vision = fog ? (walker ? [...fog.vision.filter((p) => !near(p, travelEnd)), walker] : fog.vision) : [];
-  const shownMarks = walker ? marks.filter((m) => !(m.tone === 'party' && near([m.x, m.y], travelEnd))) : marks;
+  const travelStart = journey ? journey.points[0] : undefined;
+  const vision = fog ? (walker ? [...fog.vision.filter((p) => !near(p, travelEnd) && !near(p, travelStart)), walker] : fog.vision) : [];
+  const shownMarks = walker ? marks.filter((m) => m.tone !== 'party') : marks;
   const svg = useRef<SVGSVGElement>(null);
   const W = map.width, H = map.height;
   /** Facteur d'échelle du plan par rapport aux plans saisis (1240 de large) : les seuils de zoom en dépendent. */

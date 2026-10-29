@@ -785,3 +785,4 @@
 .present-path-dir{color:#e6d7ae}
 .present-path-why{color:#cdbd96}
 .present-path-why small{color:#9a8a63}
+.present-path-go{display:flex;flex-wrap:wrap;gap:8px}
