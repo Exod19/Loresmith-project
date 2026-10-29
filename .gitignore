@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Serveur (Worker) : état local de Wrangler et secrets de développement
+server/.wrangler
+server/.dev.vars

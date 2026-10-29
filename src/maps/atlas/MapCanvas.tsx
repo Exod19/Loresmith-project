@@ -105,7 +105,9 @@ function buildings(m: AtlasMap) {
 export type MapMark = { id: string; x: number; y: number; label: string; tone: 'party' | 'dest' | 'hero' };
 
 /** Brouillard de guerre : `vision` (cercles éclairés, rayon r), `explored` (déjà découvert, assombri, rayon er) ; le reste est noir. */
-export type MapFog = { vision: [number, number][]; explored: [number, number][]; r: number; er: number };
+type FogShapes = { polys: [number, number][][]; lines: [number, number][][] };
+/** `see`/`memory`/`clip` : vue arrêtée par les parois (sinon des cercles autour du groupe). */
+export type MapFog = { vision: [number, number][]; explored: [number, number][]; r: number; er: number; see?: FogShapes; memory?: FogShapes; clip?: FogShapes; lit?: number };
 /** Le groupe en chemin : il glisse le long des points du tracé (coins compris), de `points[0]` au dernier. */
 export type MapTravel = { key: string; points: [number, number][]; at: number; label?: string; hold?: boolean };
 
@@ -201,6 +203,29 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   const travelStart = journey ? journey.points[0] : undefined;
   const vision = fog ? (walker ? [...fog.vision.filter((p) => !near(p, travelEnd) && !near(p, travelStart)), walker] : fog.vision) : [];
   const shownMarks = walker ? marks.filter((m) => m.tone !== 'party') : marks;
+  // Brouillard arrêté par les parois : polygones des cavernes vues et rubans le long des tunnels (unités de plan).
+  const polyD = (poly: [number, number][]) => `M${poly.map(([x, y]) => `${(x * W).toFixed(1)} ${(y * H).toFixed(1)}`).join('L')}Z`;
+  const FOG_LINE_W = 26;
+  const lineRibbon = (pts: [number, number][], w: number) => {
+    // Ruban fermé autour du tracé (un clipPath n'accepte pas les traits épais).
+    const P = pts.map(([x, y]) => [x * W, y * H]);
+    const left: string[] = [], right: string[] = [];
+    for (let i = 0; i < P.length; i++) {
+      const a = P[Math.max(0, i - 1)], b = P[Math.min(P.length - 1, i + 1)];
+      const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1;
+      const nx = (-dy / l) * (w / 2), ny = (dx / l) * (w / 2);
+      left.push(`${(P[i][0] + nx).toFixed(1)} ${(P[i][1] + ny).toFixed(1)}`);
+      right.unshift(`${(P[i][0] - nx).toFixed(1)} ${(P[i][1] - ny).toFixed(1)}`);
+    }
+    return `M${left.join('L')}L${right.join('L')}Z`;
+  };
+  const FogShapesLayer = ({ shapes }: { shapes: FogShapes }) => (
+    <g fill="#000">
+      {shapes.polys.map((poly, i) => <path key={`p${i}`} d={polyD(poly)} />)}
+      {shapes.lines.map((l, i) => <path key={`l${i}`} d={l.map(([x, y], k) => `${k ? 'L' : 'M'}${(x * W).toFixed(1)} ${(y * H).toFixed(1)}`).join('')} stroke="#000" strokeWidth={FOG_LINE_W} strokeLinecap="butt" strokeLinejoin="round" fill="none" />)}
+    </g>
+  );
+
   const svg = useRef<SVGSVGElement>(null);
   const W = map.width, H = map.height;
   /** Facteur d'échelle du plan par rapport aux plans saisis (1240 de large) : les seuils de zoom en dépendent. */
@@ -265,6 +290,15 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
     const f = focus?.kind === 'point' ? features.get(focus.id) : undefined;
     setT(fit(map, focusPos[0], focusPos[1], Math.max(1.7 * zf, (f?.minZoom ?? 0) + 0.3 * zf)));
   }, [focusKey, focusPos]);
+  // Brouillard arrêté par les parois : la vue suit le groupe de près (il ne voit que sa lueur), une fois par position.
+  const leadKey = fog?.see && !walker && vision[0] ? `${vision[0][0].toFixed(4)},${vision[0][1].toFixed(4)}` : '';
+  useEffect(() => {
+    if (!leadKey) return;
+    const [x, y] = leadKey.split(',').map(Number);
+    fresh.current = false;
+    setT(fit(map, x, y, 2.6 * zf));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leadKey]);
 
   const toSvg = (cx: number, cy: number) => {
     const el = svg.current!; const p = el.createSVGPoint(); p.x = cx; p.y = cy;
@@ -510,18 +544,33 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
                   <stop offset="1" stopColor="#000" stopOpacity="0" />
                 </radialGradient>
                 {/* Noir : tout sauf le découvert et la vision. Voile : tout sauf la vision. */}
+                {fog.see && (
+                  <clipPath id="am-fog-see" clipPathUnits="userSpaceOnUse">
+                    {fog.see.polys.map((poly, i) => <path key={`sp${i}`} d={polyD(poly)} />)}
+                    {fog.see.lines.map((l, i) => <path key={`sl${i}`} d={lineRibbon(l, FOG_LINE_W)} />)}
+                  </clipPath>
+                )}
+                {fog.clip && (
+                  <clipPath id="am-fog-clip" clipPathUnits="userSpaceOnUse">
+                    {fog.clip.polys.map((poly, i) => <path key={`cp${i}`} d={polyD(poly)} />)}
+                    {fog.clip.lines.map((l, i) => <path key={`cl${i}`} d={lineRibbon(l, FOG_LINE_W)} />)}
+                  </clipPath>
+                )}
                 <mask id="am-fog-dark" maskUnits="userSpaceOnUse" x={-W} y={-H} width={W * 3} height={H * 3}>
                   <rect x={-W} y={-H} width={W * 3} height={H * 3} fill="#fff" />
-                  {fog.explored.map(([x, y], i) => <circle key={`e${i}`} cx={x * W} cy={y * H} r={fog.er * W} fill="url(#am-fog-hole)" />)}
-                  {vision.map(([x, y], i) => <circle key={`v${i}`} cx={x * W} cy={y * H} r={fog.r * W} fill="url(#am-fog-hole)" />)}
+                  <g clipPath={fog.clip ? 'url(#am-fog-clip)' : undefined}>
+                    {fog.explored.map(([x, y], i) => <circle key={`e${i}`} cx={x * W} cy={y * H} r={fog.er * W} fill="url(#am-fog-hole)" />)}
+                  </g>
+                  {fog.memory && <FogShapesLayer shapes={fog.memory} />}
+                  {fog.see && !walker ? <g clipPath="url(#am-fog-see)">{vision.map(([x, y], i) => <circle key={`v${i}`} cx={x * W} cy={y * H} r={(fog.lit ?? fog.r) * W} fill="url(#am-fog-hole)" />)}</g> : vision.map(([x, y], i) => <circle key={`v${i}`} cx={x * W} cy={y * H} r={(fog.see ? (fog.lit ?? fog.r) * 0.8 : fog.r) * W} fill="url(#am-fog-hole)" />)}
                 </mask>
                 <mask id="am-fog-dim" maskUnits="userSpaceOnUse" x={-W} y={-H} width={W * 3} height={H * 3}>
                   <rect x={-W} y={-H} width={W * 3} height={H * 3} fill="#fff" />
-                  {vision.map(([x, y], i) => <circle key={`v${i}`} cx={x * W} cy={y * H} r={fog.r * W} fill="url(#am-fog-hole)" />)}
+                  {fog.see && !walker ? <g clipPath="url(#am-fog-see)">{vision.map(([x, y], i) => <circle key={`v${i}`} cx={x * W} cy={y * H} r={(fog.lit ?? fog.r) * W} fill="url(#am-fog-hole)" />)}</g> : vision.map(([x, y], i) => <circle key={`v${i}`} cx={x * W} cy={y * H} r={(fog.see ? (fog.lit ?? fog.r) * 0.8 : fog.r) * W} fill="url(#am-fog-hole)" />)}
                 </mask>
               </defs>
               <rect x={-W} y={-H} width={W * 3} height={H * 3} fill="#030404" opacity={0.985} mask="url(#am-fog-dark)" />
-              <rect x={-W} y={-H} width={W * 3} height={H * 3} fill="#04060a" opacity={0.55} mask="url(#am-fog-dim)" />
+              <rect x={-W} y={-H} width={W * 3} height={H * 3} fill="#04060a" opacity={fog.see ? 0.8 : 0.55} mask="url(#am-fog-dim)" />
             </g>
           )}
           {walker && (

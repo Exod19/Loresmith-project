@@ -1,0 +1,5 @@
+# Copier ce fichier en `.dev.vars` (jamais commité) et remplacer la valeur.
+# Générer un secret : node -e "console.log(crypto.randomUUID() + crypto.randomUUID())"
+BETTER_AUTH_SECRET=remplacer-par-un-secret-d-au-moins-32-caracteres
+# Facultatif : clé Resend pour envoyer les invitations par courriel (sinon, le lien est seulement affiché).
+# RESEND_API_KEY=re_...

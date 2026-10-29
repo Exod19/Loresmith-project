@@ -9,6 +9,7 @@
  * ne touche jamais aux révélations, aux repères ou aux combats.
  */
 import { setAtlasData } from './atlas/model';
+import { IMAGE_MAX, fitWithin } from '../store/imageRefs';
 import type { LocalElement } from './battle/local';
 import type { HaltAlert } from './atlas/omens';
 import type { AtlasData, AtlasFeature, AtlasGeometry, AtlasMap, FeatureCategory, Importance } from './atlas/types';
@@ -330,19 +331,19 @@ export function activateMap(rec: MapRecord, dm: boolean, atlas: AtlasData): Atla
   return activeData;
 }
 
-/** Lit une image et la réduit (côté le plus long ≤ 2000 px) pour rester raisonnable dans le stockage local. */
+/** Lit une image et la réduit (côté le plus long ≤ 1600 px, en WebP) pour rester raisonnable dans le stockage local. */
 export function imageFileToDataUrl(file: File): Promise<{ dataUrl: string; width: number; height: number }> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
-      const scale = Math.min(1, 2000 / Math.max(img.naturalWidth, img.naturalHeight));
-      const width = Math.round(img.naturalWidth * scale), height = Math.round(img.naturalHeight * scale);
+      const { width, height } = fitWithin(img.naturalWidth, img.naturalHeight, IMAGE_MAX.carte);
       const canvas = document.createElement('canvas');
       canvas.width = width; canvas.height = height;
       canvas.getContext('2d')!.drawImage(img, 0, 0, width, height);
       URL.revokeObjectURL(url);
-      resolve({ dataUrl: canvas.toDataURL('image/jpeg', 0.86), width, height });
+      const webp = canvas.toDataURL('image/webp', 0.86);
+      resolve({ dataUrl: webp.startsWith('data:image/webp') ? webp : canvas.toDataURL('image/jpeg', 0.86), width, height });
     };
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image illisible.')); };
     img.src = url;
