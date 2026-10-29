@@ -7,6 +7,7 @@ import MapCanvas, { type Layers, type MapMark } from './atlas/MapCanvas';
 import { CATEGORIES } from './atlas/model';
 import { describe as describeFeature, dmFeature } from './atlas/lore';
 import { rollEncounter, type EncCtx, type Encounter, type Zone } from './atlas/encounters';
+import { calmAlert, encounterAlert, suspenseAlert, type HaltAlert } from './atlas/omens';
 import { STATS, SRD_CREDIT, mod, type Stat } from './atlas/statblocks';
 import type { AtlasData, AtlasFeature, FeatureCategory } from './atlas/types';
 import {
@@ -317,7 +318,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
    * chemin parcouru reste découvert dans le brouillard, et ce qui est évident autour de l'arrivée se révèle. Ce qui
    * demande un jet (passage secret, fissure cachée…) reste caché tant que le MJ ne le révèle pas.
    */
-  const travelTo = (to: PartyPlace, opts: { points?: [number, number][]; trailId?: string; note?: string; walked?: number; nextCheck?: number } = {}) => {
+  const travelTo = (to: PartyPlace, opts: { points?: [number, number][]; trailId?: string; note?: string; walked?: number; nextCheck?: number; alert?: HaltAlert } = {}) => {
     let next = withPartyAt(overlay, to);
     const dest = placeCoords(data, rec, to);
     const reveal = new Set(next.revealed);
@@ -348,6 +349,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
       walked: opts.walked ?? p.walked, nextCheck: opts.nextCheck ?? p.nextCheck,
       log: opts.note ? [{ t: Date.now(), text: opts.note }, ...(p.log ?? [])].slice(0, 12) : p.log,
     } };
+    // L'annonce de halte s'efface en reprenant la route (sauf la fausse alerte, qui s'éteint d'elle-même).
+    next = { ...next, alert: opts.alert };
     setOverlay(next);
     setTrial(null);
     setAskNote(null);
@@ -393,28 +396,44 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     go(e);
   };
   /** Après la halte : reprendre la route jusqu'à l'étape, ou faire demi-tour. */
-  const resume = (back = false) => {
+  const resume = (back = false, calm = false) => {
     const h = party.halt;
     if (!h) return;
     const walked = party.walked ?? 0;
     const nextCheck = walked + 1 + Math.random();
+    const alert = calm ? calmAlert() : undefined;
     if (back) {
       const from = h.from ?? party.at;
       if (!from) return;
-      setOverlay({ ...overlay, travel: { key: `${Date.now()}`, planId: h.planId, points: h.back, at: Date.now() }, party: { ...party, halt: undefined, nextCheck } });
+      setOverlay({ ...overlay, alert, travel: { key: `${Date.now()}`, planId: h.planId, points: h.back, at: Date.now() }, party: { ...party, halt: undefined, nextCheck } });
       return;
     }
-    travelTo(h.to, { points: [h.point, ...h.rest], trailId: h.trailId, walked: walked + h.restHours, nextCheck });
+    travelTo(h.to, { points: [h.point, ...h.rest], trailId: h.trailId, walked: walked + h.restHours, nextCheck, alert });
   };
+  /** Ce que les joueurs voient de la rencontre tirée : son annonce et son image, ou la fausse alerte. */
+  const alertFor = (e: Encounter) => (e.happens && e.entry ? encounterAlert(e, overlay.encounterImages?.[e.entry.title]) : null) ?? calmAlert();
+  /** Halte : jet de rencontre (le hasard décide) ou rencontre imposée (tirée dans la table, à relancer au besoin). */
   const haltEncounter = (roll: boolean) => {
     const h = party.halt;
     if (!h) return;
-    setOverlay({ ...overlay, party: { ...party, halt: { ...h, encounter: true } } });
-    if (roll) {
-      const ctx: EncCtx = { zone: 'sauvage', depth: 3, place: h.trail };
-      setEnc({ ctx, e: rollEncounter(ctx, false) });
-    }
+    const ctx: EncCtx = { zone: 'sauvage', depth: 3, place: h.trail };
+    const e = rollEncounter(ctx, !roll);
+    setEnc({ ctx, e });
+    setOverlay({ ...overlay, alert: alertFor(e), party: { ...party, halt: { ...h, encounter: true } } });
     setSide('lieu');
+  };
+  const rerollEncounter = (force: boolean) => {
+    if (!enc) return;
+    const e = rollEncounter(enc.ctx, force);
+    setEnc({ ctx: enc.ctx, e });
+    if (party.halt) setOverlay({ ...overlay, alert: alertFor(e) });
+  };
+  /** Illustration d'une rencontre (mémorisée pour les prochaines fois) ; montrée tout de suite si elle est annoncée. */
+  const setEncounterImage = (title: string, image: string | undefined) => {
+    const images = { ...(overlay.encounterImages ?? {}) };
+    if (image) images[title] = image; else delete images[title];
+    const a = overlay.alert;
+    setOverlay({ ...overlay, encounterImages: images, alert: a && a.phase === 'encounter' && a.title === title ? { ...a, image } : a });
   };
   // La question « rencontre ? » attend que le jeton soit arrivé à la halte (fin de l'animation).
   const [, tick] = useState(0);
@@ -425,6 +444,13 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     const id = setTimeout(() => tick((n) => n + 1), left + 60);
     return () => clearTimeout(id);
   }, [haltReadyAt]);
+  // Arrivé à la halte, les joueurs voient monter le suspense, pendant que le MJ décide.
+  const haltReady = !!party.halt && !party.halt.encounter && haltReadyAt > 0 && Date.now() >= haltReadyAt;
+  useEffect(() => {
+    if (!dm || !haltReady || (overlay.alert && overlay.alert.at >= (overlay.travel?.at ?? 0))) return;
+    setOverlay({ ...overlay, alert: suspenseAlert() });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [haltReady]);
   // Les joueurs demandent à suivre un chemin (dans une direction) depuis leur écran.
   const followRef = useRef<(id: string, dir?: 'a' | 'b') => void>(() => {});
   followRef.current = (id, dir) => {
@@ -607,19 +633,23 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 <p className="maps-sub">
                   Sur « {party.halt.trail} », en route vers <b>{party.halt.to.title}</b>, après ≈ {hoursLabel(party.halt.hours)} de marche depuis le dernier jet.
                 </p>
+                {overlay.alert && overlay.alert.phase !== 'calm' && (
+                  <p className="maps-halt-said">Écran joueurs : « {overlay.alert.line} »{overlay.alert.title ? ` · ${overlay.alert.title}` : ''}{overlay.alert.phase === 'encounter' && !overlay.alert.image ? ' (sans image)' : ''}</p>
+                )}
                 {Date.now() < haltReadyAt ? (
                   <p className="maps-sub">Le groupe avance…</p>
                 ) : !party.halt.encounter ? (
                   <>
                     <p><b>Rencontre ?</b></p>
                     <div className="maps-halt-btns">
-                      <button className="maps-btn" onClick={() => resume()}>Rien, on continue ➜</button>
+                      <button className="maps-btn" onClick={() => resume(false, true)} title="Les joueurs lisent « Ah non, ce n'est rien… » et le groupe repart">Rien, on continue ➜</button>
                       <button className="maps-btn gold" onClick={() => haltEncounter(true)} title="Jet de rencontre selon le lieu (le hasard décide)">🎲 Jet de rencontre</button>
                       <button className="maps-btn gold" onClick={() => haltEncounter(false)} title="Le MJ décide qu'il y a une rencontre">⚔ Rencontre !</button>
                     </div>
                   </>
                 ) : (
                   <div className="maps-halt-btns">
+                    {overlay.alert && <button className="maps-link" onClick={() => setOverlay({ ...overlay, alert: undefined })}>Retirer l’annonce</button>}
                     <button className="maps-btn gold" onClick={() => resume()}>Reprendre la route → {party.halt.to.title}</button>
                     <button className="maps-btn" onClick={() => resume(true)}>← Demi-tour{party.halt.from ? ` vers ${party.halt.from.title}` : ''}</button>
                   </div>
@@ -787,7 +817,9 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
             {dm && side === 'lieu' && enc && (
               <EncounterBox
                 enc={enc}
-                onRoll={(force) => setEnc({ ctx: enc.ctx, e: rollEncounter(enc.ctx, force) })}
+                onRoll={rerollEncounter}
+                image={enc.e.entry ? overlay.encounterImages?.[enc.e.entry.title] : undefined}
+                onImage={(img) => { if (enc.e.entry) setEncounterImage(enc.e.entry.title, img); }}
                 onPlace={() => setPlacing({
                   kind: 'rencontre',
                   title: enc.e.entry?.title ?? DEFAULT_TITLE.rencontre,
@@ -1008,7 +1040,28 @@ function Block({ title, children }: { title: string; children: ReactNode }) {
   return <div className="maps-block"><h4>{title}</h4>{children}</div>;
 }
 
-function EncounterBox({ enc, onRoll, onPlace }: { enc: { ctx: EncCtx; e: Encounter }; onRoll: (force: boolean) => void; onPlace: () => void }) {
+/** Image réduite (1600 px de large au plus, JPEG) pour qu'elle voyage vite jusqu'à l'écran joueur. */
+function shrinkImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, 1600 / img.width);
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL('image/jpeg', 0.84));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('image illisible')); };
+    img.src = url;
+  });
+}
+
+function EncounterBox({ enc, onRoll, onPlace, image, onImage }: {
+  enc: { ctx: EncCtx; e: Encounter }; onRoll: (force: boolean) => void; onPlace: () => void;
+  image?: string; onImage?: (image: string | undefined) => void;
+}) {
   const { e } = enc;
   return (
     <div className="maps-card maps-enc">
@@ -1018,6 +1071,16 @@ function EncounterBox({ enc, onRoll, onPlace }: { enc: { ctx: EncCtx; e: Encount
       {e.happens && e.entry && (
         <>
           <p><strong>{e.entry.kind} · {e.entry.title}</strong></p>
+          {onImage && (
+            <div className="maps-enc-image">
+              {image && <img src={image} alt={e.entry.title} />}
+              <label className="maps-btn" title="Illustration montrée aux joueurs quand cette rencontre survient (gardée pour les prochaines fois)">
+                🖼 {image ? 'Changer l’image' : 'Ajouter une image'}
+                <input type="file" accept="image/*" hidden onChange={async (ev) => { const f = ev.target.files?.[0]; ev.target.value = ''; if (f) onImage(await shrinkImage(f)); }} />
+              </label>
+              {image && <button className="maps-link" onClick={() => onImage(undefined)}>Retirer</button>}
+            </div>
+          )}
           {e.entry.statut && <p className="maps-sub">{e.entry.statut}{e.entry.faune ? ' — réagit par instinct, ne parle pas' : ''}</p>}
           <p>{e.entry.text}</p>
           {e.attitude && <p><em>Attitude :</em> {e.attitude}</p>}

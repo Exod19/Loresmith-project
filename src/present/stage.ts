@@ -4,6 +4,7 @@
  * La console MJ est l'hôte : elle garde la scène courante et la renvoie à chaque écran joueur qui se connecte.
  * Rien n'est sauvegardé. Les données envoyées sont déjà filtrées pour les joueurs : aucune note ni repère secret.
  */
+import type { HaltAlert } from '../maps/atlas/omens';
 import type { AtlasData } from '../maps/atlas/types';
 
 /** `info` : fiche en jeu montrée quand un joueur clique sur le jeton. */
@@ -36,7 +37,9 @@ export type PlayerBoard =
     /** Où se tient le groupe sur ce plan (pour orienter les chemins), même si son jeton n'est pas montré. */
     here?: [number, number];
     /** Le groupe en chemin (animé chez les joueurs). */
-    travel?: { key: string; points: [number, number][]; at: number; label?: string; hold?: boolean } }
+    travel?: { key: string; points: [number, number][]; at: number; label?: string; hold?: boolean };
+    /** Annonce de halte : suspense, fausse alerte ou rencontre (avec son image). */
+    alert?: HaltAlert }
   | { mode: 'battle'; title: string; backdrop?: string; cols: number; rows: number; feetPerCell: number; round: number; tokens: PlayerToken[]; terrain?: string; elements: PlayerElement[]; turn?: PlayerTurn;
     /** Brouillard de guerre : cases vues par les héros, et déjà explorées. Absent = tout le plateau est visible. */
     fog?: { visible: number[]; explored: number[] };

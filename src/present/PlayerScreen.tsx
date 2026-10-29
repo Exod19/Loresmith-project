@@ -9,6 +9,8 @@ import type { AtlasData, AtlasFeature, FeatureCategory } from '../maps/atlas/typ
 import BattleBoard, { CATEGORY_ICON, type BoardRange } from '../maps/battle/BattleBoard';
 import { reachableCells } from '../maps/battle/ranges';
 import { trailProfile } from '../maps/atlas/trails';
+import { describe } from '../maps/atlas/lore';
+import { CALM_MS, type HaltAlert } from '../maps/atlas/omens';
 import { lengthOf, project, subpath, towardOf } from '../maps/journey';
 import { CATEGORY_IMG, vignette } from '../maps/battle/vignettes';
 import { openStageChannel, type PlayerBoard, type PlayerElement, type PlayerToken, type PlayerTurn, type Stage, type StageMessage } from './stage';
@@ -126,6 +128,7 @@ function PlayerMap({ board, rev, onFollow, onPick }: { board: Extract<PlayerBoar
           <span className="present-info-kind">{picked.trace ? TRACE_FR[picked.trace] ?? 'Chemin' : 'Lieu'}</span>
           <h3>{picked.title}</h3>
           {picked.subtitle && <p>{picked.subtitle}</p>}
+          {(() => { const d = describe(picked); return d ? <p className="present-map-lore">{d}</p> : null; })()}
           {picked.trace && (() => {
             const danger = trailProfile(picked).danger;
             const dir = directionOf(board, picked.id);
@@ -156,6 +159,36 @@ function PlayerMap({ board, rev, onFollow, onPick }: { board: Extract<PlayerBoar
           )}
         </aside>
       )}
+      {board.alert && <HaltNotice key={board.alert.key} alert={board.alert} />}
+    </div>
+  );
+}
+
+/**
+ * Halte en chemin : le suspense monte (« C'est tranquille… trop tranquille… »), puis soit la fausse alerte s'éteint
+ * d'elle-même, soit la rencontre apparaît avec son illustration.
+ */
+function HaltNotice({ alert }: { alert: HaltAlert }) {
+  const [gone, setGone] = useState(false);
+  useEffect(() => {
+    if (alert.phase !== 'calm') return;
+    const id = setTimeout(() => setGone(true), Math.max(0, CALM_MS - (Date.now() - alert.at)));
+    return () => clearTimeout(id);
+  }, [alert]);
+  if (gone) return null;
+  if (alert.phase !== 'encounter') {
+    return (
+      <div className={`present-halt is-${alert.phase}`} role="status">
+        <p>{alert.line}</p>
+      </div>
+    );
+  }
+  return (
+    <div className={`present-halt is-encounter ${alert.image ? 'has-image' : ''}`} role="alert">
+      <p className="present-halt-line">{alert.line}</p>
+      {alert.image && <img src={alert.image} alt={alert.title ?? ''} />}
+      {alert.title && <h2>{alert.title}</h2>}
+      {alert.text && <p className="present-halt-text">{alert.text}</p>}
     </div>
   );
 }

@@ -786,3 +786,25 @@
 .present-path-why{color:#cdbd96}
 .present-path-why small{color:#9a8a63}
 .present-path-go{display:flex;flex-wrap:wrap;gap:8px}
+/* Fiche d'un élément : une description d'ambiance, même pour un simple décor. */
+.present-map-lore{font-family:var(--font-joueurs,'Almendra',serif);font-style:italic;line-height:1.45;color:#d9c79c;border-left:2px solid rgba(201,162,74,.45);padding-left:10px;margin:6px 0 8px!important}
+/* Halte en chemin : suspense, fausse alerte, rencontre. */
+.present-halt{position:absolute;left:50%;top:9vh;z-index:7;transform:translateX(-50%);max-width:min(760px,86%);padding:2.2vmin 4vmin;text-align:center;border-radius:12px;
+  border:1px solid #7d6128;background:radial-gradient(ellipse at 50% 0%,rgba(60,42,16,.96),rgba(8,6,4,.97) 70%);color:#f1e3bd;
+  box-shadow:0 0 0 1px rgba(0,0,0,.6),0 18px 60px rgba(0,0,0,.75),0 0 40px rgba(201,162,74,.12);animation:present-halt-in .9s cubic-bezier(.2,.7,.2,1) both}
+.present-halt p{margin:0;font-family:var(--font-joueurs,'Almendra',serif);font-style:italic;font-size:clamp(22px,3.4vmin,40px);line-height:1.35}
+.present-halt.is-suspense p{animation:present-halt-breath 3.2s ease-in-out infinite}
+.present-halt.is-calm{animation:present-halt-in .6s ease both,present-halt-out .9s ease 3.6s forwards}
+.present-halt.is-calm p{color:#cfc3a3}
+.present-halt.is-encounter{top:50%;transform:translate(-50%,-50%);width:min(980px,90%);max-width:none;padding:2.4vmin 3vmin 3vmin;border-color:#c9a24a;
+  box-shadow:0 0 0 1px rgba(0,0,0,.6),0 24px 90px rgba(0,0,0,.85),0 0 70px rgba(255,90,60,.18);animation:present-halt-pop 1s cubic-bezier(.2,.8,.2,1) both}
+.present-halt.is-encounter .present-halt-line{color:#ff9a6b;font-size:clamp(20px,3vmin,34px);margin-bottom:1.6vmin}
+.present-halt.is-encounter img{display:block;width:100%;max-height:58vh;object-fit:cover;border-radius:8px;border:1px solid rgba(201,162,74,.5);box-shadow:0 10px 40px rgba(0,0,0,.7);animation:present-halt-reveal 1.6s ease both .2s}
+.present-halt.is-encounter h2{margin:1.6vmin 0 .6vmin;font-family:var(--font-joueurs-titre,'Cinzel Decorative','Cinzel',serif);font-weight:600;letter-spacing:.06em;color:#ecd289;font-size:clamp(26px,4.6vmin,54px);text-shadow:0 2px 18px rgba(0,0,0,.8)}
+.present-halt.is-encounter .present-halt-text{font-size:clamp(17px,2.4vmin,27px);color:#e6d7b0;max-width:60ch;margin:0 auto}
+@keyframes present-halt-in{from{opacity:0;transform:translate(-50%,-14px)}to{opacity:1;transform:translate(-50%,0)}}
+@keyframes present-halt-out{to{opacity:0;transform:translate(-50%,-10px)}}
+@keyframes present-halt-pop{0%{opacity:0;transform:translate(-50%,-50%) scale(.92)}60%{opacity:1;transform:translate(-50%,-50%) scale(1.015)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@keyframes present-halt-breath{0%,100%{opacity:.72;letter-spacing:.01em}50%{opacity:1;letter-spacing:.03em}}
+@keyframes present-halt-reveal{from{opacity:0;filter:brightness(.2) blur(6px)}to{opacity:1;filter:none}}
+@media (prefers-reduced-motion:reduce){.present-halt,.present-halt *{animation-duration:.01s!important;animation-iteration-count:1!important}}
