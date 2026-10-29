@@ -90,3 +90,15 @@
 .bx-ud-filters label{display:flex;align-items:center;gap:6px}
 .bx-ud-filters label .in{width:64px}
 .bx-ud-filters > input{grid-column:1/-1}
+
+/* Liste rangée : types, familles, variantes */
+.bx-tree{display:flex;flex-direction:column;gap:4px;overflow:auto}
+.bx-cat-head,.bx-fam-head{display:flex;justify-content:space-between;align-items:center;width:100%;gap:8px;padding:6px 8px;border:0;border-radius:6px;background:transparent;color:inherit;cursor:pointer;text-align:left;font:inherit}
+.bx-cat-head{font-family:'Cinzel',serif;letter-spacing:.04em;color:var(--gold,#c9a24a);background:rgba(201,162,74,.06)}
+.bx-cat-head[data-open="1"]{background:rgba(201,162,74,.12)}
+.bx-cat-head small,.bx-fam-head small{color:var(--faint,#8d7b55);font-size:11px;font-family:inherit;letter-spacing:0}
+.bx-fam{margin-left:8px;border-left:1px solid var(--line-2,#4a3c22)}
+.bx-fam-head{font-size:13.5px;padding:5px 8px}
+.bx-fam-head:hover,.bx-cat-head:hover{background:rgba(201,162,74,.1)}
+.bx-tree .bx-items{margin:0 0 2px 8px}
+.bx-variant{padding-left:6px}

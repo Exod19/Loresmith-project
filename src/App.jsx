@@ -81,6 +81,7 @@ import './combat/wartable.css';
 import { entityFromSrd, generateEntities, normalizeEntity } from './bestiary/entityGen';
 import UnderdarkImport from './bestiary/UnderdarkImport';
 import { underdarkIdOf } from './bestiary/underdark.js';
+import { buildCatalog, siblingsOf } from './bestiary/catalog.js';
 import StatSheet from './bestiary/StatSheet';
 import ArchiveImagePicker from './media/ArchiveImagePicker';
 import { CLANS, archiveImageIndex, clanPaintBrief, compressImage, fileToCompressed, generatePortrait, makeToken, matchArchiveImages, matchPortrait } from './media/images';
@@ -12505,6 +12506,9 @@ function Bestiary({ dispatch, state, universe, npcs, party, campaigns, flash }) 
   const [q, setQ] = useState('');
   /** Filtres du bestiaire Underdark (fiches importées) : famille, rôle, taille, danger, sentience, habitat. */
   const [ud, setUd] = useState({ on: false, family: '', role: '', size: '', danger: 0, sentience: 0, habitat: '' });
+  /** Rubriques ouvertes de la liste (types et familles) : la liste ne déroule que ce qu'on consulte. */
+  const [openCat, setOpenCat] = useState(() => new Set());
+  const toggleCat = (k) => setOpenCat((cur) => { const next = new Set(cur); if (next.has(k)) next.delete(k); else next.add(k); return next; });
   const [selectedId, setSelectedId] = useState(() => {
     try {
       return localStorage.getItem(BESTIARY_SEL_KEY) || '';
@@ -12556,8 +12560,13 @@ function Bestiary({ dispatch, state, universe, npcs, party, campaigns, flash }) 
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [npcs, filter, q, ud]);
+  // Sans recherche : la liste est rangée par type, puis par famille (souche et variantes, de la plus faible à la plus forte).
+  const catalog = useMemo(() => buildCatalog(list), [list]);
+  const grouped = !q.trim() && list.length > 12;
+  // Ordre de navigation (↑ ↓) : celui de l'arborescence affichée.
+  const navList = useMemo(() => (grouped ? catalog.flatMap((t) => t.families.flatMap((f) => f.members)) : list), [grouped, catalog, list]);
   const selected = npcs.find((n) => n.id === selectedId) || list[0] || null;
-  const pos = selected ? list.findIndex((n) => n.id === selected.id) : -1;
+  const pos = selected ? navList.findIndex((n) => n.id === selected.id) : -1;
 
   function select(id) {
     setSelectedId(id);
@@ -12567,9 +12576,14 @@ function Bestiary({ dispatch, state, universe, npcs, party, campaigns, flash }) 
     } catch {}
   }
   const step = (d) => {
-    if (!list.length) return;
-    const i = pos === -1 ? 0 : (pos + d + list.length) % list.length;
-    select(list[i].id);
+    if (!navList.length) return;
+    const i = pos === -1 ? 0 : (pos + d + navList.length) % navList.length;
+    const next = navList[i];
+    select(next.id);
+    // La fiche atteinte au clavier est rendue visible : sa rubrique et sa famille s'ouvrent.
+    const t = catalog.find((c) => c.families.some((f) => f.members.includes(next)));
+    const f = t?.families.find((x) => x.members.includes(next));
+    if (t && f) setOpenCat((cur) => new Set([...cur, `t:${t.type}`, `f:${t.type}:${f.key}`]));
   };
 
   // Navigation au clavier : ↑/↓ (ou j/k) d'une fiche à l'autre, hors des champs de saisie.
@@ -12901,23 +12915,69 @@ function Bestiary({ dispatch, state, universe, npcs, party, campaigns, flash }) 
                 )}
               </div>
             )}
-            <ul className="bx-items">
-              {list.map((n) => {
-                const img = n.token || portraitOf(state, n);
-                return (
-                  <li key={n.id}>
-                    <button type="button" className="bx-item" data-on={selected?.id === n.id ? 1 : 0} onClick={() => select(n.id)}>
-                      {img ? <img src={img} alt="" loading="lazy" /> : <span className="bx-ph">{isMon(n) ? '👹' : '✦'}</span>}
-                      <span>
-                        <b>{n.name}</b>
-                        <small>{[isMon(n) ? 'Créature' : 'PNJ', n.kind || n.type || n.role].filter(Boolean).join(' · ')}</small>
-                      </span>
-                      <span className="bx-cr">FP {n.cr || '—'}</span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+            {grouped ? (
+              <div className="bx-tree">
+                {catalog.map((t) => {
+                  const tk = `t:${t.type}`;
+                  const tOpen = openCat.has(tk) || t.families.some((f) => f.members.some((m) => m.id === selected?.id));
+                  return (
+                    <section key={tk} className="bx-cat">
+                      <button type="button" className="bx-cat-head" data-open={tOpen ? 1 : 0} onClick={() => toggleCat(tk)}>
+                        <span>{tOpen ? '▾' : '▸'} {t.type}</span><small>{t.count}</small>
+                      </button>
+                      {tOpen && t.families.map((f) => {
+                        const one = f.members.length === 1;
+                        const fk = `f:${t.type}:${f.key}`;
+                        const fOpen = openCat.has(fk) || f.members.some((m) => m.id === selected?.id);
+                        const row = (n, indent) => {
+                          const img = n.token || portraitOf(state, n);
+                          return (
+                            <li key={n.id}>
+                              <button type="button" className={`bx-item ${indent ? 'bx-variant' : ''}`} data-on={selected?.id === n.id ? 1 : 0} onClick={() => select(n.id)}>
+                                {img ? <img src={img} alt="" loading="lazy" /> : <span className="bx-ph">{isMon(n) ? '👹' : '✦'}</span>}
+                                <span>
+                                  <b>{n.name}</b>
+                                  <small>{[n.underdark?.variantRoleLabel, !indent && (n.kind || n.type || n.role)].filter(Boolean).join(' · ')}</small>
+                                </span>
+                                <span className="bx-cr">FP {n.cr || '—'}</span>
+                              </button>
+                            </li>
+                          );
+                        };
+                        if (one) return <ul key={fk} className="bx-items">{row(f.members[0], false)}</ul>;
+                        return (
+                          <div key={fk} className="bx-fam">
+                            <button type="button" className="bx-fam-head" data-open={fOpen ? 1 : 0} onClick={() => toggleCat(fk)}>
+                              <span>{fOpen ? '▾' : '▸'} {f.name}</span>
+                              <small>{f.members.length} variantes · FP {f.members[0].cr}–{f.members[f.members.length - 1].cr}</small>
+                            </button>
+                            {fOpen && <ul className="bx-items">{f.members.map((n) => row(n, true))}</ul>}
+                          </div>
+                        );
+                      })}
+                    </section>
+                  );
+                })}
+              </div>
+            ) : (
+              <ul className="bx-items">
+                {list.map((n) => {
+                  const img = n.token || portraitOf(state, n);
+                  return (
+                    <li key={n.id}>
+                      <button type="button" className="bx-item" data-on={selected?.id === n.id ? 1 : 0} onClick={() => select(n.id)}>
+                        {img ? <img src={img} alt="" loading="lazy" /> : <span className="bx-ph">{isMon(n) ? '👹' : '✦'}</span>}
+                        <span>
+                          <b>{n.name}</b>
+                          <small>{[isMon(n) ? 'Créature' : 'PNJ', n.kind || n.type || n.role].filter(Boolean).join(' · ')}</small>
+                        </span>
+                        <span className="bx-cr">FP {n.cr || '—'}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
             <div className="bx-hint">↑ ↓ (ou j / k) pour passer d’une fiche à l’autre</div>
           </aside>
 
@@ -12930,7 +12990,7 @@ function Bestiary({ dispatch, state, universe, npcs, party, campaigns, flash }) 
                       ◀
                     </button>
                     <span className="muted" style={{ fontSize: 13 }}>
-                      {pos + 1} / {list.length}
+                      {pos + 1} / {navList.length}
                     </span>
                     <button className="btn ghost sm" onClick={() => step(1)} title="Fiche suivante">
                       ▶
