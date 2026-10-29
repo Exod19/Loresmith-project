@@ -1,5 +1,6 @@
 /**
- * API de Loresmith (Worker Cloudflare). Routes de base du lot 4 : santé, comptes, profil, univers, campagnes.
+ * API de Loresmith (Worker Cloudflare). Routes de base du lot 4 : santé, comptes, profil, univers, campagnes ;
+ * synchronisation et images au lot 5 (`sync.js`).
  * Toutes les décisions d'accès passent par `src/shared/policy.js` ; le navigateur n'est jamais cru sur parole.
  */
 import { Hono } from 'hono';
@@ -7,12 +8,13 @@ import { cors } from 'hono/cors';
 import { can } from '../../src/shared/policy.js';
 import { authFor } from './auth.js';
 import { HttpError, createDoc, getDoc, listDocs, updateDoc } from './documents.js';
+import { mountSync } from './sync.js';
 
 const app = new Hono();
 
 app.use('/api/*', async (c, next) => {
   const origin = c.env.FRONT_ORIGIN;
-  return cors({ origin: origin ? [origin] : [], credentials: true, allowMethods: ['GET', 'POST', 'PUT', 'OPTIONS'], allowHeaders: ['Content-Type'] })(c, next);
+  return cors({ origin: origin ? [origin] : [], credentials: true, allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], allowHeaders: ['Content-Type'] })(c, next);
 });
 
 app.onError((err, c) => {
@@ -142,6 +144,10 @@ app.put('/api/campaigns/:id', async (c) => {
   const next = await updateDoc(c.env.DB, doc, { version, data: { ...data, id: doc.id, universeId: doc.universeId }, userId: c.get('actor').id });
   return c.json(out(next, c.get('actor')));
 });
+
+/* ——— Synchronisation et images (lot 5) ——— */
+
+mountSync(app);
 
 app.notFound((c) => c.json({ error: 'Route inconnue.' }, 404));
 

@@ -15,7 +15,7 @@ export class HttpError extends Error {
   }
 }
 
-const row = (r) => r && { type: r.type, id: r.id, universeId: r.universe_id, campaignId: r.campaign_id, ownerId: r.owner_id, createdBy: r.created_by, version: r.version, updatedAt: r.updated_at, data: JSON.parse(r.data) };
+const row = (r) => r && { type: r.type, id: r.id, universeId: r.universe_id, campaignId: r.campaign_id, ownerId: r.owner_id, createdBy: r.created_by, version: r.version, updatedAt: r.updated_at, deleted: r.deleted_at !== null, data: JSON.parse(r.data) };
 
 function serialize(data) {
   if (!data || typeof data !== 'object' || Array.isArray(data)) throw new HttpError(400, 'Le document doit être un objet JSON.');
@@ -26,6 +26,11 @@ function serialize(data) {
 
 export async function getDoc(db, type, id) {
   return row(await db.prepare('select * from documents where type = ? and id = ? and deleted_at is null').bind(type, id).first());
+}
+
+/** Document, même supprimé (pierre tombale) : pour la synchronisation, qui doit voir les suppressions. */
+export async function getDocAny(db, type, id) {
+  return row(await db.prepare('select * from documents where type = ? and id = ?').bind(type, id).first());
 }
 
 export async function listDocs(db, type, where, binds) {
@@ -52,21 +57,24 @@ export async function createDoc(db, { type, id, universeId = null, campaignId = 
   return getDoc(db, type, id);
 }
 
-/** Met à jour un document si `version` est bien la version actuelle ; sinon 409 avec la version du serveur. */
-export async function updateDoc(db, current, { version, data, userId }) {
+/**
+ * Met à jour un document si `version` est bien la version actuelle ; sinon 409 avec la version du serveur.
+ * `deleted: true` le marque supprimé (rien n'est effacé) ; une mise à jour d'un document supprimé le restaure.
+ */
+export async function updateDoc(db, current, { version, data, userId, deleted = false }) {
   if (!Number.isInteger(version)) throw new HttpError(400, 'La version modifiée est requise.');
   if (version !== current.version) throw new HttpError(409, 'Le document a changé depuis ta dernière lecture.', { current });
-  const json = serialize(data);
+  const json = deleted ? JSON.stringify(current.data) : serialize(data);
   const next = version + 1;
   const now = Date.now();
   const [res] = await db.batch([
-    db.prepare('update documents set data = ?, version = ?, updated_by = ?, updated_at = ? where type = ? and id = ? and version = ?')
-      .bind(json, next, userId, now, current.type, current.id, version),
+    db.prepare('update documents set data = ?, version = ?, updated_by = ?, updated_at = ?, deleted_at = ? where type = ? and id = ? and version = ?')
+      .bind(json, next, userId, now, deleted ? now : null, current.type, current.id, version),
     // Copie de la ligne réellement écrite : rien n'est ajouté à l'historique si la mise à jour n'a pas eu lieu.
-    db.prepare('insert or ignore into document_versions (type, id, version, updated_by, updated_at, data) select type, id, version, updated_by, updated_at, data from documents where type = ? and id = ? and version = ? and updated_at = ? and updated_by = ?')
+    db.prepare('insert or ignore into document_versions (type, id, version, updated_by, updated_at, deleted_at, data) select type, id, version, updated_by, updated_at, deleted_at, data from documents where type = ? and id = ? and version = ? and updated_at = ? and updated_by = ?')
       .bind(current.type, current.id, next, now, userId),
   ]);
   // Deux écritures simultanées : la seconde ne trouve plus la version attendue.
-  if (!res.meta.changes) throw new HttpError(409, 'Le document a changé pendant l’écriture.', { current: await getDoc(db, current.type, current.id) });
-  return getDoc(db, current.type, current.id);
+  if (!res.meta.changes) throw new HttpError(409, 'Le document a changé pendant l’écriture.', { current: await getDocAny(db, current.type, current.id) });
+  return getDocAny(db, current.type, current.id);
 }

@@ -74,6 +74,11 @@ export const getImageBlob = (id) => tx('readonly', (s) => s.get(id), IMAGES);
 export const putImageBlob = (id, blob) => tx('readwrite', (s) => s.put(blob, id), IMAGES);
 export const listImageIds = () => tx('readonly', (s) => s.getAllKeys(), IMAGES);
 
+/* ——— Autres enregistrements (état de la synchronisation…) ——— */
+
+export const loadKv = (key) => tx('readonly', (s) => s.get(key));
+export const saveKv = (key, value) => tx('readwrite', (s) => s.put(value, key));
+
 /* ——— Copies de sécurité (avant la migration des images, avant un import) ——— */
 
 /** Copie prise avant chaque import d'archive : la dernière seulement. */

@@ -16,3 +16,8 @@ binding = "DB"
 database_name = "loresmith"
 database_id = "00000000-0000-0000-0000-000000000000"
 migrations_dir = "migrations"
+
+# Images partagées (lot 5). En local, Wrangler simule le bucket : aucune ressource n'est créée chez Cloudflare.
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "loresmith-images"

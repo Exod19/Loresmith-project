@@ -44,6 +44,9 @@ import UniverseHome from './shell/Home';
 import { askPersistence, loadState, saveState as persistState, storageUsage } from './store/persist';
 import { openGrimoire, toPersisted } from './store/images';
 import { ExportDialog, ImportDialog } from './store/ArchiveDialogs';
+import { useSync } from './sync/useSync';
+import { ConflictDialog, DeleteConfirm, SyncPanel, syncBadge } from './sync/SyncUI';
+import { applyChanges } from './sync/apply';
 import { IMAGE_MAX } from './store/imageRefs';
 import StorageInfo from './store/StorageInfo';
 import { repairJson } from './ai/json';
@@ -5004,6 +5007,9 @@ function reducer(s, a) {
     }
     case 'COMBAT_SET':
       return { ...s, combat: { ...s.combat, ...a.patch } };
+    // Documents reçus du serveur par la synchronisation (src/sync).
+    case 'SYNC_APPLY':
+      return applyChanges(s, a.changes);
     case 'ADD_LOG':
       return {
         ...s,
@@ -5189,6 +5195,15 @@ export default function App() {
     setTimeout(() => setToast(''), 2200);
   }, []);
 
+  // Compte MJ et synchronisation : sans serveur ni compte, rien ne change au fonctionnement local.
+  const sync = useSync({ state, dispatch, hydrated, flash });
+  const [syncDialog, setSyncDialog] = useState(null);
+  useEffect(() => {
+    if (sync.conflicts.length) setSyncDialog('conflicts');
+    else if (sync.pendingDeletes) setSyncDialog('deletes');
+    else setSyncDialog(null);
+  }, [sync.conflicts.length, sync.pendingDeletes]);
+
   // Le fichier choisi ouvre le bilan d'import : rien ne change avant le choix de l'utilisateur.
   function handleImportFile(e) {
     const file = e.target.files && e.target.files[0];
@@ -5263,6 +5278,8 @@ export default function App() {
               onSettings={() => setSettingsOpen(true)}
               onPopout={openViewInNewTab}
               saveState={saveState}
+              sync={syncBadge(sync)}
+              onSync={() => (sync.conflicts.length ? setSyncDialog('conflicts') : sync.pendingDeletes ? setSyncDialog('deletes') : setSettingsOpen(true))}
             />
             <input
               ref={importRef}
@@ -5416,8 +5433,11 @@ export default function App() {
             <SettingsModal
               onClose={() => setSettingsOpen(false)}
               flash={flash}
+              sync={sync}
             />
           )}
+          {syncDialog === 'conflicts' && sync.conflicts.length > 0 && <ConflictDialog sync={sync} flash={flash} onClose={() => setSyncDialog(null)} />}
+          {syncDialog === 'deletes' && sync.pendingDeletes && <DeleteConfirm sync={sync} onClose={() => setSyncDialog(null)} />}
           {toast && <div className="toast">{toast}</div>}
         </div>
       </>
@@ -5453,7 +5473,7 @@ function buildSearchItems({ state, U, campaigns, npcs, quests, party }) {
   return items;
 }
 /* ----------------------------- Settings (AI) ---------------------------- */
-function SettingsModal({ onClose, flash }) {
+function SettingsModal({ onClose, flash, sync }) {
   const { ai, setAI } = useContext(AIContext);
   const [testing, setTesting] = useState(false);
   const [result, setResult] = useState('');
@@ -5584,6 +5604,7 @@ function SettingsModal({ onClose, flash }) {
         local). Ne publie jamais le site en ligne avec ta clé en clair.
       </div>
       <StorageInfo />
+      <SyncPanel sync={sync} />
     </Modal>
   );
 }

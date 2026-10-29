@@ -107,7 +107,7 @@ Chaque lot se termine par un commit, puis par une validation de l'utilisateur. L
 
 ### Lot 4 : backend
 
-- **Statut** : à valider
+- **Statut** : validé
 - **Modèle conseillé** : `claude-opus-5-5`
 - **Objectif** : Worker, base D1, authentification, migrations.
 - **Fichiers probables** : dossier `server/`, `wrangler.toml`, migrations SQL.
@@ -117,7 +117,7 @@ Chaque lot se termine par un commit, puis par une validation de l'utilisateur. L
 
 ### Lot 5 : synchronisation
 
-- **Statut** : à faire
+- **Statut** : à valider
 - **Modèle conseillé** : `claude-opus-5-5`
 - **Objectif** : envoyer et recevoir univers et campagnes partagés, avec un numéro de version.
 - **Règles** : le local reste la copie de travail. En cas de conflit (réponse 409), proposer à l'utilisateur de choisir la version à garder. Pas de synchronisation en temps réel.
