@@ -6,7 +6,7 @@
 export const TERMS_VERSION = '2026-10-29';
 
 /** Personne à joindre pour toute question sur les renseignements personnels (Loi 25). */
-export const PRIVACY_CONTACT = 'le propriétaire du site (coordonnées à venir)';
+export const PRIVACY_CONTACT = 'coordonnées à venir';
 
 export const TERMS = [
   {
