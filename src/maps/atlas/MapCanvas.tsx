@@ -102,7 +102,7 @@ function buildings(m: AtlasMap) {
 }
 
 /** Repère MJ dessiné au-dessus de la carte (position du groupe, destination), en coordonnées de plan 0–1. */
-export type MapMark = { id: string; x: number; y: number; label: string; tone: 'party' | 'dest' };
+export type MapMark = { id: string; x: number; y: number; label: string; tone: 'party' | 'dest' | 'hero' };
 
 export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, dataKey, dm, marks = [] }: {
   map: AtlasMap; layers: Layers; hidden: Set<FeatureCategory>;

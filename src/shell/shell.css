@@ -79,7 +79,7 @@
 .lsx-item[data-on="1"]{color:#f6e7bf;background:rgba(201,162,74,.12)}
 .lsx-item[data-on="1"] svg{color:var(--gold-lt)}
 
-.lsx-sep{height:16px;margin:8px 0;background:url("/images/ui/separateur.webp") center/contain no-repeat;opacity:.85}
+.lsx-sep{height:30px;margin:4px 0;background:url("/images/ui/separateur.webp") center/contain no-repeat;opacity:.9}
 .lsx-tool{display:flex;align-items:center;gap:12px;width:100%;padding:9px 12px;border:0;border-radius:8px;background:transparent;color:var(--txt);font-size:15.5px;text-align:left}
 .lsx-tool svg{color:var(--gold)}
 .lsx-tool:hover{background:rgba(201,162,74,.07);color:var(--gold-lt)}
@@ -192,17 +192,23 @@
 .lsx-rail-card{border-color:transparent;box-shadow:0 0 0 1px rgba(0,0,0,.55),0 14px 30px rgba(0,0,0,.5),inset 0 0 30px rgba(0,0,0,.45)}
 /* Coins de laiton : seulement sur les cartes de la colonne et la bannière, pas partout. */
 .lsx-rail-card::before,.lsx-hero-frame{content:"";position:absolute;inset:-1px;pointer-events:none;z-index:2;
-  --c:34px;--o:2px;
+  /* Coin filigrane en L : ses bras se trouvent à 8,7 % (horizontal) et 5,3 % (vertical)
+     de sa largeur ; les filets CSS les prolongent au même endroit et s'estompent au milieu. */
+  --c:92px;--oy:calc(var(--c) * .087 - 1px);--ox:calc(var(--c) * .053 - 1px);
   background:
-    url("/images/ui/coin-tl.webp") top left/var(--c) no-repeat,
-    url("/images/ui/coin-tr.webp") top right/var(--c) no-repeat,
-    url("/images/ui/coin-bl.webp") bottom left/var(--c) no-repeat,
-    url("/images/ui/coin-br.webp") bottom right/var(--c) no-repeat,
-    linear-gradient(90deg,var(--lsx-frame) 0,transparent 32%,transparent 68%,var(--lsx-frame) 100%) left 0 top var(--o)/100% 1px no-repeat,
-    linear-gradient(90deg,var(--lsx-frame) 0,transparent 32%,transparent 68%,var(--lsx-frame) 100%) left 0 bottom var(--o)/100% 1px no-repeat,
-    linear-gradient(180deg,var(--lsx-frame) 0,transparent 30%,transparent 70%,var(--lsx-frame) 100%) left var(--o) top 0/1px 100% no-repeat,
-    linear-gradient(180deg,var(--lsx-frame) 0,transparent 30%,transparent 70%,var(--lsx-frame) 100%) right var(--o) top 0/1px 100% no-repeat}
-.lsx-hero-frame{--c:52px;--o:3px;border-radius:14px}
+    url("/images/ui/coin-tl.webp") top left/var(--c) auto no-repeat,
+    url("/images/ui/coin-tr.webp") top right/var(--c) auto no-repeat,
+    url("/images/ui/coin-bl.webp") bottom left/var(--c) auto no-repeat,
+    url("/images/ui/coin-br.webp") bottom right/var(--c) auto no-repeat,
+    linear-gradient(90deg,var(--lsx-frame) 0,transparent 36%,transparent 64%,var(--lsx-frame) 100%) left 0 top var(--oy)/100% 2px no-repeat,
+    linear-gradient(90deg,var(--lsx-frame) 0,transparent 36%,transparent 64%,var(--lsx-frame) 100%) left 0 bottom var(--oy)/100% 2px no-repeat,
+    linear-gradient(180deg,var(--lsx-frame) 0,transparent 34%,transparent 66%,var(--lsx-frame) 100%) left var(--ox) top 0/2px 100% no-repeat,
+    linear-gradient(180deg,var(--lsx-frame) 0,transparent 34%,transparent 66%,var(--lsx-frame) 100%) right var(--ox) top 0/2px 100% no-repeat}
+.lsx-hero-frame{--c:140px;border-radius:14px}
+.lsx-rail-card{padding-top:18px}
+/* Sceau de l'univers sur la bannière (médaillon gravé). */
+.lsx-hero-seal{position:absolute;top:22px;right:26px;z-index:3;width:clamp(56px,6vw,84px);height:auto;pointer-events:none;
+  filter:drop-shadow(0 6px 14px rgba(0,0,0,.75)) drop-shadow(0 0 10px rgba(154,124,240,.18));opacity:.95}
 .lsx-tile-obj{width:24px;height:30px;object-fit:contain;flex:none;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))}
 .lsx-tile-h{display:flex;align-items:center;gap:8px;margin-bottom:10px;color:var(--gold)}
 .lsx-tile-h b{font-family:'Cinzel',serif;font-weight:500;font-size:14px;color:#efdfb6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -296,7 +302,7 @@
 /* Texte lu ou montré aux joueurs. */
 .lsx-root .readaloud-panel{background:radial-gradient(ellipse at center,transparent 55%,rgba(110,72,28,.32)),var(--lsx-tex-parchemin),#e8d4a4;border-color:#9c7a3a}
 .lsx-root :is(.scroll,.readaloud-panel p,.readaloud-text,.copilot-next .copilot-text),.dossier-readaloud p,.cs-parchment{font-family:var(--font-joueurs) !important;font-style:normal !important;font-size:17px;line-height:1.6;letter-spacing:.005em}
-.lsx-section-h h2::after{content:"";width:140px;height:14px;margin-left:6px;background:url("/images/ui/separateur.webp") left center/contain no-repeat;opacity:.55}
+.lsx-section-h h2::after{content:"";width:150px;height:32px;margin-left:6px;background:url("/images/ui/separateur.webp") left center/contain no-repeat;opacity:.55}
 .lsx-mobilebar .lsx-mobile-dice img{width:40px;height:40px;object-fit:contain}
 @media (max-width:640px){
   .lsx-section-h h2::after{display:none}
@@ -321,3 +327,10 @@
 
 /* Bouton flottant du dé : médaillon laiton et améthyste. */
 .lsx-root .ls-dice-fab{background-image:url("/images/ui/d20.webp") !important;background-size:cover;border-radius:50%}
+
+/* Médaillons de type : patte pour une créature, rose des vents pour un passage. */
+:is(.present-card,.battle-fiche)[data-kind] .present-info-kind::before{content:"";display:inline-block;width:0;height:1.9em;vertical-align:-.65em;background:center/contain no-repeat}
+:is(.present-card,.battle-fiche):is([data-kind="creature"],[data-kind="passage"],[data-kind="secret"]) .present-info-kind::before{width:1.9em;margin-right:.45em}
+.present-card[data-kind="creature"] .present-info-kind::before{background-image:url("/images/ui/embleme-patte.webp")}
+:is(.present-card,.battle-fiche):is([data-kind="passage"],[data-kind="secret"]) .present-info-kind::before{background-image:url("/images/ui/embleme-boussole.webp")}
+.lsx-empty-card .lsx-empty-emblem{width:64px;height:64px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6))}

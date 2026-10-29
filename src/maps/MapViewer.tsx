@@ -11,7 +11,7 @@ import { STATS, SRD_CREDIT, mod, type Stat } from './atlas/statblocks';
 import type { AtlasData, AtlasFeature, FeatureCategory } from './atlas/types';
 import {
   activateMap, ATLAS_DEFAULT_PLAN, DEFAULT_BATTLE, EMPTY_OVERLAY, mapIdOf, placeCoords,
-  type MapMarker, type MapOverlay, type MapRecord, type MarkerKind, type PartyPlace, type PartyTrack, type PassageLink, type PointRecord,
+  type MapMarker, type MapOverlay, type MapRecord, type MarkerKind, type PartyPlace, type PartyTrack, type PassageLink, type PointRecord, type BattleToken,
 } from './mapStore';
 import { battleBoard, mapBoard } from './playerBoard';
 import BattleMode, { type CombatSlot } from './battle/BattleMode';
@@ -105,6 +105,24 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     const at = p && p.planId === map.id ? placeCoords(data, rec, p) : null;
     return at ? [{ id: tone, x: at[0], y: at[1], label: `${label} · ${p!.title}`, tone }] : [];
   });
+  // Héros séparés du groupe, regroupés par lieu sur le plan affiché.
+  const apartByPlace = new Map<string, NonNullable<PartyTrack['apart']>>();
+  for (const h of party.apart ?? []) apartByPlace.set(h.at.id, [...(apartByPlace.get(h.at.id) ?? []), h]);
+  for (const [, hs] of apartByPlace) {
+    const at = hs[0].at.planId === map.id ? placeCoords(data, rec, hs[0].at) : null;
+    if (at) partyMarks.push({ id: `hero-${hs[0].at.id}`, x: at[0], y: at[1], label: hs.map((h) => h.name).join(', '), tone: 'hero' });
+  }
+  /** Un héros sort seul du plateau de combat : il attend au bout de sa sortie, sur la carte de navigation. */
+  const leaveBattle = (t: BattleToken, link: PassageLink | undefined) => {
+    if (t.kind !== 'pc' || !link) return;
+    const at = arrivalOf(link);
+    const apart = [...(party.apart ?? []).filter((h) => h.id !== t.id), { id: t.id, name: t.name, heroId: t.heroId, image: t.image, at, since: Date.now() }];
+    setOverlay({ ...overlay, party: { ...party, apart } });
+  };
+  const rejoin = (id: string) => {
+    const apart = (party.apart ?? []).filter((h) => h.id !== id);
+    setOverlay({ ...overlay, party: { ...party, apart: apart.length ? apart : undefined } });
+  };
   /**
    * Où arrive le groupe en suivant un passage. Une ancre (entrée d'un autre plan) n'est pas un lieu :
    * le groupe se retrouve au lieu nommé le plus proche, pour que la carte de combat ait un endroit à montrer.
@@ -287,6 +305,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
           onShow={showPlace}
           onBattle={(p) => { setPlanId(p.planId); setSelectedId(p.kind === 'marker' ? `mk-${p.id}` : p.kind === 'feature' ? p.id : null); setBattleOpen(true); }}
           onClearDest={() => setDest(undefined)}
+          onRejoin={rejoin}
         />
       )}
       {projecting && (
@@ -297,7 +316,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
         <BattleMode
           rec={rec} battle={rec.battle ?? DEFAULT_BATTLE} context={locationHint}
           atlas={data} plan={map} markers={overlay.markers}
-          onFollow={followPassage} onLink={setPassageLink} onMarker={(id, patch) => updateMarker(id, patch)}
+          onFollow={followPassage} onLink={setPassageLink} onMarker={(id, patch) => updateMarker(id, patch)} onLeave={leaveBattle}
           onReveal={(id) => toggleReveal(id)}
           onBattle={(b) => onUpdate({ battle: b, updatedAt: Date.now() })}
           heroes={heroes} party={party} bestiary={bestiary} renderCombat={renderCombat}
@@ -458,9 +477,11 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
 }
 
 /** Fil du groupe (MJ) : où il est, où il veut aller, par où il est passé. Visible dans les deux cartes. */
-function PartyBar({ party, inBattle, onShow, onBattle, onClearDest }: {
+function PartyBar({ party, inBattle, onShow, onBattle, onClearDest, onRejoin }: {
   party: PartyTrack; inBattle: boolean;
   onShow: (p: PartyPlace) => void; onBattle: (p: PartyPlace) => void; onClearDest: () => void;
+  /** Un héros séparé rejoint le groupe (il n'est plus suivi à part). */
+  onRejoin: (id: string) => void;
 }) {
   const { at, dest, trail } = party;
   return (
@@ -473,6 +494,19 @@ function PartyBar({ party, inBattle, onShow, onBattle, onClearDest }: {
       <span className="party-dest">
         🎯 {dest ? <>Destination : <b>{dest.title}</b> <button className="maps-link" onClick={() => onShow(dest)}>voir</button> <button className="maps-link" onClick={onClearDest} aria-label="Retirer la destination">×</button></> : <small>Pas de destination (fiche d’un lieu : « En faire la destination »)</small>}
       </span>
+      {(party.apart ?? []).length > 0 && (
+        <span className="party-apart" aria-label="Héros séparés du groupe">
+          🧭 Séparés :
+          {(party.apart ?? []).map((h) => (
+            <span key={h.id} className="party-apart-hero">
+              <button className="maps-link" onClick={() => onShow(h.at)} title={`Centrer la carte sur ${h.name}`}>
+                {h.image ? <img src={h.image} alt="" /> : null}<b>{h.name}</b> · {h.at.title}
+              </button>
+              <button className="maps-link" onClick={() => onRejoin(h.id)} aria-label={`${h.name} rejoint le groupe`} title="Rejoint le groupe">×</button>
+            </span>
+          ))}
+        </span>
+      )}
       {trail.length > 0 && (
         <span className="party-trail" title="Parcours du groupe">
           {trail.map((t) => <button key={t.id} className="maps-link" onClick={() => onShow(t)}>{t.title}</button>)}

@@ -537,3 +537,6 @@
 .am-mark-dest .am-mark-ring { stroke: #f0c867; stroke-dasharray: 6 5; } .am-mark-dest .am-mark-dot { fill: #f0c867; }
 .am-mark-dest .am-mark-flag { fill: rgba(35,26,8,.92); stroke: #f0c867; } .am-mark-dest .am-mark-text { fill: #ffe9b0; }
 @keyframes am-mark { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+/* Héros séparés du groupe (MJ). */
+.am-mark-hero .am-mark-ring { stroke: #b99cff; } .am-mark-hero .am-mark-dot { fill: #b99cff; }
+.am-mark-hero .am-mark-flag { fill: rgba(24,16,40,.92); stroke: #b99cff; } .am-mark-hero .am-mark-text { fill: #e6dcff; }

@@ -528,3 +528,51 @@
   .maps-viewer.has-encounter .battle-board-wrap:not(.zoomed) .battle-board{width:100%;height:100%;max-height:none}
 }
 .battle-side > .wt[data-inmap="1"] .wt-head-title{display:none}
+
+/* ============ Carte de combat, version 2 : plateau plein cadre, pupitre en tiroir ============ */
+@media (min-width:1101px){
+  /* Cartes (navigation et combat) : toute la largeur, menu en rail. */
+  .maps-page:has(.maps-viewer){max-width:none;padding:8px 10px 0}
+  .lsx-root:has(.maps-viewer){--lsx-side-w:76px}
+  .lsx-root:has(.maps-viewer) .lsx-side{overflow-x:hidden;transition:width .2s ease,box-shadow .2s ease}
+  .lsx-root:has(.maps-viewer) .lsx-side>*:not(.lsx-side-decor){min-width:238px}
+  .lsx-root:has(.maps-viewer) .lsx-side:is(:hover,:focus-within){width:268px;box-shadow:24px 0 60px rgba(0,0,0,.7)}
+  .ls-root .wrap.lsx-content:has(.maps-viewer){max-width:none;padding:10px 14px 0}
+  .maps-viewer:not(.has-encounter){height:calc(100vh - var(--lsx-top-h) - 40px);height:calc(100dvh - var(--lsx-top-h) - 40px)}
+
+  .maps-viewer.has-encounter .battle-body{display:block;position:relative}
+  .maps-viewer.has-encounter .battle-canvas{height:100%;margin-right:50px}
+  .maps-viewer.has-encounter .battle-side{position:absolute;top:0;right:0;bottom:0;z-index:12;width:46px;overflow:visible;transition:width .22s ease}
+  .maps-viewer.has-encounter .battle-side:has(.wt[data-open="1"]){width:min(410px,42%)}
+}
+/* Pupitre replié : seul le rail d'onglets reste, en colonne. */
+.battle-side > .wt[data-inmap="1"]{height:100%}
+.battle-side > .wt[data-inmap="1"][data-open="0"] :is(.wt-head,.wt-desk-head,.wt-desk-body,.wt-desk-foot){display:none}
+.battle-side > .wt[data-inmap="1"][data-open="0"] .wt-desk{background:linear-gradient(180deg,rgba(28,21,12,.95),rgba(14,11,7,.96));border-radius:10px}
+.battle-side > .wt[data-inmap="1"][data-open="0"] .wt-tabs{flex-direction:column;flex-wrap:nowrap;overflow:visible;border-bottom:0;padding:6px 0;gap:2px;height:100%}
+.battle-side > .wt[data-inmap="1"][data-open="0"] .wt-tabs button{flex:0 0 auto;writing-mode:vertical-rl;transform:rotate(180deg);padding:12px 0;font-size:11.5px;letter-spacing:.08em}
+.battle-side > .wt[data-inmap="1"][data-open="0"] .wt-tabs button::after{display:none}
+.battle-side > .wt[data-inmap="1"][data-open="0"] .wt-tabs button:hover{background:rgba(201,162,74,.08)}
+.battle-side > .wt[data-inmap="1"][data-open="0"] .wt-tabs small{margin:4px 0 0}
+/* Pupitre ouvert : par-dessus le bord du plateau, avec une ombre. */
+.battle-side > .wt[data-inmap="1"][data-open="1"]{box-shadow:-18px 0 50px rgba(0,0,0,.6);border-radius:10px}
+.battle-side > .wt[data-inmap="1"][data-open="1"] .wt-desk-head{display:flex;align-items:center;padding:8px 10px 6px}
+.wt-desk-close{margin-left:auto;width:28px;height:28px;border-radius:50%;border:1px solid var(--wt-edge);background:rgba(0,0,0,.35);color:var(--muted)}
+.wt-desk-close:hover{color:var(--gold-lt);border-color:var(--wt-edge-2)}
+
+/* Fiche d'une sortie et panneau d'attaque : posés sur le plateau, en haut à gauche. */
+.battle-overlays{position:absolute;left:10px;top:10px;z-index:8;display:flex;flex-direction:column;gap:8px;width:min(380px,46%);max-height:calc(100% - 20px);overflow:auto;pointer-events:none}
+.battle-overlays > *{pointer-events:auto}
+.battle-overlays .battle-fiche{position:relative;inset:auto;width:auto;max-height:none}
+.battle-overlays .battle-attack-card{max-height:none;background:rgba(12,10,7,.97);border:1px solid #7d6128;border-radius:10px;box-shadow:0 12px 34px rgba(0,0,0,.6)}
+.maps-viewer.has-encounter .battle-stage{position:relative}
+@media (min-width:1101px){ .maps-viewer.has-encounter .battle-side{top:46px} }
+.battle-overlays :is(.input,select,input){background:#0b0805;color:#f3e3b8;border:1px solid #5a4a2a;border-radius:6px;padding:5px 8px;font:inherit}
+/* Plus de place pour le plateau : l'aide passe en infobulle, les passages secrets se rangent sur la barre. */
+@media (min-width:1101px){
+  .maps-viewer.has-encounter .battle-hint{display:none}
+  .maps-viewer.has-encounter .battle-chips{margin:0;gap:4px}
+  .maps-viewer.has-encounter .battle-chips button{padding:2px 8px;font-size:12px}
+  .maps-viewer.has-encounter .maps-live{margin:2px 0;font-size:12px}
+}
+.party-apart-hero,.party-apart-hero button{white-space:nowrap}
