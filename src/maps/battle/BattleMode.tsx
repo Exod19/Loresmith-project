@@ -37,6 +37,8 @@ import './battle.css';
 /** Niveaux de zoom du plateau (même logique que la carte de navigation). */
 const ZOOMS = [0.75, 1, 1.5, 2, 2.5, 3];
 const uid = () => Math.random().toString(36).slice(2, 10);
+/** Même type de données que le sélecteur de créatures (src/bestiary/CreaturePicker.jsx). */
+const CREATURE_DRAG = 'application/x-loresmith-creature';
 /** Types de terrain qui méritent une ligne dans la légende. */
 const LEGEND_ORDER: TerrainKind[] = ['.', '#', '~', ':', '=', 'X', 'I', ','];
 const SWATCH: Partial<Record<TerrainKind, string>> = { '.': 'floor', '#': 'rock', '~': 'water', ':': 'rubble', '=': 'bridge', X: 'chasm', I: 'pillar', ',': 'decor' };
@@ -229,6 +231,26 @@ export default function BattleMode({
     const props = build.props.filter((p) => p.cell !== idx);
     if (prop !== 'gomme') props.push({ id: uid(), key: prop, cell: idx, visible: propVisible });
     commitBuild({ ...build, props });
+  };
+  /** Pose `g.n` créatures autour d'une case : la case visée d'abord, puis les plus proches libres (jamais dans un mur). */
+  const dropCreatures = (at: { x: number; y: number }, g: { n: number; name: string; hp?: number; ac?: number; size?: number; image?: string; npcId?: string; stat?: string }) => {
+    const size = Math.max(1, Math.min(3, g.size ?? 1)) as 1 | 2;
+    let next = bv;
+    const added: BattleToken[] = [];
+    const cells: { x: number; y: number; d: number }[] = [];
+    for (let y = 0; y < b.rows; y++) for (let x = 0; x < b.cols; x++) cells.push({ x, y, d: Math.max(Math.abs(x - at.x), Math.abs(y - at.y)) + Math.hypot(x - at.x, y - at.y) * 0.01 });
+    cells.sort((p, q) => p.d - q.d);
+    for (let i = 0; i < Math.max(1, g.n); i++) {
+      const spot = cells.find((c) => fits(next, null, size, c.x, c.y));
+      if (!spot) break;
+      const t: BattleToken = {
+        id: uid(), name: g.n > 1 ? `${g.name} ${i + 1}` : g.name, kind: 'monster', x: spot.x, y: spot.y, size, visible: false,
+        hp: g.hp, maxHp: g.hp, ac: g.ac, npcId: g.npcId, image: g.image, statId: g.stat || undefined,
+      };
+      added.push(t);
+      next = { ...next, tokens: [...next.tokens, t] };
+    }
+    if (added.length) set({ tokens: [...b.tokens, ...added] });
   };
   const onBoardDown = (e: ReactPointerEvent) => {
     if (e.button !== 0) return;
@@ -806,8 +828,16 @@ export default function BattleMode({
             ref={wrapRef} className={`battle-board-wrap ${building ? 'building' : ''} ${zoom !== 1 ? 'zoomed' : ''} ${drag ? 'dragging' : ''}`}
             style={{ width: `${zoom * 100}%` }}
             onPointerDown={onBoardDown} onPointerMove={onBoardMove}
-            onDragOver={(e) => { if (building) e.preventDefault(); }}
+            onDragOver={(e) => { if (building || e.dataTransfer.types.includes(CREATURE_DRAG)) e.preventDefault(); }}
             onDrop={(e) => {
+              const creature = e.dataTransfer.getData(CREATURE_DRAG);
+              if (creature) {
+                // Créature glissée depuis le sélecteur : posée sur la case visée (et les plus proches libres).
+                e.preventDefault();
+                const c = cellAt(e.clientX, e.clientY);
+                if (c) dropCreatures(c, JSON.parse(creature));
+                return;
+              }
               if (!building) return;
               e.preventDefault();
               const key = e.dataTransfer.getData('text/plain');

@@ -84,7 +84,8 @@ export const THEMES: { id: string; label: string; ids: string[] }[] = [
   { id: 'giant', label: 'Géants', ids: ['ogre', 'troll'] },
 ];
 
-export type Pick_ = { stat: string; n: number };
+/** Groupe à poser : fiche SRD (`stat`), ou fiche de PNJ & Créatures (`npcId`, avec ses valeurs). */
+export type Pick_ = { stat: string; n: number; npcId?: string; name?: string; hp?: number; ac?: number; size?: 1 | 2 | 3; image?: string; ranged?: boolean };
 export type Proposal = { groups: Pick_[]; rating: Rating };
 
 function rng(seed: number) {
@@ -218,11 +219,11 @@ export function placeTactically(b: Battle, groups: Pick_[], seed: number, opts: 
 
   for (const g of groups) {
     const st = statOf(g.stat);
-    const size: 1 | 2 = st && /taille (G|TG)/.test(st.meta) ? 2 : 1;
-    const hp = st ? parseInt(st.hp, 10) : undefined;
-    const ac = st ? parseInt(st.ac, 10) : undefined;
+    const size = (g.size ?? (st && /taille (G|TG)/.test(st.meta) ? 2 : 1)) as 1 | 2;
+    const hp = g.hp ?? (st ? parseInt(st.hp, 10) : undefined);
+    const ac = g.ac ?? (st ? parseInt(st.ac, 10) : undefined);
     for (let i = 0; i < g.n; i++) {
-      const role = roleOf(st, hasLeader && g.stat === leadId && i === 0 && g.n === 1);
+      const role = !st && g.npcId ? (g.ranged ? 'ranged' : 'melee') : roleOf(st, hasLeader && g.stat === leadId && i === 0 && g.n === 1);
       const [lo, hi] = BAND[role];
       let best: { x: number; y: number; score: number } | null = null;
       for (let y = 0; y < b.rows; y++) for (let x = 0; x < b.cols; x++) {
@@ -246,9 +247,9 @@ export function placeTactically(b: Battle, groups: Pick_[], seed: number, opts: 
       const name = st?.name ?? g.stat;
       put({
         id: `s-${seed.toString(36)}-${added.length}`,
-        name: g.n > 1 ? `${name} ${i + 1}` : name,
+        name: g.n > 1 ? `${g.name ?? name} ${i + 1}` : g.name ?? name,
         kind: 'monster', x: best.x, y: best.y, size, visible: false,
-        hp, maxHp: hp, ac, statId: st ? g.stat : undefined, icon: iconFor('monster', st),
+        hp, maxHp: hp, ac, statId: st ? g.stat : undefined, icon: iconFor('monster', st), npcId: g.npcId, image: g.image,
       });
     }
   }

@@ -78,7 +78,8 @@ import {
 } from './forge/campaignPipeline';
 import './forge/forge.css';
 import './combat/wartable.css';
-import { entityFromSrd, generateEntities, normalizeEntity } from './bestiary/entityGen';
+import { entityFromSrd, generateEntities, normalizeEntity, xpForCr } from './bestiary/entityGen';
+import CreaturePicker from './bestiary/CreaturePicker';
 import UnderdarkImport from './bestiary/UnderdarkImport';
 import { underdarkIdOf } from './bestiary/underdark.js';
 import { buildCatalog, siblingsOf } from './bestiary/catalog.js';
@@ -13838,6 +13839,23 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
     const boardTokens = new Map((boardBattle?.tokens || []).map((t) => [t.id, t]));
     const setBoardBattle = embedded ? embedded.setBattle : (b) => dispatch({ type: 'UPDATE_MAP', id: boundMapRec.id, patch: { battle: b, updatedAt: Date.now() } });
     const hiddenCount = (boardBattle?.tokens || []).filter((t) => t.visible === false).length;
+    /**
+     * Une créature passe à une autre variante de sa famille (plus forte ou plus faible) : nouvelles statistiques et
+     * actions, même place sur le plateau, même initiative et états ; ses PV gardent la même proportion.
+     */
+    const swapVariant = (t, n) => {
+      const base = buildNpcCombatant(n);
+      const ratio = Number(t.hp) / Math.max(1, Number(t.maxHp));
+      const hp = Math.max(Number(t.hp) > 0 ? 1 : 0, Math.round(base.maxHp * ratio));
+      // Garde le numéro du jeton (« Gobelin 2 » → « Gobelin élite 2 »).
+      const num = String(t.name || '').match(/ (\d+)$/)?.[1];
+      const name = num ? `${n.name} ${num}` : n.name;
+      update(t.id, { ...base, name, id: t.id, init: t.init, hp, conditions: t.conditions, deathSaves: t.deathSaves, token: t.token }, `${t.name} devient ${n.name}`, { tone: 'state' });
+      if (boardBattle) {
+        const cells = Math.min(3, Math.max(1, Math.round(n.underdark?.gridFootprint?.recommendedTokenCells?.width ?? ({ G: 2, TG: 3, Gig: 4 }[n.size] || 1))));
+        setBoardBattle({ ...boardBattle, tokens: boardBattle.tokens.map((q) => (q.id === t.id ? { ...q, npcId: n.id, name, image: n.token || q.image, hp, maxHp: base.maxHp, ac: base.ac, size: cells, statId: n.srdId || undefined } : q)) });
+      }
+    };
     const pstate = partyStateOf(combatants, party);
     const foes = combatants.filter((x) => !x.isPC && Number(x.hp) > 0);
     const rating = foes.length && pstate.levels.length
@@ -14007,6 +14025,8 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
                   activeName={activeCombatant?.name}
                   art={combatantArtOf(state, selectedCombatant)}
                   sourceNpc={npcs.find((n) => n.id === selectedCombatant.sourceId)}
+                  variants={(() => { const src = npcs.find((n) => n.id === selectedCombatant.sourceId); return src ? siblingsOf(src, npcs) : null; })()}
+                  onSwap={(n) => swapVariant(selectedCombatant, n)}
                   tactics={tacticsById?.[selectedCombatant.id]}
                   boardToken={boardTokens.get(selectedCombatant.id)}
                   onBoardVisible={boardBattle ? (visible) => setBoardBattle({ ...boardBattle, tokens: boardBattle.tokens.map((q) => (q.id === selectedCombatant.id ? { ...q, visible } : q)) }) : null}
@@ -14086,7 +14106,7 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
                     </section>
                   )}
                   {boardBattle ? (
-                    <SkirmishPanel battle={boardBattle} setBattle={setBoardBattle} combatants={combatants} party={party} dispatch={dispatch} place={place} flash={flash} />
+                    <SkirmishPanel battle={boardBattle} setBattle={setBoardBattle} combatants={combatants} party={party} npcs={npcs} dispatch={dispatch} place={place} flash={flash} />
                   ) : (
                     <p className="wt-note">
                       Le champ de bataille improvisé (renforts, rencontre au niveau voulu, placement tactique) s’ouvre avec une carte de combat : choisis « Carte de combat » ci-dessus.
@@ -14169,7 +14189,7 @@ const hpTone = (t) => {
 
 /** Fiche du combattant choisi (par défaut celui dont c’est le tour) : PV, défenses, états, attaques, fiche complète. */
 function WarInspector({
-  t, isActive, activeName, art, sourceNpc, tactics, boardToken, onBoardVisible, amount, onAmount, lastRoll, hpPulse, ops, onInfo, onBackToTurn,
+  t, isActive, activeName, art, sourceNpc, tactics, boardToken, onBoardVisible, amount, onAmount, lastRoll, hpPulse, ops, onInfo, onBackToTurn, variants, onSwap,
 }) {
   const calc = getCombatantDerivedStats(t);
   const [editing, setEditing] = useState(false);
@@ -14233,6 +14253,22 @@ function WarInspector({
         <button type="button" className="wt-backturn" onClick={onBackToTurn}>
           ↩ Revenir au tour de <b>{activeName}</b>
         </button>
+      )}
+
+      {!t.isPC && variants && (variants.weaker || variants.stronger) && (
+        <section className="wt-variants" aria-label="Variante de la créature">
+          <span className="wt-variants-label">{variants.family.name} · {variants.index + 1}/{variants.family.members.length}</span>
+          <button type="button" className="wt-btn" disabled={!variants.weaker} onClick={() => onSwap(variants.weaker)} title={variants.weaker ? `Remplacer par ${variants.weaker.name} (FP ${variants.weaker.cr})` : ''}>
+            ⬇ {variants.weaker ? variants.weaker.name : 'déjà la plus faible'}
+          </button>
+          <button type="button" className="wt-btn" disabled={!variants.stronger} onClick={() => onSwap(variants.stronger)} title={variants.stronger ? `Remplacer par ${variants.stronger.name} (FP ${variants.stronger.cr})` : ''}>
+            ⬆ {variants.stronger ? variants.stronger.name : 'déjà la plus forte'}
+          </button>
+          <select className="wt-variants-pick" value="" onChange={(e) => { const n = variants.family.members.find((m) => m.id === e.target.value); if (n) onSwap(n); }}>
+            <option value="">Autre variante…</option>
+            {variants.family.members.map((m) => <option key={m.id} value={m.id} disabled={m.id === sourceNpc?.id}>{m.name} · FP {m.cr}</option>)}
+          </select>
+        </section>
       )}
 
       <section className="wt-hp" data-tone={tone}>
@@ -14789,7 +14825,7 @@ const skNorm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\
  * ou écrite par l’IA), proposer une rencontre à la difficulté voulue et la placer de façon tactique, et suivre la
  * difficulté en cours de combat pour la doser.
  */
-function SkirmishPanel({ battle, setBattle, combatants, party, dispatch, place, flash }) {
+function SkirmishPanel({ battle, setBattle, combatants, party, npcs = [], dispatch, place, flash }) {
   const { ai } = useContext(AIContext);
   const [tab, setTab] = useState(null);
   const [query, setQuery] = useState('');
@@ -14816,6 +14852,18 @@ function SkirmishPanel({ battle, setBattle, combatants, party, dispatch, place, 
     id: `pc-${h.id}-${uid()}`, name: h.name, kind: 'pc', size: 1, visible: true, heroId: h.id, sight: sightFor(h.race),
     hp: Number(h.hp || h.maxHp || 20), maxHp: Number(h.hp || h.maxHp || 20), ac: Number(h.ac || 14),
   }));
+  /** Une fiche du bestiaire comme groupe à poser (ses valeurs, son jeton, sa taille de grille). */
+  const cellsOf = (n) => n.underdark?.gridFootprint?.recommendedTokenCells?.width ?? ({ G: 2, TG: 3, Gig: 4 }[n.size] || 1);
+  const groupOfNpc = (n, count) => ({
+    stat: n.srdId || '', n: count, npcId: n.id, name: n.name, hp: Number(n.hp) || undefined, ac: Number(n.ac) || undefined,
+    size: Math.min(3, Math.max(1, Math.round(cellsOf(n)))), image: n.token || undefined,
+    ranged: (n.actions || []).some((a) => /distance|portée|ranged/i.test(`${a.range} ${a.desc}`)) && !(n.actions || []).some((a) => /mêlée|allonge|corps à corps|melee/i.test(`${a.range} ${a.desc}`)),
+  });
+  const rateWith = (n, count) => {
+    const xp = xpForCr(n.cr) || 0;
+    const r = rateEncounter([...foes.map((c) => xpOfCombatant(c, byId.get(c.id))), ...Array(count).fill(xp)], pstate);
+    return { ...r, before: current.label };
+  };
   const addGroups = (groups, opts = {}) => {
     const base = opts.replace ? { ...battle, tokens: battle.tokens.filter((t) => t.kind !== 'monster') } : battle;
     const needParty = opts.party && !base.tokens.some((t) => t.kind === 'pc') && party.length > 0;
@@ -14935,20 +14983,32 @@ function SkirmishPanel({ battle, setBattle, combatants, party, dispatch, place, 
       {tab === 'add' && (
         <div className="skirmish-body skirmish-add">
           <div className="skirmish-col">
-            <div className="skirmish-row">
-              <input className="input" placeholder="Chercher : gobelin, orc, squelette, loup…" value={query} onChange={(e) => setQuery(e.target.value)} />
-              <label className="skirmish-qty">× <input className="input" type="number" min="1" max="12" value={qty} onChange={(e) => setQty(e.target.value)} /></label>
-            </div>
-            <ul className="skirmish-list">
-              {matches.map((s) => (
-                <li key={s.id}>
-                  <img src={tokenImage({ kind: 'monster', statId: s.id })} alt="" />
-                  <span><b>{s.name}</b><small>FP {s.cr.split(' ')[0]} · PV {parseInt(s.hp, 10)} · CA {parseInt(s.ac, 10)}</small></span>
-                  <button className="btn sm" onClick={() => addGroups([{ stat: s.id, n: Math.max(1, Number(qty) || 1) }])}>Ajouter</button>
-                </li>
-              ))}
-              {!matches.length && <li className="muted">Rien de tel au bestiaire : crée-la à droite.</li>}
-            </ul>
+            {npcs.some((n) => n.entityType === 'monster' || n.isMonster) && (
+              <CreaturePicker
+                npcs={npcs}
+                imageOf={(n) => n.token || ''}
+                rate={rateWith}
+                payloadOf={groupOfNpc}
+                onAdd={(n, count) => addGroups([groupOfNpc(n, count)])}
+              />
+            )}
+            <details className="skirmish-srd" open={!npcs.some((n) => n.entityType === 'monster' || n.isMonster)}>
+              <summary>Fiches SRD de base</summary>
+              <div className="skirmish-row">
+                <input className="input" placeholder="Chercher : gobelin, orc, squelette, loup…" value={query} onChange={(e) => setQuery(e.target.value)} />
+                <label className="skirmish-qty">× <input className="input" type="number" min="1" max="12" value={qty} onChange={(e) => setQty(e.target.value)} /></label>
+              </div>
+              <ul className="skirmish-list">
+                {matches.map((s) => (
+                  <li key={s.id}>
+                    <img src={tokenImage({ kind: 'monster', statId: s.id })} alt="" />
+                    <span><b>{s.name}</b><small>FP {s.cr.split(' ')[0]} · PV {parseInt(s.hp, 10)} · CA {parseInt(s.ac, 10)}</small></span>
+                    <button className="btn sm" onClick={() => addGroups([{ stat: s.id, n: Math.max(1, Number(qty) || 1) }])}>Ajouter</button>
+                  </li>
+                ))}
+                {!matches.length && <li className="muted">Rien de tel au SRD : crée-la à droite.</li>}
+              </ul>
+            </details>
           </div>
           <div className="skirmish-col">
             <div className="skirmish-sub">Créature générique rapide</div>
