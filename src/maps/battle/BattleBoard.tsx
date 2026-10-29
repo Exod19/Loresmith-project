@@ -2,7 +2,7 @@
  * Plateau de combat sur grille (5 pieds par case). Sert à la console MJ (interactif) et à l'écran joueur (lecture seule).
  * Le terrain est dessiné avec de vraies textures (SVG), les lieux et créatures avec des icônes.
  */
-import { useEffect, useRef, type MouseEvent as ReactMouseEvent } from 'react';
+import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import type { PlayerElement, PlayerToken } from '../../present/stage';
 import type { TerrainKind } from './terrain';
 import { CATEGORY_IMG, vignette } from './vignettes';
@@ -80,6 +80,45 @@ function FogLayer({ cols, rows, fog }: { cols: number; rows: number; fog: NonNul
 }
 
 const KIND_FILL: Record<PlayerToken['kind'], string> = { pc: '#54d8c6', monster: '#c0492f', other: '#c9a24a' };
+
+/**
+ * Images détourées (fond transparent) : on le vérifie une fois par image, aux quatre coins. Une figurine détourée
+ * reçoit un socle (disque teinté selon le camp) et déborde un peu du cercle, au lieu d'être découpée.
+ */
+const cutoutCache = new Map<string, boolean>();
+function probeCutout(url: string): Promise<boolean> {
+  return new Promise((done) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const n = 24, c = document.createElement('canvas');
+        c.width = n; c.height = n;
+        const g = c.getContext('2d');
+        if (!g) return done(false);
+        g.drawImage(img, 0, 0, n, n);
+        const a = (x: number, y: number) => g.getImageData(x, y, 1, 1).data[3];
+        done(a(0, 0) < 16 && a(n - 1, 0) < 16 && a(0, n - 1) < 16 && a(n - 1, n - 1) < 16);
+      } catch { done(false); }
+    };
+    img.onerror = () => done(false);
+    img.src = url;
+  });
+}
+/** Les images de jetons détourées parmi celles affichées (se met à jour une fois la vérification faite). */
+function useCutouts(urls: (string | undefined)[]) {
+  const [, bump] = useState(0);
+  useEffect(() => {
+    for (const u of urls) {
+      if (!u || cutoutCache.has(u)) continue;
+      cutoutCache.set(u, false);
+      void probeCutout(u).then((yes) => { if (yes) { cutoutCache.set(u, true); bump((n) => n + 1); } });
+    }
+  });
+  return (u?: string) => !!u && cutoutCache.get(u) === true;
+}
+/** Socle d'une figurine détourée, par camp : pierre sombre teintée. */
+const BASE_TINT: Record<PlayerToken['kind'], [string, string]> = { pc: ['#2c4f4a', '#0f1c1a'], monster: ['#5a2a22', '#1c0d0a'], other: ['#4f4224', '#1a150b'] };
 
 /** Textures du terrain (public/images/combat-map/textures) : une image par case, posée sur la grille.
  *  Une répétition de motif donnait des rayures à cette échelle ; chaque case garde ainsi son image exacte. */
@@ -223,6 +262,7 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
   }, [cols, rows, terrain]);
 
   const pick = (id: string) => (ev: ReactMouseEvent<SVGElement>) => onElement?.(id, cellUnder(ev, cols, rows));
+  const isCutout = useCutouts(tokens.map((t) => t.image));
 
   return (
     <div className="battle-stack">
@@ -320,7 +360,18 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
         const cx = t.x + t.size / 2, cy = t.y + t.size / 2;
         return (
           <g key={t.id} className="battle-token" opacity={t.hidden ? 0.4 : 1} onClick={interactive && onToken ? (e) => { e.stopPropagation(); onToken(t.id); } : onElement ? pick(t.id) : undefined}>
-            {t.image ? (
+            {t.image && isCutout(t.image) ? (
+              <>
+                <radialGradient id={`base-${t.id}`} cx="50%" cy="42%" r="60%">
+                  <stop offset="0%" stopColor={BASE_TINT[t.kind][0]} />
+                  <stop offset="100%" stopColor={BASE_TINT[t.kind][1]} />
+                </radialGradient>
+                <circle cx={cx} cy={cy} r={r} fill={`url(#base-${t.id})`} />
+                <circle cx={cx} cy={cy} r={r - 0.035} fill="none" stroke={KIND_FILL[t.kind]} strokeOpacity={0.55} strokeWidth={0.03} />
+                <image href={t.image} x={cx - r * 1.12} y={cy - r * 1.12} width={2.24 * r} height={2.24 * r} preserveAspectRatio="xMidYMid meet" style={{ filter: 'drop-shadow(0 0.04px 0.05px rgba(0,0,0,.85))' }} />
+                <circle cx={cx} cy={cy} r={r} fill="none" stroke={t.selected ? '#ecd289' : '#0b0906'} strokeWidth={t.selected ? 0.12 : 0.05} strokeDasharray={t.hidden ? '0.12 0.08' : undefined} />
+              </>
+            ) : t.image ? (
               <>
                 <clipPath id={`clip-${t.id}`}><circle cx={cx} cy={cy} r={r} /></clipPath>
                 <image href={t.image} x={cx - r} y={cy - r} width={2 * r} height={2 * r} clipPath={`url(#clip-${t.id})`} preserveAspectRatio="xMidYMid slice" />
