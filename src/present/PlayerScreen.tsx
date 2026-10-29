@@ -8,6 +8,8 @@ import { setAtlasData } from '../maps/atlas/model';
 import type { AtlasData, AtlasFeature, FeatureCategory } from '../maps/atlas/types';
 import BattleBoard, { CATEGORY_ICON, type BoardRange } from '../maps/battle/BattleBoard';
 import { reachableCells } from '../maps/battle/ranges';
+import { trailProfile } from '../maps/atlas/trails';
+import { lengthOf, project, subpath, towardOf } from '../maps/journey';
 import { CATEGORY_IMG, vignette } from '../maps/battle/vignettes';
 import { openStageChannel, type PlayerBoard, type PlayerElement, type PlayerToken, type PlayerTurn, type Stage, type StageMessage } from './stage';
 import '../maps/maps.css';
@@ -88,7 +90,7 @@ function Scene({ stage, rev }: { stage: Stage; rev: number }) {
   }
   if (stage.kind === 'board') {
     return stage.board.mode === 'map'
-      ? <PlayerMap board={stage.board} rev={rev} onFollow={(featureId) => sendToHost?.({ type: 'follow', featureId })} onPick={(featureId) => sendToHost?.({ type: 'pick', featureId })} />
+      ? <PlayerMap board={stage.board} rev={rev} onFollow={(featureId, dir) => sendToHost?.({ type: 'follow', featureId, dir })} onPick={(featureId) => sendToHost?.({ type: 'pick', featureId })} />
       : <PlayerBattle board={stage.board} onAim={(from, to) => sendToHost?.({ type: 'aim', from, to })} onMove={(id, x, y) => sendToHost?.({ type: 'move', id, x, y })} />;
   }
   return (
@@ -98,7 +100,7 @@ function Scene({ stage, rev }: { stage: Stage; rev: number }) {
   );
 }
 
-function PlayerMap({ board, rev, onFollow, onPick }: { board: Extract<PlayerBoard, { mode: 'map' }>; rev: number; onFollow?: (featureId: string) => void; onPick?: (featureId: string) => void }) {
+function PlayerMap({ board, rev, onFollow, onPick }: { board: Extract<PlayerBoard, { mode: 'map' }>; rev: number; onFollow?: (featureId: string, dir?: 'a' | 'b') => void; onPick?: (featureId: string) => void }) {
   setAtlasData(board.data as AtlasData);
   // Un lieu ou un chemin touché : sa fiche ; un chemin peut être suivi (le MJ valide, ou fait passer l'épreuve).
   const [picked, setPicked] = useState<AtlasFeature | null>(null);
@@ -118,13 +120,36 @@ function PlayerMap({ board, rev, onFollow, onPick }: { board: Extract<PlayerBoar
       {picked && (
         <aside className="present-map-card" role="dialog" aria-label={picked.title}>
           <button className="present-info-close" onClick={() => setPicked(null)} aria-label="Fermer">×</button>
-          <span className="present-info-kind">{picked.trace ? 'Chemin' : 'Lieu'}</span>
+          <span className="present-info-kind">{picked.trace ? TRACE_FR[picked.trace] ?? 'Chemin' : 'Lieu'}</span>
           <h3>{picked.title}</h3>
           {picked.subtitle && <p>{picked.subtitle}</p>}
+          {picked.trace && (() => {
+            const danger = trailProfile(picked).danger;
+            const dir = directionOf(board, picked.id);
+            return (
+              <>
+                <p className="present-path-facts">
+                  <span className={`present-danger lvl-${danger.level}`}>{danger.label}</span>
+                  {dir && <span className="present-path-dir">🧭 {dir}</span>}
+                </p>
+                <p className="present-path-why">{danger.text} <small>({danger.why.join(', ')})</small></p>
+              </>
+            );
+          })()}
           {picked.trace && onFollow && (
             asked === picked.id
               ? <p className="present-aim-wait">Le MJ décide si le groupe s’y engage…</p>
-              : <button className="present-aim-btn" onClick={() => { onFollow(picked.id); setAsked(picked.id); }}>🚶 Suivre ce chemin</button>
+              : (() => {
+                const dirs = directionsOf(board, picked.id);
+                if (!dirs.length) return <p className="present-aim-wait">Le groupe n’est pas sur ce chemin.</p>;
+                return (
+                  <div className="present-path-go">
+                    {dirs.map((d) => (
+                      <button key={d.dir} className="present-aim-btn" onClick={() => { onFollow(picked.id, d.dir); setAsked(picked.id); }}>🚶 Vers {d.toward}</button>
+                    ))}
+                  </div>
+                );
+              })()
           )}
         </aside>
       )}
@@ -339,3 +364,54 @@ function cardFor(board: Extract<PlayerBoard, { mode: 'battle' }>, id: string) {
 
 const KIND_NAME_TOKEN: Record<PlayerToken['kind'], string> = { pc: 'Compagnon', monster: 'Créature', other: 'Présence' };
 const KIND_NAME: Record<PlayerElement['kind'], string> = { passage: 'Passage', point: 'Lieu' };
+
+const TRACE_FR: Record<string, string> = {
+  tunnel: 'Tunnel', galerie: 'Galerie', boyau: 'Boyau', etroit: 'Passage étroit', crevasse: 'Crevasse',
+  ruisseau: 'Ruisseau souterrain', secret: 'Passage dérobé',
+};
+const COMPASS = ['l’est', 'le nord-est', 'le nord', 'le nord-ouest', 'l’ouest', 'le sud-ouest', 'le sud', 'le sud-est'];
+const toward = (dx: number, dy: number) => COMPASS[((Math.round(Math.atan2(-dy, dx) / (Math.PI / 4)) % 8) + 8) % 8];
+
+/** Direction d'un chemin vue du groupe : il part vers… (depuis le bout le plus proche), sinon d'où à où il s'étire. */
+function directionOf(board: Extract<PlayerBoard, { mode: 'map' }>, id: string): string | null {
+  const g = board.data.geometries.find((x) => x.featureId === id && x.mapId === board.planId && x.type === 'polyline');
+  if (!g) return null;
+  const pts = g.coordinates as [number, number][];
+  let a = pts[0], b = pts[pts.length - 1];
+  if (board.here) {
+    const h = board.here;
+    // Le groupe touche ce chemin : il part vers le bout le plus éloigné (là où il mène), comme chez le MJ.
+    const seg = (p: [number, number], q: [number, number]) => {
+      const dx = q[0] - p[0], dy = q[1] - p[1], L = dx * dx + dy * dy || 1;
+      const k = Math.max(0, Math.min(1, ((h[0] - p[0]) * dx + (h[1] - p[1]) * dy) / L));
+      return Math.hypot(p[0] + k * dx - h[0], p[1] + k * dy - h[1]);
+    };
+    let d = Infinity;
+    for (let i = 0; i < pts.length - 1; i++) d = Math.min(d, seg(pts[i], pts[i + 1]));
+    if (d < 0.04) {
+      const far = Math.hypot(a[0] - h[0], a[1] - h[1]) > Math.hypot(b[0] - h[0], b[1] - h[1]) ? a : b;
+      return `Part vers ${toward(far[0] - h[0], far[1] - h[1])}`;
+    }
+  }
+  const from = toward(a[0] - b[0], a[1] - b[1]).replace(/^le /, 'du ').replace(/^l’/, 'de l’');
+  return `S’étire ${from} vers ${toward(b[0] - a[0], b[1] - a[1])}`;
+}
+
+/** Directions que le groupe peut prendre sur un chemin qu'il touche : vers l'un ou l'autre bout (sans dire où il mène). */
+function directionsOf(board: Extract<PlayerBoard, { mode: 'map' }>, id: string): { dir: 'a' | 'b'; toward: string }[] {
+  const g = board.data.geometries.find((x) => x.featureId === id && x.mapId === board.planId && x.type === 'polyline');
+  if (!g || !board.here) return [];
+  const pts = g.coordinates as [number, number][];
+  const here = project(pts, board.here);
+  if (here.d > 0.04) return [];
+  const L = lengthOf(pts);
+  const out: { dir: 'a' | 'b'; toward: string }[] = [];
+  for (const dir of ['a', 'b'] as const) {
+    const end = dir === 'b' ? L : 0;
+    if (Math.abs(end - here.s) < 0.012) continue;
+    const route = subpath(pts, here.s, dir === 'b' ? Math.min(L, here.s + 0.05) : Math.max(0, here.s - 0.05));
+    const far = route[route.length - 1];
+    out.push({ dir, toward: towardOf(far[0] - board.here[0], far[1] - board.here[1]) });
+  }
+  return out;
+}

@@ -33,8 +33,10 @@ export type PlayerBoard =
     /** Jetons du groupe et des héros séparés (si le MJ les montre), et brouillard de guerre. */
     marks?: { id: string; x: number; y: number; label: string; tone: 'party' | 'dest' | 'hero' }[];
     fog?: { vision: [number, number][]; explored: [number, number][]; r: number; er: number };
+    /** Où se tient le groupe sur ce plan (pour orienter les chemins), même si son jeton n'est pas montré. */
+    here?: [number, number];
     /** Le groupe en chemin (animé chez les joueurs). */
-    travel?: { key: string; points: [number, number][]; at: number; label?: string } }
+    travel?: { key: string; points: [number, number][]; at: number; label?: string; hold?: boolean } }
   | { mode: 'battle'; title: string; backdrop?: string; cols: number; rows: number; feetPerCell: number; round: number; tokens: PlayerToken[]; terrain?: string; elements: PlayerElement[]; turn?: PlayerTurn;
     /** Brouillard de guerre : cases vues par les héros, et déjà explorées. Absent = tout le plateau est visible. */
     fog?: { visible: number[]; explored: number[] };
@@ -56,7 +58,7 @@ export type Stage =
 /** `aim` : depuis l'écran joueur, un héros déclare qu'il attaque une cible (le MJ résout). */
 /** `move` : depuis l'écran joueur, un jeton est glissé sur une autre case (le MJ valide). */
 /** `follow` : depuis la carte de navigation des joueurs, le groupe demande à suivre un chemin (le MJ valide ou fait l'épreuve). */
-export type StageMessage = { type: 'hello' } | { type: 'stage'; stage: Stage } | { type: 'aim'; from: string; to: string } | { type: 'move'; id: string; x: number; y: number } | { type: 'follow'; featureId: string } | { type: 'pick'; featureId: string };
+export type StageMessage = { type: 'hello' } | { type: 'stage'; stage: Stage } | { type: 'aim'; from: string; to: string } | { type: 'move'; id: string; x: number; y: number } | { type: 'follow'; featureId: string; dir?: 'a' | 'b' } | { type: 'pick'; featureId: string };
 
 const CHANNEL = 'loresmith:stage:v1';
 
@@ -80,7 +82,7 @@ let current: Stage = { kind: 'blank' };
 const helloListeners = new Set<() => void>();
 const aimListeners = new Set<(from: string, to: string) => void>();
 const moveListeners = new Set<(id: string, x: number, y: number) => void>();
-const followListeners = new Set<(featureId: string) => void>();
+const followListeners = new Set<(featureId: string, dir?: 'a' | 'b') => void>();
 const pickListeners = new Set<(featureId: string) => void>();
 
 /** À appeler une fois dans la console MJ : répond aux écrans joueurs qui se connectent. */
@@ -90,7 +92,7 @@ export function hostStage() {
   host.onmessage = (e: MessageEvent<StageMessage>) => {
     if (e.data?.type === 'aim') { const { from, to } = e.data; aimListeners.forEach((f) => f(from, to)); return; }
     if (e.data?.type === 'move') { const { id, x, y } = e.data; moveListeners.forEach((f) => f(id, x, y)); return; }
-    if (e.data?.type === 'follow') { const { featureId } = e.data; followListeners.forEach((f) => f(featureId)); return; }
+    if (e.data?.type === 'follow') { const { featureId, dir } = e.data; followListeners.forEach((f) => f(featureId, dir)); return; }
     if (e.data?.type === 'pick') { const { featureId } = e.data; pickListeners.forEach((f) => f(featureId)); return; }
     if (e.data?.type !== 'hello') return;
     host?.postMessage({ type: 'stage', stage: current } satisfies StageMessage);
@@ -130,7 +132,7 @@ export function onPlayerMove(listener: (id: string, x: number, y: number) => voi
 }
 
 /** Préviens quand les joueurs demandent à suivre un chemin de la carte de navigation. */
-export function onPlayerFollow(listener: (featureId: string) => void) {
+export function onPlayerFollow(listener: (featureId: string, dir?: 'a' | 'b') => void) {
   hostStage();
   followListeners.add(listener);
   return () => { followListeners.delete(listener); };

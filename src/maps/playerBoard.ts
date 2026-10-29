@@ -18,6 +18,20 @@ import { inSight, partyVision } from './battle/fog';
 import { exitsOf } from './battle/trailRules';
 import type { BattleToken } from './mapStore';
 
+/** Points découverts d'un plan, déduits de ce qui est révélé (lieux, repères) et du parcours du groupe. */
+export function seedExplored(data: AtlasData, rec: MapRecord, planId: string, at: (p?: PartyPlace) => [number, number] | null): [number, number][] {
+  const revealed = new Set(rec.overlay?.revealed ?? []);
+  const out: [number, number][] = [];
+  for (const g of data.geometries) {
+    if (g.mapId !== planId || !revealed.has(g.featureId)) continue;
+    if (g.type === 'point') out.push(g.coordinates as [number, number]);
+    else (g.coordinates as [number, number][]).forEach((c, i, all) => { if (i % 2 === 0 || i === all.length - 1) out.push(c); });
+  }
+  for (const p of rec.overlay?.party?.trail ?? []) { const c = at(p); if (c) out.push(c); }
+  for (const m of rec.overlay?.markers ?? []) if (m.revealed && m.planId === planId) out.push([m.x, m.y]);
+  return out;
+}
+
 /** Rayon de vision du groupe sur la carte de navigation (en largeur de plan). */
 export const VISION_R = 0.035;
 
@@ -57,19 +71,15 @@ export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus
   if (view.fog) {
     const vision: [number, number][] = [];
     for (const p of [party?.at, ...(party?.apart ?? []).map((h) => h.at)]) { const c = at(p); if (c) vision.push(c); }
-    const explored: [number, number][] = [...(rec.overlay?.explored?.[planId] ?? [])];
-    for (const g of data.geometries) {
-      if (g.mapId !== planId) continue;
-      if (g.type === 'point') explored.push(g.coordinates as [number, number]);
-      else (g.coordinates as [number, number][]).forEach((c, i, all) => { if (i % 2 === 0 || i === all.length - 1) explored.push(c); });
-    }
-    for (const p of party?.trail ?? []) { const c = at(p); if (c) explored.push(c); }
-    for (const m of rec.overlay?.markers ?? []) if (m.revealed && m.planId === planId) explored.push([m.x, m.y]);
+    // La mémoire du brouillard (ce que le MJ n'a pas replongé dans le noir) ; une carte d'avant cette mémoire part
+    // des lieux révélés et du parcours du groupe.
+    const explored = rec.overlay?.explored?.[planId] ?? seedExplored(data, rec, planId, at);
     fog = { vision, explored, r: VISION_R, er: 0.022 };
   }
   const t = rec.overlay?.travel;
-  const travel = t && t.planId === planId && Date.now() - t.at < 6000 && view.party !== false ? { key: t.key, points: t.points, at: t.at, label: 'Groupe' } : undefined;
-  return { mode: 'map', title: rec.title, planId, data, focus, marks: marks.length ? marks : undefined, fog, travel };
+  const travel = t && t.planId === planId && (t.hold || Date.now() - t.at < 30000) ? { key: t.key, points: t.points, at: t.at, label: 'Groupe', hold: t.hold } : undefined;
+  const here = party?.at && party.at.planId === planId ? placeCoords(full ?? mapDataFor(rec, atlas, true), rec, party.at) ?? undefined : undefined;
+  return { mode: 'map', title: rec.title, planId, data, focus, marks: marks.length ? marks : undefined, fog, travel, here };
 }
 
 /** Combat tel que les joueurs le voient : jetons visibles seulement, sans points de vie ni CA. */

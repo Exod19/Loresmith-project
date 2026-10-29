@@ -216,3 +216,9 @@
 .trails-route.v-detour{color:#e6d27a}
 .trails-route.v-farther{color:#f0b866}
 .trails-route.v-dead{color:#ff8a6e}
+.maps-halt { border: 1px solid #b99cff; border-radius: 6px; padding: 8px 10px; background: rgba(60,40,100,.18); }
+.maps-halt h4 { margin: 0 0 4px; color: #e6dcff; font-size: .9rem; }
+.maps-halt p { margin: 0 0 6px; }
+.maps-halt-btns, .trail-legs { display: flex; flex-direction: column; gap: 6px; }
+.trail-legs .maps-btn { text-align: left; }
+.trail-legs small { color: #a9aaa5; margin-left: 4px; }
