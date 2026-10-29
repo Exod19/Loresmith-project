@@ -31,7 +31,7 @@ export type PlayerBoard =
     /** Sorties au bord du plateau, avec leur destination si les héros la connaissent. */
     exits?: { cell: number; dir: 'n' | 's' | 'e' | 'w'; label: string; known: boolean }[];
     /** Attaque en cours : trait de l'attaquant à la cible, et résultat annoncé. */
-    aim?: { from: string; to: string; text?: string; tone?: 'hit' | 'miss' | 'crit' | 'info' } };
+    aim?: { from: string; to: string; text?: string; tone?: 'hit' | 'miss' | 'crit' | 'info'; narration?: { text: string; importance: 'minor' | 'major' | 'epic'; id: string } } };
 
 export type Stage =
   | { kind: 'blank' }

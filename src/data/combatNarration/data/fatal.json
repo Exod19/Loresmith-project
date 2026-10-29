@@ -1,0 +1,3367 @@
+{
+  "schemaVersion": "1.0.0",
+  "collection": "fatal",
+  "count": 120,
+  "entries": [
+    {
+      "id": "LS-FATAL-0001",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "La hache de {attacker} trouve {target} dans un dernier arc terrible. L’adversaire s’effondre et le vacarme de ce duel prend fin. Le champ de bataille a désormais un nom de moins à craindre.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0002",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "La hache de {attacker} trouve {target} dans un dernier arc terrible. L’adversaire s’effondre et le vacarme de ce duel prend fin. La victoire laisse derrière elle un silence pesant.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0003",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "comedic",
+      "rarity": "rare",
+      "text": "La hache de {attacker} trouve {target} dans un dernier arc terrible. L’adversaire s’effondre et le vacarme de ce duel prend fin. Il aurait fallu choisir un adversaire moins convaincant.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0004",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "heroic",
+      "rarity": "rare",
+      "text": "La hache de {attacker} trouve {target} dans un dernier arc terrible. L’adversaire s’effondre et le vacarme de ce duel prend fin. {attacker} demeure debout, conscient du prix de cette victoire.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0005",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "sarcastic",
+      "rarity": "rare",
+      "text": "La hache de {attacker} trouve {target} dans un dernier arc terrible. L’adversaire s’effondre et le vacarme de ce duel prend fin. Cette fois, la discussion est définitivement close.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0006",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "La hache de {attacker} trouve {target} dans un dernier arc terrible. L’adversaire s’effondre et le vacarme de ce duel prend fin. Les témoins sauront à qui attribuer le dernier coup.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0007",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "{attacker} abat sa hache une ultime fois. {target} ne se relève pas. Les témoins comprendront plus tard qu’ils viennent d’assister à une fin. Le champ de bataille a désormais un nom de moins à craindre.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0008",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "{attacker} abat sa hache une ultime fois. {target} ne se relève pas. Les témoins comprendront plus tard qu’ils viennent d’assister à une fin. La victoire laisse derrière elle un silence pesant.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0009",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "comedic",
+      "rarity": "rare",
+      "text": "{attacker} abat sa hache une ultime fois. {target} ne se relève pas. Les témoins comprendront plus tard qu’ils viennent d’assister à une fin. Il aurait fallu choisir un adversaire moins convaincant.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0010",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "heroic",
+      "rarity": "rare",
+      "text": "{attacker} abat sa hache une ultime fois. {target} ne se relève pas. Les témoins comprendront plus tard qu’ils viennent d’assister à une fin. {attacker} demeure debout, conscient du prix de cette victoire.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0011",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "sarcastic",
+      "rarity": "rare",
+      "text": "{attacker} abat sa hache une ultime fois. {target} ne se relève pas. Les témoins comprendront plus tard qu’ils viennent d’assister à une fin. Cette fois, la discussion est définitivement close.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0012",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "{attacker} abat sa hache une ultime fois. {target} ne se relève pas. Les témoins comprendront plus tard qu’ils viennent d’assister à une fin. Les témoins sauront à qui attribuer le dernier coup.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0013",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "L’épée de {attacker} traverse la dernière défense de {target}. Un souffle, un silence, puis le combat de cet adversaire s’achève. Le champ de bataille a désormais un nom de moins à craindre.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0014",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "L’épée de {attacker} traverse la dernière défense de {target}. Un souffle, un silence, puis le combat de cet adversaire s’achève. La victoire laisse derrière elle un silence pesant.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0015",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "comedic",
+      "rarity": "rare",
+      "text": "L’épée de {attacker} traverse la dernière défense de {target}. Un souffle, un silence, puis le combat de cet adversaire s’achève. Il aurait fallu choisir un adversaire moins convaincant.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0016",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "heroic",
+      "rarity": "rare",
+      "text": "L’épée de {attacker} traverse la dernière défense de {target}. Un souffle, un silence, puis le combat de cet adversaire s’achève. {attacker} demeure debout, conscient du prix de cette victoire.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0017",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "sarcastic",
+      "rarity": "rare",
+      "text": "L’épée de {attacker} traverse la dernière défense de {target}. Un souffle, un silence, puis le combat de cet adversaire s’achève. Cette fois, la discussion est définitivement close.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0018",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "L’épée de {attacker} traverse la dernière défense de {target}. Un souffle, un silence, puis le combat de cet adversaire s’achève. Les témoins sauront à qui attribuer le dernier coup.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0019",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "{attacker} trouve l’ouverture décisive. La lame frappe {target}, qui s’effondre tandis que l’acier retombe lentement. Le champ de bataille a désormais un nom de moins à craindre.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0020",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "{attacker} trouve l’ouverture décisive. La lame frappe {target}, qui s’effondre tandis que l’acier retombe lentement. La victoire laisse derrière elle un silence pesant.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0021",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "comedic",
+      "rarity": "rare",
+      "text": "{attacker} trouve l’ouverture décisive. La lame frappe {target}, qui s’effondre tandis que l’acier retombe lentement. Il aurait fallu choisir un adversaire moins convaincant.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0022",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "heroic",
+      "rarity": "rare",
+      "text": "{attacker} trouve l’ouverture décisive. La lame frappe {target}, qui s’effondre tandis que l’acier retombe lentement. {attacker} demeure debout, conscient du prix de cette victoire.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0023",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "sarcastic",
+      "rarity": "rare",
+      "text": "{attacker} trouve l’ouverture décisive. La lame frappe {target}, qui s’effondre tandis que l’acier retombe lentement. Cette fois, la discussion est définitivement close.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0024",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "{attacker} trouve l’ouverture décisive. La lame frappe {target}, qui s’effondre tandis que l’acier retombe lentement. Les témoins sauront à qui attribuer le dernier coup.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0025",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "La dague de {attacker} frappe dans l’ultime ouverture. {target} tombe sans pouvoir reprendre le combat. Le champ de bataille a désormais un nom de moins à craindre.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0026",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "La dague de {attacker} frappe dans l’ultime ouverture. {target} tombe sans pouvoir reprendre le combat. La victoire laisse derrière elle un silence pesant.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0027",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "comedic",
+      "rarity": "rare",
+      "text": "La dague de {attacker} frappe dans l’ultime ouverture. {target} tombe sans pouvoir reprendre le combat. Il aurait fallu choisir un adversaire moins convaincant.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0028",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "heroic",
+      "rarity": "rare",
+      "text": "La dague de {attacker} frappe dans l’ultime ouverture. {target} tombe sans pouvoir reprendre le combat. {attacker} demeure debout, conscient du prix de cette victoire.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0029",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "sarcastic",
+      "rarity": "rare",
+      "text": "La dague de {attacker} frappe dans l’ultime ouverture. {target} tombe sans pouvoir reprendre le combat. Cette fois, la discussion est définitivement close.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0030",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "La dague de {attacker} frappe dans l’ultime ouverture. {target} tombe sans pouvoir reprendre le combat. Les témoins sauront à qui attribuer le dernier coup.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0031",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "Un geste bref de {attacker}, presque invisible, suffit. {target} s’affaisse et la bataille compte un adversaire de moins. Le champ de bataille a désormais un nom de moins à craindre.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0032",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "Un geste bref de {attacker}, presque invisible, suffit. {target} s’affaisse et la bataille compte un adversaire de moins. La victoire laisse derrière elle un silence pesant.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0033",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "comedic",
+      "rarity": "rare",
+      "text": "Un geste bref de {attacker}, presque invisible, suffit. {target} s’affaisse et la bataille compte un adversaire de moins. Il aurait fallu choisir un adversaire moins convaincant.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0034",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "heroic",
+      "rarity": "rare",
+      "text": "Un geste bref de {attacker}, presque invisible, suffit. {target} s’affaisse et la bataille compte un adversaire de moins. {attacker} demeure debout, conscient du prix de cette victoire.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0035",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "sarcastic",
+      "rarity": "rare",
+      "text": "Un geste bref de {attacker}, presque invisible, suffit. {target} s’affaisse et la bataille compte un adversaire de moins. Cette fois, la discussion est définitivement close.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0036",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "Un geste bref de {attacker}, presque invisible, suffit. {target} s’affaisse et la bataille compte un adversaire de moins. Les témoins sauront à qui attribuer le dernier coup.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0037",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "La masse de {attacker} frappe avec une violence finale. {target} s’écroule, et le choc résonne encore après sa chute. Le champ de bataille a désormais un nom de moins à craindre.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0038",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "La masse de {attacker} frappe avec une violence finale. {target} s’écroule, et le choc résonne encore après sa chute. La victoire laisse derrière elle un silence pesant.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0039",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "comedic",
+      "rarity": "rare",
+      "text": "La masse de {attacker} frappe avec une violence finale. {target} s’écroule, et le choc résonne encore après sa chute. Il aurait fallu choisir un adversaire moins convaincant.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0040",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "heroic",
+      "rarity": "rare",
+      "text": "La masse de {attacker} frappe avec une violence finale. {target} s’écroule, et le choc résonne encore après sa chute. {attacker} demeure debout, conscient du prix de cette victoire.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0041",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "sarcastic",
+      "rarity": "rare",
+      "text": "La masse de {attacker} frappe avec une violence finale. {target} s’écroule, et le choc résonne encore après sa chute. Cette fois, la discussion est définitivement close.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0042",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "La masse de {attacker} frappe avec une violence finale. {target} s’écroule, et le choc résonne encore après sa chute. Les témoins sauront à qui attribuer le dernier coup.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0043",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "{attacker} porte un dernier coup de masse. {target} tombe; même la pierre semble avoir retenu le bruit. Le champ de bataille a désormais un nom de moins à craindre.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0044",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "{attacker} porte un dernier coup de masse. {target} tombe; même la pierre semble avoir retenu le bruit. La victoire laisse derrière elle un silence pesant.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0045",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "comedic",
+      "rarity": "rare",
+      "text": "{attacker} porte un dernier coup de masse. {target} tombe; même la pierre semble avoir retenu le bruit. Il aurait fallu choisir un adversaire moins convaincant.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0046",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "heroic",
+      "rarity": "rare",
+      "text": "{attacker} porte un dernier coup de masse. {target} tombe; même la pierre semble avoir retenu le bruit. {attacker} demeure debout, conscient du prix de cette victoire.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0047",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "sarcastic",
+      "rarity": "rare",
+      "text": "{attacker} porte un dernier coup de masse. {target} tombe; même la pierre semble avoir retenu le bruit. Cette fois, la discussion est définitivement close.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0048",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "{attacker} porte un dernier coup de masse. {target} tombe; même la pierre semble avoir retenu le bruit. Les témoins sauront à qui attribuer le dernier coup.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0049",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "Le marteau de {attacker} s’abat une dernière fois. {target} s’effondre sous le choc et ne reprend pas le combat. Le champ de bataille a désormais un nom de moins à craindre.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0050",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "Le marteau de {attacker} s’abat une dernière fois. {target} s’effondre sous le choc et ne reprend pas le combat. La victoire laisse derrière elle un silence pesant.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0051",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "comedic",
+      "rarity": "rare",
+      "text": "Le marteau de {attacker} s’abat une dernière fois. {target} s’effondre sous le choc et ne reprend pas le combat. Il aurait fallu choisir un adversaire moins convaincant.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0052",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "heroic",
+      "rarity": "rare",
+      "text": "Le marteau de {attacker} s’abat une dernière fois. {target} s’effondre sous le choc et ne reprend pas le combat. {attacker} demeure debout, conscient du prix de cette victoire.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0053",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "sarcastic",
+      "rarity": "rare",
+      "text": "Le marteau de {attacker} s’abat une dernière fois. {target} s’effondre sous le choc et ne reprend pas le combat. Cette fois, la discussion est définitivement close.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0054",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "Le marteau de {attacker} s’abat une dernière fois. {target} s’effondre sous le choc et ne reprend pas le combat. Les témoins sauront à qui attribuer le dernier coup.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0055",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "{attacker} trouve le coup décisif. Le marteau frappe {target}, puis le silence remplace le fracas. Le champ de bataille a désormais un nom de moins à craindre.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0056",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "{attacker} trouve le coup décisif. Le marteau frappe {target}, puis le silence remplace le fracas. La victoire laisse derrière elle un silence pesant.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-FATAL-0057",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "comedic",
+      "rarity": "rare",
+      "text": "{attacker} trouve le coup décisif. Le marteau frappe {target}, puis le silence remplace le fracas. Il aurait fallu choisir un adversaire moins convaincant.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0058",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "heroic",
+      "rarity": "rare",
+      "text": "{attacker} trouve le coup décisif. Le marteau frappe {target}, puis le silence remplace le fracas. {attacker} demeure debout, conscient du prix de cette victoire.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0059",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "sarcastic",
+      "rarity": "rare",
+      "text": "{attacker} trouve le coup décisif. Le marteau frappe {target}, puis le silence remplace le fracas. Cette fois, la discussion est définitivement close.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-FATAL-0060",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "{attacker} trouve le coup décisif. Le marteau frappe {target}, puis le silence remplace le fracas. Les témoins sauront à qui attribuer le dernier coup.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-FATAL-0061",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "La lance de {attacker} trouve l’ouverture décisive. {target} s’affaisse et la pointe se retire d’un geste grave. Le champ de bataille a désormais un nom de moins à craindre.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0062",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "La lance de {attacker} trouve l’ouverture décisive. {target} s’affaisse et la pointe se retire d’un geste grave. La victoire laisse derrière elle un silence pesant.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0063",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "comedic",
+      "rarity": "rare",
+      "text": "La lance de {attacker} trouve l’ouverture décisive. {target} s’affaisse et la pointe se retire d’un geste grave. Il aurait fallu choisir un adversaire moins convaincant.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0064",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "heroic",
+      "rarity": "rare",
+      "text": "La lance de {attacker} trouve l’ouverture décisive. {target} s’affaisse et la pointe se retire d’un geste grave. {attacker} demeure debout, conscient du prix de cette victoire.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0065",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "sarcastic",
+      "rarity": "rare",
+      "text": "La lance de {attacker} trouve l’ouverture décisive. {target} s’affaisse et la pointe se retire d’un geste grave. Cette fois, la discussion est définitivement close.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0066",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "La lance de {attacker} trouve l’ouverture décisive. {target} s’affaisse et la pointe se retire d’un geste grave. Les témoins sauront à qui attribuer le dernier coup.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0067",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "Un dernier estoc de {attacker} atteint {target}. L’adversaire tombe, et la distance entre eux n’a plus d’importance. Le champ de bataille a désormais un nom de moins à craindre.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0068",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "Un dernier estoc de {attacker} atteint {target}. L’adversaire tombe, et la distance entre eux n’a plus d’importance. La victoire laisse derrière elle un silence pesant.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0069",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "comedic",
+      "rarity": "rare",
+      "text": "Un dernier estoc de {attacker} atteint {target}. L’adversaire tombe, et la distance entre eux n’a plus d’importance. Il aurait fallu choisir un adversaire moins convaincant.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0070",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "heroic",
+      "rarity": "rare",
+      "text": "Un dernier estoc de {attacker} atteint {target}. L’adversaire tombe, et la distance entre eux n’a plus d’importance. {attacker} demeure debout, conscient du prix de cette victoire.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0071",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "sarcastic",
+      "rarity": "rare",
+      "text": "Un dernier estoc de {attacker} atteint {target}. L’adversaire tombe, et la distance entre eux n’a plus d’importance. Cette fois, la discussion est définitivement close.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0072",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "Un dernier estoc de {attacker} atteint {target}. L’adversaire tombe, et la distance entre eux n’a plus d’importance. Les témoins sauront à qui attribuer le dernier coup.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0073",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "La flèche de {attacker} atteint {target} dans un silence presque irréel. Un instant plus tard, l’adversaire s’écroule. Le champ de bataille a désormais un nom de moins à craindre.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0074",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "La flèche de {attacker} atteint {target} dans un silence presque irréel. Un instant plus tard, l’adversaire s’écroule. La victoire laisse derrière elle un silence pesant.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0075",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "comedic",
+      "rarity": "rare",
+      "text": "La flèche de {attacker} atteint {target} dans un silence presque irréel. Un instant plus tard, l’adversaire s’écroule. Il aurait fallu choisir un adversaire moins convaincant.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0076",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "heroic",
+      "rarity": "rare",
+      "text": "La flèche de {attacker} atteint {target} dans un silence presque irréel. Un instant plus tard, l’adversaire s’écroule. {attacker} demeure debout, conscient du prix de cette victoire.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0077",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "sarcastic",
+      "rarity": "rare",
+      "text": "La flèche de {attacker} atteint {target} dans un silence presque irréel. Un instant plus tard, l’adversaire s’écroule. Cette fois, la discussion est définitivement close.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0078",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "La flèche de {attacker} atteint {target} dans un silence presque irréel. Un instant plus tard, l’adversaire s’écroule. Les témoins sauront à qui attribuer le dernier coup.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0079",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "{attacker} décoche le trait décisif. {target} tombe, tandis que la corde de l’arc vibre encore. Le champ de bataille a désormais un nom de moins à craindre.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0080",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "{attacker} décoche le trait décisif. {target} tombe, tandis que la corde de l’arc vibre encore. La victoire laisse derrière elle un silence pesant.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-FATAL-0081",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "comedic",
+      "rarity": "rare",
+      "text": "{attacker} décoche le trait décisif. {target} tombe, tandis que la corde de l’arc vibre encore. Il aurait fallu choisir un adversaire moins convaincant.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-FATAL-0082",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "heroic",
+      "rarity": "rare",
+      "text": "{attacker} décoche le trait décisif. {target} tombe, tandis que la corde de l’arc vibre encore. {attacker} demeure debout, conscient du prix de cette victoire.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0083",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "sarcastic",
+      "rarity": "rare",
+      "text": "{attacker} décoche le trait décisif. {target} tombe, tandis que la corde de l’arc vibre encore. Cette fois, la discussion est définitivement close.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-FATAL-0084",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "{attacker} décoche le trait décisif. {target} tombe, tandis que la corde de l’arc vibre encore. Les témoins sauront à qui attribuer le dernier coup.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-FATAL-0085",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "Le carreau de {attacker} frappe {target} et met un terme à sa résistance. Le claquement de l’arbalète semble soudain lointain. Le champ de bataille a désormais un nom de moins à craindre.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0086",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "Le carreau de {attacker} frappe {target} et met un terme à sa résistance. Le claquement de l’arbalète semble soudain lointain. La victoire laisse derrière elle un silence pesant.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0087",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "comedic",
+      "rarity": "rare",
+      "text": "Le carreau de {attacker} frappe {target} et met un terme à sa résistance. Le claquement de l’arbalète semble soudain lointain. Il aurait fallu choisir un adversaire moins convaincant.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0088",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "heroic",
+      "rarity": "rare",
+      "text": "Le carreau de {attacker} frappe {target} et met un terme à sa résistance. Le claquement de l’arbalète semble soudain lointain. {attacker} demeure debout, conscient du prix de cette victoire.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0089",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "sarcastic",
+      "rarity": "rare",
+      "text": "Le carreau de {attacker} frappe {target} et met un terme à sa résistance. Le claquement de l’arbalète semble soudain lointain. Cette fois, la discussion est définitivement close.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0090",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "Le carreau de {attacker} frappe {target} et met un terme à sa résistance. Le claquement de l’arbalète semble soudain lointain. Les témoins sauront à qui attribuer le dernier coup.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0091",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "{attacker} ajuste son arbalète une dernière fois. Le projectile atteint {target}, qui s’effondre. Le champ de bataille a désormais un nom de moins à craindre.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0092",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "{attacker} ajuste son arbalète une dernière fois. Le projectile atteint {target}, qui s’effondre. La victoire laisse derrière elle un silence pesant.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-FATAL-0093",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "comedic",
+      "rarity": "rare",
+      "text": "{attacker} ajuste son arbalète une dernière fois. Le projectile atteint {target}, qui s’effondre. Il aurait fallu choisir un adversaire moins convaincant.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-FATAL-0094",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "heroic",
+      "rarity": "rare",
+      "text": "{attacker} ajuste son arbalète une dernière fois. Le projectile atteint {target}, qui s’effondre. {attacker} demeure debout, conscient du prix de cette victoire.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0095",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "sarcastic",
+      "rarity": "rare",
+      "text": "{attacker} ajuste son arbalète une dernière fois. Le projectile atteint {target}, qui s’effondre. Cette fois, la discussion est définitivement close.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-FATAL-0096",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "{attacker} ajuste son arbalète une dernière fois. Le projectile atteint {target}, qui s’effondre. Les témoins sauront à qui attribuer le dernier coup.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-FATAL-0097",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "Le bâton de {attacker} trouve un dernier angle décisif. {target} s’écroule et ne se relève plus. Le champ de bataille a désormais un nom de moins à craindre.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0098",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "Le bâton de {attacker} trouve un dernier angle décisif. {target} s’écroule et ne se relève plus. La victoire laisse derrière elle un silence pesant.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-FATAL-0099",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "comedic",
+      "rarity": "rare",
+      "text": "Le bâton de {attacker} trouve un dernier angle décisif. {target} s’écroule et ne se relève plus. Il aurait fallu choisir un adversaire moins convaincant.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-FATAL-0100",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "heroic",
+      "rarity": "rare",
+      "text": "Le bâton de {attacker} trouve un dernier angle décisif. {target} s’écroule et ne se relève plus. {attacker} demeure debout, conscient du prix de cette victoire.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0101",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "sarcastic",
+      "rarity": "rare",
+      "text": "Le bâton de {attacker} trouve un dernier angle décisif. {target} s’écroule et ne se relève plus. Cette fois, la discussion est définitivement close.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-FATAL-0102",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "Le bâton de {attacker} trouve un dernier angle décisif. {target} s’écroule et ne se relève plus. Les témoins sauront à qui attribuer le dernier coup.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-FATAL-0103",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "{attacker} porte une ultime frappe de bâton. {target} tombe, et le bois cesse de vibrer. Le champ de bataille a désormais un nom de moins à craindre.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-FATAL-0104",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "{attacker} porte une ultime frappe de bâton. {target} tombe, et le bois cesse de vibrer. La victoire laisse derrière elle un silence pesant.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-FATAL-0105",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "comedic",
+      "rarity": "rare",
+      "text": "{attacker} porte une ultime frappe de bâton. {target} tombe, et le bois cesse de vibrer. Il aurait fallu choisir un adversaire moins convaincant.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-FATAL-0106",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "heroic",
+      "rarity": "rare",
+      "text": "{attacker} porte une ultime frappe de bâton. {target} tombe, et le bois cesse de vibrer. {attacker} demeure debout, conscient du prix de cette victoire.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-FATAL-0107",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "sarcastic",
+      "rarity": "rare",
+      "text": "{attacker} porte une ultime frappe de bâton. {target} tombe, et le bois cesse de vibrer. Cette fois, la discussion est définitivement close.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-FATAL-0108",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "{attacker} porte une ultime frappe de bâton. {target} tombe, et le bois cesse de vibrer. Les témoins sauront à qui attribuer le dernier coup.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-FATAL-0109",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "Le dernier coup de {attacker} atteint {target} avec une précision terrible. L’adversaire s’effondre, vaincu. Le champ de bataille a désormais un nom de moins à craindre.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0110",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "Le dernier coup de {attacker} atteint {target} avec une précision terrible. L’adversaire s’effondre, vaincu. La victoire laisse derrière elle un silence pesant.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0111",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "comedic",
+      "rarity": "rare",
+      "text": "Le dernier coup de {attacker} atteint {target} avec une précision terrible. L’adversaire s’effondre, vaincu. Il aurait fallu choisir un adversaire moins convaincant.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0112",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "heroic",
+      "rarity": "rare",
+      "text": "Le dernier coup de {attacker} atteint {target} avec une précision terrible. L’adversaire s’effondre, vaincu. {attacker} demeure debout, conscient du prix de cette victoire.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0113",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "sarcastic",
+      "rarity": "rare",
+      "text": "Le dernier coup de {attacker} atteint {target} avec une précision terrible. L’adversaire s’effondre, vaincu. Cette fois, la discussion est définitivement close.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0114",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "Le dernier coup de {attacker} atteint {target} avec une précision terrible. L’adversaire s’effondre, vaincu. Les témoins sauront à qui attribuer le dernier coup.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0115",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "{attacker} rassemble ses forces dans une ultime frappe. {target} tombe et le combat s’achève pour lui. Le champ de bataille a désormais un nom de moins à craindre.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0116",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "{attacker} rassemble ses forces dans une ultime frappe. {target} tombe et le combat s’achève pour lui. La victoire laisse derrière elle un silence pesant.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-FATAL-0117",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "comedic",
+      "rarity": "rare",
+      "text": "{attacker} rassemble ses forces dans une ultime frappe. {target} tombe et le combat s’achève pour lui. Il aurait fallu choisir un adversaire moins convaincant.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0118",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "heroic",
+      "rarity": "rare",
+      "text": "{attacker} rassemble ses forces dans une ultime frappe. {target} tombe et le combat s’achève pour lui. {attacker} demeure debout, conscient du prix de cette victoire.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-FATAL-0119",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "sarcastic",
+      "rarity": "rare",
+      "text": "{attacker} rassemble ses forces dans une ultime frappe. {target} tombe et le combat s’achève pour lui. Cette fois, la discussion est définitivement close.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-FATAL-0120",
+      "collection": "fatal",
+      "locale": "fr-CA",
+      "result": "killing_blow",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "{attacker} rassemble ses forces dans une ultime frappe. {target} tombe et le combat s’achève pour lui. Les témoins sauront à qui attribuer le dernier coup.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    }
+  ]
+}

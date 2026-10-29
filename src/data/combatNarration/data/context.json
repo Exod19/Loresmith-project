@@ -1,0 +1,567 @@
+{
+  "schemaVersion": "1.0.0",
+  "collection": "context",
+  "count": 20,
+  "entries": [
+    {
+      "id": "LS-CONTEXT-0001",
+      "collection": "context",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "rare",
+      "text": "Après une série de coups perdus, {attacker} atteint enfin {target}. Il fallait apparemment plusieurs répétitions avant la première représentation.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "minConsecutiveMisses": 3
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CONTEXT-0002",
+      "collection": "context",
+      "locale": "fr-CA",
+      "result": "critical_hit",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "Tant d’échecs avaient fait douter les témoins. Puis {attacker} trouve l’ouverture parfaite contre {target}. Une seule frappe suffit à faire taire les sceptiques.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "minConsecutiveMisses": 3
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CONTEXT-0003",
+      "collection": "context",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "rare",
+      "text": "Encore une ouverture, encore une frappe juste : {attacker} maintient la pression sur {target}. Le rythme du combat lui appartient.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "minConsecutiveHits": 3
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CONTEXT-0004",
+      "collection": "context",
+      "locale": "fr-CA",
+      "result": "critical_hit",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "{attacker} enchaîne les attaques comme les notes d’un chant de guerre. Cette fois, le coup contre {target} atteint une perfection presque irréelle.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "minConsecutiveHits": 3
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CONTEXT-0005",
+      "collection": "context",
+      "locale": "fr-CA",
+      "result": "critical_hit",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "Face à {target}, chaque erreur peut être la dernière. Pourtant {attacker} avance, trouve l’unique faille et frappe avec la force d’une légende en train de naître.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "targetIsBoss": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CONTEXT-0006",
+      "collection": "context",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "{attacker} réussit à atteindre {target}, malgré la puissance qui émane de cet adversaire. Une petite victoire dans un combat qui n’en promet aucune facile.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "targetIsBoss": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CONTEXT-0007",
+      "collection": "context",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "Il ne reste que {target} debout parmi les adversaires. {attacker} frappe et rappelle que la bataille n’est pas encore terminée.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "lastEnemy": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CONTEXT-0008",
+      "collection": "context",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "La fin du combat paraît proche, mais {target} esquive le coup de {attacker}. Même un dernier adversaire peut encore être dangereux.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "lastEnemy": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CONTEXT-0009",
+      "collection": "context",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "rare",
+      "text": "Malgré ses blessures, {attacker} parvient à toucher {target}. Ce n’est plus seulement une question de force : c’est une question de volonté.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "attackerHealthBand": "critical"
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CONTEXT-0010",
+      "collection": "context",
+      "locale": "fr-CA",
+      "result": "critical_hit",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "À bout de forces, {attacker} rassemble ce qui lui reste et frappe {target} avec une précision prodigieuse. Le désespoir vient de trouver une réponse.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "attackerHealthBand": "critical"
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CONTEXT-0011",
+      "collection": "context",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "rare",
+      "text": "Le combat vient à peine de commencer que {attacker} touche déjà {target}. Les présentations auront été brèves.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "maxCombatRound": 1
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CONTEXT-0012",
+      "collection": "context",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "sarcastic",
+      "rarity": "rare",
+      "text": "Premier échange, première attaque de {attacker}, première esquive de {target}. Le destin préfère manifestement prendre son temps.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "maxCombatRound": 1
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CONTEXT-0013",
+      "collection": "context",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "L’attaque de {attacker} frappe {target}. Le bruit se propage dans les galeries, réveillant des échos dont personne ne connaît l’origine.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "environment": "underground"
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CONTEXT-0014",
+      "collection": "context",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "Entre les troncs, {target} se dérobe à l’attaque de {attacker}. Les feuilles frémissent tandis que la chasse continue.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "environment": "forest"
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CONTEXT-0015",
+      "collection": "context",
+      "locale": "fr-CA",
+      "result": "critical_hit",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "Au milieu des pierres d’un monde oublié, {attacker} porte à {target} un coup que les anciens guerriers auraient envié.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "environment": "ruins"
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CONTEXT-0016",
+      "collection": "context",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "Sous la pluie battante, {attacker} atteint {target}. L’eau emporte aussitôt les traces du choc, mais pas la douleur.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "weather": "rain"
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CONTEXT-0017",
+      "collection": "context",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "rare",
+      "text": "Dans la pénombre, {attacker} perd la silhouette de {target} une fraction de seconde. Son attaque passe à côté; l’obscurité semble en rire.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "lighting": "dim"
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CONTEXT-0018",
+      "collection": "context",
+      "locale": "fr-CA",
+      "result": "critical_hit",
+      "tone": "heroic",
+      "rarity": "rare",
+      "text": "Un allié est tombé, mais {attacker} refuse de céder. Son attaque frappe {target} avec une résolution farouche.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "allyDown": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CONTEXT-0019",
+      "collection": "context",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "rare",
+      "text": "{attacker} rend à {target} une partie de ce qu’il vient de recevoir. Voilà une correspondance qui ne souffre aucun retard.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "targetHitAttackerLastRound": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CONTEXT-0020",
+      "collection": "context",
+      "locale": "fr-CA",
+      "result": "critical_hit",
+      "tone": "epic",
+      "rarity": "rare",
+      "text": "La douleur du dernier échange est encore vive lorsque {attacker} riposte. Son coup contre {target} est aussi précis qu’implacable.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "targetHitAttackerLastRound": true
+      },
+      "mechanicalEffects": [],
+      "length": "short"
+    }
+  ]
+}

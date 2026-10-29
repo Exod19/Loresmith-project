@@ -1,0 +1,367 @@
+{
+  "schemaVersion": "1.0.0",
+  "collection": "legendary",
+  "count": 12,
+  "entries": [
+    {
+      "id": "LS-LEGENDARY-0001",
+      "collection": "legendary",
+      "locale": "fr-CA",
+      "result": "legendary",
+      "tone": "epic",
+      "rarity": "legendary",
+      "text": "Le temps paraît ralentir lorsque {attacker} affronte une dernière fois {target}. L’ouverture apparaît, infime, presque impossible. Le coup frappe. Quand l’adversaire s’effondre, les témoins comprennent qu’une légende vient de changer de mains.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true,
+        "targetIsBoss": true,
+        "isCriticalHit": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-LEGENDARY-0002",
+      "collection": "legendary",
+      "locale": "fr-CA",
+      "result": "legendary",
+      "tone": "heroic",
+      "rarity": "legendary",
+      "text": "{target} avait traversé tant de batailles que sa défaite semblait appartenir aux contes. {attacker} avance pourtant, lève son arme et porte le coup qui met fin au règne de terreur. Dans le silence, nul n’ose encore prononcer le mot victoire.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true,
+        "targetIsBoss": true,
+        "isCriticalHit": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-LEGENDARY-0003",
+      "collection": "legendary",
+      "locale": "fr-CA",
+      "result": "legendary",
+      "tone": "dark",
+      "rarity": "legendary",
+      "text": "La dernière attaque de {attacker} n’a rien d’un geste désespéré. Elle est calme, précise, définitive. {target} tombe, et l’histoire de cette bataille bascule en un instant.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true,
+        "targetIsBoss": true,
+        "isCriticalHit": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-LEGENDARY-0004",
+      "collection": "legendary",
+      "locale": "fr-CA",
+      "result": "legendary",
+      "tone": "epic",
+      "rarity": "legendary",
+      "text": "Un grondement traverse le champ de bataille lorsque {attacker} atteint {target} avec une puissance inouïe. L’adversaire s’effondre. Demain, certains jureront que le sol a tremblé; pour une fois, ils n’auront peut-être pas exagéré.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true,
+        "targetIsBoss": true,
+        "isCriticalHit": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-LEGENDARY-0005",
+      "collection": "legendary",
+      "locale": "fr-CA",
+      "result": "legendary",
+      "tone": "heroic",
+      "rarity": "legendary",
+      "text": "{attacker} aperçoit une faille que personne n’avait remarquée. Un pas suffit, puis une frappe. {target} s’écroule, et ceux qui ont survécu savent déjà quel moment ils raconteront à leurs descendants.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true,
+        "targetIsBoss": true,
+        "isCriticalHit": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-LEGENDARY-0006",
+      "collection": "legendary",
+      "locale": "fr-CA",
+      "result": "legendary",
+      "tone": "dark",
+      "rarity": "legendary",
+      "text": "Les cris de guerre s’éteignent autour de {attacker}. Il ne reste que {target} et l’espace d’un souffle. Le coup décisif tombe; avec lui s’achève une menace que beaucoup croyaient éternelle.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true,
+        "targetIsBoss": true,
+        "isCriticalHit": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-LEGENDARY-0007",
+      "collection": "legendary",
+      "locale": "fr-CA",
+      "result": "legendary",
+      "tone": "epic",
+      "rarity": "legendary",
+      "text": "{target} lance une dernière attaque, persuadé d’écraser toute résistance. {attacker} la déjoue et riposte avec une maîtrise absolue. L’adversaire s’effondre. La victoire n’a pas besoin d’un discours.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true,
+        "targetIsBoss": true,
+        "isCriticalHit": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-LEGENDARY-0008",
+      "collection": "legendary",
+      "locale": "fr-CA",
+      "result": "legendary",
+      "tone": "heroic",
+      "rarity": "legendary",
+      "text": "Pendant des jours, des mois ou des années, le nom de {target} avait suffi à inspirer la peur. Désormais, un autre nom sera prononcé dans les tavernes : celui de {attacker}, qui vient de mettre fin à son histoire.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true,
+        "targetIsBoss": true,
+        "isCriticalHit": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-LEGENDARY-0009",
+      "collection": "legendary",
+      "locale": "fr-CA",
+      "result": "legendary",
+      "tone": "dark",
+      "rarity": "legendary",
+      "text": "Le dernier échange est si rapide que les témoins n’en comprennent pas d’abord le sens. Puis {target} tombe. {attacker} reste immobile, et le silence se remplit lentement de stupeur.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true,
+        "targetIsBoss": true,
+        "isCriticalHit": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-LEGENDARY-0010",
+      "collection": "legendary",
+      "locale": "fr-CA",
+      "result": "legendary",
+      "tone": "epic",
+      "rarity": "legendary",
+      "text": "{attacker} trouve une ouverture au milieu du chaos. Son attaque frappe {target} avec une précision presque impossible. Quand l’ennemi s’effondre, même les plus cyniques comprennent qu’ils viennent de voir quelque chose de rare.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true,
+        "targetIsBoss": true,
+        "isCriticalHit": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-LEGENDARY-0011",
+      "collection": "legendary",
+      "locale": "fr-CA",
+      "result": "legendary",
+      "tone": "heroic",
+      "rarity": "legendary",
+      "text": "La bataille avait exigé du courage, du sang et de la patience. {attacker} y ajoute un dernier coup parfait. {target} tombe, et les survivants découvrent le poids étrange d’une victoire attendue si longtemps.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true,
+        "targetIsBoss": true,
+        "isCriticalHit": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-LEGENDARY-0012",
+      "collection": "legendary",
+      "locale": "fr-CA",
+      "result": "legendary",
+      "tone": "dark",
+      "rarity": "legendary",
+      "text": "Le monde ne s’arrête pas lorsque {attacker} abat {target}. Pourtant, pour ceux qui ont vu la scène, il existe désormais un avant et un après. Les chants viendront plus tard; aujourd’hui, seul le silence répond.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {
+        "isKillingBlow": true,
+        "targetIsBoss": true,
+        "isCriticalHit": true
+      },
+      "mechanicalEffects": [],
+      "length": "medium"
+    }
+  ]
+}

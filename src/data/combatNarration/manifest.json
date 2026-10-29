@@ -1,0 +1,45 @@
+{
+  "name": "LoreSmith — Chroniques du Combat",
+  "version": "1.0.0",
+  "locale": "fr-CA",
+  "totalEntries": 1950,
+  "collections": {
+    "context": 20,
+    "creature_misses": 28,
+    "creatures": 40,
+    "critical_fail": 160,
+    "critical_hit": 720,
+    "fatal": 120,
+    "hit": 240,
+    "legendary": 12,
+    "magic": 180,
+    "magic_misses": 30,
+    "miss": 400
+  },
+  "selectionPolicy": {
+    "neverInventMechanics": true,
+    "filterByResultFirst": true,
+    "strictTags": true,
+    "antiRepeatRecentIds": 40,
+    "antiRepeatText": true,
+    "rarityWeights": {
+      "common": 100,
+      "uncommon": 35,
+      "rare": 8,
+      "legendary": 1
+    },
+    "toneWeights": {
+      "epic": 35,
+      "heroic": 15,
+      "comedic": 20,
+      "sarcastic": 10,
+      "dark": 12,
+      "absurd": 8
+    }
+  },
+  "templateVariables": [
+    "attacker",
+    "target"
+  ],
+  "license": "Original text prepared for user project LoreSmith"
+}

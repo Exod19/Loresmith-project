@@ -25,6 +25,8 @@ import { setMapIntent } from './maps/intent';
 import { placeTokens as placeOnBoard, effectiveOf } from './maps/battle/placement';
 import { tacticalNotes, profileFromStat, coverAgainst } from './maps/battle/tactics';
 import MiniBattle from './maps/battle/MiniBattle';
+import { classify as classifyAttack, selectNarration, renderNarration, displayName as narrationName, weaponKindOf, creatureOf as narrationCreature, anatomyOf, damageTypeOf, recentIds, remember, streakFacts, importanceOf } from './combat/narration/narrator.js';
+import { loadNarrations, narrationsReady, loadPrefs, savePrefs, loadHistory, saveHistory } from './combat/narration/library';
 import { sightFor } from './maps/battle/combat';
 import { propose as proposeEncounter, placeTactically, rate as rateEncounter, thresholds as encounterThresholds, xpOf, crOf, THEMES as SKIRMISH_THEMES } from './maps/battle/skirmish';
 import { registerStat, quickStat, QUICK_CRS, customStats } from './maps/atlas/customStats';
@@ -15281,6 +15283,29 @@ function creatureArtOf(state, name, feed) {
   return !src || /^(data:|https?:|\/)/.test(src) ? src : `/${src}`;
 }
 
+/** Narration d’une attaque : discrète pour un coup ordinaire, plus marquée pour un critique, épique pour un coup fatal. */
+function NarrationLine({ narration, animations = true }) {
+  return (
+    <p key={narration.id + narration.text} className={`narration imp-${narration.importance} ${animations ? '' : 'no-anim'}`} role="status" aria-live="polite">
+      {narration.text}
+    </p>
+  );
+}
+
+/** Réglages des Chroniques du Combat (gardés dans ce navigateur). */
+function NarrationPrefs({ prefs, onChange }) {
+  const set = (k) => (e) => onChange({ ...prefs, [k]: e.target.checked });
+  return (
+    <details className="narration-prefs">
+      <summary>📜 Chroniques du combat{prefs.enabled ? '' : ' (coupées)'}</summary>
+      <label><input type="checkbox" checked={prefs.enabled} onChange={set('enabled')} /> Narrer chaque attaque</label>
+      <label><input type="checkbox" checked={prefs.humor} onChange={set('humor')} disabled={!prefs.enabled} /> Humour</label>
+      <label><input type="checkbox" checked={prefs.short} onChange={set('short')} disabled={!prefs.enabled} /> Phrases courtes (combat rapide)</label>
+      <label><input type="checkbox" checked={prefs.animations} onChange={set('animations')} disabled={!prefs.enabled} /> Animations</label>
+    </details>
+  );
+}
+
 /** Types de dégâts saisis en anglais dans les fiches de héros, en français pour l’affichage. */
 const TYPE_FR = { slashing: 'tranchants', piercing: 'perforants', bludgeoning: 'contondants', fire: 'de feu', cold: 'de froid', force: 'de force', 'force/fire': 'de force', poison: 'de poison', necrotic: 'nécrotiques', radiant: 'radiants', lightning: 'de foudre', thunder: 'de tonnerre', acid: 'd’acide', psychic: 'psychiques', weapon: '' };
 const frDamage = (text) => String(text || '').replace(/\b(slashing|piercing|bludgeoning|force\/fire|fire|cold|force|poison|necrotic|radiant|lightning|thunder|acid|psychic|weapon)\b/gi, (m) => TYPE_FR[m.toLowerCase()] ?? m).trim();
@@ -15328,6 +15353,9 @@ function AttackPanel({ state, dispatch, battle, setBattle }) {
   const [dmg, setDmg] = useState('');
   const [save, setSave] = useState('');
   const [done, setDone] = useState(null);
+  const [prefs, setPrefs] = useState(loadPrefs);
+  // Les Chroniques du Combat se chargent en arrière-plan : la résolution n’attend jamais la narration.
+  useEffect(() => { loadNarrations().catch(() => {}); }, []);
   const close = () => setBattle({ ...battle, aim: undefined });
   if (!A || !T || !tA || !tT) return <div className="attack-panel"><p className="muted">Attaquant ou cible absent du combat.</p><button className="btn sm" onClick={close}>Fermer</button></div>;
 
@@ -15400,21 +15428,59 @@ function AttackPanel({ state, dispatch, battle, setBattle }) {
   const saveOk = save === '' ? null : parseInt(save, 10) >= sel.saveDc;
   const final = raw === null ? null : Math.floor((sel.isSave && saveOk ? raw / 2 : raw) * factor);
 
+  /**
+   * Narration de l’attaque, choisie APRÈS sa résolution complète (jet, dégâts, PV restants). Elle ne change rien au
+   * combat ; une erreur ou une bibliothèque pas encore chargée donnent un repli neutre, jamais un blocage.
+   */
+  const narrate = ({ hit, damage, hpAfter }) => {
+    if (!prefs.enabled) return null;
+    try {
+      const isKillingBlow = !!hit && !T.isPC && hpAfter === 0 && Number(T.hp) > 0;
+      const statA = tA.statId ? STATS[tA.statId] : null;
+      const result = classifyAttack({ hit, crit: !sel.isSave && crit, fumble: !sel.isSave && fumble, isKillingBlow, targetIsBoss: !!T.boss });
+      const campaign = state.universes?.[state.activeUniverseId]?.activeCampaignId || state.activeUniverseId || 'local';
+      const combatKey = c.battleKey || 'combat';
+      const round = Number(c.round || 1);
+      const history = loadHistory(campaign);
+      const ratio = Number(A.hp) / Math.max(1, Number(A.maxHp));
+      const weapon = sel.isSave ? 'spell' : weaponKindOf(sel.a);
+      const ctx = {
+        result, weapon, creature: narrationCreature(tT.statId), anatomy: anatomyOf(tT.statId, stat?.meta),
+        damageType: damageTypeOf(rawType || type), damage: hit ? damage : undefined, crit: !sel.isSave && crit, isKillingBlow,
+        targetIsBoss: !!T.boss, round,
+        lastEnemy: !combatants.some((x) => x.id !== T.id && !!x.isPC === !!T.isPC && Number(x.hp) > 0),
+        allyDown: combatants.some((x) => x.id !== A.id && !!x.isPC === !!A.isPC && Number(x.hp) <= 0),
+        attackerHealthBand: ratio <= 0.25 ? 'critical' : ratio <= 0.5 ? 'wounded' : 'healthy',
+        environment: battle.local ? 'underground' : undefined,
+        ...streakFacts(history, combatKey, A.id, T.id, round),
+      };
+      const lib = narrationsReady() || { entries: [], policy: {} };
+      const n = selectNarration(lib, ctx, { recent: recentIds(history, combatKey), opts: { humor: prefs.humor, short: prefs.short } });
+      saveHistory(campaign, remember(history, combatKey, n, { result, attackerId: A.id, targetId: T.id, round }));
+      const names = { attacker: narrationName(A.name, tA.statId, statA?.name), target: narrationName(T.name, tT.statId, stat?.name) };
+      return { text: renderNarration(n.text, names), importance: importanceOf(result), id: n.id };
+    } catch (err) {
+      console.warn('Narration indisponible', err);
+      return null;
+    }
+  };
   const apply = () => {
     const hp = Math.max(0, Number(T.hp) - (final || 0));
     dispatch({ type: 'COMBAT_SET', patch: { combatants: combatants.map((x) => (x.id === T.id ? { ...x, hp } : x)) } });
     const text = sel.isSave
       ? `${A.name} → ${T.name} : ${saveOk ? 'sauvegarde réussie' : 'sauvegarde ratée'}, ${final} dégâts`
       : `${A.name} → ${T.name} : ${crit ? 'Coup critique !' : 'Touché !'} ${final} dégâts${type ? ` ${type}` : ''}`;
-    setBattle({ ...battle, aim: { ...aim, text, tone: crit ? 'crit' : 'hit' } });
-    setDone({ text, hp });
+    const narration = narrate({ hit: true, damage: final || 0, hpAfter: hp });
+    setBattle({ ...battle, aim: { ...aim, text, tone: crit ? 'crit' : 'hit', narration: narration || undefined } });
+    setDone({ text, hp, narration });
   };
   const miss = () => {
     const text = `${A.name} → ${T.name} : ${fumble ? 'Échec critique !' : 'Raté'}`;
-    setBattle({ ...battle, aim: { ...aim, text, tone: 'miss' } });
-    setDone({ text });
+    const narration = narrate({ hit: false, damage: 0, hpAfter: Number(T.hp) });
+    setBattle({ ...battle, aim: { ...aim, text, tone: 'miss', narration: narration || undefined } });
+    setDone({ text, narration });
   };
-  const again = () => { setD20(['', '']); setDmg(''); setSave(''); setDone(null); setBattle({ ...battle, aim: { ...aim, text: undefined, tone: undefined } }); };
+  const again = () => { setD20(['', '']); setDmg(''); setSave(''); setDone(null); setBattle({ ...battle, aim: { ...aim, text: undefined, tone: undefined, narration: undefined } }); };
 
   return (
     <div className="attack-panel">
@@ -15452,6 +15518,7 @@ function AttackPanel({ state, dispatch, battle, setBattle }) {
       ) : done ? (
         <div className="attack-done">
           <p><b>{done.text}</b>{done.hp !== undefined ? ` · ${T.name} : ${done.hp}/${T.maxHp} PV` : ''}</p>
+          {done.narration && <NarrationLine narration={done.narration} animations={prefs.animations} />}
           <div className="skirmish-row wrap">
             <button className="btn sm" onClick={again}>Attaque suivante</button>
             <button className="btn sm primary" onClick={close}>Terminer</button>
@@ -15499,6 +15566,7 @@ function AttackPanel({ state, dispatch, battle, setBattle }) {
           )}
         </div>
       )}
+      <NarrationPrefs prefs={prefs} onChange={(p) => { setPrefs(p); savePrefs(p); }} />
       {A.isPC && inHand && <p className="muted attack-hand">En main : {inHand}{A.dropped?.length ? ` · au sol : ${A.dropped.join(', ')}` : ''}</p>}
     </div>
   );
@@ -15601,6 +15669,12 @@ function TokenSheet({ state, dispatch, id, battle, onClose }) {
           <div key={k}><span>{['FOR', 'DEX', 'CON', 'INT', 'SAG', 'CHA'][i]}</span><b>{sign(abilityMod(t[k] || 10))}</b><small>{t[k] || 10}</small></div>
         ))}
       </div>
+
+      {!t.isPC && (
+        <button type="button" className={`token-sheet-boss ${t.boss ? 'on' : ''}`} onClick={() => patch({ boss: !t.boss })} title="Boss : les coups critiques fatals contre lui peuvent recevoir une narration légendaire (aucun effet sur les règles)">
+          👑 {t.boss ? 'Boss' : 'Marquer comme boss'}
+        </button>
+      )}
 
       {tactics.length > 0 && (
         <div className="token-sheet-block">

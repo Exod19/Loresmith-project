@@ -1,0 +1,4167 @@
+{
+  "schemaVersion": "1.0.0",
+  "collection": "critical_fail",
+  "count": 160,
+  "entries": [
+    {
+      "id": "LS-CRITICAL_FAIL-0001",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} charge sa hache d’une force prodigieuse, puis frappe exactement là où {target} ne se trouve plus. La pierre encaisse un coup qui ne lui était pas destiné. Les témoins ont maintenant une anecdote pour la prochaine taverne.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0002",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} charge sa hache d’une force prodigieuse, puis frappe exactement là où {target} ne se trouve plus. La pierre encaisse un coup qui ne lui était pas destiné. Dans ce bref désordre, le danger reste bien réel.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0003",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "{attacker} charge sa hache d’une force prodigieuse, puis frappe exactement là où {target} ne se trouve plus. La pierre encaisse un coup qui ne lui était pas destiné. On lui avait pourtant dit de viser l’adversaire.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0004",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "{attacker} charge sa hache d’une force prodigieuse, puis frappe exactement là où {target} ne se trouve plus. La pierre encaisse un coup qui ne lui était pas destiné. Un barde aurait exigé de recommencer pour vérifier.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0005",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "{attacker} charge sa hache d’une force prodigieuse, puis frappe exactement là où {target} ne se trouve plus. La pierre encaisse un coup qui ne lui était pas destiné. {attacker} se ressaisit : le combat n’est pas terminé.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0006",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} charge sa hache d’une force prodigieuse, puis frappe exactement là où {target} ne se trouve plus. La pierre encaisse un coup qui ne lui était pas destiné. Même {target} semble vouloir offrir un conseil.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0007",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} charge sa hache d’une force prodigieuse, puis frappe exactement là où {target} ne se trouve plus. La pierre encaisse un coup qui ne lui était pas destiné. Le faux mouvement laisse un souvenir plus vif que le bruit.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0008",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "{attacker} charge sa hache d’une force prodigieuse, puis frappe exactement là où {target} ne se trouve plus. La pierre encaisse un coup qui ne lui était pas destiné. Quelque part, une statue de héros paraît détourner les yeux.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0009",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} tente un moulinet si large que {target} a le temps d’en admirer la trajectoire. La hache manque de beaucoup. Les témoins ont maintenant une anecdote pour la prochaine taverne.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0010",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} tente un moulinet si large que {target} a le temps d’en admirer la trajectoire. La hache manque de beaucoup. Dans ce bref désordre, le danger reste bien réel.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0011",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "{attacker} tente un moulinet si large que {target} a le temps d’en admirer la trajectoire. La hache manque de beaucoup. On lui avait pourtant dit de viser l’adversaire.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0012",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "{attacker} tente un moulinet si large que {target} a le temps d’en admirer la trajectoire. La hache manque de beaucoup. Un barde aurait exigé de recommencer pour vérifier.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0013",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "{attacker} tente un moulinet si large que {target} a le temps d’en admirer la trajectoire. La hache manque de beaucoup. {attacker} se ressaisit : le combat n’est pas terminé.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0014",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} tente un moulinet si large que {target} a le temps d’en admirer la trajectoire. La hache manque de beaucoup. Même {target} semble vouloir offrir un conseil.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0015",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} tente un moulinet si large que {target} a le temps d’en admirer la trajectoire. La hache manque de beaucoup. Le faux mouvement laisse un souvenir plus vif que le bruit.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0016",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "{attacker} tente un moulinet si large que {target} a le temps d’en admirer la trajectoire. La hache manque de beaucoup. Quelque part, une statue de héros paraît détourner les yeux.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0017",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} enchaîne trois feintes brillantes et une attaque complètement inutile. {target} ne paraît pas avoir reçu le programme de la chorégraphie. Les témoins ont maintenant une anecdote pour la prochaine taverne.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0018",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} enchaîne trois feintes brillantes et une attaque complètement inutile. {target} ne paraît pas avoir reçu le programme de la chorégraphie. Dans ce bref désordre, le danger reste bien réel.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0019",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "{attacker} enchaîne trois feintes brillantes et une attaque complètement inutile. {target} ne paraît pas avoir reçu le programme de la chorégraphie. On lui avait pourtant dit de viser l’adversaire.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0020",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "{attacker} enchaîne trois feintes brillantes et une attaque complètement inutile. {target} ne paraît pas avoir reçu le programme de la chorégraphie. Un barde aurait exigé de recommencer pour vérifier.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0021",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "{attacker} enchaîne trois feintes brillantes et une attaque complètement inutile. {target} ne paraît pas avoir reçu le programme de la chorégraphie. {attacker} se ressaisit : le combat n’est pas terminé.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0022",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} enchaîne trois feintes brillantes et une attaque complètement inutile. {target} ne paraît pas avoir reçu le programme de la chorégraphie. Même {target} semble vouloir offrir un conseil.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0023",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} enchaîne trois feintes brillantes et une attaque complètement inutile. {target} ne paraît pas avoir reçu le programme de la chorégraphie. Le faux mouvement laisse un souvenir plus vif que le bruit.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0024",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "{attacker} enchaîne trois feintes brillantes et une attaque complètement inutile. {target} ne paraît pas avoir reçu le programme de la chorégraphie. Quelque part, une statue de héros paraît détourner les yeux.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0025",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La pointe de l’épée de {attacker} part trop tôt. {target} l’évite et le geste suivant ressemble surtout à une tentative de sauver les apparences. Les témoins ont maintenant une anecdote pour la prochaine taverne.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0026",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "La pointe de l’épée de {attacker} part trop tôt. {target} l’évite et le geste suivant ressemble surtout à une tentative de sauver les apparences. Dans ce bref désordre, le danger reste bien réel.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0027",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "La pointe de l’épée de {attacker} part trop tôt. {target} l’évite et le geste suivant ressemble surtout à une tentative de sauver les apparences. On lui avait pourtant dit de viser l’adversaire.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0028",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "La pointe de l’épée de {attacker} part trop tôt. {target} l’évite et le geste suivant ressemble surtout à une tentative de sauver les apparences. Un barde aurait exigé de recommencer pour vérifier.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0029",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La pointe de l’épée de {attacker} part trop tôt. {target} l’évite et le geste suivant ressemble surtout à une tentative de sauver les apparences. {attacker} se ressaisit : le combat n’est pas terminé.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0030",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La pointe de l’épée de {attacker} part trop tôt. {target} l’évite et le geste suivant ressemble surtout à une tentative de sauver les apparences. Même {target} semble vouloir offrir un conseil.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0031",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "La pointe de l’épée de {attacker} part trop tôt. {target} l’évite et le geste suivant ressemble surtout à une tentative de sauver les apparences. Le faux mouvement laisse un souvenir plus vif que le bruit.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0032",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "La pointe de l’épée de {attacker} part trop tôt. {target} l’évite et le geste suivant ressemble surtout à une tentative de sauver les apparences. Quelque part, une statue de héros paraît détourner les yeux.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0033",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} cherche un geste discret et élégant. La dague passe loin de {target}, avec toute la discrétion d’une assiette jetée dans une taverne. Les témoins ont maintenant une anecdote pour la prochaine taverne.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0034",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} cherche un geste discret et élégant. La dague passe loin de {target}, avec toute la discrétion d’une assiette jetée dans une taverne. Dans ce bref désordre, le danger reste bien réel.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0035",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "{attacker} cherche un geste discret et élégant. La dague passe loin de {target}, avec toute la discrétion d’une assiette jetée dans une taverne. On lui avait pourtant dit de viser l’adversaire.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0036",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "{attacker} cherche un geste discret et élégant. La dague passe loin de {target}, avec toute la discrétion d’une assiette jetée dans une taverne. Un barde aurait exigé de recommencer pour vérifier.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0037",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "{attacker} cherche un geste discret et élégant. La dague passe loin de {target}, avec toute la discrétion d’une assiette jetée dans une taverne. {attacker} se ressaisit : le combat n’est pas terminé.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0038",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} cherche un geste discret et élégant. La dague passe loin de {target}, avec toute la discrétion d’une assiette jetée dans une taverne. Même {target} semble vouloir offrir un conseil.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0039",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} cherche un geste discret et élégant. La dague passe loin de {target}, avec toute la discrétion d’une assiette jetée dans une taverne. Le faux mouvement laisse un souvenir plus vif que le bruit.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0040",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "{attacker} cherche un geste discret et élégant. La dague passe loin de {target}, avec toute la discrétion d’une assiette jetée dans une taverne. Quelque part, une statue de héros paraît détourner les yeux.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0041",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La feinte de {attacker} est subtile. Trop subtile : même sa dague semble ignorer qu’une attaque était prévue. Les témoins ont maintenant une anecdote pour la prochaine taverne.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0042",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "La feinte de {attacker} est subtile. Trop subtile : même sa dague semble ignorer qu’une attaque était prévue. Dans ce bref désordre, le danger reste bien réel.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0043",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "La feinte de {attacker} est subtile. Trop subtile : même sa dague semble ignorer qu’une attaque était prévue. On lui avait pourtant dit de viser l’adversaire.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0044",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "La feinte de {attacker} est subtile. Trop subtile : même sa dague semble ignorer qu’une attaque était prévue. Un barde aurait exigé de recommencer pour vérifier.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0045",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La feinte de {attacker} est subtile. Trop subtile : même sa dague semble ignorer qu’une attaque était prévue. {attacker} se ressaisit : le combat n’est pas terminé.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0046",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La feinte de {attacker} est subtile. Trop subtile : même sa dague semble ignorer qu’une attaque était prévue. Même {target} semble vouloir offrir un conseil.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0047",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "La feinte de {attacker} est subtile. Trop subtile : même sa dague semble ignorer qu’une attaque était prévue. Le faux mouvement laisse un souvenir plus vif que le bruit.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0048",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "La feinte de {attacker} est subtile. Trop subtile : même sa dague semble ignorer qu’une attaque était prévue. Quelque part, une statue de héros paraît détourner les yeux.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0049",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La masse de {attacker} descend avec la majesté d’un météore. Elle manque {target} et frappe la roche. La roche refuse de commenter. Les témoins ont maintenant une anecdote pour la prochaine taverne.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0050",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "La masse de {attacker} descend avec la majesté d’un météore. Elle manque {target} et frappe la roche. La roche refuse de commenter. Dans ce bref désordre, le danger reste bien réel.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0051",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "La masse de {attacker} descend avec la majesté d’un météore. Elle manque {target} et frappe la roche. La roche refuse de commenter. On lui avait pourtant dit de viser l’adversaire.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0052",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "La masse de {attacker} descend avec la majesté d’un météore. Elle manque {target} et frappe la roche. La roche refuse de commenter. Un barde aurait exigé de recommencer pour vérifier.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0053",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La masse de {attacker} descend avec la majesté d’un météore. Elle manque {target} et frappe la roche. La roche refuse de commenter. {attacker} se ressaisit : le combat n’est pas terminé.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0054",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La masse de {attacker} descend avec la majesté d’un météore. Elle manque {target} et frappe la roche. La roche refuse de commenter. Même {target} semble vouloir offrir un conseil.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0055",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "La masse de {attacker} descend avec la majesté d’un météore. Elle manque {target} et frappe la roche. La roche refuse de commenter. Le faux mouvement laisse un souvenir plus vif que le bruit.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0056",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "La masse de {attacker} descend avec la majesté d’un météore. Elle manque {target} et frappe la roche. La roche refuse de commenter. Quelque part, une statue de héros paraît détourner les yeux.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0057",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} annonce son coup d’un rugissement. {target} s’écarte avant même la fin du cri. Le sol, lui, reçoit l’intégralité du discours. Les témoins ont maintenant une anecdote pour la prochaine taverne.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0058",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} annonce son coup d’un rugissement. {target} s’écarte avant même la fin du cri. Le sol, lui, reçoit l’intégralité du discours. Dans ce bref désordre, le danger reste bien réel.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0059",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "{attacker} annonce son coup d’un rugissement. {target} s’écarte avant même la fin du cri. Le sol, lui, reçoit l’intégralité du discours. On lui avait pourtant dit de viser l’adversaire.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0060",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "{attacker} annonce son coup d’un rugissement. {target} s’écarte avant même la fin du cri. Le sol, lui, reçoit l’intégralité du discours. Un barde aurait exigé de recommencer pour vérifier.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0061",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "{attacker} annonce son coup d’un rugissement. {target} s’écarte avant même la fin du cri. Le sol, lui, reçoit l’intégralité du discours. {attacker} se ressaisit : le combat n’est pas terminé.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0062",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} annonce son coup d’un rugissement. {target} s’écarte avant même la fin du cri. Le sol, lui, reçoit l’intégralité du discours. Même {target} semble vouloir offrir un conseil.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0063",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} annonce son coup d’un rugissement. {target} s’écarte avant même la fin du cri. Le sol, lui, reçoit l’intégralité du discours. Le faux mouvement laisse un souvenir plus vif que le bruit.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0064",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "{attacker} annonce son coup d’un rugissement. {target} s’écarte avant même la fin du cri. Le sol, lui, reçoit l’intégralité du discours. Quelque part, une statue de héros paraît détourner les yeux.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0065",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} lève son marteau comme pour juger le monde. Le monde est épargné : {target} aussi. Seule la poussière est condamnée. Les témoins ont maintenant une anecdote pour la prochaine taverne.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0066",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} lève son marteau comme pour juger le monde. Le monde est épargné : {target} aussi. Seule la poussière est condamnée. Dans ce bref désordre, le danger reste bien réel.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0067",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "{attacker} lève son marteau comme pour juger le monde. Le monde est épargné : {target} aussi. Seule la poussière est condamnée. On lui avait pourtant dit de viser l’adversaire.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0068",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "{attacker} lève son marteau comme pour juger le monde. Le monde est épargné : {target} aussi. Seule la poussière est condamnée. Un barde aurait exigé de recommencer pour vérifier.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0069",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "{attacker} lève son marteau comme pour juger le monde. Le monde est épargné : {target} aussi. Seule la poussière est condamnée. {attacker} se ressaisit : le combat n’est pas terminé.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0070",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} lève son marteau comme pour juger le monde. Le monde est épargné : {target} aussi. Seule la poussière est condamnée. Même {target} semble vouloir offrir un conseil.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0071",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} lève son marteau comme pour juger le monde. Le monde est épargné : {target} aussi. Seule la poussière est condamnée. Le faux mouvement laisse un souvenir plus vif que le bruit.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0072",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "{attacker} lève son marteau comme pour juger le monde. Le monde est épargné : {target} aussi. Seule la poussière est condamnée. Quelque part, une statue de héros paraît détourner les yeux.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0073",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Le marteau de {attacker} tombe trop loin de {target}. Le bruit est impressionnant; le résultat, beaucoup moins. Les témoins ont maintenant une anecdote pour la prochaine taverne.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0074",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Le marteau de {attacker} tombe trop loin de {target}. Le bruit est impressionnant; le résultat, beaucoup moins. Dans ce bref désordre, le danger reste bien réel.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0075",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "Le marteau de {attacker} tombe trop loin de {target}. Le bruit est impressionnant; le résultat, beaucoup moins. On lui avait pourtant dit de viser l’adversaire.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0076",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "Le marteau de {attacker} tombe trop loin de {target}. Le bruit est impressionnant; le résultat, beaucoup moins. Un barde aurait exigé de recommencer pour vérifier.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0077",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Le marteau de {attacker} tombe trop loin de {target}. Le bruit est impressionnant; le résultat, beaucoup moins. {attacker} se ressaisit : le combat n’est pas terminé.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0078",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Le marteau de {attacker} tombe trop loin de {target}. Le bruit est impressionnant; le résultat, beaucoup moins. Même {target} semble vouloir offrir un conseil.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0079",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Le marteau de {attacker} tombe trop loin de {target}. Le bruit est impressionnant; le résultat, beaucoup moins. Le faux mouvement laisse un souvenir plus vif que le bruit.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0080",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "Le marteau de {attacker} tombe trop loin de {target}. Le bruit est impressionnant; le résultat, beaucoup moins. Quelque part, une statue de héros paraît détourner les yeux.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0081",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} allonge sa lance avec une confiance héroïque. {target} fait un pas de côté et l’estoc traverse le vide. Les grands stratèges appellent cela une erreur de mesure. Les témoins ont maintenant une anecdote pour la prochaine taverne.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0082",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} allonge sa lance avec une confiance héroïque. {target} fait un pas de côté et l’estoc traverse le vide. Les grands stratèges appellent cela une erreur de mesure. Dans ce bref désordre, le danger reste bien réel.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0083",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "{attacker} allonge sa lance avec une confiance héroïque. {target} fait un pas de côté et l’estoc traverse le vide. Les grands stratèges appellent cela une erreur de mesure. On lui avait pourtant dit de viser l’adversaire.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0084",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "{attacker} allonge sa lance avec une confiance héroïque. {target} fait un pas de côté et l’estoc traverse le vide. Les grands stratèges appellent cela une erreur de mesure. Un barde aurait exigé de recommencer pour vérifier.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0085",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "{attacker} allonge sa lance avec une confiance héroïque. {target} fait un pas de côté et l’estoc traverse le vide. Les grands stratèges appellent cela une erreur de mesure. {attacker} se ressaisit : le combat n’est pas terminé.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0086",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} allonge sa lance avec une confiance héroïque. {target} fait un pas de côté et l’estoc traverse le vide. Les grands stratèges appellent cela une erreur de mesure. Même {target} semble vouloir offrir un conseil.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0087",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} allonge sa lance avec une confiance héroïque. {target} fait un pas de côté et l’estoc traverse le vide. Les grands stratèges appellent cela une erreur de mesure. Le faux mouvement laisse un souvenir plus vif que le bruit.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0088",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "{attacker} allonge sa lance avec une confiance héroïque. {target} fait un pas de côté et l’estoc traverse le vide. Les grands stratèges appellent cela une erreur de mesure. Quelque part, une statue de héros paraît détourner les yeux.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0089",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La lance de {attacker} pointe vers une menace imaginaire. {target}, la menace bien réelle, attend la fin de la démonstration. Les témoins ont maintenant une anecdote pour la prochaine taverne.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0090",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "La lance de {attacker} pointe vers une menace imaginaire. {target}, la menace bien réelle, attend la fin de la démonstration. Dans ce bref désordre, le danger reste bien réel.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0091",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "La lance de {attacker} pointe vers une menace imaginaire. {target}, la menace bien réelle, attend la fin de la démonstration. On lui avait pourtant dit de viser l’adversaire.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0092",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "La lance de {attacker} pointe vers une menace imaginaire. {target}, la menace bien réelle, attend la fin de la démonstration. Un barde aurait exigé de recommencer pour vérifier.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0093",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La lance de {attacker} pointe vers une menace imaginaire. {target}, la menace bien réelle, attend la fin de la démonstration. {attacker} se ressaisit : le combat n’est pas terminé.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0094",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La lance de {attacker} pointe vers une menace imaginaire. {target}, la menace bien réelle, attend la fin de la démonstration. Même {target} semble vouloir offrir un conseil.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0095",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "La lance de {attacker} pointe vers une menace imaginaire. {target}, la menace bien réelle, attend la fin de la démonstration. Le faux mouvement laisse un souvenir plus vif que le bruit.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0096",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "La lance de {attacker} pointe vers une menace imaginaire. {target}, la menace bien réelle, attend la fin de la démonstration. Quelque part, une statue de héros paraît détourner les yeux.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0097",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} retient son souffle pour un tir mémorable. La flèche manque {target} de si loin que personne n’ose demander ce qui était visé. Les témoins ont maintenant une anecdote pour la prochaine taverne.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0098",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} retient son souffle pour un tir mémorable. La flèche manque {target} de si loin que personne n’ose demander ce qui était visé. Dans ce bref désordre, le danger reste bien réel.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0099",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "{attacker} retient son souffle pour un tir mémorable. La flèche manque {target} de si loin que personne n’ose demander ce qui était visé. On lui avait pourtant dit de viser l’adversaire.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0100",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "{attacker} retient son souffle pour un tir mémorable. La flèche manque {target} de si loin que personne n’ose demander ce qui était visé. Un barde aurait exigé de recommencer pour vérifier.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0101",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "{attacker} retient son souffle pour un tir mémorable. La flèche manque {target} de si loin que personne n’ose demander ce qui était visé. {attacker} se ressaisit : le combat n’est pas terminé.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0102",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} retient son souffle pour un tir mémorable. La flèche manque {target} de si loin que personne n’ose demander ce qui était visé. Même {target} semble vouloir offrir un conseil.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0103",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} retient son souffle pour un tir mémorable. La flèche manque {target} de si loin que personne n’ose demander ce qui était visé. Le faux mouvement laisse un souvenir plus vif que le bruit.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0104",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "{attacker} retient son souffle pour un tir mémorable. La flèche manque {target} de si loin que personne n’ose demander ce qui était visé. Quelque part, une statue de héros paraît détourner les yeux.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0105",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "L’arc de {attacker} chante, la flèche s’envole, et {target} demeure parfaitement tranquille. La trajectoire avait sans doute d’autres projets. Les témoins ont maintenant une anecdote pour la prochaine taverne.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0106",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "L’arc de {attacker} chante, la flèche s’envole, et {target} demeure parfaitement tranquille. La trajectoire avait sans doute d’autres projets. Dans ce bref désordre, le danger reste bien réel.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0107",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "L’arc de {attacker} chante, la flèche s’envole, et {target} demeure parfaitement tranquille. La trajectoire avait sans doute d’autres projets. On lui avait pourtant dit de viser l’adversaire.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0108",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "L’arc de {attacker} chante, la flèche s’envole, et {target} demeure parfaitement tranquille. La trajectoire avait sans doute d’autres projets. Un barde aurait exigé de recommencer pour vérifier.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0109",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "L’arc de {attacker} chante, la flèche s’envole, et {target} demeure parfaitement tranquille. La trajectoire avait sans doute d’autres projets. {attacker} se ressaisit : le combat n’est pas terminé.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0110",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "L’arc de {attacker} chante, la flèche s’envole, et {target} demeure parfaitement tranquille. La trajectoire avait sans doute d’autres projets. Même {target} semble vouloir offrir un conseil.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0111",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "L’arc de {attacker} chante, la flèche s’envole, et {target} demeure parfaitement tranquille. La trajectoire avait sans doute d’autres projets. Le faux mouvement laisse un souvenir plus vif que le bruit.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0112",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "L’arc de {attacker} chante, la flèche s’envole, et {target} demeure parfaitement tranquille. La trajectoire avait sans doute d’autres projets. Quelque part, une statue de héros paraît détourner les yeux.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0113",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} choisit son moment avec un sérieux religieux. Le carreau file très loin de {target}. La foi en la mécanique vient de vaciller. Les témoins ont maintenant une anecdote pour la prochaine taverne.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0114",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} choisit son moment avec un sérieux religieux. Le carreau file très loin de {target}. La foi en la mécanique vient de vaciller. Dans ce bref désordre, le danger reste bien réel.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0115",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "{attacker} choisit son moment avec un sérieux religieux. Le carreau file très loin de {target}. La foi en la mécanique vient de vaciller. On lui avait pourtant dit de viser l’adversaire.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0116",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "{attacker} choisit son moment avec un sérieux religieux. Le carreau file très loin de {target}. La foi en la mécanique vient de vaciller. Un barde aurait exigé de recommencer pour vérifier.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0117",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "{attacker} choisit son moment avec un sérieux religieux. Le carreau file très loin de {target}. La foi en la mécanique vient de vaciller. {attacker} se ressaisit : le combat n’est pas terminé.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0118",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} choisit son moment avec un sérieux religieux. Le carreau file très loin de {target}. La foi en la mécanique vient de vaciller. Même {target} semble vouloir offrir un conseil.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0119",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} choisit son moment avec un sérieux religieux. Le carreau file très loin de {target}. La foi en la mécanique vient de vaciller. Le faux mouvement laisse un souvenir plus vif que le bruit.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0120",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "{attacker} choisit son moment avec un sérieux religieux. Le carreau file très loin de {target}. La foi en la mécanique vient de vaciller. Quelque part, une statue de héros paraît détourner les yeux.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0121",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "L’arbalète de {attacker} claque avec autorité. {target} ne bouge presque pas. Le carreau, en revanche, entreprend un long voyage. Les témoins ont maintenant une anecdote pour la prochaine taverne.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0122",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "L’arbalète de {attacker} claque avec autorité. {target} ne bouge presque pas. Le carreau, en revanche, entreprend un long voyage. Dans ce bref désordre, le danger reste bien réel.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0123",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "L’arbalète de {attacker} claque avec autorité. {target} ne bouge presque pas. Le carreau, en revanche, entreprend un long voyage. On lui avait pourtant dit de viser l’adversaire.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0124",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "L’arbalète de {attacker} claque avec autorité. {target} ne bouge presque pas. Le carreau, en revanche, entreprend un long voyage. Un barde aurait exigé de recommencer pour vérifier.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0125",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "L’arbalète de {attacker} claque avec autorité. {target} ne bouge presque pas. Le carreau, en revanche, entreprend un long voyage. {attacker} se ressaisit : le combat n’est pas terminé.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0126",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "L’arbalète de {attacker} claque avec autorité. {target} ne bouge presque pas. Le carreau, en revanche, entreprend un long voyage. Même {target} semble vouloir offrir un conseil.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0127",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "L’arbalète de {attacker} claque avec autorité. {target} ne bouge presque pas. Le carreau, en revanche, entreprend un long voyage. Le faux mouvement laisse un souvenir plus vif que le bruit.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0128",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "L’arbalète de {attacker} claque avec autorité. {target} ne bouge presque pas. Le carreau, en revanche, entreprend un long voyage. Quelque part, une statue de héros paraît détourner les yeux.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0129",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} fait tournoyer son bâton comme un maître légendaire. {target} attend patiemment que le spectacle se termine. Les témoins ont maintenant une anecdote pour la prochaine taverne.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0130",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} fait tournoyer son bâton comme un maître légendaire. {target} attend patiemment que le spectacle se termine. Dans ce bref désordre, le danger reste bien réel.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0131",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "{attacker} fait tournoyer son bâton comme un maître légendaire. {target} attend patiemment que le spectacle se termine. On lui avait pourtant dit de viser l’adversaire.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0132",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "{attacker} fait tournoyer son bâton comme un maître légendaire. {target} attend patiemment que le spectacle se termine. Un barde aurait exigé de recommencer pour vérifier.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0133",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "{attacker} fait tournoyer son bâton comme un maître légendaire. {target} attend patiemment que le spectacle se termine. {attacker} se ressaisit : le combat n’est pas terminé.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0134",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} fait tournoyer son bâton comme un maître légendaire. {target} attend patiemment que le spectacle se termine. Même {target} semble vouloir offrir un conseil.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0135",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} fait tournoyer son bâton comme un maître légendaire. {target} attend patiemment que le spectacle se termine. Le faux mouvement laisse un souvenir plus vif que le bruit.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0136",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "{attacker} fait tournoyer son bâton comme un maître légendaire. {target} attend patiemment que le spectacle se termine. Quelque part, une statue de héros paraît détourner les yeux.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0137",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Le bâton de {attacker} frappe le sol avec une vigueur théâtrale. {target} n’est pas touché, mais la poussière proteste. Les témoins ont maintenant une anecdote pour la prochaine taverne.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0138",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Le bâton de {attacker} frappe le sol avec une vigueur théâtrale. {target} n’est pas touché, mais la poussière proteste. Dans ce bref désordre, le danger reste bien réel.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0139",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "Le bâton de {attacker} frappe le sol avec une vigueur théâtrale. {target} n’est pas touché, mais la poussière proteste. On lui avait pourtant dit de viser l’adversaire.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0140",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "Le bâton de {attacker} frappe le sol avec une vigueur théâtrale. {target} n’est pas touché, mais la poussière proteste. Un barde aurait exigé de recommencer pour vérifier.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0141",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Le bâton de {attacker} frappe le sol avec une vigueur théâtrale. {target} n’est pas touché, mais la poussière proteste. {attacker} se ressaisit : le combat n’est pas terminé.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0142",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Le bâton de {attacker} frappe le sol avec une vigueur théâtrale. {target} n’est pas touché, mais la poussière proteste. Même {target} semble vouloir offrir un conseil.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0143",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Le bâton de {attacker} frappe le sol avec une vigueur théâtrale. {target} n’est pas touché, mais la poussière proteste. Le faux mouvement laisse un souvenir plus vif que le bruit.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0144",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "Le bâton de {attacker} frappe le sol avec une vigueur théâtrale. {target} n’est pas touché, mais la poussière proteste. Quelque part, une statue de héros paraît détourner les yeux.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0145",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} lance un coup de pied audacieux dans une direction qui ne contient aucun adversaire. {target} semble assister à une répétition privée. Les témoins ont maintenant une anecdote pour la prochaine taverne.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0146",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} lance un coup de pied audacieux dans une direction qui ne contient aucun adversaire. {target} semble assister à une répétition privée. Dans ce bref désordre, le danger reste bien réel.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0147",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "{attacker} lance un coup de pied audacieux dans une direction qui ne contient aucun adversaire. {target} semble assister à une répétition privée. On lui avait pourtant dit de viser l’adversaire.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0148",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "{attacker} lance un coup de pied audacieux dans une direction qui ne contient aucun adversaire. {target} semble assister à une répétition privée. Un barde aurait exigé de recommencer pour vérifier.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0149",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "{attacker} lance un coup de pied audacieux dans une direction qui ne contient aucun adversaire. {target} semble assister à une répétition privée. {attacker} se ressaisit : le combat n’est pas terminé.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0150",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} lance un coup de pied audacieux dans une direction qui ne contient aucun adversaire. {target} semble assister à une répétition privée. Même {target} semble vouloir offrir un conseil.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0151",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} lance un coup de pied audacieux dans une direction qui ne contient aucun adversaire. {target} semble assister à une répétition privée. Le faux mouvement laisse un souvenir plus vif que le bruit.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0152",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "{attacker} lance un coup de pied audacieux dans une direction qui ne contient aucun adversaire. {target} semble assister à une répétition privée. Quelque part, une statue de héros paraît détourner les yeux.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0153",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Le poing de {attacker} passe à une distance philosophique de {target}. La volonté était là; la géographie, moins. Les témoins ont maintenant une anecdote pour la prochaine taverne.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0154",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Le poing de {attacker} passe à une distance philosophique de {target}. La volonté était là; la géographie, moins. Dans ce bref désordre, le danger reste bien réel.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0155",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "Le poing de {attacker} passe à une distance philosophique de {target}. La volonté était là; la géographie, moins. On lui avait pourtant dit de viser l’adversaire.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0156",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "Le poing de {attacker} passe à une distance philosophique de {target}. La volonté était là; la géographie, moins. Un barde aurait exigé de recommencer pour vérifier.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0157",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Le poing de {attacker} passe à une distance philosophique de {target}. La volonté était là; la géographie, moins. {attacker} se ressaisit : le combat n’est pas terminé.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0158",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Le poing de {attacker} passe à une distance philosophique de {target}. La volonté était là; la géographie, moins. Même {target} semble vouloir offrir un conseil.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0159",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Le poing de {attacker} passe à une distance philosophique de {target}. La volonté était là; la géographie, moins. Le faux mouvement laisse un souvenir plus vif que le bruit.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CRITICAL_FAIL-0160",
+      "collection": "critical_fail",
+      "locale": "fr-CA",
+      "result": "critical_fail",
+      "tone": "absurd",
+      "rarity": "uncommon",
+      "text": "Le poing de {attacker} passe à une distance philosophique de {target}. La volonté était là; la géographie, moins. Quelque part, une statue de héros paraît détourner les yeux.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    }
+  ]
+}

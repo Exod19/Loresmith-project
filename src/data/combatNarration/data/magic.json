@@ -1,0 +1,5227 @@
+{
+  "schemaVersion": "1.0.0",
+  "collection": "magic",
+  "count": 180,
+  "entries": [
+    {
+      "id": "LS-MAGIC-0001",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La magie de {attacker} éclate contre {target} dans une gerbe de braises. La chaleur transforme l’air en fournaise pour un bref instant. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "fire"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0002",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "La magie de {attacker} éclate contre {target} dans une gerbe de braises. La chaleur transforme l’air en fournaise pour un bref instant. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "fire"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0003",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La magie de {attacker} éclate contre {target} dans une gerbe de braises. La chaleur transforme l’air en fournaise pour un bref instant. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "fire"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0004",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "La magie de {attacker} éclate contre {target} dans une gerbe de braises. La chaleur transforme l’air en fournaise pour un bref instant. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "fire"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0005",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "La magie de {attacker} éclate contre {target} dans une gerbe de braises. La chaleur transforme l’air en fournaise pour un bref instant. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "fire"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0006",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La magie de {attacker} éclate contre {target} dans une gerbe de braises. La chaleur transforme l’air en fournaise pour un bref instant. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "fire"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0007",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une langue de feu jaillit de la main de {attacker} et frappe {target}. La lumière rouge danse sur les visages des combattants. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "fire"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0008",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Une langue de feu jaillit de la main de {attacker} et frappe {target}. La lumière rouge danse sur les visages des combattants. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "fire"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0009",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Une langue de feu jaillit de la main de {attacker} et frappe {target}. La lumière rouge danse sur les visages des combattants. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "fire"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0010",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "Une langue de feu jaillit de la main de {attacker} et frappe {target}. La lumière rouge danse sur les visages des combattants. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "fire"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0011",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "Une langue de feu jaillit de la main de {attacker} et frappe {target}. La lumière rouge danse sur les visages des combattants. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "fire"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0012",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une langue de feu jaillit de la main de {attacker} et frappe {target}. La lumière rouge danse sur les visages des combattants. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "fire"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0013",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "{attacker} dirige une flambée brûlante vers {target}. L’impact illumine la bataille d’un éclat inquiétant. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "fire"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0014",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} dirige une flambée brûlante vers {target}. L’impact illumine la bataille d’un éclat inquiétant. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "fire"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0015",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} dirige une flambée brûlante vers {target}. L’impact illumine la bataille d’un éclat inquiétant. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "fire"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0016",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "{attacker} dirige une flambée brûlante vers {target}. L’impact illumine la bataille d’un éclat inquiétant. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "fire"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0017",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "{attacker} dirige une flambée brûlante vers {target}. L’impact illumine la bataille d’un éclat inquiétant. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "fire"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0018",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "{attacker} dirige une flambée brûlante vers {target}. L’impact illumine la bataille d’un éclat inquiétant. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "fire"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0019",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Un froid mordant s’abat sur {target} lorsque {attacker} libère son sort. Le givre trace des arabesques sur les surfaces proches. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "cold"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0020",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Un froid mordant s’abat sur {target} lorsque {attacker} libère son sort. Le givre trace des arabesques sur les surfaces proches. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "cold"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0021",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Un froid mordant s’abat sur {target} lorsque {attacker} libère son sort. Le givre trace des arabesques sur les surfaces proches. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "cold"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0022",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "Un froid mordant s’abat sur {target} lorsque {attacker} libère son sort. Le givre trace des arabesques sur les surfaces proches. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "cold"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0023",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "Un froid mordant s’abat sur {target} lorsque {attacker} libère son sort. Le givre trace des arabesques sur les surfaces proches. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "cold"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0024",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Un froid mordant s’abat sur {target} lorsque {attacker} libère son sort. Le givre trace des arabesques sur les surfaces proches. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "cold"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0025",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La magie glaciale de {attacker} frappe {target}. L’air craque sous une brusque morsure de gel. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "cold"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0026",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "La magie glaciale de {attacker} frappe {target}. L’air craque sous une brusque morsure de gel. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "cold"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0027",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La magie glaciale de {attacker} frappe {target}. L’air craque sous une brusque morsure de gel. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "cold"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0028",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "La magie glaciale de {attacker} frappe {target}. L’air craque sous une brusque morsure de gel. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "cold"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0029",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "La magie glaciale de {attacker} frappe {target}. L’air craque sous une brusque morsure de gel. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "cold"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0030",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La magie glaciale de {attacker} frappe {target}. L’air craque sous une brusque morsure de gel. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "cold"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0031",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une vague de froid née du geste de {attacker} atteint {target}. Chaque souffle paraît soudain plus lourd. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "cold"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0032",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Une vague de froid née du geste de {attacker} atteint {target}. Chaque souffle paraît soudain plus lourd. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "cold"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0033",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Une vague de froid née du geste de {attacker} atteint {target}. Chaque souffle paraît soudain plus lourd. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "cold"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0034",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "Une vague de froid née du geste de {attacker} atteint {target}. Chaque souffle paraît soudain plus lourd. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "cold"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0035",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "Une vague de froid née du geste de {attacker} atteint {target}. Chaque souffle paraît soudain plus lourd. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "cold"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0036",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une vague de froid née du geste de {attacker} atteint {target}. Chaque souffle paraît soudain plus lourd. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "cold"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0037",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La foudre de {attacker} frappe {target} dans un claquement brutal. L’odeur d’orage envahit l’air. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "lightning"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0038",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "La foudre de {attacker} frappe {target} dans un claquement brutal. L’odeur d’orage envahit l’air. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "lightning"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0039",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La foudre de {attacker} frappe {target} dans un claquement brutal. L’odeur d’orage envahit l’air. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "lightning"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0040",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "La foudre de {attacker} frappe {target} dans un claquement brutal. L’odeur d’orage envahit l’air. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "lightning"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0041",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "La foudre de {attacker} frappe {target} dans un claquement brutal. L’odeur d’orage envahit l’air. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "lightning"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0042",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La foudre de {attacker} frappe {target} dans un claquement brutal. L’odeur d’orage envahit l’air. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "lightning"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0043",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Un arc électrique jaillit des mains de {attacker} et atteint {target}. Pendant un instant, tout est lumière et grondement. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "lightning"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0044",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Un arc électrique jaillit des mains de {attacker} et atteint {target}. Pendant un instant, tout est lumière et grondement. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "lightning"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0045",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Un arc électrique jaillit des mains de {attacker} et atteint {target}. Pendant un instant, tout est lumière et grondement. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "lightning"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0046",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "Un arc électrique jaillit des mains de {attacker} et atteint {target}. Pendant un instant, tout est lumière et grondement. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "lightning"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0047",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "Un arc électrique jaillit des mains de {attacker} et atteint {target}. Pendant un instant, tout est lumière et grondement. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "lightning"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0048",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Un arc électrique jaillit des mains de {attacker} et atteint {target}. Pendant un instant, tout est lumière et grondement. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "lightning"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0049",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Le sort de {attacker} traverse l’air en une ligne d’éclairs et percute {target}. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "lightning"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0050",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Le sort de {attacker} traverse l’air en une ligne d’éclairs et percute {target}. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "lightning"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0051",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Le sort de {attacker} traverse l’air en une ligne d’éclairs et percute {target}. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "lightning"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0052",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "Le sort de {attacker} traverse l’air en une ligne d’éclairs et percute {target}. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "lightning"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0053",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "Le sort de {attacker} traverse l’air en une ligne d’éclairs et percute {target}. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "lightning"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0054",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Le sort de {attacker} traverse l’air en une ligne d’éclairs et percute {target}. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "lightning"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0055",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une énergie funèbre émane de {attacker} et atteint {target}. Les ombres paraissent s’épaissir autour du point d’impact. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "necrotic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0056",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Une énergie funèbre émane de {attacker} et atteint {target}. Les ombres paraissent s’épaissir autour du point d’impact. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "necrotic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0057",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Une énergie funèbre émane de {attacker} et atteint {target}. Les ombres paraissent s’épaissir autour du point d’impact. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "necrotic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0058",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "Une énergie funèbre émane de {attacker} et atteint {target}. Les ombres paraissent s’épaissir autour du point d’impact. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "necrotic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0059",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "Une énergie funèbre émane de {attacker} et atteint {target}. Les ombres paraissent s’épaissir autour du point d’impact. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "necrotic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0060",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une énergie funèbre émane de {attacker} et atteint {target}. Les ombres paraissent s’épaissir autour du point d’impact. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "necrotic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0061",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Le sort nécrotique de {attacker} enveloppe {target} d’un frisson de tombe ouverte. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "necrotic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0062",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Le sort nécrotique de {attacker} enveloppe {target} d’un frisson de tombe ouverte. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "necrotic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0063",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Le sort nécrotique de {attacker} enveloppe {target} d’un frisson de tombe ouverte. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "necrotic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0064",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "Le sort nécrotique de {attacker} enveloppe {target} d’un frisson de tombe ouverte. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "necrotic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0065",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "Le sort nécrotique de {attacker} enveloppe {target} d’un frisson de tombe ouverte. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "necrotic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0066",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Le sort nécrotique de {attacker} enveloppe {target} d’un frisson de tombe ouverte. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "necrotic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0067",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une vague de magie mortuaire frappe {target}; la lumière semble s’affaiblir autour de {attacker}. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "necrotic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0068",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Une vague de magie mortuaire frappe {target}; la lumière semble s’affaiblir autour de {attacker}. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "necrotic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0069",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Une vague de magie mortuaire frappe {target}; la lumière semble s’affaiblir autour de {attacker}. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "necrotic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0070",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "Une vague de magie mortuaire frappe {target}; la lumière semble s’affaiblir autour de {attacker}. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "necrotic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0071",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "Une vague de magie mortuaire frappe {target}; la lumière semble s’affaiblir autour de {attacker}. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "necrotic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0072",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une vague de magie mortuaire frappe {target}; la lumière semble s’affaiblir autour de {attacker}. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "necrotic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0073",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une clarté aveuglante jaillit de {attacker} et atteint {target}. Les ombres reculent sous l’éclat. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "radiant"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0074",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Une clarté aveuglante jaillit de {attacker} et atteint {target}. Les ombres reculent sous l’éclat. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "radiant"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0075",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Une clarté aveuglante jaillit de {attacker} et atteint {target}. Les ombres reculent sous l’éclat. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "radiant"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0076",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "Une clarté aveuglante jaillit de {attacker} et atteint {target}. Les ombres reculent sous l’éclat. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "radiant"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0077",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "Une clarté aveuglante jaillit de {attacker} et atteint {target}. Les ombres reculent sous l’éclat. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "radiant"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0078",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une clarté aveuglante jaillit de {attacker} et atteint {target}. Les ombres reculent sous l’éclat. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "radiant"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0079",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La magie rayonnante de {attacker} frappe {target} comme une aube soudaine au fond des ténèbres. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "radiant"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0080",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "La magie rayonnante de {attacker} frappe {target} comme une aube soudaine au fond des ténèbres. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "radiant"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0081",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La magie rayonnante de {attacker} frappe {target} comme une aube soudaine au fond des ténèbres. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "radiant"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0082",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "La magie rayonnante de {attacker} frappe {target} comme une aube soudaine au fond des ténèbres. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "radiant"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0083",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "La magie rayonnante de {attacker} frappe {target} comme une aube soudaine au fond des ténèbres. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "radiant"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0084",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La magie rayonnante de {attacker} frappe {target} comme une aube soudaine au fond des ténèbres. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "radiant"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0085",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Un trait de lumière pure traverse la pénombre et touche {target}, guidé par {attacker}. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "radiant"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0086",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Un trait de lumière pure traverse la pénombre et touche {target}, guidé par {attacker}. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "radiant"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0087",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Un trait de lumière pure traverse la pénombre et touche {target}, guidé par {attacker}. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "radiant"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0088",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "Un trait de lumière pure traverse la pénombre et touche {target}, guidé par {attacker}. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "radiant"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0089",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "Un trait de lumière pure traverse la pénombre et touche {target}, guidé par {attacker}. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "radiant"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0090",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Un trait de lumière pure traverse la pénombre et touche {target}, guidé par {attacker}. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "radiant"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0091",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une projection acide de {attacker} atteint {target} dans un sifflement corrosif. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "acid"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0092",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Une projection acide de {attacker} atteint {target} dans un sifflement corrosif. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "acid"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0093",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Une projection acide de {attacker} atteint {target} dans un sifflement corrosif. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "acid"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0094",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "Une projection acide de {attacker} atteint {target} dans un sifflement corrosif. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "acid"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0095",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "Une projection acide de {attacker} atteint {target} dans un sifflement corrosif. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "acid"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0096",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une projection acide de {attacker} atteint {target} dans un sifflement corrosif. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "acid"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0097",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Le sort de {attacker} éclabousse {target} d’une substance mordante. Une vapeur âcre s’élève. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "acid"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0098",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Le sort de {attacker} éclabousse {target} d’une substance mordante. Une vapeur âcre s’élève. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "acid"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0099",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Le sort de {attacker} éclabousse {target} d’une substance mordante. Une vapeur âcre s’élève. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "acid"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0100",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "Le sort de {attacker} éclabousse {target} d’une substance mordante. Une vapeur âcre s’élève. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "acid"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0101",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "Le sort de {attacker} éclabousse {target} d’une substance mordante. Une vapeur âcre s’élève. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "acid"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0102",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Le sort de {attacker} éclabousse {target} d’une substance mordante. Une vapeur âcre s’élève. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "acid"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0103",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une goutte de magie corrosive grossit en plein vol avant de frapper {target}. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "acid"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0104",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Une goutte de magie corrosive grossit en plein vol avant de frapper {target}. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "acid"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0105",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Une goutte de magie corrosive grossit en plein vol avant de frapper {target}. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "acid"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0106",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "Une goutte de magie corrosive grossit en plein vol avant de frapper {target}. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "acid"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0107",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "Une goutte de magie corrosive grossit en plein vol avant de frapper {target}. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "acid"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0108",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une goutte de magie corrosive grossit en plein vol avant de frapper {target}. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "acid"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0109",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une impulsion de force magique de {attacker} percute {target} sans bruit de lame ni de flèche. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "force"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0110",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Une impulsion de force magique de {attacker} percute {target} sans bruit de lame ni de flèche. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "force"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0111",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Une impulsion de force magique de {attacker} percute {target} sans bruit de lame ni de flèche. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "force"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0112",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "Une impulsion de force magique de {attacker} percute {target} sans bruit de lame ni de flèche. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "force"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0113",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "Une impulsion de force magique de {attacker} percute {target} sans bruit de lame ni de flèche. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "force"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0114",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une impulsion de force magique de {attacker} percute {target} sans bruit de lame ni de flèche. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "force"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0115",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "L’énergie invisible de {attacker} frappe {target}; l’air semble se plier au point d’impact. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "force"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0116",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "L’énergie invisible de {attacker} frappe {target}; l’air semble se plier au point d’impact. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "force"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0117",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "L’énergie invisible de {attacker} frappe {target}; l’air semble se plier au point d’impact. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "force"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0118",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "L’énergie invisible de {attacker} frappe {target}; l’air semble se plier au point d’impact. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "force"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0119",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "L’énergie invisible de {attacker} frappe {target}; l’air semble se plier au point d’impact. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "force"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0120",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "L’énergie invisible de {attacker} frappe {target}; l’air semble se plier au point d’impact. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "force"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0121",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Un choc de pure puissance arcanique atteint {target} et fait vibrer l’atmosphère. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "force"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0122",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Un choc de pure puissance arcanique atteint {target} et fait vibrer l’atmosphère. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "force"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0123",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Un choc de pure puissance arcanique atteint {target} et fait vibrer l’atmosphère. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "force"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0124",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "Un choc de pure puissance arcanique atteint {target} et fait vibrer l’atmosphère. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "force"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0125",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "Un choc de pure puissance arcanique atteint {target} et fait vibrer l’atmosphère. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "force"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0126",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Un choc de pure puissance arcanique atteint {target} et fait vibrer l’atmosphère. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "force"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0127",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La pensée de {attacker} se fait lame et atteint l’esprit de {target}. Aucun sang ne coule, mais la douleur est réelle. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "psychic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0128",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "La pensée de {attacker} se fait lame et atteint l’esprit de {target}. Aucun sang ne coule, mais la douleur est réelle. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "psychic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0129",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La pensée de {attacker} se fait lame et atteint l’esprit de {target}. Aucun sang ne coule, mais la douleur est réelle. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "psychic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0130",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "La pensée de {attacker} se fait lame et atteint l’esprit de {target}. Aucun sang ne coule, mais la douleur est réelle. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "psychic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0131",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "La pensée de {attacker} se fait lame et atteint l’esprit de {target}. Aucun sang ne coule, mais la douleur est réelle. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "psychic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0132",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La pensée de {attacker} se fait lame et atteint l’esprit de {target}. Aucun sang ne coule, mais la douleur est réelle. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "psychic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0133",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une pression mentale venue de {attacker} frappe {target}. Pendant un instant, ses certitudes vacillent. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "psychic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0134",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Une pression mentale venue de {attacker} frappe {target}. Pendant un instant, ses certitudes vacillent. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "psychic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0135",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Une pression mentale venue de {attacker} frappe {target}. Pendant un instant, ses certitudes vacillent. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "psychic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0136",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "Une pression mentale venue de {attacker} frappe {target}. Pendant un instant, ses certitudes vacillent. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "psychic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0137",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "Une pression mentale venue de {attacker} frappe {target}. Pendant un instant, ses certitudes vacillent. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "psychic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0138",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une pression mentale venue de {attacker} frappe {target}. Pendant un instant, ses certitudes vacillent. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "psychic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0139",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "{attacker} dirige une attaque psychique vers {target}; le monde semble se troubler autour de la victime. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "psychic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0140",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} dirige une attaque psychique vers {target}; le monde semble se troubler autour de la victime. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "psychic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0141",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} dirige une attaque psychique vers {target}; le monde semble se troubler autour de la victime. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "psychic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0142",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "{attacker} dirige une attaque psychique vers {target}; le monde semble se troubler autour de la victime. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "psychic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0143",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "{attacker} dirige une attaque psychique vers {target}; le monde semble se troubler autour de la victime. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "psychic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0144",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "{attacker} dirige une attaque psychique vers {target}; le monde semble se troubler autour de la victime. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "psychic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0145",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Le sort venimeux de {attacker} atteint {target}, laissant dans l’air une odeur âcre. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "poison"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0146",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Le sort venimeux de {attacker} atteint {target}, laissant dans l’air une odeur âcre. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "poison"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0147",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Le sort venimeux de {attacker} atteint {target}, laissant dans l’air une odeur âcre. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "poison"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0148",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "Le sort venimeux de {attacker} atteint {target}, laissant dans l’air une odeur âcre. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "poison"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0149",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "Le sort venimeux de {attacker} atteint {target}, laissant dans l’air une odeur âcre. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "poison"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0150",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Le sort venimeux de {attacker} atteint {target}, laissant dans l’air une odeur âcre. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "poison"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0151",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une énergie toxique jaillit de {attacker} et frappe {target}. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "poison"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0152",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Une énergie toxique jaillit de {attacker} et frappe {target}. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "poison"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0153",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Une énergie toxique jaillit de {attacker} et frappe {target}. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "poison"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0154",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "Une énergie toxique jaillit de {attacker} et frappe {target}. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "poison"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0155",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "Une énergie toxique jaillit de {attacker} et frappe {target}. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "poison"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0156",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une énergie toxique jaillit de {attacker} et frappe {target}. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "poison"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0157",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La magie empoisonnée de {attacker} touche {target} dans un nuage inquiétant. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "poison"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0158",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "La magie empoisonnée de {attacker} touche {target} dans un nuage inquiétant. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "poison"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0159",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La magie empoisonnée de {attacker} touche {target} dans un nuage inquiétant. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "poison"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0160",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "La magie empoisonnée de {attacker} touche {target} dans un nuage inquiétant. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "poison"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0161",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "La magie empoisonnée de {attacker} touche {target} dans un nuage inquiétant. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "poison"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0162",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La magie empoisonnée de {attacker} touche {target} dans un nuage inquiétant. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "poison"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0163",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une onde sonore née du sort de {attacker} percute {target}. Les pierres elles-mêmes semblent vibrer. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "sonic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0164",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Une onde sonore née du sort de {attacker} percute {target}. Les pierres elles-mêmes semblent vibrer. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "sonic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0165",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Une onde sonore née du sort de {attacker} percute {target}. Les pierres elles-mêmes semblent vibrer. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "sonic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0166",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "Une onde sonore née du sort de {attacker} percute {target}. Les pierres elles-mêmes semblent vibrer. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "sonic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0167",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "Une onde sonore née du sort de {attacker} percute {target}. Les pierres elles-mêmes semblent vibrer. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "sonic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0168",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une onde sonore née du sort de {attacker} percute {target}. Les pierres elles-mêmes semblent vibrer. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "sonic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0169",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La détonation magique de {attacker} atteint {target} et résonne dans l’espace. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "sonic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0170",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "La détonation magique de {attacker} atteint {target} et résonne dans l’espace. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "sonic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0171",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La détonation magique de {attacker} atteint {target} et résonne dans l’espace. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "sonic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0172",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "La détonation magique de {attacker} atteint {target} et résonne dans l’espace. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "sonic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0173",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "La détonation magique de {attacker} atteint {target} et résonne dans l’espace. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "sonic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0174",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La détonation magique de {attacker} atteint {target} et résonne dans l’espace. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "sonic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0175",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une pulsation assourdissante de {attacker} frappe {target} avec la violence d’un gong de guerre. La magie a parlé avec une autorité incontestable.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "sonic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0176",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Une pulsation assourdissante de {attacker} frappe {target} avec la violence d’un gong de guerre. Le silence qui suit paraît chargé de menaces.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "sonic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0177",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Une pulsation assourdissante de {attacker} frappe {target} avec la violence d’un gong de guerre. La démonstration n’était pas au programme, mais elle a trouvé son public.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "sonic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC-0178",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "heroic",
+      "rarity": "uncommon",
+      "text": "Une pulsation assourdissante de {attacker} frappe {target} avec la violence d’un gong de guerre. {attacker} maintient sa concentration au milieu du chaos.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "sonic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0179",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "uncommon",
+      "text": "Une pulsation assourdissante de {attacker} frappe {target} avec la violence d’un gong de guerre. {target} aurait sans doute préféré une explication orale.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "sonic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC-0180",
+      "collection": "magic",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une pulsation assourdissante de {attacker} frappe {target} avec la violence d’un gong de guerre. Les témoins auront du mal à oublier cet éclat de puissance.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "sonic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    }
+  ]
+}

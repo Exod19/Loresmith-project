@@ -152,7 +152,9 @@ export interface Battle {
   /** Brouillard de guerre (écran joueur) : actif ou non, et cases déjà explorées pour ce terrain (`source`). */
   fog?: { on: boolean; source?: string; explored: number[] };
   /** Attaque en cours sur le plateau : qui vise qui (trait tracé, aussi chez les joueurs) et le résultat annoncé. */
-  aim?: { from: string; to: string; at: number; text?: string; tone?: 'hit' | 'miss' | 'crit' | 'info'; by?: 'joueurs' };
+  aim?: { from: string; to: string; at: number; text?: string; tone?: 'hit' | 'miss' | 'crit' | 'info'; by?: 'joueurs';
+    /** Narration des Chroniques du Combat, choisie après la résolution (texte déjà rendu). */
+    narration?: { text: string; importance: 'minor' | 'major' | 'epic'; id: string } };
 }
 
 /** `edits` : index de case → type de terrain, posé à la main. `props` : objets déposés sur une case. */

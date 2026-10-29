@@ -138,6 +138,9 @@ function PlayerBattle({ board, onAim }: { board: Extract<PlayerBoard, { mode: 'b
       {board.turn && <TurnStrip turn={board.turn} onOpen={(id) => setOpenId((cur) => (cur === id ? null : id))} />}
       {aimer && <div className="present-aim-hint">🎯 {board.tokens.find((t) => t.id === aimer)?.name} vise : touche la cible sur le plateau.</div>}
       {!aimer && board.aim?.text && <div key={board.aim.text} className={`present-aim-result tone-${board.aim.tone ?? 'info'}`}>{board.aim.text}</div>}
+      {!aimer && board.aim?.narration && (
+        <p key={board.aim.narration.id + board.aim.narration.text} className={`present-narration narration imp-${board.aim.narration.importance}`} role="status" aria-live="polite">{board.aim.narration.text}</p>
+      )}
       <div className="present-battle-body" data-card={card ? 1 : undefined}>
         <BattleBoard
           cols={board.cols} rows={board.rows} backdrop={board.backdrop} terrain={board.terrain} elements={board.elements} tokens={board.tokens} fog={board.fog} exits={board.exits}

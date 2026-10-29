@@ -1,0 +1,735 @@
+{
+  "schemaVersion": "1.0.0",
+  "collection": "creature_misses",
+  "count": 28,
+  "entries": [
+    {
+      "id": "LS-CREATURE_MISSES-0001",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{target} tourne ses orbites vides vers la frappe manquée de {attacker}. Même sans sourcils, le jugement est palpable.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "skeleton"
+        ],
+        "anatomies": [
+          "skeletal"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0002",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} frappe entre deux côtes de {target} sans toucher d’os. Voilà un adversaire qui a littéralement des trous dans sa défense.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "skeleton"
+        ],
+        "anatomies": [
+          "skeletal"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0003",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{target} continue d’avancer tandis que {attacker} frappe trop court. Pour une fois, la lenteur n’était pas le problème.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "zombie"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0004",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} manque {target}, qui ne semble même pas avoir compris qu’une attaque venait d’avoir lieu.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "zombie"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0005",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{target} esquive {attacker} et pousse un rire aigu. Il a probablement déjà inventé trois insultes pour raconter l’incident.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "goblin"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0006",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "La frappe de {attacker} manque {target}, qui répond par une grimace assez élaborée pour mériter un prix.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "goblin"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0007",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{target} écarte la frappe de {attacker} d’un mouvement brutal. Son sourire promet une discussion sans subtilité.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "orc"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0008",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} manque {target}. Le colosse éclate d’un rire qui ressemble à une porte qu’on arrache de ses gonds.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "orc"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0009",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{target} évite la lame de {attacker} avec une grâce presque offensante. Il semble trouver le duel intellectuellement décevant.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "drow"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0010",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} frappe trop tôt; {target} se dérobe sans même froisser son maintien aristocratique.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "drow"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0011",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{target} laisse l’attaque de {attacker} passer à côté, puis grogne quelque chose qui ressemble à une facture de réparation.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "duergar"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0012",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "La frappe de {attacker} manque {target}. Le duergar secoue la tête comme un maître artisan devant un travail bâclé.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "duergar"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0013",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{target} se dérobe à l’attaque de {attacker} dans un léger nuage de spores. Même les champignons ont leurs secrets de mobilité.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "myconid"
+        ],
+        "anatomies": [
+          "fungal"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0014",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} manque {target}. Le myconide oscille lentement; difficile de savoir s’il se moque de lui.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "myconid"
+        ],
+        "anatomies": [
+          "fungal"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0015",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{target} se déplace sur plusieurs pattes à la fois et échappe à {attacker}. Le nombre de jambes paraît soudain injuste.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "giant_spider"
+        ],
+        "anatomies": [
+          "arthropod"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0016",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} frappe trop bas; {target} se hisse hors de portée dans un cliquetis de carapace.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "giant_spider"
+        ],
+        "anatomies": [
+          "arthropod"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0017",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} frappe à côté de {target}. Le golem reste immobile. Être humilié par une statue demande un certain talent.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "golem"
+        ],
+        "anatomies": [
+          "stone"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0018",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Le coup de {attacker} manque {target}, dont l’expression de pierre ne change absolument pas.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "golem"
+        ],
+        "anatomies": [
+          "stone"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0019",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{target} retire sa tête de la trajectoire de {attacker}. Le dragon semble trouver cette tentative presque attendrissante.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "dragon"
+        ],
+        "anatomies": [
+          "scaled"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0020",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} manque {target}. Le regard reptilien qui suit donne l’impression d’avoir déçu une montagne.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "dragon"
+        ],
+        "anatomies": [
+          "scaled"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0021",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{attacker} frappe à côté de {target}. Difficile d’expliquer comment manquer une chose qui n’a même pas de forme fixe.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "ooze"
+        ],
+        "anatomies": [
+          "amorphous"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0022",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "La masse informe de {target} ondule hors de portée. {attacker} découvre qu’un adversaire sans jambes peut quand même esquiver.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "ooze"
+        ],
+        "anatomies": [
+          "amorphous"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0023",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "L’attaque de {attacker} traverse l’espace où flottait {target}. Le spectre s’est dérobé comme une fumée froide.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "ghost"
+        ],
+        "anatomies": [
+          "incorporeal"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0024",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{target} glisse hors de la trajectoire de {attacker}, laissant derrière lui un frisson surnaturel.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "ghost"
+        ],
+        "anatomies": [
+          "incorporeal"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0025",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{target} évite l’attaque de {attacker} et répond par un rire cruel. Le son est plus désagréable que l’échec lui-même.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "demon"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0026",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "{attacker} frappe dans le vide. {target} incline la tête, ravi de découvrir une faiblesse à exploiter.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "demon"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0027",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "{target} bondit hors de portée de {attacker} dans un réflexe sauvage.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "beast"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURE_MISSES-0028",
+      "collection": "creature_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "L’instinct de {target} le sauve de la frappe de {attacker}; le combat reprend aussitôt.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "beast"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    }
+  ]
+}

@@ -1,0 +1,877 @@
+{
+  "schemaVersion": "1.0.0",
+  "collection": "magic_misses",
+  "count": 30,
+  "entries": [
+    {
+      "id": "LS-MAGIC_MISSES-0001",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Le sort de fire lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. La magie ne semble pas avoir reçu l’adresse de destination.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "fire"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0002",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Le sort de fire lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. La lumière du sort s’éteint sans avoir trouvé sa proie.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "fire"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0003",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le sort de fire lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. L’intention était redoutable; la trajectoire, moins.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "fire"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0004",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Le sort de cold lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. La magie ne semble pas avoir reçu l’adresse de destination.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "cold"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0005",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Le sort de cold lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. La lumière du sort s’éteint sans avoir trouvé sa proie.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "cold"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0006",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le sort de cold lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. L’intention était redoutable; la trajectoire, moins.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "cold"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0007",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Le sort de lightning lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. La magie ne semble pas avoir reçu l’adresse de destination.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "lightning"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0008",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Le sort de lightning lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. La lumière du sort s’éteint sans avoir trouvé sa proie.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "lightning"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0009",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le sort de lightning lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. L’intention était redoutable; la trajectoire, moins.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "lightning"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0010",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Le sort de necrotic lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. La magie ne semble pas avoir reçu l’adresse de destination.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "necrotic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0011",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Le sort de necrotic lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. La lumière du sort s’éteint sans avoir trouvé sa proie.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "necrotic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0012",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le sort de necrotic lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. L’intention était redoutable; la trajectoire, moins.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "necrotic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0013",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Le sort de radiant lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. La magie ne semble pas avoir reçu l’adresse de destination.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "radiant"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0014",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Le sort de radiant lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. La lumière du sort s’éteint sans avoir trouvé sa proie.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "radiant"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0015",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le sort de radiant lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. L’intention était redoutable; la trajectoire, moins.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "radiant"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0016",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Le sort de acid lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. La magie ne semble pas avoir reçu l’adresse de destination.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "acid"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0017",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Le sort de acid lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. La lumière du sort s’éteint sans avoir trouvé sa proie.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "acid"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0018",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le sort de acid lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. L’intention était redoutable; la trajectoire, moins.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "acid"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0019",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Le sort de force lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. La magie ne semble pas avoir reçu l’adresse de destination.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "force"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0020",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Le sort de force lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. La lumière du sort s’éteint sans avoir trouvé sa proie.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "force"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0021",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le sort de force lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. L’intention était redoutable; la trajectoire, moins.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "force"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0022",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Le sort de psychic lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. La magie ne semble pas avoir reçu l’adresse de destination.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "psychic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0023",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Le sort de psychic lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. La lumière du sort s’éteint sans avoir trouvé sa proie.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "psychic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0024",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le sort de psychic lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. L’intention était redoutable; la trajectoire, moins.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "psychic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0025",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Le sort de poison lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. La magie ne semble pas avoir reçu l’adresse de destination.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "poison"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0026",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Le sort de poison lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. La lumière du sort s’éteint sans avoir trouvé sa proie.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "poison"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0027",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le sort de poison lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. L’intention était redoutable; la trajectoire, moins.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "poison"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0028",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Le sort de sonic lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. La magie ne semble pas avoir reçu l’adresse de destination.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "sonic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0029",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Le sort de sonic lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. La lumière du sort s’éteint sans avoir trouvé sa proie.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "sonic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-MAGIC_MISSES-0030",
+      "collection": "magic_misses",
+      "locale": "fr-CA",
+      "result": "miss",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le sort de sonic lancé par {attacker} manque {target} et se dissipe sans effet sur sa cible. L’intention était redoutable; la trajectoire, moins.",
+      "tags": {
+        "weapons": [
+          "spell"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ],
+        "damageTypes": [
+          "sonic"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    }
+  ]
+}

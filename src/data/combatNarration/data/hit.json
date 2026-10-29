@@ -1,0 +1,6247 @@
+{
+  "schemaVersion": "1.0.0",
+  "collection": "hit",
+  "count": 240,
+  "entries": [
+    {
+      "id": "LS-HIT-0001",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "La hache de {attacker} mord la défense de {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0002",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "La hache de {attacker} mord la défense de {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0003",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "La hache de {attacker} mord la défense de {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0004",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "La hache de {attacker} mord la défense de {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0005",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "La hache de {attacker} mord la défense de {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0006",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "La hache de {attacker} mord la défense de {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0007",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "La hache de {attacker} mord la défense de {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0008",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "La hache de {attacker} mord la défense de {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0009",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Le tranchant de {attacker} trouve enfin {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0010",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Le tranchant de {attacker} trouve enfin {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0011",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le tranchant de {attacker} trouve enfin {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0012",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Le tranchant de {attacker} trouve enfin {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0013",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Le tranchant de {attacker} trouve enfin {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0014",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Le tranchant de {attacker} trouve enfin {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0015",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Le tranchant de {attacker} trouve enfin {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0016",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le tranchant de {attacker} trouve enfin {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0017",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Une frappe lourde de {attacker} atteint {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0018",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Une frappe lourde de {attacker} atteint {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0019",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Une frappe lourde de {attacker} atteint {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0020",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Une frappe lourde de {attacker} atteint {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0021",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Une frappe lourde de {attacker} atteint {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0022",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Une frappe lourde de {attacker} atteint {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0023",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Une frappe lourde de {attacker} atteint {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0024",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Une frappe lourde de {attacker} atteint {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "axe"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0025",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "L’épée de {attacker} traverse la garde de {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0026",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "L’épée de {attacker} traverse la garde de {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0027",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "L’épée de {attacker} traverse la garde de {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0028",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "L’épée de {attacker} traverse la garde de {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0029",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "L’épée de {attacker} traverse la garde de {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0030",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "L’épée de {attacker} traverse la garde de {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0031",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "L’épée de {attacker} traverse la garde de {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0032",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "L’épée de {attacker} traverse la garde de {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0033",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Une estocade de {attacker} atteint {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0034",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Une estocade de {attacker} atteint {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0035",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Une estocade de {attacker} atteint {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0036",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Une estocade de {attacker} atteint {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0037",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Une estocade de {attacker} atteint {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0038",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Une estocade de {attacker} atteint {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0039",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Une estocade de {attacker} atteint {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0040",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Une estocade de {attacker} atteint {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0041",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "La lame de {attacker} touche {target} dans un mouvement net, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0042",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "La lame de {attacker} touche {target} dans un mouvement net, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0043",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "La lame de {attacker} touche {target} dans un mouvement net, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0044",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "La lame de {attacker} touche {target} dans un mouvement net, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0045",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "La lame de {attacker} touche {target} dans un mouvement net, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0046",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "La lame de {attacker} touche {target} dans un mouvement net, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0047",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "La lame de {attacker} touche {target} dans un mouvement net, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0048",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "La lame de {attacker} touche {target} dans un mouvement net, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "sword"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0049",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "La dague de {attacker} trouve une ouverture contre {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0050",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "La dague de {attacker} trouve une ouverture contre {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0051",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "La dague de {attacker} trouve une ouverture contre {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0052",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "La dague de {attacker} trouve une ouverture contre {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0053",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "La dague de {attacker} trouve une ouverture contre {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0054",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "La dague de {attacker} trouve une ouverture contre {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0055",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "La dague de {attacker} trouve une ouverture contre {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0056",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "La dague de {attacker} trouve une ouverture contre {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0057",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Une pointe rapide de {attacker} atteint {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0058",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Une pointe rapide de {attacker} atteint {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0059",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Une pointe rapide de {attacker} atteint {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0060",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Une pointe rapide de {attacker} atteint {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0061",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Une pointe rapide de {attacker} atteint {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0062",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Une pointe rapide de {attacker} atteint {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0063",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Une pointe rapide de {attacker} atteint {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0064",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Une pointe rapide de {attacker} atteint {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0065",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "La lame courte de {attacker} touche {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0066",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "La lame courte de {attacker} touche {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0067",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "La lame courte de {attacker} touche {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0068",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "La lame courte de {attacker} touche {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0069",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "La lame courte de {attacker} touche {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0070",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "La lame courte de {attacker} touche {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0071",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "La lame courte de {attacker} touche {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0072",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "La lame courte de {attacker} touche {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "dagger"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0073",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "La masse de {attacker} percute {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0074",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "La masse de {attacker} percute {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0075",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "La masse de {attacker} percute {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0076",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "La masse de {attacker} percute {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0077",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "La masse de {attacker} percute {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0078",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "La masse de {attacker} percute {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0079",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "La masse de {attacker} percute {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0080",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "La masse de {attacker} percute {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0081",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Un coup pesant de {attacker} atteint {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0082",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Un coup pesant de {attacker} atteint {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0083",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Un coup pesant de {attacker} atteint {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0084",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Un coup pesant de {attacker} atteint {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0085",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Un coup pesant de {attacker} atteint {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0086",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Un coup pesant de {attacker} atteint {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0087",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Un coup pesant de {attacker} atteint {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0088",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Un coup pesant de {attacker} atteint {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0089",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "La masse de {attacker} heurte la protection de {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0090",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "La masse de {attacker} heurte la protection de {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0091",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "La masse de {attacker} heurte la protection de {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0092",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "La masse de {attacker} heurte la protection de {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0093",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "La masse de {attacker} heurte la protection de {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0094",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "La masse de {attacker} heurte la protection de {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0095",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "La masse de {attacker} heurte la protection de {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0096",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "La masse de {attacker} heurte la protection de {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "mace"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0097",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Le marteau de {attacker} frappe {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0098",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Le marteau de {attacker} frappe {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0099",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le marteau de {attacker} frappe {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0100",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Le marteau de {attacker} frappe {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0101",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Le marteau de {attacker} frappe {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0102",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Le marteau de {attacker} frappe {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0103",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Le marteau de {attacker} frappe {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0104",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le marteau de {attacker} frappe {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0105",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Un coup de marteau de {attacker} secoue {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0106",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Un coup de marteau de {attacker} secoue {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0107",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Un coup de marteau de {attacker} secoue {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0108",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Un coup de marteau de {attacker} secoue {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0109",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Un coup de marteau de {attacker} secoue {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0110",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Un coup de marteau de {attacker} secoue {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0111",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Un coup de marteau de {attacker} secoue {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0112",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Un coup de marteau de {attacker} secoue {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0113",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "La tête du marteau de {attacker} rencontre {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0114",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "La tête du marteau de {attacker} rencontre {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0115",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "La tête du marteau de {attacker} rencontre {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0116",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "La tête du marteau de {attacker} rencontre {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0117",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "La tête du marteau de {attacker} rencontre {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0118",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "La tête du marteau de {attacker} rencontre {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0119",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "La tête du marteau de {attacker} rencontre {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0120",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "La tête du marteau de {attacker} rencontre {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "hammer"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0121",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "La pointe de la lance de {attacker} atteint {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0122",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "La pointe de la lance de {attacker} atteint {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0123",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "La pointe de la lance de {attacker} atteint {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0124",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "La pointe de la lance de {attacker} atteint {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0125",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "La pointe de la lance de {attacker} atteint {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0126",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "La pointe de la lance de {attacker} atteint {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0127",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "La pointe de la lance de {attacker} atteint {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0128",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "La pointe de la lance de {attacker} atteint {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0129",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Un estoc précis de {attacker} trouve {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0130",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Un estoc précis de {attacker} trouve {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0131",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Un estoc précis de {attacker} trouve {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0132",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Un estoc précis de {attacker} trouve {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0133",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Un estoc précis de {attacker} trouve {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0134",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Un estoc précis de {attacker} trouve {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0135",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Un estoc précis de {attacker} trouve {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0136",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Un estoc précis de {attacker} trouve {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0137",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "La lance de {attacker} perce la garde de {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0138",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "La lance de {attacker} perce la garde de {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0139",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "La lance de {attacker} perce la garde de {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0140",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "La lance de {attacker} perce la garde de {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0141",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "La lance de {attacker} perce la garde de {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0142",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "La lance de {attacker} perce la garde de {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0143",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "La lance de {attacker} perce la garde de {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0144",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "La lance de {attacker} perce la garde de {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "spear"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0145",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Une flèche de {attacker} atteint {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0146",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Une flèche de {attacker} atteint {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0147",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Une flèche de {attacker} atteint {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0148",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Une flèche de {attacker} atteint {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0149",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Une flèche de {attacker} atteint {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0150",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Une flèche de {attacker} atteint {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0151",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Une flèche de {attacker} atteint {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0152",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Une flèche de {attacker} atteint {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0153",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Le tir de {attacker} trouve sa cible, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0154",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Le tir de {attacker} trouve sa cible, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0155",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le tir de {attacker} trouve sa cible, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0156",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Le tir de {attacker} trouve sa cible, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0157",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Le tir de {attacker} trouve sa cible, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0158",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Le tir de {attacker} trouve sa cible, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0159",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Le tir de {attacker} trouve sa cible, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0160",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le tir de {attacker} trouve sa cible, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0161",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Le trait décoché par {attacker} frappe {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0162",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Le trait décoché par {attacker} frappe {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0163",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le trait décoché par {attacker} frappe {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0164",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Le trait décoché par {attacker} frappe {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0165",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Le trait décoché par {attacker} frappe {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0166",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Le trait décoché par {attacker} frappe {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0167",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Le trait décoché par {attacker} frappe {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0168",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le trait décoché par {attacker} frappe {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "bow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0169",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Le carreau de {attacker} frappe {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0170",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Le carreau de {attacker} frappe {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0171",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le carreau de {attacker} frappe {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0172",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Le carreau de {attacker} frappe {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0173",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Le carreau de {attacker} frappe {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0174",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Le carreau de {attacker} frappe {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0175",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Le carreau de {attacker} frappe {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0176",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le carreau de {attacker} frappe {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0177",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "L’arbalète de {attacker} délivre un tir précis contre {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0178",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "L’arbalète de {attacker} délivre un tir précis contre {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0179",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "L’arbalète de {attacker} délivre un tir précis contre {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0180",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "L’arbalète de {attacker} délivre un tir précis contre {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0181",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "L’arbalète de {attacker} délivre un tir précis contre {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0182",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "L’arbalète de {attacker} délivre un tir précis contre {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0183",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "L’arbalète de {attacker} délivre un tir précis contre {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0184",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "L’arbalète de {attacker} délivre un tir précis contre {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0185",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Le projectile de {attacker} atteint {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0186",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Le projectile de {attacker} atteint {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0187",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le projectile de {attacker} atteint {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0188",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Le projectile de {attacker} atteint {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0189",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Le projectile de {attacker} atteint {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0190",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Le projectile de {attacker} atteint {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0191",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Le projectile de {attacker} atteint {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0192",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le projectile de {attacker} atteint {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "crossbow"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0193",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Le bâton de {attacker} heurte {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0194",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Le bâton de {attacker} heurte {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0195",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le bâton de {attacker} heurte {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0196",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Le bâton de {attacker} heurte {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0197",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Le bâton de {attacker} heurte {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0198",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Le bâton de {attacker} heurte {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0199",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Le bâton de {attacker} heurte {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0200",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le bâton de {attacker} heurte {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0201",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Une frappe vive de {attacker} touche {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0202",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Une frappe vive de {attacker} touche {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0203",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Une frappe vive de {attacker} touche {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0204",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Une frappe vive de {attacker} touche {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0205",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Une frappe vive de {attacker} touche {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0206",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Une frappe vive de {attacker} touche {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0207",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Une frappe vive de {attacker} touche {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0208",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Une frappe vive de {attacker} touche {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0209",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Le bois manié par {attacker} trouve sa cible, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0210",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Le bois manié par {attacker} trouve sa cible, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0211",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le bois manié par {attacker} trouve sa cible, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0212",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Le bois manié par {attacker} trouve sa cible, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0213",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Le bois manié par {attacker} trouve sa cible, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0214",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Le bois manié par {attacker} trouve sa cible, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0215",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Le bois manié par {attacker} trouve sa cible, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0216",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le bois manié par {attacker} trouve sa cible, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "staff"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0217",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Le poing de {attacker} touche {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0218",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Le poing de {attacker} touche {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0219",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le poing de {attacker} touche {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0220",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Le poing de {attacker} touche {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0221",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Le poing de {attacker} touche {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0222",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Le poing de {attacker} touche {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0223",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Le poing de {attacker} touche {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0224",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le poing de {attacker} touche {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0225",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Une frappe à mains nues de {attacker} atteint {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0226",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Une frappe à mains nues de {attacker} atteint {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0227",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Une frappe à mains nues de {attacker} atteint {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0228",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Une frappe à mains nues de {attacker} atteint {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0229",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Une frappe à mains nues de {attacker} atteint {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0230",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Une frappe à mains nues de {attacker} atteint {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0231",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Une frappe à mains nues de {attacker} atteint {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0232",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Une frappe à mains nues de {attacker} atteint {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-HIT-0233",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "common",
+      "text": "Le coup de {attacker} surprend {target}, qui recule d’un pas sous l’impact. Voilà une manière particulièrement directe de se présenter.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0234",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Le coup de {attacker} surprend {target}, dont la garde cède un instant. L’initiative appartient, pour un instant, à {attacker}.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0235",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le coup de {attacker} surprend {target}, qui accuse le coup sans quitter le combat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0236",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Le coup de {attacker} surprend {target}, qui comprend trop tard d’où venait l’attaque. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0237",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "common",
+      "text": "Le coup de {attacker} surprend {target}, qui vacille avant de retrouver son équilibre. Le rythme du duel vient de changer.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0238",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "common",
+      "text": "Le coup de {attacker} surprend {target}, qui se crispe sous la douleur. La bataille se poursuit sans lui laisser de répit.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0239",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "absurd",
+      "rarity": "common",
+      "text": "Le coup de {attacker} surprend {target}, qui tente aussitôt de rétablir sa défense. Aucun manuel de politesse ne recommande cette salutation.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-HIT-0240",
+      "collection": "hit",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "sarcastic",
+      "rarity": "common",
+      "text": "Le coup de {attacker} surprend {target}, dont l’assurance vient de perdre un peu de son éclat. Il aurait peut-être fallu fermer cette ouverture.",
+      "tags": {
+        "weapons": [
+          "unarmed"
+        ],
+        "creatures": [
+          "any"
+        ],
+        "anatomies": [
+          "any"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    }
+  ]
+}

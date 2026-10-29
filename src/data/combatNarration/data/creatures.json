@@ -1,0 +1,1047 @@
+{
+  "schemaVersion": "1.0.0",
+  "collection": "creatures",
+  "count": 40,
+  "entries": [
+    {
+      "id": "LS-CREATURES-0001",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "critical_hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La hache de {attacker} fracasse plusieurs côtes de {target}; des fragments d’os ricochent sur les pierres. Il reste pourtant assez de squelette pour continuer à poser problème.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "skeleton"
+        ],
+        "anatomies": [
+          "skeletal"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CREATURES-0002",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La masse de {attacker} fait vibrer toute la charpente de {target}. Pour une créature sans oreilles, il semble avoir parfaitement entendu le message.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "skeleton"
+        ],
+        "anatomies": [
+          "skeletal"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0003",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "L’épée de {attacker} entame une articulation de {target}. Le mort-vivant se redresse avec la mauvaise humeur de quelqu’un qu’on vient de réveiller une deuxième fois.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "skeleton"
+        ],
+        "anatomies": [
+          "skeletal"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CREATURES-0004",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une flèche de {attacker} se loge dans un os de {target}. Viser un adversaire qui comporte autant d’espaces vides relève déjà de l’exploit.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "skeleton"
+        ],
+        "anatomies": [
+          "skeletal"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0005",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "critical_hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La lame de {attacker} entaille {target}, qui poursuit son avancée avec un enthousiasme inquiétant. Le concept de douleur ne semble plus faire partie de ses priorités.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "zombie"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CREATURES-0006",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Le marteau de {attacker} secoue {target} de tout son poids. Le mort-vivant chancelle, puis reprend sa marche comme un client mécontent.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "zombie"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0007",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "La flèche de {attacker} atteint {target}. Le zombie regarde vaguement le projectile avant de reprendre son occupation principale : être un problème.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "zombie"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0008",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "critical_hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La hache de {attacker} touche {target}, dont le cri outré semble réclamer un arbitre.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "goblin"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0009",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La dague de {attacker} atteint {target} au milieu d’une insulte. Le gobelin doit interrompre son discours; le public apprécie.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "goblin"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0010",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Le marteau de {attacker} secoue {target}. Il découvre qu’être petit ne protège pas des mauvaises décisions.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "goblin"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0011",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "critical_hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La masse de {attacker} frappe {target} et interrompt un rugissement en pleine montée dramatique.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "orc"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0012",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La hache de {attacker} trouve une ouverture dans la garde de {target}. Le colosse gronde; il n’apprécie visiblement pas qu’on réponde à ses arguments.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "orc"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0013",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "L’épée de {attacker} atteint {target}. Le guerrier orque recule d’un pas, plus offensé encore que blessé.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "orc"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0014",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "critical_hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La dague de {attacker} franchit la garde de {target}. Son expression d’aristocrate offensé est presque plus remarquable que le coup.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "drow"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0015",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "L’épée de {attacker} touche {target} malgré une parade savante. L’élégance ne rend pas invulnérable.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "drow"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0016",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Une flèche de {attacker} atteint {target}. Le drow paraît moins contrarié par la douleur que par le fait d’avoir été surpris.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "drow"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0017",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "critical_hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Le marteau de {attacker} percute la protection de {target}. Le duergar grogne comme si on venait de critiquer son travail de forge.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "duergar"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0018",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La hache de {attacker} atteint {target}. Le nain gris serre les dents; sa rancune vient de gagner une nouvelle ligne.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "duergar"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0019",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "La lance de {attacker} trouve une ouverture dans la garde de {target}. Son regard promet une comptabilité précise de cette offense.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "duergar"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0020",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "critical_hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "L’épée de {attacker} entame la chair fibreuse de {target}. Un nuage de spores s’élève; même blessé, le myconide refuse de faire les choses comme tout le monde.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "myconid"
+        ],
+        "anatomies": [
+          "fungal"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CREATURES-0021",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La masse de {attacker} heurte {target} dans un bruit humide. La créature chancelle et répand quelques spores, comme une forêt qui proteste.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "myconid"
+        ],
+        "anatomies": [
+          "fungal"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0022",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Une flèche de {attacker} se fiche dans le chapeau de {target}. Pour une fois, le champignon ne pousse pas dans la bonne direction.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "myconid"
+        ],
+        "anatomies": [
+          "fungal"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0023",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "critical_hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La lance de {attacker} frappe entre deux plaques de la carapace de {target}. Huit pattes et aucune pour parer ce coup.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "giant_spider"
+        ],
+        "anatomies": [
+          "arthropod"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0024",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La hache de {attacker} entame la carapace de {target}, qui recule dans un cliquetis furieux.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "giant_spider"
+        ],
+        "anatomies": [
+          "arthropod"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0025",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Une flèche de {attacker} atteint {target} sous une articulation. L’araignée se contracte, ses nombreuses pattes se déployant en défense.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "giant_spider"
+        ],
+        "anatomies": [
+          "arthropod"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0026",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "critical_hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Le marteau de {attacker} ouvre une fissure dans la surface de {target}. La pierre découvre qu’elle n’est pas au-dessus des critiques.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "golem"
+        ],
+        "anatomies": [
+          "stone"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0027",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La masse de {attacker} frappe {target}; un éclat de roche tombe au sol. L’architecture commence à avoir des inquiétudes.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "golem"
+        ],
+        "anatomies": [
+          "stone"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0028",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "La hache de {attacker} ébrèche {target}. La créature ne montre aucune émotion; les dégâts, eux, sont bien visibles.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "golem"
+        ],
+        "anatomies": [
+          "stone"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0029",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "critical_hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une flèche de {attacker} trouve un intervalle entre les écailles de {target}. Le dragon tourne lentement la tête. Voilà une attention dont on pourrait se passer.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "dragon"
+        ],
+        "anatomies": [
+          "scaled"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "medium"
+    },
+    {
+      "id": "LS-CREATURES-0030",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La lance de {attacker} atteint une faille dans la protection de {target}. Un rugissement remplit l’air; les excuses ne seront probablement pas acceptées.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "dragon"
+        ],
+        "anatomies": [
+          "scaled"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0031",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "L’épée de {attacker} mord entre deux écailles de {target}. La créature semble prendre cette audace comme une insulte personnelle.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "dragon"
+        ],
+        "anatomies": [
+          "scaled"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0032",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "critical_hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "L’épée de {attacker} traverse la masse de {target}, y ouvrant une déchirure qui se déforme aussitôt. Difficile de savoir si la créature est vexée.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "ooze"
+        ],
+        "anatomies": [
+          "amorphous"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0033",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La masse de {attacker} écrase une portion de {target}, qui ondule avec une indignation gélatineuse.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "ooze"
+        ],
+        "anatomies": [
+          "amorphous"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0034",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "dark",
+      "rarity": "uncommon",
+      "text": "Une flèche de {attacker} traverse la surface de {target} et en arrache une portion. La cible n’a pas de visage, ce qui complique les échanges de regards.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "ooze"
+        ],
+        "anatomies": [
+          "amorphous"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0035",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "critical_hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "Une lueur surnaturelle accompagne l’arme enchantée de {attacker}, qui atteint {target}. Le spectre vacille comme une flamme dans un courant d’air.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "ghost"
+        ],
+        "anatomies": [
+          "incorporeal"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0036",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "L’énergie de l’attaque magique de {attacker} traverse {target}. L’apparition se déforme et pousse un murmure venu d’un autre âge.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "ghost"
+        ],
+        "anatomies": [
+          "incorporeal"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0037",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "critical_hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La lame de {attacker} trouve {target} au milieu de son rire cruel. Le démon cesse de rire; l’ambiance s’améliore aussitôt.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "demon"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0038",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "Le marteau de {attacker} frappe {target} avec une force terrible. Son sourire de prédateur se transforme en grimace.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "demon"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0039",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "critical_hit",
+      "tone": "epic",
+      "rarity": "uncommon",
+      "text": "La lance de {attacker} touche {target}, qui pousse un cri sauvage et se replie d’un pas.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "beast"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    },
+    {
+      "id": "LS-CREATURES-0040",
+      "collection": "creatures",
+      "locale": "fr-CA",
+      "result": "hit",
+      "tone": "comedic",
+      "rarity": "uncommon",
+      "text": "La flèche de {attacker} atteint {target}; l’animal blessé réagit d’un mouvement instinctif, toujours dangereux.",
+      "tags": {
+        "weapons": [
+          "any"
+        ],
+        "creatures": [
+          "beast"
+        ],
+        "anatomies": [
+          "flesh"
+        ],
+        "environments": [
+          "any"
+        ]
+      },
+      "conditions": {},
+      "mechanicalEffects": [],
+      "length": "short"
+    }
+  ]
+}
