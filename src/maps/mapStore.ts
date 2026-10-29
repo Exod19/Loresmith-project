@@ -96,7 +96,8 @@ export interface MapOverlay {
 }
 
 /** Un lieu repéré pour le suivi du groupe : un lieu de l'Atlas, une ancre ou un repère, sur un plan. */
-export interface PartyPlace { id: string; kind: 'feature' | 'anchor' | 'marker'; title: string; planId: string }
+/** `spot` : un point du plan sans lieu nommé (l'embouchure d'un tunnel), avec ses coordonnées `at`. */
+export interface PartyPlace { id: string; kind: 'feature' | 'anchor' | 'marker' | 'spot'; title: string; planId: string; at?: [number, number] }
 
 export interface PartyTrack {
   at?: PartyPlace;
@@ -279,6 +280,7 @@ export const mapIdOf = (rec: MapRecord) => (rec.kind === 'atlas' ? ATLAS_DEFAULT
  */
 /** Coordonnées d'un lieu suivi (lieu de l'Atlas, ancre ou repère) sur son plan. */
 export function placeCoords(data: AtlasData, rec: MapRecord, p: PartyPlace): [number, number] | null {
+  if (p.kind === 'spot') return p.at ?? null;
   if (p.kind === 'marker') {
     const m = rec.overlay?.markers.find((x) => x.id === p.id);
     return m ? [m.x, m.y] : null;

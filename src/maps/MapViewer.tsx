@@ -19,11 +19,11 @@ import BattleMode, { type CombatSlot } from './battle/BattleMode';
 import type { Hero } from './battle/CombatPanel';
 import TrailsPanel, { DangerChip, trailsNear } from './TrailsPanel';
 import { placeNear, withPartyAt } from './party';
-import { trailHazard, type Hazard } from './atlas/hazards';
+import { placeHazard, trailHazard, type Hazard } from './atlas/hazards';
 import TrialPanel from './TrialPanel';
 import { searchFor, type SearchEntry } from './battle/search';
 import { VISION_R, seedExplored } from './playerBoard';
-import { hoursLabel, legsOf, lengthOf, subpath, type Leg } from './journey';
+import { hoursLabel, hoursOf, legsOf, lengthOf, subpath, type Leg } from './journey';
 import { journeyMs } from './atlas/MapCanvas';
 import { detectLabel, noticedPassively, passiveOf, trailProfile } from './atlas/trails';
 import Interactables from './Interactables';
@@ -185,7 +185,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     [data, map.id, zone, overlay.revealed, best.pp],
   );
   /** Épreuve de passage en cours (le groupe veut suivre un chemin difficile). */
-  const [trial, setTrial] = useState<{ trailId: string; trail: string; to: PartyPlace; hazard: Hazard; by?: 'joueurs'; leg: Leg } | null>(null);
+  const [trial, setTrial] = useState<{ trailId: string; trail: string; to: PartyPlace; hazard: Hazard; by?: 'joueurs'; leg: Leg; aside?: boolean } | null>(null);
   /** Demande des joueurs qu'on ne peut pas suivre d'ici (le groupe n'est pas au départ du chemin). */
   const [askNote, setAskNote] = useState<string | null>(null);
 
@@ -444,15 +444,25 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     const k = party.fork;
     if (!k || (key && key !== k.key)) return;
     const why = by ? ' (choix des joueurs)' : '';
+    const f = data.features.find((x) => x.id === k.trailId);
+    if (!f) return;
     if (choice === 'out') {
-      travelTo(k.place, { points: [k.point, k.placeAt], trailId: k.trailId, note: `Le groupe quitte « ${k.trail} » vers ${k.place.title}${why}.` });
+      // Le court passage jusqu'au lieu : son épreuve s'il est dangereux, puis la marche (et sa halte de rencontre).
+      const points: [number, number][] = [k.point, k.placeAt];
+      const leg: Leg = { dir: k.dir, to: k.place, points, hours: hoursOf(lengthOf(points), f.trace), toward: '' };
+      const place = data.features.find((x) => x.id === k.place.id);
+      const hazard = place ? placeHazard(place) : null;
+      if (hazard) { setTrial({ trailId: f.id, trail: `passage vers ${k.place.title}`, to: k.place, hazard, by, leg, aside: true }); setSide('lieu'); return; }
+      go({ f, leg }, `Le groupe quitte « ${k.trail} » vers ${k.place.title}${why}.`);
       return;
     }
-    const f = data.features.find((x) => x.id === k.trailId);
     const g = data.geometries.find((x) => x.featureId === k.trailId && x.mapId === k.planId && x.type !== 'point');
     const dir = choice === 'back' ? (k.dir === 'a' ? 'b' : 'a') : k.dir;
-    const leg = f && g ? legsOf(data, k.planId, g, k.point, f.trace, k.place.id).find((l) => l.dir === dir) : undefined;
-    if (!f || !leg?.to) { setAskNote(`« ${k.trail} » ne mène à aucun autre lieu connu dans cette direction : sors vers ${k.place.title}, ou déplace le groupe à la main.`); return; }
+    const leg = g ? legsOf(data, k.planId, g, k.point, f.trace, k.place.id).find((l) => l.dir === dir) : undefined;
+    if (!leg?.to) { setAskNote(`« ${k.trail} » ne mène nulle part dans cette direction : sors vers ${k.place.title}, ou déplace le groupe à la main.`); return; }
+    // Un chemin incertain ou périlleux redemande son épreuve à chaque tronçon.
+    const hazard = trailHazard(f, trailProfile(f, f.trace === 'secret' ? 15 : undefined));
+    if (hazard) { setTrial({ trailId: f.id, trail: f.title, to: leg.to, hazard, by, leg }); setSide('lieu'); return; }
     go({ f, leg }, choice === 'back' ? `Le groupe rebrousse chemin sur « ${k.trail} »${why}.` : undefined);
   };
   const forkRef = useRef(forkChoose);
@@ -749,10 +759,10 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
             )}
             {dm && trial && (
               <div className="maps-trial">
-                {trial.by === 'joueurs' && <p className="maps-sub">Les joueurs veulent suivre ce chemin : faites l’épreuve.</p>}
+                {trial.by === 'joueurs' && <p className="maps-sub">Les joueurs veulent {trial.aside ? `rejoindre ${trial.to.title}` : 'suivre ce chemin'} : faites l’épreuve.</p>}
                 <TrialPanel
                   trail={trial.trail} to={trial.to.title} hazard={trial.hazard} heroes={heroes}
-                  onPass={(summary) => { const e = trailsTo.find((x) => x.f.id === trial.trailId && x.leg.dir === trial.leg.dir); if (e) go(e, summary); }}
+                  onPass={(summary) => go({ f: { id: trial.trailId, title: trial.trail }, leg: trial.leg }, summary)}
                   onCancel={() => setTrial(null)}
                 />
               </div>

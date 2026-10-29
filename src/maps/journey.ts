@@ -5,7 +5,6 @@
  */
 import type { AtlasData, AtlasGeometry } from './atlas/types';
 import type { PartyPlace } from './mapStore';
-import { placeNear } from './party';
 import { cavityPoints } from './atlas/model';
 
 type Pt = [number, number];
@@ -96,8 +95,62 @@ function crosses(pts: Pt[], poly: Pt[]) {
   }
   return false;
 }
+const cavePlaces = new WeakMap<AtlasData, Map<string, { f: AtlasData['features'][number]; p: Pt }[]>>();
+/** Lieux qui sont des cavernes (salles), avec leur point, sur un plan. */
+function cavePlacesOf(data: AtlasData, planId: string) {
+  let byPlan = cavePlaces.get(data);
+  if (!byPlan) { byPlan = new Map(); cavePlaces.set(data, byPlan); }
+  let list = byPlan.get(planId);
+  if (!list) {
+    const byId = new Map(data.features.map((f) => [f.id, f]));
+    list = data.geometries.flatMap((q) => {
+      const f = q.mapId === planId && q.type === 'point' ? byId.get(q.featureId) : undefined;
+      return f?.area && !f.trace ? [{ f, p: q.coordinates as Pt }] : [];
+    });
+    byPlan.set(planId, list);
+  }
+  return list;
+}
+/** La caverne elle-même (sa salle nommée) pour un contour : celle dont le point est dedans, la plus centrale. */
+function caveFeature(data: AtlasData, planId: string, poly: Pt[], exclude?: string) {
+  const cx = poly.reduce((s, p) => s + p[0], 0) / poly.length, cy = poly.reduce((s, p) => s + p[1], 0) / poly.length;
+  let best: { f: AtlasData['features'][number]; p: Pt } | null = null, bd = Infinity;
+  for (const c of cavePlacesOf(data, planId)) {
+    if (c.f.id === exclude || !inside(c.p, poly)) continue;
+    const d = Math.hypot(c.p[0] - cx, c.p[1] - cy);
+    if (d < bd) { bd = d; best = c; }
+  }
+  return best;
+}
+/**
+ * Où l'on arrive au bout d'un chemin : la caverne où il aboutit (ou, sans salle nommée, son lieu notable le plus
+ * proche) ; hors caverne, un lieu notable tout proche du bout ; sinon l'embouchure du tunnel elle-même.
+ */
+function arrivalAt(data: AtlasData, planId: string, end: Pt, from: Pt, caves: Pt[][], exclude: string | undefined, trail: { id: string; title: string; dir: 'a' | 'b' }): PartyPlace {
+  const cave = caves.find((poly) => inside(end, poly) && !inside(from, poly));
+  if (cave) {
+    const c = caveFeature(data, planId, cave, exclude);
+    if (c) return { id: c.f.id, kind: 'feature', title: c.f.title, planId };
+  }
+  const byId = new Map(data.features.map((f) => [f.id, f]));
+  let best: PartyPlace | null = null, bd = cave ? 0.03 : 0.012;
+  for (const q of data.geometries) {
+    if (q.mapId !== planId || q.type !== 'point' || q.featureId === exclude || q.featureId.startsWith('mk-')) continue;
+    const f = byId.get(q.featureId);
+    if (!f || f.trace || f.area || f.importance === 'detail') continue;
+    const p = q.coordinates as Pt;
+    const d = Math.hypot(p[0] - end[0], p[1] - end[1]);
+    if (d >= bd) continue;
+    // Jamais un lieu d'une caverne voisine.
+    const in_ = caves.find((poly) => inside(p, poly));
+    if (cave ? in_ !== cave : in_ && !inside(end, in_)) continue;
+    bd = d; best = { id: f.id, kind: 'feature', title: f.title, planId };
+  }
+  return best ?? { id: `bout:${trail.id}:${trail.dir}`, kind: 'spot', title: `Embouchure · ${trail.title}`, planId, at: end };
+}
+
 /** Distance maximale d'un lieu au tracé pour être « sur le chemin » quand il n'est dans aucune caverne traversée. */
-const ON_TRAIL = 0.005;
+const ON_TRAIL = 0.015;
 
 /** Un lieu à l'écart du tracé est vu de plus loin que ça : le groupe s'arrête sur le chemin, vis-à-vis, sans y aller. */
 const ASIDE = 0.004;
@@ -126,6 +179,16 @@ export function legsOf(data: AtlasData, planId: string, g: AtlasGeometry, from: 
   // Les cavernes aux deux bouts du chemin ne sont pas des étapes : on y arrive (c'est la destination), on n'y passe pas.
   const crossed = caves.filter((poly) => crosses(pts, poly) && !inside(from, poly) && !inside(pts[0], poly) && !inside(pts[pts.length - 1], poly));
   const stops: { s: number; place: PartyPlace; at: Pt; d: number; on: Pt }[] = [];
+  const stopAt = (f: { id: string; title: string }, p: Pt) => {
+    const pr = project(pts, p);
+    stops.push({ s: pr.s, place: { id: f.id, kind: 'feature', title: f.title, planId }, at: p, d: pr.d, on: pr.at });
+  };
+  // Une caverne traversée est une seule étape : la caverne elle-même (à défaut, ses lieux notables).
+  const named = new Set<Pt[]>();
+  for (const poly of crossed) {
+    const c = caveFeature(data, planId, poly, exclude);
+    if (c) { stopAt(c.f, c.p); named.add(poly); }
+  }
   for (const q of data.geometries) {
     if (q.mapId !== planId || q.type !== 'point' || q.featureId === exclude || q.featureId.startsWith('mk-')) continue;
     const f = byId.get(q.featureId);
@@ -134,9 +197,9 @@ export function legsOf(data: AtlasData, planId: string, g: AtlasGeometry, from: 
     const p = q.coordinates as Pt;
     const pr = project(pts, p);
     if (pr.d > 0.03) continue;
-    const inCrossedCave = crossed.some((poly) => inside(p, poly));
-    const inOtherCave = !inCrossedCave && caves.some((poly) => inside(p, poly));
-    if (inCrossedCave || (!inOtherCave && pr.d <= ON_TRAIL)) stops.push({ s: pr.s, place: { id: f.id, kind: 'feature', title: f.title, planId }, at: p, d: pr.d, on: pr.at });
+    const cave = caves.find((poly) => inside(p, poly));
+    // Hors caverne : un lieu notable au bord du tunnel (une niche, un recoin) ; on s'arrêtera vis-à-vis.
+    if (cave ? crossed.includes(cave) && !named.has(cave) : pr.d <= ON_TRAIL) stopAt(f, p);
   }
   const legs: Leg[] = [];
   for (const dir of ['a', 'b'] as const) {
@@ -149,11 +212,8 @@ export function legsOf(data: AtlasData, planId: string, g: AtlasGeometry, from: 
     // Un lieu à côté du chemin : on s'arrête sur le tracé, vis-à-vis, au lieu de quitter le sentier pour le rejoindre.
     const aside = stop && stop.d > ASIDE ? stop : null;
     const end = aside ? aside.on : stop ? stop.at : route[route.length - 1];
-    // Au bout du chemin : un lieu de la caverne où il aboutit, sinon un lieu tout proche du bout (jamais la voisine).
-    const endCave = caves.find((poly) => inside(end, poly));
-    const atEnd = placeNear(data, planId, end, { radius: endCave ? 0.03 : 0.01, exclude });
-    const endAt = atEnd ? (data.geometries.find((x) => x.featureId === atEnd.id && x.mapId === planId)?.coordinates as Pt | undefined) : undefined;
-    const to = stop ? stop.place : atEnd && (!endCave || (endAt && inside(endAt, endCave))) ? atEnd : null;
+    // Au bout du chemin : la caverne où il aboutit, sinon un lieu notable tout proche, sinon l'embouchure du tunnel.
+    const to = stop ? stop.place : arrivalAt(data, planId, end, from, caves, exclude, { id: g.featureId, title: byId.get(g.featureId)?.title ?? 'chemin', dir });
     const points: Pt[] = [from, ...route, end];
     // Direction : un peu plus loin sur le tracé (même règle que sur l'écran joueur).
     const probe = subpath(pts, here.s, dir === 'b' ? Math.min(L, here.s + 0.05) : Math.max(0, here.s - 0.05));
