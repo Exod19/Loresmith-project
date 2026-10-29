@@ -79,6 +79,7 @@ import {
 import './forge/forge.css';
 import UniverseForge from './universe/UniverseForge';
 import { buildUniverse } from './universe/forgeBrief';
+import SessionReportPanel from './campaign/SessionReportPanel';
 import DeleteUniverseDialog from './universe/DeleteUniverseDialog';
 import { removeUniverse, canDeleteUniverse } from './universe/deleteUniverse';
 import './combat/wartable.css';
@@ -7616,6 +7617,15 @@ function CampaignCard({
           <CampaignArchiveSuggestions
             suggestions={camp.librarySuggestions || []}
             campaignId={camp.id}
+            dispatch={dispatch}
+            flash={flash}
+          />
+          <SessionReportPanel
+            universe={universe}
+            campaign={camp}
+            library={Object.values(state.libraryEntries || {}).filter((e) => e.universeId === universe.id)}
+            ask={(o) => callAI(ai, o)}
+            aiReady={!!ai.apiKey}
             dispatch={dispatch}
             flash={flash}
           />
