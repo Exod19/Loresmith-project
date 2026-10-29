@@ -77,6 +77,8 @@ import {
   toScene,
 } from './forge/campaignPipeline';
 import './forge/forge.css';
+import UniverseForge from './universe/UniverseForge';
+import { buildUniverse } from './universe/forgeBrief';
 import './combat/wartable.css';
 import { entityFromSrd, generateEntities } from './bestiary/entityGen';
 import StatSheet from './bestiary/StatSheet';
@@ -5080,6 +5082,7 @@ export default function App() {
   const [toast, setToast] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [sideOpen, setSideOpen] = useState(false);
+  const [forgeOpen, setForgeOpen] = useState(false);
   const [diceOpen, setDiceOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [saveState, setSaveState] = useState({ status: 'saved' });
@@ -5258,6 +5261,20 @@ export default function App() {
       <>
         <style>{STYLE}</style>
         <div className="ls-root lsx-root">
+          {forgeOpen && (
+            <UniverseForge
+              onClose={() => setForgeOpen(false)}
+              onForge={(brief, lore) => {
+                dispatch({
+                  type: 'ADD_UNIVERSE',
+                  u: buildUniverse(brief, { id: uid(), createdAt: now(), lore: lore ?? undefined }),
+                });
+                setForgeOpen(false);
+                goTo('dashboard');
+                flash('Univers forgé : tu peux affiner son canon dans la page Univers.');
+              }}
+            />
+          )}
           <Sidebar
             view={view}
             setView={goTo}
@@ -5266,14 +5283,7 @@ export default function App() {
             universe={universe}
             universeImage={universeImage}
             onSwitchUniverse={(id) => dispatch({ type: 'SET_UNIVERSE', id })}
-            onCreateUniverse={() => {
-              dispatch({
-                type: 'ADD_UNIVERSE',
-                u: { id: uid(), name: 'Nouvel univers', tone: '', lore: '', createdAt: now() },
-              });
-              goTo('dashboard');
-              flash('Nouvel univers créé : donne-lui un nom, un ton et un lore.');
-            }}
+            onCreateUniverse={() => setForgeOpen(true)}
             onOpenSearch={() => setSearchOpen(true)}
             onOpenDice={() => setDiceOpen(true)}
             onSettings={() => setSettingsOpen(true)}

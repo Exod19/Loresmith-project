@@ -1,0 +1,297 @@
+import { useState } from 'react';
+import { X, Hammer, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { aiReady, askAI, parseJson } from '../ai/client';
+import {
+  STYLE_EXAMPLES,
+  SPECIFIC_EXAMPLES,
+  SIZES,
+  COMPLEXITIES,
+  GUIDED_QUESTIONS,
+  emptyBrief,
+  canForge,
+  answeredCount,
+  composeLore,
+  questionsPrompt,
+  parseExtraQuestions,
+} from './forgeBrief';
+import './universeForge.css';
+
+const STEPS = [
+  { id: 'souffle', label: 'Le souffle' },
+  { id: 'ampleur', label: 'L’ampleur' },
+  { id: 'questions', label: 'Les questions' },
+  { id: 'forge', label: 'La forge' },
+];
+
+/** Assistant plein écran de création d'univers : affiché avant que l'univers devienne actif. */
+export default function UniverseForge({ onClose, onForge }) {
+  const [step, setStep] = useState(0);
+  const [brief, setBrief] = useState(emptyBrief);
+  const [lore, setLore] = useState(null); // null = canon composé automatiquement
+  const [busy, setBusy] = useState('');
+  const [error, setError] = useState('');
+
+  const set = (patch) => setBrief((b) => ({ ...b, ...patch }));
+  const setAnswer = (id, v) => setBrief((b) => ({ ...b, answers: { ...b.answers, [id]: v } }));
+  const questions = [...GUIDED_QUESTIONS, ...brief.extraQuestions];
+  const composed = composeLore(brief);
+  const finalLore = lore ?? composed;
+  const last = step === STEPS.length - 1;
+
+  async function suggestQuestions() {
+    setBusy('questions');
+    setError('');
+    try {
+      const { system, user } = questionsPrompt(brief);
+      const extra = parseExtraQuestions(parseJson(await askAI(system, user, { json: true })));
+      if (!extra.length) throw new Error('L’IA n’a proposé aucune question exploitable.');
+      set({ extraQuestions: extra });
+    } catch (e) {
+      setError(e.message || 'Échec de la suggestion.');
+    } finally {
+      setBusy('');
+    }
+  }
+
+  async function writeCanon() {
+    setBusy('canon');
+    setError('');
+    try {
+      const text = await askAI(
+        'Tu es l’architecte de lore de Loresmith. À partir du brief, rédige le canon de départ d’un univers de jeu de rôle : 3 à 5 paragraphes, concrets, jouables, sans inventer de campagne. Langue : français. N’écris que le texte du canon.',
+        `Nom : ${brief.name}\n\nBrief :\n${composed}`,
+      );
+      setLore(text);
+    } catch (e) {
+      setError(e.message || 'Échec de la rédaction.');
+    } finally {
+      setBusy('');
+    }
+  }
+
+  function forge() {
+    onForge(brief, lore);
+  }
+
+  return (
+    <div className="uf-overlay" role="dialog" aria-modal="true" aria-label="Forge d’univers">
+      <header className="uf-head">
+        <div className="uf-title">
+          <Hammer size={20} aria-hidden="true" />
+          <div>
+            <b>Forge d’univers</b>
+            <span>Un nouveau monde, de l’étincelle au canon</span>
+          </div>
+        </div>
+        <ol className="uf-steps" aria-label="Étapes">
+          {STEPS.map((s, i) => (
+            <li key={s.id} data-state={i === step ? 'on' : i < step ? 'done' : 'todo'}>
+              <button type="button" onClick={() => setStep(i)} aria-current={i === step ? 'step' : undefined}>
+                <i>{i + 1}</i>
+                {s.label}
+              </button>
+            </li>
+          ))}
+        </ol>
+        <button type="button" className="uf-close" onClick={onClose} aria-label="Fermer la forge">
+          <X size={18} />
+        </button>
+      </header>
+
+      <main className="uf-body">
+        {step === 0 && (
+          <section className="uf-card">
+            <h2>Donne un nom et un souffle à ton monde</h2>
+            <p className="uf-lead">Décris-le avec tes mots, comme à un ami : on n’a pas besoin d’une case à cocher.</p>
+            <label className="uf-field">
+              <span>Nom de l’univers</span>
+              <input
+                className="in"
+                autoFocus
+                value={brief.name}
+                placeholder="Les Terres Brisées, Aerth, La Cité des Cent Cloches…"
+                onChange={(e) => set({ name: e.target.value })}
+              />
+            </label>
+            <label className="uf-field">
+              <span>Quel genre d’univers imagines-tu ?</span>
+              <textarea
+                className="in"
+                rows={4}
+                value={brief.style}
+                placeholder="Ambiance, époque, genre, inspirations… Quelques phrases suffisent."
+                onChange={(e) => set({ style: e.target.value })}
+              />
+            </label>
+            <div className="uf-examples">
+              <small>Besoin d’inspiration ? Clique pour reprendre un exemple :</small>
+              {STYLE_EXAMPLES.map((ex) => (
+                <button
+                  type="button"
+                  key={ex}
+                  onClick={() => set({ style: brief.style.trim() ? `${brief.style.trim()} ${ex}` : ex })}
+                >
+                  {ex}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {step === 1 && (
+          <section className="uf-card">
+            <h2>Quelle est l’ampleur de ton univers ?</h2>
+            <p className="uf-lead">Rien n’est définitif : tu pourras toujours agrandir.</p>
+            <div className="uf-group">
+              <span>Taille</span>
+              <div className="uf-choices">
+                {SIZES.map((s) => (
+                  <button
+                    type="button"
+                    key={s.id}
+                    data-on={brief.size === s.id ? 1 : 0}
+                    onClick={() => set({ size: brief.size === s.id ? '' : s.id })}
+                  >
+                    <b>{s.label}</b>
+                    <small>{s.hint}</small>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="uf-group">
+              <span>Complexité</span>
+              <div className="uf-choices">
+                {COMPLEXITIES.map((c) => (
+                  <button
+                    type="button"
+                    key={c.id}
+                    data-on={brief.complexity === c.id ? 1 : 0}
+                    onClick={() => set({ complexity: brief.complexity === c.id ? '' : c.id })}
+                  >
+                    <b>{c.label}</b>
+                    <small>{c.hint}</small>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <label className="uf-field">
+              <span>Spécificités : ce qui rend ton monde unique</span>
+              <textarea
+                className="in"
+                rows={3}
+                value={brief.specifics}
+                placeholder="Règles étranges, tabous, objets, phénomènes, ce que tu veux absolument y retrouver…"
+                onChange={(e) => set({ specifics: e.target.value })}
+              />
+            </label>
+            <div className="uf-examples">
+              <small>Exemples :</small>
+              {SPECIFIC_EXAMPLES.map((ex) => (
+                <button
+                  type="button"
+                  key={ex}
+                  onClick={() => set({ specifics: brief.specifics.trim() ? `${brief.specifics.trim()} ${ex}` : ex })}
+                >
+                  {ex}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {step === 2 && (
+          <section className="uf-card">
+            <h2>Quelques questions pour bâtir le monde</h2>
+            <p className="uf-lead">
+              Réponds à celles qui t’inspirent, laisse les autres vides. {answeredCount(brief)} réponse(s) pour l’instant.
+            </p>
+            {questions.map((q) => (
+              <label className="uf-field" key={q.id}>
+                <span>{q.question}</span>
+                {q.why && <em>{q.why}</em>}
+                <textarea
+                  className="in"
+                  rows={2}
+                  value={brief.answers[q.id] || ''}
+                  placeholder={q.example ? `Ex. : ${q.example}` : ''}
+                  onChange={(e) => setAnswer(q.id, e.target.value)}
+                />
+              </label>
+            ))}
+            <div className="uf-ai">
+              {aiReady() ? (
+                <button type="button" className="btn" disabled={!!busy} onClick={suggestQuestions}>
+                  <Sparkles size={15} aria-hidden="true" />
+                  {busy === 'questions' ? 'Réflexion…' : 'Proposer des questions adaptées à mon univers'}
+                </button>
+              ) : (
+                <small>Configure l’IA dans Réglages pour obtenir des questions adaptées à ton univers.</small>
+              )}
+            </div>
+          </section>
+        )}
+
+        {step === 3 && (
+          <section className="uf-card">
+            <h2>{brief.name.trim() || 'Ton univers'} est prêt à être forgé</h2>
+            <p className="uf-lead">
+              Voici le canon de départ. L’IA le relira à chaque génération ; tu pourras le modifier à tout moment.
+            </p>
+            {!canForge(brief) && (
+              <p className="uf-warn" role="alert">
+                Il manque un nom : retourne à la première étape.
+              </p>
+            )}
+            <label className="uf-field">
+              <span>Canon de l’univers</span>
+              <textarea
+                className="in"
+                rows={12}
+                value={finalLore}
+                placeholder="Rien n’a encore été écrit : tu pourras tout ajouter dans la page Univers."
+                onChange={(e) => setLore(e.target.value)}
+              />
+            </label>
+            <div className="uf-ai">
+              {aiReady() ? (
+                <button type="button" className="btn" disabled={!!busy || !composed} onClick={writeCanon}>
+                  <Sparkles size={15} aria-hidden="true" />
+                  {busy === 'canon' ? 'Rédaction…' : 'Rédiger le canon avec l’IA'}
+                </button>
+              ) : (
+                <small>Sans IA, le canon reprend tes réponses telles quelles.</small>
+              )}
+              {lore !== null && (
+                <button type="button" className="btn ghost" onClick={() => setLore(null)}>
+                  Revenir au canon composé
+                </button>
+              )}
+            </div>
+          </section>
+        )}
+
+        {error && (
+          <p className="uf-warn" role="alert">
+            {error}
+          </p>
+        )}
+      </main>
+
+      <footer className="uf-foot">
+        <button type="button" className="btn ghost" onClick={step === 0 ? onClose : () => setStep(step - 1)}>
+          <ChevronLeft size={15} aria-hidden="true" />
+          {step === 0 ? 'Annuler' : 'Retour'}
+        </button>
+        {last ? (
+          <button type="button" className="btn primary" disabled={!canForge(brief) || !!busy} onClick={forge}>
+            <Hammer size={15} aria-hidden="true" /> Forger l’univers
+          </button>
+        ) : (
+          <button type="button" className="btn primary" onClick={() => setStep(step + 1)}>
+            Suivant <ChevronRight size={15} aria-hidden="true" />
+          </button>
+        )}
+      </footer>
+    </div>
+  );
+}
