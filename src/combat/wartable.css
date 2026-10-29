@@ -24,7 +24,9 @@
   font-size:14px;
 }
 .wt,.wt-head,.wt-map,.wt-desk,.wt-init,.wt-head-title{min-width:0}
-.wt :is(button,input,select){font-family:inherit}
+/* La page Cartes impose une police d'interface : la Table de guerre garde la sienne. */
+.wt{font-family:'EB Garamond',Georgia,serif;color:var(--txt)}
+:where(.wt) :is(button,input,select){font-family:inherit}
 .wt :is(button,input,select,summary):focus-visible{outline:2px solid var(--gold-lt);outline-offset:2px}
 .wt h1,.wt h2,.wt h3,.wt h4{margin:0;font-family:'Cinzel',serif;font-weight:600;color:var(--gold-lt)}
 .wt kbd{font-family:'JetBrains Mono',monospace;font-size:10.5px;padding:0 5px;border-radius:4px;border:1px solid currentColor;border-bottom-width:2px;opacity:.75}
@@ -438,3 +440,91 @@
 .cond-picker-add:hover{color:var(--gold-lt)}
 .combatant-conds{margin:8px 0 2px}
 .battle-token-conds{cursor:help}
+
+/* ------------- Table de guerre sous le plateau de la page Cartes ------------- */
+/* Le plateau de la carte reste en haut ; la page défile. Le fil d'initiative est fixé en bas de l'écran. */
+.wt[data-inmap="1"]{height:auto;min-height:0;display:flex;flex-direction:column;gap:12px;padding-bottom:4px}
+.wt[data-inmap="1"] .wt-body{display:block}
+.wt[data-inmap="1"] .wt-desk{overflow:visible}
+.wt[data-inmap="1"] .wt-desk-body{overflow:visible;padding:14px 16px 18px}
+.wt[data-inmap="1"] .wt-desk-foot{position:sticky;bottom:118px;z-index:3;justify-content:flex-end;border-radius:0 0 10px 10px}
+.wt[data-inmap="1"] .wt-desk-foot .wt-btn{flex:0 1 220px}
+/* Fiche : les sections se rangent en colonnes sur toute la largeur. */
+.wt[data-inmap="1"] .wt-inspector{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px 16px;align-items:start}
+.wt[data-inmap="1"] .wt-inspector>:is(.wt-who,.wt-backturn){grid-column:1 / -1}
+.wt[data-inmap="1"] .wt-stack{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));align-items:start}
+.wt[data-inmap="1"] .wt-stack>:is(.wt-row,.wt-note,ol){grid-column:1 / -1}
+.wt[data-inmap="1"] .wt-init{position:fixed;left:var(--lsx-side-w);right:0;bottom:0;z-index:35;border-radius:12px 12px 0 0;
+  border-bottom:0;box-shadow:0 -14px 40px rgba(0,0,0,.6)}
+.ls-root .wrap.lsx-content:has(.wt[data-inmap="1"]){padding-bottom:150px}
+.lsx-root:has(.wt[data-inmap="1"]) .ls-dice-fab{bottom:196px !important}
+@media (max-width:980px){
+  .wt[data-inmap="1"] .wt-init{left:0;position:fixed;top:auto}
+  .wt[data-inmap="1"] .wt-desk-foot{bottom:112px}
+}
+@media (max-width:640px){
+  .wt[data-inmap="1"] .wt-init{bottom:64px}
+  .wt[data-inmap="1"] .wt-desk-foot{bottom:176px}
+  .ls-root .wrap.lsx-content:has(.wt[data-inmap="1"]){padding-bottom:230px}
+}
+.wt-attack-roll:disabled{opacity:.5;cursor:not-allowed;box-shadow:none;border-color:var(--wt-edge)}
+
+/* ===================== Carte de guerre : poste de pilotage =====================
+   Plateau à gauche, pupitre à droite (Tour, Groupe, Terrain, MJ, Journal, Lieu, Construire), fil d'initiative fixé
+   en bas. La page ne défile plus : seuls le plateau (zoom) et le pupitre défilent. */
+@media (min-width:1101px){
+  .maps-page:has(.maps-viewer.has-encounter){max-width:none;padding:8px 10px 0;min-height:0}
+  .ls-root .wrap.lsx-content:has(.maps-viewer.has-encounter){padding:10px 14px 0;max-width:none}
+  .maps-viewer.has-encounter{height:calc(100vh - var(--lsx-top-h) - 150px);height:calc(100dvh - var(--lsx-top-h) - 150px);min-height:480px;display:flex;flex-direction:column;overflow:hidden}
+  .maps-viewer.has-encounter .battle-body{flex:1;height:auto;min-height:0;grid-template-columns:minmax(0,1fr) clamp(340px,27vw,430px);gap:10px}
+  .maps-viewer.has-encounter .battle-canvas{display:flex;flex-direction:column;min-height:0;gap:6px}
+  .maps-viewer.has-encounter .battle-stage{flex:1;min-height:0;display:flex}
+  .maps-viewer.has-encounter .battle-board-wrap{flex:1;max-height:none;min-height:0;overflow:auto}
+  .maps-viewer.has-encounter .battle-board-wrap:not(.zoomed) .battle-board{max-height:100%;height:100%}
+  .maps-viewer.has-encounter .battle-side{display:flex;flex-direction:column;gap:8px;min-height:0;overflow:hidden;padding:0;border-left:0}
+  .maps-viewer.has-encounter .battle-side > .battle-attack-card{flex:none;max-height:58%;overflow:auto}
+  .maps-viewer.has-encounter .battle-side > .battle-fiche-side{flex:none;max-height:45%;overflow:auto}
+}
+.battle-side > .wt[data-inmap="1"]{flex:1;min-height:0;height:auto;display:flex;flex-direction:column;gap:8px;padding:0}
+.battle-side > .wt[data-inmap="1"] .wt-body{flex:1;min-height:0;display:flex}
+.battle-side > .wt[data-inmap="1"] .wt-desk{flex:1;min-height:0;overflow:hidden}
+.battle-side > .wt[data-inmap="1"] .wt-desk-body{flex:1;min-height:0;overflow-y:auto;padding:10px 12px 14px}
+.battle-side > .wt[data-inmap="1"] .wt-desk-foot{position:static;justify-content:stretch;border-radius:0}
+.battle-side > .wt[data-inmap="1"] .wt-desk-foot .wt-btn{flex:1}
+.battle-side > .wt[data-inmap="1"] .wt-desk-head{display:none}
+.battle-side > .wt[data-inmap="1"] .wt-inspector,.battle-side > .wt[data-inmap="1"] .wt-stack{display:flex;flex-direction:column;gap:10px}
+.battle-side > .wt[data-inmap="1"] .wt-tabs{flex-wrap:wrap;padding:0 2px}
+.battle-side > .wt[data-inmap="1"] .wt-tabs button{flex:1 1 auto;padding:8px 6px 9px;font-size:11.5px}
+.wt-tabs button.wt-tab-side{color:#9fb7b5}
+.wt-tabs button.wt-tab-side[data-on="1"]{color:#d9f2ef}
+.wt-tabs button.wt-tab-side[data-on="1"]::after{background:#7fd6cc;box-shadow:0 0 8px rgba(127,214,204,.6)}
+.wt-side-panel{font-size:13.5px}
+/* En-tête compact dans la colonne : stats sur une ligne, actions en icônes. */
+.battle-side > .wt[data-inmap="1"] .wt-head{padding:7px 10px;gap:8px}
+.battle-side > .wt[data-inmap="1"] .wt-head-title{flex-basis:100%}
+.battle-side > .wt[data-inmap="1"] .wt-head h1{font-size:16px}
+.battle-side > .wt[data-inmap="1"] .wt-eyebrow{font-size:9.5px}
+.battle-side > .wt[data-inmap="1"] .wt-head-stats>div{padding:0 9px}
+.battle-side > .wt[data-inmap="1"] .wt-head-stats>div:first-child{border-left:0;padding-left:0}
+.battle-side > .wt[data-inmap="1"] .wt-head-stats dd{font-size:16px}
+.battle-side > .wt[data-inmap="1"] .wt-head-stats dt{font-size:8.5px}
+.battle-side > .wt[data-inmap="1"] .wt-diff dd{font-size:12px}
+.battle-side > .wt[data-inmap="1"] .wt-head-actions{margin-left:auto;gap:4px}
+.battle-side > .wt[data-inmap="1"] .wt-head-actions .wt-btn{min-height:30px;padding:4px 7px;font-size:0;gap:0}
+.battle-side > .wt[data-inmap="1"] .wt-head-actions .wt-btn svg{width:15px;height:15px}
+@media (min-width:1101px){
+  .lsx-root:has(.maps-viewer.has-encounter){--lsx-side-w:76px}
+  .lsx-root:has(.maps-viewer.has-encounter) .lsx-side{overflow-x:hidden;transition:width .2s ease,box-shadow .2s ease}
+  .lsx-root:has(.maps-viewer.has-encounter) .lsx-side>*:not(.lsx-side-decor){min-width:238px}
+  .lsx-root:has(.maps-viewer.has-encounter) .lsx-side:is(:hover,:focus-within){width:268px;box-shadow:24px 0 60px rgba(0,0,0,.7)}
+  .lsx-root:has(.maps-viewer.has-encounter) .ls-dice-fab{right:auto !important;left:6px !important;bottom:12px !important}
+  .maps-viewer.has-encounter{height:calc(100vh - var(--lsx-top-h) - 172px);height:calc(100dvh - var(--lsx-top-h) - 172px)}
+}
+.battle-side > .wt[data-inmap="1"] .wt-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+.battle-side > .wt[data-inmap="1"] .wt-tabs button{flex:1 0 auto;padding:8px 5px 9px;font-size:10.5px;letter-spacing:.01em}
+.battle-side > .wt[data-inmap="1"] .wt-tabs small{margin-left:2px;padding:0 4px;font-size:9.5px}
+@media (min-width:1101px){
+  .maps-viewer.has-encounter .battle-board-wrap:not(.zoomed) .battle-stack{height:100%}
+  .maps-viewer.has-encounter .battle-board-wrap:not(.zoomed) .battle-board{width:100%;height:100%;max-height:none}
+}
+.battle-side > .wt[data-inmap="1"] .wt-head-title{display:none}

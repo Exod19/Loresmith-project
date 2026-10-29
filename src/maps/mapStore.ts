@@ -129,6 +129,9 @@ export interface BattleToken {
   /** Portée de vue en cases (vision dans le noir ou torche), et Perception passive. */
   sight?: number;
   passive?: number;
+  /** Héros (repris du module Combat) : déplacement en cases et portée de l'arme en main. */
+  move?: number;
+  reach?: { melee: number; short: number; long: number; weapon?: string };
 }
 
 export interface Battle {
@@ -153,8 +156,14 @@ export interface Battle {
   fog?: { on: boolean; source?: string; explored: number[] };
   /** Attaque en cours sur le plateau : qui vise qui (trait tracé, aussi chez les joueurs) et le résultat annoncé. */
   aim?: { from: string; to: string; at: number; text?: string; tone?: 'hit' | 'miss' | 'crit' | 'info'; by?: 'joueurs';
-    /** Narration des Chroniques du Combat, choisie après la résolution (texte déjà rendu). */
-    narration?: { text: string; importance: 'minor' | 'major' | 'epic'; id: string } };
+    /** Montré aux joueurs : verdict du jet pour toucher, total, phrase de récit, dégâts appliqués, arme utilisée. */
+    verdict?: 'hit' | 'crit' | 'miss' | 'fumble'; roll?: number; line?: string; damage?: number; weapon?: string;
+    /** Importance de la phrase (Chroniques du Combat), pour son animation : discrète, marquée ou épique. */
+    importance?: 'minor' | 'major' | 'epic';
+    /** Attaque choisie d'avance (index dans la fiche du combattant). */
+    pick?: number };
+  /** Dégâts et soins récents (quelques secondes), écrits en grand au-dessus des jetons. */
+  hits?: { id: string; to: string; amount: number; at: number }[];
 }
 
 /** `edits` : index de case → type de terrain, posé à la main. `props` : objets déposés sur une case. */

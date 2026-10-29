@@ -77,7 +77,7 @@ export default function MiniBattle({ battle, onBattle, selectedId, onSelect }: {
   return (
     <div className="mini-battle">
       <div ref={wrapRef} className={`mini-battle-board ${drag ? 'dragging' : ''}`} onPointerDown={down} onPointerMove={move}>
-        <BattleBoard cols={b.cols} rows={b.rows} terrain={grid} elements={[]} ranges={[]} tokens={tokens} interactive={false} />
+        <BattleBoard cols={b.cols} rows={b.rows} terrain={grid} elements={[]} ranges={[]} tokens={tokens} interactive={false} hits={b.hits} />
         {shown.length > 0 && (
           <div className={`battle-move-alerts ${live ? 'live' : ''}`} role="status">
             {shown.map((n, i) => <div key={i} className={`battle-move-alert tone-${n.tone}`}><b>{n.label}</b><span>{n.why}</span></div>)}
