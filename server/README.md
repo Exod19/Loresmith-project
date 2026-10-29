@@ -4,6 +4,15 @@ Serveur du plan cloud (`docs/cloud/PLAN.md`, lot 4) : un Worker avec une base D1
 Il ne fonctionne qu'en local pour l'instant : rien n'est déployé chez Cloudflare.
 Le site, lancé avec `npm run dev`, s'y connecte tout seul (Réglages → Compte et synchronisation).
 
+## En ligne
+
+- **API** : servie par les Pages Functions du site (`functions/api/[[path]].js`), à l'adresse `https://loresmith-fleau.pages.dev/api/…`
+  (et sur l'aperçu de la branche). Cloudflare la construit à chaque envoi sur GitHub, avec le site.
+- **Liaisons et variables** (projet Pages → Settings) : base D1 `loresmith` (`DB`), espace KV `loresmith-blobs` (`BLOBS`),
+  `BETTER_AUTH_URL`, `APP_URL`, `FRONT_ORIGIN`, `LOG_LEVEL`, `BACKUP_KEEP`, et le secret `BETTER_AUTH_SECRET`.
+- **Sauvegarde nocturne** : Worker `loresmith-backup` (`src/cron.js`, `wrangler.backup.toml`), sans adresse publique.
+- **Nouvelle migration** : `npx wrangler d1 migrations apply DB --remote` (Wrangler connecté au compte).
+
 ## Démarrer en local
 
 ```bash

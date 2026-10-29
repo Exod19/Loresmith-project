@@ -14,7 +14,9 @@
   },
   "dependencies": {
     "@3d-dice/dice-box": "^1.1.4",
+    "better-auth": "^1.7.14",
     "fflate": "^0.8.2",
+    "hono": "^4.13.14",
     "lucide-react": "^0.344.0",
     "pdfjs-dist": "^6.0.227",
     "react": "^18.3.1",
