@@ -4,6 +4,7 @@ import {
   emptyBrief,
   canForge,
   answeredCount,
+  skippedCount,
   toneFromBrief,
   composeLore,
   buildUniverse,
@@ -61,4 +62,10 @@ test('parseExtraQuestions tolère un JSON douteux', () => {
   const qs = parseExtraQuestions({ questions: [{ question: 'Q1', why: 'w' }, { question: '' }, {}] });
   assert.equal(qs.length, 1);
   assert.equal(qs[0].id, 'ia-1');
+});
+
+test('une question passée est comptée, sauf si elle a finalement une réponse', () => {
+  const b = { ...emptyBrief(), skipped: { conflit: true, pouvoir: true }, answers: { pouvoir: 'Un conseil.' } };
+  assert.equal(skippedCount(b), 1);
+  assert.doesNotMatch(composeLore(b), /conflit central/);
 });

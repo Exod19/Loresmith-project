@@ -34,3 +34,9 @@
 .uf-warn { max-width: 760px; margin: 14px auto 0; color: var(--blood); font-size: 13.5px; }
 .uf-foot { display: flex; justify-content: space-between; padding: 14px 22px; border-top: 1px solid var(--gold-dk); background: rgba(0, 0, 0, 0.35); }
 @media (max-width: 640px) { .uf-card { padding: 18px 14px; } .uf-steps { order: 3; margin: 0; } }
+.uf-count, .uf-note { margin: 0 0 16px; font-size: 13px; color: var(--muted); }
+.uf-note { padding: 8px 12px; border: 1px dashed var(--line-2); border-radius: var(--r-sm); }
+.uf-skip { align-self: flex-start; padding: 0; border: 0; background: none; color: var(--muted); font-size: 12.5px; text-decoration: underline; cursor: pointer; }
+.uf-skip:hover { color: var(--gold-lt); }
+.uf-skipped { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 8px 12px; border: 1px dashed var(--line-2); border-radius: var(--r-sm); }
+.uf-field[data-skipped='1'] > span { color: var(--muted); }

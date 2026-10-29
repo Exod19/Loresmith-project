@@ -99,6 +99,7 @@ export function emptyBrief() {
     complexity: '',
     specifics: '',
     answers: {},
+    skipped: {},
     extraQuestions: [],
   };
 }
@@ -113,6 +114,12 @@ export function canForge(brief) {
 /** Combien de questions guidées (fixes ou ajoutées) ont reçu une réponse. */
 export function answeredCount(brief) {
   return Object.values(brief?.answers || {}).filter((a) => clean(a)).length;
+}
+
+/** Questions mises de côté (« je ne sais pas encore »), sans réponse écrite. */
+export function skippedCount(brief) {
+  const skipped = brief?.skipped || {};
+  return Object.keys(skipped).filter((id) => skipped[id] && !clean(brief?.answers?.[id])).length;
 }
 
 /** Texte « ton » d'une ligne pour l'univers : on garde la première phrase du style. */
@@ -165,6 +172,7 @@ export function buildUniverse(brief, { id, createdAt, lore }) {
       complexity: brief.complexity || '',
       specifics: clean(brief.specifics),
       answers: { ...brief.answers },
+      skipped: { ...brief.skipped },
     },
   };
 }

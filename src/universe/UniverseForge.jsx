@@ -10,6 +10,7 @@ import {
   emptyBrief,
   canForge,
   answeredCount,
+  skippedCount,
   composeLore,
   questionsPrompt,
   parseExtraQuestions,
@@ -32,6 +33,7 @@ export default function UniverseForge({ onClose, onForge }) {
   const [error, setError] = useState('');
 
   const set = (patch) => setBrief((b) => ({ ...b, ...patch }));
+  const toggleSkip = (id) => setBrief((b) => ({ ...b, skipped: { ...b.skipped, [id]: !b.skipped[id] } }));
   const setAnswer = (id, v) => setBrief((b) => ({ ...b, answers: { ...b.answers, [id]: v } }));
   const questions = [...GUIDED_QUESTIONS, ...brief.extraQuestions];
   const composed = composeLore(brief);
@@ -141,7 +143,9 @@ export default function UniverseForge({ onClose, onForge }) {
         {step === 1 && (
           <section className="uf-card">
             <h2>Quelle est l’ampleur de ton univers ?</h2>
-            <p className="uf-lead">Rien n’est définitif : tu pourras toujours agrandir.</p>
+            <p className="uf-lead">
+              Tout est facultatif et rien n’est définitif : tu pourras préciser ou agrandir ton univers à tout moment.
+            </p>
             <div className="uf-group">
               <span>Taille</span>
               <div className="uf-choices">
@@ -203,22 +207,46 @@ export default function UniverseForge({ onClose, onForge }) {
           <section className="uf-card">
             <h2>Quelques questions pour bâtir le monde</h2>
             <p className="uf-lead">
-              Réponds à celles qui t’inspirent, laisse les autres vides. {answeredCount(brief)} réponse(s) pour l’instant.
+              Aucune question n’est obligatoire. Tu ne sais pas encore ? Passe-la : tu pourras tout préciser, changer ou
+              ajouter plus tard dans la page Univers, ou le laisser émerger au fil de tes campagnes.
             </p>
-            {questions.map((q) => (
-              <label className="uf-field" key={q.id}>
-                <span>{q.question}</span>
-                {q.why && <em>{q.why}</em>}
-                <textarea
-                  className="in"
-                  rows={2}
-                  value={brief.answers[q.id] || ''}
-                  placeholder={q.example ? `Ex. : ${q.example}` : ''}
-                  onChange={(e) => setAnswer(q.id, e.target.value)}
-                />
-              </label>
-            ))}
+            <p className="uf-count">
+              {answeredCount(brief)} réponse(s) · {skippedCount(brief)} laissée(s) pour plus tard
+            </p>
+            {questions.map((q) => {
+              const skipped = !!brief.skipped[q.id] && !(brief.answers[q.id] || '').trim();
+              return (
+                <div className="uf-field" key={q.id} data-skipped={skipped ? 1 : 0}>
+                  <span>{q.question}</span>
+                  {skipped ? (
+                    <div className="uf-skipped">
+                      <em>Laissée pour plus tard : tu pourras y répondre quand tu le voudras.</em>
+                      <button type="button" className="btn ghost" onClick={() => toggleSkip(q.id)}>
+                        Y répondre
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {q.why && <em>{q.why}</em>}
+                      <textarea
+                        className="in"
+                        rows={2}
+                        value={brief.answers[q.id] || ''}
+                        placeholder={q.example ? `Ex. : ${q.example}` : ''}
+                        onChange={(e) => setAnswer(q.id, e.target.value)}
+                      />
+                      <button type="button" className="uf-skip" onClick={() => toggleSkip(q.id)}>
+                        Je ne sais pas encore
+                      </button>
+                    </>
+                  )}
+                </div>
+              );
+            })}
             <div className="uf-ai">
+              <button type="button" className="btn ghost" onClick={() => setStep(3)}>
+                Passer toutes les questions
+              </button>
               {aiReady() ? (
                 <button type="button" className="btn" disabled={!!busy} onClick={suggestQuestions}>
                   <Sparkles size={15} aria-hidden="true" />
@@ -237,6 +265,12 @@ export default function UniverseForge({ onClose, onForge }) {
             <p className="uf-lead">
               Voici le canon de départ. L’IA le relira à chaque génération ; tu pourras le modifier à tout moment.
             </p>
+            {skippedCount(brief) > 0 && (
+              <p className="uf-note">
+                {skippedCount(brief)} question(s) laissée(s) pour plus tard : rien n’est perdu, tu pourras les compléter
+                quand l’univers se précisera.
+              </p>
+            )}
             {!canForge(brief) && (
               <p className="uf-warn" role="alert">
                 Il manque un nom : retourne à la première étape.
