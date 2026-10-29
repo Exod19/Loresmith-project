@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { normKey, parseReport, markDuplicates, buildEntry, buildReport, reportPrompt } from './sessionReport.js';
+import { normKey, parseReport, markDuplicates, buildEntry, buildReport, reportPrompt, markPlayed } from './sessionReport.js';
 
 test('normKey ignore casse, accents et ponctuation', () => {
   assert.equal(normKey('  Élara, la Rouge! '), 'elara la rouge');
@@ -55,4 +55,12 @@ test('le prompt contient les notes et les éléments déjà connus', () => {
   const { prompt } = reportPrompt({ universe: { name: 'U' }, campaign: { title: 'C' }, notes: 'Ils ont tué le garde.', knownTitles: ['Elara'] });
   assert.match(prompt, /tué le garde/);
   assert.match(prompt, /Elara/);
+});
+
+test('markPlayed ne change que la séance visée', () => {
+  const list = [{ id: 'a' }, { id: 'b' }];
+  const out = markPlayed(list, 'b', true, 9);
+  assert.equal(out[0].played, undefined);
+  assert.deepEqual([out[1].played, out[1].playedAt], [true, 9]);
+  assert.equal(markPlayed(out, 'b', false, 9)[1].played, false);
 });

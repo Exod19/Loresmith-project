@@ -127,3 +127,10 @@ export function buildReport({ id, now, session, notes, summary, consequences, en
     entryIds: entryIds || [],
   };
 }
+
+/** Marque une séance comme jouée (ou non). Ne touche à aucune autre séance. */
+export function markPlayed(sessions, sessionId, played, now) {
+  return (sessions || []).map((s) =>
+    s.id === sessionId ? { ...s, played: !!played, playedAt: played ? now : null } : s,
+  );
+}

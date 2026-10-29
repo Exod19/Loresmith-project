@@ -7547,6 +7547,7 @@ function CampaignCard({
                     <div className="camp-session-head">
                       <h4>
                         Séance {s.sessionNumber} · {s.title}
+                        {s.played && <span className="tag" style={{ marginLeft: 8 }}>✓ jouée</span>}
                       </h4>
                       <button className="btn ghost sm" style={{ flex: 'none' }} disabled={!!writing} onClick={() => writeSessions([s.sessionNumber])}>
                         {writing === s.sessionNumber ? <Spin /> : s.detailed ? '↻ Réécrire' : '✎ Écrire cette séance'}

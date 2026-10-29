@@ -6,6 +6,7 @@ import {
   markDuplicates,
   buildEntry,
   buildReport,
+  markPlayed,
 } from './sessionReport';
 
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -62,7 +63,9 @@ export default function SessionReportPanel({ universe, campaign, library, ask, a
       consequences: draft?.consequences || [],
       entryIds: entries.map((e) => e.id),
     });
-    dispatch({ type: 'UPDATE_CAMPAIGN', id: campaign.id, patch: { sessionReports: [report, ...reports].slice(0, 100) } });
+    const patch = { sessionReports: [report, ...reports].slice(0, 100) };
+    if (session) patch.sessions = markPlayed(sessions, session.id, true, now);
+    dispatch({ type: 'UPDATE_CAMPAIGN', id: campaign.id, patch });
     setDraft(null);
     setNotes('');
     flash(entries.length ? `Compte rendu enregistré, ${entries.length} fiche(s) ajoutée(s) à la bibliothèque.` : 'Compte rendu enregistré.');
@@ -85,11 +88,27 @@ export default function SessionReportPanel({ universe, campaign, library, ask, a
             {sessions.map((s) => (
               <option key={s.id} value={s.id}>
                 Séance {s.sessionNumber} · {s.title}
+                {s.played ? ' ✓ jouée' : ''}
               </option>
             ))}
             <option value="">Hors séance planifiée</option>
           </select>
         </label>
+      )}
+
+      {session && (
+        <p className="muted" style={{ fontSize: 12.5, margin: '0 0 10px' }}>
+          {session.played ? '✓ Séance marquée comme jouée. ' : 'Elle sera marquée comme jouée à l’enregistrement. '}
+          <button
+            type="button"
+            className="linkbtn"
+            onClick={() =>
+              dispatch({ type: 'UPDATE_CAMPAIGN', id: campaign.id, patch: { sessions: markPlayed(sessions, session.id, !session.played, Date.now()) } })
+            }
+          >
+            {session.played ? 'Remettre à « non jouée »' : 'La marquer jouée maintenant'}
+          </button>
+        </p>
       )}
 
       {!draft && (
