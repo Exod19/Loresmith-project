@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "node --test \"src/**/*.test.mjs\""
+    "test": "node --test \"src/**/*.test.mjs\" && npm --prefix server test",
+    "server:dev": "npm --prefix server run dev"
   },
   "dependencies": {
     "@3d-dice/dice-box": "^1.1.4",

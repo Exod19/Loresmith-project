@@ -6,14 +6,13 @@
  * univers actif, combat en cours, journal), qui suit le MJ d'un appareil à l'autre (décision Q1).
  * Chaque document porte sa portée (univers, campagne ou compte) : c'est elle que vérifient les permissions.
  *
- * Tables visées en D1 (créées au lot 4) :
- *   users(id, email, name, created_at)
- *   universes(id, owner_id, created_at)
+ * Tables en D1 (server/migrations/0001_init.sql) :
+ *   user, session, account, verification                     -- comptes, tables de Better Auth
  *   universe_members(universe_id, user_id, role)            -- owner | editor | contributor | reader
  *   campaign_members(campaign_id, user_id, role)            -- gm | cogm
- *   documents(type, id, universe_id, campaign_id, owner_id, created_by, version, updated_at, data)
+ *   documents(type, id, universe_id, campaign_id, owner_id, created_by, version, updated_by, updated_at, deleted_at, data)
  *   document_versions(type, id, version, updated_by, updated_at, data)   -- historique, retour arrière (Q5)
- *   images(id, universe_id, r2_key, type, size, created_by)
+ *   images(universe_id, id, r2_key, type, size, created_by, created_at)
  */
 
 /** Rôles dans un univers, du plus large au plus restreint. */

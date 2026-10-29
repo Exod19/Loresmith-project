@@ -98,7 +98,7 @@ Chaque lot se termine par un commit, puis par une validation de l'utilisateur. L
 
 ### Lot 3 : modèle de données et permissions
 
-- **Statut** : à valider
+- **Statut** : validé
 - **Modèle conseillé** : `claude-opus-5-5`
 - **Objectif** : définir le schéma cible, et un module `policy` pur, sans serveur.
 - **Fichiers probables** : `src/shared/policy.*`, `src/shared/schema.*`, tests associés.
@@ -107,7 +107,7 @@ Chaque lot se termine par un commit, puis par une validation de l'utilisateur. L
 
 ### Lot 4 : backend
 
-- **Statut** : à faire
+- **Statut** : à valider
 - **Modèle conseillé** : `claude-opus-5-5`
 - **Objectif** : Worker, base D1, authentification, migrations.
 - **Fichiers probables** : dossier `server/`, `wrangler.toml`, migrations SQL.

@@ -1,0 +1,3 @@
+# Copier ce fichier en `.dev.vars` (jamais commité) et remplacer la valeur.
+# Générer un secret : node -e "console.log(crypto.randomUUID() + crypto.randomUUID())"
+BETTER_AUTH_SECRET=remplacer-par-un-secret-d-au-moins-32-caracteres

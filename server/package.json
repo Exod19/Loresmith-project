@@ -1,0 +1,18 @@
+{
+  "name": "loresmith-server",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "test": "node --test \"test/**/*.test.mjs\""
+  },
+  "dependencies": {
+    "better-auth": "^1.7.14",
+    "hono": "^4.13.14"
+  },
+  "devDependencies": {
+    "wrangler": "^4.155.0"
+  }
+}
