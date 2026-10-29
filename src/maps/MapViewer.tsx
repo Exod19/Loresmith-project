@@ -21,7 +21,7 @@ import { farEnd, placeNear, withPartyAt } from './party';
 import { trailHazard, type Hazard } from './atlas/hazards';
 import TrialPanel from './TrialPanel';
 import { searchFor, type SearchEntry } from './battle/search';
-import { VISION_R } from './playerBoard';
+import { VISION_R, seedExplored } from './playerBoard';
 import { detectLabel, noticedPassively, passiveOf, trailProfile } from './atlas/trails';
 import Interactables from './Interactables';
 import CampaignGuide, { type BestiaryRef, type GuideCampaign, type GuidePlace } from './CampaignGuide';
@@ -317,15 +317,16 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
         if (evident) reveal.add(f.id);
       }
     }
+    const newly = [...reveal].filter((id) => !next.revealed.includes(id));
     next = { ...next, revealed: [...reveal] };
-    const seen = [...(next.explored?.[to.planId] ?? []), ...points.filter((_, i) => i % 2 === 0), ...(dest ? [dest] : [])].slice(-1500);
-    next = { ...next, explored: { ...(next.explored ?? {}), [to.planId]: seen } };
+    next = withExplored(next, to.planId, [...points.filter((_, i) => i % 2 === 0), ...(dest ? [dest] : []), ...newly.flatMap((id) => pointsOf(id, to.planId))]);
     if (points.length > 1) next = { ...next, travel: { key: `${Date.now()}`, planId: to.planId, points, at: Date.now() } };
     if (note) next = { ...next, party: { ...next.party!, log: [{ t: Date.now(), text: note }, ...(next.party?.log ?? [])].slice(0, 12) } };
     setOverlay(next);
     setTrial(null);
     setAskNote(null);
-    setFocus({ kind: to.kind === 'anchor' ? 'anchor' : 'point', id: to.kind === 'marker' ? `mk-${to.id}` : to.id, tick: Date.now() });
+    // Pas de saut de caméra : la vue suit le jeton pendant le trajet (chez le MJ comme chez les joueurs).
+    if (points.length < 2) setFocus({ kind: to.kind === 'anchor' ? 'anchor' : 'point', id: to.kind === 'marker' ? `mk-${to.id}` : to.id, tick: Date.now() });
   };
   /** Suivre un chemin : directement s'il est sûr ou praticable, sinon par l'épreuve de passage (le MJ la fait jouer). */
   const followTrail = (t: (typeof trailsTo)[number], by?: 'joueurs') => {
@@ -342,14 +343,31 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     followTrail(t, 'joueurs');
   };
   useEffect(() => onPlayerFollow((id) => followRef.current(id)), []);
-  const toggleReveal = (id: string) => setOverlay({
-    ...overlay,
-    revealed: overlay.revealed.includes(id) ? overlay.revealed.filter((x) => x !== id) : [...overlay.revealed, id],
-  });
+  /** Points d'un lieu ou d'un chemin sur un plan (un point sur deux le long d'un tracé). */
+  const pointsOf = (id: string, planId = map.id): [number, number][] => data.geometries
+    .filter((g) => g.featureId === id && g.mapId === planId)
+    .flatMap((g) => (g.type === 'point' ? [g.coordinates as [number, number]] : (g.coordinates as [number, number][]).filter((_, i, all) => i % 2 === 0 || i === all.length - 1)));
+  /** Mémoire du brouillard d'un plan : ce qui a été découvert, et qui reste visible (assombri) chez les joueurs. */
+  const exploredOf = (o: MapOverlay, planId: string) => o.explored?.[planId]
+    ?? seedExplored(data, { ...rec, overlay: o }, planId, (p) => (p && p.planId === planId ? placeCoords(data, rec, p) : null));
+  const withExplored = (o: MapOverlay, planId: string, add: [number, number][]): MapOverlay => (
+    add.length ? { ...o, explored: { ...(o.explored ?? {}), [planId]: [...exploredOf(o, planId), ...add].slice(-4000) } } : o
+  );
+  /** Replonge dans le noir : tout le plan, ou seulement autour d'un lieu. */
+  const forgetFog = (around?: [number, number][]) => {
+    const keep = around ? exploredOf(overlay, map.id).filter(([x, y]) => !around.some(([a, b]) => Math.hypot(x - a, y - b) < 0.03)) : [];
+    setOverlay({ ...overlay, explored: { ...(overlay.explored ?? {}), [map.id]: keep } });
+  };
+  const toggleReveal = (id: string) => {
+    const on = !overlay.revealed.includes(id);
+    const next = { ...overlay, revealed: on ? [...overlay.revealed, id] : overlay.revealed.filter((x) => x !== id) };
+    setOverlay(on ? withExplored(next, map.id, pointsOf(id)) : next);
+  };
   const revealPlan = (on: boolean) => {
     const ids = new Set(overlay.revealed);
     planFeatureIds.forEach((id) => (on ? ids.add(id) : ids.delete(id)));
-    setOverlay({ ...overlay, revealed: [...ids] });
+    const next = { ...overlay, revealed: [...ids] };
+    setOverlay(on ? withExplored(next, map.id, planFeatureIds.flatMap((id) => pointsOf(id)).filter((_, i) => i % 3 === 0)) : next);
   };
 
   function addMarker(x: number, y: number) {
@@ -404,6 +422,10 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               <button key={k} className={`maps-btn ${pv[k] ? 'gold on-soft' : ''}`} aria-pressed={!!pv[k]} title={title}
                 onClick={() => setOverlay({ ...overlay, playerView: { ...pv, [k]: !pv[k] } })}>{label}</button>
             ))}
+            {pv.fog && (
+              <button className="maps-btn" title="Replonger tout ce plan dans le noir (les lieux découverts redeviennent cachés)"
+                onClick={() => { if (window.confirm('Replonger tout ce plan dans le noir ? Les endroits découverts redeviendront cachés aux joueurs.')) forgetFog(); }}>↺ Noir</button>
+            )}
           </div>
         )}
         <button className={`maps-btn ${projecting ? 'gold' : ''}`} onClick={() => (projecting ? stopProjecting() : setProjecting(true))} title={projecting ? 'Arrêter la projection aux joueurs' : 'Projeter aux joueurs (écran joueur)'}>
@@ -531,7 +553,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 onToggleReveal={rec.kind === 'atlas' ? () => toggleReveal(feature.id) : undefined}
                 passive={best.pp}
                 partyHere={party.at?.id === feature.id} partyDest={party.dest?.id === feature.id}
-                onPartyHere={() => setOverlay(withPartyAt(overlay, { id: feature.id, kind: 'feature', title: feature.title, planId: map.id }))}
+                onPartyHere={() => setOverlay(withExplored(withPartyAt(overlay, { id: feature.id, kind: 'feature', title: feature.title, planId: map.id }), map.id, pointsOf(feature.id)))}
+                onForget={dm && pv.fog ? () => forgetFog(pointsOf(feature.id)) : undefined}
                 onPartyDest={() => setDest(party.dest?.id === feature.id ? undefined : { id: feature.id, kind: 'feature', title: feature.title, planId: map.id })}
                 follow={dm && feature.trace ? (() => {
                   const t = trailsTo.find((x) => x.f.id === feature.id);
@@ -712,7 +735,7 @@ function PartyBar({ party, inBattle, onShow, onBattle, onClearDest, onRejoin }: 
   );
 }
 
-function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring, partyHere, partyDest, onPartyHere, onPartyDest, passive = 10, follow }: {
+function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring, partyHere, partyDest, onPartyHere, onPartyDest, passive = 10, follow, onForget }: {
   f: AtlasFeature; dm: boolean; notes: string; defaultCtx: EncCtx; onClose: () => void; onRoll: (ctx: EncCtx) => void;
   revealed?: boolean; onToggleReveal?: () => void; onBring?: () => void;
   partyHere?: boolean; partyDest?: boolean; onPartyHere?: () => void; onPartyDest?: () => void;
@@ -720,6 +743,8 @@ function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onT
   passive?: number;
   /** Chemin (MJ) : où il mène depuis le groupe, l'épreuve qu'il demande, et l'action de le suivre. */
   follow?: { near: boolean; to: PartyPlace | null; hazard: Hazard | null; onFollow: () => void };
+  /** Brouillard (MJ) : replonger ce lieu dans le noir chez les joueurs. */
+  onForget?: () => void;
 }) {
   const [zone, setZone] = useState<Zone>(defaultCtx.zone);
   const [depth, setDepth] = useState(defaultCtx.depth);
@@ -788,6 +813,9 @@ function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onT
         <button className={`maps-btn ${revealed ? '' : 'gold'}`} onClick={onToggleReveal}>
           {revealed ? '🙈 Cacher aux joueurs' : '👁 Montrer aux joueurs'}
         </button>
+      )}
+      {dm && onForget && (
+        <button className="maps-btn" onClick={onForget} title="Les joueurs ne voient plus cet endroit : il redevient noir dans leur brouillard">🌑 Replonger dans le noir</button>
       )}
       {dm && (
         <div className="maps-enc-ctrl">
