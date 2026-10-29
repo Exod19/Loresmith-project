@@ -1,13 +1,6 @@
 import { useState } from 'react';
-import {
-  ENTITY_KINDS,
-  reportPrompt,
-  parseReport,
-  markDuplicates,
-  buildEntry,
-  buildReport,
-  markPlayed,
-} from './sessionReport';
+import { ENTITY_KINDS, reportPrompt, parseReport, knownLines, buildReport, markPlayed } from './sessionReport';
+import { matchEntities, planChanges } from './canonLink';
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
@@ -21,7 +14,6 @@ export default function SessionReportPanel({ universe, campaign, library, ask, a
   const [notes, setNotes] = useState('');
   const [busy, setBusy] = useState(false);
   const [draft, setDraft] = useState(null); // { summary, consequences, entities[] }
-  const [picked, setPicked] = useState({});
   const session = sessions.find((s) => s.id === sessionId) || null;
   const reports = campaign.sessionReports || [];
 
@@ -34,44 +26,57 @@ export default function SessionReportPanel({ universe, campaign, library, ask, a
         campaign,
         session,
         notes,
-        knownTitles: library.map((e) => e.title),
+        known: knownLines(library, notes),
       });
       const parsed = parseReport(await ask({ system, prompt }));
-      const entities = markDuplicates(parsed.entities, library);
-      setDraft({ ...parsed, entities });
-      setPicked(Object.fromEntries(entities.map((e, i) => [i, !e.duplicateOf])));
+      setDraft({ ...parsed, entities: matchEntities(parsed.entities, library) });
     } catch (e) {
       flash(e.message || 'Analyse impossible.');
     }
     setBusy(false);
   }
 
-  function save(withEntities) {
+  const setDecision = (i, decision) =>
+    setDraft((d) => ({ ...d, entities: d.entities.map((e, j) => (j === i ? { ...e, decision } : e)) }));
+
+  function save() {
     const reportId = uid();
     const now = Date.now();
-    const chosen = withEntities ? draft.entities.filter((_, i) => picked[i]) : [];
-    const entries = chosen.map((e) =>
-      buildEntry(e, { campaignId: campaign.id, sessionId: session?.id, reportId, id: uid(), now }),
-    );
-    for (const entry of entries) dispatch({ type: 'ADD_LIBRARY_ENTRY', entry });
+    const plan = planChanges({
+      entities: draft.entities,
+      existing: library,
+      ctx: { campaignId: campaign.id, sessionId: session?.id, sessionNumber: session?.sessionNumber, reportId, now },
+      newId: uid,
+    });
+    for (const entry of plan.newEntries) dispatch({ type: 'ADD_LIBRARY_ENTRY', entry });
+    for (const [id, patch] of Object.entries(plan.patches)) dispatch({ type: 'UPDATE_LIBRARY_ENTRY', id, patch });
     const report = buildReport({
       id: reportId,
       now,
       session,
       notes,
-      summary: draft?.summary || '',
-      consequences: draft?.consequences || [],
-      entryIds: entries.map((e) => e.id),
+      summary: draft.summary,
+      consequences: draft.consequences,
+      entryIds: plan.newEntries.map((e) => e.id),
+      mergedIds: plan.mergedIds,
+      conflicts: plan.conflicts,
     });
     const patch = { sessionReports: [report, ...reports].slice(0, 100) };
     if (session) patch.sessions = markPlayed(sessions, session.id, true, now);
     dispatch({ type: 'UPDATE_CAMPAIGN', id: campaign.id, patch });
     setDraft(null);
     setNotes('');
-    flash(entries.length ? `Compte rendu enregistré, ${entries.length} fiche(s) ajoutée(s) à la bibliothèque.` : 'Compte rendu enregistré.');
+    const parts = [
+      plan.newEntries.length && `${plan.newEntries.length} fiche(s) créée(s)`,
+      plan.mergedIds.length && `${plan.mergedIds.length} fiche(s) enrichie(s)`,
+      plan.edges.length && `${plan.edges.length} lien(s) tissé(s)`,
+    ].filter(Boolean);
+    flash(parts.length ? `Compte rendu enregistré : ${parts.join(', ')}.` : 'Compte rendu enregistré.');
   }
 
-  const nPicked = draft ? Object.values(picked).filter(Boolean).length : 0;
+  const count = (d) => (draft ? draft.entities.filter((e) => (e.decision || 'new').startsWith(d)).length : 0);
+  const nNew = count('new');
+  const nMerge = count('merge');
 
   return (
     <div className="panel" style={{ marginTop: 14 }}>
@@ -130,7 +135,6 @@ export default function SessionReportPanel({ universe, campaign, library, ask, a
               disabled={busy || !notes.trim()}
               onClick={() => {
                 setDraft({ summary: '', consequences: [], entities: [] });
-                setPicked({});
               }}
             >
               Enregistrer sans analyse
@@ -158,29 +162,50 @@ export default function SessionReportPanel({ universe, campaign, library, ask, a
           )}
           {draft.entities.length > 0 ? (
             <div>
-              <b style={{ fontSize: 13.5 }}>Fiches proposées ({nPicked} retenue(s))</b>
+              <b style={{ fontSize: 13.5 }}>
+                Rattachement au canon : {nNew} nouvelle(s) fiche(s), {nMerge} fusion(s)
+              </b>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 6 }}>
                 {draft.entities.map((e, i) => (
-                  <label key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: 8, border: '1px solid var(--line)', borderRadius: 6 }}>
-                    <input type="checkbox" checked={!!picked[i]} onChange={(ev) => setPicked({ ...picked, [i]: ev.target.checked })} style={{ marginTop: 4 }} />
-                    <span>
+                  <div key={i} style={{ padding: 8, border: '1px solid var(--line)', borderRadius: 6, opacity: e.decision === 'skip' ? 0.55 : 1 }}>
+                    <div>
                       <b>{e.name}</b> <span className="tag">{ENTITY_KINDS[e.kind]}</span>
-                      {e.duplicateOf && (
-                        <span className="muted" style={{ fontSize: 12.5 }}> · existe déjà (« {e.duplicateTitle} »), décochée par défaut</span>
-                      )}
-                      <br />
-                      <span className="muted" style={{ fontSize: 13.5 }}>{e.summary}</span>
-                    </span>
-                  </label>
+                    </div>
+                    <div className="muted" style={{ fontSize: 13.5 }}>{e.summary}</div>
+                    {e.relations.length > 0 && (
+                      <div style={{ fontSize: 12.5, marginTop: 4 }}>
+                        {e.relations.map((r, j) => (
+                          <span className="tag" key={j} style={{ marginRight: 6 }}>
+                            {r.label || 'lié à'} → {r.target}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {e.conflict && (
+                      <div style={{ color: 'var(--blood)', fontSize: 13, marginTop: 4 }}>⚠ Possible contradiction : {e.conflict}</div>
+                    )}
+                    <select className="in" style={{ marginTop: 6 }} value={e.decision || 'new'} onChange={(ev) => setDecision(i, ev.target.value)}>
+                      <option value="new">Créer une nouvelle fiche</option>
+                      {e.candidates.map((c) => (
+                        <option key={c.id} value={`merge:${c.id}`}>
+                          Ajouter à la fiche existante « {c.title} »{c.score >= 0.9 ? ' (même élément)' : ' (nom proche)'}
+                        </option>
+                      ))}
+                      <option value="skip">Ignorer</option>
+                    </select>
+                  </div>
                 ))}
               </div>
+              <p className="muted" style={{ fontSize: 12.5, margin: '6px 0 0' }}>
+                Une fusion ajoute la séance aux notes de la fiche existante, sans rien remplacer. Les liens apparaissent dans « Dans la Toile ».
+              </p>
             </div>
           ) : (
-            <p className="muted" style={{ fontSize: 13.5, margin: 0 }}>Aucune fiche proposée : le compte rendu sera simplement enregistré.</p>
+            <p className="muted" style={{ fontSize: 13.5, margin: 0 }}>Aucun élément proposé : le compte rendu sera simplement enregistré.</p>
           )}
           <div className="row">
-            <button className="btn primary" style={{ flex: 'none' }} onClick={() => save(true)}>
-              {nPicked ? `Ajouter ${nPicked} fiche(s) et enregistrer` : 'Enregistrer le compte rendu'}
+            <button className="btn primary" style={{ flex: 'none' }} onClick={save}>
+              Enregistrer le compte rendu
             </button>
             <button className="btn ghost" style={{ flex: 'none' }} onClick={() => setDraft(null)}>
               Retour aux notes
@@ -196,9 +221,12 @@ export default function SessionReportPanel({ universe, campaign, library, ask, a
             <div key={r.id} style={{ marginTop: 8 }}>
               <b>{r.sessionNumber ? `Séance ${r.sessionNumber} · ${r.sessionTitle}` : 'Hors séance planifiée'}</b>{' '}
               <span className="muted" style={{ fontSize: 12.5 }}>
-                {new Date(r.createdAt).toLocaleDateString('fr-CA')} · {r.entryIds.length} fiche(s)
+                {new Date(r.createdAt).toLocaleDateString('fr-CA')} · {r.entryIds.length} nouvelle(s) · {(r.mergedIds || []).length} enrichie(s)
               </span>
               <div className="muted" style={{ fontSize: 13.5 }}>{r.summary || r.notes}</div>
+              {(r.conflicts || []).map((c, j) => (
+                <div key={j} style={{ color: 'var(--blood)', fontSize: 12.5 }}>⚠ {c.name} : {c.issue}</div>
+              ))}
             </div>
           ))}
         </details>

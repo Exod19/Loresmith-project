@@ -27,10 +27,20 @@ export function normKey(s) {
 }
 
 /** Prompt d'analyse des notes de séance. */
-export function reportPrompt({ universe, campaign, session, notes, knownTitles = [] }) {
+/** Lignes « titre (type) : résumé » des fiches connues ; celles citées dans les notes passent en premier. */
+export function knownLines(entries, notes, limit = 60) {
+  const text = normKey(notes);
+  const mentioned = (e) => (normKey(e.title) && text.includes(normKey(e.title)) ? 0 : 1);
+  return [...(entries || [])]
+    .sort((a, b) => mentioned(a) - mentioned(b))
+    .slice(0, limit)
+    .map((e) => `- ${e.title} (${e.archiveType || 'fiche'})${e.shortSummary ? ` : ${clean(e.shortSummary).slice(0, 140)}` : ''}`);
+}
+
+export function reportPrompt({ universe, campaign, session, notes, known = [] }) {
   return {
     system: `Tu es l'archiviste d'un maître de jeu. À partir de notes de séance, tu extrais ce qui s'est réellement passé et les éléments d'univers nouveaux qui méritent une fiche.
-N'invente rien : n'utilise que les notes. Si une information est incertaine, laisse-la de côté.
+N'invente rien : n'utilise que les notes. Rattache chaque élément au canon : s'il désigne un élément déjà connu (même sous un autre nom ou titre), renseigne sameAs ; relie-le aux éléments connus avec relations ; signale toute contradiction avec conflict. Si une information est incertaine, laisse-la de côté.
 Langue : français. Réponds uniquement en JSON valide.`,
     prompt: `Univers : ${clean(universe?.name)}
 Ton : ${clean(universe?.tone)}
@@ -38,7 +48,8 @@ Canon (extrait) : ${clean(universe?.lore).slice(0, 1500)}
 Campagne : ${clean(campaign?.title)}
 Séance : ${session ? `${session.sessionNumber} · ${clean(session.title)}` : 'hors séance planifiée'}
 
-Éléments déjà connus (ne les redonne pas comme nouveaux) : ${knownTitles.slice(0, 120).join(', ') || 'aucun'}
+Éléments déjà connus de l'univers :
+${known.join('\n') || 'aucun'}
 
 Notes de séance :
 ${clean(notes)}
@@ -53,7 +64,10 @@ Retourne exactement :
       "name": "nom",
       "summary": "ce que l'on sait, en 1 à 3 phrases, d'après les notes",
       "secret": "ce que seul le MJ sait, vide si rien",
-      "tags": ["mot-clé"]
+      "tags": ["mot-clé"],
+      "sameAs": "titre EXACT d'un élément déjà connu si c'est le même, sinon vide",
+      "relations": [{"target": "nom exact d'un élément connu ou de cette liste", "label": "lien court : habite, dirige, membre de, allié de, ennemi de, situé dans, possède…"}],
+      "conflict": "ce qui contredit le canon ou les fiches connues, sinon vide"
     }
   ]
 }`,
@@ -69,6 +83,12 @@ export function parseReport(data) {
       summary: clean(e?.summary),
       secret: clean(e?.secret),
       tags: Array.isArray(e?.tags) ? e.tags.map(clean).filter(Boolean).slice(0, 6) : [],
+      sameAs: clean(e?.sameAs),
+      conflict: clean(e?.conflict),
+      relations: (Array.isArray(e?.relations) ? e.relations : [])
+        .map((r) => ({ target: clean(r?.target), label: clean(r?.label) }))
+        .filter((r) => r.target)
+        .slice(0, 6),
     }))
     .filter((e) => e.name);
   const seen = new Set();
@@ -83,16 +103,6 @@ export function parseReport(data) {
     consequences: (Array.isArray(data?.consequences) ? data.consequences : []).map(clean).filter(Boolean).slice(0, 12),
     entities: unique.slice(0, 40),
   };
-}
-
-/** Marque les entités dont le nom existe déjà dans la bibliothèque de l'univers (rattachement fin : lot B). */
-export function markDuplicates(entities, existingEntries) {
-  const byName = new Map();
-  for (const e of existingEntries || []) byName.set(normKey(e.title), e);
-  return entities.map((e) => {
-    const hit = byName.get(normKey(e.name));
-    return hit ? { ...e, duplicateOf: hit.id, duplicateTitle: hit.title } : e;
-  });
 }
 
 /** Fiche de bibliothèque d'une entité acceptée. */
@@ -114,7 +124,7 @@ export function buildEntry(entity, { campaignId, sessionId, reportId, id, now })
 }
 
 /** Enregistrement du compte rendu, rangé dans la campagne (`sessionReports`). */
-export function buildReport({ id, now, session, notes, summary, consequences, entryIds }) {
+export function buildReport({ id, now, session, notes, summary, consequences, entryIds, mergedIds, conflicts }) {
   return {
     id,
     createdAt: now,
@@ -125,6 +135,8 @@ export function buildReport({ id, now, session, notes, summary, consequences, en
     summary: clean(summary),
     consequences: consequences || [],
     entryIds: entryIds || [],
+    mergedIds: mergedIds || [],
+    conflicts: conflicts || [],
   };
 }
 
