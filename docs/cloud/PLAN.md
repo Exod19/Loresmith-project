@@ -48,7 +48,7 @@ Chaque lot se termine par un commit, puis par une validation de l'utilisateur. L
 
 ### Lot 0 : audit (lecture seule)
 
-- **Statut** : à faire
+- **Statut** : à valider
 - **Modèle conseillé** : `claude-opus-5-5`
 - **Objectif** : cartographier l'existant avant toute modification.
 - **Fichiers touchés** : uniquement `docs/cloud/AUDIT.md`.
