@@ -198,7 +198,7 @@ export function Sidebar({
 }
 
 /* -------------------------------- Topbar ------------------------------- */
-export function Topbar({ view, onMenu, onOpenSearch, onExport, onImport, onSettings, onPopout, saveState }) {
+export function Topbar({ view, onMenu, onOpenSearch, onExport, onImport, onSettings, onPopout, saveState, sync, onSync }) {
   const { group, item } = findNav(view);
   return (
     <header className="lsx-top">
@@ -225,16 +225,22 @@ export function Topbar({ view, onMenu, onOpenSearch, onExport, onImport, onSetti
           <i aria-hidden="true" />
           {saveState.status === 'error' ? 'Sauvegarde échouée' : saveState.status === 'pending' ? 'Enregistrement…' : 'Enregistré'}
         </span>
+        {sync && (
+          <button className="lsx-save" data-state={sync.tone} onClick={onSync} title="Compte et synchronisation" style={{ background: 'none', border: 0, cursor: 'pointer' }}>
+            <i aria-hidden="true" />
+            {sync.text}
+          </button>
+        )}
         <button className="lsx-icon wide" title="Ouvrir la table de jeu dans un nouvel onglet" onClick={() => onPopout('scene')}>
           <ExternalLink size={14} aria-hidden="true" /> <span>Table</span>
         </button>
         <button className="lsx-icon wide" title="Ouvrir le combat dans un nouvel onglet" onClick={() => onPopout('encounter')}>
           <ExternalLink size={14} aria-hidden="true" /> <span>Combat</span>
         </button>
-        <button className="lsx-icon" title="Exporter une sauvegarde (.json)" aria-label="Exporter une sauvegarde" onClick={onExport}>
+        <button className="lsx-icon" title="Exporter une sauvegarde (.zip)" aria-label="Exporter une sauvegarde" onClick={onExport}>
           <Download size={16} aria-hidden="true" />
         </button>
-        <button className="lsx-icon" title="Restaurer une sauvegarde (.json)" aria-label="Restaurer une sauvegarde" onClick={onImport}>
+        <button className="lsx-icon" title="Importer une sauvegarde (.zip ou .json)" aria-label="Restaurer une sauvegarde" onClick={onImport}>
           <Upload size={16} aria-hidden="true" />
         </button>
         <button className="lsx-icon" title="Réglages de l'IA" aria-label="Réglages de l'IA" onClick={onSettings}>

@@ -41,7 +41,16 @@ import { UNDERDARK_LINK, useUnderdarkFeed } from './feeds/underdark';
 import { FAUNA_RULE, faunaNames, speaksByName } from './feeds/fauna';
 import { Sidebar, Topbar, MobileBar, CommandPalette, NAV } from './shell/Shell';
 import UniverseHome from './shell/Home';
-import { askPersistence, loadState, saveState as persistState } from './store/persist';
+import { askPersistence, loadState, saveState as persistState, storageUsage } from './store/persist';
+import { openGrimoire, toPersisted } from './store/images';
+import { ExportDialog, ImportDialog } from './store/ArchiveDialogs';
+import { useSync } from './sync/useSync';
+import { ConflictDialog, DeleteConfirm, SyncPanel, syncBadge } from './sync/SyncUI';
+import { InvitationGate } from './sync/SharingUI';
+import { TermsGate } from './sync/AccountUI';
+import { applyChanges, renameIds } from './sync/apply';
+import { IMAGE_MAX } from './store/imageRefs';
+import StorageInfo from './store/StorageInfo';
 import { repairJson } from './ai/json';
 import {
   VOICE_MODELS,
@@ -72,7 +81,7 @@ import './combat/wartable.css';
 import { entityFromSrd, generateEntities } from './bestiary/entityGen';
 import StatSheet from './bestiary/StatSheet';
 import ArchiveImagePicker from './media/ArchiveImagePicker';
-import { CLANS, archiveImageIndex, clanPaintBrief, fileToCompressed, generatePortrait, makeToken, matchArchiveImages, matchPortrait } from './media/images';
+import { CLANS, archiveImageIndex, clanPaintBrief, compressImage, fileToCompressed, generatePortrait, makeToken, matchArchiveImages, matchPortrait } from './media/images';
 import { STATS } from './maps/atlas/statblocks';
 import { tokenImage } from './maps/battle/vignettes';
 
@@ -4685,16 +4694,9 @@ function fallbackSceneFromText(rawText) {
     loot: [],
   };
 }
-function fileToDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = () =>
-      reject(new Error('Impossible de lire le fichier image.'));
-
-    reader.readAsDataURL(file);
-  });
+// Image importée : réduite et convertie en WebP (1024 px par défaut, 512 px pour un portrait) avant d'être gardée.
+function fileToDataUrl(file, max = IMAGE_MAX.illustration) {
+  return fileToCompressed(file, { max });
 }
 
 function getAssetsFor(state, targetType, targetId) {
@@ -5007,6 +5009,11 @@ function reducer(s, a) {
     }
     case 'COMBAT_SET':
       return { ...s, combat: { ...s.combat, ...a.patch } };
+    // Documents reçus du serveur par la synchronisation (src/sync).
+    case 'SYNC_APPLY':
+      return applyChanges(s, a.changes);
+    case 'SYNC_RENAME':
+      return renameIds(s, new Map(a.map));
     case 'ADD_LOG':
       return {
         ...s,
@@ -5023,19 +5030,7 @@ function reducer(s, a) {
 }
 
 /* ----------------------------- backups ---------------------------------- */
-function exportBackup(state) {
-  const blob = new Blob([JSON.stringify(state, null, 2)], {
-    type: 'application/json',
-  });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download =
-    'loresmith-backup-' + new Date().toISOString().slice(0, 10) + '.json';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-}
+// Export et import : archives .zip (src/store/ArchiveDialogs.jsx). Les anciens fichiers .json restent importables.
 
 /* ----------------------------- small UI --------------------------------- */
 function Modal({ title, children, onClose, wide }) {
@@ -5088,6 +5083,8 @@ export default function App() {
   const [diceOpen, setDiceOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [saveState, setSaveState] = useState({ status: 'saved' });
+  const [exportOpen, setExportOpen] = useState(false);
+  const [importFile, setImportFile] = useState(null);
   const saveRef = useRef(null);
   const importRef = useRef(null);
 
@@ -5128,7 +5125,8 @@ export default function App() {
     (async () => {
       try {
         askPersistence();
-        const parsed = (await loadState(STORE_KEY)) || seedUniverse();
+        // Les images sont hors du grimoire : elles sont lues à part (et migrées au premier lancement).
+        const parsed = (await openGrimoire(await loadState(STORE_KEY), STORE_KEY)) || seedUniverse();
 
         dispatch({
           type: 'HYDRATE',
@@ -5155,7 +5153,7 @@ export default function App() {
     setSaveState((prev) => (prev.status === 'error' ? prev : { status: 'pending' }));
     saveRef.current = setTimeout(async () => {
       try {
-        await persistState(STORE_KEY, state);
+        await persistState(STORE_KEY, await toPersisted(state));
         setSaveState({ status: 'saved' });
       } catch (err) {
         // Avant, l'échec (souvent un quota dépassé par des images) passait sous silence.
@@ -5201,25 +5199,20 @@ export default function App() {
     setTimeout(() => setToast(''), 2200);
   }, []);
 
+  // Compte MJ et synchronisation : sans serveur ni compte, rien ne change au fonctionnement local.
+  const sync = useSync({ state, dispatch, hydrated, flash });
+  const [syncDialog, setSyncDialog] = useState(null);
+  useEffect(() => {
+    if (sync.conflicts.length) setSyncDialog('conflicts');
+    else if (sync.pendingDeletes) setSyncDialog('deletes');
+    else setSyncDialog(null);
+  }, [sync.conflicts.length, sync.pendingDeletes]);
+
+  // Le fichier choisi ouvre le bilan d'import : rien ne change avant le choix de l'utilisateur.
   function handleImportFile(e) {
     const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const obj = JSON.parse(reader.result);
-        if (!obj || !obj.universes) throw new Error('structure inconnue');
-        if (confirm('Remplacer toutes les données actuelles par ce backup ?')) {
-          dispatch({ type: 'HYDRATE', state: obj });
-          persistState(STORE_KEY, obj).catch(() => {});
-          flash('Backup restauré');
-        }
-      } catch (err) {
-        flash('Fichier invalide : ' + err.message);
-      }
-      e.target.value = '';
-    };
-    reader.readAsText(file);
+    if (file) setImportFile(file);
+    e.target.value = '';
   }
 
   if (!hydrated || !state)
@@ -5284,16 +5277,18 @@ export default function App() {
               view={view}
               onMenu={() => setSideOpen(true)}
               onOpenSearch={() => setSearchOpen(true)}
-              onExport={() => exportBackup(state)}
+              onExport={() => setExportOpen(true)}
               onImport={() => importRef.current && importRef.current.click()}
               onSettings={() => setSettingsOpen(true)}
               onPopout={openViewInNewTab}
               saveState={saveState}
+              sync={syncBadge(sync)}
+              onSync={() => (sync.conflicts.length ? setSyncDialog('conflicts') : sync.pendingDeletes ? setSyncDialog('deletes') : setSettingsOpen(true))}
             />
             <input
               ref={importRef}
               type="file"
-              accept="application/json,.json"
+              accept="application/json,.json,application/zip,.zip"
               style={{ display: 'none' }}
               onChange={handleImportFile}
             />
@@ -5314,6 +5309,7 @@ export default function App() {
                   flash,
                   setSettingsOpen,
                   importRef,
+                  setExportOpen,
                 }}
               />
             ) : view === 'library' ? (
@@ -5427,12 +5423,27 @@ export default function App() {
               goTo(item.view);
             }}
           />
+          {exportOpen && <ExportDialog state={state} flash={flash} onClose={() => setExportOpen(false)} />}
+          {importFile && (
+            <ImportDialog
+              file={importFile}
+              state={state}
+              flash={flash}
+              onApply={(next) => dispatch({ type: 'HYDRATE', state: next })}
+              onClose={() => setImportFile(null)}
+            />
+          )}
           {settingsOpen && (
             <SettingsModal
               onClose={() => setSettingsOpen(false)}
               flash={flash}
+              sync={sync}
             />
           )}
+          {syncDialog === 'conflicts' && sync.conflicts.length > 0 && <ConflictDialog sync={sync} flash={flash} onClose={() => setSyncDialog(null)} />}
+          {syncDialog === 'deletes' && sync.pendingDeletes && <DeleteConfirm sync={sync} onClose={() => setSyncDialog(null)} />}
+          <InvitationGate sync={sync} flash={flash} />
+          <TermsGate sync={sync} flash={flash} />
           {toast && <div className="toast">{toast}</div>}
         </div>
       </>
@@ -5468,7 +5479,7 @@ function buildSearchItems({ state, U, campaigns, npcs, quests, party }) {
   return items;
 }
 /* ----------------------------- Settings (AI) ---------------------------- */
-function SettingsModal({ onClose, flash }) {
+function SettingsModal({ onClose, flash, sync }) {
   const { ai, setAI } = useContext(AIContext);
   const [testing, setTesting] = useState(false);
   const [result, setResult] = useState('');
@@ -5598,6 +5609,8 @@ function SettingsModal({ onClose, flash }) {
         côté navigateur. C'est acceptable pour un outil personnel (StackBlitz /
         local). Ne publie jamais le site en ligne avec ta clé en clair.
       </div>
+      <StorageInfo />
+      <SyncPanel sync={sync} flash={flash} />
     </Modal>
   );
 }
@@ -5644,6 +5657,7 @@ function Dashboard({
   flash,
   setSettingsOpen,
   importRef,
+  setExportOpen,
 }) {
   const { ai } = useContext(AIContext);
   const library = Object.values(state.libraryEntries || {})
@@ -5786,12 +5800,9 @@ function Dashboard({
           <button
             className="btn primary"
             style={{ flex: 'none' }}
-            onClick={() => {
-              exportBackup(state);
-              flash('Backup téléchargé');
-            }}
+            onClick={() => setExportOpen(true)}
           >
-            ⤓ Exporter (.json)
+            ⤓ Exporter (.zip)
           </button>
           <button
             className="btn"
@@ -11635,7 +11646,7 @@ async function generateOpenAIImage(ai, prompt) {
     throw new Error("Aucune image retournée par l'API.");
   }
 
-  return 'data:image/png;base64,' + b64;
+  return compressImage('data:image/png;base64,' + b64, { max: IMAGE_MAX.illustration });
 }
 /* ----------------------------- Party (+ PDF import) --------------------- */
 function AssetManager({
@@ -12016,7 +12027,7 @@ function CharCard({ c, state, dispatch, flash }) {
     if (!file) return;
 
     try {
-      const dataUrl = await fileToDataUrl(file);
+      const dataUrl = await fileToDataUrl(file, IMAGE_MAX.portrait);
 
       dispatch({
         type: 'ADD_ASSET',

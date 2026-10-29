@@ -1,0 +1,25 @@
+# Worker de sauvegarde nocturne (src/cron.js). L'API, elle, est servie par les Pages Functions du site.
+# Déploiement : npx wrangler deploy -c wrangler.backup.toml
+name = "loresmith-backup"
+main = "src/cron.js"
+compatibility_date = "2026-10-01"
+workers_dev = false
+
+[observability]
+enabled = true
+
+[triggers]
+crons = ["17 7 * * *"]
+
+[vars]
+BACKUP_KEEP = "30"
+LOG_LEVEL = "info"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "loresmith"
+database_id = "b66d065f-1293-4d7e-aefc-8e3fe1bc0625"
+
+[[kv_namespaces]]
+binding = "BLOBS"
+id = "f1874a5b23b24d5491e6aba37f80e667"

@@ -3,6 +3,7 @@
  * (index et correspondance par nom), et génération d'un portrait.
  */
 import { norm } from '../ai/loreContext';
+import { IMAGE_MAX, fitWithin } from '../store/imageRefs';
 
 const BASE = import.meta.env.BASE_URL || '/';
 
@@ -19,12 +20,10 @@ function loadImage(src) {
   });
 }
 
-/** Réduit une image (fichier importé, image générée) pour ménager le stockage du navigateur. */
-export async function compressImage(src, { max = 768, quality = 0.85 } = {}) {
+/** Réduit une image (fichier importé, image générée) en WebP pour ménager le stockage du navigateur. Par défaut : taille d'un portrait. */
+export async function compressImage(src, { max = IMAGE_MAX.portrait, quality = 0.85 } = {}) {
   const img = await loadImage(src);
-  const scale = Math.min(1, max / Math.max(img.width, img.height));
-  const w = Math.round(img.width * scale);
-  const h = Math.round(img.height * scale);
+  const { width: w, height: h } = fitWithin(img.width, img.height, max);
   const c = document.createElement('canvas');
   c.width = w;
   c.height = h;

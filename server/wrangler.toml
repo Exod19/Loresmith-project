@@ -1,0 +1,41 @@
+# API de Loresmith : un Worker Cloudflare avec une base D1.
+# En local : `npm run dev`. En ligne, cette API est servie par les Pages Functions du site (functions/api),
+# avec la même base D1 et le même espace KV ; la sauvegarde nocturne tourne dans wrangler.backup.toml.
+name = "loresmith-api"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Journaux (Workers Logs, inclus dans l'offre gratuite).
+[observability]
+enabled = true
+
+# Sauvegarde quotidienne de la base dans R2 (vers 3 h, heure de Montréal).
+[triggers]
+crons = ["17 7 * * *"]
+
+[vars]
+BETTER_AUTH_URL = "http://localhost:8787"
+# Origines du site (Vite en développement) autorisées à appeler l'API avec leurs cookies, séparées par des virgules.
+FRONT_ORIGIN = "http://localhost:5173"
+# Nombre de sauvegardes quotidiennes gardées dans R2.
+BACKUP_KEEP = "30"
+# Journaux : info | error | silent.
+LOG_LEVEL = "info"
+# Adresse du site dans les liens d'invitation (par défaut : FRONT_ORIGIN).
+# APP_URL = "https://…"
+# Courriels (Resend, offre gratuite) : MAIL_FROM ici, RESEND_API_KEY en secret (.dev.vars ou `wrangler secret`).
+# Sans eux, le lien d'invitation est seulement montré à celui qui invite.
+# MAIL_FROM = "Loresmith <invitations@exemple.org>"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "loresmith"
+database_id = "b66d065f-1293-4d7e-aefc-8e3fe1bc0625"
+migrations_dir = "migrations"
+
+# Images partagées et sauvegardes : Workers KV (gratuit, sans moyen de paiement ; cf. src/store.js).
+# En local, Wrangler simule l'espace KV. `id` : identifiant de l'espace créé chez Cloudflare.
+[[kv_namespaces]]
+binding = "BLOBS"
+id = "f1874a5b23b24d5491e6aba37f80e667"
