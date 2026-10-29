@@ -4,12 +4,12 @@
  * - Sauvegarde : chaque image base64 devient un Blob du magasin `images`, et l'état sauvegardé n'en garde
  *   que la référence (`lsimg:<id>`). Écrire le grimoire ne recopie donc plus les images.
  * - Chargement : les références deviennent des URL `blob:`, affichables partout comme avant.
- * - Export : les images sont remises en base64 dans le fichier, qui reste lisible par l'ancien import.
+ * - Export : les Blob sont rangés dans l'archive .zip (cf. `backup.js`).
  *
  * La première ouverture migre les sauvegardes existantes (cf. `openGrimoire`).
  */
 import { dropBackup, getImageBlob, putImageBlob, saveBackup, saveState } from './persist';
-import { collectStrings, extractImages, hasDataImages, idOfRef, inlineRefs, isDataImage, isRef, resolveRefs, toRefs } from './imageRefs';
+import { collectStrings, extractImages, hasDataImages, idOfRef, isDataImage, isRef, resolveRefs, toRefs } from './imageRefs';
 
 const urlById = new Map();
 const idByUrl = new Map();
@@ -31,7 +31,7 @@ function urlOf(id, blob) {
 }
 
 /** Lit les Blob des références de l'état et les remplace par des URL affichables. */
-async function resolveAll(state) {
+export async function resolveAll(state) {
   for (const ref of collectStrings(state, isRef)) {
     const id = idOfRef(ref);
     if (urlById.has(id)) continue;
@@ -82,7 +82,7 @@ export async function toPersisted(state) {
   }
 }
 
-/** État autonome, images en base64 : pour l'export JSON (et le retour au format d'avant le lot 1). */
-export async function toPortable(state) {
-  return inlineRefs(toRefs(state, (url) => idByUrl.get(url)), (id) => getImageBlob(id).catch(() => null));
+/** Écrit des images reçues (import d'une archive) : Map id → Blob. */
+export async function storeImages(images) {
+  for (const [id, blob] of images) await putImage(id, blob);
 }

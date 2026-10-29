@@ -71,7 +71,7 @@ Chaque lot se termine par un commit, puis par une validation de l'utilisateur. L
 
 ### Lot 1 : images hors de l'état
 
-- **Statut** : à valider
+- **Statut** : validé
 - **Modèle conseillé** : `claude-sonnet-5-5`
 - **Objectif** : sortir les images de l'état principal et les stocker en Blob dans IndexedDB.
 - **Fichiers probables** : `src/store/persist.js`, un nouveau module `src/store/images.*`, `src/media/images.js`, `src/maps/mapStore.ts`.
@@ -89,11 +89,11 @@ Chaque lot se termine par un commit, puis par une validation de l'utilisateur. L
 
 ### Lot 2 : export et import
 
-- **Statut** : à faire
+- **Statut** : à valider
 - **Modèle conseillé** : `claude-sonnet-5-5`
 - **Objectif** : exporter et importer un univers, une campagne, ou la totalité des données, sous forme de fichier ZIP.
 - **Contenu du ZIP** : un fichier JSON du grimoire ou de l'élément choisi, et un dossier `images/`.
-- **Dépendance** : une bibliothèque de ZIP gratuite (par exemple JSZip). Demander confirmation avant de l'ajouter.
+- **Dépendance** : une bibliothèque de ZIP gratuite. Choix de l'utilisateur : `fflate` (licence MIT).
 - **Critères d'acceptation** : export puis import dans un navigateur vierge restaure les données et les images. Un import ne doit jamais écraser silencieusement des données existantes.
 
 ### Lot 3 : modèle de données et permissions

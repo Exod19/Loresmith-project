@@ -231,10 +231,10 @@ export function Topbar({ view, onMenu, onOpenSearch, onExport, onImport, onSetti
         <button className="lsx-icon wide" title="Ouvrir le combat dans un nouvel onglet" onClick={() => onPopout('encounter')}>
           <ExternalLink size={14} aria-hidden="true" /> <span>Combat</span>
         </button>
-        <button className="lsx-icon" title="Exporter une sauvegarde (.json)" aria-label="Exporter une sauvegarde" onClick={onExport}>
+        <button className="lsx-icon" title="Exporter une sauvegarde (.zip)" aria-label="Exporter une sauvegarde" onClick={onExport}>
           <Download size={16} aria-hidden="true" />
         </button>
-        <button className="lsx-icon" title="Restaurer une sauvegarde (.json)" aria-label="Restaurer une sauvegarde" onClick={onImport}>
+        <button className="lsx-icon" title="Importer une sauvegarde (.zip ou .json)" aria-label="Restaurer une sauvegarde" onClick={onImport}>
           <Upload size={16} aria-hidden="true" />
         </button>
         <button className="lsx-icon" title="Réglages de l'IA" aria-label="Réglages de l'IA" onClick={onSettings}>

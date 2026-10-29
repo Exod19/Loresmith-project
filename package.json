@@ -8,10 +8,11 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "node --test src/combat/narration/narrator.test.mjs src/store/imageRefs.test.mjs"
+    "test": "node --test src/combat/narration/narrator.test.mjs src/store/imageRefs.test.mjs src/store/archive.test.mjs"
   },
   "dependencies": {
     "@3d-dice/dice-box": "^1.1.4",
+    "fflate": "^0.8.2",
     "lucide-react": "^0.344.0",
     "pdfjs-dist": "^6.0.227",
     "react": "^18.3.1",

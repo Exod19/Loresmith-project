@@ -74,11 +74,14 @@ export const getImageBlob = (id) => tx('readonly', (s) => s.get(id), IMAGES);
 export const putImageBlob = (id, blob) => tx('readwrite', (s) => s.put(blob, id), IMAGES);
 export const listImageIds = () => tx('readonly', (s) => s.getAllKeys(), IMAGES);
 
-/* ——— Copie de sécurité avant migration ——— */
+/* ——— Copies de sécurité (avant la migration des images, avant un import) ——— */
 
-export const saveBackup = (state) => tx('readwrite', (s) => s.put(state, BACKUP_KEY));
-export const loadBackup = () => tx('readonly', (s) => s.get(BACKUP_KEY));
-export const dropBackup = () => tx('readwrite', (s) => s.delete(BACKUP_KEY));
+/** Copie prise avant chaque import d'archive : la dernière seulement. */
+export const IMPORT_BACKUP_KEY = 'store-backup-import';
+
+export const saveBackup = (state, key = BACKUP_KEY) => tx('readwrite', (s) => s.put(state, key));
+export const loadBackup = (key = BACKUP_KEY) => tx('readonly', (s) => s.get(key));
+export const dropBackup = (key = BACKUP_KEY) => tx('readwrite', (s) => s.delete(key));
 
 /** Lit l'état sauvegardé : IndexedDB d'abord, puis l'ancienne sauvegarde localStorage. */
 export async function loadState(legacyKey) {

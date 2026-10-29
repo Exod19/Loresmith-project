@@ -42,7 +42,8 @@ import { FAUNA_RULE, faunaNames, speaksByName } from './feeds/fauna';
 import { Sidebar, Topbar, MobileBar, CommandPalette, NAV } from './shell/Shell';
 import UniverseHome from './shell/Home';
 import { askPersistence, loadState, saveState as persistState, storageUsage } from './store/persist';
-import { openGrimoire, toPersisted, toPortable } from './store/images';
+import { openGrimoire, toPersisted } from './store/images';
+import { ExportDialog, ImportDialog } from './store/ArchiveDialogs';
 import { IMAGE_MAX } from './store/imageRefs';
 import StorageInfo from './store/StorageInfo';
 import { repairJson } from './ai/json';
@@ -5019,21 +5020,7 @@ function reducer(s, a) {
 }
 
 /* ----------------------------- backups ---------------------------------- */
-// Le fichier exporté reste autonome : les images y sont remises en base64.
-async function exportBackup(live) {
-  const state = await toPortable(live);
-  const blob = new Blob([JSON.stringify(state, null, 2)], {
-    type: 'application/json',
-  });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download =
-    'loresmith-backup-' + new Date().toISOString().slice(0, 10) + '.json';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-}
+// Export et import : archives .zip (src/store/ArchiveDialogs.jsx). Les anciens fichiers .json restent importables.
 
 /* ----------------------------- small UI --------------------------------- */
 function Modal({ title, children, onClose, wide }) {
@@ -5086,6 +5073,8 @@ export default function App() {
   const [diceOpen, setDiceOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [saveState, setSaveState] = useState({ status: 'saved' });
+  const [exportOpen, setExportOpen] = useState(false);
+  const [importFile, setImportFile] = useState(null);
   const saveRef = useRef(null);
   const importRef = useRef(null);
 
@@ -5200,25 +5189,11 @@ export default function App() {
     setTimeout(() => setToast(''), 2200);
   }, []);
 
+  // Le fichier choisi ouvre le bilan d'import : rien ne change avant le choix de l'utilisateur.
   function handleImportFile(e) {
     const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const obj = JSON.parse(reader.result);
-        if (!obj || !obj.universes) throw new Error('structure inconnue');
-        if (confirm('Remplacer toutes les données actuelles par ce backup ?')) {
-          dispatch({ type: 'HYDRATE', state: obj });
-          toPersisted(obj).then((p) => persistState(STORE_KEY, p)).catch(() => {});
-          flash('Backup restauré');
-        }
-      } catch (err) {
-        flash('Fichier invalide : ' + err.message);
-      }
-      e.target.value = '';
-    };
-    reader.readAsText(file);
+    if (file) setImportFile(file);
+    e.target.value = '';
   }
 
   if (!hydrated || !state)
@@ -5283,7 +5258,7 @@ export default function App() {
               view={view}
               onMenu={() => setSideOpen(true)}
               onOpenSearch={() => setSearchOpen(true)}
-              onExport={() => exportBackup(state)}
+              onExport={() => setExportOpen(true)}
               onImport={() => importRef.current && importRef.current.click()}
               onSettings={() => setSettingsOpen(true)}
               onPopout={openViewInNewTab}
@@ -5292,7 +5267,7 @@ export default function App() {
             <input
               ref={importRef}
               type="file"
-              accept="application/json,.json"
+              accept="application/json,.json,application/zip,.zip"
               style={{ display: 'none' }}
               onChange={handleImportFile}
             />
@@ -5313,6 +5288,7 @@ export default function App() {
                   flash,
                   setSettingsOpen,
                   importRef,
+                  setExportOpen,
                 }}
               />
             ) : view === 'library' ? (
@@ -5426,6 +5402,16 @@ export default function App() {
               goTo(item.view);
             }}
           />
+          {exportOpen && <ExportDialog state={state} flash={flash} onClose={() => setExportOpen(false)} />}
+          {importFile && (
+            <ImportDialog
+              file={importFile}
+              state={state}
+              flash={flash}
+              onApply={(next) => dispatch({ type: 'HYDRATE', state: next })}
+              onClose={() => setImportFile(null)}
+            />
+          )}
           {settingsOpen && (
             <SettingsModal
               onClose={() => setSettingsOpen(false)}
@@ -5644,6 +5630,7 @@ function Dashboard({
   flash,
   setSettingsOpen,
   importRef,
+  setExportOpen,
 }) {
   const { ai } = useContext(AIContext);
   const library = Object.values(state.libraryEntries || {})
@@ -5786,12 +5773,9 @@ function Dashboard({
           <button
             className="btn primary"
             style={{ flex: 'none' }}
-            onClick={() => {
-              exportBackup(state);
-              flash('Backup téléchargé');
-            }}
+            onClick={() => setExportOpen(true)}
           >
-            ⤓ Exporter (.json)
+            ⤓ Exporter (.zip)
           </button>
           <button
             className="btn"
