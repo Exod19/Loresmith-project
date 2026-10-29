@@ -41,7 +41,10 @@ import { UNDERDARK_LINK, useUnderdarkFeed } from './feeds/underdark';
 import { FAUNA_RULE, faunaNames, speaksByName } from './feeds/fauna';
 import { Sidebar, Topbar, MobileBar, CommandPalette, NAV } from './shell/Shell';
 import UniverseHome from './shell/Home';
-import { askPersistence, loadState, saveState as persistState } from './store/persist';
+import { askPersistence, loadState, saveState as persistState, storageUsage } from './store/persist';
+import { openGrimoire, toPersisted, toPortable } from './store/images';
+import { IMAGE_MAX } from './store/imageRefs';
+import StorageInfo from './store/StorageInfo';
 import { repairJson } from './ai/json';
 import {
   VOICE_MODELS,
@@ -72,7 +75,7 @@ import './combat/wartable.css';
 import { entityFromSrd, generateEntities } from './bestiary/entityGen';
 import StatSheet from './bestiary/StatSheet';
 import ArchiveImagePicker from './media/ArchiveImagePicker';
-import { CLANS, archiveImageIndex, clanPaintBrief, fileToCompressed, generatePortrait, makeToken, matchArchiveImages, matchPortrait } from './media/images';
+import { CLANS, archiveImageIndex, clanPaintBrief, compressImage, fileToCompressed, generatePortrait, makeToken, matchArchiveImages, matchPortrait } from './media/images';
 import { STATS } from './maps/atlas/statblocks';
 import { tokenImage } from './maps/battle/vignettes';
 
@@ -4685,16 +4688,9 @@ function fallbackSceneFromText(rawText) {
     loot: [],
   };
 }
-function fileToDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = () =>
-      reject(new Error('Impossible de lire le fichier image.'));
-
-    reader.readAsDataURL(file);
-  });
+// Image importée : réduite et convertie en WebP (1024 px par défaut, 512 px pour un portrait) avant d'être gardée.
+function fileToDataUrl(file, max = IMAGE_MAX.illustration) {
+  return fileToCompressed(file, { max });
 }
 
 function getAssetsFor(state, targetType, targetId) {
@@ -5023,7 +5019,9 @@ function reducer(s, a) {
 }
 
 /* ----------------------------- backups ---------------------------------- */
-function exportBackup(state) {
+// Le fichier exporté reste autonome : les images y sont remises en base64.
+async function exportBackup(live) {
+  const state = await toPortable(live);
   const blob = new Blob([JSON.stringify(state, null, 2)], {
     type: 'application/json',
   });
@@ -5128,7 +5126,8 @@ export default function App() {
     (async () => {
       try {
         askPersistence();
-        const parsed = (await loadState(STORE_KEY)) || seedUniverse();
+        // Les images sont hors du grimoire : elles sont lues à part (et migrées au premier lancement).
+        const parsed = (await openGrimoire(await loadState(STORE_KEY), STORE_KEY)) || seedUniverse();
 
         dispatch({
           type: 'HYDRATE',
@@ -5155,7 +5154,7 @@ export default function App() {
     setSaveState((prev) => (prev.status === 'error' ? prev : { status: 'pending' }));
     saveRef.current = setTimeout(async () => {
       try {
-        await persistState(STORE_KEY, state);
+        await persistState(STORE_KEY, await toPersisted(state));
         setSaveState({ status: 'saved' });
       } catch (err) {
         // Avant, l'échec (souvent un quota dépassé par des images) passait sous silence.
@@ -5211,7 +5210,7 @@ export default function App() {
         if (!obj || !obj.universes) throw new Error('structure inconnue');
         if (confirm('Remplacer toutes les données actuelles par ce backup ?')) {
           dispatch({ type: 'HYDRATE', state: obj });
-          persistState(STORE_KEY, obj).catch(() => {});
+          toPersisted(obj).then((p) => persistState(STORE_KEY, p)).catch(() => {});
           flash('Backup restauré');
         }
       } catch (err) {
@@ -5598,6 +5597,7 @@ function SettingsModal({ onClose, flash }) {
         côté navigateur. C'est acceptable pour un outil personnel (StackBlitz /
         local). Ne publie jamais le site en ligne avec ta clé en clair.
       </div>
+      <StorageInfo />
     </Modal>
   );
 }
@@ -11635,7 +11635,7 @@ async function generateOpenAIImage(ai, prompt) {
     throw new Error("Aucune image retournée par l'API.");
   }
 
-  return 'data:image/png;base64,' + b64;
+  return compressImage('data:image/png;base64,' + b64, { max: IMAGE_MAX.illustration });
 }
 /* ----------------------------- Party (+ PDF import) --------------------- */
 function AssetManager({
@@ -12016,7 +12016,7 @@ function CharCard({ c, state, dispatch, flash }) {
     if (!file) return;
 
     try {
-      const dataUrl = await fileToDataUrl(file);
+      const dataUrl = await fileToDataUrl(file, IMAGE_MAX.portrait);
 
       dispatch({
         type: 'ADD_ASSET',

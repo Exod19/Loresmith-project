@@ -137,7 +137,7 @@ Ordre de grandeur : 20 portraits téléversés, 5 images générées et 3 cartes
 
 ### Questions ouvertes
 
-Réponses de l'utilisateur, reportées dans la section 3 du plan : Q1, Q3, Q4 et Q5. Q2 et Q6 restent ouvertes.
+Réponses de l'utilisateur, reportées dans la section 3 du plan : Q1 à Q6 (Q2 et Q6 selon les propositions, acceptées par défaut).
 
 - **Q1** : `state.combat`, `log`, `chatThreads` et `activeUniverseId` restent-ils propres à l'appareil, sans synchronisation ? Proposition : oui pour `combat` et `activeUniverseId` ; `chatThreads` suivrait la campagne, secrets compris.
 - **Q2** : les fiches personnalisées (`custom-stats`) doivent-elles entrer dans le grimoire, et donc dans l'export et la synchronisation ?

@@ -21,12 +21,12 @@ Statut global : en cours. Chaque lot porte son propre statut : « à faire », �
 
 | Sujet | Décision | Statut |
 |---|---|---|
-| Hébergement | Cloudflare Pages (front), Worker (API), D1 (base), R2 (images partagées) | Par défaut, à confirmer |
-| Authentification | Better Auth, avec envoi de courriels via Resend (plan gratuit) | Par défaut, à confirmer |
-| Base de données | D1 (SQLite), migrations versionnées | Par défaut, à confirmer |
-| Rôles univers | propriétaire, éditeur, contributeur, lecteur | Par défaut, à confirmer |
-| Rôles campagne | MJ (créateur), co-MJ | Par défaut, à confirmer |
-| Secrets de campagne | Visibles seulement par le MJ et les co-MJ. Par défaut, le propriétaire de l'univers ne voit pas les campagnes de ses contributeurs | Par défaut, à confirmer |
+| Hébergement | Cloudflare Pages (front), Worker (API), D1 (base), R2 (images partagées) | Acquis |
+| Authentification | Better Auth, avec envoi de courriels via Resend (plan gratuit) | Acquis |
+| Base de données | D1 (SQLite), migrations versionnées | Acquis |
+| Rôles univers | propriétaire, éditeur, contributeur, lecteur | Acquis |
+| Rôles campagne | MJ (créateur), co-MJ | Acquis |
+| Secrets de campagne | Visibles par tous les MJ membres de l'univers (tous les utilisateurs sont des MJ, aucun joueur n'a de compte) | Acquis |
 | Mode hors ligne | Le MJ travaille sur une copie locale (IndexedDB). Le serveur sert à la synchronisation et au partage | Acquis |
 | Images utilisateur | Blob dans IndexedDB, compressées en WebP, références dans l'état. R2 seulement au moment du partage | Acquis |
 | Images intégrées | Restent dans `public/`, converties en WebP et chargées à la demande | Acquis |
@@ -36,6 +36,8 @@ Statut global : en cours. Chaque lot porte son propre statut : « à faire », �
 | Secrets de la bibliothèque | Visibles par tous les membres de l'univers, qui sont tous des MJ | Acquis (Q3) |
 | PNJ et créatures | Appartiennent à l'univers, partagés par toutes ses campagnes | Acquis (Q4) |
 | Historique | Le serveur garde un historique des versions de chaque document, pour permettre un retour arrière | Acquis (Q5) |
+| Fiches de créatures personnalisées | Entrent dans le grimoire (export et synchronisation) | Acquis (Q2) |
+| Images des Archives | Réservées à l'univers Underdark | Acquis (Q6) |
 
 Les décisions marquées « à confirmer » doivent être validées par l'utilisateur à la fin du lot 0.
 
@@ -52,7 +54,7 @@ Chaque lot se termine par un commit, puis par une validation de l'utilisateur. L
 
 ### Lot 0 : audit (lecture seule)
 
-- **Statut** : à valider
+- **Statut** : validé
 - **Modèle conseillé** : `claude-opus-5-5`
 - **Objectif** : cartographier l'existant avant toute modification.
 - **Fichiers touchés** : uniquement `docs/cloud/AUDIT.md`.
@@ -69,7 +71,7 @@ Chaque lot se termine par un commit, puis par une validation de l'utilisateur. L
 
 ### Lot 1 : images hors de l'état
 
-- **Statut** : à faire
+- **Statut** : à valider
 - **Modèle conseillé** : `claude-sonnet-5-5`
 - **Objectif** : sortir les images de l'état principal et les stocker en Blob dans IndexedDB.
 - **Fichiers probables** : `src/store/persist.js`, un nouveau module `src/store/images.*`, `src/media/images.js`, `src/maps/mapStore.ts`.
