@@ -8,7 +8,7 @@ import type { TerrainKind } from './terrain';
 import { CATEGORY_IMG, vignette } from './vignettes';
 
 /** `active` : c'est son tour. `hp`/`maxHp` : barre de vie (MJ seulement). */
-export type BoardToken = PlayerToken & { selected?: boolean; hidden?: boolean; active?: boolean; hp?: number; maxHp?: number; out?: boolean };
+export type BoardToken = PlayerToken & { selected?: boolean; hidden?: boolean; active?: boolean; hp?: number; maxHp?: number; out?: boolean; conditions?: string[] };
 
 /** Repère MJ posé sur une case : S1 (passage secret), E1 (sortie), F1 (élément à fouiller). */
 export type BoardLabel = { cell: number; text: string; tone: 'secret' | 'exit' | 'search' | 'dest'; noticed?: boolean };
@@ -46,6 +46,14 @@ type Props = {
   /** Repères numérotés et cases mises en évidence (MJ seulement : jamais sur l'écran joueur). */
   labels?: BoardLabel[];
   highlight?: number[];
+  /** Brouillard de guerre : cases vues maintenant, et déjà explorées. `dm` : voile léger, le MJ voit à travers. */
+  fog?: { visible: number[]; explored: number[]; dm?: boolean };
+  /** Sorties au bord du plateau (écran joueur) : flèche vers l'extérieur et destination si elle est connue. */
+  exits?: { cell: number; dir: 'n' | 's' | 'e' | 'w'; label: string; known: boolean; goal?: boolean }[];
+  /** Trait d'attaque : du centre de l'attaquant à celui de la cible (en cases). `pending` : la cible n'est pas encore choisie. */
+  aim?: { x1: number; y1: number; x2: number; y2: number; tone?: 'hit' | 'miss' | 'crit' | 'info'; pending?: boolean; label?: string };
+  /** Dégâts (amount < 0) et soins récents, écrits en grand au-dessus des jetons quelques secondes. */
+  hits?: { id: string; to: string; amount: number; at: number }[];
 };
 
 /** Icône de chaque catégorie de lieu. */
@@ -53,6 +61,23 @@ export const CATEGORY_ICON: Record<string, string> = {
   eau: '💧', danger: '☠️', ruine: '🏛️', grotte: '🪨', ressource: '💎', vivant: '🍄', garde: '🛡️',
   sanctuaire: '🕯️', institution: '🏛️', cite: '🏘️', voie: '🚪', indetermine: '❔',
 };
+
+/** Voile du brouillard : noir où rien n'a été vu, assombri où l'on est passé mais qu'on ne voit plus. */
+function FogLayer({ cols, rows, fog }: { cols: number; rows: number; fog: NonNullable<Props['fog']> }) {
+  const visible = new Set(fog.visible), explored = new Set(fog.explored);
+  const dark: string[] = [], dim: string[] = [];
+  for (let i = 0; i < cols * rows; i++) {
+    if (visible.has(i)) continue;
+    const d = `M${i % cols} ${Math.floor(i / cols)}h1v1h-1z`;
+    (explored.has(i) ? dim : dark).push(d);
+  }
+  return (
+    <g className={`battle-fog ${fog.dm ? 'dm' : ''}`} pointerEvents="none">
+      <path d={dark.join('')} fill="#030202" fillOpacity={fog.dm ? 0.5 : 1} />
+      <path d={dim.join('')} fill="#030202" fillOpacity={fog.dm ? 0.22 : 0.62} />
+    </g>
+  );
+}
 
 const KIND_FILL: Record<PlayerToken['kind'], string> = { pc: '#54d8c6', monster: '#c0492f', other: '#c9a24a' };
 
@@ -181,7 +206,7 @@ function cellUnder(ev: ReactMouseEvent<SVGElement>, cols: number, rows: number) 
   return x >= 0 && y >= 0 && x < cols && y < rows ? { x, y } : undefined;
 }
 
-export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview, labels = [], highlight }: Props) {
+export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview, labels = [], highlight, fog, exits = [], aim, hits = [] }: Props) {
   const lines: string[] = [];
   for (let x = 0; x <= cols; x++) lines.push(`M${x} 0V${rows}`);
   for (let y = 0; y <= rows; y++) lines.push(`M0 ${y}H${cols}`);
@@ -268,6 +293,23 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
         );
       })}
 
+      {fog && <FogLayer cols={cols} rows={rows} fog={fog} />}
+
+      {exits.map((e) => {
+        const x = e.cell % cols, y = Math.floor(e.cell / cols), cx = x + 0.5, cy = y + 0.5;
+        const rot = { n: 0, e: 90, s: 180, w: 270 }[e.dir];
+        // Libellé vers l'intérieur du plateau, pour qu'il reste lisible au bord.
+        const lx = e.dir === 'w' ? x + 1.15 : e.dir === 'e' ? x - 0.15 : cx;
+        const ly = e.dir === 'n' ? y + 1.35 : e.dir === 's' ? y - 0.3 : cy + 0.1;
+        const anchor = e.dir === 'w' ? 'start' : e.dir === 'e' ? 'end' : 'middle';
+        return (
+          <g key={`ex-${e.cell}`} className={`battle-exit ${e.known ? 'known' : ''} ${e.goal ? 'goal' : ''}`} pointerEvents="none">
+            <path d="M-0.2 0.08 L0 -0.14 L0.2 0.08" transform={`translate(${cx} ${cy}) rotate(${rot})`} fill="none" strokeWidth={0.09} strokeLinecap="round" strokeLinejoin="round" />
+            {e.label && <text x={lx} y={ly} textAnchor={anchor} fontSize={e.goal ? 0.36 : 0.3}>{e.goal ? `🎯 ${e.label}` : e.label}</text>}
+          </g>
+        );
+      })}
+
       {tokens.map((t) => {
         const r = t.size * 0.42;
         const cx = t.x + t.size / 2, cy = t.y + t.size / 2;
@@ -291,6 +333,13 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
             {t.out && (
               <path d={`M${cx - r * 0.7} ${cy - r * 0.7}L${cx + r * 0.7} ${cy + r * 0.7}M${cx + r * 0.7} ${cy - r * 0.7}L${cx - r * 0.7} ${cy + r * 0.7}`} stroke="#c0492f" strokeWidth={0.1} strokeLinecap="round" pointerEvents="none" />
             )}
+            {t.conditions?.length ? (
+              <g className="battle-token-conds">
+                <title>{t.conditions.join(' · ')}</title>
+                <circle cx={cx + r * 0.78} cy={cy - r * 0.78} r={0.17} fill="#ad97d8" stroke="#0b0906" strokeWidth={0.04} />
+                <text x={cx + r * 0.78} y={cy - r * 0.78 + 0.075} textAnchor="middle" fontSize={0.2} fontWeight={700} fill="#1a1026" pointerEvents="none">{t.conditions.length}</text>
+              </g>
+            ) : null}
             {t.active && <circle className="battle-turn-ring" cx={cx} cy={cy} r={r + 0.1} fill="none" stroke="#fff1c2" strokeWidth={0.07} pointerEvents="none" />}
             {t.maxHp ? (
               <g pointerEvents="none">
@@ -303,6 +352,36 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
         );
       })}
 
+      {aim && (() => {
+        const dx = aim.x2 - aim.x1, dy = aim.y2 - aim.y1, len = Math.hypot(dx, dy) || 1;
+        const ux = dx / len, uy = dy / len, end = Math.max(0, len - 0.45);
+        const ex = aim.x1 + ux * end, ey = aim.y1 + uy * end;
+        return (
+          <g className={`battle-aim tone-${aim.tone ?? 'info'} ${aim.pending ? 'pending' : ''}`} pointerEvents="none">
+            <line x1={aim.x1 + ux * 0.45} y1={aim.y1 + uy * 0.45} x2={ex} y2={ey} strokeWidth={0.09} strokeLinecap="round" />
+            <path d={`M${ex + ux * 0.22} ${ey + uy * 0.22} L${ex - uy * 0.16 - ux * 0.1} ${ey + ux * 0.16 - uy * 0.1} L${ex + uy * 0.16 - ux * 0.1} ${ey - ux * 0.16 - uy * 0.1}Z`} />
+            {!aim.pending && <circle cx={aim.x2} cy={aim.y2} r={0.52} fill="none" strokeWidth={0.06} strokeDasharray="0.18 0.1" />}
+            {aim.label && <text x={(aim.x1 + aim.x2) / 2} y={(aim.y1 + aim.y2) / 2 - 0.25} textAnchor="middle" fontSize={0.32}>{aim.label}</text>}
+          </g>
+        );
+      })()}
+
+      {/* Dégâts et soins : un grand chiffre qui monte et s'efface au-dessus du jeton touché. */}
+      {hits.map((h) => {
+        const t = tokens.find((q) => q.id === h.to);
+        if (!t || Date.now() - h.at > 4000) return null;
+        const stack = hits.filter((o) => o.to === h.to && o.at < h.at && Date.now() - o.at <= 4000).length;
+        const cx = t.x + t.size / 2, cy = t.y - 0.15 - stack * 0.75;
+        const heal = h.amount > 0;
+        return (
+          <text
+            key={h.id} className={`battle-hit ${heal ? 'heal' : 'dmg'}`} x={cx} y={cy} textAnchor="middle"
+            fontSize={0.95 + Math.min(0.6, Math.abs(h.amount) / 40)} pointerEvents="none" paintOrder="stroke"
+          >
+            {heal ? `+${h.amount}` : h.amount}
+          </text>
+        );
+      })}
     </svg>
     </div>
   );

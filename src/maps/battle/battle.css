@@ -388,6 +388,79 @@
 .token-sheet-lines dt{color:#a8925f;flex:none}
 .token-sheet-lines dd{margin:0}
 .token-sheet-tactics{margin:0;font-size:12px;color:#cdbd96}
+.battle-tab-chev{font-style:normal;font-size:10px;opacity:.6;margin-left:4px}
+/* Alertes de déplacement (attaque d'opportunité) et situation tactique */
+.battle-move-alerts{position:absolute;left:10px;bottom:10px;z-index:5;max-width:min(420px,80%);display:flex;flex-direction:column;gap:5px;padding:8px 30px 8px 10px;background:rgba(12,10,7,.94);border:1px solid #7d6128;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.5);font-size:12px;color:#e7d8b0}
+.battle-move-alerts.live{pointer-events:none}
+.battle-move-alerts .present-info-close{position:absolute;right:6px;top:2px;background:none;border:0;color:#c9a24a;font-size:18px;cursor:pointer}
+.battle-move-alert{display:flex;flex-direction:column;gap:2px;padding-left:8px;border-left:3px solid #c9a24a}
+.battle-move-alert b{font-size:13px}
+.battle-move-alert.tone-alert{border-color:#d0452c}.battle-move-alert.tone-alert b{color:#ff8c6e}
+.battle-move-alert.tone-malus{border-color:#d08a2c}.battle-move-alert.tone-malus b{color:#f0b866}
+.tac-notes{display:flex;flex-wrap:wrap;gap:5px}
+.tac-chip{position:relative;display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:12px;font-size:11.5px;line-height:1.3;cursor:help;border:1px solid}
+.tac-chip.tone-buff{background:#16301f;border-color:#3f8a55;color:#bfe8c9}
+.tac-chip.tone-chance{background:#182634;border-color:#4a7fb0;color:#c6def5}
+.tac-chip.tone-malus{background:#33240f;border-color:#a8722a;color:#f3d29a}
+.tac-chip.tone-alert{background:#3a1712;border-color:#c0452c;color:#ffc2b3}
+.tac-chip .tac-why{display:none;position:absolute;z-index:30;left:0;top:calc(100% + 6px);width:max-content;max-width:300px;white-space:pre-line;padding:8px 10px;background:#0f0c08;border:1px solid #7d6128;border-radius:6px;box-shadow:0 8px 20px rgba(0,0,0,.6);color:#e7d8b0;font-size:12px;line-height:1.4;cursor:auto}
+.tac-chip:hover .tac-why,.tac-chip:focus .tac-why{display:block}
+/* Champ de bataille improvisé (sous la carte de combat) */
+.skirmish-panel{margin-bottom:12px;padding:10px 12px}
+.skirmish-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.skirmish-head>b{font-family:'Cinzel',serif;color:#ecd289}
+.skirmish-tabs{display:flex;flex-wrap:wrap;gap:6px}
+.skirmish-now{margin-left:auto;min-width:220px;cursor:pointer}
+.skirmish-body{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+.skirmish-add{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px}
+.skirmish-col{display:flex;flex-direction:column;gap:6px;min-width:0}
+.skirmish-row{display:flex;gap:6px;align-items:center;min-width:0}
+.skirmish-row.wrap{flex-wrap:wrap}
+.skirmish-row .input{flex:1;min-width:0}
+.skirmish-qty{display:flex;align-items:center;gap:4px;white-space:nowrap}
+.skirmish-qty .input{width:56px;flex:none}
+.skirmish-sub{font-family:'Cinzel',serif;font-size:12px;color:#c9a24a;margin-top:4px}
+.skirmish-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;max-height:330px;overflow:auto}
+.skirmish-list li{display:flex;align-items:center;gap:8px;padding:4px 6px;border:1px solid #3e3320;border-radius:6px;background:#17130c}
+.skirmish-list img{width:34px;height:34px;border-radius:50%;object-fit:cover;flex:none}
+.skirmish-list li>span{flex:1;min-width:0;display:flex;flex-direction:column}
+.skirmish-list small{color:#a8925f;font-size:11px}
+.skirmish-note{font-size:12px;margin:0}
+.skirmish-proposal{padding:8px 10px;border:1px solid #5a4724;border-radius:8px;background:#15110b;display:flex;flex-direction:column;gap:6px}
+.skirmish-proposal.ai{border-color:#4a7fb0}
+.skirmish-gauge{display:flex;flex-direction:column;gap:3px}
+.skirmish-gauge-bar{position:relative;display:grid;grid-template-columns:repeat(5,1fr);height:18px;border-radius:9px;overflow:visible;font-size:9.5px;text-transform:uppercase;letter-spacing:.03em}
+.skirmish-gauge-bar span{display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.75)}
+.skirmish-gauge-bar span:nth-child(1){background:#2c3a2a;border-radius:9px 0 0 9px}
+.skirmish-gauge-bar span:nth-child(2){background:#3d5a2c}
+.skirmish-gauge-bar span:nth-child(3){background:#7a6a22}
+.skirmish-gauge-bar span:nth-child(4){background:#8a4a1e}
+.skirmish-gauge-bar span:nth-child(5){background:#7a1e1e;border-radius:0 9px 9px 0}
+.skirmish-gauge-bar i{position:absolute;top:-3px;width:4px;height:24px;margin-left:-2px;background:#fff3c4;border-radius:2px;box-shadow:0 0 6px rgba(0,0,0,.8);transition:left .3s}
+.skirmish-gauge small{font-size:11.5px;color:#cdbd96}
+.skirmish-gauge.small .skirmish-gauge-bar{height:12px;font-size:0}
+.skirmish-gauge.small .skirmish-gauge-bar i{height:18px}
+.skirmish-intent{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.skirmish-intent input{flex:1;min-width:140px;accent-color:#c9a24a}
+.skirmish-intent b{min-width:150px;color:#ecd289}
+.skirmish-moves{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px}
+.skirmish-moves li{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:6px 8px;border:1px solid #3e3320;border-radius:6px;background:#17130c;font-size:13px}
+.skirmish-moves li>span{flex:1;min-width:0}
+.combat-tactics{display:flex;flex-direction:column;gap:4px;margin-bottom:6px}
+@container (max-width: 760px){ .maps-viewer .skirmish-add{grid-template-columns:minmax(0,1fr)} .maps-viewer .skirmish-now{margin-left:0;flex-basis:100%} }
+.skirmish-body>.btn{align-self:flex-start}
+/* Page Combat : carte de combat à droite au lieu de la mini-map */
+.combat-layout-advanced.with-board{grid-template-columns:minmax(0,1fr) minmax(420px,46%)}
+.combat-side-switch{display:flex;gap:4px}
+.combat-side-switch button{padding:3px 8px;font-size:12px;border-radius:5px;border:1px solid #4a3c22;background:#17130c;color:#cdbd96;cursor:pointer}
+.combat-side-switch button[data-on="1"]{background:#5a4320;border-color:#c9a24a;color:#f3e6c2}
+.combat-board-pick{width:100%;margin-bottom:6px}
+.mini-battle{display:flex;flex-direction:column;gap:6px}
+.mini-battle-board{position:relative;touch-action:none;cursor:pointer}
+.mini-battle-board.dragging{cursor:grabbing}
+.mini-battle-board .battle-stack{position:relative}
+.mini-battle-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px}
+@media (max-width:1100px){.combat-layout-advanced.with-board{grid-template-columns:1fr}}
 
 /* ---------- Fiche de créature : grande illustration, mise en page compacte ---------- */
 .token-sheet{gap:7px}
@@ -459,3 +532,214 @@
 .battle-fiche-hero>div{position:absolute;left:12px;right:36px;bottom:8px;z-index:1}
 .battle-fiche-hero h3{margin:2px 0 0;text-shadow:0 2px 8px rgba(0,0,0,.9)}
 @keyframes fiche-in{from{opacity:0;transform:translateY(-6px)}}
+/* ---------- Écran joueur : bandeau d'initiative ---------- */
+.present-turn{display:flex;align-items:center;gap:2vw;margin:.6vh 0 1vh;min-height:0}
+.present-turn-now{display:flex;align-items:center;gap:1vw;padding:.6vh 1.6vw .6vh .6vh;border:1px solid #c9a24a;border-radius:999px;background:radial-gradient(ellipse 80% 140% at 0% 50%,rgba(201,162,74,.28),transparent 70%),rgba(12,10,7,.92);color:#f6e8c4;cursor:pointer;font:inherit;animation:turn-in .6s cubic-bezier(.2,.7,.2,1) both;box-shadow:0 0 22px rgba(201,162,74,.25)}
+.present-turn-now.kind-monster{border-color:#c0492f;background:radial-gradient(ellipse 80% 140% at 0% 50%,rgba(192,73,47,.3),transparent 70%),rgba(12,10,7,.92);box-shadow:0 0 22px rgba(192,73,47,.3)}
+.present-turn-now.kind-pc{border-color:#54d8c6;background:radial-gradient(ellipse 80% 140% at 0% 50%,rgba(84,216,198,.22),transparent 70%),rgba(12,10,7,.92);box-shadow:0 0 22px rgba(84,216,198,.25)}
+.present-turn-now.waiting{cursor:default;border-color:#5a4724;box-shadow:none;padding-left:1.6vw}
+.present-turn-now img,.present-turn-now .present-turn-initial{width:clamp(48px,6.5vh,84px);height:clamp(48px,6.5vh,84px);border-radius:50%;object-fit:cover;object-position:50% 30%;border:2px solid currentColor;flex:none}
+.present-turn-initial{display:inline-flex;align-items:center;justify-content:center;background:#1b150d;font-family:'Cinzel',serif;color:#c9a24a;font-size:1.4em}
+.present-turn-text{display:flex;flex-direction:column;text-align:left;line-height:1.15}
+.present-turn-text small{font-size:clamp(11px,1.3vh,15px);letter-spacing:.12em;text-transform:uppercase;color:#cdbd96}
+.present-turn-text b{font-family:var(--font-joueurs-titre,'Cinzel Decorative',serif);font-size:clamp(20px,3vh,38px);color:#fff3c4}
+.present-turn-text em{font-style:normal;font-size:clamp(12px,1.5vh,17px);color:#f0b8a0}
+.present-turn-next{display:flex;align-items:center;gap:1.2vw;list-style:none;margin:0;padding:0;min-width:0;overflow:hidden}
+.present-turn-next li{display:flex;align-items:center;gap:.5vw;font-size:clamp(12px,1.5vh,17px);color:#cdbd96;cursor:pointer;opacity:.85;white-space:nowrap}
+.present-turn-next li:nth-child(n+3){opacity:.6}
+.present-turn-next li img,.present-turn-next li .present-turn-initial{width:clamp(28px,3.6vh,44px);height:clamp(28px,3.6vh,44px);border-radius:50%;object-fit:cover;border:1px solid #5a4724}
+.present-turn-next li.kind-monster img{border-color:#8a3a22}.present-turn-next li.kind-pc img{border-color:#2f8a80}
+.present-turn-next .present-turn-label{cursor:default;opacity:1;letter-spacing:.12em;text-transform:uppercase;font-size:clamp(10px,1.2vh,13px)}
+.present-battle .battle-turn-ring{animation:turn-pulse 1.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes turn-in{from{opacity:0;transform:translateX(-14px) scale(.96)}}
+@keyframes turn-pulse{0%,100%{stroke-opacity:1;stroke-width:.07}50%{stroke-opacity:.45;stroke-width:.16}}
+@media (prefers-reduced-motion:reduce){.present-turn-now,.present-battle .battle-turn-ring{animation:none}}
+/* Sorties au bord du plateau (écran joueur) */
+.battle-exit path{stroke:#e9cf86;filter:drop-shadow(0 0 .06px #000);animation:exit-glow 2.4s ease-in-out infinite}
+.battle-exit text{fill:#f3e3b4;paint-order:stroke;stroke:#0b0805;stroke-width:.08px;font-family:'Cinzel',serif;letter-spacing:.01em}
+.battle-exit:not(.known) path{stroke:#a8925f}
+.battle-exit:not(.known) text{fill:#b9a57a}
+@keyframes exit-glow{0%,100%{stroke-opacity:1}50%{stroke-opacity:.45}}
+.battle-move-alerts .battle-exit-btn{margin-top:3px;pointer-events:auto}
+/* Trait d'attaque (MJ et joueurs) */
+.battle-aim line{stroke:#ffd27a;stroke-opacity:.95}
+.battle-aim path{fill:#ffd27a}
+.battle-aim circle{stroke:#ffd27a}
+.battle-aim text{fill:#fff3c4;paint-order:stroke;stroke:#0b0805;stroke-width:.08px;font-family:'Cinzel',serif}
+.battle-aim.pending line{stroke-dasharray:.25 .15;animation:aim-march 0.8s linear infinite}
+.battle-aim.tone-hit line,.battle-aim.tone-hit circle{stroke:#ff8a5c}.battle-aim.tone-hit path{fill:#ff8a5c}
+.battle-aim.tone-crit line,.battle-aim.tone-crit circle{stroke:#ff4b2e}.battle-aim.tone-crit path{fill:#ff4b2e}
+.battle-aim.tone-miss line,.battle-aim.tone-miss circle{stroke:#9aa6b4;stroke-opacity:.8}.battle-aim.tone-miss path{fill:#9aa6b4}
+@keyframes aim-march{to{stroke-dashoffset:-.4}}
+.present-aim-hint,.present-aim-result{align-self:center;margin:0 0 1vh;padding:.6vh 1.6vw;border-radius:999px;border:1px solid #c9a24a;background:rgba(12,10,7,.92);color:#fff3c4;font-family:var(--font-joueurs-titre,'Cinzel',serif);font-size:clamp(16px,2.2vh,26px);animation:turn-in .5s ease-out both}
+.present-aim-result.tone-hit{border-color:#ff8a5c;box-shadow:0 0 22px rgba(255,138,92,.35)}
+.present-aim-result.tone-crit{border-color:#ff4b2e;box-shadow:0 0 28px rgba(255,75,46,.5)}
+.present-aim-result.tone-miss{border-color:#7d8794;color:#d5dbe2}
+.present-aim-btn{margin-top:10px;padding:8px 16px;border-radius:999px;border:1px solid #54d8c6;background:rgba(84,216,198,.12);color:#e8fffb;font:inherit;font-size:clamp(14px,1.6vw,20px);cursor:pointer}
+.battle-attack-card{border-color:#c9a24a}
+/* Panneau d'attaque (carte de combat, colonne de droite) */
+.attack-panel{display:flex;flex-direction:column;gap:8px;font-size:13px}
+.attack-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.attack-head b{font-family:'Cinzel',serif;color:#ecd289;font-size:15px}
+.attack-facts{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.attack-facts>span:not(.tac-chip){padding:2px 8px;border-radius:10px;background:#17130c;border:1px solid #3e3320;font-size:12px}
+.attack-by{color:#9fd8ff}
+.attack-options{display:flex;flex-direction:column;gap:4px}
+.attack-option{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:5px 8px;border-radius:6px;border:1px solid #3e3320;background:#17130c;color:inherit;text-align:left;cursor:pointer;font:inherit}
+.attack-option small{color:#a8925f;font-size:11.5px}
+.attack-option.on{border-color:#c9a24a;background:#2a2012}
+.attack-option.blocked{opacity:.55}
+.attack-option.blocked.on{opacity:1;border-color:#a8452c}
+.attack-block{padding:7px 9px;border-radius:6px;border:1px solid #8a3a22;background:#2a130d;display:flex;flex-direction:column;gap:6px}
+.attack-block p{margin:0}
+.attack-steps{display:flex;flex-direction:column;gap:6px}
+.attack-steps p{margin:0}
+.attack-steps .input{width:84px;flex:none}
+.attack-why{font-size:12px}
+.attack-verdict.hit b{color:#ff9a6e}.attack-verdict.miss b{color:#9aa6b4}
+.attack-done p{margin:0 0 6px}
+.attack-hand{font-size:11.5px;margin:0}
+
+/* Dégâts et soins écrits en grand au-dessus des jetons (MJ et écran joueur). */
+.battle-hit{font-family:'Cinzel',serif;font-weight:700;stroke:#0b0906;stroke-width:.09px;transform-box:fill-box;transform-origin:center;
+  animation:battle-hit 3.8s cubic-bezier(.2,.7,.2,1) forwards}
+.battle-hit.dmg{fill:#ff5a3c;filter:drop-shadow(0 0 .08px rgba(255,90,60,.9))}
+.battle-hit.heal{fill:#9be37b;filter:drop-shadow(0 0 .08px rgba(155,227,123,.9))}
+@keyframes battle-hit{0%{opacity:0;transform:translateY(.4px) scale(.4)}10%{opacity:1;transform:translateY(0) scale(1.25)}20%{transform:scale(1)}75%{opacity:1}100%{opacity:0;transform:translateY(-1.2px) scale(.95)}}
+@media (prefers-reduced-motion:reduce){.battle-hit{animation:battle-hit-fade 3.8s linear forwards}@keyframes battle-hit-fade{0%,75%{opacity:1}100%{opacity:0}}}
+
+/* ---------------- Écran joueur : lisible de loin ---------------- */
+/* Interrupteurs de déplacement et de portée du héros dont c'est le tour. */
+.present-battle-head{align-items:center;gap:1.5vw}
+.present-toggles{display:flex;gap:.8vw;flex-wrap:wrap;justify-content:center;letter-spacing:0}
+.present-toggles button{font:inherit;font-family:'EB Garamond',Georgia,serif;font-size:clamp(14px,1.9vh,22px);padding:.5vh 1.2vw;border-radius:999px;cursor:pointer;
+  border:1px solid #5a4724;background:rgba(12,10,7,.85);color:#cdbd96}
+.present-toggles button[data-on]{border-color:#54d8c6;color:#e8fffb;background:rgba(84,216,198,.14);box-shadow:0 0 14px rgba(84,216,198,.25)}
+.present-battle-body{touch-action:none}
+.present-battle-body .battle-token{cursor:grab}
+.present-battle-body[data-dragging] .battle-token{cursor:grabbing}
+.present-aim-wait{margin-top:10px;color:#cdbd96;font-style:italic}
+
+/* Initiative en grand : visage et nom de celui qui joue, puis les suivants. */
+.present-turn{gap:2.4vw;margin:.4vh 0 1.2vh}
+.present-turn-now{gap:1.4vw;padding:.8vh 2.2vw .8vh .8vh}
+.present-turn-now img,.present-turn-now .present-turn-initial{width:clamp(72px,12vh,150px);height:clamp(72px,12vh,150px);border-width:3px}
+.present-turn-text small{font-size:clamp(13px,1.8vh,20px)}
+.present-turn-text b{font-size:clamp(28px,5vh,64px)}
+.present-turn-text em{font-size:clamp(15px,2.2vh,24px)}
+.present-turn-next{gap:1.8vw}
+.present-turn-next li{gap:.7vw;font-size:clamp(16px,2.6vh,30px);color:#e6d7ae;font-family:'Cinzel',serif}
+.present-turn-next li img,.present-turn-next li .present-turn-initial{width:clamp(46px,7.5vh,96px);height:clamp(46px,7.5vh,96px);border-width:2px}
+.present-turn-next .present-turn-label{font-size:clamp(12px,1.6vh,18px)}
+
+/* Verdict d'une attaque : en très grand, la phrase de récit, puis les dégâts. */
+.present-verdict{align-self:center;max-width:min(92vw,1300px);margin:0 0 1vh;padding:1.2vh 2.6vw 1.4vh;border-radius:18px;text-align:center;
+  border:2px solid #c9a24a;background:radial-gradient(ellipse at 50% 0%,rgba(201,162,74,.22),transparent 70%),rgba(10,8,5,.94);
+  box-shadow:0 0 40px rgba(201,162,74,.25);animation:verdict-in .55s cubic-bezier(.2,.9,.25,1.2) both}
+.present-verdict-top{display:flex;align-items:center;justify-content:center;gap:2vw}
+.present-verdict-top b{font-family:var(--font-joueurs-titre,'Cinzel Decorative','Cinzel',serif);font-size:clamp(34px,7vh,92px);line-height:1;color:#fff3c4;text-shadow:0 0 24px rgba(255,220,140,.5)}
+.present-verdict-roll{font-family:'Cinzel',serif;font-size:clamp(22px,4vh,52px);color:#e6d7ae;padding:.2vh 1vw;border-radius:12px;border:1px solid #5a4724;background:rgba(0,0,0,.35)}
+.present-verdict-dmg{display:inline-flex;align-items:baseline;gap:.5vw;font-family:'Cinzel',serif;font-weight:700;font-size:clamp(40px,8.5vh,110px);line-height:1;color:#ff5a3c;
+  text-shadow:0 0 28px rgba(255,90,60,.6);animation:verdict-dmg .6s cubic-bezier(.2,.9,.25,1.4) both}
+.present-verdict-dmg small{font-size:.32em;font-weight:400;color:#f0b8a0}
+.present-verdict-who{margin:.6vh 0 0;font-family:'Cinzel',serif;font-size:clamp(14px,2vh,24px);letter-spacing:.06em;color:#cdbd96}
+.present-verdict-line{margin:.6vh auto 0;max-width:62ch;font-family:var(--font-joueurs,'Almendra',Georgia,serif);font-size:clamp(18px,3vh,38px);line-height:1.3;color:#f6e8c4}
+.present-verdict.v-hit{border-color:#ff8a5c;box-shadow:0 0 40px rgba(255,138,92,.35)}
+.present-verdict.v-crit{border-color:#ffcf5c;box-shadow:0 0 60px rgba(255,190,80,.55)}
+.present-verdict.v-crit .present-verdict-top b{color:#ffe08a}
+.present-verdict.v-miss{border-color:#7d8794;box-shadow:0 0 30px rgba(125,135,148,.25)}
+.present-verdict.v-miss .present-verdict-top b{color:#d5dbe2;text-shadow:none}
+.present-verdict.v-fumble{border-color:#9c7bd6;box-shadow:0 0 40px rgba(156,123,214,.4)}
+.present-verdict.v-fumble .present-verdict-top b{color:#d8c6ff}
+@keyframes verdict-in{from{opacity:0;transform:scale(.8) translateY(-1vh)}to{opacity:1;transform:none}}
+@keyframes verdict-dmg{from{opacity:0;transform:scale(2.2)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.present-verdict,.present-verdict-dmg{animation:none}}
+
+/* Panneau d'attaque MJ : cible et phrase annoncée. */
+.attack-target{display:flex;align-items:center;gap:8px;margin:6px 0}
+.attack-target span{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.08em;color:var(--gold,#c9a24a)}
+.attack-target select{flex:1}
+.attack-line{font-style:italic;color:#e6d7ae;margin:4px 0}
+
+/* ---- Écran joueur : la carte garde sa taille ; fiches et bannières passent par-dessus ---- */
+.present-battle-body{position:relative}
+.present-battle .present-card{position:absolute;left:50%;bottom:1.5vh;transform:translateX(-50%);z-index:6;width:min(1200px,94%);
+  box-shadow:0 18px 60px rgba(0,0,0,.75),0 0 0 1px rgba(0,0,0,.6)}
+@keyframes present-card-in{from{opacity:0;transform:translate(-50%,18px)}to{transform:translateX(-50%)}}
+.present-battle-body > :is(.present-verdict,.present-aim-result,.present-aim-hint){position:absolute;top:1vh;left:50%;transform:translateX(-50%);z-index:7;margin:0;pointer-events:none;width:max-content;max-width:min(92%,1300px)}
+.present-battle-body > .present-verdict{animation:verdict-in-c .55s cubic-bezier(.2,.9,.25,1.2) both}
+@keyframes verdict-in-c{from{opacity:0;transform:translate(-50%,-1vh) scale(.8)}to{opacity:1;transform:translateX(-50%)}}
+.present-damage{padding:1vh 3vw 1.2vh}
+.present-damage .present-verdict-dmg{font-size:clamp(56px,12vh,150px)}
+.present-damage .present-verdict-dmg small{font-size:.26em}
+
+/* ---- Bande d'initiative : de vraies images (portraits), pas des jetons ---- */
+.present-turn{align-items:stretch;gap:1.6vw}
+.present-turn-now{gap:0;padding:0;border-radius:14px;overflow:hidden;align-items:stretch;border-width:2px}
+.present-turn-portrait{position:relative;display:block;flex:none;overflow:hidden;background:#0b0906}
+.present-turn-portrait img,.present-turn-portrait .present-turn-initial{display:flex;width:100%;height:100%;object-fit:cover;object-position:50% 25%;border:0;border-radius:0}
+.present-turn-now img,.present-turn-now .present-turn-initial{width:100%;height:100%;border:0;border-radius:0}
+.present-turn-now .present-turn-portrait{width:clamp(96px,13vh,170px);aspect-ratio:3/4}
+.present-turn-now .present-turn-portrait::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 60%,rgba(12,10,7,.9))}
+.present-turn-now .present-turn-text{justify-content:center;padding:1vh 2vw 1vh 1vw}
+.present-turn-next{align-items:stretch;gap:1vw;overflow:visible}
+.present-turn-next li{position:relative;flex-direction:column;gap:0;width:clamp(74px,9.5vh,124px);border-radius:10px;overflow:hidden;border:1px solid #5a4724;background:#0b0906;
+  opacity:calc(1 - var(--i,0) * .12)}
+.present-turn-next li .present-turn-portrait{width:100%;aspect-ratio:3/4}
+.present-turn-next li img,.present-turn-next li .present-turn-initial{width:100%;height:100%;border:0;border-radius:0}
+.present-turn-next li.kind-monster{border-color:#8a3a22}.present-turn-next li.kind-pc{border-color:#2f8a80}
+.present-turn-name{position:absolute;left:0;right:0;bottom:0;padding:1.6vh .4vw .5vh;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-family:'Cinzel',serif;font-size:clamp(12px,1.7vh,20px);color:#f6e8c4;background:linear-gradient(transparent,rgba(8,6,4,.92) 55%)}
+.present-turn-next .present-turn-label{width:auto;border:0;background:none;align-self:center;writing-mode:vertical-rl;transform:rotate(180deg);opacity:.8}
+.present-turn-initial{align-items:center;justify-content:center;font-size:clamp(28px,5vh,60px)}
+
+/* ---- Écran joueur, version compacte : la carte d'abord, le reste en appoint ----
+   Tailles calées sur le plus petit côté de l'écran (vmin) pour rester mesurées sur une fenêtre réduite. */
+.present-battle{padding:2vmin 2.4vmin;gap:1.2vmin}
+.present-battle-head{font-size:clamp(13px,2vmin,20px)}
+.present-toggles button{font-size:clamp(12px,1.7vmin,17px);padding:.4vmin 1.4vmin}
+.present-turn{gap:1.4vmin;margin:0}
+.present-turn-now .present-turn-portrait{width:clamp(48px,8vmin,96px)}
+.present-turn-now .present-turn-text{padding:.6vmin 2vmin .6vmin 1.2vmin}
+.present-turn-text small{font-size:clamp(10px,1.4vmin,14px)}
+.present-turn-text b{font-size:clamp(18px,3.6vmin,40px)}
+.present-turn-text em{font-size:clamp(11px,1.6vmin,16px)}
+.present-turn-next{gap:.9vmin}
+.present-turn-next li{width:clamp(40px,6.2vmin,74px);border-radius:7px}
+.present-turn-name{font-size:clamp(9px,1.25vmin,13px);padding:1.4vmin .3vmin .3vmin}
+.present-turn-next .present-turn-label{font-size:clamp(9px,1.2vmin,12px)}
+
+/* Bannières : un bandeau en haut du plateau, qui s'efface de lui-même. */
+.present-verdict{padding:.8vmin 2.4vmin 1vmin;border-radius:12px;border-width:1.5px}
+.present-verdict-top{gap:1.6vmin}
+.present-verdict-top b{font-size:clamp(20px,4.4vmin,48px)}
+.present-verdict-roll{font-size:clamp(14px,2.6vmin,28px);padding:.1vmin .9vmin;border-radius:8px}
+.present-verdict-who{margin:.3vmin 0 0;font-size:clamp(10px,1.5vmin,15px)}
+.present-verdict-line{margin:.4vmin auto 0;font-size:clamp(13px,2.1vmin,22px);max-width:56ch}
+.present-damage{padding:.6vmin 2.6vmin .8vmin}
+.present-damage .present-verdict-dmg{font-size:clamp(30px,6.5vmin,72px)}
+.present-battle-body > .present-verdict:is(.v-miss,.v-fumble),.present-battle-body > .present-damage{
+  animation:verdict-in-c .5s cubic-bezier(.2,.9,.25,1.2) both,verdict-out .8s ease-in 6s forwards}
+@keyframes verdict-out{to{opacity:0;transform:translate(-50%,-1vh)}}
+.present-aim-hint,.present-aim-result{font-size:clamp(13px,2vmin,20px);padding:.5vmin 2vmin}
+
+/* Fiche ouverte : petite carte dans le coin bas gauche, la carte reste visible. */
+.present-battle .present-card{left:1.2vmin;right:auto;bottom:1.2vmin;transform:none;width:min(560px,58%);max-height:min(28vh,260px);border-radius:10px}
+@keyframes present-card-in{from{opacity:0;transform:translateY(14px)}to{transform:none}}
+.present-card-hero{width:clamp(90px,18vmin,180px);aspect-ratio:3/4;max-height:min(28vh,260px)}
+.present-battle .present-card-body{padding:1.2vmin 4.4vmin 1.2vmin 1.8vmin}
+.present-battle .present-card h3{font-size:clamp(16px,2.6vmin,26px);margin:2px 0 6px}
+.present-battle .present-card p{font-size:clamp(12px,1.75vmin,17px);line-height:1.45}
+.present-battle .present-card .present-info-kind{font-size:clamp(9px,1.2vmin,12px)}
+.present-battle .present-card .present-info-close{width:26px;height:26px;right:6px;top:6px}
+.present-aim-btn{margin-top:6px;padding:.6vmin 1.8vmin;font-size:clamp(12px,1.7vmin,17px)}
+.present-aim-btn.foe{border-color:#c0492f;background:rgba(192,73,47,.16);color:#ffe2d8}
+.present-aim-wait{margin-top:6px;font-size:clamp(12px,1.6vmin,16px)}
+@media (prefers-reduced-motion:reduce){.present-battle-body > .present-verdict:is(.v-miss,.v-fumble),.present-battle-body > .present-damage{animation:verdict-out .01s linear 6s forwards}}
+
+/* Sorties vers l'objectif (MJ) : dorées et marquées 🎯 ; rappel de l'objectif dans la barre du plateau. */
+.battle-exit.goal path{stroke:#ffd76a;stroke-width:.13px;filter:drop-shadow(0 0 .12px rgba(255,215,106,.9))}
+.battle-exit.goal text{fill:#ffe39a;font-weight:700}
+.battle-goal-chip{font-size:13px;color:#cdbd96;background:rgba(0,0,0,.35);border:1px dashed #5a4a2a;border-radius:999px;padding:2px 10px}
+.battle-goal-chip b{color:#e7d8b0;font-weight:600}
+.battle-goal-chip.on{color:#ffe39a;border-style:solid;border-color:#c9a24a;background:rgba(201,162,74,.14)}

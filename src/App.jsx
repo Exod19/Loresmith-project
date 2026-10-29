@@ -18,12 +18,18 @@ import React, {
   useContext,
   createContext,
 } from 'react';
-import { Download, Upload, Settings, ExternalLink } from 'lucide-react';
+import { Download, Upload, Settings, ExternalLink, Undo2, Keyboard, MonitorPlay, Trash2, Move, Square, Ruler, Grid3x3, EyeOff, Eye, Eraser, Swords, SkipForward, Dices, Pencil, RefreshCw, Users, Plus, ChevronLeft, RotateCcw } from 'lucide-react';
 import MapsPage from './maps/MapsPage';
 import TableMap, { tableMapId } from './maps/TableMap';
 import { setMapIntent } from './maps/intent';
-import { placeTokens as placeOnBoard } from './maps/battle/placement';
+import { placeTokens as placeOnBoard, effectiveOf } from './maps/battle/placement';
+import { tacticalNotes, profileFromStat, coverAgainst } from './maps/battle/tactics';
+import MiniBattle from './maps/battle/MiniBattle';
+import { sightFor } from './maps/battle/combat';
+import { propose as proposeEncounter, placeTactically, rate as rateEncounter, thresholds as encounterThresholds, xpOf, crOf, THEMES as SKIRMISH_THEMES } from './maps/battle/skirmish';
+import { registerStat, quickStat, QUICK_CRS, customStats } from './maps/atlas/customStats';
 import ArchivesPage from './feeds/ArchivesPage';
+import { attackFamily, attackLine } from './combat/flavour';
 import ArchivesLinkPanel from './feeds/ArchivesLink';
 import Dossier, { LibraryCard } from './library/Dossier';
 import StageControl from './present/StageControl';
@@ -61,6 +67,7 @@ import {
   toScene,
 } from './forge/campaignPipeline';
 import './forge/forge.css';
+import './combat/wartable.css';
 import { entityFromSrd, generateEntities } from './bestiary/entityGen';
 import StatSheet from './bestiary/StatSheet';
 import ArchiveImagePicker from './media/ArchiveImagePicker';
@@ -5384,14 +5391,14 @@ export default function App() {
                 }}
               />
             ) : view === 'encounter' ? (
-              <Encounter {...{ dispatch, state, party, npcs, flash }} />
+              <Encounter {...{ dispatch, state, party, npcs, flash }} onOpenBattleMap={(mapId) => { setMapIntent({ mapId, battle: true }); goTo('maps'); }} />
             ) : view === 'archives' ? (
               <ArchivesPage universe={universe} dispatch={dispatch} flash={flash} />
             ) : view === 'maps' ? (
               <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} heroes={party} campaigns={campaigns} bestiary={npcs} onReturnToTable={() => setView('scene')}
                 artOf={(name, id) => combatantArtOf(state, (state.combat?.combatants || []).find((c) => c.id === id), faunaFeed) || creatureArtOf(state, name, faunaFeed)}
-                renderCombat={(slot) => slot.area === 'card'
-                  ? <TokenSheet state={state} dispatch={dispatch} id={slot.selectedId} onClose={() => slot.onSelect(null)} />
+                renderCombat={(slot) => slot.area === 'attack'
+                  ? <AttackPanel key={slot.battle.aim?.at} state={state} dispatch={dispatch} battle={slot.battle} setBattle={slot.setBattle} />
                   : <MapEncounter {...{ state, dispatch, party, npcs, flash }} {...slot} />}
               />
             ) : view === 'present' ? (
@@ -13090,16 +13097,166 @@ function getLinkedSceneLabels(sceneIds, campaigns) {
  * Module Combat. Utilisé tel quel dans l’onglet Combat, et sous la carte de combat (`embedded`) :
  * la sélection est alors partagée avec le plateau, et la mini-carte cède la place au vrai plateau.
  */
-function Encounter({ dispatch, state, party, npcs, flash, embedded }) {
+/** Pile d’annulation du combat, pour la session en cours : l’état du combat avant chaque geste de jeu. */
+const combatUndo = [];
+const COMBAT_UNDO_MAX = 40;
+const COMBAT_JOURNAL_MAX = 150;
+
+/** États de D&D 5e (DRS), avec leur effet en une ligne. La Concentration est un repère du MJ. */
+const COMBAT_CONDITIONS = [
+  { name: 'À terre', icon: '⤓', rule: 'Se déplace en rampant. Désavantage à ses attaques ; les attaques contre lui ont l’avantage à 1,5 m, le désavantage au-delà.' },
+  { name: 'Agrippé', icon: '✊', rule: 'Vitesse 0. Prend fin si l’agrippeur est neutralisé ou si la créature est éloignée de lui.' },
+  { name: 'Assourdi', icon: '🔇', rule: 'N’entend rien ; échoue aux tests qui demandent l’ouïe.' },
+  { name: 'Aveuglé', icon: '◌', rule: 'Ne voit rien. Désavantage à ses attaques ; les attaques contre lui ont l’avantage.' },
+  { name: 'Charmé', icon: '♥', rule: 'Ne peut pas attaquer le charmeur ; le charmeur a l’avantage à ses tests sociaux contre lui.' },
+  { name: 'Effrayé', icon: '!', rule: 'Désavantage aux tests et attaques tant que la source est en vue ; ne peut pas s’en approcher.' },
+  { name: 'Empoisonné', icon: '☠', rule: 'Désavantage aux jets d’attaque et aux tests de caractéristique.' },
+  { name: 'Entravé', icon: '⛓', rule: 'Vitesse 0. Désavantage à ses attaques et aux JS de Dextérité ; les attaques contre lui ont l’avantage.' },
+  { name: 'Étourdi', icon: '✷', rule: 'Neutralisé, immobile, parle à peine. Rate ses JS de Force et de Dextérité ; les attaques contre lui ont l’avantage.' },
+  { name: 'Inconscient', icon: '☾', rule: 'Neutralisé, à terre, lâche ce qu’il tient. Rate ses JS de Force et de Dextérité ; attaques avec avantage, critique à 1,5 m.' },
+  { name: 'Invisible', icon: '◇', rule: 'Les attaques contre lui ont le désavantage ; ses attaques ont l’avantage.' },
+  { name: 'Neutralisé', icon: '⊘', rule: 'Ni action ni réaction.' },
+  { name: 'Paralysé', icon: '❄', rule: 'Neutralisé, immobile, muet. Rate ses JS de Force et de Dextérité ; attaques avec avantage, critique à 1,5 m.' },
+  { name: 'Pétrifié', icon: '▣', rule: 'Changé en pierre : neutralisé, résistance à tous les dégâts. Les attaques contre lui ont l’avantage.' },
+  { name: 'Épuisement', icon: '⧗', rule: 'Effets cumulés par niveau (1 : désavantage aux tests de caractéristique… 6 : mort).' },
+  { name: 'Concentration', icon: '◎', rule: 'Maintient un sort. Après des dégâts : JS de Constitution, DD 10 ou la moitié des dégâts si c’est plus.' },
+];
+const conditionOf = (name) => COMBAT_CONDITIONS.find((x) => x.name === name) || { name, icon: '•', rule: '' };
+
+/** Jet de dés : « 2d8 +4 », « d20 +7 1d4 adv. » ; les dés sont doublés en cas de critique. */
+function rollDiceText(text, { crit = false } = {}) {
+  const src = String(text || '');
+  const rolls = [];
+  let total = 0;
+  for (const m of src.matchAll(/(^|\s)([+-]?)(\d+)d(\d+)/g)) {
+    const n = Number(m[3]) * (crit ? 2 : 1);
+    const faces = Number(m[4]);
+    const sign = m[2] === '-' ? -1 : 1;
+    for (let i = 0; i < n; i++) {
+      const r = 1 + Math.floor(Math.random() * faces);
+      rolls.push(sign * r);
+      total += sign * r;
+    }
+  }
+  const flat = /(^|\s)([+-]\s?\d+)(?![\dd])/.exec(src.replace(/(^|\s)[+-]?\d*d\d+/g, ' '));
+  const bonus = flat ? Number(flat[2].replace(/\s/g, '')) : 0;
+  return { total: total + bonus, rolls, bonus };
+}
+
+function rollCombatAttack(combatant, attack) {
+  const calc = calculateAttackLine(combatant, attack, getCombatantDerivedStats(combatant));
+  const adv = / adv\./.test(calc.toHit);
+  const dis = /disadv\./.test(calc.toHit);
+  const d20s = [1 + Math.floor(Math.random() * 20)];
+  if (adv || dis) d20s.push(1 + Math.floor(Math.random() * 20));
+  const nat = adv ? Math.max(...d20s) : dis ? Math.min(...d20s) : d20s[0];
+  const rest = rollDiceText(calc.toHit.replace(/^d20/, '').replace(/(dis)?adv\./, ''));
+  const crit = nat === 20;
+  const dmg = calc.damage && calc.damage !== '—' ? rollDiceText(calc.damage, { crit }) : null;
+  const dmgType = calc.damage ? calc.damage.replace(/(^|\s)[+-]?\d*d\d+/g, ' ').replace(/(^|\s)[+-]\s?\d+/g, ' ').trim() : '';
+  return {
+    key: uid(),
+    who: combatant.name,
+    name: attack.name,
+    d20s,
+    nat,
+    adv,
+    dis,
+    total: nat + rest.total,
+    crit,
+    fumble: nat === 1,
+    dmg: dmg ? Math.max(0, dmg.total) : null,
+    dmgType,
+    formula: `${calc.toHit} · ${calc.damage}`,
+  };
+}
+
+/**
+ * Un nouveau combattant prend une case libre près de sa position par défaut (grille 12 × 12) et, s’il porte le nom
+ * d’un autre, un numéro : trois gobelins deviennent Gobelin, Gobelin 2, Gobelin 3.
+ */
+function withFreshInstance(list, combatant, blockedCells = []) {
+  const base = combatant.name;
+  const same = list.filter((x) => x.name === base || x.name.startsWith(`${base} `) && /^\d+$/.test(x.name.slice(base.length + 1))).length;
+  const name = same ? `${base} ${same + 1}` : base;
+  const taken = new Set([...blockedCells, ...list.map((t) => `${Number(t.token?.x || 0)},${Number(t.token?.y || 0)}`)]);
+  const x0 = Number(combatant.token?.x || 0);
+  const y0 = Number(combatant.token?.y || 0);
+  for (let r = 0; r < 12; r++) {
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        const x = x0 + dx;
+        const y = y0 + dy;
+        if (Math.max(Math.abs(dx), Math.abs(dy)) !== r || x < 0 || y < 0 || x > 11 || y > 11 || taken.has(`${x},${y}`)) continue;
+        return { ...combatant, name, token: { ...(combatant.token || {}), x, y } };
+      }
+    }
+  }
+  return { ...combatant, name };
+}
+
+function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattleMap }) {
   const c = state.combat || { combatants: [], round: 1 };
   const [dmg, setDmg] = useState({});
   const [infoModal, setInfoModal] = useState(null);
+  const [sideMap, setSideMap] = useState(() => { try { return localStorage.getItem('loresmith:combat-side-map') || 'mini'; } catch { return 'mini'; } });
+  const chooseSideMap = (v) => { setSideMap(v); try { localStorage.setItem('loresmith:combat-side-map', v); } catch { /* préférence non gardée */ } };
+  // Page Combat avec la carte de combat : la situation tactique (abri, menaces) vient du plateau lié au combat.
+  const boundMapId = String(state.combat?.battleKey || '').split(':')[0];
+  const boundMapRec = state.maps?.[boundMapId];
+  const boundMap = !embedded && sideMap === 'board' ? boundMapRec : null;
+  const boardTactics = useMemo(
+    () => (boundMap?.battle && battleKeyOf(boundMap) === state.combat?.battleKey ? battleTactics(boundMap.battle, state.combat?.combatants || []) : null),
+    [boundMap, state.combat],
+  );
+  const tacticsById = embedded?.tactics || boardTactics;
   const [localSelection, setLocalSelection] = useState('');
   const selectedTokenId = embedded ? embedded.selectedId || '' : localSelection;
   const setSelectedTokenId = embedded ? (id) => embedded.onSelect?.(id || null) : setLocalSelection;
   const [mapMode, setMapMode] = useState('move');
+  const [showGrid, setShowGrid] = useState(true);
+  const [tab, setTab] = useState('tour');
+  const [lastRoll, setLastRoll] = useState(null);
+  const [hpPulse, setHpPulse] = useState(null);
+  const [showKeys, setShowKeys] = useState(false);
 
-  const setC = (patch) => dispatch({ type: 'COMBAT_SET', patch });
+  /**
+   * Toute modification du combat passe ici. Avec un libellé, le geste peut être annulé et il est consigné au journal
+   * (sauf `log: false`) ; `undo: false` le consigne sans l’empiler.
+   */
+  const setC = (patch, label, opts = {}) => {
+    if (label && opts.undo !== false) {
+      combatUndo.push({ label, combat: c });
+      if (combatUndo.length > COMBAT_UNDO_MAX) combatUndo.shift();
+    }
+    const entry = label && opts.log !== false
+      ? { id: uid(), at: Date.now(), round: Number(patch.round ?? c.round ?? 1), text: label, tone: opts.tone || '' }
+      : null;
+    dispatch({
+      type: 'COMBAT_SET',
+      patch: entry ? { ...patch, journal: [entry, ...(c.journal || [])].slice(0, COMBAT_JOURNAL_MAX) } : patch,
+    });
+  };
+
+  function undo() {
+    const last = combatUndo.pop();
+    if (!last) return;
+    // Le lien avec le plateau reste celui d’aujourd’hui : la synchronisation replace ou retire les jetons d’elle-même.
+    const entry = { id: uid(), at: Date.now(), round: Number(last.combat.round || 1), text: `Annulé : ${last.label}`, tone: 'undo' };
+    // Les états restaurés doivent repartir vers les jetons : on garde le dernier accord fiche ↔ jeton d’aujourd’hui.
+    const agreed = new Map((c.combatants || []).map((x) => [x.id, x.condsAt]));
+    dispatch({
+      type: 'COMBAT_SET',
+      patch: {
+        ...last.combat,
+        combatants: (last.combat.combatants || []).map((x) => (agreed.has(x.id) ? { ...x, condsAt: agreed.get(x.id) } : x)),
+        battleKey: c.battleKey,
+        syncedIds: c.syncedIds,
+        journal: [entry, ...(last.combat.journal || [])].slice(0, COMBAT_JOURNAL_MAX),
+      },
+    });
+    flash(`Annulé : ${last.label}`);
+  }
 
   const combatants = c.combatants || [];
   const blockedCells = c.blockedCells || [];
@@ -13111,36 +13268,64 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded }) {
   const activeCombatant = sorted.length
     ? sorted[Math.min(turnIndex, sorted.length - 1) % sorted.length]
     : null;
+  const selectedCombatant = combatants.find((x) => x.id === selectedTokenId) || activeCombatant;
 
-  function update(id, patch) {
+  function update(id, patch, label, opts) {
     setC({
       combatants: combatants.map((x) => (x.id === id ? { ...x, ...patch } : x)),
-    });
+    }, label, opts);
   }
 
   function remove(id) {
+    const t = combatants.find((x) => x.id === id);
     setC({
       combatants: combatants.filter((x) => x.id !== id),
-    });
+    }, t ? `${t.name} retiré du combat` : '', { tone: 'out' });
+    if (selectedTokenId === id) setSelectedTokenId('');
   }
 
   function addCombatant(source, isPC) {
-    const combatant = isPC
+    const combatant = withFreshInstance(combatants, isPC
       ? buildPcCombatant(source)
-      : buildNpcCombatant(source);
+      : buildNpcCombatant(source), blockedCells);
 
     setC({
       combatants: [...combatants, combatant],
-    });
+    }, `${combatant.name} rejoint le combat`, { tone: 'join' });
 
     flash(`${combatant.name} ajouté au combat`);
+  }
+
+  function addWholeParty() {
+    const present = new Set(combatants.filter((x) => x.isPC).map((x) => x.sourceId));
+    const fresh = [];
+    for (const p of party.filter((h) => !present.has(h.id))) fresh.push(withFreshInstance([...combatants, ...fresh], buildPcCombatant(p), blockedCells));
+    if (!fresh.length) {
+      flash('Tout le groupe est déjà au combat.');
+      return;
+    }
+    setC({ combatants: [...combatants, ...fresh] }, `${fresh.map((x) => x.name).join(', ')} rejoignent le combat`, { tone: 'join' });
+  }
+
+  /** d20 + modificateur de Dextérité, pour les créatures seulement ou pour tout le monde. */
+  function rollInitiative(who) {
+    const rolled = [];
+    const next = combatants.map((x) => {
+      if (who === 'foes' && x.isPC) return x;
+      const d20 = 1 + Math.floor(Math.random() * 20);
+      const init = d20 + abilityMod(Number(x.dex) || 10);
+      rolled.push(`${x.name} ${init}`);
+      return { ...x, init };
+    });
+    if (!rolled.length) return;
+    setC({ combatants: next, turnIndex: 0 }, `Initiative ${who === 'foes' ? 'des créatures' : 'de tous'} : ${rolled.join(', ')}`, { tone: 'roll' });
   }
 
   function addBlank() {
     setC({
       combatants: [
         ...combatants,
-        {
+        withFreshInstance(combatants, {
           id: uid(),
           sourceId: '',
           name: 'Combatant',
@@ -13165,9 +13350,36 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded }) {
           ],
           effects: getDefaultCombatEffects(false),
           token: makeDefaultToken(false),
-        },
+        }, blockedCells),
       ],
-    });
+    }, 'Combattant improvisé ajouté', { tone: 'join' });
+  }
+
+  /** Dégâts (delta < 0) ou soins : les PV temporaires absorbent les dégâts en premier. */
+  function adjustHp(id, delta) {
+    const t = combatants.find((x) => x.id === id);
+    if (!t || !delta) return;
+    const max = Number(t.maxHp) || 0;
+    let hp = Number(t.hp) || 0;
+    let temp = Number(t.tempHp) || 0;
+    if (delta < 0) {
+      const absorbed = Math.min(temp, -delta);
+      temp -= absorbed;
+      hp = Math.max(0, hp - (-delta - absorbed));
+    } else {
+      hp = Math.min(max, hp + delta);
+    }
+    let label = delta < 0
+      ? `${t.name} subit ${-delta} dégâts (${hp}/${max} PV)`
+      : `${t.name} récupère ${delta} PV (${hp}/${max} PV)`;
+    if (delta < 0 && (t.conditions || []).includes('Concentration')) {
+      label += ` · JS de Concentration DD ${Math.max(10, Math.floor(-delta / 2))}`;
+    }
+    if (hp === 0 && Number(t.hp) > 0) label += t.isPC ? ' · à 0 PV : jets contre la mort' : ' · hors de combat';
+    const patch = { hp, tempHp: temp };
+    if (hp > 0 && t.deathSaves) patch.deathSaves = { s: 0, f: 0 };
+    update(id, patch, label, { tone: delta < 0 ? 'hit' : 'heal' });
+    setHpPulse({ id, delta, key: uid() });
   }
 
   function applyHp(id, sign) {
@@ -13177,11 +13389,76 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded }) {
     const t = combatants.find((x) => x.id === id);
     if (!t) return;
 
-    update(id, {
-      hp: Math.max(0, Math.min(t.maxHp, t.hp - sign * v)),
-    });
+    adjustHp(id, -sign * Math.abs(v));
 
     setDmg((d) => ({ ...d, [id]: '' }));
+  }
+
+  function setHpExact(id, value) {
+    const t = combatants.find((x) => x.id === id);
+    if (!t) return;
+    const hp = Math.max(0, Math.min(Number(t.maxHp) || 0, Number(value) || 0));
+    if (hp === Number(t.hp)) return;
+    update(id, { hp }, `${t.name} : PV fixés à ${hp}/${t.maxHp}`, { tone: hp < t.hp ? 'hit' : 'heal' });
+  }
+
+  function setTempHp(id, value) {
+    const t = combatants.find((x) => x.id === id);
+    if (!t) return;
+    const temp = Math.max(0, Number(value) || 0);
+    update(id, { tempHp: temp }, `${t.name} : ${temp} PV temporaires`, { tone: 'heal' });
+  }
+
+  function toggleCondition(id, name) {
+    const t = combatants.find((x) => x.id === id);
+    if (!t) return;
+    const has = (t.conditions || []).includes(name);
+    update(
+      id,
+      { conditions: has ? t.conditions.filter((n) => n !== name) : [...(t.conditions || []), name] },
+      has ? `${t.name} n’est plus ${name.toLowerCase()}` : `${t.name} : ${name}`,
+      { tone: 'state' },
+    );
+  }
+
+  function changeDeathSaves(id, key, delta) {
+    const t = combatants.find((x) => x.id === id);
+    if (!t) return;
+    const ds = { s: 0, f: 0, ...(t.deathSaves || {}) };
+    ds[key] = Math.max(0, Math.min(3, ds[key] + delta));
+    const label = ds.s === 3
+      ? `${t.name} est stabilisé`
+      : ds.f === 3
+        ? `${t.name} succombe`
+        : `${t.name} : jets contre la mort ${ds.s} réussite(s), ${ds.f} échec(s)`;
+    update(id, { deathSaves: ds }, label, { tone: ds.f === 3 ? 'out' : 'state' });
+  }
+
+  function rollAttack(t, index) {
+    const attack = (t?.attacks || [])[index];
+    if (!attack) return;
+    if (t.isPC && activeCombatant && activeCombatant.id !== t.id) {
+      flash(`Ce n’est pas le tour de ${t.name} : un héros n’attaque que pendant son tour.`);
+      return;
+    }
+    // Sur la carte de combat, l’attaque passe par le panneau d’attaque : cible la plus proche, arme choisie.
+    if (embedded?.battle) {
+      const b = embedded.battle;
+      const me = b.tokens.find((q) => q.id === t.id);
+      if (me) {
+        const gap = (q) => Math.max(Math.abs(q.x - me.x), Math.abs(q.y - me.y));
+        const foes = b.tokens.filter((q) => q.id !== t.id && (q.kind === 'pc') !== (me.kind === 'pc') && Number(q.hp ?? 1) > 0);
+        const target = [...foes].sort((x, y) => gap(x) - gap(y))[0] || b.tokens.find((q) => q.id !== t.id);
+        if (target) {
+          embedded.setBattle({ ...b, aim: { from: t.id, to: target.id, at: Date.now(), pick: index } });
+          return;
+        }
+      }
+    }
+    const r = rollCombatAttack(t, attack);
+    setLastRoll(r);
+    const verdict = r.crit ? ' — CRITIQUE' : r.fumble ? ' — échec automatique' : '';
+    setC({}, `${t.name} · ${attack.name} : ${r.total} pour toucher${verdict}${r.dmg !== null && !r.fumble ? ` · ${r.dmg} dégâts${r.dmgType ? ` ${r.dmgType}` : ''}` : ''}`, { undo: false, tone: 'roll' });
   }
 
   function toggleEffect(id, effectIndex) {
@@ -13197,7 +13474,7 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded }) {
       active: !effect.active,
     };
 
-    update(id, { effects });
+    update(id, { effects }, `${t.name} : ${effect.name} ${effect.active ? 'retiré' : 'actif'}`, { tone: 'state' });
   }
 
   function changeEffectUses(id, effectIndex, delta) {
@@ -13216,7 +13493,7 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded }) {
       usesLeft: Math.max(0, Math.min(max, current + delta)),
     };
 
-    update(id, { effects });
+    update(id, { effects }, `${t.name} : ${effect.name} ${delta < 0 ? 'utilisé' : 'rechargé'}`, { log: false });
   }
 
   function changeActionUses(id, actionIndex, delta) {
@@ -13235,7 +13512,7 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded }) {
       usesLeft: Math.max(0, Math.min(max, current + delta)),
     };
 
-    update(id, { attacks });
+    update(id, { attacks }, `${t.name} : ${action.name} ${delta < 0 ? 'utilisé' : 'rechargé'}`, { log: false });
   }
 
   function moveToken(id, x, y) {
@@ -13258,13 +13535,14 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded }) {
       return;
     }
 
+    const t = combatants.find((q) => q.id === id);
     update(id, {
       token: {
-        ...(combatants.find((t) => t.id === id)?.token || {}),
+        ...(t?.token || {}),
         x,
         y,
       },
-    });
+    }, `${t?.name || 'Jeton'} déplacé`, { log: false });
   }
 
   function toggleBlockedCell(x, y) {
@@ -13299,26 +13577,56 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded }) {
   }
 
   function resetRoundResources() {
+    const round = Number(c.round || 1) + 1;
     setC({
-      round: c.round + 1,
+      round,
       turnIndex: 0,
       combatants: refreshRoundResources(combatants),
-    });
+    }, `Manche ${round} : ressources de manche rechargées`, { tone: 'round' });
+    if (sorted[0]) setSelectedTokenId(embedded ? sorted[0].id : '');
   }
 
   function advanceTurn() {
     if (!sorted.length) return;
 
-    const nextIndex = (turnIndex + 1) % sorted.length;
-    const wrapsToNextRound = nextIndex === 0;
+    // Une créature hors de combat (0 PV) n’a plus de tour ; un héros à 0 PV garde le sien pour ses jets contre la mort.
+    let nextIndex = turnIndex;
+    let wraps = false;
+    for (let i = 0; i < sorted.length; i++) {
+      nextIndex = (nextIndex + 1) % sorted.length;
+      if (nextIndex === 0) wraps = true;
+      const n = sorted[nextIndex];
+      if (n.isPC || Number(n.hp) > 0) break;
+    }
+    const round = wraps ? Number(c.round || 1) + 1 : Number(c.round || 1);
+    const next = sorted[nextIndex];
 
     setC({
       turnIndex: nextIndex,
-      round: wrapsToNextRound ? Number(c.round || 1) + 1 : c.round,
-      combatants: wrapsToNextRound
+      round,
+      combatants: wraps
         ? refreshRoundResources(combatants)
         : combatants,
-    });
+    }, `${wraps ? `Manche ${round} · ` : ''}Tour de ${next?.name || '—'}`, { tone: wraps ? 'round' : 'turn' });
+    // Sur la carte, la fiche du jeton suit le tour ; sur la page Combat, la fiche revient d’elle-même au tour actif.
+    setSelectedTokenId(embedded ? next?.id : '');
+    setLastRoll(null);
+  }
+
+  function previousTurn() {
+    if (!sorted.length) return;
+    const round = Number(c.round || 1);
+    if (turnIndex === 0 && round <= 1) return;
+    const prevIndex = turnIndex > 0 ? turnIndex - 1 : sorted.length - 1;
+    const prevRound = turnIndex > 0 ? round : round - 1;
+    setC({ turnIndex: prevIndex, round: prevRound }, `Retour au tour de ${sorted[prevIndex]?.name || '—'}`, { tone: 'turn' });
+    setSelectedTokenId(embedded ? sorted[prevIndex]?.id : '');
+  }
+
+  function resetCombat() {
+    if (!combatants.length) return;
+    setC({ round: 1, turnIndex: 0, combatants: [] }, 'Combat vidé', { tone: 'out' });
+    flash('Combat vidé — Ctrl+Z pour annuler.');
   }
 
   const dmStrategy = buildCombatStrategy(sorted, {
@@ -13327,243 +13635,922 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded }) {
     blockedCells,
   });
 
-  return (
-    <>
-      {!embedded && (
-        <>
-        <h1 className="view">Combat</h1>
-        <p className="sub">
-          Suivi d’initiative, HP, attaques, buffs/malus, ressources limitées et
-          positionnement tactique.
-        </p>
-        <p className="sub" style={{ color: 'var(--gold-lt)' }}>
-          Nouveau : le combat se mène aussi directement sur la carte de combat
-          (Cartes → ⚔ Ouvrir la carte de combat → onglet Combat), avec le
-          plateau, l’initiative, les attaques et les conseils tactiques.
-        </p>
-        </>
-      )}
+  // Raccourcis clavier de la Table de guerre (jamais pendant la saisie).
+  const keysRef = useRef(null);
+  // Sur la carte, les onglets Lieu et Construire de la carte partagent le pupitre : choisir un onglet du combat les referme.
+  const side = embedded?.side;
+  const pickWarTab = (id) => { setTab(id); if (side?.active) side.onPick(null); };
+  // Un jeton choisi sur la carte ouvre sa fiche (onglet Tour), sauf pendant la construction.
+  useEffect(() => {
+    if (!embedded?.selectedId || side?.active === 'construction') return;
+    pickWarTab('tour');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [embedded?.selectedId]);
+  keysRef.current = { advanceTurn, previousTurn, undo, sorted, selectedCombatant, rollAttack, setTab: pickWarTab, setShowKeys, setSelectedTokenId };
+  useEffect(() => {
+    const onKey = (e) => {
+      const k = keysRef.current;
+      const el = e.target;
+      const typing = el instanceof HTMLElement && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
+        if (typing) return;
+        e.preventDefault();
+        k.undo();
+        return;
+      }
+      if (typing || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (document.querySelector('.scrim, .lsx-palette')) return;
+      const list = k.sorted;
+      const at = list.findIndex((x) => x.id === k.selectedCombatant?.id);
+      if (e.key === 'n' || e.key === 'N') { e.preventDefault(); if (e.shiftKey) k.previousTurn(); else k.advanceTurn(); }
+      else if (e.key === 'ArrowRight' && list.length) { e.preventDefault(); k.setSelectedTokenId(list[(at + 1) % list.length].id); }
+      else if (e.key === 'ArrowLeft' && list.length) { e.preventDefault(); k.setSelectedTokenId(list[(at - 1 + list.length) % list.length].id); }
+      else if ((e.key === 'a' || e.key === 'A') && k.selectedCombatant?.attacks?.length) { e.preventDefault(); k.setTab('tour'); k.rollAttack(k.selectedCombatant, 0); }
+      else if (e.key === 'd' || e.key === 'D') { e.preventDefault(); k.setTab('tour'); setTimeout(() => document.querySelector('.wt-amount input')?.focus(), 0); }
+      else if (/^[1-5]$/.test(e.key)) { e.preventDefault(); k.setTab(WAR_TABS[Number(e.key) - 1].id); }
+      else if (e.key === '?') { e.preventDefault(); k.setShowKeys((v) => !v); }
+      else if (e.key === 'Escape') { k.setShowKeys(false); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
-      <div className="combat-layout-advanced">
-        <main className="combat-main-col">
-          <div className="panel combat-control-panel">
-            <div className="row" style={{ alignItems: 'center' }}>
-              <div
-                style={{
-                  flex: 'none',
-                  fontFamily: 'Cinzel,serif',
-                  fontSize: 15,
-                  color: 'var(--gold-lt)',
-                }}
-              >
-                Round {c.round}
+    const ops = {
+      update, remove, adjustHp, applyHp, setHpExact, setTempHp, toggleCondition, changeDeathSaves, rollAttack,
+      toggleEffect, changeEffectUses, changeActionUses, addCombatant, addWholeParty, addBlank, rollInitiative,
+      refreshFromSheet: (t) => {
+        const source = npcs.find((n) => n.id === t.sourceId);
+        if (!source) {
+          flash('Aucune fiche source trouvée pour ce combattant.');
+          return;
+        }
+        update(t.id, refreshCombatantFromNpc(t, source), `${t.name} réimporté depuis sa fiche`);
+        flash(`${t.name} réimporté depuis sa fiche.`);
+      },
+    };
+    // Sur la page Cartes, le plateau est celui de la carte ouverte ; sur la page Combat, celui lié au combat.
+    const boardBattle = embedded ? embedded.battle : boundMapRec?.battle && battleKeyOf(boundMapRec) === c.battleKey ? boundMapRec.battle : null;
+    const boardTokens = new Map((boardBattle?.tokens || []).map((t) => [t.id, t]));
+    const setBoardBattle = embedded ? embedded.setBattle : (b) => dispatch({ type: 'UPDATE_MAP', id: boundMapRec.id, patch: { battle: b, updatedAt: Date.now() } });
+    const hiddenCount = (boardBattle?.tokens || []).filter((t) => t.visible === false).length;
+    const pstate = partyStateOf(combatants, party);
+    const foes = combatants.filter((x) => !x.isPC && Number(x.hp) > 0);
+    const rating = foes.length && pstate.levels.length
+      ? rateEncounter(foes.map((x) => xpOfCombatant(x, boardTokens.get(x.id))), pstate)
+      : null;
+    const place = embedded?.place || boardBattle?.local?.place || boundMapRec?.title || '';
+    const pcs = combatants.filter((x) => x.isPC);
+    const avgLevel = pcs.length ? Math.round(pcs.reduce((s, x) => s + (Number(x.level) || 1), 0) / pcs.length) : null;
+    const sideActive = side?.active && side.tabs.some((x) => x.id === side.active) ? side.active : null;
+    const tabFor = sideActive || (combatants.length ? tab : tab === 'tour' ? 'groupe' : tab);
+
+    return (
+      <div className="wt" data-empty={combatants.length ? 0 : 1} data-inmap={embedded ? 1 : 0}>
+        <header className="wt-head">
+          <div className="wt-head-title">
+            <span className="wt-eyebrow">Session · Combat{place ? ` · ${place}` : ''}</span>
+            <h1>La Table de guerre</h1>
+          </div>
+          <dl className="wt-head-stats">
+            <div>
+              <dt>Groupe</dt>
+              <dd>{pcs.length || party.length} PJ{avgLevel ? <small> · niv. {avgLevel}</small> : null}</dd>
+            </div>
+            <div>
+              <dt>Manche</dt>
+              <dd>{String(c.round || 1).padStart(2, '0')}</dd>
+            </div>
+            <div>
+              <dt>Tour</dt>
+              <dd>{sorted.length ? `${String(Math.min(turnIndex, sorted.length - 1) + 1).padStart(2, '0')}/${String(sorted.length).padStart(2, '0')}` : '—'}</dd>
+            </div>
+            {rating && (
+              <div className="wt-diff" data-level={Math.min(4, Math.floor(rating.score))} title={`${rating.adjusted} PX ajustés (seuils du groupe : ${rating.thresholds.join(' / ')})`}>
+                <dt>Équilibre estimé</dt>
+                <dd>{rating.label}<i style={{ '--p': `${Math.min(100, (rating.score / 5) * 100)}%` }} /></dd>
               </div>
-
-              <button
-                className="btn sm"
-                style={{ flex: 'none' }}
-                onClick={resetRoundResources}
-              >
-                Next round ▸
+            )}
+          </dl>
+          <div className="wt-head-actions">
+            <button type="button" className="wt-btn" onClick={undo} disabled={!combatUndo.length} title={combatUndo.length ? `Annuler : ${combatUndo[combatUndo.length - 1].label} (Ctrl+Z)` : 'Rien à annuler'}>
+              <Undo2 size={15} aria-hidden="true" /> Annuler
+            </button>
+            <button type="button" className="wt-btn" onClick={() => setShowKeys(true)} title="Raccourcis clavier (?)">
+              <Keyboard size={15} aria-hidden="true" /> Raccourcis
+            </button>
+            {onOpenBattleMap && boundMapRec && (
+              <button type="button" className="wt-btn" onClick={() => onOpenBattleMap(boundMapRec.id)} title="Ouvrir la carte de combat et sa projection aux joueurs">
+                <MonitorPlay size={15} aria-hidden="true" /> Vue joueurs
               </button>
+            )}
+            <button type="button" className="wt-btn danger" onClick={resetCombat} disabled={!combatants.length} title="Vider le combat (annulable)">
+              <Trash2 size={15} aria-hidden="true" /> Vider
+            </button>
+          </div>
+        </header>
 
-              <button
-                className="btn primary sm"
-                style={{ flex: 'none' }}
-                onClick={advanceTurn}
-              >
-                Tour suivant →
-              </button>
+        <div className="wt-body">
+          {!embedded && (
+          <section className="wt-map" aria-label="Carte tactique">
+            <header className="wt-map-head">
+              <div className="wt-map-title">
+                <h2>{sideMap === 'board' ? place || 'Carte de combat' : 'Champ de bataille'}</h2>
+                <span>{sideMap === 'board' ? 'Plateau de la carte, synchronisé · glisser les jetons' : 'Grille tactique · 1 case = 5 pi'}</span>
+              </div>
+              <div className="wt-map-tools">
+                <div className="wt-seg" role="tablist" aria-label="Carte affichée">
+                  <button type="button" role="tab" aria-selected={sideMap === 'mini'} data-on={sideMap === 'mini' ? 1 : 0} onClick={() => chooseSideMap('mini')}>Grille</button>
+                  <button type="button" role="tab" aria-selected={sideMap === 'board'} data-on={sideMap === 'board' ? 1 : 0} onClick={() => chooseSideMap('board')}>Carte de combat</button>
+                </div>
+                {sideMap === 'mini' && (
+                  <div className="wt-seg" aria-label="Outil de carte">
+                    <button type="button" data-on={mapMode === 'move' ? 1 : 0} aria-pressed={mapMode === 'move'} onClick={() => setMapMode('move')} title="Sélectionner un jeton, puis cliquer une case"><Move size={14} aria-hidden="true" /> Déplacer</button>
+                    <button type="button" data-on={mapMode === 'block' ? 1 : 0} aria-pressed={mapMode === 'block'} onClick={() => setMapMode('block')} title="Cliquer les cases infranchissables : murs, piliers, gouffres"><Square size={14} aria-hidden="true" /> Obstacles</button>
+                    <button type="button" data-on={mapMode === 'measure' ? 1 : 0} aria-pressed={mapMode === 'measure'} onClick={() => setMapMode('measure')} title="Cliquer deux cases pour mesurer la distance"><Ruler size={14} aria-hidden="true" /> Mesurer</button>
+                    <button type="button" data-on={showGrid ? 1 : 0} aria-pressed={showGrid} onClick={() => setShowGrid((v) => !v)} title="Afficher la grille"><Grid3x3 size={14} aria-hidden="true" /> Quadrillage</button>
+                  </div>
+                )}
+              </div>
+            </header>
+            <div className="wt-map-stage">
+              {sideMap === 'board' ? (
+                <div className="wt-board">
+                  <CombatBoardPanel state={state} dispatch={dispatch} party={party} npcs={npcs} selectedId={selectedTokenId} onSelect={setSelectedTokenId} />
+                </div>
+              ) : (
+                <CombatMiniMap
+                  combatants={combatants}
+                  selectedTokenId={selectedCombatant?.id || ''}
+                  activeId={activeCombatant?.id || ''}
+                  blockedCells={blockedCells}
+                  mode={mapMode}
+                  showGrid={showGrid}
+                  onSelect={setSelectedTokenId}
+                  onMove={moveToken}
+                  onToggleBlocked={toggleBlockedCell}
+                />
+              )}
+              {hiddenCount > 0 && sideMap === 'board' && (
+                <span className="wt-map-flag"><EyeOff size={13} aria-hidden="true" /> Mode MJ · {hiddenCount} caché{hiddenCount > 1 ? 's' : ''} aux joueurs</span>
+              )}
+            </div>
+            <footer className="wt-map-legend">
+              <span><i className="pc" /> Héros</span>
+              <span><i className="enemy" /> Menace</span>
+              {sideMap === 'mini' && <span><i className="block" /> Obstacle</span>}
+              {sideMap === 'mini' && <span><i className="threat" /> Allonge du jeton choisi</span>}
+              <span className="wt-map-hint">
+                {sideMap === 'board'
+                  ? 'Clic : fiche du combattant · glisser : déplacer'
+                  : mapMode === 'block'
+                    ? 'Clic : poser ou retirer un obstacle'
+                    : mapMode === 'measure'
+                      ? 'Deux clics : distance en cases et en pieds'
+                      : 'Clic sur un jeton : sa fiche · puis clic sur une case : le déplacer'}
+              </span>
+            </footer>
+          </section>
+          )}
 
-              {activeCombatant && (
-                <div
-                  style={{ flex: 'none', color: 'var(--muted)', fontSize: 13 }}
+          <aside className="wt-desk" aria-label="Pupitre du MJ">
+            <div className="wt-desk-head">
+              <h2>Le pupitre du MJ</h2>
+              <span>Une chose à la fois</span>
+            </div>
+            <nav className="wt-tabs" role="tablist" aria-label="Sections du pupitre">
+              {WAR_TABS.map((x, i) => (
+                <button
+                  key={x.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={tabFor === x.id}
+                  data-on={tabFor === x.id ? 1 : 0}
+                  onClick={() => pickWarTab(x.id)}
+                  title={`${x.label} (${i + 1})`}
                 >
-                  Tour :{' '}
-                  <b style={{ color: 'var(--gold-lt)' }}>
-                    {activeCombatant.name}
-                  </b>
+                  {x.label}
+                  {x.id === 'journal' && (c.journal || []).length > 0 && <small>{Math.min(99, c.journal.length)}</small>}
+                </button>
+              ))}
+              {side?.tabs.map((x) => (
+                <button
+                  key={x.id}
+                  type="button"
+                  role="tab"
+                  className="wt-tab-side"
+                  aria-selected={tabFor === x.id}
+                  data-on={tabFor === x.id ? 1 : 0}
+                  onClick={() => side.onPick(sideActive === x.id ? null : x.id)}
+                >
+                  {x.label}
+                  {x.badge ? <small>{x.badge}</small> : null}
+                </button>
+              ))}
+            </nav>
+            <div className="wt-desk-body" role="tabpanel">
+              {sideActive && <div className="wt-side-panel">{side.render(sideActive)}</div>}
+              {tabFor === 'tour' && selectedCombatant && (
+                <WarInspector
+                  key={selectedCombatant.id}
+                  t={selectedCombatant}
+                  isActive={selectedCombatant.id === activeCombatant?.id}
+                  activeName={activeCombatant?.name}
+                  art={combatantArtOf(state, selectedCombatant)}
+                  sourceNpc={npcs.find((n) => n.id === selectedCombatant.sourceId)}
+                  tactics={tacticsById?.[selectedCombatant.id]}
+                  boardToken={boardTokens.get(selectedCombatant.id)}
+                  onBoardVisible={boardBattle ? (visible) => setBoardBattle({ ...boardBattle, tokens: boardBattle.tokens.map((q) => (q.id === selectedCombatant.id ? { ...q, visible } : q)) }) : null}
+                  amount={dmg[selectedCombatant.id] || ''}
+                  onAmount={(v) => setDmg((d) => ({ ...d, [selectedCombatant.id]: v }))}
+                  lastRoll={lastRoll}
+                  hpPulse={hpPulse?.id === selectedCombatant.id ? hpPulse : null}
+                  ops={ops}
+                  onInfo={setInfoModal}
+                  onBackToTurn={() => setSelectedTokenId('')}
+                />
+              )}
+              {tabFor === 'groupe' && (
+                <WarRoster
+                  sorted={sorted}
+                  party={party}
+                  npcs={npcs}
+                  activeId={activeCombatant?.id}
+                  selectedId={selectedCombatant?.id}
+                  ops={ops}
+                  onPick={(id) => { setSelectedTokenId(id); setTab('tour'); }}
+                />
+              )}
+              {tabFor === 'terrain' && (
+                <div className="wt-stack">
+                  {!embedded && (
+                  <section className="wt-card">
+                    <h3>Carte au centre</h3>
+                    <div className="wt-seg wide">
+                      <button type="button" data-on={sideMap === 'mini' ? 1 : 0} onClick={() => chooseSideMap('mini')}>Grille tactique</button>
+                      <button type="button" data-on={sideMap === 'board' ? 1 : 0} onClick={() => chooseSideMap('board')}>Carte de combat</button>
+                    </div>
+                    <p className="wt-note">
+                      {sideMap === 'board'
+                        ? 'Le plateau de la carte (terrain, abris, jetons) est synchronisé avec ce combat : PV, initiative et tour passent d’un côté à l’autre.'
+                        : 'Grille légère de 12 × 12 cases : Obstacles pour tracer murs et gouffres, Mesurer pour les distances.'}
+                    </p>
+                    {sideMap === 'mini' && (
+                      <div className="wt-row">
+                        <button type="button" className="wt-btn" onClick={() => setC({ blockedCells: [] }, 'Obstacles effacés', { log: false })} disabled={!blockedCells.length}>
+                          <Eraser size={14} aria-hidden="true" /> Effacer les obstacles ({blockedCells.length})
+                        </button>
+                      </div>
+                    )}
+                    {selectedCombatant && sideMap === 'mini' && (
+                      <label className="wt-field">
+                        <span>Allonge de menace de {selectedCombatant.name} (cases)</span>
+                        <input
+                          className="in"
+                          type="number"
+                          min="0"
+                          max="6"
+                          value={Number(selectedCombatant.token?.threat ?? 1)}
+                          onChange={(e) => update(selectedCombatant.id, { token: { ...(selectedCombatant.token || {}), threat: Math.max(0, Number(e.target.value) || 0) } })}
+                        />
+                      </label>
+                    )}
+                  </section>
+                  )}
+                  {boardBattle && (
+                    <section className="wt-card">
+                      <h3>Vu par les joueurs</h3>
+                      <div className="wt-chips">
+                        {boardBattle.tokens.map((tk) => (
+                          <button
+                            key={tk.id}
+                            type="button"
+                            className="wt-chip"
+                            data-on={tk.visible ? 1 : 0}
+                            onClick={() => setBoardBattle({ ...boardBattle, tokens: boardBattle.tokens.map((q) => (q.id === tk.id ? { ...q, visible: !tk.visible } : q)) })}
+                            title={tk.visible ? 'Visible des joueurs (clic : cacher)' : 'Caché aux joueurs (clic : montrer)'}
+                          >
+                            {tk.visible ? <Eye size={13} aria-hidden="true" /> : <EyeOff size={13} aria-hidden="true" />} {tk.name}
+                          </button>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+                  {boardBattle ? (
+                    <SkirmishPanel battle={boardBattle} setBattle={setBoardBattle} combatants={combatants} party={party} dispatch={dispatch} place={place} flash={flash} />
+                  ) : (
+                    <p className="wt-note">
+                      Le champ de bataille improvisé (renforts, rencontre au niveau voulu, placement tactique) s’ouvre avec une carte de combat : choisis « Carte de combat » ci-dessus.
+                    </p>
+                  )}
                 </div>
               )}
-
-              <button
-                className="btn ghost sm"
-                style={{ flex: 'none' }}
-                onClick={() => setC({ round: 1, combatants: [] })}
-              >
-                Reset
-              </button>
+              {tabFor === 'mj' && (
+                <div className="wt-stack">
+                  <CombatAiPanel
+                    combatants={sorted}
+                    active={activeCombatant}
+                    round={c.round}
+                    place={place}
+                    positions={boardBattle ? Object.fromEntries(boardBattle.tokens.map((t) => [t.id, { x: t.x, y: t.y, visible: t.visible }])) : undefined}
+                    tactics={tacticsById}
+                  />
+                  <section className="wt-card">
+                    <h3>Stratégie MJ</h3>
+                    <DmStrategyPanel strategy={dmStrategy} />
+                  </section>
+                </div>
+              )}
+              {tabFor === 'journal' && (
+                <WarJournal journal={c.journal || []} canUndo={combatUndo.length > 0} undoLabel={combatUndo[combatUndo.length - 1]?.label} onUndo={undo} onClear={() => setC({ journal: [] })} />
+              )}
             </div>
+            {tabFor === 'tour' && selectedCombatant && (
+              <footer className="wt-desk-foot">
+                <button
+                  type="button"
+                  className="wt-btn"
+                  disabled={!selectedCombatant.attacks?.length || (selectedCombatant.isPC && selectedCombatant.id !== activeCombatant?.id)}
+                  onClick={() => rollAttack(selectedCombatant, 0)}
+                  title="Lancer la première attaque (A)"
+                >
+                  <Swords size={15} aria-hidden="true" /> Attaquer
+                </button>
+                <button type="button" className="wt-btn primary" onClick={advanceTurn} title="Fin du tour (N)">
+                  <SkipForward size={15} aria-hidden="true" /> Fin du tour <kbd>N</kbd>
+                </button>
+              </footer>
+            )}
+          </aside>
+        </div>
 
-            <div className="row" style={{ marginTop: 14 }}>
-              <select
-                className="in"
-                value=""
-                onChange={(e) => {
-                  const p = party.find((x) => x.id === e.target.value);
-                  if (p) addCombatant(p, true);
-                }}
-              >
-                <option value="">+ Add party member…</option>
-                {party.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+        <WarInitiative
+          sorted={sorted}
+          activeId={activeCombatant?.id}
+          selectedId={selectedCombatant?.id}
+          round={c.round || 1}
+          art={(t) => combatantPictureOf(state, t)}
+          boardTokens={boardTokens}
+          onPick={(id) => { setSelectedTokenId(id); setTab('tour'); }}
+          onNext={advanceTurn}
+          onPrev={previousTurn}
+          onNewRound={resetRoundResources}
+        />
 
-              <select
-                className="in"
-                value=""
-                onChange={(e) => {
-                  const m = npcs.find((x) => x.id === e.target.value);
-                  if (m) addCombatant(m, false);
-                }}
-              >
-                <option value="">+ Add from bestiary…</option>
-                {npcs.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}{' '}
-                    {m.isMonster || m.entityType === 'monster'
-                      ? '(monstre)'
-                      : '(PNJ)'}
-                  </option>
-                ))}
-              </select>
+        {showKeys && <WarShortcuts onClose={() => setShowKeys(false)} />}
+        {infoModal && (
+          <CombatInfoModal info={infoModal} onClose={() => setInfoModal(null)} />
+        )}
+      </div>
+    );
+}
 
-              <button
-                className="btn"
-                style={{ flex: 'none' }}
-                onClick={addBlank}
-              >
-                + Blank
-              </button>
-            </div>
+const WAR_TABS = [
+  { id: 'tour', label: 'Tour' },
+  { id: 'groupe', label: 'Groupe' },
+  { id: 'terrain', label: 'Terrain' },
+  { id: 'mj', label: 'MJ' },
+  { id: 'journal', label: 'Journal' },
+];
+
+const hpTone = (t) => {
+  const pct = (Number(t.hp || 0) / Math.max(1, Number(t.maxHp || 1))) * 100;
+  return pct <= 0 ? 'down' : pct > 50 ? 'ok' : pct > 20 ? 'hurt' : 'crit';
+};
+
+/** Fiche du combattant choisi (par défaut celui dont c’est le tour) : PV, défenses, états, attaques, fiche complète. */
+function WarInspector({
+  t, isActive, activeName, art, sourceNpc, tactics, boardToken, onBoardVisible, amount, onAmount, lastRoll, hpPulse, ops, onInfo, onBackToTurn,
+}) {
+  const calc = getCombatantDerivedStats(t);
+  const [editing, setEditing] = useState(false);
+  const [condOpen, setCondOpen] = useState(false);
+  const [hpDraft, setHpDraft] = useState(null);
+  const pct = Math.round((Number(t.hp || 0) / Math.max(1, Number(t.maxHp || 1))) * 100);
+  const tone = hpTone(t);
+  const conditions = t.conditions || [];
+  const roll = lastRoll && lastRoll.who === t.name ? lastRoll : null;
+  const amountValue = Math.abs(parseInt(amount, 10) || 0);
+
+  function updateAttack(index, patch) {
+    const attacks = [...(t.attacks || [])];
+    attacks[index] = { ...attacks[index], ...patch };
+    ops.update(t.id, { attacks });
+  }
+
+  function addAttack() {
+    ops.update(t.id, {
+      attacks: [
+        ...(t.attacks || []),
+        {
+          name: 'Nouvelle attaque',
+          type: 'action',
+          attackBonus: 0,
+          damageDice: '1d6',
+          damageBonus: 0,
+          damageType: 'bludgeoning',
+          range: '5 ft.',
+          desc: '',
+          usesMax: 0,
+          usesLeft: 0,
+          reset: 'none',
+          proficiency: false,
+        },
+      ],
+    });
+  }
+
+  function deleteAttack(index) {
+    ops.update(t.id, { attacks: (t.attacks || []).filter((_, i) => i !== index) });
+  }
+
+  return (
+    <div className="wt-inspector" data-side={t.isPC ? 'pc' : 'enemy'}>
+      <div className="wt-who">
+        <div className="wt-portrait" data-tone={tone}>
+          {art ? <img src={art} alt="" /> : <PortraitToken seed={t.name + (t.kind || '')} size={58} />}
+        </div>
+        <div className="wt-who-text">
+          <h3>{t.name}</h3>
+          <span>{[t.kind, t.isPC ? (t.level ? `niveau ${t.level}` : 'héros') : t.cr ? `FP ${t.cr}` : 'menace'].filter(Boolean).join(' · ')}</span>
+          <div className="wt-badges">
+            {isActive ? <b className="wt-badge gold">Tour actuel</b> : <b className="wt-badge">Sélectionné</b>}
+            <b className={`wt-badge ${t.isPC ? 'pc' : 'enemy'}`}>{t.isPC ? 'PJ' : 'Menace'}</b>
+            {boardToken && boardToken.visible === false && <b className="wt-badge violet">Caché</b>}
           </div>
+        </div>
+      </div>
+      {!isActive && activeName && (
+        <button type="button" className="wt-backturn" onClick={onBackToTurn}>
+          ↩ Revenir au tour de <b>{activeName}</b>
+        </button>
+      )}
 
-          {combatants.length === 0 ? (
-            <div className="empty">
-              <div className="big">No combatants</div>
-              <p className="muted">
-                Ajoute des héros, PNJ ou monstres pour commencer.
-              </p>
-            </div>
-          ) : (
-            sorted.map((t) => (
-              <CombatantRowAdvanced
-                key={t.id}
-                t={t}
-                sourceNpc={npcs.find((n) => n.id === t.sourceId)}
-                dmg={dmg[t.id] || ''}
-                selected={selectedTokenId === t.id}
-                onSelect={() => setSelectedTokenId(t.id)}
-                onDmgChange={(v) => setDmg((d) => ({ ...d, [t.id]: v }))}
-                onHit={() => applyHp(t.id, +1)}
-                onHeal={() => applyHp(t.id, -1)}
-                onRemove={() => remove(t.id)}
-                onUpdate={(patch) => update(t.id, patch)}
-                onRefreshFromSheet={() => {
-                  const source = npcs.find((n) => n.id === t.sourceId);
-                  if (!source) {
-                    flash('Aucune fiche source trouvée pour ce combattant.');
-                    return;
-                  }
-
-                  update(t.id, refreshCombatantFromNpc(t, source));
-                  flash(`${t.name} réimporté depuis sa fiche.`);
-                }}
-                onToggleEffect={(index) => toggleEffect(t.id, index)}
-                onEffectUses={(index, delta) =>
-                  changeEffectUses(t.id, index, delta)
-                }
-                onActionUses={(index, delta) =>
-                  changeActionUses(t.id, index, delta)
-                }
-                onInfo={setInfoModal}
-              />
-            ))
-          )}
-        </main>
-
-        <aside className="combat-side-col">
-          {!embedded && (
-          <div className="panel combat-map-panel">
-            <div className="combat-panel-head">
-              <div>
-                <b>Mini-map</b>
-                <span>1 case = 5 ft.</span>
-              </div>
-            </div>
-
-            <div className="combat-map-tools">
-              <button
-                type="button"
-                data-on={mapMode === 'move' ? 1 : 0}
-                onClick={() => setMapMode('move')}
-              >
-                Déplacer
-              </button>
-
-              <button
-                type="button"
-                data-on={mapMode === 'block' ? 1 : 0}
-                onClick={() => setMapMode('block')}
-              >
-                Blocants
-              </button>
-
-              <button type="button" onClick={() => setC({ blockedCells: [] })}>
-                Effacer blocants
-              </button>
-            </div>
-
-            <p className="combat-map-help">
-              Mode Déplacer : sélectionne un jeton, puis clique une case. Mode
-              Blocants : clique les cases à rendre inaccessibles pour tracer
-              murs, couloirs, salles ou obstacles.
-            </p>
-
-            <CombatMiniMap
-              combatants={combatants}
-              selectedTokenId={selectedTokenId}
-              blockedCells={blockedCells}
-              mode={mapMode}
-              onSelect={setSelectedTokenId}
-              onMove={moveToken}
-              onToggleBlocked={toggleBlockedCell}
-            />
-          </div>
-          )}
-
-          <div className="panel dm-strategy-panel">
-            <div className="combat-panel-head">
-              <div>
-                <b>Stratégie MJ</b>
-                <span>Rappels tactiques, effets, capacités et règles</span>
-              </div>
-            </div>
-
-            <DmStrategyPanel strategy={dmStrategy} />
-          </div>
-
-          <CombatAiPanel
-            combatants={sorted}
-            active={activeCombatant}
-            round={c.round}
-            place={embedded?.place}
-            positions={embedded?.positions}
+      <section className="wt-hp" data-tone={tone}>
+        <div className="wt-hp-line">
+          <span className="wt-hp-num">
+            {hpPulse && <i key={hpPulse.key} className="wt-hp-pulse" data-sign={hpPulse.delta < 0 ? '-' : '+'}>{hpPulse.delta > 0 ? `+${hpPulse.delta}` : hpPulse.delta}</i>}
+            <b>{t.hp}</b> / {t.maxHp} <small>points de vie</small>
+          </span>
+          {Number(t.tempHp) > 0 && <span className="wt-temp" title="PV temporaires : absorbent les dégâts en premier">+{t.tempHp} temp.</span>}
+          <span className="wt-hp-state">{tone === 'down' ? (t.isPC ? 'À terre' : 'Hors de combat') : tone === 'crit' ? 'En péril' : tone === 'hurt' ? 'Blessé' : 'En forme'}</span>
+        </div>
+        <div className="wt-hpbar" role="meter" aria-valuemin={0} aria-valuemax={Number(t.maxHp) || 0} aria-valuenow={Number(t.hp) || 0} aria-label="Points de vie">
+          <i style={{ width: pct + '%' }} />
+          {Number(t.tempHp) > 0 && <em style={{ width: Math.min(100, (Number(t.tempHp) / Math.max(1, Number(t.maxHp))) * 100) + '%' }} />}
+        </div>
+        <div className="wt-hp-quick">
+          <button type="button" className="hit" onClick={() => ops.adjustHp(t.id, -5)} aria-label="5 dégâts">−5</button>
+          <button type="button" className="hit" onClick={() => ops.adjustHp(t.id, -1)} aria-label="1 dégât">−1</button>
+          <input
+            className="wt-hp-exact"
+            inputMode="numeric"
+            aria-label="PV actuels"
+            value={hpDraft ?? t.hp}
+            onChange={(e) => setHpDraft(e.target.value.replace(/[^\d]/g, ''))}
+            onBlur={() => { if (hpDraft !== null) ops.setHpExact(t.id, hpDraft); setHpDraft(null); }}
+            onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); if (e.key === 'Escape') { setHpDraft(null); e.currentTarget.blur(); } }}
           />
-        </aside>
+          <button type="button" className="heal" onClick={() => ops.adjustHp(t.id, 1)} aria-label="1 PV de soin">+1</button>
+          <button type="button" className="heal" onClick={() => ops.adjustHp(t.id, 5)} aria-label="5 PV de soin">+5</button>
+        </div>
+        <div className="wt-amount">
+          <input
+            inputMode="numeric"
+            placeholder="Valeur"
+            aria-label="Valeur de dégâts ou de soins (D)"
+            value={amount}
+            onChange={(e) => onAmount(e.target.value.replace(/[^\d]/g, ''))}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') { ops.applyHp(t.id, e.shiftKey ? -1 : +1); e.currentTarget.blur(); }
+              if (e.key === 'Escape') e.currentTarget.blur();
+            }}
+          />
+          <button type="button" className="hit" disabled={!amountValue} onClick={() => ops.applyHp(t.id, +1)} title="Entrée">Dégâts</button>
+          <button type="button" className="heal" disabled={!amountValue} onClick={() => ops.applyHp(t.id, -1)} title="Maj + Entrée">Soins</button>
+          <button type="button" className="temp" disabled={!amountValue} onClick={() => { ops.setTempHp(t.id, amountValue); onAmount(''); }} title="Donner cette valeur en PV temporaires">PV temp.</button>
+        </div>
+      </section>
+
+      {t.isPC && Number(t.hp) === 0 && (
+        <section className="wt-death">
+          <h4>Jets contre la mort</h4>
+          {[['s', 'Réussites'], ['f', 'Échecs']].map(([k, label]) => {
+            const n = Number(t.deathSaves?.[k] || 0);
+            return (
+              <div key={k} className="wt-death-row" data-kind={k}>
+                <span>{label}</span>
+                {[0, 1, 2].map((i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    data-on={i < n ? 1 : 0}
+                    aria-label={`${label} : ${i + 1}`}
+                    onClick={() => ops.changeDeathSaves(t.id, k, i < n ? -1 : +1)}
+                  />
+                ))}
+              </div>
+            );
+          })}
+        </section>
+      )}
+
+      <div className="wt-tiles">
+        <div title={calc.ac !== Number(t.baseAc || t.ac) ? `Base ${t.baseAc || t.ac}, effets compris` : 'Classe d’armure'}>
+          <b>{calc.ac}</b>
+          <span>Classe d’armure</span>
+        </div>
+        <div>
+          <b>{String(t.speed || '30 ft.').replace(/\s*ft\.?/i, '')}</b>
+          <span>Vitesse · pi</span>
+        </div>
+        <label>
+          <input
+            value={t.init}
+            inputMode="numeric"
+            aria-label="Initiative"
+            onChange={(e) => ops.update(t.id, { init: Number(e.target.value.replace(/[^\d-]/g, '')) || 0 })}
+          />
+          <span>Initiative</span>
+        </label>
       </div>
 
-      {infoModal && (
-        <CombatInfoModal info={infoModal} onClose={() => setInfoModal(null)} />
+      {tactics?.length > 0 && (
+        <section className="wt-sec">
+          <h4>Situation sur la carte</h4>
+          <TacticalChips notes={tactics} />
+        </section>
       )}
-    </>
+
+      <section className="wt-sec">
+        <div className="wt-sec-head">
+          <h4>États & conditions</h4>
+          <button type="button" className="wt-link" aria-expanded={condOpen} onClick={() => setCondOpen((v) => !v)}>
+            {condOpen ? 'Fermer' : '+ Ajouter'}
+          </button>
+        </div>
+        {conditions.length === 0 && !condOpen && <p className="wt-note">Aucun état.</p>}
+        {conditions.length > 0 && (
+          <div className="wt-chips">
+            {conditions.map((name) => {
+              const cd = conditionOf(name);
+              return (
+                <button key={name} type="button" className="wt-cond on" title={`${cd.rule}\nClic : retirer`} onClick={() => ops.toggleCondition(t.id, name)}>
+                  <span aria-hidden="true">{cd.icon}</span> {name} <span aria-hidden="true">×</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+        {condOpen && (
+          <div className="wt-cond-pick">
+            {COMBAT_CONDITIONS.map((cd) => (
+              <button
+                key={cd.name}
+                type="button"
+                className="wt-cond"
+                data-on={conditions.includes(cd.name) ? 1 : 0}
+                aria-pressed={conditions.includes(cd.name)}
+                title={cd.rule}
+                onClick={() => ops.toggleCondition(t.id, cd.name)}
+              >
+                <span aria-hidden="true">{cd.icon}</span> {cd.name}
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="wt-sec">
+        <div className="wt-sec-head">
+          <h4>Attaques rapides</h4>
+          <span className="wt-note">{t.isPC && !isActive ? 'À son tour seulement' : 'Cliquer pour lancer'}</span>
+        </div>
+        {roll && (
+          <div key={roll.key} className="wt-roll" data-crit={roll.crit ? 1 : 0} data-fumble={roll.fumble ? 1 : 0} aria-live="polite">
+            <div className="wt-roll-main">
+              <span>{roll.name}</span>
+              <b>{roll.total}</b>
+              <small>pour toucher</small>
+            </div>
+            <div className="wt-roll-detail">
+              d20 : {roll.d20s.join(' / ')}{roll.adv ? ' (avantage)' : roll.dis ? ' (désavantage)' : ''}
+              {roll.crit ? ' · CRITIQUE' : roll.fumble ? ' · 1 naturel' : ''}
+            </div>
+            {roll.dmg !== null && !roll.fumble && (
+              <div className="wt-roll-dmg">
+                <b>{roll.dmg}</b> dégâts {roll.dmgType}
+                <small>{roll.crit ? 'dés doublés' : ''}</small>
+              </div>
+            )}
+          </div>
+        )}
+        {(t.attacks || []).length === 0 ? (
+          <p className="wt-note">Aucune attaque définie — « Modifier la fiche » pour en ajouter.</p>
+        ) : (
+          <div className="wt-attacks">
+            {(t.attacks || []).map((attack, i) => {
+              const ac = calculateAttackLine(t, attack, calc);
+              const max = Number(attack.usesMax || 0);
+              const left = Number(attack.usesLeft ?? max);
+              return (
+                <div key={i} className="wt-attack" data-spent={max > 0 && left <= 0 ? 1 : 0}>
+                  <button type="button" className="wt-attack-roll" disabled={t.isPC && !isActive} onClick={() => ops.rollAttack(t, i)} title={t.isPC && !isActive ? `${t.name} attaquera à son tour` : `Lancer : ${ac.toHit} · ${ac.damage}`}>
+                    <span className="wt-attack-ico" aria-hidden="true"><Dices size={16} /></span>
+                    <span className="wt-attack-text">
+                      <b>{attack.name}</b>
+                      <small>{[attack.type || 'action', attack.range, ac.damage !== '—' ? ac.damage : ''].filter(Boolean).join(' · ')}</small>
+                    </span>
+                    <span className="wt-attack-bonus">{ac.toHit.replace(/^d20\s*/, '')}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="wt-attack-info"
+                    aria-label={`Règles de ${attack.name}`}
+                    onClick={() => onInfo({ title: attack.name, subtitle: attack.type || 'Action', body: attack.desc || 'Aucune description.', rules: buildAttackRulesText(attack, ac) })}
+                  >
+                    ?
+                  </button>
+                  {max > 0 && (
+                    <UseTracker left={left} max={max} reset={attack.reset} onSpend={() => ops.changeActionUses(t.id, i, -1)} onRestore={() => ops.changeActionUses(t.id, i, +1)} compact />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <details className="wt-fold">
+        <summary>Buffs, malus & ressources <small>{(t.effects || []).filter((e) => e.active).length} actif(s)</small></summary>
+        <CombatEffectsPanel
+          combatant={t}
+          onToggleEffect={(i) => ops.toggleEffect(t.id, i)}
+          onEffectUses={(i, d) => ops.changeEffectUses(t.id, i, d)}
+          onInfo={onInfo}
+        />
+      </details>
+
+      <details className="wt-fold">
+        <summary>Fiche complète</summary>
+        {t.str !== undefined && (
+          <div className="wt-abilities">
+            {[['FOR', t.str], ['DEX', t.dex], ['CON', t.con], ['INT', t.int], ['SAG', t.wis], ['CHA', t.cha]].map(([k, v]) => (
+              <div key={k}><span>{k}</span><b>{v}</b><small>{signed(abilityMod(v))}</small></div>
+            ))}
+          </div>
+        )}
+        <dl className="wt-sheet">
+          {t.saves && <><dt>Sauvegardes</dt><dd>{t.saves}</dd></>}
+          {t.skills && <><dt>Compétences</dt><dd>{t.skills}</dd></>}
+          {t.senses && <><dt>Sens</dt><dd>{t.senses}</dd></>}
+          {t.languages && <><dt>Langues</dt><dd>{t.languages}</dd></>}
+          {t.cr && <><dt>FP</dt><dd>{t.cr}</dd></>}
+          {t.tactics && <><dt>Tactique</dt><dd>{t.tactics}</dd></>}
+        </dl>
+        <div className="wt-row">
+          <button type="button" className="wt-btn" onClick={() => setEditing((v) => !v)}>
+            <Pencil size={14} aria-hidden="true" /> {editing ? 'Fermer l’édition' : 'Modifier la fiche'}
+          </button>
+          {sourceNpc && (
+            <button type="button" className="wt-btn" onClick={() => ops.refreshFromSheet(t)} title="Réimporter les actions, effets, CA et caractéristiques depuis la fiche">
+              <RefreshCw size={14} aria-hidden="true" /> Réimporter
+            </button>
+          )}
+          {onBoardVisible && boardToken && (
+            <button type="button" className="wt-btn" onClick={() => onBoardVisible(boardToken.visible === false)}>
+              {boardToken.visible === false ? <><Eye size={14} aria-hidden="true" /> Révéler</> : <><EyeOff size={14} aria-hidden="true" /> Cacher aux joueurs</>}
+            </button>
+          )}
+          <button type="button" className="wt-btn danger" onClick={() => ops.remove(t.id)}>
+            <Trash2 size={14} aria-hidden="true" /> Retirer
+          </button>
+        </div>
+        {editing && (
+          <CombatantEditPanel
+            t={t}
+            onUpdate={(patch) => ops.update(t.id, patch)}
+            onUpdateAttack={updateAttack}
+            onAddAttack={addAttack}
+            onDeleteAttack={deleteAttack}
+          />
+        )}
+      </details>
+    </div>
   );
 }
+
+/** Onglet Groupe : ajouter des combattants (héros, bestiaire, improvisé) et les voir tous, en compact. */
+function WarRoster({ sorted, party, npcs, activeId, selectedId, ops, onPick }) {
+  return (
+    <div className="wt-stack">
+      <section className="wt-card">
+        <h3>Ajouter au combat</h3>
+        <div className="wt-add">
+          <select
+            className="in"
+            value=""
+            aria-label="Ajouter un membre du groupe"
+            onChange={(e) => {
+              const p = party.find((x) => x.id === e.target.value);
+              if (p) ops.addCombatant(p, true);
+            }}
+          >
+            <option value="">+ Membre du groupe…</option>
+            {party.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+          <select
+            className="in"
+            value=""
+            aria-label="Ajouter depuis le bestiaire"
+            onChange={(e) => {
+              const m = npcs.find((x) => x.id === e.target.value);
+              if (m) ops.addCombatant(m, false);
+            }}
+          >
+            <option value="">+ Bestiaire…</option>
+            {npcs.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name} {m.isMonster || m.entityType === 'monster' ? '(monstre)' : '(PNJ)'}
+              </option>
+            ))}
+          </select>
+          <div className="wt-row">
+            <button type="button" className="wt-btn" onClick={ops.addWholeParty} disabled={!party.length}>
+              <Users size={14} aria-hidden="true" /> Tout le groupe
+            </button>
+            <button type="button" className="wt-btn" onClick={ops.addBlank}>
+              <Plus size={14} aria-hidden="true" /> Combattant improvisé
+            </button>
+          </div>
+          {sorted.length > 0 && (
+            <div className="wt-row">
+              <button type="button" className="wt-btn" onClick={() => ops.rollInitiative('foes')}>
+                <Dices size={14} aria-hidden="true" /> Initiative des créatures
+              </button>
+              <button type="button" className="wt-btn" onClick={() => ops.rollInitiative('all')}>
+                <Dices size={14} aria-hidden="true" /> Initiative de tous
+              </button>
+            </div>
+          )}
+        </div>
+        <p className="wt-note">Chaque ajout est une instance distincte : trois gobelins du bestiaire gardent chacun leurs PV, états et position.</p>
+      </section>
+      {sorted.length === 0 ? (
+        <div className="wt-empty">
+          <Swords size={28} aria-hidden="true" />
+          <b>La table est vide</b>
+          <span>Ajoute les héros puis leurs adversaires pour lancer l’initiative.</span>
+        </div>
+      ) : (
+        <section className="wt-card">
+          <h3>Combattants <small>{sorted.length}</small></h3>
+          <ul className="wt-roster">
+            {sorted.map((t) => (
+              <li key={t.id} data-side={t.isPC ? 'pc' : 'enemy'} data-tone={hpTone(t)} data-active={t.id === activeId ? 1 : 0} data-sel={t.id === selectedId ? 1 : 0}>
+                <input
+                  className="wt-roster-init"
+                  value={t.init}
+                  inputMode="numeric"
+                  aria-label={`Initiative de ${t.name}`}
+                  onChange={(e) => ops.update(t.id, { init: Number(e.target.value.replace(/[^\d-]/g, '')) || 0 })}
+                />
+                <button type="button" className="wt-roster-name" onClick={() => onPick(t.id)}>
+                  <b>{t.name}</b>
+                  <small>CA {getCombatantDerivedStats(t).ac} · {t.hp}/{t.maxHp} PV{(t.conditions || []).length ? ` · ${t.conditions.join(', ')}` : ''}</small>
+                </button>
+                <button type="button" className="wt-mini hit" onClick={() => ops.adjustHp(t.id, -1)} aria-label={`1 dégât à ${t.name}`}>−</button>
+                <button type="button" className="wt-mini heal" onClick={() => ops.adjustHp(t.id, 1)} aria-label={`1 PV de soin à ${t.name}`}>+</button>
+                <button type="button" className="wt-mini" onClick={() => ops.remove(t.id)} aria-label={`Retirer ${t.name}`}>×</button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </div>
+  );
+}
+
+function WarJournal({ journal, canUndo, undoLabel, onUndo, onClear }) {
+  const time = (at) => new Date(at).toLocaleTimeString('fr-CA', { hour: '2-digit', minute: '2-digit' });
+  return (
+    <div className="wt-stack">
+      <div className="wt-row">
+        <button type="button" className="wt-btn" onClick={onUndo} disabled={!canUndo} title={undoLabel ? `Annuler : ${undoLabel}` : ''}>
+          <Undo2 size={14} aria-hidden="true" /> Annuler le dernier geste
+        </button>
+        <button type="button" className="wt-btn" onClick={onClear} disabled={!journal.length}>Effacer le journal</button>
+      </div>
+      {undoLabel && <p className="wt-note">Dernier geste annulable : {undoLabel}</p>}
+      {journal.length === 0 ? (
+        <p className="wt-note">Le journal consigne dégâts, soins, états, attaques lancées et tours.</p>
+      ) : (
+        <ol className="wt-journal">
+          {journal.map((e) => (
+            <li key={e.id} data-tone={e.tone || ''}>
+              <span className="wt-journal-meta">M{e.round} · {time(e.at)}</span>
+              <span>{e.text}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  );
+}
+
+/** Bande d’initiative, toujours visible : ordre, tour actif, PV et états ; « Tour suivant » à portée de main. */
+function WarInitiative({ sorted, activeId, selectedId, round, art, boardTokens, onPick, onNext, onPrev, onNewRound }) {
+  const stripRef = useRef(null);
+  useEffect(() => {
+    const el = stripRef.current?.querySelector('[data-active="1"]');
+    el?.scrollIntoView?.({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+  }, [activeId]);
+  return (
+    <section className="wt-init" aria-label="Fil d’initiative">
+      <div className="wt-init-head">
+        <h2>Fil d’initiative</h2>
+        <span>Le tour actif brille · clic pour ouvrir une fiche · ←/→ pour parcourir</span>
+        <span className="wt-init-count">Acteurs <b>{String(sorted.length).padStart(2, '0')}</b> · Manche <b>{String(round).padStart(2, '0')}</b></span>
+      </div>
+      <div className="wt-init-row">
+        <button type="button" className="wt-init-prev" onClick={onPrev} aria-label="Tour précédent (Maj+N)" title="Tour précédent (Maj+N)">
+          <ChevronLeft size={18} aria-hidden="true" />
+        </button>
+        <ol className="wt-init-strip" ref={stripRef}>
+          {sorted.length === 0 && <li className="wt-init-empty">Ajoute des combattants dans l’onglet Groupe.</li>}
+          {sorted.map((t) => {
+            const pct = Math.round((Number(t.hp || 0) / Math.max(1, Number(t.maxHp || 1))) * 100);
+            const img = art(t);
+            const hidden = boardTokens.get(t.id)?.visible === false;
+            return (
+              <li key={t.id}>
+                <button
+                  type="button"
+                  className="wt-init-card"
+                  data-side={t.isPC ? 'pc' : 'enemy'}
+                  data-tone={hpTone(t)}
+                  data-active={t.id === activeId ? 1 : 0}
+                  data-sel={t.id === selectedId ? 1 : 0}
+                  data-hidden={hidden ? 1 : 0}
+                  onClick={() => onPick(t.id)}
+                  aria-current={t.id === activeId ? 'step' : undefined}
+                  title={`${t.name} — initiative ${t.init}, ${t.hp}/${t.maxHp} PV${(t.conditions || []).length ? ` · ${t.conditions.join(', ')}` : ''}`}
+                >
+                  <span className="wt-init-score">{t.init}</span>
+                  <span className="wt-init-face">{img ? <img src={img} alt="" /> : getInitials(t.name)}</span>
+                  <span className="wt-init-text">
+                    <b>{t.name}</b>
+                    <small>{t.hp}/{t.maxHp} PV{Number(t.tempHp) > 0 ? ` +${t.tempHp}` : ''}</small>
+                    <i className="wt-init-bar"><i style={{ width: pct + '%' }} /></i>
+                  </span>
+                  {(t.conditions || []).length > 0 && (
+                    <span className="wt-init-conds" aria-hidden="true">{t.conditions.slice(0, 3).map((n) => conditionOf(n).icon).join('')}</span>
+                  )}
+                  {t.id === activeId && <span className="wt-init-tag">Actif</span>}
+                  {hidden && <span className="wt-init-tag violet">Caché</span>}
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+        <div className="wt-init-actions">
+          <button type="button" className="wt-btn" onClick={onNewRound} title="Nouvelle manche : recharge les ressources de manche et revient au premier">
+            <RotateCcw size={14} aria-hidden="true" /> Nouvelle manche
+          </button>
+          <button type="button" className="wt-btn primary big" onClick={onNext} disabled={!sorted.length} title="Tour suivant (N)">
+            <SkipForward size={17} aria-hidden="true" /> Tour suivant
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function WarShortcuts({ onClose }) {
+  const keys = [
+    ['N', 'Fin du tour / tour suivant'],
+    ['Maj + N', 'Tour précédent'],
+    ['← →', 'Combattant précédent / suivant'],
+    ['A', 'Lancer la première attaque du combattant'],
+    ['D', 'Saisir une valeur de dégâts (Entrée : dégâts, Maj+Entrée : soins)'],
+    ['1 – 5', 'Onglets Tour, Groupe, Terrain, MJ, Journal'],
+    ['Ctrl / ⌘ + Z', 'Annuler le dernier geste'],
+    ['?', 'Afficher ces raccourcis'],
+  ];
+  return (
+    <Modal title="Raccourcis de la Table de guerre" onClose={onClose}>
+      <dl className="wt-keys">
+        {keys.map(([k, v]) => (
+          <div key={k}><dt><kbd>{k}</kbd></dt><dd>{v}</dd></div>
+        ))}
+      </dl>
+    </Modal>
+  );
+}
+
 /** Aide de l’IA pour le combat : plan du round, cibles, capacités, rebondissements (IA configurée dans Réglages). */
-function CombatAiPanel({ combatants, active, round, place, positions }) {
+function CombatAiPanel({ combatants, active, round, place, positions, tactics }) {
   const { ai } = useContext(AIContext);
   const [state, setState] = useState({ busy: false });
   async function ask() {
@@ -13574,7 +14561,7 @@ function CombatAiPanel({ combatants, active, round, place, positions }) {
         .map((a) => `${a.name}${a.attackBonus != null ? ` +${a.attackBonus}` : ''}${a.damageDice ? ` ${a.damageDice}${a.damageBonus ? `+${a.damageBonus}` : ''}` : ''}${a.range ? ` (${a.range})` : ''}`)
         .join('; ');
       const fx = (t.effects || []).filter((e) => e.active || e.source === 'Trait').map((e) => e.name).join(', ');
-      return `- ${t.id === active?.id ? '▶ ' : ''}${t.name} [${t.isPC ? 'joueur' : 'créature'}] init ${t.init}, PV ${t.hp}/${t.maxHp}, CA ${t.ac}${pos ? `, case (${pos.x},${pos.y})${pos.visible === false ? ', cachée aux joueurs' : ''}` : ''}${atk ? `. Actions : ${atk}` : ''}${fx ? `. Traits et effets : ${fx}` : ''}${t.skills ? `. Compétences : ${t.skills}` : ''}`;
+      return `- ${t.id === active?.id ? '▶ ' : ''}${t.name} [${t.isPC ? 'joueur' : 'créature'}] init ${t.init}, PV ${t.hp}/${t.maxHp}, CA ${t.ac}${pos ? `, case (${pos.x},${pos.y})${pos.visible === false ? ', cachée aux joueurs' : ''}` : ''}${atk ? `. Actions : ${atk}` : ''}${fx ? `. Traits et effets : ${fx}` : ''}${t.skills ? `. Compétences : ${t.skills}` : ''}${tactics?.[t.id]?.length ? `. Situation : ${tactics[t.id].map((n) => n.label).join(' ; ')}` : ''}`;
     });
     try {
       const text = await callAIMessages(ai, [
@@ -13608,12 +14595,359 @@ function CombatAiPanel({ combatants, active, round, place, positions }) {
   );
 }
 
+/** Niveaux et PV restants du groupe : les héros du combat, sinon tous les personnages de l’univers (PV pleins). */
+function partyStateOf(combatants, party) {
+  const pcs = combatants.filter((c) => c.isPC);
+  if (pcs.length) {
+    const hp = pcs.reduce((s, c) => s + Math.max(0, Number(c.hp) || 0), 0);
+    const max = pcs.reduce((s, c) => s + Math.max(1, Number(c.maxHp) || 1), 0);
+    return { levels: pcs.map((c) => Number(c.level) || 1), hpRatio: hp / max, size: pcs.length };
+  }
+  return { levels: party.map((h) => Number(h.level) || 1), hpRatio: 1, size: party.length };
+}
+
+/** XP d’un combattant ennemi : sa fiche SRD, son FP, sinon une estimation d’après ses PV max. */
+function xpOfCombatant(c, token) {
+  const st = token?.statId ? STATS[token.statId] : null;
+  const xp = xpOf(st || { cr: c.cr || '' });
+  if (xp) return xp;
+  const hp = Number(c.maxHp) || 0;
+  return hp <= 10 ? 25 : hp <= 20 ? 50 : hp <= 35 ? 100 : hp <= 60 ? 200 : hp <= 90 ? 450 : 1100;
+}
+
+/** Famille de créatures la plus représentée parmi les ennemis (pour des renforts cohérents). */
+function themeOfEnemies(tokens) {
+  let best = 'all', n = 0;
+  for (const th of SKIRMISH_THEMES) {
+    if (!th.ids.length) continue;
+    const k = tokens.filter((t) => th.ids.includes(t.statId)).length;
+    if (k > n) { best = th.id; n = k; }
+  }
+  return best;
+}
+
+const LEVELS = ['Facile', 'Moyen', 'Difficile', 'Mortel'];
+const skNorm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+/**
+ * Champ de bataille improvisé, sous la carte de combat : ajouter des créatures génériques (bestiaire SRD, fiche rapide
+ * ou écrite par l’IA), proposer une rencontre à la difficulté voulue et la placer de façon tactique, et suivre la
+ * difficulté en cours de combat pour la doser.
+ */
+function SkirmishPanel({ battle, setBattle, combatants, party, dispatch, place, flash }) {
+  const { ai } = useContext(AIContext);
+  const [tab, setTab] = useState(null);
+  const [query, setQuery] = useState('');
+  const [qty, setQty] = useState(1);
+  const [quick, setQuick] = useState({ name: '', cr: '1/2', style: 'brute' });
+  const [aiAsk, setAiAsk] = useState({ text: '', busy: false });
+  const [target, setTarget] = useState(2);
+  const [theme, setTheme] = useState('all');
+  const [seed, setSeed] = useState(1);
+  const [withParty, setWithParty] = useState(true);
+  const [replace, setReplace] = useState(false);
+  const [aiPlan, setAiPlan] = useState({ busy: false });
+  const [intent, setIntent] = useState(0);
+  const [advice, setAdvice] = useState({ busy: false });
+
+  const pstate = partyStateOf(combatants, party);
+  const heroesOnBoard = battle.tokens.filter((t) => t.kind === 'pc');
+  const byId = new Map(battle.tokens.map((t) => [t.id, t]));
+  const foes = combatants.filter((c) => !c.isPC && Number(c.hp) > 0 && byId.has(c.id));
+  const current = rateEncounter(foes.map((c) => xpOfCombatant(c, byId.get(c.id))), pstate);
+  const proposal = useMemo(() => proposeEncounter(pstate, target, theme, seed, customStats()), [JSON.stringify(pstate), target, theme, seed]);
+
+  const heroTokens = () => party.map((h) => ({
+    id: `pc-${h.id}-${uid()}`, name: h.name, kind: 'pc', size: 1, visible: true, heroId: h.id, sight: sightFor(h.race),
+    hp: Number(h.hp || h.maxHp || 20), maxHp: Number(h.hp || h.maxHp || 20), ac: Number(h.ac || 14),
+  }));
+  const addGroups = (groups, opts = {}) => {
+    const base = opts.replace ? { ...battle, tokens: battle.tokens.filter((t) => t.kind !== 'monster') } : battle;
+    const needParty = opts.party && !base.tokens.some((t) => t.kind === 'pc') && party.length > 0;
+    const added = placeTactically(base, groups, Date.now() % 100000, { party: needParty ? heroTokens() : undefined, extra: customStats() });
+    if (!added.length) { flash('Plus de place libre sur le plateau.'); return; }
+    setBattle({ ...base, tokens: [...base.tokens, ...added] });
+    const n = added.filter((t) => t.kind === 'monster').length;
+    flash(`${n} créature${n > 1 ? 's' : ''} placée${n > 1 ? 's' : ''} (cachée${n > 1 ? 's' : ''} aux joueurs).`);
+  };
+
+  const q = skNorm(query);
+  const matches = Object.values(STATS)
+    .filter((s) => !q || skNorm(`${s.name} ${s.meta} ${s.id}`).includes(q))
+    .sort((a, b) => crOf(a) - crOf(b) || a.name.localeCompare(b.name))
+    .slice(0, q ? 12 : 8);
+
+  async function createWithAI() {
+    if (!aiAsk.text.trim()) return;
+    setAiAsk((s) => ({ ...s, busy: true, error: '' }));
+    try {
+      const r = await callAIMessages(ai, [
+        { role: 'system', content: 'Tu écris des fiches de créatures D&D 5e en français, au format du SRD 5.1. Réponds UNIQUEMENT en JSON : {"name","meta","ac","hp","speed","abil":[FOR,DEX,CON,INT,SAG,CHA],"saves","skills","senses","languages","cr","traits":[[nom,texte]],"actions":[[nom,texte]],"reactions":[[nom,texte]]}. "meta" : « Type de taille X, alignement ». "ac" : « 13 (armure de cuir) ». "hp" : « 22 (5d8) ». "speed" en mètres (« 9 m »). "cr" : « 1/2 (100 PX) ». Chaque attaque s’écrit exactement : « Attaque d’arme au corps à corps : +4 au toucher, allonge 1,5 m. Touché : 5 (1d6 + 2) tranchants. » ou « Attaque d’arme à distance : +4 au toucher, portée 24/96 m. Touché : … ». Valeurs équilibrées selon le FP (Guide du maître).' },
+        { role: 'user', content: `Créature : ${aiAsk.text}\nGroupe : ${pstate.size || 4} héros de niveau ${pstate.levels.join(', ') || 1}. Lieu : ${place || 'souterrain'}.` },
+      ], true);
+      if (r._parseFailed || !Array.isArray(r.abil) || r.abil.length !== 6 || !Array.isArray(r.actions) || !r.name) throw new Error('Fiche incomplète reçue de l’IA, réessaie.');
+      const st = registerStat({
+        id: `ai-${Date.now().toString(36)}`, name: String(r.name), meta: String(r.meta || 'Créature'), ac: String(r.ac || '12'), hp: String(r.hp || '10'),
+        speed: String(r.speed || '9 m'), abil: r.abil.map((x) => Number(x) || 10), saves: r.saves || undefined, skills: r.skills || undefined,
+        senses: String(r.senses || 'Perception passive 10'), languages: String(r.languages || '—'), cr: String(r.cr || '1 (200 PX)'),
+        traits: (r.traits || []).filter((x) => Array.isArray(x) && x.length === 2), actions: r.actions.filter((x) => Array.isArray(x) && x.length === 2),
+        reactions: (r.reactions || []).filter((x) => Array.isArray(x) && x.length === 2),
+      });
+      addGroups([{ stat: st.id, n: Math.max(1, Number(qty) || 1) }]);
+      setAiAsk({ text: '', busy: false });
+    } catch (e) {
+      setAiAsk((s) => ({ ...s, busy: false, error: e.message }));
+    }
+  }
+
+  async function proposeWithAI() {
+    setAiPlan({ busy: true });
+    const catalogue = [...Object.values(STATS)].filter((s) => xpOf(s) > 0).map((s) => `${s.id} = ${s.name} (FP ${s.cr.split(' ')[0]}, ${xpOf(s)} PX)`).join('\n');
+    const th = encounterThresholds(pstate);
+    try {
+      const r = await callAIMessages(ai, [
+        { role: 'system', content: 'Tu es un MJ expert de D&D 5e. Tu composes une rencontre cohérente avec le lieu, à la difficulté demandée (règles du Guide du maître : XP × multiplicateur selon le nombre de créatures). Réponds UNIQUEMENT en JSON : {"groups":[{"stat":"id du catalogue","n":nombre}],"why":"2 phrases : qui sont-ils, pourquoi ici, et leur plan de combat"}. N’utilise que des id du catalogue.' },
+        { role: 'user', content: `Lieu : ${place || 'souterrain'}. Groupe : ${pstate.size || 4} héros, niveaux ${pstate.levels.join(', ') || '1'}, PV restants ${Math.round(pstate.hpRatio * 100)} %. Difficulté visée : ${LEVELS[target - 1]} (seuils XP ajustés facile/moyen/difficile/mortel : ${th.join(' / ')}).${theme !== 'all' ? ` Thème : ${SKIRMISH_THEMES.find((t) => t.id === theme)?.label}.` : ''}\nCatalogue :\n${catalogue}` },
+      ], true);
+      const groups = (r.groups || []).filter((g) => STATS[g.stat] && Number(g.n) > 0).map((g) => ({ stat: g.stat, n: Math.min(10, Number(g.n)) }));
+      if (!groups.length) throw new Error('Proposition vide, réessaie.');
+      const rating = rateEncounter(groups.flatMap((g) => Array.from({ length: g.n }, () => xpOf(STATS[g.stat]))), pstate);
+      setAiPlan({ busy: false, groups, rating, why: r.why });
+    } catch (e) {
+      setAiPlan({ busy: false, error: e.message });
+    }
+  }
+
+  // Doser la difficulté en cours de combat.
+  const patchFoes = (fn) => dispatch({ type: 'COMBAT_SET', patch: { combatants: combatants.map((c) => (!c.isPC && Number(c.hp) > 0 && byId.has(c.id) ? { ...c, ...fn(c) } : c)) } });
+  const reinforcements = () => {
+    const goal = Math.min(4.6, current.score + Math.max(1, intent));
+    const th = themeOfEnemies(battle.tokens.filter((t) => t.kind === 'monster'));
+    const ids = SKIRMISH_THEMES.find((t) => t.id === th)?.ids ?? [];
+    const avg = pstate.levels.length ? pstate.levels.reduce((s, l) => s + l, 0) / pstate.levels.length : 1;
+    const pool = (ids.length ? ids.map((id) => STATS[id]).filter(Boolean) : Object.values(STATS)).filter((s) => xpOf(s) > 0 && crOf(s) <= Math.max(1, avg + 1) && !/bon,|bon$/.test(s.meta));
+    const base = foes.map((c) => xpOfCombatant(c, byId.get(c.id)));
+    let best = null;
+    for (const s of pool) for (let n = 1; n <= 4; n++) {
+      const r = rateEncounter([...base, ...Array(n).fill(xpOf(s))], pstate);
+      const miss = Math.abs(r.score - goal);
+      if (!best || miss < best.miss) best = { stat: s.id, n, miss, r };
+    }
+    return best;
+  };
+  const reinf = intent > 0 ? reinforcements() : null;
+  const hurt = [...foes].sort((a, b) => Number(a.hp) / Number(a.maxHp) - Number(b.hp) / Number(b.maxHp))[0];
+  const leaderStat = foes.map((c) => byId.get(c.id)?.statId).filter(Boolean).map((id) => STATS[id]).sort((a, b) => crOf(b) - crOf(a))[0];
+  const leaderMoves = leaderStat ? [...(leaderStat.traits || []), ...leaderStat.actions].filter(([n, d]) => /recharge|incantation|1\/jour|commandement|invisib|agrandissement|régénération/i.test(`${n} ${d}`)).slice(0, 2) : [];
+
+  async function askAdvice() {
+    setAdvice({ busy: true });
+    const lines = combatants.filter((c) => byId.has(c.id)).map((c) => `- ${c.name} [${c.isPC ? 'joueur' : 'créature'}] PV ${c.hp}/${c.maxHp}, CA ${c.ac}${(c.attacks || []).length ? `, actions : ${c.attacks.map((a) => a.name).join(', ')}` : ''}`);
+    try {
+      const text = await callAIMessages(ai, [
+        { role: 'system', content: 'Tu es un MJ expert de D&D 5e. Le MJ veut doser la difficulté d’un combat en cours sans que les joueurs le remarquent. Réponds en français, 5 points au plus, une phrase chacun, sans titre, chacun commençant par un verbe à l’impératif (« Utilise… », « Invoque… », « Fais fuir… ») : capacités ou sorts des créatures à utiliser ou à oublier, renforts plausibles (créatures du SRD), terrain, moral, alliés inattendus. Reste cohérent avec le lieu. N’invente pas de statistiques.' },
+        { role: 'user', content: `Lieu : ${place || 'inconnu'}. Difficulté actuelle : ${current.label} (${current.adjusted} XP ajustés). Le MJ veut ${intent > 0 ? `corser le combat (${intent > 1 ? 'nettement' : 'un peu'})` : intent < 0 ? `faciliter le combat (${intent < -1 ? 'nettement' : 'un peu'})` : 'garder la tension sans changer la difficulté'}. Groupe à ${Math.round(pstate.hpRatio * 100)} % de ses PV.\n${lines.join('\n')}` },
+      ], false);
+      setAdvice({ busy: false, text });
+    } catch (e) {
+      setAdvice({ busy: false, error: e.message });
+    }
+  }
+
+  const Gauge = ({ rating, small }) => (
+    <div className={`skirmish-gauge ${small ? 'small' : ''}`} title={`Seuils ajustés facile / moyen / difficile / mortel : ${rating.thresholds.join(' / ')} XP`}>
+      <div className="skirmish-gauge-bar">
+        {['Trivial', 'Facile', 'Moyen', 'Difficile', 'Mortel'].map((l) => <span key={l}>{l}</span>)}
+        <i style={{ left: `${Math.min(99, (rating.score / 5) * 100)}%` }} />
+      </div>
+      <small><b>{rating.label}</b> · {rating.adjusted} XP ajustés ({rating.xp} XP){pstate.hpRatio < 0.99 ? ` · groupe à ${Math.round(pstate.hpRatio * 100)} % de PV` : ''}</small>
+    </div>
+  );
+  const groupText = (groups) => groups.map((g) => `${g.n} × ${STATS[g.stat]?.name ?? g.stat}`).join(', ');
+
+  return (
+    <div className="panel skirmish-panel">
+      <div className="skirmish-head">
+        <b>⚔ Champ de bataille improvisé</b>
+        <div className="skirmish-tabs" role="tablist">
+          {[['add', '➕ Ajouter des créatures'], ['gen', '🎲 Générer une rencontre'], ['dose', '📊 Difficulté']].map(([id, label]) => (
+            <button key={id} role="tab" aria-selected={tab === id} className={`btn sm ${tab === id ? 'primary' : ''}`} onClick={() => setTab(tab === id ? null : id)}>{label}</button>
+          ))}
+        </div>
+        <div className="skirmish-now" onClick={() => setTab('dose')}><Gauge rating={current} small /></div>
+      </div>
+
+      {tab === 'add' && (
+        <div className="skirmish-body skirmish-add">
+          <div className="skirmish-col">
+            <div className="skirmish-row">
+              <input className="input" placeholder="Chercher : gobelin, orc, squelette, loup…" value={query} onChange={(e) => setQuery(e.target.value)} />
+              <label className="skirmish-qty">× <input className="input" type="number" min="1" max="12" value={qty} onChange={(e) => setQty(e.target.value)} /></label>
+            </div>
+            <ul className="skirmish-list">
+              {matches.map((s) => (
+                <li key={s.id}>
+                  <img src={tokenImage({ kind: 'monster', statId: s.id })} alt="" />
+                  <span><b>{s.name}</b><small>FP {s.cr.split(' ')[0]} · PV {parseInt(s.hp, 10)} · CA {parseInt(s.ac, 10)}</small></span>
+                  <button className="btn sm" onClick={() => addGroups([{ stat: s.id, n: Math.max(1, Number(qty) || 1) }])}>Ajouter</button>
+                </li>
+              ))}
+              {!matches.length && <li className="muted">Rien de tel au bestiaire : crée-la à droite.</li>}
+            </ul>
+          </div>
+          <div className="skirmish-col">
+            <div className="skirmish-sub">Créature générique rapide</div>
+            <div className="skirmish-row">
+              <input className="input" placeholder="Nom (ex. Sentinelle de basalte)" value={quick.name} onChange={(e) => setQuick({ ...quick, name: e.target.value })} />
+            </div>
+            <div className="skirmish-row">
+              <select className="input" value={quick.cr} onChange={(e) => setQuick({ ...quick, cr: e.target.value })}>{QUICK_CRS.map((c) => <option key={c} value={c}>FP {c}</option>)}</select>
+              <select className="input" value={quick.style} onChange={(e) => setQuick({ ...quick, style: e.target.value })}>
+                <option value="brute">Brute (contact)</option><option value="tireur">Tireur</option><option value="mage">Lanceur de sorts</option>
+              </select>
+              <button className="btn sm" onClick={() => { const st = registerStat(quickStat(quick.name || 'Créature', quick.cr, quick.style)); addGroups([{ stat: st.id, n: Math.max(1, Number(qty) || 1) }]); setQuick({ ...quick, name: '' }); }}>Créer et placer</button>
+            </div>
+            <div className="skirmish-sub">Ou décrite à l’IA</div>
+            <div className="skirmish-row">
+              <input className="input" placeholder="ex. chaman gobelin qui invoque des rats" value={aiAsk.text} onChange={(e) => setAiAsk({ ...aiAsk, text: e.target.value })} onKeyDown={(e) => { if (e.key === 'Enter') createWithAI(); }} />
+              <button className="btn sm primary" disabled={aiAsk.busy || !ai?.apiKey || !aiAsk.text.trim()} onClick={createWithAI}>{aiAsk.busy ? 'Écriture…' : '✨ Créer'}</button>
+            </div>
+            {!ai?.apiKey && <p className="muted skirmish-note">Configure une clé d’IA dans Réglages pour cette option.</p>}
+            {aiAsk.error && <p className="combat-ai-error">{aiAsk.error}</p>}
+            <p className="muted skirmish-note">Les fiches créées ici restent dans ton bestiaire de ce navigateur et se retrouvent dans la recherche.</p>
+          </div>
+        </div>
+      )}
+
+      {tab === 'gen' && (
+        <div className="skirmish-body">
+          <div className="skirmish-row wrap">
+            <span className="muted">Groupe : {pstate.size || 0} héros, niv. {pstate.levels.join(', ') || '—'} · PV {Math.round(pstate.hpRatio * 100)} %</span>
+          </div>
+          <div className="skirmish-row wrap">
+            {LEVELS.map((l, i) => <button key={l} className={`btn sm ${target === i + 1 ? 'primary' : ''}`} onClick={() => setTarget(i + 1)}>{l}</button>)}
+            <select className="input" value={theme} onChange={(e) => setTheme(e.target.value)}>{SKIRMISH_THEMES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}</select>
+          </div>
+          {proposal ? (
+            <div className="skirmish-proposal">
+              <div><b>{groupText(proposal.groups)}</b></div>
+              <Gauge rating={proposal.rating} />
+              <div className="skirmish-row wrap">
+                <button className="btn sm" onClick={() => setSeed(seed + 1)}>🔄 Autre proposition</button>
+                <button className="btn sm primary" onClick={() => addGroups(proposal.groups, { party: withParty, replace })}>📍 Placer sur la carte</button>
+                {ai?.apiKey && <button className="btn sm" disabled={aiPlan.busy} onClick={proposeWithAI}>{aiPlan.busy ? 'L’IA compose…' : '✨ Proposition de l’IA'}</button>}
+              </div>
+            </div>
+          ) : <p className="muted">Aucune créature de ce thème ne convient à ce groupe.</p>}
+          {aiPlan.error && <p className="combat-ai-error">{aiPlan.error}</p>}
+          {aiPlan.groups && (
+            <div className="skirmish-proposal ai">
+              <div><b>✨ {groupText(aiPlan.groups)}</b></div>
+              {aiPlan.why && <p className="skirmish-note">{aiPlan.why}</p>}
+              <Gauge rating={aiPlan.rating} />
+              <button className="btn sm primary" onClick={() => addGroups(aiPlan.groups, { party: withParty, replace })}>📍 Placer sur la carte</button>
+            </div>
+          )}
+          <div className="skirmish-row wrap">
+            {!heroesOnBoard.length && party.length > 0 && <label><input type="checkbox" checked={withParty} onChange={(e) => setWithParty(e.target.checked)} /> Placer aussi le groupe ({party.length} héros) à gauche</label>}
+            {battle.tokens.some((t) => t.kind === 'monster') && <label><input type="checkbox" checked={replace} onChange={(e) => setReplace(e.target.checked)} /> Remplacer les créatures déjà sur la carte</label>}
+          </div>
+          <p className="muted skirmish-note">Placement tactique : combattants au contact, tireurs et chef en retrait à l’abri, rôdeurs sur les flancs. Tout arrive caché aux joueurs.</p>
+        </div>
+      )}
+
+      {tab === 'dose' && (
+        <div className="skirmish-body">
+          {foes.length ? <Gauge rating={current} /> : <p className="muted">Aucune créature debout pour l’instant.</p>}
+          <div className="skirmish-intent">
+            <span>Faciliter</span>
+            <input type="range" min="-2" max="2" step="1" value={intent} onChange={(e) => setIntent(Number(e.target.value))} />
+            <span>Corser</span>
+            <b>{['Nettement plus facile', 'Un peu plus facile', 'Garder la tension', 'Un peu plus dur', 'Nettement plus dur'][intent + 2]}</b>
+          </div>
+          <ul className="skirmish-moves">
+            {intent > 0 && reinf && (
+              <li><span>📯 <b>Renforts :</b> {reinf.n} × {STATS[reinf.stat]?.name} {reinf.n > 1 ? 'surgissent' : 'surgit'} ({reinf.r.label}, {reinf.r.adjusted} XP ajustés).</span>
+                <button className="btn sm" onClick={() => addGroups([{ stat: reinf.stat, n: reinf.n }])}>Faire entrer</button></li>
+            )}
+            {intent > 0 && (
+              <li><span>🛡 <b>Formation serrée :</b> +2 CA pour les créatures (bouclier levé, couvert pris).</span>
+                <button className="btn sm" onClick={() => patchFoes((c) => ({ effects: [...(c.effects || []), { name: 'Formation serrée', icon: '🛡', source: 'MJ', desc: '+2 CA, ajouté pour corser le combat.', short: '+2 CA', active: true, modifier: { ac: 2 }, usesMax: 0, usesLeft: 0, reset: 'none' }] }))}>Appliquer</button></li>
+            )}
+            {intent > 1 && (
+              <li><span>🧪 <b>Potions :</b> les créatures sous la moitié de leurs PV en récupèrent 7 (2d4 + 2).</span>
+                <button className="btn sm" onClick={() => patchFoes((c) => (Number(c.hp) < Number(c.maxHp) / 2 ? { hp: Math.min(Number(c.maxHp), Number(c.hp) + 7) } : {}))}>Appliquer</button></li>
+            )}
+            {intent > 0 && leaderMoves.map(([n, d]) => (
+              <li key={n}><span>✨ <b>{leaderStat.name} : utilise « {n} »</b> — {d.slice(0, 140)}{d.length > 140 ? '…' : ''}</span></li>
+            ))}
+            {intent < 0 && hurt && (
+              <li><span>🏃 <b>Moral brisé :</b> {hurt.name} ({hurt.hp}/{hurt.maxHp} PV) prend la fuite.</span>
+                <button className="btn sm" onClick={() => setBattle({ ...battle, tokens: battle.tokens.filter((t) => t.id !== hurt.id) })}>Faire fuir</button></li>
+            )}
+            {intent < 0 && (
+              <li><span>🩸 <b>Blessures cachées :</b> les créatures perdent 25 % de leurs PV restants.</span>
+                <button className="btn sm" onClick={() => patchFoes((c) => ({ hp: Math.max(1, Math.round(Number(c.hp) * 0.75)) }))}>Appliquer</button></li>
+            )}
+            {intent < -1 && <li><span>🕯 <b>Allié inattendu :</b> un PNJ du coin intervient, ou une créature se retourne contre les siens.</span></li>}
+            {intent < 0 && leaderMoves.length > 0 && <li><span>🙈 <b>Oublie</b> « {leaderMoves[0][0]} » de {leaderStat.name} ce round.</span></li>}
+            {intent === 0 && <li><span>⚖ Le dosage actuel convient : joue les créatures intelligemment, et fais bouger le terrain pour garder la tension.</span></li>}
+          </ul>
+          <button className="btn sm primary" disabled={advice.busy || !ai?.apiKey} onClick={askAdvice}>{advice.busy ? 'L’IA réfléchit…' : '✨ Conseils de l’IA'}</button>
+          {advice.error && <p className="combat-ai-error">{advice.error}</p>}
+          {advice.text && (
+            <ul className="combat-ai-answer">
+              {advice.text.split('\n').map((l) => l.replace(/^[\s*•\-–\d.)]+/, '').trim()).filter(Boolean).map((l, i) => <li key={i}>{l}</li>)}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /**
  * Module Combat sous la carte de combat : les combattants et les jetons sont les mêmes (même identifiant).
  * Ajouter un combattant pose son jeton ; un jeton ajouté sur la carte devient un combattant ; retirer l’un retire
  * l’autre ; PV, CA, nom, initiative et tour en cours se reportent sur le plateau. Un autre lieu = un autre combat.
  */
-function MapEncounter({ state, dispatch, party, npcs, flash, battle, setBattle, place, combatKey, selectedId, onSelect }) {
+/** Clé du combat d’un plateau (même calcul que la carte de combat) : une autre zone = un autre combat. */
+const battleKeyOf = (m) => `${m.id}:${m.battle?.local?.source ?? m.battle?.terrain?.source ?? 'plateau'}`;
+
+/**
+ * Carte de combat dans la page Combat (à la place de la mini-map) : le plateau de la carte liée au combat, synchronisé
+ * avec les combattants comme sous la carte.
+ */
+function CombatBoardPanel({ state, dispatch, party, npcs, selectedId, onSelect }) {
+  const maps = Object.values(state.maps || {}).filter((m) => m.battle && (!state.activeUniverseId || m.universeId === state.activeUniverseId));
+  const boundId = String(state.combat?.battleKey || '').split(':')[0];
+  const [pick, setPick] = useState(null);
+  const rec = maps.find((m) => m.id === (pick || boundId)) || maps.find((m) => m.battle.tokens?.length) || maps[0];
+  if (!rec) return <p className="combat-map-help">Aucune carte de combat pour l’instant : ouvre une carte, puis « ⚔ Ouvrir la carte de combat ».</p>;
+  return (
+    <>
+      {maps.length > 1 && (
+        <select className="input combat-board-pick" value={rec.id} onChange={(e) => setPick(e.target.value)}>
+          {maps.map((m) => <option key={m.id} value={m.id}>{m.battle.local?.place || m.title}</option>)}
+        </select>
+      )}
+      <CombatBoardSync key={battleKeyOf(rec)} {...{ state, dispatch, party, npcs, selectedId, onSelect, rec }} />
+    </>
+  );
+}
+
+function CombatBoardSync({ state, dispatch, party, npcs, selectedId, onSelect, rec }) {
+  const setBattle = (b) => dispatch({ type: 'UPDATE_MAP', id: rec.id, patch: { battle: b, updatedAt: Date.now() } });
+  const bound = useBattleSync({ state, dispatch, party, npcs, battle: rec.battle, setBattle, combatKey: battleKeyOf(rec) });
+  if (!bound) return <p className="muted">Préparation du combat…</p>;
+  return <MiniBattle battle={rec.battle} onBattle={setBattle} selectedId={selectedId || null} onSelect={(id) => onSelect(id || '')} />;
+}
+
+/**
+ * Synchronise le module Combat et un plateau de carte de combat (mêmes identifiants) : entrée dans le combat, ajouts,
+ * retraits, PV, CA, nom, initiative et tour en cours. Renvoie `true` une fois le combat lié à ce plateau.
+ */
+function useBattleSync({ state, dispatch, party, npcs, battle, setBattle, combatKey }) {
   const c = state.combat || { combatants: [], round: 1 };
   const combatants = c.combatants || [];
   const bound = c.battleKey === combatKey;
@@ -13648,15 +14982,46 @@ function MapEncounter({ state, dispatch, party, npcs, flash, battle, setBattle, 
     let nextTokens = tokens.filter((t) => !goneInCombat.includes(t.id));
     if (newCombatants.length) nextTokens = [...nextTokens, ...placeOnBoard({ ...battle, tokens: nextTokens }, newCombatants.map(tokenFromCombatant))];
 
-    // Ce que le module Combat décide (PV, CA, nom, initiative) se voit sur le plateau.
+    // États (À terre, Empoisonné…) synchronisés dans les deux sens. `condsAt` garde, sur le combattant, les états du
+    // dernier accord avec son jeton : le côté qui s’en écarte est celui qui vient de changer, l’autre le suit.
+    const condKey = (list) => [...new Set(list || [])].sort().join('|');
+    const conds = new Map();
+    for (const t of nextTokens) {
+      const x = nextComb.find((q) => q.id === t.id);
+      if (!x) continue;
+      const tk = condKey(t.conditions);
+      const ck = condKey(x.conditions);
+      const last = x.condsAt;
+      const fromToken = tk !== ck && (last === undefined ? !x.conditions?.length : last === ck);
+      conds.set(t.id, fromToken ? [...(t.conditions || [])] : [...(x.conditions || [])]);
+    }
+    nextComb = nextComb.map((x) => {
+      if (!conds.has(x.id)) return x;
+      const list = conds.get(x.id);
+      const key = condKey(list);
+      return condKey(x.conditions) === key && x.condsAt === key ? x : { ...x, conditions: list, condsAt: key };
+    });
+
+    // Ce que le module Combat décide (PV, CA, nom, initiative, états ; déplacement et arme en main des héros) se voit
+    // sur le plateau. Chaque perte ou gain de PV est noté pour être écrit en grand au-dessus du jeton.
     const byId = new Map(nextComb.map((x) => [x.id, x]));
+    const now = Date.now();
+    const hits = [];
     nextTokens = nextTokens.map((t) => {
       const x = byId.get(t.id);
       if (!x) return t;
       const ac = getCombatantDerivedStats(x).ac;
       const init = x.init === '' || x.init === undefined ? undefined : Number(x.init);
-      const same = t.hp === Number(x.hp) && t.maxHp === Number(x.maxHp) && t.ac === Number(ac) && t.name === x.name && t.init === init;
-      return same ? t : { ...t, hp: Number(x.hp), maxHp: Number(x.maxHp), ac: Number(ac), name: x.name, init };
+      const sameConds = condKey(t.conditions) === condKey(x.conditions);
+      const hero = x.isPC ? heroReachOf(x) : null;
+      const sameHero = !hero || (t.move === hero.move && JSON.stringify(t.reach) === JSON.stringify(hero.reach));
+      const same = t.hp === Number(x.hp) && t.maxHp === Number(x.maxHp) && t.ac === Number(ac) && t.name === x.name && t.init === init && sameConds && sameHero;
+      if (t.hp !== undefined && Number(x.hp) !== t.hp) hits.push({ id: uid(), to: t.id, amount: Number(x.hp) - t.hp, at: now });
+      return same ? t : {
+        ...t, hp: Number(x.hp), maxHp: Number(x.maxHp), ac: Number(ac), name: x.name, init,
+        ...(sameConds ? {} : { conditions: [...(x.conditions || [])] }),
+        ...(hero ? { move: hero.move, reach: hero.reach } : {}),
+      };
     });
 
     const sorted = [...nextComb].sort((a, b) => (Number(b.init) || 0) - (Number(a.init) || 0));
@@ -13669,33 +15034,22 @@ function MapEncounter({ state, dispatch, party, npcs, flash, battle, setBattle, 
     const syncedChanged = synced.length !== (c.syncedIds || []).length || synced.some((id, i) => id !== c.syncedIds[i]);
     if (combChanged || syncedChanged) dispatch({ type: 'COMBAT_SET', patch: { ...(combChanged ? { combatants: nextComb } : {}), syncedIds: synced } });
     const tokensChanged = nextTokens.length !== tokens.length || nextTokens.some((t, i) => t !== tokens[i]);
-    if (tokensChanged || battle.turn !== turn || battle.round !== round) setBattle({ ...battle, tokens: nextTokens, turn, round });
+    const recentHits = hits.length ? [...(battle.hits || []).filter((h) => now - h.at < 8000), ...hits].slice(-12) : battle.hits;
+    if (tokensChanged || battle.turn !== turn || battle.round !== round) setBattle({ ...battle, tokens: nextTokens, turn, round, hits: recentHits });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bound, combatants, battle.tokens, c.turnIndex, c.round, c.syncedIds]);
+  return bound;
+}
+
+function MapEncounter({ state, dispatch, party, npcs, flash, battle, setBattle, place, combatKey, selectedId, onSelect, side }) {
+  const c = state.combat || { combatants: [], round: 1 };
+  const combatants = c.combatants || [];
+  const bound = useBattleSync({ state, dispatch, party, npcs, battle, setBattle, combatKey });
 
   const positions = Object.fromEntries(battle.tokens.map((t) => [t.id, { x: t.x, y: t.y, visible: t.visible }]));
-  const setVisible = (id, visible) => setBattle({ ...battle, tokens: battle.tokens.map((t) => (t.id === id ? { ...t, visible } : t)) });
-
+  const tactics = useMemo(() => battleTactics(battle, combatants), [battle, combatants]);
   if (!bound) return <p className="muted">Préparation du combat…</p>;
-  return (
-    <div className="map-encounter">
-      <div className="map-encounter-tokens">
-        <span className="muted">Vu par les joueurs :</span>
-        {battle.tokens.map((t) => (
-          <button
-            key={t.id}
-            className={`map-encounter-chip ${t.visible ? 'on' : ''} ${selectedId === t.id ? 'sel' : ''}`}
-            onClick={() => setVisible(t.id, !t.visible)}
-            title={t.visible ? 'Visible des joueurs (clic : cacher)' : 'Caché aux joueurs (clic : montrer)'}
-          >
-            {t.visible ? '👁' : '🙈'} {t.name}
-          </button>
-        ))}
-        <span className="muted map-encounter-hint">Glisse les jetons sur le plateau ; tout le reste se gère ici.</span>
-      </div>
-      <Encounter {...{ dispatch, state, party, npcs, flash }} embedded={{ selectedId, onSelect, place, positions }} />
-    </div>
-  );
+  return <Encounter {...{ dispatch, state, party, npcs, flash }} embedded={{ selectedId, onSelect, place, positions, tactics, battle, setBattle, side }} />;
 }
 
 /** « name Discrétion, bonus +6, desc … » (objets aplatis en texte), tableaux ou objets → « Discrétion +6, … ». */
@@ -13747,6 +15101,17 @@ function combatantArtOf(state, t, feed) {
   return (npc && sheetPortraitOf(state, npc)) || creatureArtOf(state, t.name, feed) || (npc ? creatureArtOf(state, npc.name, feed) : '');
 }
 
+/** Image d’un combattant pour l’initiative : son illustration, sinon le portrait de sa fiche, sinon son jeton. */
+function combatantPictureOf(state, t) {
+  if (!t) return '';
+  const src = String(t.sourceId || '');
+  const npc = !t.isPC && src && !src.startsWith('srd:') ? state.npcs?.[src] : null;
+  return combatantArtOf(state, t)
+    || (npc && portraitOf(state, npc))
+    || (src.startsWith('srd:') && tokenImage({ kind: 'monster', statId: src.slice(4) }))
+    || t.image || '';
+}
+
 /** Pleine illustration d'une créature, par son nom : portrait importé sur sa fiche PNJ, puis
  *  bibliothèque, puis Archives. Jamais le jeton rond. */
 function creatureArtOf(state, name, feed) {
@@ -13762,330 +15127,309 @@ function creatureArtOf(state, name, feed) {
   return !src || /^(data:|https?:|\/)/.test(src) ? src : `/${src}`;
 }
 
-/** Aperçu de la fiche du jeton sélectionné sur la carte de combat : l’essentiel pour jouer son tour. */
-function TokenSheet({ state, dispatch, id, onClose }) {
-  const { feed: archiveFeed } = useUnderdarkFeed();
-  const [amount, setAmount] = useState('');
-  const [open, setOpen] = useState(null);
-  const combatants = state.combat?.combatants || [];
-  const t = combatants.find((x) => x.id === id);
-  if (!t) return <p className="muted token-sheet-empty">Ce jeton n’est pas (encore) dans le combat.</p>;
+/** Types de dégâts saisis en anglais dans les fiches de héros, en français pour l’affichage. */
+const TYPE_FR = { slashing: 'tranchants', piercing: 'perforants', bludgeoning: 'contondants', fire: 'de feu', cold: 'de froid', force: 'de force', 'force/fire': 'de force', poison: 'de poison', necrotic: 'nécrotiques', radiant: 'radiants', lightning: 'de foudre', thunder: 'de tonnerre', acid: 'd’acide', psychic: 'psychiques', weapon: '' };
+const frDamage = (text) => String(text || '').replace(/\b(slashing|piercing|bludgeoning|force\/fire|fire|cold|force|poison|necrotic|radiant|lightning|thunder|acid|psychic|weapon)\b/gi, (m) => TYPE_FR[m.toLowerCase()] ?? m).trim();
 
-  const derived = getCombatantDerivedStats(t);
-  const src = String(t.sourceId || '');
-  const npc = !t.isPC && src && !src.startsWith('srd:') ? state.npcs?.[src] : null;
-  const pcAsset = t.isPC && src ? getPrimaryAsset(state, 'player', src) : null;
-  // Une vraie illustration (portrait importé ou image des Archives) s'affiche en grand ;
-  // à défaut, on garde le petit jeton rond.
-  const illustration = combatantArtOf(state, t, archiveFeed);
-  const picture = illustration
-    || (npc && portraitOf(state, npc))
-    || (src.startsWith('srd:') && tokenImage({ kind: 'monster', statId: src.slice(4) }))
-    || t.image || '';
-  const hp = Number(t.hp || 0);
-  const maxHp = Math.max(1, Number(t.maxHp || 1));
-  const pct = Math.round((hp / maxHp) * 100);
-  const col = pct > 50 ? 'var(--verdant)' : pct > 20 ? 'var(--ember)' : 'var(--blood)';
-  const sign = (n) => (n >= 0 ? `+${n}` : `${n}`);
-  const saves = formatBonuses(t.saves);
-  const skills = formatBonuses(t.skills);
-  const perception = skills.match(/perception\s*\+?(-?\d+)/i);
-  const passive = 10 + (perception ? Number(perception[1]) : abilityMod(t.wis || 10));
-  const active = (t.effects || []).filter((e) => e.active);
-  const traits = (t.effects || []).filter((e) => !e.active && e.source === 'Trait');
-  const patch = (p) => dispatch({ type: 'COMBAT_SET', patch: { combatants: combatants.map((x) => (x.id === t.id ? { ...x, ...p } : x)) } });
-  const applyHp = (dir) => {
-    const v = parseInt(amount, 10);
-    if (!v) return;
-    patch({ hp: Math.max(0, Math.min(maxHp, hp - dir * v)) });
-    setAmount('');
+/** Portée d’une attaque, en cases : allonge au contact, ou portée courte / longue à distance. */
+/** Déplacement (en cases) et portée de l’arme en main d’un héros, pour l’écran joueur. */
+function heroReachOf(x) {
+  const sp = String(x.speed || '30 ft.');
+  const n = parseFloat(sp.replace(',', '.')) || 30;
+  const move = Math.max(1, Math.round((/\bm\b|mètre/i.test(sp) ? n * 3.28084 : n) / 5));
+  const weapons = (x.attacks || []).filter(isWieldedWeapon);
+  const name = x.wield && weapons.some((w) => w.name === x.wield) ? x.wield : weapons[0]?.name;
+  const a = (x.attacks || []).find((q) => q.name === name) || (x.attacks || [])[0];
+  if (!a) return { move, reach: { melee: 1, short: 0, long: 0 } };
+  return { move, reach: { ...attackReach(a), weapon: a.name } };
+}
+
+function attackReach(a) {
+  const text = `${a.range || ''} ${a.desc || ''}`;
+  const cells = (m) => Math.round((parseFloat(String(m).replace(',', '.')) * 3.28084) / 5);
+  const al = /allonge\s*([\d,]+)\s*m/i.exec(text);
+  const po = /portée\s*([\d,]+)\s*\/\s*([\d,]+)\s*m/i.exec(text);
+  const ft = /(\d+)\s*(?:[–/-]\s*(\d+)\s*)?ft/i.exec(a.range || '');
+  const melee = al ? cells(al[1]) : 0;
+  let short = po ? cells(po[1]) : 0, long = po ? cells(po[2]) : 0;
+  if (!al && !po && ft) {
+    const n = Number(ft[1]) / 5;
+    if (n <= 2) return { melee: n, short: 0, long: 0 };
+    short = n; long = ft[2] ? Number(ft[2]) / 5 : n;
+  }
+  if (!melee && !short && /corps à corps|mêlée|melee/i.test(text)) return { melee: 1, short: 0, long: 0 };
+  return { melee: melee || (!short ? 1 : 0), short, long };
+}
+
+/** Une arme qu’on tient en main (une épée, un arc) : pas une morsure, un sort ni un trait. */
+const isWieldedWeapon = (a) => !/morsure|griffe|coup|poing|frappe|tentacule|dard|queue|corne|souffle|sort|cantrip|trait mystique|rayon|onde|incantation|attaques multiples/i.test(`${a.name} ${a.type || ''}`);
+const isTwoHanded = (a) => /deux mains|two-handed|arc|arbalète lourde|arbalete lourde|pique|coutille|glaive|maillet|lance d.arçon/i.test(`${a.name} ${a.desc || ''}`);
+const rollDie = (f) => 1 + Math.floor(Math.random() * f);
+const rollDice = (expr) => (String(expr).match(/(\d*)d(\d+)/g) || []).reduce((s, d) => { const [n, f] = d.split('d').map((x) => Number(x || 1)); let t = 0; for (let i = 0; i < n; i++) t += rollDie(f); return s + t; }, 0);
+const doubleDice = (expr) => String(expr).replace(/(\d*)d(\d+)/g, (_, n, f) => `${Number(n || 1) * 2}d${f}`);
+
+/**
+ * Attaque sur la carte : l’attaquant vise une cible (trait tracé, aussi chez les joueurs). Le panneau dit quoi lancer
+ * (bonus, avantage ou désavantage selon la position, abri de la cible), bloque une attaque hors de portée ou avec une
+ * arme qu’on ne tient pas, puis applique les dégâts à partir du résultat des dés.
+ */
+function AttackPanel({ state, dispatch, battle, setBattle }) {
+  const aim = battle.aim;
+  const c = state.combat || {};
+  const combatants = c.combatants || [];
+  const A = combatants.find((x) => x.id === aim.from);
+  const T = combatants.find((x) => x.id === aim.to);
+  const tA = battle.tokens.find((t) => t.id === aim.from);
+  const tT = battle.tokens.find((t) => t.id === aim.to);
+  const [pick, setPick] = useState(aim.pick ?? null);
+  const [d20, setD20] = useState(['', '']);
+  const [dmg, setDmg] = useState('');
+  const [save, setSave] = useState('');
+  const [done, setDone] = useState(null);
+  const [reaction, setReaction] = useState(false);
+  const announceTimer = useRef(null);
+  // L’annonce part après une courte pause de saisie : elle s’applique au plateau tel qu’il est à ce moment-là.
+  const battleRef = useRef(battle);
+  battleRef.current = battle;
+  useEffect(() => () => clearTimeout(announceTimer.current), []);
+  const close = () => setBattle({ ...battle, aim: undefined });
+  if (!A || !T || !tA || !tT) return <div className="attack-panel"><p className="muted">Attaquant ou cible absent du combat.</p><button className="btn sm" onClick={close}>Fermer</button></div>;
+
+  const grid = effectiveOf(battle);
+  const dist = Math.max(Math.max(0, tA.x - (tT.x + tT.size - 1), tT.x - (tA.x + tA.size - 1)), Math.max(0, tA.y - (tT.y + tT.size - 1), tT.y - (tA.y + tA.size - 1)));
+  const cover = coverAgainst(battle, grid, tA, tT);
+  const notes = battleTactics(battle, combatants)[A.id] || [];
+  const derived = getCombatantDerivedStats(A);
+  const targetAc = getCombatantDerivedStats(T).ac;
+  const turnKey = `${c.round || 1}:${c.turnIndex || 0}`;
+  const weapons = (A.attacks || []).filter(isWieldedWeapon);
+  const inHand = A.isPC ? (A.wield && weapons.some((w) => w.name === A.wield) ? A.wield : weapons[0]?.name) : null;
+
+  const options = (A.attacks || []).map((a, i) => {
+    const calc = calculateAttackLine(A, a, derived);
+    const reach = attackReach(a);
+    const saveM = /sauvegarde de (\w+)\s*DD\s*(\d+)/i.exec(a.desc || '');
+    const isSave = !!saveM && !/au toucher/i.test(a.desc || '');
+    const melee = reach.melee > 0 && dist <= reach.melee;
+    const ranged = !melee && reach.long > 0 && dist <= reach.long;
+    const why = [];
+    let blocked = '';
+    if (/attaques multiples/i.test(a.name)) blocked = 'Résume les attaques : choisis chacune des attaques ci-dessous.';
+    else if (!melee && !ranged) blocked = `Hors de portée : ${T.name} est à ${dist * 5} pieds (${reach.melee ? `allonge ${reach.melee * 5} pi` : `portée ${reach.short * 5}/${reach.long * 5} pi`}).`;
+    else if (A.isPC && isWieldedWeapon(a) && inHand && inHand !== a.name) {
+      const cur = weapons.find((w) => w.name === inHand);
+      blocked = `${A.name} tient ${cur ? `« ${cur.name} »${isTwoHanded(cur) ? ' à deux mains' : ''}` : 'autre chose'}. Pour utiliser « ${a.name} », il faut changer d’arme.`;
+    }
+    let adv = derived.advantage, dis = derived.disadvantage;
+    if (ranged && dist > reach.short) { dis = true; why.push(`portée longue (au-delà de ${reach.short * 5} pi) : désavantage`); }
+    if (ranged && notes.some((n) => n.label.startsWith('Désavantage à distance'))) { dis = true; why.push('ennemi au contact : désavantage à distance'); }
+    if (melee && notes.some((n) => n.label === `Avantage contre ${T.name} (Tactique de groupe)`)) { adv = true; why.push('Tactique de groupe : avantage'); }
+    if (melee && notes.some((n) => n.label === `Prise en tenaille de ${T.name}`)) why.push('prise en tenaille possible (règle optionnelle : avantage)');
+    const mode = adv && dis ? 'normal' : adv ? 'adv' : dis ? 'dis' : 'normal';
+    return { a, i, calc, reach, melee, ranged, blocked, why, mode, isSave, saveAbility: saveM?.[1], saveDc: saveM ? Number(saveM[2]) : 0 };
+  });
+  const usable = options.filter((o) => !o.blocked);
+  if (!options.length) return <div className="attack-panel"><p className="muted">{A.name} n’a aucune attaque sur sa fiche.</p><button className="btn sm" onClick={close}>Fermer</button></div>;
+  const sel = options.find((o) => o.i === pick) || usable[0] || options[0];
+  const coverAc = cover.level === 3 ? null : cover.ac;
+  const dc = targetAc + (coverAc || 0);
+
+  // Un héros n’attaque que pendant son tour (sauf réaction : attaque d’opportunité).
+  const offTurn = A.isPC && battle.turn && battle.turn !== A.id && !reaction;
+  const foes = combatants.filter((x) => x.id !== A.id && battle.tokens.some((t) => t.id === x.id));
+  const retarget = (to) => {
+    clearTimeout(announceTimer.current);
+    setD20(['', '']); setDmg(''); setSave(''); setDone(null);
+    setBattle({ ...battle, aim: { from: aim.from, to, at: aim.at, by: aim.by } });
   };
-  const lines = [
-    ['Vitesse', t.speed], ['Sauvegardes', saves], ['Compétences', skills], ['Sens', toText(t.senses)], ['Langues', toText(t.languages)],
-  ].filter(([, v]) => v);
+  const family = attackFamily(sel.a, String(sel.calc.damageType || ''), sel.ranged);
+
+  /** Verdict d’un jet pour toucher (les d20 saisis), annoncé aux joueurs avec une phrase de récit. */
+  const verdictOf = (dice) => {
+    const v = dice.map((x) => parseInt(x, 10)).filter((x) => x >= 1 && x <= 20);
+    if (!v.length || (sel.mode !== 'normal' && v.length < 2)) return null;
+    const n = sel.mode === 'normal' ? v[0] : sel.mode === 'adv' ? Math.max(...v) : Math.min(...v);
+    const tot = n + Number(sel.calc.attackBonus || 0);
+    const verdict = n === 20 ? 'crit' : n === 1 ? 'fumble' : tot >= dc ? 'hit' : 'miss';
+    return { verdict, roll: tot };
+  };
+  const announce = (dice, delay = 700) => {
+    clearTimeout(announceTimer.current);
+    const v = verdictOf(dice);
+    if (!v) return;
+    announceTimer.current = setTimeout(() => {
+      const cur = battleRef.current;
+      if (cur.aim?.at !== aim.at || cur.aim?.to !== aim.to) return;
+      const keep = cur.aim?.verdict === v.verdict && cur.aim?.line;
+      const line = keep || attackLine(family, v.verdict, { A: A.name, T: T.name, W: sel.a.name });
+      const label = { crit: 'Coup critique !', hit: 'Touché !', miss: 'Raté', fumble: 'Échec critique !' }[v.verdict];
+      setBattle({
+        ...cur,
+        aim: { ...cur.aim, verdict: v.verdict, roll: v.roll, line, weapon: sel.a.name, damage: undefined, text: `${A.name} → ${T.name} : ${label}`, tone: v.verdict === 'crit' ? 'crit' : v.verdict === 'hit' ? 'hit' : 'miss' },
+      });
+    }, delay);
+  };
+  const setDice = (next, delay) => { setD20(next); announce(next, delay); };
+
+  const switchTo = (name) => {
+    const used = A.interactAt === turnKey;
+    const patch = { wield: name, interactAt: turnKey, dropped: inHand && inHand !== name ? [...new Set([...(A.dropped || []), inHand])] : A.dropped };
+    dispatch({ type: 'COMBAT_SET', patch: { combatants: combatants.map((x) => (x.id === A.id ? { ...x, ...patch } : x)) } });
+    setPick(options.find((o) => o.a.name === name)?.i ?? null);
+    return used;
+  };
+
+  // Jet d’attaque : le dé naturel (deux avec avantage ou désavantage), le bonus s’ajoute.
+  const nat = (() => {
+    const v = d20.map((x) => parseInt(x, 10)).filter((x) => x >= 1 && x <= 20);
+    if (!v.length) return null;
+    if (sel.mode === 'normal' || v.length < 2) return v[0];
+    return sel.mode === 'adv' ? Math.max(...v) : Math.min(...v);
+  })();
+  const total = nat === null ? null : nat + Number(sel.calc.attackBonus || 0);
+  const crit = nat === 20, fumble = nat === 1;
+  const hit = nat === null ? null : fumble ? false : crit ? true : total >= dc;
+
+  // Dégâts : la somme des dés (doublés sur un critique) plus le bonus, ajustée aux résistances de la cible.
+  const stat = tT.statId ? STATS[tT.statId] : null;
+  const rawType = String(sel.calc.damageType || '').toLowerCase();
+  const type = rawType in TYPE_FR ? TYPE_FR[rawType] : rawType;
+  const has = (field) => !!(type && field && skNorm(field).includes(skNorm(type).replace(/s$/, '')));
+  const factor = has(stat?.immune) ? 0 : has(stat?.resist) ? 0.5 : has(stat?.vuln) ? 2 : 1;
+  const dice = sel.calc.damageDice ? (crit ? doubleDice(sel.calc.damageDice) : sel.calc.damageDice) : '';
+  const raw = dmg === '' ? null : Math.max(0, parseInt(dmg, 10) + Number(sel.calc.damageBonus || 0));
+  const saveOk = save === '' ? null : parseInt(save, 10) >= sel.saveDc;
+  const final = raw === null ? null : Math.floor((sel.isSave && saveOk ? raw / 2 : raw) * factor);
+
+  const apply = () => {
+    const hp = Math.max(0, Number(T.hp) - (final || 0));
+    dispatch({ type: 'COMBAT_SET', patch: { combatants: combatants.map((x) => (x.id === T.id ? { ...x, hp } : x)) } });
+    const text = sel.isSave
+      ? `${A.name} → ${T.name} : ${saveOk ? 'sauvegarde réussie' : 'sauvegarde ratée'}, ${final} dégâts`
+      : `${A.name} → ${T.name} : ${crit ? 'Coup critique !' : 'Touché !'} ${final} dégâts${type ? ` ${type}` : ''}`;
+    clearTimeout(announceTimer.current);
+    const verdict = sel.isSave ? 'hit' : crit ? 'crit' : 'hit';
+    const line = sel.isSave ? '' : battle.aim?.line || attackLine(family, verdict, { A: A.name, T: T.name, W: sel.a.name });
+    setBattle({ ...battle, aim: { ...aim, text, tone: crit ? 'crit' : 'hit', verdict, roll: total ?? undefined, line, weapon: sel.a.name, damage: final } });
+    setDone({ text, hp });
+  };
+  const miss = () => {
+    clearTimeout(announceTimer.current);
+    const verdict = fumble ? 'fumble' : 'miss';
+    const text = `${A.name} → ${T.name} : ${fumble ? 'Échec critique !' : 'Raté'}`;
+    const line = battle.aim?.verdict === verdict && battle.aim?.line ? battle.aim.line : attackLine(family, verdict, { A: A.name, T: T.name, W: sel.a.name });
+    setBattle({ ...battle, aim: { ...aim, text, tone: 'miss', verdict, roll: total ?? undefined, line, weapon: sel.a.name } });
+    setDone({ text });
+  };
+  const again = () => {
+    clearTimeout(announceTimer.current);
+    setD20(['', '']); setDmg(''); setSave(''); setDone(null);
+    setBattle({ ...battle, aim: { from: aim.from, to: aim.to, at: aim.at, by: aim.by } });
+  };
 
   return (
-    <div className="token-sheet" data-kind={t.isPC ? 'pc' : 'creature'}>
-      {illustration ? (
-        <div className="token-sheet-hero">
-          <img src={illustration} alt="" />
-          <div className="token-sheet-name">
-            <b>{t.name}</b>
-            <span>{[t.kind, t.cr ? `FP ${t.cr}` : '', t.isPC && t.level ? `niv. ${t.level}` : ''].filter(Boolean).join(' · ')}</span>
-          </div>
-          <button type="button" className="token-sheet-close" onClick={onClose} aria-label="Fermer la fiche">✕</button>
-        </div>
-      ) : (
-        <div className="token-sheet-head">
-          <div className={`token-sheet-picture ${t.isPC ? 'pc' : 'foe'}`}>
-            {picture ? <img src={picture} alt="" /> : <span title="Aucune image : ajoute un portrait à la fiche">{(t.name || '?').charAt(0)}</span>}
-          </div>
-          <div className="token-sheet-name">
-            <b>{t.name}</b>
-            <span>{[t.kind, t.cr ? `FP ${t.cr}` : '', t.isPC && t.level ? `niv. ${t.level}` : ''].filter(Boolean).join(' · ')}</span>
-          </div>
-          <button type="button" className="token-sheet-close" onClick={onClose} aria-label="Fermer la fiche">✕</button>
-        </div>
-      )}
-
-      <div className="token-sheet-hp">
-        <div className="token-sheet-bar"><i style={{ width: `${pct}%`, background: col }} /></div>
-        <span><b>{hp}</b> / {maxHp} PV{hp === 0 ? ' · à terre' : ''}</span>
-        <div className="token-sheet-hp-row">
-          <input
-            type="number" min="0" placeholder="PV" value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') applyHp(+1); }}
-          />
-          <button type="button" className="btn sm danger" onClick={() => applyHp(+1)}>Dégâts</button>
-          <button type="button" className="btn sm" onClick={() => applyHp(-1)}>Soin</button>
-        </div>
+    <div className="attack-panel">
+      <div className="attack-head">
+        <b>🎯 {A.name} → {T.name}</b>
+        <button type="button" className="token-sheet-close" onClick={close} aria-label="Terminer l’attaque">✕</button>
       </div>
-
-      <div className="token-sheet-stats">
-        <div><span>CA</span><b>{derived.ac}</b></div>
-        <div><span>Init.</span><b>{t.init === '' || t.init === undefined ? '—' : t.init}</b></div>
-        <div><span title="Perception passive">Perc. pass.</span><b>{passive}</b></div>
+      <label className="attack-target">
+        <span>Cible</span>
+        <select className="input" value={T.id} onChange={(e) => retarget(e.target.value)}>
+          {foes.map((x) => <option key={x.id} value={x.id}>{x.name}{x.isPC ? ' (héros)' : ''} · {x.hp}/{x.maxHp} PV</option>)}
+        </select>
+      </label>
+      <div className="attack-facts">
+        <span>{dist * 5} pi</span>
+        <span>CA {targetAc}{coverAc ? ` +${coverAc} (abri)` : ''}</span>
+        {cover.level > 0 && <span className="tac-chip tone-buff" tabIndex={0}>🛡 {cover.label}<span className="tac-why" role="tooltip">{cover.why}</span></span>}
+        {aim.by === 'joueurs' && <span className="attack-by">déclarée depuis l’écran joueur</span>}
       </div>
+      {cover.level === 3 && <p className="attack-block">Pas de ligne de vue : {T.name} ne peut pas être pris pour cible directement.</p>}
 
-      <div className="token-sheet-abil">
-        {['str', 'dex', 'con', 'int', 'wis', 'cha'].map((k, i) => (
-          <div key={k}><span>{['FOR', 'DEX', 'CON', 'INT', 'SAG', 'CHA'][i]}</span><b>{sign(abilityMod(t[k] || 10))}</b><small>{t[k] || 10}</small></div>
+      <div className="attack-options">
+        {options.map((o) => (
+          <button key={o.i} type="button" className={`attack-option ${o === sel ? 'on' : ''} ${o.blocked ? 'blocked' : ''}`} onClick={() => setPick(o.i)}>
+            <b>{o.a.name}</b>
+            <small>{o.isSave ? `Sauv. ${o.saveAbility} DD ${o.saveDc}` : o.calc.toHit} · {frDamage(o.calc.damage)}</small>
+          </button>
         ))}
       </div>
 
-      {active.length > 0 && (
-        <div className="token-sheet-chips">
-          {active.map((e, i) => <span key={i} title={e.desc || e.short || ''}>{e.name}</span>)}
-        </div>
-      )}
-
-      {(t.attacks || []).length > 0 && (
-        <div className="token-sheet-block">
-          <div className="token-sheet-title">Attaques / actions</div>
-          {t.attacks.map((a, i) => {
-            const calc = calculateAttackLine(t, a, derived);
-            const key = `a${i}`;
-            return (
-              <div key={key} className="token-sheet-attack">
-                <button type="button" onClick={() => setOpen(open === key ? null : key)}>
-                  <b>{a.name}</b>
-                  <span>{calc.toHit} · {calc.damage}</span>
-                </button>
-                {open === key && a.desc && <p>{a.desc}</p>}
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {traits.length > 0 && (
-        <div className="token-sheet-block">
-          <div className="token-sheet-title">Traits</div>
-          {traits.map((e, i) => {
-            const key = `t${i}`;
-            return (
-              <div key={key} className="token-sheet-attack">
-                <button type="button" onClick={() => setOpen(open === key ? null : key)}><b>{e.name}</b></button>
-                {open === key && <p>{e.desc || e.short}</p>}
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {lines.length > 0 && (
-        <dl className="token-sheet-lines">
-          {lines.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
-        </dl>
-      )}
-      {t.tactics && <p className="token-sheet-tactics"><b>Tactique :</b> {t.tactics}</p>}
-    </div>
-  );
-}
-
-function CombatantRowAdvanced({
-  t,
-  sourceNpc,
-  dmg,
-  selected,
-  onSelect,
-  onDmgChange,
-  onHit,
-  onHeal,
-  onRemove,
-  onUpdate,
-  onRefreshFromSheet,
-  onToggleEffect,
-  onEffectUses,
-  onActionUses,
-  onInfo,
-}) {
-  const pct = Math.round(
-    (Number(t.hp || 0) / Math.max(1, Number(t.maxHp || 1))) * 100
-  );
-  const col =
-    pct > 50 ? 'var(--verdant)' : pct > 20 ? 'var(--ember)' : 'var(--blood)';
-  const calc = getCombatantDerivedStats(t);
-  const [editing, setEditing] = useState(false);
-
-  function updateAttack(index, patch) {
-    const attacks = [...(t.attacks || [])];
-
-    attacks[index] = {
-      ...attacks[index],
-      ...patch,
-    };
-
-    onUpdate({ attacks });
-  }
-
-  function addAttack() {
-    onUpdate({
-      attacks: [
-        ...(t.attacks || []),
-        {
-          name: 'Nouvelle attaque',
-          type: 'action',
-          attackBonus: 0,
-          damageDice: '1d6',
-          damageBonus: 0,
-          damageType: 'bludgeoning',
-          range: '5 ft.',
-          desc: '',
-          usesMax: 0,
-          usesLeft: 0,
-          reset: 'none',
-          proficiency: false,
-        },
-      ],
-    });
-  }
-
-  function deleteAttack(index) {
-    onUpdate({
-      attacks: (t.attacks || []).filter((_, i) => i !== index),
-    });
-  }
-
-  return (
-    <div
-      className={'combatant-advanced ' + (t.isPC ? 'pc' : 'enemy')}
-      data-selected={selected ? 1 : 0}
-      onClick={onSelect}
-    >
-      <div className="combatant-topline">
-        <input
-          className="mini combat-init"
-          value={t.init}
-          onChange={(e) => onUpdate({ init: Number(e.target.value) || 0 })}
-          onClick={(e) => e.stopPropagation()}
-        />
-
-        <PortraitToken seed={t.name + (t.kind || '')} size={42} />
-
-        <div className="combatant-name-block">
-          <div>
-            <b>{t.name}</b>
-            {t.isPC ? (
-              <span className="combat-type-badge pc">PJ</span>
-            ) : (
-              <span className="combat-type-badge enemy">MENACE</span>
-            )}
-          </div>
-
-          <span>
-            AC {calc.ac} · HP {t.hp}/{t.maxHp} · Speed {t.speed || '30 ft.'}
-          </span>
-
-          <div className="hpbar combat-hpbar">
-            <i style={{ width: pct + '%', background: col }} />
+      {offTurn ? (
+        <div className="attack-block">
+          <p>⛔ Ce n’est pas le tour de {A.name} : un héros n’attaque que pendant son tour.</p>
+          <div className="skirmish-row wrap">
+            <button className="btn sm" onClick={() => setReaction(true)} title="Réaction : attaque d’opportunité quand un ennemi quitte son allonge">C’est une réaction (attaque d’opportunité)</button>
+            <button className="btn sm" onClick={close}>Fermer</button>
           </div>
         </div>
-
-        <div className="combat-hp-tools" onClick={(e) => e.stopPropagation()}>
-          <input
-            className="mini"
-            value={dmg}
-            onChange={(e) => onDmgChange(e.target.value)}
-          />
-
-          <button
-            className="btn ghost sm"
-            style={{ flex: 'none' }}
-            onClick={() => setEditing((v) => !v)}
-          >
-            {editing ? 'Fermer' : 'Éditer'}
-          </button>
-
-          <button className="btn sm" style={{ flex: 'none' }} onClick={onHit}>
-            Hit
-          </button>
-
-          <button className="btn sm" style={{ flex: 'none' }} onClick={onHeal}>
-            Heal
-          </button>
-
-          {sourceNpc && (
-            <button
-              className="btn ghost sm"
-              style={{ flex: 'none' }}
-              onClick={onRefreshFromSheet}
-              title="Réimporter les actions, effets, AC et stats depuis la fiche"
-            >
-              ↻
-            </button>
+      ) : sel.blocked ? (
+        <div className="attack-block">
+          <p>⛔ {sel.blocked}</p>
+          {A.isPC && isWieldedWeapon(sel.a) && inHand && inHand !== sel.a.name && sel.ranged + sel.melee > 0 && (
+            <>
+              <p className="muted">Lâcher une arme est gratuit ; dégainer l’autre utilise l’interaction d’objet du tour{A.interactAt === turnKey ? ' — déjà utilisée : il faudra une action' : ' (gratuite)'}.</p>
+              <button className="btn sm" onClick={() => switchTo(sel.a.name)}>Lâcher « {inHand} » et prendre « {sel.a.name} »{A.interactAt === turnKey ? ' (action)' : ''}</button>
+            </>
           )}
-
-          <button
-            className="btn ghost sm danger"
-            style={{ flex: 'none' }}
-            onClick={onRemove}
-          >
-            ×
-          </button>
         </div>
-      </div>
-
-      {t.str !== undefined && (
-        <div className="combatant-stats-line" onClick={(e) => e.stopPropagation()}>
-          <span>FOR {t.str} · DEX {t.dex} · CON {t.con} · INT {t.int} · SAG {t.wis} · CHA {t.cha}</span>
-          {t.saves && <span>Sauvegardes : {t.saves}</span>}
-          {t.skills && <span>Compétences : {t.skills}</span>}
-          {t.senses && <span>Sens : {t.senses}</span>}
-          {t.languages && <span>Langues : {t.languages}</span>}
-          {t.cr && <span>FP {t.cr}</span>}
+      ) : done ? (
+        <div className="attack-done">
+          <p><b>{done.text}</b>{done.hp !== undefined ? ` · ${T.name} : ${done.hp}/${T.maxHp} PV` : ''}</p>
+          <div className="skirmish-row wrap">
+            <button className="btn sm" onClick={again}>Attaque suivante</button>
+            <button className="btn sm primary" onClick={close}>Terminer</button>
+          </div>
+        </div>
+      ) : sel.isSave ? (
+        <div className="attack-steps">
+          <p>{T.name} fait une <b>sauvegarde de {sel.saveAbility} DD {sel.saveDc}</b>. Résultat de son jet (total) :</p>
+          <div className="skirmish-row"><input className="input" type="number" value={save} onChange={(e) => setSave(e.target.value)} placeholder="Total" /></div>
+          {saveOk !== null && (
+            <>
+              <p>{saveOk ? 'Réussite : moitié des dégâts.' : 'Échec : dégâts complets.'} Lance <b>{dice || '—'}</b>{sel.calc.damageBonus ? ` ${signed(sel.calc.damageBonus)}` : ''}.</p>
+              <div className="skirmish-row">
+                <input className="input" type="number" value={dmg} onChange={(e) => setDmg(e.target.value)} placeholder="Somme des dés" />
+                <button className="btn sm" onClick={() => setDmg(String(rollDice(dice)))}>🎲 Lancer</button>
+              </div>
+              {final !== null && <button className="btn sm primary" onClick={apply}>Appliquer {final} dégâts à {T.name}{factor !== 1 ? ` (${factor === 0 ? 'immunité' : factor < 1 ? 'résistance' : 'vulnérabilité'})` : ''}</button>}
+            </>
+          )}
+        </div>
+      ) : (
+        <div className="attack-steps">
+          <p>Lance <b>{sel.mode === 'normal' ? '1d20' : `2d20 (${sel.mode === 'adv' ? 'garde le meilleur' : 'garde le pire'})`} {signed(sel.calc.attackBonus)}</b>{sel.calc.attackDice?.length ? ` ${sel.calc.attackDice.join(' ')}` : ''} contre <b>{dc}</b>.</p>
+          {sel.why.length > 0 && <p className="muted attack-why">{sel.why.join(' · ')}</p>}
+          <div className="skirmish-row">
+            <input className="input" type="number" min="1" max="20" value={d20[0]} onChange={(e) => setDice([e.target.value, d20[1]])} onKeyDown={(e) => { if (e.key === 'Enter') announce(d20, 0); }} placeholder="d20" aria-label="Résultat du d20" />
+            {sel.mode !== 'normal' && <input className="input" type="number" min="1" max="20" value={d20[1]} onChange={(e) => setDice([d20[0], e.target.value])} onKeyDown={(e) => { if (e.key === 'Enter') announce(d20, 0); }} placeholder="2e d20" aria-label="Second d20" />}
+            <button className="btn sm" onClick={() => setDice([String(rollDie(20)), String(rollDie(20))], 0)}>🎲 Lancer</button>
+          </div>
+          {hit !== null && (
+            <p className={`attack-verdict ${hit ? 'hit' : 'miss'}`}>
+              {nat}{sel.mode !== 'normal' && d20[1] ? ` (sur ${d20[0]} et ${d20[1]})` : ''} {signed(sel.calc.attackBonus)} = <b>{total}</b> → {crit ? 'Coup critique !' : fumble ? 'Échec critique' : hit ? 'Touché' : 'Raté'}
+            </p>
+          )}
+          {hit !== null && battle.aim?.line && <p className="attack-line">« {battle.aim.line} »</p>}
+          {hit === false && <button className="btn sm" onClick={miss}>Terminer : raté</button>}
+          {hit && (
+            <>
+              <p>Dégâts : lance <b>{dice || '—'}</b>{sel.calc.damageBonus ? ` ${signed(sel.calc.damageBonus)}` : ''}{type ? ` ${type}` : ''}{crit ? ' (dés doublés)' : ''}.</p>
+              <div className="skirmish-row">
+                <input className="input" type="number" value={dmg} onChange={(e) => setDmg(e.target.value)} placeholder="Somme des dés" />
+                <button className="btn sm" onClick={() => setDmg(String(rollDice(dice)))}>🎲 Lancer</button>
+              </div>
+              {final !== null && <button className="btn sm primary" onClick={apply}>Appliquer {final} dégâts à {T.name}{factor !== 1 ? ` (${factor === 0 ? 'immunité' : factor < 1 ? 'résistance' : 'vulnérabilité'})` : ''}</button>}
+            </>
+          )}
         </div>
       )}
-
-      {editing && (
-        <CombatantEditPanel
-          t={t}
-          onUpdate={onUpdate}
-          onUpdateAttack={updateAttack}
-          onAddAttack={addAttack}
-          onDeleteAttack={deleteAttack}
-        />
-      )}
-
-      <div className="combatant-body">
-        <CombatAttacksPanel
-          combatant={t}
-          derived={calc}
-          onActionUses={onActionUses}
-          onInfo={onInfo}
-        />
-
-        <CombatEffectsPanel
-          combatant={t}
-          onToggleEffect={onToggleEffect}
-          onEffectUses={onEffectUses}
-          onInfo={onInfo}
-        />
-      </div>
+      {A.isPC && inHand && <p className="muted attack-hand">En main : {inHand}{A.dropped?.length ? ` · au sol : ${A.dropped.join(', ')}` : ''}</p>}
     </div>
   );
 }
+
 function CombatantEditPanel({
   t,
   onUpdate,
@@ -14302,72 +15646,49 @@ function CombatantEditPanel({
   );
 }
 
-function CombatAttacksPanel({ combatant, derived, onActionUses, onInfo }) {
-  const attacks = combatant.attacks || [];
+/** Allonge, portée et Tactique de groupe d’un combattant, lues dans ses attaques (sinon dans la fiche SRD du jeton). */
+function profileOfCombatant(c, token) {
+  if (!c) return profileFromStat(token);
+  const cells = (m) => Math.round((parseFloat(String(m).replace(',', '.')) * 3.28084) / 5);
+  let reach = 0, ranged = 0;
+  for (const a of c.attacks || []) {
+    const text = `${a.range || ''} ${a.desc || ''}`;
+    const al = /allonge\s*([\d,]+)\s*m/i.exec(text);
+    const po = /portée\s*([\d,]+)\s*\/?/i.exec(text);
+    const ft = /(\d+)\s*(?:[–-]\s*\d+\s*)?ft/i.exec(a.range || '');
+    if (al) reach = Math.max(reach, cells(al[1]));
+    if (po) ranged = Math.max(ranged, cells(po[1]));
+    if (!al && !po && ft) { const n = Number(ft[1]) / 5; if (n <= 2) reach = Math.max(reach, n); else ranged = Math.max(ranged, n); }
+    if (!al && !po && !ft && /corps à corps|mêlée|melee/i.test(text)) reach = Math.max(reach, 1);
+  }
+  const fromStat = profileFromStat(token);
+  return {
+    reach: reach || fromStat.reach || 1,
+    ranged: ranged || fromStat.ranged,
+    pack: fromStat.pack || (c.effects || []).some((e) => /tactique de groupe/i.test(e.name || '')),
+  };
+}
 
+/** Situation tactique de chaque jeton du plateau (abri, avantages, menaces), avec le profil de son combattant. */
+function battleTactics(battle, combatants) {
+  const grid = effectiveOf(battle);
+  const byId = new Map((combatants || []).map((c) => [c.id, c]));
+  const profileOf = (t) => profileOfCombatant(byId.get(t.id), t);
+  return Object.fromEntries(battle.tokens.map((t) => [t.id, tacticalNotes(battle, grid, t.id, profileOf)]));
+}
+
+/** Pastilles de situation tactique ; la justification s’affiche en bulle au survol. */
+function TacticalChips({ notes }) {
+  if (!notes?.length) return null;
+  const icon = { buff: '🛡', chance: '🎯', malus: '⚠', alert: '⚔' };
   return (
-    <div className="combat-subpanel">
-      <div className="combat-subtitle">Attaques / actions</div>
-
-      {attacks.length === 0 ? (
-        <p className="combat-small-muted">Aucune attaque définie.</p>
-      ) : (
-        attacks.map((attack, i) => {
-          const calc = calculateAttackLine(combatant, attack, derived);
-          const max = Number(attack.usesMax || 0);
-          const left = Number(attack.usesLeft ?? max);
-          const hasUses = max > 0;
-
-          return (
-            <div className="combat-attack-line" key={i}>
-              <div className="combat-attack-main">
-                <button
-                  type="button"
-                  className="combat-info-dot"
-                  onClick={() =>
-                    onInfo({
-                      title: attack.name,
-                      subtitle: attack.type || 'Action',
-                      body: attack.desc || 'Aucune description.',
-                      rules: buildAttackRulesText(attack, calc),
-                    })
-                  }
-                >
-                  ?
-                </button>
-
-                <div>
-                  <b>{attack.name}</b>
-                  <span>
-                    {attack.type || 'action'}
-                    {attack.range ? ` · ${attack.range}` : ''}
-                  </span>
-                </div>
-              </div>
-
-              <div className="combat-roll-formula">
-                <span>Toucher</span>
-                <b>{calc.toHit}</b>
-              </div>
-
-              <div className="combat-roll-formula">
-                <span>Dégâts</span>
-                <b>{calc.damage}</b>
-              </div>
-
-              {hasUses && (
-                <UseTracker
-                  left={left}
-                  max={max}
-                  reset={attack.reset}
-                  onSpend={() => onActionUses(i, -1)}
-                  onRestore={() => onActionUses(i, +1)}
-                />
-              )}
-            </div>
-          );
-        })
-      )}
+    <div className="tac-notes">
+      {notes.map((n, i) => (
+        <span key={i} className={`tac-chip tone-${n.tone}`} tabIndex={0}>
+          {icon[n.tone]} {n.label}
+          <span className="tac-why" role="tooltip">{n.why}</span>
+        </span>
+      ))}
     </div>
   );
 }
@@ -14377,12 +15698,19 @@ function CombatEffectsPanel({
   onToggleEffect,
   onEffectUses,
   onInfo,
+  tactics,
 }) {
   const effects = combatant.effects || [];
 
   return (
     <div className="combat-subpanel">
       <div className="combat-subtitle">Buffs / malus / ressources</div>
+      {tactics?.length > 0 && (
+        <div className="combat-tactics">
+          <span className="combat-small-muted">Position sur la carte (auto) :</span>
+          <TacticalChips notes={tactics} />
+        </div>
+      )}
 
       {effects.length === 0 ? (
         <p className="combat-small-muted">Aucun buff ou malus actif.</p>
@@ -14586,14 +15914,22 @@ function DmStrategyPanel({ strategy }) {
 function CombatMiniMap({
   combatants,
   selectedTokenId,
+  activeId = '',
   blockedCells = [],
   mode = 'move',
+  showGrid = true,
   onSelect,
   onMove,
   onToggleBlocked,
 }) {
   const cols = 12;
   const rows = 12;
+  const [measure, setMeasure] = useState([]);
+  const [hover, setHover] = useState(null);
+
+  useEffect(() => {
+    if (mode !== 'measure') setMeasure([]);
+  }, [mode]);
 
   const cells = [];
 
@@ -14624,58 +15960,89 @@ function CombatMiniMap({
 
     const tx = Number(token.token?.x || 0);
     const ty = Number(token.token?.y || 0);
-    const radius = Number(token.token?.threat || 1);
+    const radius = Number(token.token?.threat ?? 1);
 
     const dist = Math.max(Math.abs(tx - x), Math.abs(ty - y));
     return dist > 0 && dist <= radius;
   }
 
-  return (
-    <div className="combat-map-grid">
-      {cells.map((cell) => {
-        const token = tokenAt(cell.x, cell.y);
-        const blocked = isBlocked(cell.x, cell.y);
-        const threatened =
-          selected && !blocked && isInThreatRadius(cell.x, cell.y, selected);
+  // Distance de jeu (1 case = 5 pi, diagonales comprises), comme l’allonge de menace.
+  const cellsBetween = (a, b) => Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
+  const [ma, mb] = measure;
+  const from = mode === 'measure' ? ma : selected ? { x: Number(selected.token?.x || 0), y: Number(selected.token?.y || 0) } : null;
+  const to = mode === 'measure' ? mb || hover : hover;
+  const dist = from && to && (from.x !== to.x || from.y !== to.y) ? cellsBetween(from, to) : null;
 
-        return (
-          <button
-            key={`${cell.x}-${cell.y}`}
-            type="button"
-            className="combat-map-cell"
-            data-threat={threatened ? 1 : 0}
-            data-blocked={blocked ? 1 : 0}
-            data-editing={mode === 'block' ? 1 : 0}
-            onClick={() => {
-              if (mode === 'block') {
-                if (!token) {
-                  onToggleBlocked(cell.x, cell.y);
-                } else {
-                  onSelect(token.id);
+  return (
+    <div className="combat-map-wrap" data-grid={showGrid ? 1 : 0}>
+      <div className="combat-map-grid" onMouseLeave={() => setHover(null)}>
+        {cells.map((cell) => {
+          const token = tokenAt(cell.x, cell.y);
+          const blocked = isBlocked(cell.x, cell.y);
+          const threatened =
+            selected && !blocked && isInThreatRadius(cell.x, cell.y, selected);
+          const pct = token ? Math.round((Number(token.hp || 0) / Math.max(1, Number(token.maxHp || 1))) * 100) : 0;
+
+          return (
+            <button
+              key={`${cell.x}-${cell.y}`}
+              type="button"
+              className="combat-map-cell"
+              data-threat={threatened ? 1 : 0}
+              data-blocked={blocked ? 1 : 0}
+              data-editing={mode === 'block' ? 1 : 0}
+              aria-label={token ? `${token.name}, case ${cell.x + 1}-${cell.y + 1}` : `Case ${cell.x + 1}-${cell.y + 1}${blocked ? ', obstacle' : ''}`}
+              onMouseEnter={() => setHover(cell)}
+              onClick={() => {
+                if (mode === 'measure') {
+                  setMeasure((m) => (m.length === 1 ? [m[0], cell] : [cell]));
+                  return;
                 }
 
-                return;
-              }
+                if (mode === 'block') {
+                  if (!token) {
+                    onToggleBlocked(cell.x, cell.y);
+                  } else {
+                    onSelect(token.id);
+                  }
 
-              if (token) {
-                onSelect(token.id);
-              } else if (selectedTokenId && !blocked) {
-                onMove(selectedTokenId, cell.x, cell.y);
-              }
-            }}
-          >
-            {token && (
-              <span
-                className={'combat-map-token ' + (token.isPC ? 'pc' : 'enemy')}
-                data-on={selectedTokenId === token.id ? 1 : 0}
-                title={token.name}
-              >
-                {getInitials(token.name)}
-              </span>
-            )}
-          </button>
-        );
-      })}
+                  return;
+                }
+
+                if (token) {
+                  onSelect(token.id);
+                } else if (selectedTokenId && !blocked) {
+                  onMove(selectedTokenId, cell.x, cell.y);
+                }
+              }}
+            >
+              {token && (
+                <span
+                  className={'combat-map-token ' + (token.isPC ? 'pc' : 'enemy')}
+                  data-on={selectedTokenId === token.id ? 1 : 0}
+                  data-active={activeId === token.id ? 1 : 0}
+                  data-down={Number(token.hp) <= 0 ? 1 : 0}
+                  title={`${token.name} — ${token.hp}/${token.maxHp} PV`}
+                  style={{ '--hp': `${pct}%` }}
+                >
+                  {getInitials(token.name)}
+                  {(token.conditions || []).length > 0 && <i className="combat-map-cond" aria-hidden="true">{token.conditions.length}</i>}
+                </span>
+              )}
+            </button>
+          );
+        })}
+        {from && to && dist !== null && (
+          <svg className="combat-map-measure" viewBox={`0 0 ${cols} ${rows}`} preserveAspectRatio="none" aria-hidden="true">
+            <line x1={from.x + 0.5} y1={from.y + 0.5} x2={to.x + 0.5} y2={to.y + 0.5} />
+          </svg>
+        )}
+        {dist !== null && to && (
+          <span className="combat-map-dist" style={{ left: `${((to.x + 0.5) / cols) * 100}%`, top: `${((to.y + 0.5) / rows) * 100}%` }}>
+            {dist} case{dist > 1 ? 's' : ''} · {dist * 5} pi
+          </span>
+        )}
+      </div>
     </div>
   );
 }
@@ -14826,6 +16193,7 @@ function combatantFromToken(t, party, npcs) {
     ac: t.ac ?? base.ac,
     baseAc: t.ac ?? base.baseAc,
     init: t.init ?? base.init,
+    conditions: [...(t.conditions || [])],
   };
 }
 
@@ -14843,9 +16211,11 @@ function tokenFromCombatant(c) {
     ac: Number(c.ac),
     init: c.init === '' || c.init === undefined ? undefined : Number(c.init),
     heroId: c.isPC ? c.sourceId || undefined : undefined,
+    sight: c.isPC ? sightFor(c.kind) : undefined,
     npcId: !c.isPC && c.sourceId && !srd ? c.sourceId : undefined,
     statId: srd,
     image: c.image || undefined,
+    conditions: c.conditions?.length ? [...c.conditions] : undefined,
   };
 }
 function refreshCombatantFromNpc(current, source) {
@@ -15332,6 +16702,12 @@ function calculateAttackLine(combatant, attack, derived) {
           totalDamageBonus ? ` ${dmgSign}${totalDamageBonus}` : ''
         }${damageType ? ' ' + damageType : ''}`
       : '—',
+    // Valeurs brutes, pour résoudre l’attaque sur la carte (jet du d20, puis des dégâts).
+    attackBonus: flatAttack,
+    attackDice: derived.attackDice || [],
+    damageDice,
+    damageBonus: totalDamageBonus,
+    damageType,
   };
 }
 function abilityMod(score) {
