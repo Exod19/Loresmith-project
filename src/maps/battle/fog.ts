@@ -41,7 +41,7 @@ export function seenBy(b: Battle, grid: string | undefined, t: BattleToken, rang
 /** Cases vues par le groupe (héros conscients). */
 export function partyVision(b: Battle, grid: string | undefined): Set<number> {
   const seen = new Set<number>();
-  for (const t of b.tokens) if (t.kind === 'pc' && !(t.hp !== undefined && t.hp <= 0)) for (const c of seenBy(b, grid, t)) seen.add(c);
+  for (const t of b.tokens) if (t.kind === 'pc' && !t.unplaced && !(t.hp !== undefined && t.hp <= 0)) for (const c of seenBy(b, grid, t)) seen.add(c);
   return seen;
 }
 

@@ -21,9 +21,9 @@ export function fits(b: Battle, id: string | null, size: number, x: number, y: n
   return !b.tokens.some((t) => t.id !== id && t.x < x + size && x < t.x + t.size && t.y < y + size && y < t.y + t.size);
 }
 
-/** Case libre la plus proche du centre du plateau. */
-export function freeNear(b: Battle, size: 1 | 2): { x: number; y: number } | null {
-  const cx = Math.floor(b.cols / 2), cy = Math.floor(b.rows / 2);
+/** Case libre la plus proche du centre du plateau (ou d'un point donné). */
+export function freeNear(b: Battle, size: 1 | 2, near?: { x: number; y: number }): { x: number; y: number } | null {
+  const cx = near?.x ?? Math.floor(b.cols / 2), cy = near?.y ?? Math.floor(b.rows / 2);
   const spots: { x: number; y: number; d: number }[] = [];
   for (let y = 0; y < b.rows; y++) for (let x = 0; x < b.cols; x++) spots.push({ x, y, d: Math.max(Math.abs(x - cx), Math.abs(y - cy)) + Math.abs(x - cx) * 0.01 });
   spots.sort((p, q) => p.d - q.d);
@@ -31,11 +31,11 @@ export function freeNear(b: Battle, size: 1 | 2): { x: number; y: number } | nul
 }
 
 /** Pose des jetons sur les premières cases libres près du centre (ceux qui ne trouvent pas de place sont ignorés). */
-export function placeTokens(b: Battle, list: Omit<BattleToken, 'x' | 'y'>[]): BattleToken[] {
+export function placeTokens(b: Battle, list: Omit<BattleToken, 'x' | 'y'>[], near?: { x: number; y: number }): BattleToken[] {
   let next = b;
   const placed: BattleToken[] = [];
   for (const t of list) {
-    const spot = freeNear(next, t.size);
+    const spot = freeNear(next, t.size, near);
     if (!spot) break;
     const token = { ...t, ...spot } as BattleToken;
     placed.push(token);

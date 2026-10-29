@@ -14931,7 +14931,7 @@ function CombatBoardPanel({ state, dispatch, party, npcs, selectedId, onSelect }
   const boundId = String(state.combat?.battleKey || '').split(':')[0];
   const [pick, setPick] = useState(null);
   const rec = maps.find((m) => m.id === (pick || boundId)) || maps.find((m) => m.battle.tokens?.length) || maps[0];
-  if (!rec) return <p className="combat-map-help">Aucune carte de combat pour l’instant : ouvre une carte, puis « ⚔ Ouvrir la carte de combat ».</p>;
+  if (!rec) return <p className="combat-map-help">Aucune carte de combat pour l’instant : ouvre une carte, puis « ⚔ Combat ».</p>;
   return (
     <>
       {maps.length > 1 && (
@@ -14988,7 +14988,16 @@ function useBattleSync({ state, dispatch, party, npcs, battle, setBattle, combat
     let nextComb = combatants.filter((x) => !goneOnMap.includes(x.id));
     if (newTokens.length) nextComb = [...nextComb, ...newTokens.map((t) => combatantFromToken(t, party, npcs))];
     let nextTokens = tokens.filter((t) => !goneInCombat.includes(t.id));
-    if (newCombatants.length) nextTokens = [...nextTokens, ...placeOnBoard({ ...battle, tokens: nextTokens }, newCombatants.map(tokenFromCombatant))];
+    if (newCombatants.length) {
+      // Les héros arrivent par l'entrée du lieu (la sortie qui mène d'où vient le groupe) ; sans entrée connue, ils
+      // attendent hors de vue que le MJ choisisse leur case, pour ne rien dévoiler du brouillard. Les créatures
+      // arrivent cachées, près du centre.
+      const heroes = newCombatants.filter((x) => x.isPC).map((x) => ({ ...tokenFromCombatant(x), ...(battle.entry ? {} : { unplaced: true, visible: false }) }));
+      const others = newCombatants.filter((x) => !x.isPC).map(tokenFromCombatant);
+      const placedHeroes = placeOnBoard({ ...battle, tokens: nextTokens }, heroes, battle.entry);
+      nextTokens = [...nextTokens, ...placedHeroes];
+      nextTokens = [...nextTokens, ...placeOnBoard({ ...battle, tokens: nextTokens }, others)];
+    }
 
     // États (À terre, Empoisonné…) synchronisés dans les deux sens. `condsAt` garde, sur le combattant, les états du
     // dernier accord avec son jeton : le côté qui s’en écarte est celui qui vient de changer, l’autre le suit.

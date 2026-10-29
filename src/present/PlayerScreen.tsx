@@ -109,6 +109,7 @@ function PlayerMap({ board, rev }: { board: Extract<PlayerBoard, { mode: 'map' }
         dataKey={rev}
         focus={board.focus ? { kind: board.focus.kind, id: board.focus.id } : null}
         focusKey={board.focus ? String(board.focus.tick) : undefined}
+        marks={board.marks} fog={board.fog}
       />
     </div>
   );

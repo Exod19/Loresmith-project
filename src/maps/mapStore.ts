@@ -72,6 +72,8 @@ export interface PassageLink { kind: 'anchor' | 'marker' | 'feature'; id: string
 export interface MapOverlay {
   /** Identifiants des lieux de l'atlas visibles des joueurs. Rien n'est visible par défaut. */
   revealed: string[];
+  /** Carte de navigation chez les joueurs : brouillard de guerre, jeton du groupe, héros séparés. */
+  playerView?: { fog?: boolean; party?: boolean; heroes?: boolean };
   markers: MapMarker[];
   /** Destinations inscrites par le MJ, par identifiant de passage (tracé de l'Atlas). */
   passageLinks?: Record<string, PassageLink>;
@@ -134,6 +136,8 @@ export interface BattleToken {
   /** Héros (repris du module Combat) : déplacement en cases et portée de l'arme en main. */
   move?: number;
   reach?: { melee: number; short: number; long: number; weapon?: string };
+  /** Ajouté au combat sans place choisie : caché aux joueurs et sans vision, jusqu'à ce que le MJ le pose. */
+  unplaced?: boolean;
 }
 
 export interface Battle {
@@ -164,6 +168,8 @@ export interface Battle {
     pick?: number };
   /** Dégâts et soins récents (quelques secondes), écrits en grand au-dessus des jetons. */
   hits?: { id: string; to: string; amount: number; at: number }[];
+  /** Case d'arrivée du groupe (la sortie qui mène au lieu d'où il vient) : les héros ajoutés y sont posés. */
+  entry?: { x: number; y: number };
 }
 
 /** `edits` : index de case → type de terrain, posé à la main. `props` : objets déposés sur une case. */
