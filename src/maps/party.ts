@@ -10,7 +10,9 @@ export function withPartyAt(base: MapOverlay, p: PartyPlace): MapOverlay {
   const cur = base.party ?? { trail: [] };
   if (cur.at?.id === p.id) return base;
   const trail = cur.at ? [...cur.trail.filter((x) => x.id !== cur.at!.id && x.id !== p.id), cur.at].slice(-8) : cur.trail;
-  return { ...base, party: { at: p, dest: cur.dest?.id === p.id ? undefined : cur.dest, trail } };
+  // Les héros partis devant et qui attendent à ce lieu rejoignent le groupe.
+  const apart = cur.apart?.filter((h) => h.at.id !== p.id);
+  return { ...base, party: { ...cur, at: p, dest: cur.dest?.id === p.id ? undefined : cur.dest, trail, apart: apart?.length ? apart : undefined } };
 }
 
 /**

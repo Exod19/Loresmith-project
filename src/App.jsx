@@ -13639,7 +13639,10 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
   const keysRef = useRef(null);
   // Sur la carte, les onglets Lieu et Construire de la carte partagent le pupitre : choisir un onglet du combat les referme.
   const side = embedded?.side;
-  const pickWarTab = (id) => { setTab(id); if (side?.active) side.onPick(null); };
+  // Sur la carte, le pupitre est un tiroir : replié en rail d'onglets, il s'ouvre par-dessus le bord du plateau.
+  const [deskOpen, setDeskOpen] = useState(false);
+  const pickWarTab = (id) => { setTab(id); setDeskOpen(true); if (side?.active) side.onPick(null); };
+  const closeDesk = () => { setDeskOpen(false); if (side?.active) side.onPick(null); };
   // Un jeton choisi sur la carte ouvre sa fiche (onglet Tour), sauf pendant la construction.
   useEffect(() => {
     if (!embedded?.selectedId || side?.active === 'construction') return;
@@ -13705,7 +13708,7 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
     const tabFor = sideActive || (combatants.length ? tab : tab === 'tour' ? 'groupe' : tab);
 
     return (
-      <div className="wt" data-empty={combatants.length ? 0 : 1} data-inmap={embedded ? 1 : 0}>
+      <div className="wt" data-empty={combatants.length ? 0 : 1} data-inmap={embedded ? 1 : 0} data-open={embedded ? (deskOpen ? 1 : 0) : undefined}>
         <header className="wt-head">
           <div className="wt-head-title">
             <span className="wt-eyebrow">Session · Combat{place ? ` · ${place}` : ''}</span>
@@ -13816,6 +13819,7 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
             <div className="wt-desk-head">
               <h2>Le pupitre du MJ</h2>
               <span>Une chose à la fois</span>
+              {embedded && <button type="button" className="wt-desk-close" onClick={closeDesk} aria-label="Replier le pupitre" title="Replier le pupitre">✕</button>}
             </div>
             <nav className="wt-tabs" role="tablist" aria-label="Sections du pupitre">
               {WAR_TABS.map((x, i) => (
@@ -13825,7 +13829,7 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
                   role="tab"
                   aria-selected={tabFor === x.id}
                   data-on={tabFor === x.id ? 1 : 0}
-                  onClick={() => pickWarTab(x.id)}
+                  onClick={() => (embedded && deskOpen && tabFor === x.id ? closeDesk() : pickWarTab(x.id))}
                   title={`${x.label} (${i + 1})`}
                 >
                   {x.label}
@@ -13840,7 +13844,11 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
                   className="wt-tab-side"
                   aria-selected={tabFor === x.id}
                   data-on={tabFor === x.id ? 1 : 0}
-                  onClick={() => side.onPick(sideActive === x.id ? null : x.id)}
+                  onClick={() => {
+                    if (deskOpen && sideActive === x.id) { closeDesk(); return; }
+                    side.onPick(x.id);
+                    setDeskOpen(true);
+                  }}
                 >
                   {x.label}
                   {x.badge ? <small>{x.badge}</small> : null}

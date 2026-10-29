@@ -70,7 +70,7 @@ export type CombatSlot = {
 };
 
 export default function BattleMode({
-  rec, battle, onBattle, context, atlas, plan, markers, onFollow, onLink, onMarker, onReveal, heroes = [], party, onSearchNote, bestiary = [], renderCombat,
+  rec, battle, onBattle, context, atlas, plan, markers, onFollow, onLink, onMarker, onReveal, heroes = [], party, onSearchNote, bestiary = [], renderCombat, onLeave,
 }: {
   rec: MapRecord; battle: Battle; onBattle: (b: Battle) => void;
   /** Lieu sélectionné : sa zone locale est placée sur la grille à l'ouverture ; une rencontre y place ses créatures. */
@@ -89,6 +89,8 @@ export default function BattleMode({
   onSearchNote?: (id: string, note: SearchNote | null) => void;
   /** Module Combat de l'application, affiché sous le plateau (à la place de l'onglet Combat). */
   renderCombat?: (slot: CombatSlot) => ReactNode;
+  /** Un jeton quitte le plateau par une sortie : sa destination (si elle est inscrite), pour le suivre sur la carte de navigation. */
+  onLeave?: (token: BattleToken, link: PassageLink | undefined) => void;
 }) {
   const b = battle ?? DEFAULT_BATTLE;
   const [tab, setTab] = useState<Tab | null>(renderCombat ? null : b.tokens.some((t) => t.kind === 'monster') ? 'combat' : 'lieu');
@@ -99,7 +101,7 @@ export default function BattleMode({
   /** Portées affichées sur le plateau : réservé au MJ, jamais envoyé aux joueurs. */
   const [showRanges, setShowRanges] = useState(false);
   /** Alertes du dernier déplacement (attaque d'opportunité, allonge ennemie), gardées jusqu'au prochain. */
-  const [lastMove, setLastMove] = useState<{ name: string; notes: Note[]; exit?: { id: string; label: string } } | null>(null);
+  const [lastMove, setLastMove] = useState<{ name: string; notes: Note[]; exit?: { id: string; label: string; passage: string } } | null>(null);
   /** Construction manuelle : outil, tracé en cours, et historique pour « Annuler ». */
   const building = tab === 'construction';
   const [brush, setBrush] = useState<Brush>(DEFAULT_BRUSH);
@@ -138,7 +140,13 @@ export default function BattleMode({
   useEffect(() => onPlayerMove((id, x, y) => {
     const cur = latest.current;
     const t = cur.tokens.find((q) => q.id === id);
-    if (!t || !t.visible || (t.x === x && t.y === y) || !fits(latestView.current, id, t.size, x, y)) return;
+    const view = latestView.current;
+    if (!t || !t.visible || (t.x === x && t.y === y) || !fits(view, id, t.size, x, y)) return;
+    // Comme un glisser du MJ : alertes de déplacement, et la fiche de la sortie s'ouvre si le jeton s'y pose.
+    const notes = moveAlerts(view, id, { x, y });
+    const exit = exitAt(view, { x, y, size: t.size });
+    setLastMove(notes.length || exit ? { name: t.name, notes, exit: exit && { id, label: exit.label, passage: exit.id } } : null);
+    if (exit) setInfoId(exit.id);
     onBattle({ ...cur, tokens: cur.tokens.map((q) => (q.id === id ? { ...q, x, y } : q)) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), []);
@@ -271,7 +279,9 @@ export default function BattleMode({
         if (fits(bv, t.id, t.size, x, y)) {
           const notes = moveAlerts(bv, t.id, { x, y });
           const exit = exitAt(bv, { x, y, size: t.size });
-          setLastMove(notes.length || exit ? { name: t.name, notes, exit: exit && { id: t.id, label: exit.label } } : null);
+          setLastMove(notes.length || exit ? { name: t.name, notes, exit: exit && { id: t.id, label: exit.label, passage: exit.id } } : null);
+          // Sur une sortie : sa fiche s'ouvre (praticabilité, test à faire, destination).
+          if (exit) setInfoId(exit.id);
           patchToken(t.id, { x, y });
         }
         justDropped.current = true;
@@ -577,6 +587,123 @@ export default function BattleMode({
     </details>
   ) : null;
 
+  // Fiche d'un élément du plateau (sortie, passage, objet) : à droite sans combat, posée sur le plateau avec.
+  /** Le jeton posé sur une sortie quitte le plateau ; un héros est suivi sur la carte de navigation. */
+  const leaveBy = (exit: { id: string; passage: string }) => {
+    const leaving = b.tokens.find((q) => q.id === exit.id);
+    if (leaving) onLeave?.(leaving, linkOf(exit.passage));
+    set({ tokens: b.tokens.filter((q) => q.id !== exit.id), turn: b.turn === exit.id ? undefined : b.turn });
+    setLastMove(null);
+    if (infoId === exit.passage) setInfoId(null);
+  };
+  const onThisExit = lastMove?.exit && lastMove.exit.passage === infoId ? lastMove : null;
+  const fiche = info ? (
+    <aside className="battle-fiche battle-fiche-side" role="dialog" aria-label={info.title}
+            data-kind={infoKind}>
+            <button className="present-info-close" onClick={() => setInfoId(null)} aria-label="Fermer">×</button>
+            {info.info?.image ? (
+              <div className="battle-fiche-hero">
+                <img src={info.info.image} alt="" />
+                <div>
+                  <span className="present-info-kind">{infoKindLabel}</span>
+                  <h3>{info.title}</h3>
+                </div>
+              </div>
+            ) : (
+              <>
+                <span className="present-info-kind">{infoKindLabel}</span>
+                <h3>{info.title}</h3>
+              </>
+            )}
+            {info.info?.subtitle && !infoSearch && <p className="maps-sub">{info.info.subtitle}</p>}
+
+            {infoSearch && (() => {
+              const near = infoSearch.entry.passage ? passageNear(info.cell) : null;
+              const nearLink = near ? linkOf(near.id) : undefined;
+              return (
+                <dl className="fiche-facts">
+                  <dt>Pour le trouver</dt><dd><b>{infoSearch.entry.skill} DC {infoSearch.entry.dc}</b></dd>
+                  <dt>Ce qu’on trouve</dt><dd>{infoSearch.entry.find}</dd>
+                  {infoSearch.entry.loot && <><dt>Butin</dt><dd>{infoSearch.entry.loot}</dd></>}
+                  {infoSearch.entry.effect && <><dt>Effet</dt><dd>{infoSearch.entry.effect}</dd></>}
+                  {infoSearch.entry.passage && (
+                    <>
+                      <dt>Passage</dt>
+                      <dd>
+                        {infoSearch.entry.passage.text}{infoSearch.entry.passage.dc ? ` (${infoSearch.entry.passage.skill} DC ${infoSearch.entry.passage.dc})` : ''}
+                        {near && (
+                          <span className="fiche-actions">
+                            {near.secret && !near.found && <button className="maps-btn gold" onClick={() => toggleShown(near.id)}>Révéler {secrets.find((s) => s.id === near.id)?.label ?? 'le passage'}</button>}
+                            {nearLink && <button className="maps-btn" onClick={() => onFollow(nearLink)}>Suivre ➜ {nearLink.label}</button>}
+                          </span>
+                        )}
+                      </dd>
+                    </>
+                  )}
+                  {info.info?.text && <><dt>Atlas</dt><dd className="maps-sub">{info.info.text}</dd></>}
+                </dl>
+              );
+            })()}
+
+            {infoPassage && (() => {
+              const link = linkOf(infoPassage.id);
+              const diff = passageDifficulty(infoPassage.trace);
+              const current = rec.overlay?.passageLinks?.[infoPassage.id];
+              return (
+                <dl className="fiche-facts">
+                  {infoPassage.summary && <><dt>Description</dt><dd>{infoPassage.summary}</dd></>}
+                  {(() => {
+                    const t = profileOf(infoPassage);
+                    return (
+                      <>
+                        <dt>Pour le repérer</dt><dd><b>{detectLabel(t.detect)}</b></dd>
+                        <dt>Dangerosité</dt><dd><span className={`trail-danger lvl-${t.danger.level}`}>{t.danger.label}</span> {t.danger.text} <span className="maps-sub">({t.danger.why.join(', ')})</span></dd>
+                      </>
+                    );
+                  })()}
+                  {diff && <><dt>Pour le suivre</dt><dd>{diff.text}</dd></>}
+                  <dt>Destination</dt>
+                  <dd>
+                    {link ? <>{link.label}{towardDest(link) && ' 🎯'}</> : <span className="battle-missing">non inscrite</span>}
+                    <select className="maps-btn" value={current ? `${current.kind}:${current.id}` : ''} onChange={(e) => {
+                      const opt = options.find((o) => o.value === e.target.value);
+                      onLink(infoPassage.id, opt ? opt.link : null);
+                    }}>
+                      <option value="">{link && !current ? 'Celle de l’Atlas' : 'Choisir une destination…'}</option>
+                      {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
+                  </dd>
+                </dl>
+              );
+            })()}
+
+            {!infoSearch && !infoPassage && info.info?.text && info.info.text.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
+            {infoMarker?.notes && <p className="maps-sub">Notes : {infoMarker.notes}</p>}
+
+            <div className="fiche-actions">
+              <button className={`maps-btn ${isShown(info.id) ? '' : 'gold'}`} onClick={() => toggleShown(info.id)}>
+                {isShown(info.id) ? '👁 Visible des joueurs' : '🙈 Caché : le montrer'}
+              </button>
+              {onThisExit?.exit && (
+                <button className="maps-btn gold" onClick={() => leaveBy(onThisExit.exit!)}>
+                  🚪 Faire sortir {onThisExit.name}{linkOf(onThisExit.exit.passage) ? ` → ${linkOf(onThisExit.exit.passage)!.label.split(' · ')[0]}` : ''}
+                </button>
+              )}
+              {infoPassage && linkOf(infoPassage.id) && (!infoPassage.secret || infoPassage.found) && (
+                <button className="maps-btn gold" onClick={() => onFollow(linkOf(infoPassage.id)!)}>Suivre ➜</button>
+              )}
+              {infoSearch && !infoSearch.id.startsWith('mk-') && (
+                <>
+                  <button className="maps-btn" disabled={rewrite.busy || !aiReady()} title={aiReady() ? 'Réécrire la fiche pour ce lieu' : 'Configure une clé d’IA dans Réglages'}
+                    onClick={() => rewriteSearch(infoSearch.id, infoSearch.title, infoSearch.entry)}>{rewrite.busy ? 'L’IA écrit…' : '✨ Détailler avec l’IA'}</button>
+                  {notes[infoSearch.id] && <button className="maps-btn" onClick={() => onSearchNote?.(infoSearch.id, null)}>Rétablir</button>}
+                </>
+              )}
+            </div>
+            {rewrite.error && <p className="combat-ai-error">{rewrite.error}</p>}
+          </aside>
+  ) : null;
+
   const placePanel = (
     <PlacePanel
             title={placeTitle} text={context?.text} dest={dest}
@@ -678,8 +805,8 @@ export default function BattleMode({
             {(() => {
               const live = dragged && drag ? moveAlerts(bv, dragged.id, { x: drag.origin.x + drag.cur.x - drag.start.x, y: drag.origin.y + drag.cur.y - drag.start.y }) : null;
               const shown = live ? { name: dragged!.name, notes: live } : drag ? null : lastMove;
-              if (!shown?.notes.length && !(shown && 'exit' in shown && shown.exit)) return null;
-              const exit = !live && lastMove?.exit;
+              const exit = !live && lastMove?.exit && lastMove.exit.passage !== infoId ? lastMove.exit : null;
+              if (!shown || (!shown.notes.length && !exit)) return null;
               return (
                 <div className={`battle-move-alerts ${live ? 'live' : ''}`} role="status">
                   {shown.notes.map((n, i) => (
@@ -690,7 +817,7 @@ export default function BattleMode({
                   {exit && (
                     <div className="battle-move-alert tone-chance">
                       <b>🚪 {shown!.name} est sur la sortie {exit.label}</b>
-                      <span><button className="maps-btn gold battle-exit-btn" onClick={() => { set({ tokens: b.tokens.filter((q) => q.id !== exit.id), turn: b.turn === exit.id ? undefined : b.turn }); setLastMove(null); }}>Quitter la carte</button></span>
+                      <span><button className="maps-btn gold battle-exit-btn" onClick={() => leaveBy(exit)}>Quitter la carte{linkOf(exit.passage) ? ` → ${linkOf(exit.passage)!.label.split(' · ')[0]}` : ''}</button></span>
                     </div>
                   )}
                   {!live && <button className="present-info-close" onClick={() => setLastMove(null)} aria-label="Fermer">×</button>}
@@ -706,6 +833,16 @@ export default function BattleMode({
             )}
           </div>
 
+          {renderCombat && (fiche || (b.aim && !building)) && (
+            <div className="battle-overlays">
+              {b.aim && !building && (
+                <div className="battle-token-card battle-attack-card">
+                  {renderCombat({ battle: b, setBattle: onBattle, place: placeTitle, combatKey, selectedId, onSelect: setSelectedId, area: 'attack' })}
+                </div>
+              )}
+              {fiche}
+            </div>
+          )}
         </div>
         <p className="battle-hint">
           {aiming ? `🎯 ${b.tokens.find((t) => t.id === aiming)?.name ?? ''} attaque : clique la cible (Échap pour annuler).`
@@ -716,112 +853,7 @@ export default function BattleMode({
       </div>
 
       <aside className="maps-panel battle-side">
-        {info && (
-          <aside className="battle-fiche battle-fiche-side" role="dialog" aria-label={info.title}
-            data-kind={infoKind}>
-            <button className="present-info-close" onClick={() => setInfoId(null)} aria-label="Fermer">×</button>
-            {info.info?.image ? (
-              <div className="battle-fiche-hero">
-                <img src={info.info.image} alt="" />
-                <div>
-                  <span className="present-info-kind">{infoKindLabel}</span>
-                  <h3>{info.title}</h3>
-                </div>
-              </div>
-            ) : (
-              <>
-                <span className="present-info-kind">{infoKindLabel}</span>
-                <h3>{info.title}</h3>
-              </>
-            )}
-            {info.info?.subtitle && !infoSearch && <p className="maps-sub">{info.info.subtitle}</p>}
-
-            {infoSearch && (() => {
-              const near = infoSearch.entry.passage ? passageNear(info.cell) : null;
-              const nearLink = near ? linkOf(near.id) : undefined;
-              return (
-                <dl className="fiche-facts">
-                  <dt>Pour le trouver</dt><dd><b>{infoSearch.entry.skill} DC {infoSearch.entry.dc}</b></dd>
-                  <dt>Ce qu’on trouve</dt><dd>{infoSearch.entry.find}</dd>
-                  {infoSearch.entry.loot && <><dt>Butin</dt><dd>{infoSearch.entry.loot}</dd></>}
-                  {infoSearch.entry.effect && <><dt>Effet</dt><dd>{infoSearch.entry.effect}</dd></>}
-                  {infoSearch.entry.passage && (
-                    <>
-                      <dt>Passage</dt>
-                      <dd>
-                        {infoSearch.entry.passage.text}{infoSearch.entry.passage.dc ? ` (${infoSearch.entry.passage.skill} DC ${infoSearch.entry.passage.dc})` : ''}
-                        {near && (
-                          <span className="fiche-actions">
-                            {near.secret && !near.found && <button className="maps-btn gold" onClick={() => toggleShown(near.id)}>Révéler {secrets.find((s) => s.id === near.id)?.label ?? 'le passage'}</button>}
-                            {nearLink && <button className="maps-btn" onClick={() => onFollow(nearLink)}>Suivre ➜ {nearLink.label}</button>}
-                          </span>
-                        )}
-                      </dd>
-                    </>
-                  )}
-                  {info.info?.text && <><dt>Atlas</dt><dd className="maps-sub">{info.info.text}</dd></>}
-                </dl>
-              );
-            })()}
-
-            {infoPassage && (() => {
-              const link = linkOf(infoPassage.id);
-              const diff = passageDifficulty(infoPassage.trace);
-              const current = rec.overlay?.passageLinks?.[infoPassage.id];
-              return (
-                <dl className="fiche-facts">
-                  {infoPassage.summary && <><dt>Description</dt><dd>{infoPassage.summary}</dd></>}
-                  {(() => {
-                    const t = profileOf(infoPassage);
-                    return (
-                      <>
-                        <dt>Pour le repérer</dt><dd><b>{detectLabel(t.detect)}</b></dd>
-                        <dt>Dangerosité</dt><dd><span className={`trail-danger lvl-${t.danger.level}`}>{t.danger.label}</span> {t.danger.text} <span className="maps-sub">({t.danger.why.join(', ')})</span></dd>
-                      </>
-                    );
-                  })()}
-                  {diff && <><dt>Pour le suivre</dt><dd>{diff.text}</dd></>}
-                  <dt>Destination</dt>
-                  <dd>
-                    {link ? <>{link.label}{towardDest(link) && ' 🎯'}</> : <span className="battle-missing">non inscrite</span>}
-                    <select className="maps-btn" value={current ? `${current.kind}:${current.id}` : ''} onChange={(e) => {
-                      const opt = options.find((o) => o.value === e.target.value);
-                      onLink(infoPassage.id, opt ? opt.link : null);
-                    }}>
-                      <option value="">{link && !current ? 'Celle de l’Atlas' : 'Choisir une destination…'}</option>
-                      {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                    </select>
-                  </dd>
-                </dl>
-              );
-            })()}
-
-            {!infoSearch && !infoPassage && info.info?.text && info.info.text.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
-            {infoMarker?.notes && <p className="maps-sub">Notes : {infoMarker.notes}</p>}
-
-            <div className="fiche-actions">
-              <button className={`maps-btn ${isShown(info.id) ? '' : 'gold'}`} onClick={() => toggleShown(info.id)}>
-                {isShown(info.id) ? '👁 Visible des joueurs' : '🙈 Caché : le montrer'}
-              </button>
-              {infoPassage && linkOf(infoPassage.id) && (!infoPassage.secret || infoPassage.found) && (
-                <button className="maps-btn gold" onClick={() => onFollow(linkOf(infoPassage.id)!)}>Suivre ➜</button>
-              )}
-              {infoSearch && !infoSearch.id.startsWith('mk-') && (
-                <>
-                  <button className="maps-btn" disabled={rewrite.busy || !aiReady()} title={aiReady() ? 'Réécrire la fiche pour ce lieu' : 'Configure une clé d’IA dans Réglages'}
-                    onClick={() => rewriteSearch(infoSearch.id, infoSearch.title, infoSearch.entry)}>{rewrite.busy ? 'L’IA écrit…' : '✨ Détailler avec l’IA'}</button>
-                  {notes[infoSearch.id] && <button className="maps-btn" onClick={() => onSearchNote?.(infoSearch.id, null)}>Rétablir</button>}
-                </>
-              )}
-            </div>
-            {rewrite.error && <p className="combat-ai-error">{rewrite.error}</p>}
-          </aside>
-        )}
-        {renderCombat && b.aim && !building && (
-          <div className="battle-token-card battle-attack-card">
-            {renderCombat({ battle: b, setBattle: onBattle, place: placeTitle, combatKey, selectedId, onSelect: setSelectedId, area: 'attack' })}
-          </div>
-        )}
+        {!renderCombat && fiche}
         {renderCombat ? (
           renderCombat({
             battle: b, setBattle: onBattle, place: placeTitle, combatKey, selectedId, onSelect: setSelectedId, area: 'encounter',

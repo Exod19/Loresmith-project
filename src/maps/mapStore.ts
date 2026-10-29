@@ -91,6 +91,8 @@ export interface PartyTrack {
   trail: PartyPlace[];
   /** Journal de route : épreuves de passage et déplacements notables (les plus récents d'abord). */
   log?: { t: number; text: string }[];
+  /** Héros séparés du groupe : sortis seuls d'une carte de combat, ils attendent là où leur sortie mène. */
+  apart?: { id: string; name: string; heroId?: string; image?: string; at: PartyPlace; since: number }[];
 }
 
 /** Ce que le MJ sait d'un élément à fouiller : comment le trouver, ce qu'on y trouve, et ce que ça fait. */

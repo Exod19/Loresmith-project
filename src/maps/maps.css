@@ -165,3 +165,6 @@
 .maps-viewer.has-encounter .battle-body { flex: none; height: calc(100vh - 230px); min-height: 520px; }
 .maps-viewer.has-encounter .battle-encounter { padding: 12px 14px 16px; }
 @media (max-width: 1100px) { .maps-viewer.has-encounter .battle-body { height: auto; } }
+.party-apart { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; color: #d6c8ff; }
+.party-apart-hero { display: inline-flex; align-items: center; gap: 2px; padding: 1px 4px 1px 2px; border: 1px solid rgba(185,156,255,.45); border-radius: 999px; background: rgba(40,28,64,.35); }
+.party-apart-hero img { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 4px; }
