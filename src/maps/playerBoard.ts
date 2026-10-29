@@ -11,6 +11,7 @@ import { applyBuild, PROP_BY_KEY, propUrl } from './battle/build';
 import { CREATURE_LORE, KIND_LORE } from './battle/lore';
 import { isSearchable } from './battle/search';
 import { describeLite } from './atlas/lore';
+import { CALM_MS } from './atlas/omens';
 import { STATS } from './atlas/statblocks';
 import type { PlayerBoard, PlayerElement, PlayerToken, PlayerTurn } from '../present/stage';
 import { initiativeOrder } from './battle/combat';
@@ -97,7 +98,9 @@ export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus
   const t = rec.overlay?.travel;
   const travel = t && t.planId === planId && (t.hold || Date.now() - t.at < 30000) ? { key: t.key, points: t.points, at: t.at, label: 'Groupe', hold: t.hold } : undefined;
   const here = party?.at && party.at.planId === planId ? placeCoords(full ?? mapDataFor(rec, atlas, true), rec, party.at) ?? undefined : undefined;
-  return { mode: 'map', title: rec.title, planId, data, focus, marks: marks.length ? marks : undefined, fog, travel, here };
+  const a = rec.overlay?.alert;
+  const alert = a && (a.phase !== 'calm' || Date.now() - a.at < CALM_MS) ? a : undefined;
+  return { mode: 'map', title: rec.title, planId, data, focus, marks: marks.length ? marks : undefined, fog, travel, here, alert };
 }
 
 /** Combat tel que les joueurs le voient : jetons visibles seulement, sans points de vie ni CA. */

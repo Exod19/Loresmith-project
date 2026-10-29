@@ -11,6 +11,7 @@
 import { setAtlasData } from './atlas/model';
 import { IMAGE_MAX, fitWithin } from '../store/imageRefs';
 import type { LocalElement } from './battle/local';
+import type { HaltAlert } from './atlas/omens';
 import type { AtlasData, AtlasFeature, AtlasGeometry, AtlasMap, FeatureCategory, Importance } from './atlas/types';
 
 export type Zone = 'sauvage' | 'transit' | 'cite';
@@ -79,6 +80,10 @@ export interface MapOverlay {
   explored?: Record<string, [number, number][]>;
   /** Dernier trajet du groupe le long d'un chemin, pour l'animer (MJ et joueurs). */
   travel?: { key: string; planId: string; points: [number, number][]; at: number; hold?: boolean };
+  /** Annonce montrée aux joueurs pendant une halte en chemin (suspense, fausse alerte, rencontre). */
+  alert?: HaltAlert;
+  /** Illustrations des rencontres, par titre de rencontre (fournies par le MJ). */
+  encounterImages?: Record<string, string>;
   markers: MapMarker[];
   /** Destinations inscrites par le MJ, par identifiant de passage (tracé de l'Atlas). */
   passageLinks?: Record<string, PassageLink>;
