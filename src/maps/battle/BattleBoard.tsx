@@ -213,6 +213,11 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
   const cells = interactive ? Array.from({ length: cols * rows }, (_, i) => ({ x: i % cols, y: Math.floor(i / cols) })) : [];
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  // Un chiffre de dégâts reste 4 s à partir du moment où ce plateau le reçoit (l'écran joueur peut le recevoir en retard).
+  const seen = useRef(new Map<string, number>());
+  const now = Date.now();
+  for (const h of hits) if (!seen.current.has(h.id)) seen.current.set(h.id, now);
+  const shownHits = hits.filter((h) => now - (seen.current.get(h.id) ?? now) <= 4000);
   useEffect(() => {
     if (canvasRef.current) void paintTerrain(canvasRef.current, cols, rows, terrain);
   }, [cols, rows, terrain]);
@@ -271,7 +276,7 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
           // Passage secret non découvert (MJ seulement) : contour pointillé sur ses cases.
           if (e.ghost) return <path key={`g-${e.id}`} d={cellPath(e.cells, cols)} fill="rgba(236,210,137,0.16)" stroke="#ecd289" strokeWidth={0.07} strokeDasharray="0.15 0.1" opacity={0.95} pointerEvents="none"><title>{`${e.title} (secret, visible du MJ seulement)`}</title></path>;
           // Passage visible : zone cliquable, et teinte violette s'il était secret. Pas de marque : il y en a des milliers.
-          const hit = onElement ? { className: 'battle-hit', onClick: pick(e.id), cursor: 'pointer' } : { pointerEvents: 'none' as const };
+          const hit = onElement ? { className: 'battle-pass', onClick: pick(e.id), cursor: 'pointer' } : { pointerEvents: 'none' as const };
           const zone = e.secret
             ? <path d={cellPath(e.cells, cols)} fill="rgba(156,123,214,0.32)" stroke="#9c7bd6" strokeWidth={0.05} {...hit}><title>{`${e.title} (passage secret)`}</title></path>
             : <path d={cellPath(e.cells, cols)} fill="transparent" {...hit}><title>{e.title}</title></path>;
@@ -367,10 +372,10 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
       })()}
 
       {/* Dégâts et soins : un grand chiffre qui monte et s'efface au-dessus du jeton touché. */}
-      {hits.map((h) => {
+      {shownHits.map((h) => {
         const t = tokens.find((q) => q.id === h.to);
-        if (!t || Date.now() - h.at > 4000) return null;
-        const stack = hits.filter((o) => o.to === h.to && o.at < h.at && Date.now() - o.at <= 4000).length;
+        if (!t) return null;
+        const stack = shownHits.filter((o) => o.to === h.to && o.at < h.at).length;
         const cx = t.x + t.size / 2, cy = t.y - 0.15 - stack * 0.75;
         const heal = h.amount > 0;
         return (
