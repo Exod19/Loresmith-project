@@ -71,6 +71,7 @@ export default function UniverseHome({
       <div className="lsx-home-main">
         <section className="lsx-hero" style={{ '--hero': `url("${heroImage || DECOR.hero}")` }}>
           <span className="lsx-hero-frame" aria-hidden="true" />
+          <img className="lsx-hero-seal" src={`/images/ui/${/underdark/i.test(universe.name) ? 'embleme-araignee' : 'embleme-boussole'}.webp`} alt="" aria-hidden="true" />
           <div className="lsx-hero-body">
             <span className="lsx-kicker">Univers actif</span>
             <h1>{universe.name}</h1>
@@ -99,7 +100,7 @@ export default function UniverseHome({
         <SectionHead title="Campagnes de cet univers" action="Toutes les campagnes" onAction={() => setView('forge')} />
         {campaigns.length === 0 ? (
           <button className="lsx-empty-card" onClick={() => setView('forge')}>
-            <ScrollText size={22} aria-hidden="true" />
+            <img className="lsx-empty-emblem" src="/images/ui/embleme-forge.webp" alt="" aria-hidden="true" />
             <b>Forger une première campagne</b>
             <span>Décris une idée : l'IA en tire actes, scènes et PNJ à partir de ton canon.</span>
           </button>
