@@ -25,7 +25,8 @@ import { VISION_R } from './playerBoard';
 import { detectLabel, noticedPassively, passiveOf, trailProfile } from './atlas/trails';
 import Interactables from './Interactables';
 import CampaignGuide, { type BestiaryRef, type GuideCampaign, type GuidePlace } from './CampaignGuide';
-import { onPlayerFollow, publishStage } from '../present/stage';
+import { onPlayerFollow, onPlayerPick, publishStage } from '../present/stage';
+import { buildRoutes, distancesTo, goalNodes, judgeTrail, nodeOf, verdictText, type TrailVerdict } from './route';
 import './maps.css';
 
 const LAYERS: Layers = { points: true, etiquettes: true, galeries: true, connexions: true, ambiance: true };
@@ -113,6 +114,31 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [trails, party.at?.id],
   );
+  // Réseau des chemins du plan (MJ) : où mène chaque sentier, et s'il rapproche le groupe de l'objectif par le labyrinthe.
+  const routes = useMemo(() => buildRoutes(data, map.id), [data, map.id]);
+  const goalTargets = useMemo(() => {
+    const dest = party.dest;
+    if (!dest) return [];
+    if (dest.planId === map.id) return goalNodes(routes, dest, placeCoords(data, rec, dest));
+    // Objectif sur un autre plan : les ancres de ce plan qui y mènent directement deviennent les buts.
+    const here = new Set(data.anchors.filter((a) => a.mapId === map.id).map((a) => a.id));
+    const there = new Set(data.anchors.filter((a) => a.mapId === dest.planId).map((a) => a.id));
+    return data.connections
+      .flatMap((c) => (here.has(c.fromAnchorId) && there.has(c.toAnchorId) ? [c.fromAnchorId] : here.has(c.toAnchorId) && there.has(c.fromAnchorId) && c.direction === 'both' ? [c.toAnchorId] : []))
+      .filter((id) => routes.places.has(id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routes, party.dest?.id, party.dest?.planId]);
+  const reach = useMemo(() => (goalTargets.length ? distancesTo(routes, goalTargets) : null), [routes, goalTargets]);
+  const groupNode = { node: nodeOf(routes, party.at?.planId === map.id ? party.at : undefined, partyAt), at: partyAt };
+  const routeOf = (trailId: string): TrailVerdict & { text: string; ends?: string } => {
+    const v = judgeTrail(routes, reach, groupNode, trailId);
+    const e = routes.ends.get(trailId);
+    const ends = e ? e.map((id) => routes.places.get(id)?.title ?? '?').join(' ↔ ') : undefined;
+    return { ...v, ends, text: verdictText(v, party.dest?.title) };
+  };
+  /** Sentier que les joueurs viennent de toucher sur leur écran : sa fiche s'ouvre ici, illuminé sur la carte. */
+  const [playerPick, setPlayerPick] = useState<{ id: string; at: number } | null>(null);
+
   /** Ce qu'il y a à découvrir autour du groupe : lieux à fouiller, repères du MJ, chemins qu'il faut chercher. */
   const finds = useMemo(() => {
     if (!partyAt) return [];
@@ -342,6 +368,18 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     followTrail(t, 'joueurs');
   };
   useEffect(() => onPlayerFollow((id) => followRef.current(id)), []);
+  const pickRef = useRef<(id: string) => void>(() => {});
+  pickRef.current = (id) => {
+    const f = data.features.find((x) => x.id === id);
+    if (!f?.trace) return;
+    setSelectedId(id);
+    setEnc(null);
+    setPlayerPick({ id, at: Date.now() });
+    const g = data.geometries.find((x) => x.featureId === id);
+    if (g && g.mapId !== map.id) setPlanId(g.mapId);
+    setFocus({ kind: 'point', id, tick: Date.now() });
+  };
+  useEffect(() => onPlayerPick((id) => pickRef.current(id)), []);
   const toggleReveal = (id: string) => setOverlay({
     ...overlay,
     revealed: overlay.revealed.includes(id) ? overlay.revealed.filter((x) => x !== id) : [...overlay.revealed, id],
@@ -445,7 +483,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
         />
       ) : (
         <div className="maps-body">
-          <div className="maps-canvas">
+          <div className={`maps-canvas ${playerPick && playerPick.id === selectedId ? 'player-pick' : ''}`}>
             <MapCanvas
               key={map.id}
               map={map}
@@ -535,7 +573,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 onPartyDest={() => setDest(party.dest?.id === feature.id ? undefined : { id: feature.id, kind: 'feature', title: feature.title, planId: map.id })}
                 follow={dm && feature.trace ? (() => {
                   const t = trailsTo.find((x) => x.f.id === feature.id);
-                  return { near: !!t, to: t?.to ?? null, hazard: t?.hazard ?? (feature.trace ? trailHazard(feature, trailProfile(feature, feature.trace === 'secret' ? 15 : undefined)) : null), onFollow: () => t && followTrail(t) };
+                  return { near: !!t, to: t?.to ?? null, hazard: t?.hazard ?? (feature.trace ? trailHazard(feature, trailProfile(feature, feature.trace === 'secret' ? 15 : undefined)) : null), onFollow: () => t && followTrail(t), route: routeOf(feature.id), byPlayers: playerPick?.id === feature.id };
                 })() : undefined}
               />
             )}
@@ -596,6 +634,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
 
             {dm && side === 'groupe' && party.at && partyAt && (
               <TrailsPanel
+                routeOf={(id) => routeOf(id)}
                 onFollow={(id) => { const t = trailsTo.find((x) => x.f.id === id); if (t) followTrail(t); }}
                 placeTitle={party.at.title} trails={trails} passive={best.pp} passiveWho={best.who}
                 onToggle={(id) => toggleReveal(id)}
@@ -719,7 +758,7 @@ function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onT
   /** Perception passive du groupe, pour dire si un sentier se voit sans chercher. */
   passive?: number;
   /** Chemin (MJ) : où il mène depuis le groupe, l'épreuve qu'il demande, et l'action de le suivre. */
-  follow?: { near: boolean; to: PartyPlace | null; hazard: Hazard | null; onFollow: () => void };
+  follow?: { near: boolean; to: PartyPlace | null; hazard: Hazard | null; onFollow: () => void; route?: TrailVerdict & { text: string; ends?: string }; byPlayers?: boolean };
 }) {
   const [zone, setZone] = useState<Zone>(defaultCtx.zone);
   const [depth, setDepth] = useState(defaultCtx.depth);
@@ -752,6 +791,9 @@ function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onT
       {follow && (
         <div className="trail-follow">
           <h4>🚶 Suivre ce chemin</h4>
+          {follow.byPlayers && <p className="trail-asked">👀 Les joueurs regardent ce chemin sur leur écran.</p>}
+          {follow.route?.ends && <p className="maps-sub">Relie : <b>{follow.route.ends}</b></p>}
+          {follow.route && <p className={`trail-route v-${follow.route.verdict}`}>{follow.route.text}</p>}
           {!follow.near ? (
             <p className="maps-sub">Le groupe n’est pas au départ de ce chemin : place-le d’abord à un bout (« Le groupe est ici »).</p>
           ) : (

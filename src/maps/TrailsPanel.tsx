@@ -39,11 +39,13 @@ export function DangerChip({ profile }: { profile: TrailProfile }) {
   return <span className={`trail-danger lvl-${d.level}`} title={`${d.text} (${d.why.join(', ')})`}>{d.label}</span>;
 }
 
-export default function TrailsPanel({ placeTitle, trails, passive, passiveWho, onToggle, onSelect, onRevealNoticed, onFollow }: {
+export default function TrailsPanel({ placeTitle, trails, passive, passiveWho, onToggle, onSelect, onRevealNoticed, onFollow, routeOf }: {
   placeTitle: string; trails: Trail[]; passive: number; passiveWho?: string;
   onToggle: (id: string) => void; onSelect: (f: AtlasFeature) => void; onRevealNoticed: () => void;
   /** Faire suivre ce sentier au groupe (épreuve de passage si besoin). */
   onFollow?: (id: string) => void;
+  /** Où mène le sentier et s'il rapproche de l'objectif (réseau des chemins, MJ). */
+  routeOf?: (id: string) => { verdict: string; text: string; to: { title: string } | null };
 }) {
   const hiddenNoticed = trails.filter((t) => t.noticed && !t.shown).length;
   return (
@@ -62,6 +64,11 @@ export default function TrailsPanel({ placeTitle, trails, passive, passiveWho, o
           <li key={t.f.id} data-on={t.shown ? 1 : 0}>
             <DangerChip profile={t.profile} />
             <button className="maps-link trails-title" onClick={() => onSelect(t.f)}>{t.f.title}</button>
+            {routeOf && (() => {
+              const r = routeOf(t.f.id);
+              const icon = ({ goal: '🎯', best: '↗', detour: '↝', farther: '↘', dead: '⛔' } as Record<string, string>)[r.verdict];
+              return (r.to || icon) ? <small className={`trails-route v-${r.verdict}`} title={r.text}>{icon ? `${icon} ` : ''}{r.to && r.to.title !== 'carrefour' ? `→ ${r.to.title}` : r.to ? '→ carrefour' : ''}</small> : null;
+            })()}
             <small className={`trails-dc ${t.noticed ? 'is-noticed' : ''}`} title={t.noticed ? 'Le groupe le remarque sans chercher' : 'Il faut chercher pour le trouver'}>
               {detectLabel(t.profile.detect)}{t.noticed ? ' · vu' : ''}
             </small>
