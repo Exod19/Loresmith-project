@@ -15347,7 +15347,7 @@ function AttackPanel({ state, dispatch, battle, setBattle }) {
         <span>{dist * 5} pi</span>
         <span>CA {targetAc}{coverAc ? ` +${coverAc} (abri)` : ''}</span>
         {cover.level > 0 && <span className="tac-chip tone-buff" tabIndex={0}>🛡 {cover.label}<span className="tac-why" role="tooltip">{cover.why}</span></span>}
-        {aim.by === 'joueurs' && <span className="attack-by">déclarée par les joueurs</span>}
+        {aim.by === 'joueurs' && <span className="attack-by">déclarée depuis l’écran joueur</span>}
       </div>
       {cover.level === 3 && <p className="attack-block">Pas de ligne de vue : {T.name} ne peut pas être pris pour cible directement.</p>}
 

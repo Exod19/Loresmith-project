@@ -692,3 +692,47 @@
   font-family:'Cinzel',serif;font-size:clamp(12px,1.7vh,20px);color:#f6e8c4;background:linear-gradient(transparent,rgba(8,6,4,.92) 55%)}
 .present-turn-next .present-turn-label{width:auto;border:0;background:none;align-self:center;writing-mode:vertical-rl;transform:rotate(180deg);opacity:.8}
 .present-turn-initial{align-items:center;justify-content:center;font-size:clamp(28px,5vh,60px)}
+
+/* ---- Écran joueur, version compacte : la carte d'abord, le reste en appoint ----
+   Tailles calées sur le plus petit côté de l'écran (vmin) pour rester mesurées sur une fenêtre réduite. */
+.present-battle{padding:2vmin 2.4vmin;gap:1.2vmin}
+.present-battle-head{font-size:clamp(13px,2vmin,20px)}
+.present-toggles button{font-size:clamp(12px,1.7vmin,17px);padding:.4vmin 1.4vmin}
+.present-turn{gap:1.4vmin;margin:0}
+.present-turn-now .present-turn-portrait{width:clamp(48px,8vmin,96px)}
+.present-turn-now .present-turn-text{padding:.6vmin 2vmin .6vmin 1.2vmin}
+.present-turn-text small{font-size:clamp(10px,1.4vmin,14px)}
+.present-turn-text b{font-size:clamp(18px,3.6vmin,40px)}
+.present-turn-text em{font-size:clamp(11px,1.6vmin,16px)}
+.present-turn-next{gap:.9vmin}
+.present-turn-next li{width:clamp(40px,6.2vmin,74px);border-radius:7px}
+.present-turn-name{font-size:clamp(9px,1.25vmin,13px);padding:1.4vmin .3vmin .3vmin}
+.present-turn-next .present-turn-label{font-size:clamp(9px,1.2vmin,12px)}
+
+/* Bannières : un bandeau en haut du plateau, qui s'efface de lui-même. */
+.present-verdict{padding:.8vmin 2.4vmin 1vmin;border-radius:12px;border-width:1.5px}
+.present-verdict-top{gap:1.6vmin}
+.present-verdict-top b{font-size:clamp(20px,4.4vmin,48px)}
+.present-verdict-roll{font-size:clamp(14px,2.6vmin,28px);padding:.1vmin .9vmin;border-radius:8px}
+.present-verdict-who{margin:.3vmin 0 0;font-size:clamp(10px,1.5vmin,15px)}
+.present-verdict-line{margin:.4vmin auto 0;font-size:clamp(13px,2.1vmin,22px);max-width:56ch}
+.present-damage{padding:.6vmin 2.6vmin .8vmin}
+.present-damage .present-verdict-dmg{font-size:clamp(30px,6.5vmin,72px)}
+.present-battle-body > .present-verdict:is(.v-miss,.v-fumble),.present-battle-body > .present-damage{
+  animation:verdict-in-c .5s cubic-bezier(.2,.9,.25,1.2) both,verdict-out .8s ease-in 6s forwards}
+@keyframes verdict-out{to{opacity:0;transform:translate(-50%,-1vh)}}
+.present-aim-hint,.present-aim-result{font-size:clamp(13px,2vmin,20px);padding:.5vmin 2vmin}
+
+/* Fiche ouverte : petite carte dans le coin bas gauche, la carte reste visible. */
+.present-battle .present-card{left:1.2vmin;right:auto;bottom:1.2vmin;transform:none;width:min(560px,58%);max-height:min(28vh,260px);border-radius:10px}
+@keyframes present-card-in{from{opacity:0;transform:translateY(14px)}to{transform:none}}
+.present-card-hero{width:clamp(90px,18vmin,180px);aspect-ratio:3/4;max-height:min(28vh,260px)}
+.present-battle .present-card-body{padding:1.2vmin 4.4vmin 1.2vmin 1.8vmin}
+.present-battle .present-card h3{font-size:clamp(16px,2.6vmin,26px);margin:2px 0 6px}
+.present-battle .present-card p{font-size:clamp(12px,1.75vmin,17px);line-height:1.45}
+.present-battle .present-card .present-info-kind{font-size:clamp(9px,1.2vmin,12px)}
+.present-battle .present-card .present-info-close{width:26px;height:26px;right:6px;top:6px}
+.present-aim-btn{margin-top:6px;padding:.6vmin 1.8vmin;font-size:clamp(12px,1.7vmin,17px)}
+.present-aim-btn.foe{border-color:#c0492f;background:rgba(192,73,47,.16);color:#ffe2d8}
+.present-aim-wait{margin-top:6px;font-size:clamp(12px,1.6vmin,16px)}
+@media (prefers-reduced-motion:reduce){.present-battle-body > .present-verdict:is(.v-miss,.v-fumble),.present-battle-body > .present-damage{animation:verdict-out .01s linear 6s forwards}}

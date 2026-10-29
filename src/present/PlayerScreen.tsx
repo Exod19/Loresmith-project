@@ -250,9 +250,9 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
               <span className="present-info-kind">{card.icon && <>{card.icon} </>}{card.subtitle}</span>
               <h3>{card.title}</h3>
               {card.text && card.text.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
-              {card.kind === 'pc' && onAim && board.tokens.some((t) => t.kind !== 'pc') && (
+              {(card.kind === 'pc' || card.kind === 'creature') && onAim && board.tokens.some((t) => t.id !== openId && (t.kind === 'pc') !== (card.kind === 'pc')) && (
                 openId === board.turn?.active
-                  ? <button className="present-aim-btn" onClick={() => { setAimer(openId); setOpenId(null); }}>🎯 Attaquer une cible</button>
+                  ? <button className={`present-aim-btn ${card.kind === 'creature' ? 'foe' : ''}`} onClick={() => { setAimer(openId); setOpenId(null); }}>🎯 Attaquer une cible</button>
                   : <p className="present-aim-wait">{card.title} attaquera à son tour.</p>
               )}
             </div>
@@ -276,7 +276,7 @@ function TurnStrip({ turn, onOpen }: { turn: PlayerTurn; onOpen: (id: string) =>
   return (
     <div className="present-turn" role="status" aria-live="polite">
       {now ? (
-        <button key={now.id} className={`present-turn-now kind-${now.kind}`} onClick={() => onOpen(now.id)}>
+        <button key={now.id} className={`present-turn-now kind-${now.kind}`} onClick={() => onOpen(now.id)} title="Ouvrir sa fiche (et attaquer)">
           <span className="present-turn-portrait">{face(now)}</span>
           <span className="present-turn-text">
             <small>Au tour de</small>

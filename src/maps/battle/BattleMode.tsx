@@ -127,8 +127,8 @@ export default function BattleMode({
   useEffect(() => onPlayerAim((from, to) => {
     const cur = latest.current;
     if (!cur.tokens.some((t) => t.id === from) || !cur.tokens.some((t) => t.id === to)) return;
-    // Un héros ne déclare une attaque que pendant son tour.
-    if (cur.turn && cur.turn !== from && cur.tokens.find((t) => t.id === from)?.kind === 'pc') return;
+    // Héros comme créatures : une attaque se déclare pendant le tour de l'attaquant.
+    if (cur.turn && cur.turn !== from) return;
     onBattle({ ...cur, aim: { from, to, at: Date.now(), by: 'joueurs' } });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), []);
