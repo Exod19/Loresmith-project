@@ -77,7 +77,7 @@ export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus
     fog = { vision, explored, r: VISION_R, er: 0.022 };
   }
   const t = rec.overlay?.travel;
-  const travel = t && t.planId === planId && Date.now() - t.at < 15000 && view.party !== false ? { key: t.key, points: t.points, at: t.at, label: 'Groupe' } : undefined;
+  const travel = t && t.planId === planId && Date.now() - t.at < 30000 && view.party !== false ? { key: t.key, points: t.points, at: t.at, label: 'Groupe' } : undefined;
   return { mode: 'map', title: rec.title, planId, data, focus, marks: marks.length ? marks : undefined, fog, travel };
 }
 

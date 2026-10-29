@@ -129,20 +129,31 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   // Le groupe en chemin : position courante le long du tracé, image par image.
   const [walker, setWalker] = useState<[number, number] | null>(null);
   useEffect(() => {
-    if (!journey || journey.points.length < 2 || Date.now() - journey.at > 15000) { setWalker(null); return; }
+    if (!journey || journey.points.length < 2 || Date.now() - journey.at > 30000) { setWalker(null); return; }
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { setWalker(null); return; }
-    const pts = journey.points.map(([x, y]) => [x * map.width, y * map.height] as [number, number]);
+    // Tracé adouci (coins arrondis, deux passes de Chaikin) : le jeton prend les virages sans à-coups.
+    let route = journey.points;
+    for (let pass = 0; pass < 2; pass++) {
+      const r: [number, number][] = [route[0]];
+      for (let i = 0; i < route.length - 1; i++) {
+        const [ax, ay] = route[i], [bx, by] = route[i + 1];
+        r.push([ax * 0.75 + bx * 0.25, ay * 0.75 + by * 0.25], [ax * 0.25 + bx * 0.75, ay * 0.25 + by * 0.75]);
+      }
+      r.push(route[route.length - 1]);
+      route = r;
+    }
+    const pts = route.map(([x, y]) => [x * map.width, y * map.height] as [number, number]);
     const seg: number[] = [0];
     for (let i = 1; i < pts.length; i++) seg.push(seg[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
     const total = seg[seg.length - 1] || 1;
-    // Lent et lisible : de 4 à 12 secondes selon la longueur du chemin.
-    const duration = Math.min(12000, Math.max(4000, (total / map.width) * 24000));
+    // Lent et lisible : de 8 à 24 secondes selon la longueur du chemin.
+    const duration = Math.min(24000, Math.max(8000, (total / map.width) * 48000));
     const start = performance.now();
     let raf = 0;
     let last = start;
     // Suivi de caméra au temps écoulé (et non à l'image) : il rattrape le jeton même si l'écran rafraîchit lentement.
     const follow = (x: number, y: number, now: number) => {
-      const a = 1 - Math.exp(-(now - last) / 350);
+      const a = 1 - Math.exp(-(now - last) / 600);
       last = now;
       setT((o) => { const g = fit(map, x, y, o.k); return { k: o.k, tx: o.tx + (g.tx - o.tx) * a, ty: o.ty + (g.ty - o.ty) * a }; });
     };
@@ -151,16 +162,17 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
       if (now - start > duration) {
         const [ex, ey] = journey.points[journey.points.length - 1];
         follow(ex, ey, now);
-        if (now - start < duration + 1200) raf = requestAnimationFrame(step); else setWalker(null);
+        if (now - start < duration + 1800) raf = requestAnimationFrame(step); else setWalker(null);
         return;
       }
       const k = Math.min(1, (now - start) / duration);
-      const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      // Départ et arrivée en douceur, vitesse régulière entre les deux.
+      const e = -(Math.cos(Math.PI * k) - 1) / 2;
       const d = e * total;
       let i = 1;
       while (i < seg.length - 1 && seg[i] < d) i++;
       const t = (d - seg[i - 1]) / ((seg[i] - seg[i - 1]) || 1);
-      const [ax, ay] = journey.points[i - 1], [bx, by] = journey.points[i];
+      const [ax, ay] = route[i - 1], [bx, by] = route[i];
       const wx = ax + (bx - ax) * t, wy = ay + (by - ay) * t;
       setWalker([wx, wy]);
       // La vue suit le jeton en douceur, sans changer le zoom.
