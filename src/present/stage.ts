@@ -58,7 +58,7 @@ export type Stage =
 /** `aim` : depuis l'écran joueur, un héros déclare qu'il attaque une cible (le MJ résout). */
 /** `move` : depuis l'écran joueur, un jeton est glissé sur une autre case (le MJ valide). */
 /** `follow` : depuis la carte de navigation des joueurs, le groupe demande à suivre un chemin (le MJ valide ou fait l'épreuve). */
-export type StageMessage = { type: 'hello' } | { type: 'stage'; stage: Stage; at?: number } | { type: 'aim'; from: string; to: string } | { type: 'move'; id: string; x: number; y: number } | { type: 'follow'; featureId: string; dir?: 'a' | 'b' };
+export type StageMessage = { type: 'hello' } | { type: 'stage'; stage: Stage; at?: number } | { type: 'aim'; from: string; to: string } | { type: 'move'; id: string; x: number; y: number } | { type: 'follow'; featureId: string; dir?: 'a' | 'b' } | { type: 'pick'; featureId: string };
 
 const CHANNEL = 'loresmith:stage:v1';
 
@@ -86,6 +86,7 @@ const helloListeners = new Set<() => void>();
 const aimListeners = new Set<(from: string, to: string) => void>();
 const moveListeners = new Set<(id: string, x: number, y: number) => void>();
 const followListeners = new Set<(featureId: string, dir?: 'a' | 'b') => void>();
+const pickListeners = new Set<(featureId: string) => void>();
 
 /** À appeler une fois dans la console MJ : répond aux écrans joueurs qui se connectent. */
 export function hostStage() {
@@ -95,6 +96,7 @@ export function hostStage() {
     if (e.data?.type === 'aim') { const { from, to } = e.data; aimListeners.forEach((f) => f(from, to)); return; }
     if (e.data?.type === 'move') { const { id, x, y } = e.data; moveListeners.forEach((f) => f(id, x, y)); return; }
     if (e.data?.type === 'follow') { const { featureId, dir } = e.data; followListeners.forEach((f) => f(featureId, dir)); return; }
+    if (e.data?.type === 'pick') { const { featureId } = e.data; pickListeners.forEach((f) => f(featureId)); return; }
     if (e.data?.type === 'stage') { if ((e.data.at ?? 0) > currentAt) superseded = true; return; }
     if (e.data?.type !== 'hello' || superseded) return;
     host?.postMessage({ type: 'stage', stage: current, at: currentAt } satisfies StageMessage);
@@ -140,4 +142,11 @@ export function onPlayerFollow(listener: (featureId: string, dir?: 'a' | 'b') =>
   hostStage();
   followListeners.add(listener);
   return () => { followListeners.delete(listener); };
+}
+
+/** Préviens quand un joueur touche un chemin sur sa carte de navigation (le MJ voit sa fiche et le chemin s'illumine). */
+export function onPlayerPick(listener: (featureId: string) => void) {
+  hostStage();
+  pickListeners.add(listener);
+  return () => { pickListeners.delete(listener); };
 }

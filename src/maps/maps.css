@@ -201,6 +201,21 @@
 .finds-list li { display: flex; align-items: center; gap: 6px; }
 .finds-dc { flex: none; font-size: .72rem; padding: 1px 6px; border-radius: 8px; border: 1px solid #5a4a2a; color: #e9d7b4; white-space: nowrap; }
 .finds-list .maps-link { flex: 1; text-align: left; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Sentier touché par les joueurs : il s'illumine sur la carte du MJ. */
+.maps-canvas.player-pick .am-pass-sel{stroke:#ffe08a;stroke-width:5;opacity:1;filter:drop-shadow(0 0 6px rgba(255,214,120,.9));animation:pick-glow 1.1s ease-in-out 4}
+@keyframes pick-glow{0%,100%{stroke-opacity:1;stroke-width:5}50%{stroke-opacity:.45;stroke-width:9}}
+@media (prefers-reduced-motion:reduce){.maps-canvas.player-pick .am-pass-sel{animation:none}}
+.trail-asked{margin:0 0 4px;padding:4px 8px;border-radius:6px;background:rgba(84,216,198,.12);border:1px solid #2f8a80;color:#d6fff8;font-size:12.5px}
+.trail-route{margin:2px 0 6px;font-size:13px;color:#e7d8b0}
+.trail-route.v-goal,.trail-route.v-best{color:#a6e39a}
+.trail-route.v-detour{color:#e6d27a}
+.trail-route.v-farther{color:#f0b866}
+.trail-route.v-dead{color:#ff8a6e}
+.trails-route{font-size:11px;color:#b9a57a;white-space:nowrap}
+.trails-route.v-goal,.trails-route.v-best{color:#a6e39a}
+.trails-route.v-detour{color:#e6d27a}
+.trails-route.v-farther{color:#f0b866}
+.trails-route.v-dead{color:#ff8a6e}
 .maps-halt { border: 1px solid #b99cff; border-radius: 6px; padding: 8px 10px; background: rgba(60,40,100,.18); }
 .maps-halt h4 { margin: 0 0 4px; color: #e6dcff; font-size: .9rem; }
 .maps-halt p { margin: 0 0 6px; }

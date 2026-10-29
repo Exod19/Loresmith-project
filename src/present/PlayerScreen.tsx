@@ -93,7 +93,7 @@ function Scene({ stage, rev }: { stage: Stage; rev: number }) {
   }
   if (stage.kind === 'board') {
     return stage.board.mode === 'map'
-      ? <PlayerMap board={stage.board} rev={rev} onFollow={(featureId, dir) => sendToHost?.({ type: 'follow', featureId, dir })} />
+      ? <PlayerMap board={stage.board} rev={rev} onFollow={(featureId, dir) => sendToHost?.({ type: 'follow', featureId, dir })} onPick={(featureId) => sendToHost?.({ type: 'pick', featureId })} />
       : <PlayerBattle board={stage.board} onAim={(from, to) => sendToHost?.({ type: 'aim', from, to })} onMove={(id, x, y) => sendToHost?.({ type: 'move', id, x, y })} />;
   }
   return (
@@ -103,7 +103,7 @@ function Scene({ stage, rev }: { stage: Stage; rev: number }) {
   );
 }
 
-function PlayerMap({ board, rev, onFollow }: { board: Extract<PlayerBoard, { mode: 'map' }>; rev: number; onFollow?: (featureId: string, dir?: 'a' | 'b') => void }) {
+function PlayerMap({ board, rev, onFollow, onPick }: { board: Extract<PlayerBoard, { mode: 'map' }>; rev: number; onFollow?: (featureId: string, dir?: 'a' | 'b') => void; onPick?: (featureId: string) => void }) {
   setAtlasData(board.data as AtlasData);
   // Un lieu ou un chemin touché : sa fiche ; un chemin peut être suivi (le MJ valide, ou fait passer l'épreuve).
   const [picked, setPicked] = useState<AtlasFeature | null>(null);
@@ -114,7 +114,7 @@ function PlayerMap({ board, rev, onFollow }: { board: Extract<PlayerBoard, { mod
   return (
     <div className="maps-canvas present-map">
       <MapCanvas
-        key={map.id} map={map} layers={LAYERS} hidden={HIDDEN} selectedId={picked?.id ?? null} onSelect={(f) => setPicked((cur) => (cur?.id === f.id ? null : f))} onAnchor={() => {}} dm={false}
+        key={map.id} map={map} layers={LAYERS} hidden={HIDDEN} selectedId={picked?.id ?? null} onSelect={(f) => { setPicked((cur) => (cur?.id === f.id ? null : f)); if (f.trace && picked?.id !== f.id) onPick?.(f.id); }} onAnchor={() => {}} dm={false}
         dataKey={rev}
         focus={board.focus ? { kind: board.focus.kind, id: board.focus.id } : null}
         focusKey={board.focus ? String(board.focus.tick) : undefined}
