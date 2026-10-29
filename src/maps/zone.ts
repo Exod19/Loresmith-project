@@ -111,7 +111,7 @@ const traces = (data: AtlasData, planId: string) => {
  * Ce que voit le groupe depuis `at` : toute la caverne où il se tient (pas la voisine, derrière la paroi), et l'entrée
  * des tunnels qui en partent sur quelques pas ; dans un tunnel, le tunnel lui-même sur une courte distance.
  */
-export function visionShapes(data: AtlasData, planId: string, at: Pt, reach = { tunnel: 0.022, inTunnel: 0.04 }): Shapes {
+export function visionShapes(data: AtlasData, planId: string, at: Pt, reach = { tunnel: 0.009, inTunnel: 0.012 }): Shapes {
   const z = zoneOf(data, planId, at);
   const lines: Pt[][] = [];
   const cavs = (data.cavities[planId] ?? []).map((c) => cavityPoints(c, 1, 1, 0, 44));
@@ -135,9 +135,12 @@ export function visionShapes(data: AtlasData, planId: string, at: Pt, reach = { 
  * Mémoire du brouillard, sans traverser les parois : les cavernes où le groupe a vu quelque chose et les tracés
  * parcourus. Les points mémorisés ne dévoilent que l'intérieur de ces formes.
  */
-export function memoryShapes(data: AtlasData, planId: string, explored: Pt[]): Shapes {
+export function memoryShapes(data: AtlasData, planId: string, explored: Pt[], except: Pt[][] = []): Shapes {
   const cavs = (data.cavities[planId] ?? []).map((c) => cavityPoints(c, 1, 1, 0, 44));
-  const polys = cavs.filter((poly) => explored.some((p) => inside(p, poly)));
-  const lines = traces(data, planId).filter((pts) => explored.some((p) => lineDist(p, pts) <= 0.006));
+  const skip = new Set(except.map((p) => p.map((q) => q.join()).join()));
+  const polys = cavs.filter((poly) => !skip.has(poly.map((q) => q.join()).join()) && explored.some((p) => inside(p, poly)));
+  // Des tracés, seulement les bouts réellement parcourus (pas tout le tunnel).
+  const near = (p: Pt) => explored.some((e) => Math.hypot(e[0] - p[0], e[1] - p[1]) <= 0.008);
+  const lines = traces(data, planId).flatMap((pts) => (explored.some((p) => lineDist(p, pts) <= 0.006) ? stub(pts, near, 0.004) : []));
   return { polys, lines };
 }

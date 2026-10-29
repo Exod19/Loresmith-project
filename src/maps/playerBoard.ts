@@ -15,7 +15,7 @@ import { STATS } from './atlas/statblocks';
 import type { PlayerBoard, PlayerElement, PlayerToken, PlayerTurn } from '../present/stage';
 import { initiativeOrder } from './battle/combat';
 import { inSight, partyVision } from './battle/fog';
-import { visionShapes, memoryShapes, zoneOf } from './zone';
+import { visionShapes, memoryShapes } from './zone';
 import { exitsOf } from './battle/trailRules';
 import type { BattleToken } from './mapStore';
 
@@ -36,7 +36,9 @@ export function seedExplored(data: AtlasData, rec: MapRecord, planId: string, at
 type Shapes = { polys: [number, number][][]; lines: [number, number][][] };
 /** Brouillard de la carte de navigation envoyé aux joueurs. `see` : ce que le groupe voit (arrêté par les parois) ;
  *  `memory` : cavernes visitées et tracés parcourus ; `clip` : seule région où la mémoire ponctuelle peut s'éclaircir. */
-export type MapFogData = { vision: [number, number][]; explored: [number, number][]; r: number; er: number; see?: Shapes; memory?: Shapes; clip?: Shapes };
+export type MapFogData = { vision: [number, number][]; explored: [number, number][]; r: number; er: number; see?: Shapes; memory?: Shapes; clip?: Shapes; lit?: number };
+/** Lueur du groupe (torche, vision dans le noir) : un petit halo, arrêté par les parois. En largeur de plan. */
+export const LIT_R = 0.009;
 
 /** Rayon de vision du groupe sur la carte de navigation (en largeur de plan). */
 export const VISION_R = 0.035;
@@ -86,10 +88,10 @@ export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus
     if (full && rec.kind === 'atlas') {
       const see = { polys: [] as [number, number][][], lines: [] as [number, number][][] };
       for (const c of vision) { const v = visionShapes(full, planId, c); see.polys.push(...v.polys); see.lines.push(...v.lines); }
-      const stood = [...(party?.trail ?? []), party?.at].map((p) => at(p)).filter((c): c is [number, number] => !!c);
-      const visited = { polys: stood.flatMap((c) => { const z = zoneOf(full, planId, c); return z.kind === 'cave' ? z.polys : []; }), lines: [] as [number, number][][] };
-      const clip = memoryShapes(full, planId, explored);
-      fog = { ...fog, see, memory: { polys: visited.polys, lines: clip.lines }, clip: { polys: [...clip.polys, ...visited.polys, ...see.polys], lines: [...clip.lines, ...see.lines] } };
+      // Mémoire : les cavernes déjà quittées où il reste un souvenir (le MJ peut les replonger dans le noir), et les
+      // bouts de tunnel parcourus. La caverne actuelle n'est éclairée que par la lueur du groupe.
+      const memory = memoryShapes(full, planId, explored, see.polys);
+      fog = { ...fog, er: 0.008, lit: LIT_R, see, memory, clip: { polys: memory.polys, lines: memory.lines } };
     }
   }
   const t = rec.overlay?.travel;
