@@ -125,14 +125,14 @@ Chaque lot se termine par un commit, puis par une validation de l'utilisateur. L
 
 ### Lot 6 : partage
 
-- **Statut** : à valider
+- **Statut** : validé
 - **Modèle conseillé** : `claude-sonnet-5-5`
 - **Objectif** : invitations par courriel, gestion des rôles dans l'interface.
 - **Critères d'acceptation** : une invitation expire ; un invité sans compte peut en créer un puis accepter ; un rôle retiré prend effet immédiatement côté serveur.
 
 ### Lot 7 : durcissement
 
-- **Statut** : à faire
+- **Statut** : à valider
 - **Modèle conseillé** : `claude-sonnet-5-5`
 - **Objectif** : tests de bout en bout, sauvegarde régulière de D1 vers R2, journalisation, check-list de conformité.
 - **Critères d'acceptation** : une restauration depuis une sauvegarde est testée ; la check-list de conformité (Loi 25 du Québec, conditions d'utilisation, licences des contenus tiers) est rédigée et marquée à valider par un professionnel.

@@ -6,10 +6,22 @@ main = "src/index.js"
 compatibility_date = "2026-10-01"
 compatibility_flags = ["nodejs_compat"]
 
+# Journaux (Workers Logs, inclus dans l'offre gratuite).
+[observability]
+enabled = true
+
+# Sauvegarde quotidienne de la base dans R2 (vers 3 h, heure de Montréal).
+[triggers]
+crons = ["17 7 * * *"]
+
 [vars]
 BETTER_AUTH_URL = "http://localhost:8787"
 # Origine du site (Vite en développement) autorisée à appeler l'API avec ses cookies.
 FRONT_ORIGIN = "http://localhost:5173"
+# Nombre de sauvegardes quotidiennes gardées dans R2.
+BACKUP_KEEP = "30"
+# Journaux : info | error | silent.
+LOG_LEVEL = "info"
 # Adresse du site dans les liens d'invitation (par défaut : FRONT_ORIGIN).
 # APP_URL = "https://…"
 # Courriels (Resend, offre gratuite) : MAIL_FROM ici, RESEND_API_KEY en secret (.dev.vars ou `wrangler secret`).

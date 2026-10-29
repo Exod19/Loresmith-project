@@ -1,6 +1,7 @@
 /**
  * API de Loresmith (Worker Cloudflare). Routes de base du lot 4 : santé, comptes, profil, univers, campagnes ;
- * synchronisation et images au lot 5 (`sync.js`).
+ * synchronisation et images au lot 5 (`sync.js`) ; partage au lot 6 (`sharing.js`) ;
+ * journalisation et sauvegarde quotidienne de la base au lot 7 (`log.js`, `backup.js`).
  * Toutes les décisions d'accès passent par `src/shared/policy.js` ; le navigateur n'est jamais cru sur parole.
  */
 import { Hono } from 'hono';
@@ -10,8 +11,17 @@ import { authFor } from './auth.js';
 import { HttpError, createDoc, getDoc, listDocs, updateDoc } from './documents.js';
 import { mountSync } from './sync.js';
 import { mountPublicInvitations, mountSharing } from './sharing.js';
+import { log } from './log.js';
+import { backupToR2 } from './backup.js';
 
 const app = new Hono();
+
+// Une ligne de journal par requête : route (modèle, sans identifiant ni jeton), statut, durée, compte.
+app.use('*', async (c, next) => {
+  const start = Date.now();
+  await next();
+  log(c.env, c.res.status >= 500 ? 'error' : 'info', 'requête', { method: c.req.method, route: c.req.routePath, status: c.res.status, ms: Date.now() - start, user: c.get('user')?.id ?? null });
+});
 
 app.use('/api/*', async (c, next) => {
   const origin = c.env.FRONT_ORIGIN;
@@ -20,7 +30,7 @@ app.use('/api/*', async (c, next) => {
 
 app.onError((err, c) => {
   if (err instanceof HttpError) return c.json({ error: err.message, ...err.extra }, err.status);
-  console.error(err);
+  log(c.env, 'error', 'erreur', { method: c.req.method, route: c.req.routePath, message: err?.message, stack: err?.stack?.split('\n').slice(0, 6).join(' | ') });
   return c.json({ error: 'Erreur interne.' }, 500);
 });
 
@@ -159,4 +169,14 @@ mountSharing(app);
 
 app.notFound((c) => c.json({ error: 'Route inconnue.' }, 404));
 
-export default app;
+/** Tâche planifiée (cron) : sauvegarde quotidienne de la base dans R2. */
+async function scheduled(event, env, ctx) {
+  ctx.waitUntil(
+    backupToR2(env).then(
+      (r) => log(env, 'info', 'sauvegarde', r),
+      (err) => log(env, 'error', 'sauvegarde échouée', { message: err?.message }),
+    ),
+  );
+}
+
+export default { fetch: (request, env, ctx) => app.fetch(request, env, ctx), scheduled };

@@ -26,7 +26,7 @@ before(async () => {
   dir = mkdtempSync(join(tmpdir(), 'loresmith-test-'));
   execFileSync('npx', ['wrangler', 'd1', 'migrations', 'apply', 'DB', '--local', '--persist-to', dir], { cwd: ROOT, env: { ...process.env, CI: '1' }, stdio: 'pipe' });
   proxy = await getPlatformProxy({ configPath: join(ROOT, 'wrangler.toml'), persist: { path: join(dir, 'v3') } });
-  env = { ...proxy.env, BETTER_AUTH_SECRET: crypto.randomUUID() + crypto.randomUUID(), BETTER_AUTH_URL: BASE, FRONT_ORIGIN: 'http://localhost:5173' };
+  env = { ...proxy.env, BETTER_AUTH_SECRET: crypto.randomUUID() + crypto.randomUUID(), BETTER_AUTH_URL: BASE, FRONT_ORIGIN: 'http://localhost:5173', LOG_LEVEL: 'silent' };
 });
 
 after(async () => {

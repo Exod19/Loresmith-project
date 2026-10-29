@@ -45,3 +45,31 @@ Les droits sont ceux de `src/shared/policy.js`. Chaque version écrite est gard�
 ## Tests
 
 `npm test` (ici, ou à la racine du projet) applique la migration sur une base D1 temporaire et teste l'API.
+
+## Journaux
+
+Une ligne JSON par requête (route, statut, durée, identifiant du compte), lisible dans Workers Logs.
+Jamais de courriel, de contenu, de jeton ni de mot de passe. Niveau réglable avec `LOG_LEVEL` (`info`, `error`, `silent`).
+
+## Sauvegardes
+
+Chaque jour (cron `17 7 * * *`, vers 3 h à Montréal), le Worker copie la base dans R2 : `backups/d1-<date>.json.gz`.
+Les `BACKUP_KEEP` plus récentes (30 par défaut) sont gardées. Les sessions et jetons éphémères n'y sont pas.
+
+### Restaurer une sauvegarde
+
+1. Télécharger la sauvegarde depuis R2 (tableau de bord Cloudflare, ou `npx wrangler r2 object get loresmith-images/backups/<fichier> --file <fichier>`).
+2. Créer une base neuve et y appliquer les migrations : `npx wrangler d1 migrations apply DB` (ajouter `--local` pour un essai local).
+3. Convertir puis appliquer :
+
+```bash
+npm run backup:sql -- d1-<date>.json.gz > restauration.sql
+npx wrangler d1 execute DB --file restauration.sql
+```
+
+Chacun se reconnecte ensuite avec son mot de passe. Cette procédure est testée de bout en bout (`test/backup.test.mjs`).
+
+## Tests de bout en bout
+
+À la racine du projet : `npm run test:e2e`. Le script lance l'API et le site, puis rejoue dans Chromium
+les parcours des lots 1, 2, 5 et 6. Il faut Playwright et Chromium : `npm i -D playwright && npx playwright install chromium`.
