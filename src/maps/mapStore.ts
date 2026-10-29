@@ -56,7 +56,7 @@ export interface MapMarker {
   notes: string;
   revealed: boolean;
   /** Créatures d'une rencontre tirée au sort : fiche MJ seulement. */
-  groups?: { stat: string; role?: string; n: number; detail: string; name?: string; image?: string; hp?: number; ac?: number; size?: 1 | 2 }[];
+  groups?: { stat: string; role?: string; n: number; detail: string; name?: string; image?: string; hp?: number; ac?: number; size?: 1 | 2; npcId?: string }[];
   /** Élément interactif : ce qu'on lit au joueur, ce que ça fait, s'il peut le garder, DC d'investigation, connaissances. */
   reading?: string;
   effect?: string;
@@ -86,6 +86,8 @@ export interface MapOverlay {
   party?: PartyTrack;
   /** Fiches de fouille réécrites par le MJ (ou par l'IA), par identifiant de lieu. */
   searchNotes?: Record<string, SearchNote>;
+  /** Rencontres vivantes tenues pour cette campagne (gardées, posées, ou « rien ») : jamais réécrites dans le canon. */
+  encounterLog?: { eventId: string; locationId: string; templateId?: string; title?: string; seed?: string; result: 'kept' | 'nothing' | 'placed'; at: number }[];
 }
 
 /** Un lieu repéré pour le suivi du groupe : un lieu de l'Atlas, une ancre ou un repère, sur un plan. */

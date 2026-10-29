@@ -29,6 +29,7 @@ import Interactables from './Interactables';
 import CampaignGuide, { type BestiaryRef, type GuideCampaign, type GuidePlace } from './CampaignGuide';
 import { onPlayerFollow, onPlayerPick, publishStage } from '../present/stage';
 import { zoneOf, inZone, trailInZone } from './zone';
+import LiveEncounters, { type LiveBestiaryRef } from './LiveEncounters';
 import { buildRoutes, distancesTo, goalNodes, judgeTrail, nodeOf, verdictText, type TrailVerdict } from './route';
 import './maps.css';
 
@@ -486,7 +487,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     if (!placing) return;
     createMarker(placing, x, y, map.id);
   }
-  function createMarker(draft: Draft, x: number, y: number, planOf: string) {
+  function createMarker(draft: Draft, x: number, y: number, planOf: string, extra: Partial<MapOverlay> = {}) {
     const m: MapMarker = {
       id: uid(), kind: draft.kind, title: draft.title || DEFAULT_TITLE[draft.kind], planId: planOf, x, y,
       summary: draft.summary ?? '', notes: draft.notes ?? '', revealed: false, groups: draft.groups,
@@ -496,11 +497,11 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     setSelectedId(`mk-${m.id}`);
     if (m.kind === 'rencontre') {
       // Nouvelle rencontre : on oublie le plateau précédent et on ouvre la carte de combat de ce lieu, avec ses créatures.
-      onUpdate({ overlay: { ...overlay, markers: [...overlay.markers, m] }, updatedAt: Date.now(), battle: { ...DEFAULT_BATTLE, tokens: [] } });
+      onUpdate({ overlay: { ...overlay, ...extra, markers: [...overlay.markers, m] }, updatedAt: Date.now(), battle: { ...DEFAULT_BATTLE, tokens: [] } });
       setBattleOpen(true);
       return;
     }
-    setOverlay({ ...overlay, markers: [...overlay.markers, m] });
+    setOverlay({ ...overlay, ...extra, markers: [...overlay.markers, m] });
   }
   const updateMarker = (id: string, patch: Partial<MapMarker>) => setOverlay({
     ...overlay, markers: overlay.markers.map((m) => (m.id === id ? { ...m, ...patch } : m)),
@@ -698,6 +699,18 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                   hazard: trailHazard(feature, trailProfile(feature, feature.trace === 'secret' ? 15 : undefined)),
                   route: routeOf(feature.id), byPlayers: playerPick?.id === feature.id,
                 } : undefined}
+              />
+            )}
+            {dm && side === 'lieu' && feature && !markerId && !feature.trace && rec.kind === 'atlas' && (
+              <LiveEncounters
+                feature={feature} data={data} bestiary={bestiary as LiveBestiaryRef[]} log={overlay.encounterLog ?? []}
+                onLog={(entry) => setOverlay({ ...overlay, encounterLog: [entry, ...(overlay.encounterLog ?? [])].slice(0, 200) })}
+                onPlace={(title, summary, notes, groups, entry) => {
+                  const xy = placeCoords(data, rec, { id: feature.id, kind: 'feature', title: feature.title, planId: map.id });
+                  const draft: Draft = { kind: 'rencontre', title, summary, notes, groups };
+                  if (xy) createMarker(draft, xy[0] + 0.004, xy[1] + 0.004, map.id, { encounterLog: [entry, ...(overlay.encounterLog ?? [])].slice(0, 200) });
+                  else setPlacing(draft);
+                }}
               />
             )}
 
