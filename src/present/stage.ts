@@ -41,7 +41,9 @@ export type PlayerBoard =
     /** Le groupe en chemin (animé chez les joueurs). */
     travel?: { key: string; points: [number, number][]; at: number; label?: string; hold?: boolean };
     /** Annonce de halte : suspense, fausse alerte ou rencontre (avec son image). */
-    alert?: HaltAlert }
+    alert?: HaltAlert;
+    /** Bifurcation en chemin : un passage à côté du sentier, à prendre ou non (les joueurs répondent depuis leur écran). */
+    fork?: { key: string; line: string; out: string; on: string } }
   | { mode: 'battle'; title: string; backdrop?: string; cols: number; rows: number; feetPerCell: number; round: number; tokens: PlayerToken[]; terrain?: string; elements: PlayerElement[]; turn?: PlayerTurn;
     /** Brouillard de guerre : cases vues par les héros, et déjà explorées. Absent = tout le plateau est visible. */
     fog?: { visible: number[]; explored: number[] };
@@ -62,8 +64,9 @@ export type Stage =
 
 /** `aim` : depuis l'écran joueur, un héros déclare qu'il attaque une cible (le MJ résout). */
 /** `move` : depuis l'écran joueur, un jeton est glissé sur une autre case (le MJ valide). */
+/** `fork` : à une bifurcation en chemin, les joueurs choisissent de sortir vers le passage ou de continuer. */
 /** `follow` : depuis la carte de navigation des joueurs, le groupe demande à suivre un chemin (le MJ valide ou fait l'épreuve). */
-export type StageMessage = { type: 'hello' } | { type: 'stage'; stage: Stage; at?: number } | { type: 'aim'; from: string; to: string } | { type: 'move'; id: string; x: number; y: number } | { type: 'follow'; featureId: string; dir?: 'a' | 'b' } | { type: 'pick'; featureId: string };
+export type StageMessage = { type: 'hello' } | { type: 'stage'; stage: Stage; at?: number } | { type: 'aim'; from: string; to: string } | { type: 'move'; id: string; x: number; y: number } | { type: 'follow'; featureId: string; dir?: 'a' | 'b' } | { type: 'pick'; featureId: string } | { type: 'fork'; key: string; choice: 'out' | 'on' };
 
 const CHANNEL = 'loresmith:stage:v1';
 
@@ -92,6 +95,7 @@ const aimListeners = new Set<(from: string, to: string) => void>();
 const moveListeners = new Set<(id: string, x: number, y: number) => void>();
 const followListeners = new Set<(featureId: string, dir?: 'a' | 'b') => void>();
 const pickListeners = new Set<(featureId: string) => void>();
+const forkListeners = new Set<(key: string, choice: 'out' | 'on') => void>();
 
 /** À appeler une fois dans la console MJ : répond aux écrans joueurs qui se connectent. */
 export function hostStage() {
@@ -101,6 +105,7 @@ export function hostStage() {
     if (e.data?.type === 'aim') { const { from, to } = e.data; aimListeners.forEach((f) => f(from, to)); return; }
     if (e.data?.type === 'move') { const { id, x, y } = e.data; moveListeners.forEach((f) => f(id, x, y)); return; }
     if (e.data?.type === 'follow') { const { featureId, dir } = e.data; followListeners.forEach((f) => f(featureId, dir)); return; }
+    if (e.data?.type === 'fork') { const { key, choice } = e.data; forkListeners.forEach((f) => f(key, choice)); return; }
     if (e.data?.type === 'pick') { const { featureId } = e.data; pickListeners.forEach((f) => f(featureId)); return; }
     if (e.data?.type === 'stage') { if ((e.data.at ?? 0) > currentAt) superseded = true; return; }
     if (e.data?.type !== 'hello' || superseded) return;
@@ -154,4 +159,11 @@ export function onPlayerPick(listener: (featureId: string) => void) {
   hostStage();
   pickListeners.add(listener);
   return () => { pickListeners.delete(listener); };
+}
+
+/** Préviens quand les joueurs répondent à une bifurcation en chemin (sortir vers le passage, ou continuer). */
+export function onPlayerFork(listener: (key: string, choice: 'out' | 'on') => void) {
+  hostStage();
+  forkListeners.add(listener);
+  return () => { forkListeners.delete(listener); };
 }

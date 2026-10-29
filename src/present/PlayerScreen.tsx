@@ -3,7 +3,7 @@
  * Les données reçues sont déjà filtrées (cf. maps/playerBoard.ts) : aucune note ni repère secret n'arrive ici.
  */
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
-import MapCanvas, { type Layers } from '../maps/atlas/MapCanvas';
+import MapCanvas, { journeyMs, type Layers } from '../maps/atlas/MapCanvas';
 import { setAtlasData } from '../maps/atlas/model';
 import type { AtlasData, AtlasFeature, FeatureCategory } from '../maps/atlas/types';
 import BattleBoard, { CATEGORY_ICON, type BoardRange } from '../maps/battle/BattleBoard';
@@ -95,7 +95,7 @@ function Scene({ stage, rev }: { stage: Stage; rev: number }) {
   }
   if (stage.kind === 'board') {
     return stage.board.mode === 'map'
-      ? <PlayerMap board={stage.board} rev={rev} onFollow={(featureId, dir) => sendToHost?.({ type: 'follow', featureId, dir })} onPick={(featureId) => sendToHost?.({ type: 'pick', featureId })} />
+      ? <PlayerMap board={stage.board} rev={rev} onFollow={(featureId, dir) => sendToHost?.({ type: 'follow', featureId, dir })} onPick={(featureId) => sendToHost?.({ type: 'pick', featureId })} onFork={(key, choice) => sendToHost?.({ type: 'fork', key, choice })} />
       : <PlayerBattle board={stage.board} onAim={(from, to) => sendToHost?.({ type: 'aim', from, to })} onMove={(id, x, y) => sendToHost?.({ type: 'move', id, x, y })} />;
   }
   return (
@@ -105,7 +105,7 @@ function Scene({ stage, rev }: { stage: Stage; rev: number }) {
   );
 }
 
-function PlayerMap({ board, rev, onFollow, onPick }: { board: Extract<PlayerBoard, { mode: 'map' }>; rev: number; onFollow?: (featureId: string, dir?: 'a' | 'b') => void; onPick?: (featureId: string) => void }) {
+function PlayerMap({ board, rev, onFollow, onPick, onFork }: { board: Extract<PlayerBoard, { mode: 'map' }>; rev: number; onFollow?: (featureId: string, dir?: 'a' | 'b') => void; onPick?: (featureId: string) => void; onFork?: (key: string, choice: 'out' | 'on') => void }) {
   setAtlasData(board.data as AtlasData);
   // Un lieu ou un chemin touché : sa fiche ; un chemin peut être suivi (le MJ valide, ou fait passer l'épreuve).
   const [picked, setPicked] = useState<AtlasFeature | null>(null);
@@ -160,6 +160,9 @@ function PlayerMap({ board, rev, onFollow, onPick }: { board: Extract<PlayerBoar
         </aside>
       )}
       {board.alert && <HaltNotice key={board.alert.key} alert={board.alert} />}
+      {board.fork && !board.alert && (
+        <ForkPrompt key={board.fork.key} fork={board.fork} readyAt={board.travel ? board.travel.at + journeyMs(board.travel.points, map.width, map.height) : 0} onChoose={onFork} />
+      )}
     </div>
   );
 }
@@ -189,6 +192,33 @@ function HaltNotice({ alert }: { alert: HaltAlert }) {
       {alert.image && <img src={alert.image} alt={alert.title ?? ''} />}
       {alert.title && <h2>{alert.title}</h2>}
       {alert.text && <p className="present-halt-text">{alert.text}</p>}
+    </div>
+  );
+}
+
+/**
+ * Bifurcation en chemin : un passage s'ouvre à côté du sentier. La question monte une fois le jeton arrivé ; les
+ * joueurs répondent (le MJ voit la réponse et peut aussi trancher de son côté).
+ */
+function ForkPrompt({ fork, readyAt, onChoose }: { fork: NonNullable<Extract<PlayerBoard, { mode: 'map' }>['fork']>; readyAt: number; onChoose?: (key: string, choice: 'out' | 'on') => void }) {
+  const [, tick] = useState(0);
+  const [sent, setSent] = useState<'out' | 'on' | null>(null);
+  useEffect(() => {
+    const left = readyAt - Date.now();
+    if (left <= 0) return;
+    const id = setTimeout(() => tick((n) => n + 1), left + 60);
+    return () => clearTimeout(id);
+  }, [readyAt]);
+  if (Date.now() < readyAt) return null;
+  const choose = (c: 'out' | 'on') => { setSent(c); onChoose?.(fork.key, c); };
+  return (
+    <div className="present-halt present-fork" role="dialog" aria-label="Bifurcation">
+      <p>{fork.line}</p>
+      <div className="present-fork-btns">
+        <button type="button" className="maps-btn gold" data-on={sent === 'out' ? 1 : 0} onClick={() => choose('out')}>{fork.out}</button>
+        <button type="button" className="maps-btn" data-on={sent === 'on' ? 1 : 0} onClick={() => choose('on')}>{fork.on}</button>
+      </div>
+      {sent && <small className="present-fork-sent">Demandé au MJ…</small>}
     </div>
   );
 }
@@ -413,7 +443,7 @@ function directionOf(board: Extract<PlayerBoard, { mode: 'map' }>, id: string): 
   const g = board.data.geometries.find((x) => x.featureId === id && x.mapId === board.planId && x.type === 'polyline');
   if (!g) return null;
   const pts = g.coordinates as [number, number][];
-  let a = pts[0], b = pts[pts.length - 1];
+  const a = pts[0], b = pts[pts.length - 1];
   if (board.here) {
     const h = board.here;
     // Le groupe touche ce chemin : il part vers le bout le plus éloigné (là où il mène), comme chez le MJ.

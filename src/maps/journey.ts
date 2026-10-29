@@ -99,8 +99,17 @@ function crosses(pts: Pt[], poly: Pt[]) {
 /** Distance maximale d'un lieu au tracé pour être « sur le chemin » quand il n'est dans aucune caverne traversée. */
 const ON_TRAIL = 0.005;
 
-/** Une direction possible sur un chemin depuis le groupe : jusqu'à la prochaine étape (ou au bout). */
-export type Leg = { dir: 'a' | 'b'; to: PartyPlace | null; points: Pt[]; hours: number; toward: string };
+/** Un lieu à l'écart du tracé est vu de plus loin que ça : le groupe s'arrête sur le chemin, vis-à-vis, sans y aller. */
+const ASIDE = 0.004;
+
+/** Lieu vu en passant, à côté du chemin : où il est, et de quel côté (dans le sens de la marche). */
+export type Aside = { place: PartyPlace; at: Pt; side: 'gauche' | 'droite' };
+
+/**
+ * Une direction possible sur un chemin depuis le groupe : jusqu'à la prochaine étape (ou au bout). Si l'étape est un
+ * lieu à côté du chemin, le trajet s'arrête sur le tracé, vis-à-vis (`aside`) : les joueurs choisissent d'y aller ou non.
+ */
+export type Leg = { dir: 'a' | 'b'; to: PartyPlace | null; points: Pt[]; hours: number; toward: string; aside?: Aside };
 
 /**
  * Les étapes d'un chemin depuis le groupe : vers chacun de ses deux bouts, la prochaine caverne ou le prochain lieu
@@ -114,18 +123,20 @@ export function legsOf(data: AtlasData, planId: string, g: AtlasGeometry, from: 
   // Étapes : les lieux des cavernes que le chemin traverse (pas les cavernes voisines ni celles d'un chemin
   // transversal), et ceux posés sur le tracé même. La caverne où se tient déjà le groupe n'est pas une étape.
   const caves = cavesOf(data, planId);
-  const crossed = caves.filter((poly) => crosses(pts, poly) && !inside(from, poly));
-  const stops: { s: number; place: PartyPlace; at: Pt }[] = [];
+  // Les cavernes aux deux bouts du chemin ne sont pas des étapes : on y arrive (c'est la destination), on n'y passe pas.
+  const crossed = caves.filter((poly) => crosses(pts, poly) && !inside(from, poly) && !inside(pts[0], poly) && !inside(pts[pts.length - 1], poly));
+  const stops: { s: number; place: PartyPlace; at: Pt; d: number; on: Pt }[] = [];
   for (const q of data.geometries) {
     if (q.mapId !== planId || q.type !== 'point' || q.featureId === exclude || q.featureId.startsWith('mk-')) continue;
     const f = byId.get(q.featureId);
-    if (!f || f.trace || f.area) continue;
+    // Un simple détail (piton, éboulis, racine…) se voit en passant : ce n'est pas une étape.
+    if (!f || f.trace || f.area || f.importance === 'detail') continue;
     const p = q.coordinates as Pt;
     const pr = project(pts, p);
     if (pr.d > 0.03) continue;
     const inCrossedCave = crossed.some((poly) => inside(p, poly));
     const inOtherCave = !inCrossedCave && caves.some((poly) => inside(p, poly));
-    if (inCrossedCave || (!inOtherCave && pr.d <= ON_TRAIL)) stops.push({ s: pr.s, place: { id: f.id, kind: 'feature', title: f.title, planId }, at: p });
+    if (inCrossedCave || (!inOtherCave && pr.d <= ON_TRAIL)) stops.push({ s: pr.s, place: { id: f.id, kind: 'feature', title: f.title, planId }, at: p, d: pr.d, on: pr.at });
   }
   const legs: Leg[] = [];
   for (const dir of ['a', 'b'] as const) {
@@ -135,7 +146,9 @@ export function legsOf(data: AtlasData, planId: string, g: AtlasGeometry, from: 
     const stop = ahead[0];
     const s1 = stop ? stop.s : endS;
     const route = subpath(pts, here.s, s1);
-    const end = stop ? stop.at : route[route.length - 1];
+    // Un lieu à côté du chemin : on s'arrête sur le tracé, vis-à-vis, au lieu de quitter le sentier pour le rejoindre.
+    const aside = stop && stop.d > ASIDE ? stop : null;
+    const end = aside ? aside.on : stop ? stop.at : route[route.length - 1];
     // Au bout du chemin : un lieu de la caverne où il aboutit, sinon un lieu tout proche du bout (jamais la voisine).
     const endCave = caves.find((poly) => inside(end, poly));
     const atEnd = placeNear(data, planId, end, { radius: endCave ? 0.03 : 0.01, exclude });
@@ -145,7 +158,16 @@ export function legsOf(data: AtlasData, planId: string, g: AtlasGeometry, from: 
     // Direction : un peu plus loin sur le tracé (même règle que sur l'écran joueur).
     const probe = subpath(pts, here.s, dir === 'b' ? Math.min(L, here.s + 0.05) : Math.max(0, here.s - 0.05));
     const far = probe[probe.length - 1];
-    legs.push({ dir, to, points, hours: hoursOf(lengthOf(points), trace), toward: towardOf(far[0] - from[0], far[1] - from[1]) });
+    let side: Aside | undefined;
+    if (aside) {
+      // De quel côté, dans le sens de la marche (y vers le bas : produit vectoriel positif = à droite).
+      const before = route.length > 1 ? route[route.length - 2] : from;
+      const tx = end[0] - before[0], ty = end[1] - before[1];
+      const cross = tx * (aside.at[1] - end[1]) - ty * (aside.at[0] - end[0]);
+      side = { place: aside.place, at: aside.at, side: cross > 0 ? 'droite' : 'gauche' };
+    }
+    const walk = aside ? [from, ...route] : points;
+    legs.push({ dir, to, points: walk, hours: hoursOf(lengthOf(walk), trace), toward: towardOf(far[0] - from[0], far[1] - from[1]), aside: side });
   }
   return legs;
 }

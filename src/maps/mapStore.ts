@@ -111,7 +111,24 @@ export interface PartyTrack {
   walked?: number;
   nextCheck?: number;
   /** Halte en chemin pour un jet de rencontre : où le groupe s'est arrêté, et la suite de la route jusqu'à l'étape. */
-  halt?: { trailId: string; trail: string; planId: string; point: [number, number]; rest: [number, number][]; to: PartyPlace; back: [number, number][]; from?: PartyPlace; hours: number; restHours: number; encounter?: boolean };
+  halt?: { trailId: string; trail: string; planId: string; point: [number, number]; rest: [number, number][]; to: PartyPlace; back: [number, number][]; from?: PartyPlace; hours: number; restHours: number; encounter?: boolean;
+    /** La route s'arrête vis-à-vis d'un lieu à côté du chemin (la bifurcation à proposer en arrivant). */
+    fork?: PartyFork;
+    /** Bifurcation d'où le groupe est reparti (un demi-tour l'y ramène). */
+    prevFork?: PartyFork };
+  /** Arrêt sur le chemin, vis-à-vis d'un lieu à côté du tracé : les joueurs choisissent d'y aller ou de continuer. */
+  fork?: PartyFork;
+}
+
+/** Bifurcation en chemin : le lieu vu en passant, et ce que les joueurs lisent (le nom du lieu s'il est connu). */
+export interface PartyFork {
+  key: string; trailId: string; trail: string; planId: string; dir: 'a' | 'b';
+  /** Où le groupe s'est arrêté sur le tracé, et où est le lieu. */
+  point: [number, number]; place: PartyPlace; placeAt: [number, number];
+  side: 'gauche' | 'droite'; known: boolean;
+  /** Annonce aux joueurs, et libellés des deux choix. */
+  line: string; out: string; on: string;
+  from?: PartyPlace;
 }
 
 /** Ce que le MJ sait d'un élément à fouiller : comment le trouver, ce qu'on y trouve, et ce que ça fait. */

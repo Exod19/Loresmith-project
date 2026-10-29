@@ -12,7 +12,7 @@ import { STATS, SRD_CREDIT, mod, type Stat } from './atlas/statblocks';
 import type { AtlasData, AtlasFeature, FeatureCategory } from './atlas/types';
 import {
   activateMap, ATLAS_DEFAULT_PLAN, DEFAULT_BATTLE, EMPTY_OVERLAY, mapIdOf, placeCoords,
-  type MapMarker, type MapOverlay, type MapRecord, type MarkerKind, type PartyPlace, type PartyTrack, type PassageLink, type PointRecord, type BattleToken,
+  type MapMarker, type MapOverlay, type MapRecord, type MarkerKind, type PartyPlace, type PartyTrack, type PartyFork, type PassageLink, type PointRecord, type BattleToken,
 } from './mapStore';
 import { battleBoard, mapBoard } from './playerBoard';
 import BattleMode, { type CombatSlot } from './battle/BattleMode';
@@ -28,7 +28,7 @@ import { journeyMs } from './atlas/MapCanvas';
 import { detectLabel, noticedPassively, passiveOf, trailProfile } from './atlas/trails';
 import Interactables from './Interactables';
 import CampaignGuide, { type BestiaryRef, type GuideCampaign, type GuidePlace } from './CampaignGuide';
-import { onPlayerFollow, onPlayerPick, publishStage } from '../present/stage';
+import { onPlayerFollow, onPlayerFork, onPlayerPick, publishStage } from '../present/stage';
 import { zoneOf, inZone, trailInZone } from './zone';
 import LiveEncounters, { type LiveBestiaryRef } from './LiveEncounters';
 import { buildRoutes, distancesTo, goalNodes, judgeTrail, nodeOf, verdictText, type TrailVerdict } from './route';
@@ -43,6 +43,15 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 
 /** Repère en cours de placement : le prochain clic sur la carte le crée. */
 type Draft = { kind: MarkerKind; title: string; summary?: string; notes?: string; groups?: MapMarker['groups'] };
+
+/** Ce que lisent les joueurs en passant devant un lieu qu'ils ne connaissent pas encore (« gauche » ou « droite »). */
+const FORK_LINES: ((side: string) => string)[] = [
+  (c) => `Sur votre ${c}, une ouverture dans la pierre laisse deviner un passage. Vous l’empruntez, ou vous continuez ?`,
+  (c) => `Le tunnel s’évase : sur votre ${c}, une trouée sombre s’enfonce dans la roche. Vous y entrez, ou vous continuez ?`,
+  (c) => `Un courant d’air frais monte d’une faille, sur votre ${c}. Vous la suivez, ou vous continuez ?`,
+  (c) => `Des traces quittent le sentier vers une ouverture, sur votre ${c}. Vous les suivez, ou vous continuez ?`,
+  (c) => `Un écho différent, sur votre ${c} : la paroi s’ouvre sur un espace plus large. Vous allez voir, ou vous continuez ?`,
+];
 
 export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false, onReturn, renderCombat, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [], artOf }: {
   rec: MapRecord; atlas: AtlasData; dm: boolean; onDm: (v: boolean) => void;
@@ -355,7 +364,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     if (points.length > 1) next = { ...next, travel: { key: `${Date.now()}`, planId: to.planId, points, at: Date.now() } };
     const p = next.party ?? { trail: [] };
     next = { ...next, party: {
-      ...p, halt: undefined,
+      ...p, halt: undefined, fork: undefined,
       walked: opts.walked ?? p.walked, nextCheck: opts.nextCheck ?? p.nextCheck,
       log: opts.note ? [{ t: Date.now(), text: opts.note }, ...(p.log ?? [])].slice(0, 12) : p.log,
     } };
@@ -372,9 +381,10 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
    * Prendre une direction sur un chemin jusqu'à la prochaine étape. Toutes les 1 à 2 heures de marche (jeu), le groupe
    * fait halte en chemin : le MJ décide d'une rencontre, la tire au hasard, ou laisse le groupe continuer.
    */
-  const go = (e: TrailLeg, note?: string) => {
+  const go = (e: { f: { id: string; title: string }; leg: Leg }, note?: string) => {
     const leg = e.leg;
     if (!leg.to) return;
+    const fork = leg.aside ? forkOf(e.f, leg) : undefined;
     const walked = party.walked ?? 0;
     const nextCheck = party.nextCheck ?? 1 + Math.random();
     if (walked + leg.hours >= nextCheck && leg.hours > 0.2) {
@@ -386,9 +396,9 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
       let next: MapOverlay = { ...overlay, revealed: overlay.revealed.includes(e.f.id) ? overlay.revealed : [...overlay.revealed, e.f.id] };
       next = withExplored(next, map.id, first.filter((_, i) => i % 2 === 0));
       next = { ...next, travel: { key: `${Date.now()}`, planId: map.id, points: first, at: Date.now(), hold: true } };
-      next = { ...next, party: { ...party, walked: nextCheck, halt: {
+      next = { ...next, party: { ...party, walked: nextCheck, fork: undefined, halt: {
         trailId: e.f.id, trail: e.f.title, planId: map.id, point, rest, back: [...first].reverse(), to: leg.to, from: party.at,
-        hours: walked + frac * leg.hours, restHours: leg.hours * (1 - frac),
+        hours: walked + frac * leg.hours, restHours: leg.hours * (1 - frac), fork, prevFork: party.fork,
       } } };
       if (note) next = { ...next, party: { ...next.party!, log: [{ t: Date.now(), text: note }, ...(next.party?.log ?? [])].slice(0, 12) } };
       setOverlay(next);
@@ -396,11 +406,62 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
       setAskNote(null);
       return;
     }
+    if (fork) { stopAtFork(fork, leg.points, { note, walked: walked + leg.hours, nextCheck }); return; }
     travelTo(leg.to, { points: leg.points, trailId: e.f.id, note, walked: walked + leg.hours, nextCheck });
   };
+  /** Bifurcation vis-à-vis d'un lieu à côté du chemin : ce que lisent les joueurs, selon qu'ils le connaissent ou non. */
+  const forkOf = (f: { id: string; title: string }, leg: Leg): PartyFork | undefined => {
+    const a = leg.aside;
+    if (!a) return undefined;
+    const known = rec.kind !== 'atlas' || overlay.revealed.includes(a.place.id);
+    const pick = [...`${f.id}${a.place.id}`].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
+    const line = known
+      ? `Sur votre ${a.side}, un passage mène à « ${a.place.title} ». Vous y allez, ou vous continuez ?`
+      : FORK_LINES[pick % FORK_LINES.length](a.side);
+    return {
+      key: `${Date.now()}`, trailId: f.id, trail: f.title, planId: map.id, dir: leg.dir,
+      point: leg.points[leg.points.length - 1], place: a.place, placeAt: a.at, side: a.side, known, line,
+      out: known ? `Sortir vers ${a.place.title}` : 'Emprunter le passage', on: 'Continuer sur le sentier', from: party.at,
+    };
+  };
+  /** Le groupe glisse jusqu'à la bifurcation et s'y arrête, sur le chemin : la question monte chez les joueurs. */
+  const stopAtFork = (fork: PartyFork, points: [number, number][], opts: { note?: string; walked?: number; nextCheck?: number; alert?: HaltAlert } = {}) => {
+    let next: MapOverlay = { ...overlay, revealed: overlay.revealed.includes(fork.trailId) ? overlay.revealed : [...overlay.revealed, fork.trailId] };
+    next = withExplored(next, fork.planId, [...points.filter((_, i) => i % 2 === 0), fork.point]);
+    if (points.length > 1) next = { ...next, travel: { key: `${Date.now()}`, planId: fork.planId, points, at: Date.now(), hold: true } };
+    const p = next.party ?? { trail: [] };
+    next = { ...next, alert: opts.alert, party: {
+      ...p, halt: undefined, fork,
+      walked: opts.walked ?? p.walked, nextCheck: opts.nextCheck ?? p.nextCheck,
+      log: opts.note ? [{ t: Date.now(), text: opts.note }, ...(p.log ?? [])].slice(0, 12) : p.log,
+    } };
+    setOverlay(next);
+    setTrial(null);
+    setAskNote(null);
+  };
+  /** À la bifurcation : sortir vers le lieu, continuer sur le chemin, ou faire demi-tour. */
+  const forkChoose = (choice: 'out' | 'on' | 'back', by?: 'joueurs', key?: string) => {
+    const k = party.fork;
+    if (!k || (key && key !== k.key)) return;
+    const why = by ? ' (choix des joueurs)' : '';
+    if (choice === 'out') {
+      travelTo(k.place, { points: [k.point, k.placeAt], trailId: k.trailId, note: `Le groupe quitte « ${k.trail} » vers ${k.place.title}${why}.` });
+      return;
+    }
+    const f = data.features.find((x) => x.id === k.trailId);
+    const g = data.geometries.find((x) => x.featureId === k.trailId && x.mapId === k.planId && x.type !== 'point');
+    const dir = choice === 'back' ? (k.dir === 'a' ? 'b' : 'a') : k.dir;
+    const leg = f && g ? legsOf(data, k.planId, g, k.point, f.trace, k.place.id).find((l) => l.dir === dir) : undefined;
+    if (!f || !leg?.to) { setAskNote(`« ${k.trail} » ne mène à aucun autre lieu connu dans cette direction : sors vers ${k.place.title}, ou déplace le groupe à la main.`); return; }
+    go({ f, leg }, choice === 'back' ? `Le groupe rebrousse chemin sur « ${k.trail} »${why}.` : undefined);
+  };
+  const forkRef = useRef(forkChoose);
+  forkRef.current = forkChoose;
+  useEffect(() => onPlayerFork((key, choice) => forkRef.current(choice, 'joueurs', key)), []);
   /** Suivre un chemin : directement s'il est sûr ou praticable, sinon par l'épreuve de passage (le MJ la fait jouer). */
   const followTrail = (e: TrailLeg, by?: 'joueurs') => {
     if (party.halt) { setAskNote('Le groupe a fait halte en chemin : décide d’abord de la suite (rencontre, reprendre la route, demi-tour).'); return; }
+    if (party.fork) { setAskNote(`Le groupe est arrêté sur « ${party.fork.trail} », vis-à-vis de ${party.fork.place.title} : choisis d’abord d’y aller ou de continuer.`); return; }
     if (!e.to) { setAskNote(`« ${e.f.title} » ne mène à aucun lieu connu dans cette direction : déplace le groupe à la main.`); return; }
     if (e.hazard) { setTrial({ trailId: e.f.id, trail: e.f.title, to: e.to, hazard: e.hazard, by, leg: e.leg }); setSide('lieu'); return; }
     go(e);
@@ -415,9 +476,12 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     if (back) {
       const from = h.from ?? party.at;
       if (!from) return;
-      setOverlay({ ...overlay, alert, travel: { key: `${Date.now()}`, planId: h.planId, points: h.back, at: Date.now() }, party: { ...party, halt: undefined, nextCheck } });
+      // Parti d'une bifurcation, le demi-tour y ramène, et la question se repose.
+      const fork = h.prevFork ? { ...h.prevFork, key: `${Date.now()}` } : undefined;
+      setOverlay({ ...overlay, alert, travel: { key: `${Date.now()}`, planId: h.planId, points: h.back, at: Date.now(), hold: fork ? true : undefined }, party: { ...party, halt: undefined, fork, nextCheck } });
       return;
     }
+    if (h.fork) { stopAtFork({ ...h.fork, key: `${Date.now()}` }, [h.point, ...h.rest], { walked: walked + h.restHours, nextCheck, alert }); return; }
     travelTo(h.to, { points: [h.point, ...h.rest], trailId: h.trailId, walked: walked + h.restHours, nextCheck, alert });
   };
   /** Ce que les joueurs voient de la rencontre tirée : son annonce et son image, ou la fausse alerte. */
@@ -664,6 +728,20 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                     <button className="maps-btn" onClick={() => resume(true)}>← Demi-tour{party.halt.from ? ` vers ${party.halt.from.title}` : ''}</button>
                   </div>
                 )}
+              </div>
+            )}
+            {dm && party.fork && !party.halt && (
+              <div className="maps-halt maps-fork" role="status">
+                <h4>⑂ Bifurcation</h4>
+                <p className="maps-sub">
+                  Sur « {party.fork.trail} », vis-à-vis de <b>{party.fork.place.title}</b> (sur leur {party.fork.side}){party.fork.known ? '' : ' · lieu encore inconnu des joueurs'}.
+                </p>
+                <p className="maps-halt-said">Écran joueurs : « {party.fork.line} »</p>
+                <div className="maps-halt-btns">
+                  <button className="maps-btn gold" onClick={() => forkChoose('out')}>Sortir vers {party.fork.place.title}</button>
+                  <button className="maps-btn" onClick={() => forkChoose('on')}>Continuer sur le sentier ➜</button>
+                  <button className="maps-btn" onClick={() => forkChoose('back')}>← Demi-tour</button>
+                </div>
               </div>
             )}
             {dm && askNote && (
