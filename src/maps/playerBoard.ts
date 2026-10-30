@@ -19,6 +19,8 @@ import { inSight, partyVision } from './battle/fog';
 import { visionShapes, memoryShapes } from './zone';
 import { exitsOf } from './battle/trailRules';
 import type { BattleToken } from './mapStore';
+import { effectiveOf, surfaceOf } from './battle/placement';
+import { socleOf } from './battle/surface';
 
 /** Points découverts d'un plan, déduits de ce qui est révélé (lieux, repères) et du parcours du groupe. */
 export function seedExplored(data: AtlasData, rec: MapRecord, planId: string, at: (p?: PartyPlace) => [number, number] | null): [number, number][] {
@@ -112,12 +114,16 @@ export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus
 /** `artOf` : illustration d'une créature par son nom (fiches des Archives), montrée en grand aux joueurs. */
 export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) => string): PlayerBoard {
   const b = rec.battle ?? DEFAULT_BATTLE;
+  // Mêmes règles que chez le MJ : passages découverts = éléments révélés.
+  const view: typeof b = b.local ? { ...b, local: { ...b.local, discovered: rec.overlay?.revealed ?? [] } } : b;
+  const rules = surfaceOf(view);
   const tokens: PlayerToken[] = b.tokens
     .filter((t) => t.visible)
-    .map(({ id, name, kind, x, y, size, icon, image, statId, hp, maxHp, move, reach }) => {
+    .map(({ id, name, kind, x, y, size, icon, image, statId, hp, maxHp, move, reach, layer, socle, modes }) => {
       const portrait = tokenImage({ kind, statId, image });
       return {
-        id, name, kind, x, y, size, icon, image: portrait, statId,
+        id, name, kind, x, y, size, icon, image: portrait, statId, layer, modes, speed: (statId && STATS[statId]?.speed) || undefined,
+        socle: socleOf(rules, { x, y, size, layer, socle }) ?? undefined,
         active: id === b.turn || undefined,
         ...(kind === 'pc' ? { hp, maxHp, move, reach } : { state: woundState({ hp, maxHp }) }),
         info: { subtitle: (statId && STATS[statId]?.meta) || undefined, text: (statId && CREATURE_LORE[statId]) || KIND_LORE[kind], image: artOf?.(name, id) || portrait },
@@ -154,7 +160,7 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
   // Brouillard de guerre : seuls les héros et ce qu'ils voient ; le reste du plateau est noir, ou assombri s'il a été exploré.
   let fog: { visible: number[]; explored: number[] } | undefined;
   if (b.fog?.on) {
-    const seen = partyVision({ ...b, tokens: b.tokens }, terrain);
+    const seen = partyVision(view, effectiveOf(view));
     const explored = new Set([...(b.fog.source === (b.terrain?.source ?? 'plateau') ? b.fog.explored : []), ...seen]);
     fog = { visible: [...seen], explored: [...explored] };
     const byId = new Map(b.tokens.map((t) => [t.id, t]));
@@ -205,5 +211,9 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
       : undefined,
     // Dégâts et soins récents, sur les jetons que les joueurs voient.
     hits: (b.hits ?? []).filter((h) => tokens.some((t) => t.id === h.to) && Date.now() - h.at < HIT_SHOW_MS),
+    ground: b.ground,
+    surface: b.zones?.length || b.objects?.length || b.walls?.length
+      ? { zones: b.zones, objects: b.objects?.filter((o) => !o.hidden), walls: b.walls } : undefined,
+    rules,
   };
 }

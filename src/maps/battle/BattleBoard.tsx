@@ -2,10 +2,12 @@
  * Plateau de combat sur grille (5 pieds par case). Sert à la console MJ (interactif) et à l'écran joueur (lecture seule).
  * Le terrain est dessiné avec de vraies textures (SVG), les lieux et créatures avec des icônes.
  */
-import { useEffect, useRef, type MouseEvent as ReactMouseEvent } from 'react';
+import { useEffect, useRef, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
 import type { PlayerElement, PlayerToken } from '../../present/stage';
 import type { TerrainKind } from './terrain';
 import { CATEGORY_IMG, vignette } from './vignettes';
+import { TERRAIN_DEF, texUrl, type SurfaceRules, type TerrainId } from './surface';
+import { ObjectsLayer, PathPreview, RulesOverlay, SURFACE_FILTERS, TexturePatterns, texId, texturesOf, WallsLayer, ZonesLayer, type PathView, type SurfaceView } from './SurfaceLayers';
 
 /** `active` : c'est son tour. `hp`/`maxHp` : barre de vie (MJ seulement). */
 export type BoardToken = PlayerToken & { selected?: boolean; hidden?: boolean; active?: boolean; hp?: number; maxHp?: number; out?: boolean; conditions?: string[] };
@@ -54,6 +56,16 @@ type Props = {
   aim?: { x1: number; y1: number; x2: number; y2: number; tone?: 'hit' | 'miss' | 'crit' | 'info'; pending?: boolean; label?: string };
   /** Dégâts (amount < 0) et soins récents, écrits en grand au-dessus des jetons quelques secondes. */
   hits?: { id: string; to: string; amount: number; at: number }[];
+  /** Sol du fond (texture des cases de sol), zones aux contours naturels, éléments et murs. */
+  ground?: TerrainId;
+  surface?: SurfaceView;
+  /** Surcouche de vérification des règles (MJ, préparation). */
+  overlay?: { rules: SurfaceRules; focus?: number | null };
+  /** Trajet prévu pendant un déplacement. */
+  path?: PathView;
+  /** Élément ou mur sélectionné en construction, et tracé en cours (MJ). */
+  surfaceSelected?: string | null;
+  draft?: ReactNode;
 };
 
 /** Icône de chaque catégorie de lieu. */
@@ -107,19 +119,43 @@ function loadTile(file: string): Promise<HTMLImageElement> {
   return p;
 }
 
+/** Sol choisi par le MJ : une texture de 3 cases de côté, découpée case par case (pas de répétition visible). */
+const GROUND_SPAN = 3;
+function loadUrl(url: string): Promise<HTMLImageElement> {
+  let p = imageCache.get(url);
+  if (!p) {
+    p = new Promise((resolve, reject) => { const img = new Image(); img.onload = () => resolve(img); img.onerror = reject; img.src = url; });
+    imageCache.set(url, p);
+  }
+  return p;
+}
+
 /** Dessine le terrain case par case dans le canevas : une texture par type, avec la couleur de base dessous. */
-async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: number, terrain: string | undefined) {
+async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: number, terrain: string | undefined, ground?: TerrainId) {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   canvas.width = cols * CELL_PX; canvas.height = rows * CELL_PX;
-  ctx.fillStyle = TILE_BASE.sol;
+  const g = ground && ground !== 'sol' ? TERRAIN_DEF[ground] : undefined;
+  ctx.fillStyle = g?.color ?? TILE_BASE.sol;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  if (!terrain) return;
+  const groundImg = g ? await loadUrl(texUrl(g.tex)).catch(() => null) : null;
+  const span = g?.tex.startsWith('terrains/') ? GROUND_SPAN : 1;
+  const paintGround = (x: number, y: number) => {
+    if (!groundImg) return false;
+    const w = groundImg.width / span, h = groundImg.height / span;
+    ctx.drawImage(groundImg, ((x / CELL_PX) % span) * w, ((y / CELL_PX) % span) * h, w, h, x, y, CELL_PX, CELL_PX);
+    return true;
+  };
+  if (!terrain) {
+    for (let i = 0; i < cols * rows; i++) paintGround((i % cols) * CELL_PX, Math.floor(i / cols) * CELL_PX);
+    return;
+  }
   const files = [...new Set([...Array.from(terrain).map((k) => TILE_FILE[k as TerrainKind] ?? 'sol'), 'stalagmite'])];
   const images = Object.fromEntries(await Promise.all(files.map(async (f) => [f, await loadTile(f).catch(() => null)])));
   Array.from(terrain).forEach((k, i) => {
     const file = TILE_FILE[k as TerrainKind] ?? 'sol';
     const x = (i % cols) * CELL_PX, y = Math.floor(i / cols) * CELL_PX;
+    if ((k === '.' || k === ',') && paintGround(x, y)) return;
     ctx.fillStyle = TILE_BASE[file] ?? TILE_BASE.sol;
     ctx.fillRect(x, y, CELL_PX, CELL_PX);
     const img = images[file];
@@ -133,6 +169,9 @@ async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: numbe
 
 const TEXTURES = (
   <defs>
+    <radialGradient id="socle-light" cx="40%" cy="30%" r="75%">
+      <stop offset="0" stopColor="#fff" stopOpacity="0.18" /><stop offset="0.7" stopColor="#000" stopOpacity="0" /><stop offset="1" stopColor="#000" stopOpacity="0.45" />
+    </radialGradient>
     <filter id="grain" x="0" y="0" width="100%" height="100%">
       <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" />
       <feColorMatrix type="saturate" values="0" />
@@ -206,7 +245,7 @@ function cellUnder(ev: ReactMouseEvent<SVGElement>, cols: number, rows: number) 
   return x >= 0 && y >= 0 && x < cols && y < rows ? { x, y } : undefined;
 }
 
-export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview, labels = [], highlight, fog, exits = [], aim, hits = [] }: Props) {
+export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview, labels = [], highlight, fog, exits = [], aim, hits = [], ground, surface, overlay, path, surfaceSelected, draft }: Props) {
   const lines: string[] = [];
   for (let x = 0; x <= cols; x++) lines.push(`M${x} 0V${rows}`);
   for (let y = 0; y <= rows; y++) lines.push(`M0 ${y}H${cols}`);
@@ -219,8 +258,9 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
   for (const h of hits) if (!seen.current.has(h.id)) seen.current.set(h.id, now);
   const shownHits = hits.filter((h) => now - (seen.current.get(h.id) ?? now) <= 4000);
   useEffect(() => {
-    if (canvasRef.current) void paintTerrain(canvasRef.current, cols, rows, terrain);
-  }, [cols, rows, terrain]);
+    if (canvasRef.current) void paintTerrain(canvasRef.current, cols, rows, terrain, ground);
+  }, [cols, rows, terrain, ground]);
+  const textures = texturesOf(surface ?? {}, tokens.map((t) => t.socle as TerrainId | undefined));
 
   const pick = (id: string) => (ev: ReactMouseEvent<SVGElement>) => onElement?.(id, cellUnder(ev, cols, rows));
 
@@ -229,7 +269,9 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
       <canvas ref={canvasRef} className="battle-terrain" aria-hidden="true" />
     <svg className="battle-board" viewBox={`0 0 ${cols} ${rows}`} preserveAspectRatio="xMidYMid meet" role="img" aria-label="Plateau de combat">
       {TEXTURES}
+      <defs>{SURFACE_FILTERS}<TexturePatterns ids={textures} /></defs>
       {backdrop && <image href={backdrop} x={0} y={0} width={cols} height={rows} preserveAspectRatio="xMidYMid slice" opacity={0.55} />}
+      {surface?.zones?.length ? <ZonesLayer zones={surface.zones} cols={cols} rows={rows} /> : null}
 
       <path d={lines.join('')} stroke="rgba(201,162,74,.22)" strokeWidth={0.03} fill="none" pointerEvents="none" />
 
@@ -270,6 +312,9 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
 
       {preview && preview.length > 0 && <path d={cellPath(preview, cols)} fill="rgba(236,210,137,0.35)" stroke="#ecd289" strokeWidth={0.04} pointerEvents="none" />}
 
+      {surface?.objects?.length ? <ObjectsLayer objects={surface.objects} selectedId={surfaceSelected} /> : null}
+      {surface?.walls?.length ? <WallsLayer walls={surface.walls} selectedId={surfaceSelected} /> : null}
+
       {elements.map((e) => {
         if (e.kind === 'passage') {
           if (!e.cells) return null;
@@ -298,7 +343,12 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
         );
       })}
 
+      {overlay && <RulesOverlay rules={overlay.rules} focus={overlay.focus} />}
+      {draft}
+
       {fog && <FogLayer cols={cols} rows={rows} fog={fog} />}
+
+      {path && <PathPreview path={path} />}
 
       {exits.map((e) => {
         const x = e.cell % cols, y = Math.floor(e.cell / cols), cx = x + 0.5, cy = y + 0.5;
@@ -320,6 +370,17 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
         const cx = t.x + t.size / 2, cy = t.y + t.size / 2;
         return (
           <g key={t.id} className="battle-token" opacity={t.hidden ? 0.4 : 1} onClick={interactive && onToken ? (e) => { e.stopPropagation(); onToken(t.id); } : onElement ? pick(t.id) : undefined}>
+            {/* Socle : couche à part, sous l'image, dans l'empreinte du jeton (il ne change ni sa taille ni les règles). */}
+            {t.socle && TERRAIN_DEF[t.socle as TerrainId] && (
+              <g className={`battle-socle socle-${t.socle}`} pointerEvents="none">
+                <ellipse cx={cx + 0.04} cy={cy + 0.07} rx={r + 0.05} ry={r + 0.03} fill="#000" opacity={0.45} filter="url(#obj-shadow)" />
+                <circle cx={cx} cy={cy} r={r + 0.05} fill={`url(#${texId(t.socle)})`} />
+                <circle cx={cx} cy={cy} r={r + 0.05} fill="url(#socle-light)" />
+                <circle cx={cx} cy={cy} r={r + 0.05} fill="none" stroke="#1a140c" strokeWidth={0.035} />
+                {['eau_profonde', 'eau_peu_profonde', 'gue'].includes(t.socle) && <circle className="socle-ripple" cx={cx} cy={cy} r={r + 0.05} fill="none" stroke="#bfe9f0" strokeWidth={0.03} />}
+                {t.socle === 'lave' && <circle cx={cx} cy={cy} r={r + 0.07} fill="none" stroke="#ff7a2a" strokeWidth={0.05} opacity={0.75} />}
+              </g>
+            )}
             {t.image ? (
               <>
                 <clipPath id={`clip-${t.id}`}><circle cx={cx} cy={cy} r={r} /></clipPath>

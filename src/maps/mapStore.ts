@@ -12,6 +12,7 @@ import { setAtlasData } from './atlas/model';
 import { IMAGE_MAX, fitWithin } from '../store/imageRefs';
 import type { LocalElement } from './battle/local';
 import type { HaltAlert } from './atlas/omens';
+import type { BattleObject, BattleWall, CellFix, SocleMode, TerrainId, TerrainZone } from './battle/surface';
 import type { AtlasData, AtlasFeature, AtlasGeometry, AtlasMap, FeatureCategory, Importance } from './atlas/types';
 
 export type Zone = 'sauvage' | 'transit' | 'cite';
@@ -175,6 +176,12 @@ export interface BattleToken {
   reach?: { melee: number; short: number; long: number; weapon?: string };
   /** Ajouté au combat sans place choisie : caché aux joueurs et sans vision, jusqu'à ce que le MJ le pose. */
   unplaced?: boolean;
+  /** Sur le tablier d'un pont (et non dans l'eau en dessous). */
+  layer?: 'pont';
+  /** Socle sous le jeton : automatique (terrain occupé), aucun, ou choisi. Purement visuel. */
+  socle?: SocleMode;
+  /** Modes de déplacement accordés par le MJ (sort, objet), en plus de ceux de la fiche. */
+  modes?: { vol?: boolean; nage?: boolean; escalade?: boolean };
 }
 
 export interface Battle {
@@ -192,6 +199,14 @@ export interface Battle {
   encounterOf?: string;
   /** Construction manuelle : surcharges du terrain généré et objets déposés (cf. battle/build.ts). */
   build?: BattleBuild;
+  /** Sol du fond (plateau vierge, et sol des cavernes générées) : un terrain de battle/surface.ts. */
+  ground?: TerrainId;
+  /** Zones de terrain aux contours naturels, éléments (rochers, arbres, ponts) et murs : cf. battle/surface.ts. */
+  zones?: TerrainZone[];
+  objects?: BattleObject[];
+  walls?: BattleWall[];
+  /** Corrections du MJ, case par case : elles priment sur le calcul automatique. */
+  cellFix?: Record<string, CellFix>;
   /** Jeton dont c'est le tour, et journal des derniers jets. */
   turn?: string;
   log?: { id: string; text: string; tone?: 'hit' | 'miss' | 'crit' | 'info' }[];
