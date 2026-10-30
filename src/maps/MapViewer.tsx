@@ -1080,6 +1080,9 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               </p>
             )}
 
+            {dm && overlay.talk && (
+              <p className="maps-hint">📺 Conversation avec {overlay.talk.name} affichée aux joueurs. <button className="maps-link" onClick={() => shareTalk(null)}>La retirer de leur écran</button></p>
+            )}
             {dm && talkWith && side === 'lieu' && (
               <div className="maps-card">
                 <TalkPanel rec={rec} data={data} planId={map.id} library={library ?? []} loreContext={loreContext} onCreateEntry={onCreateEntry} onUpdateEntry={onUpdateEntry} onChronicle={onChronicle}
