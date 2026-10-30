@@ -10,7 +10,7 @@
 .battle-round{font-family:'Cinzel',serif;color:#ecd289;letter-spacing:.06em;margin-right:6px}
 .battle-hint{font-size:13px;color:var(--muted,#9a8a63);margin-left:auto}
 .battle-board-wrap{position:relative}
-.battle-readout{position:absolute;left:10px;bottom:10px;z-index:5;background:rgba(0,0,0,.7);color:#ecd289;padding:4px 10px;border:1px solid #7d6128;border-radius:4px;font-size:13px;pointer-events:none}
+.battle-readout{position:absolute;left:50%;transform:translateX(-50%);bottom:10px;z-index:5;white-space:nowrap;background:rgba(0,0,0,.7);color:#ecd289;padding:4px 10px;border:1px solid #7d6128;border-radius:4px;font-size:13px;pointer-events:none}
 .battle-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
 .battle-list li{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 6px;border-radius:4px}
 .battle-list li[data-on="1"]{background:rgba(201,162,74,.12)}
@@ -136,7 +136,7 @@
 .battle-menu{position:relative}
 .battle-menu > summary{list-style:none;cursor:pointer}
 .battle-menu > summary::-webkit-details-marker{display:none}
-.battle-menu-pop{position:absolute;right:0;top:calc(100% + 4px);z-index:5;display:flex;flex-direction:column;gap:4px;padding:8px;background:#100d09;border:1px solid #5a4a2a;border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.5);min-width:180px}
+.battle-menu-pop{position:absolute;right:0;top:calc(100% + 4px);z-index:30;display:flex;flex-direction:column;gap:4px;padding:8px;background:#100d09;border:1px solid #5a4a2a;border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.5);min-width:180px}
 .battle-hint{margin:0;font-size:12px}
 .battle-stage{position:relative}
 .battle-chips button b{color:#fff1c2;margin-right:2px}
@@ -887,6 +887,13 @@
 .present-move-info b{font-family:var(--font-joueurs-titre,'Cinzel',serif);font-size:1.1em;color:#f6e8c4}
 .present-move-info.is-over{border-color:#d08a2c}
 .present-move-info.is-blocked{border-color:#d0452c;color:#ffc2b5}
+/* Zones d'effet de sorts. */
+.battle-aoe-menu .battle-menu-pop{min-width:260px;left:0;right:auto}
+.battle-aoe-chip{display:inline-flex;align-items:center;gap:6px;border-color:#a8542a;color:#ffd7b0;background:rgba(60,24,10,.6)}
+.battle-aoe-chip b{color:#ffcf9a}
+.battle-aoe path:first-child{animation:aoe-pulse 2.4s ease-in-out infinite}
+@keyframes aoe-pulse{0%,100%{opacity:.85}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.battle-aoe path:first-child{animation:none}}
 /* Conversation montrée aux joueurs (lot 15) */
 .present-talk{position:absolute;left:50%;bottom:4vh;z-index:6;transform:translateX(-50%);width:min(760px,86%);max-height:30vh;overflow:hidden;padding:1.6vmin 2.6vmin;border-radius:12px;
   background:rgba(14,11,8,.9);border:1px solid rgba(201,162,74,.5);box-shadow:0 18px 60px rgba(0,0,0,.7);color:#efe2bd;font-size:clamp(14px,1.9vmin,22px);line-height:1.45}

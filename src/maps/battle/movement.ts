@@ -104,7 +104,7 @@ function crossing(r: SurfaceRules, m: Mover, x: number, y: number, dx: number, d
   let cost = 0;
   const wallCost = (k: string | undefined) => {
     if (!k) return true;
-    if (k === 'mur') return false;
+    if (k === 'mur' || k === 'porte' || k === 'herse') return false;
     if (k === 'falaise') { if (!m.fly) { cost = Math.max(cost, m.climb ? 1 : 2); tags.push('escalade'); } return true; }
     if (!m.fly) { cost = Math.max(cost, 2); tags.push('difficile'); } // muret
     return true;
@@ -270,4 +270,22 @@ export function planMove(r: SurfaceRules, m: Mover, from: Spot, to: { x: number;
   const ok = cost <= budget;
   const notes = [...seen].map((t) => NOTE[t]).filter(Boolean);
   return { possible: true, ok, cost, steps, layer, dest, notes, reason: ok ? undefined : `Trop loin : ${cost} cases pour ${budget} disponibles` };
+}
+
+/** Dangers traversés par un trajet (au sol) : lave une fois par déplacement, ronces à chaque case. Le vol y échappe. */
+export function hazardsOf(r: SurfaceRules, m: Mover, plan: MovePlan): { label: string; dice: string; type: string; times: number }[] {
+  if (m.fly || !plan.possible) return [];
+  const out = new Map<string, { label: string; dice: string; type: string; times: number }>();
+  for (const st of plan.steps.slice(1)) {
+    if (st.layer === 'pont') continue;
+    for (let j = 0; j < m.size; j++) for (let i = 0; i < m.size; i++) {
+      const c = r.cells[(st.y + j) * r.cols + st.x + i];
+      const d = c && !c.rule ? TERRAIN_DEF[c.t] : undefined;
+      if (!d?.hazard) continue;
+      const cur = out.get(d.id) ?? { label: d.label, dice: d.hazard.dice, type: d.hazard.type, times: 0 };
+      cur.times = d.hazard.per === 'entree' ? 1 : cur.times + 1;
+      out.set(d.id, cur);
+    }
+  }
+  return [...out.values()];
 }

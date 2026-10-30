@@ -4,7 +4,7 @@
  */
 import type { BoardTheme } from './theme';
 import { useEffect, useRef, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
-import type { PlayerElement, PlayerToken } from '../../present/stage';
+import type { AoeView, PlayerElement, PlayerToken } from '../../present/stage';
 import type { TerrainKind } from './terrain';
 import { CATEGORY_IMG, vignette } from './vignettes';
 import { TERRAIN_DEF, texUrl, type SurfaceRules, type TerrainId } from './surface';
@@ -71,6 +71,8 @@ type Props = {
   /** Élément ou mur sélectionné en construction, et tracé en cours (MJ). */
   surfaceSelected?: string | null;
   draft?: ReactNode;
+  /** Zones d'effet de sorts. */
+  aoes?: AoeView[];
 };
 
 /** Icône de chaque catégorie de lieu. */
@@ -375,7 +377,7 @@ function cellUnder(ev: ReactMouseEvent<SVGElement>, cols: number, rows: number) 
   return x >= 0 && y >= 0 && x < cols && y < rows ? { x, y } : undefined;
 }
 
-export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview, labels = [], highlight, fog, exits = [], aim, hits = [], ground, surface, overlay, path, surfaceSelected, draft , theme }: Props) {
+export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview, labels = [], highlight, fog, exits = [], aim, hits = [], ground, surface, overlay, path, surfaceSelected, draft, theme, aoes = [] }: Props) {
   const lines: string[] = [];
   for (let x = 0; x <= cols; x++) lines.push(`M${x} 0V${rows}`);
   for (let y = 0; y <= rows; y++) lines.push(`M0 ${y}H${cols}`);
@@ -477,6 +479,17 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
       {overlay && <RulesOverlay rules={overlay.rules} focus={overlay.focus} />}
       {draft}
 
+      {aoes.map((a) => {
+        return (
+          <g key={a.id} className={`battle-aoe ${a.draft ? 'is-draft' : ''}`} pointerEvents="none">
+            <path d={cellPath(a.cells, cols)} fill="rgba(255,120,40,0.3)" />
+            <path d={a.outline} fill="rgba(255,150,70,0.08)" stroke="#ff9a4a" strokeWidth={0.07} strokeDasharray={a.draft ? '0.18 0.1' : undefined} />
+            <circle cx={a.at[0]} cy={a.at[1]} r={0.1} fill="#ff9a4a" stroke="#0b0906" strokeWidth={0.03} />
+            {a.label && <text x={a.at[0]} y={a.at[1] - 0.25} textAnchor="middle" fontSize={0.32} fill="#ffcf9a" stroke="#0b0906" strokeWidth={0.06} paintOrder="stroke" fontFamily="Cinzel, serif">{a.label}</text>}
+          </g>
+        );
+      })}
+
       {fog && <FogLayer cols={cols} rows={rows} fog={fog} />}
 
       {path && <PathPreview path={path} />}
@@ -535,6 +548,13 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
                 <title>{t.conditions.join(' · ')}</title>
                 <circle cx={cx + r * 0.78} cy={cy - r * 0.78} r={0.17} fill="#ad97d8" stroke="#0b0906" strokeWidth={0.04} />
                 <text x={cx + r * 0.78} y={cy - r * 0.78 + 0.075} textAnchor="middle" fontSize={0.2} fontWeight={700} fill="#1a1026" pointerEvents="none">{t.conditions.length}</text>
+              </g>
+            ) : null}
+            {t.elev ? (
+              <g className="battle-token-elev" pointerEvents="none">
+                <title>{`En hauteur : ${t.elev} pieds`}</title>
+                <rect x={cx - r - 0.06} y={cy + r - 0.26} width={0.5} height={0.24} rx={0.06} fill="#1d3a2a" stroke="#8fd19e" strokeWidth={0.025} />
+                <text x={cx - r + 0.19} y={cy + r - 0.08} textAnchor="middle" fontSize={0.17} fill="#c9f2d2" fontWeight={700}>▲{t.elev}</text>
               </g>
             ) : null}
             {t.active && <circle className="battle-turn-ring" cx={cx} cy={cy} r={r + 0.1} fill="none" stroke="#fff1c2" strokeWidth={0.07} pointerEvents="none" />}

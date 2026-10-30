@@ -13,6 +13,7 @@ import { IMAGE_MAX, fitWithin } from '../store/imageRefs';
 import type { LocalElement } from './battle/local';
 import type { HaltAlert } from './atlas/omens';
 import type { BattleObject, BattleWall, CellFix, SocleMode, TerrainId, TerrainZone } from './battle/surface';
+import type { BattleAoe } from './battle/aoe';
 import type { AtlasData, AtlasFeature, AtlasGeometry, AtlasMap, FeatureCategory, Importance } from './atlas/types';
 import type { WorldSpec } from './world/generate';
 
@@ -212,6 +213,10 @@ export interface Battle {
   walls?: BattleWall[];
   /** Corrections du MJ, case par case : elles priment sur le calcul automatique. */
   cellFix?: Record<string, CellFix>;
+  /** Dégâts du plateau (lave, ronces, chute) à appliquer par le module Combat, qui tient les PV. */
+  damage?: { id: string; to: string; amount: number; why: string }[];
+  /** Zones d'effet de sorts posées sur le plateau (cf. battle/aoe.ts). */
+  aoes?: BattleAoe[];
   /** Déplacement déjà parcouru pendant le tour en cours (en cases), et qui fonce (vitesse doublée). `key` = round:tour. */
   moved?: { key: string; used: Record<string, number>; dash?: string[] };
   /** Jeton dont c'est le tour, et journal des derniers jets. */
