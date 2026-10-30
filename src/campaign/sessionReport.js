@@ -58,6 +58,7 @@ Retourne exactement :
 {
   "summary": "compte rendu de la séance en 3 à 6 phrases",
   "consequences": ["ce qui a changé dans le monde à cause des actions des joueurs"],
+  "futureSeeds": ["pistes ou menaces ouvertes que de futures aventures pourraient reprendre"],
   "entities": [
     {
       "kind": "person|place|faction|event|artifact|mystery",
@@ -101,6 +102,7 @@ export function parseReport(data) {
   return {
     summary: clean(data?.summary),
     consequences: (Array.isArray(data?.consequences) ? data.consequences : []).map(clean).filter(Boolean).slice(0, 12),
+    futureSeeds: (Array.isArray(data?.futureSeeds) ? data.futureSeeds : []).map(clean).filter(Boolean).slice(0, 8),
     entities: unique.slice(0, 40),
   };
 }
@@ -124,7 +126,7 @@ export function buildEntry(entity, { campaignId, sessionId, reportId, id, now })
 }
 
 /** Enregistrement du compte rendu, rangé dans la campagne (`sessionReports`). */
-export function buildReport({ id, now, session, notes, summary, consequences, entryIds, mergedIds, conflicts }) {
+export function buildReport({ id, now, session, notes, summary, consequences, futureSeeds, entryIds, mergedIds, conflicts }) {
   return {
     id,
     createdAt: now,
@@ -134,6 +136,7 @@ export function buildReport({ id, now, session, notes, summary, consequences, en
     notes: clean(notes),
     summary: clean(summary),
     consequences: consequences || [],
+    futureSeeds: futureSeeds || [],
     entryIds: entryIds || [],
     mergedIds: mergedIds || [],
     conflicts: conflicts || [],
@@ -145,4 +148,56 @@ export function markPlayed(sessions, sessionId, played, now) {
   return (sessions || []).map((s) =>
     s.id === sessionId ? { ...s, played: !!played, playedAt: played ? now : null } : s,
   );
+}
+
+/**
+ * Entrée de mémoire vivante (univers ou campagne) tirée d'un compte rendu.
+ * Le résumé contient les conséquences : toutes les consignes d'IA qui relisent la mémoire (`titre : résumé`) les voient donc.
+ */
+export function buildMemory(report, { id, campaignId }) {
+  const label = report.sessionNumber ? `Séance ${report.sessionNumber}${report.sessionTitle ? ` · ${report.sessionTitle}` : ''}` : 'Séance hors plan';
+  const consequences = report.consequences || [];
+  const summary = [clean(report.summary), consequences.length ? `Conséquences : ${consequences.map((c) => c.replace(/[.\s]+$/, '')).join(' ; ')}.` : ''].filter(Boolean).join(' ');
+  return {
+    id,
+    createdAt: report.createdAt,
+    title: label,
+    summary,
+    consequences,
+    futureSeeds: report.futureSeeds || [],
+    source: { kind: 'session-report', campaignId: campaignId || null, sessionId: report.sessionId, reportId: report.id },
+  };
+}
+
+/** Prompt « idées pour la prochaine séance », fondé sur ce qui s'est passé et sur les graines laissées. */
+export function nextSessionPrompt({ universe, campaign, reports, next, known = [] }) {
+  const recent = (reports || []).slice(0, 4).reverse();
+  return {
+    system:
+      "Tu es le conseiller de préparation d'un maître de jeu. Tu proposes des pistes concrètes pour la prochaine séance, qui tiennent compte de ce qui a été joué et des conséquences. N'invente pas de faits contraires au canon. Langue : français. Réponds uniquement en JSON valide.",
+    prompt: `Univers : ${clean(universe?.name)} — ${clean(universe?.tone)}
+Canon (extrait) : ${clean(universe?.lore).slice(0, 1200)}
+Campagne : ${clean(campaign?.title)} — ${clean(campaign?.premise)}
+Prochaine séance : ${next ? `${next.sessionNumber} · ${clean(next.title)} — ${clean(next.summary)}` : 'non planifiée'}
+
+Ce qui s'est joué (du plus ancien au plus récent) :
+${recent.map((r) => `- ${r.sessionNumber ? `S${r.sessionNumber}` : 'Hors plan'} : ${r.summary} | Conséquences : ${(r.consequences || []).join(' ; ') || 'aucune'} | Pistes : ${(r.futureSeeds || []).join(' ; ') || 'aucune'}`).join('\n') || 'rien encore'}
+
+Éléments connus de l'univers :
+${known.join('\n') || 'aucun'}
+
+Retourne exactement : {"ideas":[{"title":"titre court","pitch":"2 à 3 phrases","uses":["noms d'éléments connus réutilisés"]}]}
+Propose 4 idées, dont au moins une qui réutilise un personnage ou un lieu déjà connu.`,
+  };
+}
+
+export function parseIdeas(data) {
+  return (Array.isArray(data?.ideas) ? data.ideas : [])
+    .map((i) => ({
+      title: clean(i?.title),
+      pitch: clean(i?.pitch),
+      uses: (Array.isArray(i?.uses) ? i.uses : []).map(clean).filter(Boolean).slice(0, 6),
+    }))
+    .filter((i) => i.title)
+    .slice(0, 6);
 }

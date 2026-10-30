@@ -1,13 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { normKey, parseReport, knownLines, buildEntry, buildReport, reportPrompt, markPlayed } from './sessionReport.js';
+import { normKey, parseReport, knownLines, buildEntry, buildReport, reportPrompt, markPlayed, buildMemory, nextSessionPrompt, parseIdeas } from './sessionReport.js';
 
 test('normKey ignore casse, accents et ponctuation', () => {
   assert.equal(normKey('  Élara, la Rouge! '), 'elara la rouge');
 });
 
 test('parseReport tolère les réponses douteuses et retire les doublons', () => {
-  assert.deepEqual(parseReport(null), { summary: '', consequences: [], entities: [] });
+  assert.deepEqual(parseReport(null), { summary: '', consequences: [], futureSeeds: [], entities: [] });
   const r = parseReport({
     summary: ' Ok ',
     consequences: ['a', '', 'b'],
@@ -66,4 +66,25 @@ test('markPlayed ne change que la séance visée', () => {
   assert.equal(out[0].played, undefined);
   assert.deepEqual([out[1].played, out[1].playedAt], [true, 9]);
   assert.equal(markPlayed(out, 'b', false, 9)[1].played, false);
+});
+
+test('la mémoire tirée d’un compte rendu contient les conséquences dans son résumé', () => {
+  const r = buildReport({ id: 'r1', now: 3, session: { id: 'ses-2', sessionNumber: 2, title: 'La forêt' }, notes: 'n', summary: 'Ils traversent.', consequences: ['Orsk est humilié.', 'Le pont est brûlé'], futureSeeds: ['Qui a brûlé le pont ?'] });
+  const m = buildMemory(r, { id: 'm1', campaignId: 'c1' });
+  assert.equal(m.title, 'Séance 2 · La forêt');
+  assert.equal(m.summary, 'Ils traversent. Conséquences : Orsk est humilié ; Le pont est brûlé.');
+  assert.deepEqual(m.futureSeeds, ['Qui a brûlé le pont ?']);
+  assert.deepEqual(m.source, { kind: 'session-report', campaignId: 'c1', sessionId: 'ses-2', reportId: 'r1' });
+  assert.equal(buildMemory(buildReport({ id: 'r', now: 1 }), { id: 'm' }).title, 'Séance hors plan');
+});
+
+test('parseReport lit les pistes ouvertes', () => {
+  assert.deepEqual(parseReport({ futureSeeds: ['a', '', 'b'] }).futureSeeds, ['a', 'b']);
+});
+
+test('les idées de séance sont lues sans planter et le prompt reprend les conséquences', () => {
+  assert.deepEqual(parseIdeas(null), []);
+  assert.equal(parseIdeas({ ideas: [{ title: 'T', pitch: 'p', uses: ['Orsk'] }, { title: '' }] }).length, 1);
+  const { prompt } = nextSessionPrompt({ universe: { name: 'U' }, campaign: { title: 'C' }, reports: [{ sessionNumber: 1, summary: 'S', consequences: ['pont brûlé'], futureSeeds: [] }], next: null });
+  assert.match(prompt, /pont brûlé/);
 });

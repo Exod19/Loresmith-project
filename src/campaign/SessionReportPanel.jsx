@@ -1,5 +1,15 @@
 import { useState } from 'react';
-import { ENTITY_KINDS, reportPrompt, parseReport, knownLines, buildReport, markPlayed } from './sessionReport';
+import {
+  ENTITY_KINDS,
+  reportPrompt,
+  parseReport,
+  knownLines,
+  buildReport,
+  markPlayed,
+  buildMemory,
+  nextSessionPrompt,
+  parseIdeas,
+} from './sessionReport';
 import { matchEntities, planChanges } from './canonLink';
 
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -13,7 +23,8 @@ export default function SessionReportPanel({ universe, campaign, library, ask, a
   const [sessionId, setSessionId] = useState(sessions[0]?.id || '');
   const [notes, setNotes] = useState('');
   const [busy, setBusy] = useState(false);
-  const [draft, setDraft] = useState(null); // { summary, consequences, entities[] }
+  const [draft, setDraft] = useState(null); // { summary, consequences, futureSeeds, entities[] }
+  const [ideas, setIdeas] = useState(null);
   const session = sessions.find((s) => s.id === sessionId) || null;
   const reports = campaign.sessionReports || [];
 
@@ -57,19 +68,29 @@ export default function SessionReportPanel({ universe, campaign, library, ask, a
       notes,
       summary: draft.summary,
       consequences: draft.consequences,
+      futureSeeds: draft.futureSeeds,
       entryIds: plan.newEntries.map((e) => e.id),
       mergedIds: plan.mergedIds,
       conflicts: plan.conflicts,
     });
+    // L'impact de la séance entre dans la mémoire vivante de la campagne et de l'univers.
+    const memory = (id) => buildMemory(report, { id, campaignId: campaign.id });
+    const hasImpact = report.summary || report.consequences.length;
     const patch = { sessionReports: [report, ...reports].slice(0, 100) };
+    if (hasImpact) patch.memoryLog = [memory(uid()), ...(campaign.memoryLog || [])].slice(0, 60);
     if (session) patch.sessions = markPlayed(sessions, session.id, true, now);
     dispatch({ type: 'UPDATE_CAMPAIGN', id: campaign.id, patch });
+    if (hasImpact) {
+      dispatch({ type: 'UPDATE_UNIVERSE', id: universe.id, patch: { memoryLog: [memory(uid()), ...(universe.memoryLog || [])].slice(0, 80) } });
+    }
+    setIdeas(null);
     setDraft(null);
     setNotes('');
     const parts = [
       plan.newEntries.length && `${plan.newEntries.length} fiche(s) créée(s)`,
       plan.mergedIds.length && `${plan.mergedIds.length} fiche(s) enrichie(s)`,
       plan.edges.length && `${plan.edges.length} lien(s) tissé(s)`,
+      hasImpact && 'mémoire de l’univers mise à jour',
     ].filter(Boolean);
     flash(parts.length ? `Compte rendu enregistré : ${parts.join(', ')}.` : 'Compte rendu enregistré.');
   }
@@ -160,6 +181,16 @@ export default function SessionReportPanel({ universe, campaign, library, ask, a
               </ul>
             </div>
           )}
+          {draft.futureSeeds?.length > 0 && (
+            <div>
+              <b style={{ fontSize: 13.5 }}>Pistes ouvertes pour la suite</b>
+              <ul style={{ margin: '4px 0 0', paddingLeft: 20 }}>
+                {draft.futureSeeds.map((c, i) => (
+                  <li key={i}>{c}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           {draft.entities.length > 0 ? (
             <div>
               <b style={{ fontSize: 13.5 }}>
@@ -211,6 +242,36 @@ export default function SessionReportPanel({ universe, campaign, library, ask, a
               Retour aux notes
             </button>
           </div>
+        </div>
+      )}
+
+      {reports.length > 0 && aiReady && (
+        <div style={{ marginTop: 14 }}>
+          <button
+            className="btn"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              try {
+                const next = sessions.find((x) => !x.played) || null;
+                const { system, prompt } = nextSessionPrompt({ universe, campaign, reports, next, known: knownLines(library, '') });
+                setIdeas(parseIdeas(await ask({ system, prompt })));
+              } catch (e) {
+                flash(e.message || 'Suggestion impossible.');
+              }
+              setBusy(false);
+            }}
+          >
+            {busy ? 'Réflexion…' : 'Idées pour la prochaine séance, selon ce qui s’est joué'}
+          </button>
+          {ideas && ideas.length === 0 && <p className="muted" style={{ fontSize: 13 }}>Aucune idée exploitable cette fois.</p>}
+          {ideas?.map((i, k) => (
+            <div key={k} style={{ marginTop: 8, padding: 8, border: '1px solid var(--line)', borderRadius: 6 }}>
+              <b>{i.title}</b>
+              <div className="muted" style={{ fontSize: 13.5 }}>{i.pitch}</div>
+              {i.uses.length > 0 && <div style={{ fontSize: 12.5, marginTop: 4 }}>Réutilise : {i.uses.join(', ')}</div>}
+            </div>
+          ))}
         </div>
       )}
 
