@@ -191,7 +191,7 @@ export default function BattleMode({
     }
     set({
       terrain: { source, seed, grid: local.base },
-      local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous, surface: plan.surface ? true : undefined },
+      local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous, surface: plan.surface ? (plan.surface.theme === 'interieur' ? 'interieur' : true) : undefined },
       tokens,
       encounterOf: groups?.length ? source : b.encounterOf,
       build: undefined,
@@ -847,7 +847,7 @@ export default function BattleMode({
           >
             <BattleBoard
               cols={b.cols} rows={b.rows} backdrop={rec.image} terrain={grid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
-              theme={b.local?.surface ? 'surface' : undefined}
+              theme={b.local?.surface === 'interieur' ? 'interieur' : b.local?.surface ? 'surface' : undefined}
               onCell={onBoardCell} onElement={(id) => { if (boardElements.some((e) => e.id === id)) setInfoId(id); }} onHover={(x, y) => setHover({ x, y })}
               preview={stroke && brush.tool === 'terrain' ? stroke.cells : undefined}
               labels={labels} highlight={highlight} fog={fogLayer} exits={dmExits} aim={aimLine} hits={b.hits}

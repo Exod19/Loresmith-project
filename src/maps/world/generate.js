@@ -40,6 +40,8 @@ export function rng(seed) {
   };
 }
 
+import { generateInterior } from './interior.js';
+
 /* ——— Types de bâtiments ——— */
 
 /**
@@ -416,14 +418,16 @@ export function generateCity(rawSpec, planId, bindings = {}) {
         const gap = high ? 3 + rand() * 3 : zone === 'faubourg' ? 2 + rand() * 6 : 0.4 + rand() * 0.8;
         const p = along(s.pts, t + front / 2);
         const off = s.hw + 0.7 + depth / 2;
-        const b = { x: p.x - Math.sin(p.ang) * side * off, y: p.y + Math.cos(p.ang) * side * off, w: front, d: depth, ang: p.ang, district: dist };
+        // La porte donne sur la rue : à l'opposé du décalage qui a éloigné le bâtiment de la rue.
+        const face = Math.atan2(-Math.cos(p.ang) * side, Math.sin(p.ang) * side);
+        const b = { x: p.x - Math.sin(p.ang) * side * off, y: p.y + Math.cos(p.ang) * side * off, w: front, d: depth, ang: p.ang, district: dist, face };
         if (accept(b, zone, s.id)) {
           add(b);
           if (zone === 'intra') intraCount++;
           // Seconde rangée (arrière-cour) dans la basse-ville dense.
           if (opts.back && !high && zone === 'intra' && rand() < 0.65 && intraCount < cap) {
             const d2 = 7 + rand() * 5, off2 = off + depth / 2 + 1.2 + d2 / 2;
-            const b2 = { x: p.x - Math.sin(p.ang) * side * off2, y: p.y + Math.cos(p.ang) * side * off2, w: front * (0.8 + rand() * 0.3), d: d2, ang: p.ang, district: districtOf(b.x, b.y) };
+            const b2 = { x: p.x - Math.sin(p.ang) * side * off2, y: p.y + Math.cos(p.ang) * side * off2, w: front * (0.8 + rand() * 0.3), d: d2, ang: p.ang, district: districtOf(b.x, b.y), face };
             if (accept(b2, zone, s.id)) { add(b2); intraCount++; }
           }
           t += front + gap;
@@ -465,10 +469,10 @@ export function generateCity(rawSpec, planId, bindings = {}) {
         const p = along(s.pts, t);
         const off = 32 + rand() * 30;
         const n = [-Math.sin(p.ang) * side, Math.cos(p.ang) * side];
-        const house = { x: p.x + n[0] * off, y: p.y + n[1] * off, w: 13 + rand() * 4, d: 8 + rand() * 2, ang: p.ang, district: 'ferme', type: 'ferme' };
+        const house = { x: p.x + n[0] * off, y: p.y + n[1] * off, w: 13 + rand() * 4, d: 8 + rand() * 2, ang: p.ang, district: 'ferme', type: 'ferme', face: Math.atan2(-n[1], -n[0]) };
         if (accept(house, 'farm', s.id)) {
           add(house);
-          const barn = { x: house.x + Math.cos(p.ang) * (house.w / 2 + 11), y: house.y + Math.sin(p.ang) * (house.w / 2 + 11), w: 17, d: 10, ang: p.ang + Math.PI / 2, district: 'ferme', type: 'ferme', label: 'Grange' };
+          const barn = { x: house.x + Math.cos(p.ang) * (house.w / 2 + 11), y: house.y + Math.sin(p.ang) * (house.w / 2 + 11), w: 17, d: 10, ang: p.ang + Math.PI / 2, district: 'ferme', type: 'ferme', label: 'Grange', face: Math.atan2(-n[1], -n[0]) };
           if (accept(barn, 'farm', s.id)) add(barn);
           for (let k = 0; k < 4; k++) {
             const fw = 60 + rand() * 40, fd = 18 + rand() * 9;
@@ -557,7 +561,9 @@ export function generateCity(rawSpec, planId, bindings = {}) {
     const bound = bindings[id];
     const T = SLOT_TYPES[bound?.type ?? s.type] ?? SLOT_TYPES.maison;
     const type = bound?.type ?? s.type;
-    slotOut.push({ id, type: s.type, district: b.district, at: N(b.x, b.y), x: b.x, y: b.y });
+    // Façade (porte) : vers la rue ; à défaut (château), vers le centre de la ville.
+    const face = b.face ?? Math.atan2(mk.y - b.y, mk.x - b.x);
+    slotOut.push({ id, type: s.type, label: s.label, district: b.district, at: N(b.x, b.y), x: b.x, y: b.y, w: r1(b.w), d: r1(b.d), ang: Math.round(b.ang * 1000) / 1000, face: Math.round(face * 1000) / 1000 });
     if (type === 'maison' && !bound) continue;
     const rank = bound ? (T.rank === 'landmark' ? 'landmark' : T.rank === 'regional' ? 'regional' : 'local') : T.rank;
     const npcLine = bound?.npcs?.length ? `Sur place : ${bound.npcs.map((n) => (n.role ? `${n.name} (${n.role})` : n.name)).join(', ')}.` : '';
@@ -739,6 +745,19 @@ export function generateWorld(world, mapRecordId) {
     spaces.push({ id: g.map.scope.id, kind: 'site', name: c.name, levelId: 'monde', stratumIds: [], mapId: pid });
     return { c, g, pid };
   });
+
+  // Intérieurs des bâtiments où le groupe est entré : un plan chacun, relié à la rue par sa porte.
+  for (const slotId of world.interiors ?? []) {
+    const city = cityOut.find(({ pid }) => slotId.startsWith(`${pid}:b`));
+    const slot = city?.g.slots.find((s) => s.id === slotId);
+    if (!city || !slot) continue;
+    const bound = byCity.get(city.c.id)?.[slotId];
+    const it = cachedInterior(slot, bound, city.g.map.scope.id);
+    maps.push(it.map); features.push(...it.features); geometries.push(...it.geometries); anchors.push(...it.anchors); spaces.push(it.space);
+    // Côté rue : une ancre sous le bâtiment (cachée sous son repère s'il en a un).
+    anchors.push({ id: `${slotId}:porte`, mapId: city.pid, at: slot.at, label: it.space.name });
+    connections.push({ id: `cx-${slotId}`, kind: 'naturel', fromAnchorId: `${slotId}:porte`, toAnchorId: it.anchors[0].id, direction: 'both', title: `Porte · ${it.space.name}`, ...base });
+  }
 
   // Terrain du monde : forêts, rivières, lac, collines (loin des cités).
   const decor = [];
@@ -926,6 +945,20 @@ function cachedCity(spec, planId, bindings) {
   return out;
 }
 
+/** Identifiant du plan intérieur d'un bâtiment. */
+export const interiorPlanId = (slotId) => `${slotId}:int`;
+const interiorCache = new Map();
+function cachedInterior(slot, bound, parentSiteId) {
+  const key = `${slot.id}|${JSON.stringify(bound ?? null)}`;
+  let hit = interiorCache.get(key);
+  if (!hit) {
+    hit = generateInterior({ slot, planId: interiorPlanId(slot.id), siteId: `${slot.id}:site`, parentSiteId, bound });
+    interiorCache.set(key, hit);
+    if (interiorCache.size > 60) interiorCache.delete(interiorCache.keys().next().value);
+  }
+  return hit;
+}
+
 /** Emplacements d'une cité (sans les lieux posés), pour l'assignation du lore. */
 export function citySlots(spec, planId) {
   return cachedCity(citySpecDefaults(spec), planId, {}).slots;
@@ -941,7 +974,7 @@ export function citySlots(spec, planId) {
 export function rasterGround(surface, W, H, win, cols, rows, seed = 0) {
   const g = surface.ground ?? {};
   const rects = [];
-  for (const [list, kind] of [[g.b ?? [], 'b'], [g.f ?? [], 'f']]) for (let i = 0; i + 4 < list.length; i += 5) rects.push({ x: list[i], y: list[i + 1], w: list[i + 2], d: list[i + 3], ang: list[i + 4], kind });
+  for (const [list, kind] of [[g.b ?? [], 'b'], [g.f ?? [], 'f'], [g.o ?? [], 'o']]) for (let i = 0; i + 4 < list.length; i += 5) rects.push({ x: list[i], y: list[i + 1], w: list[i + 2], d: list[i + 3], ang: list[i + 4], kind });
   const pairs = (flat) => { const out = []; for (let i = 0; i + 1 < flat.length; i += 2) out.push([flat[i], flat[i + 1]]); return out; };
   const walls = (g.walls ?? []).map((w) => ({ pts: pairs(w.pts), hw: w.hw }));
   const water = (g.water ?? []).map((w) => ({ pts: pairs(w.pts), hw: w.hw, closed: w.closed }));
@@ -960,12 +993,29 @@ export function rasterGround(surface, W, H, win, cols, rows, seed = 0) {
   const Wl = walls.filter(lineNear), Wa = water.filter(lineNear), Ro = roads.filter(lineNear);
   const rand = rng(seed);
   const out = [];
+  const doors = pairs(g.doors ?? []);
+  // Taille d'une case en unités de plan : un mur plus fin qu'une case (cloison) en occupe quand même une, et un petit
+  // meuble compte s'il couvre une partie de la case (centre ou quarts), pas seulement son centre.
+  const cw = (x1 - x0) / cols, ch = (y1 - y0) / rows;
+  const samples = (x, y) => [[x, y], [x - cw / 4, y - ch / 4], [x + cw / 4, y - ch / 4], [x - cw / 4, y + ch / 4], [x + cw / 4, y + ch / 4]];
+  // Murs : on suit chaque tronçon à petits pas et on bloque les cases traversées (un mur fin occupe une case, coins
+  // compris) ; puis chaque ouverture rouvre la case où elle tombe.
+  const cellOf = (x, y) => { const c = Math.floor((x - x0) / cw), r = Math.floor((y - y0) / ch); return c >= 0 && r >= 0 && c < cols && r < rows ? r * cols + c : -1; };
+  const wallCells = new Set(), doorCells = new Set();
+  for (const w of Wl) for (let i = 0; i < w.pts.length - 1; i++) {
+    const [ax, ay] = w.pts[i], [bx, by] = w.pts[i + 1];
+    const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / (Math.min(cw, ch) * 0.25)));
+    for (let k = 0; k <= n; k++) { const ci = cellOf(ax + ((bx - ax) * k) / n, ay + ((by - ay) * k) / n); if (ci >= 0) wallCells.add(ci); }
+  }
+  for (const [dx, dy] of doors) { const ci = cellOf(dx, dy); if (ci >= 0) doorCells.add(ci); }
   for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
     const x = x0 + ((c + 0.5) / cols) * (x1 - x0), y = y0 + ((r + 0.5) / rows) * (y1 - y0);
     const jitter = rand();
-    const b = R.find((q) => inRect(x, y, q));
+    const b = R.find((q) => q.kind !== 'o' && inRect(x, y, q));
     if (b && b.kind === 'b') { out.push('#'); continue; }
-    if (Wl.some((w) => lineDist(x, y, w.pts) <= w.hw)) { out.push('#'); continue; }
+    const idx = r * cols + c;
+    if (!doorCells.has(idx) && (wallCells.has(idx) || Wl.some((w) => lineDist(x, y, w.pts) <= w.hw))) { out.push('#'); continue; }
+    if (R.some((q) => q.kind === 'o' && samples(x, y).some(([sx, sy]) => inRect(sx, sy, q)))) { out.push('I'); continue; }
     const wet = Wa.some((w) => (w.closed ? insidePoly(x, y, w.pts) : lineDist(x, y, w.pts) <= w.hw));
     const road = Ro.some((w) => lineDist(x, y, w.pts) <= w.hw);
     if (wet) { out.push(road ? '=' : '~'); continue; }
@@ -974,7 +1024,7 @@ export function rasterGround(surface, W, H, win, cols, rows, seed = 0) {
     if (T.some(([tx, ty, tr]) => Math.hypot(tx - x, ty - y) <= tr * 0.6)) { out.push('I'); continue; }
     if (T.some(([tx, ty, tr]) => Math.hypot(tx - x, ty - y) <= tr)) { out.push(','); continue; }
     if (forests.some((p) => insidePoly(x, y, p))) { out.push(jitter < 0.2 ? 'I' : jitter < 0.55 ? ',' : '.'); continue; }
-    if (b && b.kind === 'f') { out.push(','); continue; }
+    if ((b && b.kind === 'f') || R.some((q) => q.kind === 'f' && samples(x, y).some(([sx, sy]) => inRect(sx, sy, q)))) { out.push(','); continue; }
     out.push('.');
   }
   return out.join('');

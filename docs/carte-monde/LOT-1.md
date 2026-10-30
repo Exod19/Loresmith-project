@@ -1,4 +1,4 @@
-# Carte du monde : lot 1 (statut : à valider)
+# Carte du monde : lot 1 (statut : validé)
 
 ## Ce que fait le lot
 

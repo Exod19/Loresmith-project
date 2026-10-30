@@ -67,9 +67,13 @@ export interface AtlasMap {
 /** Sol d'un plan de surface (voir src/maps/world/generate.js) ; rectangles et tracés en unités de plan. */
 export interface MapSurface {
   scale: number;
-  theme: 'cite' | 'monde';
+  theme: 'cite' | 'monde' | 'interieur';
   ground: {
     b: number[]; f: number[]; t: number[];
+    /** Obstacles intérieurs (comptoir, âtre, autel…) : rectangles comme `b`, infranchissables mais pas des murs. */
+    o?: number[];
+    /** Ouvertures (portes, passages) que la grille de combat garde ouvertes : [x, y] à plat. */
+    doors?: number[];
     walls: { pts: number[]; hw: number }[];
     water: { pts: number[]; hw: number; closed?: boolean }[];
     roads: { pts: number[]; hw: number }[];
@@ -82,7 +86,9 @@ export interface MapDecor {
   kind: 'face' | 'eye' | 'pupil' | 'fang' | 'dark' | 'stair' | 'steps' | 'building' | 'ring' | 'fountain' | 'temple' | 'dome' | 'arch' | 'pit' | 'enclosure' | 'field' | 'mushroom' | 'tower' | 'pipe' | 'basin'
     /* Plans de surface (cités et monde générés). */
     | 'plot' | 'tree' | 'river' | 'square' | 'court' | 'wall' | 'roof' | 'roof-farm' | 'roof-noble' | 'roof-civic' | 'keep' | 'bridge'
-    | 'forest' | 'lake' | 'hill' | 'town';
+    | 'forest' | 'lake' | 'hill' | 'town'
+    /* Intérieurs. */
+    | 'street' | 'floor' | 'wall-in' | 'furn' | 'bed' | 'hearth' | 'altar' | 'anvil' | 'trough' | 'stair' | 'barrel' | 'crate' | 'bars' | 'rug' | 'dais' | 'stall';
   d: string;
   /** Épaisseur du trait en unités de plan (rempart, rivière) : elle suit le zoom, contrairement aux traits fins. */
   w?: number;

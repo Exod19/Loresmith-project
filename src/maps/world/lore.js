@@ -121,7 +121,8 @@ export function npcsOf(place, people) {
     const n = norm(name);
     const theirs = norm([p.currentLocation, p.occupation, p.role, p.function, p.shortDescription, p.shortSummary, p.description, p.body, p.backstory].map(txt).join(' '));
     const here = (core.length >= 4 && theirs.includes(core)) || (n.length >= 4 && hasWord(placeText, n));
-    if (here) out.push({ id: p.id, name, role: (p.occupation || p.role || p.function || '').toString().trim() || undefined });
+    const desc = (p.shortDescription || p.shortSummary || '').toString().trim().slice(0, 300) || undefined;
+    if (here) out.push({ id: p.id, name, role: (p.occupation || p.role || p.function || '').toString().trim() || undefined, desc });
   }
   return out;
 }

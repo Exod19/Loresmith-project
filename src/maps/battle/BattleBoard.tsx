@@ -26,7 +26,7 @@ export type BoardRange = {
 
 type Props = {
   /** `surface` : plateau tiré d'une carte du monde (rues, bâtiments, champs) plutôt que d'une caverne. */
-  theme?: 'surface';
+  theme?: 'surface' | 'interieur';
   cols: number;
   rows: number;
   backdrop?: string;
@@ -110,11 +110,12 @@ function loadTile(file: string): Promise<HTMLImageElement> {
 }
 
 /** Dessine le terrain case par case dans le canevas : une texture par type, avec la couleur de base dessous. */
-async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: number, terrain: string | undefined, theme?: 'surface') {
+async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: number, terrain: string | undefined, theme?: 'surface' | 'interieur') {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   canvas.width = cols * CELL_PX; canvas.height = rows * CELL_PX;
   if (theme === 'surface') { paintSurface(ctx, cols, rows, terrain); return; }
+  if (theme === 'interieur') { paintInterior(ctx, cols, rows, terrain); return; }
   ctx.fillStyle = TILE_BASE.sol;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   if (!terrain) return;
@@ -183,6 +184,61 @@ function paintSurface(ctx: CanvasRenderingContext2D, cols: number, rows: number,
       ctx.fillStyle = '#060606'; ctx.fillRect(x, y, C, C);
     } else if (k === ':') {
       ctx.fillStyle = '#6a604c'; ctx.fillRect(x, y, C, C);
+    }
+  }
+}
+
+/** Plateau d'intérieur : dalles et planches, murs de pierre, gros meubles (comptoir, âtre) et meubles bas (tables, lits). */
+function paintInterior(ctx: CanvasRenderingContext2D, cols: number, rows: number, terrain: string | undefined) {
+  const C = CELL_PX;
+  ctx.fillStyle = '#6b5a44';
+  ctx.fillRect(0, 0, cols * C, rows * C);
+  if (!terrain) return;
+  const at = (x: number, y: number) => (x < 0 || y < 0 || x >= cols || y >= rows ? '#' : terrain[y * cols + x]);
+  // Dehors : ce qu'on atteint depuis le bord du plateau sans franchir de mur ni d'embrasure (une case libre entre
+  // deux murs qui se font face). Peint en pavés de rue ; le reste est le plancher du bâtiment.
+  const doorway = (x: number, y: number) => (at(x - 1, y) === '#' && at(x + 1, y) === '#') || (at(x, y - 1) === '#' && at(x, y + 1) === '#');
+  const outside = new Set<number>();
+  const queue: number[] = [];
+  for (let i = 0; i < terrain.length; i++) {
+    const x = i % cols, y = Math.floor(i / cols);
+    if ((x === 0 || y === 0 || x === cols - 1 || y === rows - 1) && terrain[i] !== '#') { outside.add(i); queue.push(i); }
+  }
+  while (queue.length) {
+    const i = queue.pop()!, x = i % cols, y = Math.floor(i / cols);
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy, j = ny * cols + nx;
+      if (nx < 0 || ny < 0 || nx >= cols || ny >= rows || outside.has(j) || terrain[j] === '#' || doorway(nx, ny)) continue;
+      outside.add(j); queue.push(j);
+    }
+  }
+  for (let i = 0; i < terrain.length; i++) {
+    const k = terrain[i], cx = i % cols, cy = Math.floor(i / cols), x = cx * C, y = cy * C;
+    if (outside.has(i) && k !== '#') {
+      ctx.fillStyle = '#5b5444'; ctx.fillRect(x, y, C, C);
+      ctx.fillStyle = 'rgba(40,36,28,.35)';
+      for (let n = 0; n < 3; n++) ctx.fillRect(x + ((i * 37 + n * 23) % (C - 8)), y + ((i * 17 + n * 41) % (C - 8)), 5, 3);
+      if (k === 'I') { ctx.fillStyle = '#5a3f26'; ctx.fillRect(x + 6, y + 6, C - 12, C - 12); }
+      continue;
+    }
+    if (k === '#') {
+      ctx.fillStyle = '#2d2823'; ctx.fillRect(x, y, C, C);
+      ctx.strokeStyle = 'rgba(120,110,95,.35)'; ctx.lineWidth = 2;
+      ctx.strokeRect(x + 3, y + 3, C / 2 - 4, C / 2 - 4); ctx.strokeRect(x + C / 2 + 1, y + C / 2 + 1, C / 2 - 4, C / 2 - 4);
+      continue;
+    }
+    // Sol : planches dans le sens de la longueur.
+    ctx.fillStyle = (cx + cy) % 2 ? '#6e5c45' : '#695742'; ctx.fillRect(x, y, C, C);
+    ctx.strokeStyle = 'rgba(40,30,20,.35)'; ctx.lineWidth = 1.5;
+    for (let s = 0; s < C; s += 16) { ctx.beginPath(); ctx.moveTo(x, y + s); ctx.lineTo(x + C, y + s); ctx.stroke(); }
+    if (k === 'I') {
+      ctx.fillStyle = '#5a3f26'; ctx.fillRect(x + 4, y + 4, C - 8, C - 8);
+      ctx.fillStyle = '#7a5835'; ctx.fillRect(x + 8, y + 8, C - 16, (C - 16) / 3);
+      if (at(cx + 1, cy) === 'I') ctx.fillRect(x + C - 6, y + 4, 6, C - 8);
+    } else if (k === ',') {
+      ctx.fillStyle = '#9a7a52'; ctx.fillRect(x + 6, y + 10, C - 12, C - 20);
+    } else if (k === '~') {
+      ctx.fillStyle = '#2f5c69'; ctx.fillRect(x + 6, y + 6, C - 12, C - 12);
     }
   }
 }

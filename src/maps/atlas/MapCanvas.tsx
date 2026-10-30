@@ -26,7 +26,7 @@ const PASS_W: Record<Trace, number> = { tunnel: 30, galerie: 19, boyau: 10, etro
 const FLOOR = '#1f2a29', WALL = '#030607', RIM = '#6b7a75';
 /** Plans de surface : largeur des rues en mètres selon le tracé, et décor peint sous les rues (le reste par-dessus). */
 const ROAD_M: Partial<Record<Trace, number>> = { tunnel: 7.2, galerie: 5.4, boyau: 3.4, etroit: 2.4 };
-const UNDER_ROADS = new Set(['plot', 'tree', 'river', 'forest', 'lake', 'square', 'court', 'hill']);
+const UNDER_ROADS = new Set(['plot', 'tree', 'river', 'forest', 'lake', 'square', 'court', 'hill', 'street', 'floor', 'rug', 'dais']);
 /** Vue mémorisée par carte : le retour retrouve position et échelle. */
 const saved = new Map<string, T>();
 /** Arrivées déjà appliquées (clé d'historique) : revenir en arrière ne recentre pas une seconde fois. */
@@ -518,7 +518,7 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
             <>
               {decorUnder.length > 0 && <g className="am-decor">{decorUnder.map(decorPath)}</g>}
               <g className="am-roads">
-                {shown.map((p) => {
+                {surf.theme !== 'interieur' && shown.map((p) => {
                   const w = roadW(p.tr);
                   // À l'échelle du monde, une route serait plus fine qu'un pixel : trait d'épaisseur fixe à l'écran.
                   const thin = w * t.k / px < 2.2;

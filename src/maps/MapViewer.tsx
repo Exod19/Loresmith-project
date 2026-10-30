@@ -32,7 +32,7 @@ import { onPlayerFollow, onPlayerFork, onPlayerPick, publishStage } from '../pre
 import { zoneOf, inZone, trailInZone } from './zone';
 import LiveEncounters, { type LiveBestiaryRef } from './LiveEncounters';
 import { buildRoutes, distancesTo, goalNodes, judgeTrail, nodeOf, verdictText, type TrailVerdict } from './route';
-import { isAtlasLike, useWorldSync, worldPlanId } from './world';
+import { interiorPlanId, isAtlasLike, useWorldSync, worldPlanId } from './world';
 import WorldPanel from './world/WorldPanel';
 import type { LoreEntry } from './world/lore';
 import './maps.css';
@@ -642,13 +642,71 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     }
     setPlanId(site.mapId); setSelectedId(null); setPlacing(null);
   };
-  const toWorld = () => {
+  /** Plan intérieur affiché : son bâtiment (emplacement) et la cité où il se trouve. */
+  const interiorOf = (planId: string) => {
+    const sp = data.spaces.find((x) => x.mapId === planId && x.parentSpaceId);
+    if (!sp) return null;
+    const city = data.spaces.find((x) => x.id === sp.parentSpaceId);
+    return city?.mapId ? { slotId: planId.replace(/:int$/, ''), cityPlan: city.mapId } : null;
+  };
+  const inside = rec.kind === 'monde' ? interiorOf(map.id) : null;
+  /** Remonter d'un cran : de l'intérieur à la rue, de la cité au monde. */
+  const goUp = () => {
+    if (inside) {
+      const slotF = data.features.find((f) => f.id === inside.slotId);
+      // Le groupe ressort avec la vue : il se retrouve devant le bâtiment, dans la rue.
+      if (party.at?.planId === map.id) {
+        const at = data.anchors.find((a) => a.id === `${inside.slotId}:porte`)?.at as [number, number] | undefined;
+        const place: PartyPlace = slotF ? { id: slotF.id, kind: 'feature', title: slotF.title, planId: inside.cityPlan } : { id: `${inside.slotId}:rue`, kind: 'spot', title: 'Devant le bâtiment', planId: inside.cityPlan, at };
+        setOverlay(withPartyAt(overlay, place));
+      }
+      setPlanId(inside.cityPlan); setSelectedId(slotF?.id ?? null); setPlacing(null);
+      if (slotF) setFocus({ kind: 'point', id: slotF.id, tick: Date.now() });
+      return;
+    }
     setPlanId(wid); setSelectedId(cityOfPlan?.id ?? null); setPlacing(null);
     if (cityOfPlan) setFocus({ kind: 'point', id: cityOfPlan.id, tick: Date.now() });
   };
+  /**
+   * Entrer dans un bâtiment : son intérieur est généré (toujours le même) et s'ajoute à la carte. Si le groupe est devant,
+   * il entre avec la vue : la première pièce, ce qu'on y voit et les PNJ qui s'y tiennent sont révélés aux joueurs.
+   */
+  const enterBuilding = (slotId: string) => {
+    const world = rec.world;
+    if (!world) return;
+    const ipid = interiorPlanId(slotId);
+    const slotXY = data.geometries.find((g) => g.featureId === slotId)?.coordinates as [number, number] | undefined
+      ?? data.anchors.find((a) => a.id === `${slotId}:porte`)?.at as [number, number] | undefined;
+    const here = party.at && party.at.planId === map.id ? placeCoords(data, rec, party.at) : null;
+    const partyIn = !!here && (party.at!.id === slotId || (!!slotXY && Math.hypot(here[0] - slotXY[0], here[1] - slotXY[1]) < 0.02));
+    let next = overlay;
+    if (partyIn) {
+      const bound = Object.values(world.bindings ?? {}).find((b) => b.slotId === slotId && !b.excluded);
+      const seen = [`${ipid}:entree`, `${ipid}:piece-0`, ...(bound?.npcs ?? []).map((n) => `${ipid}:pnj-${n.id}`)];
+      next = withPartyAt(next, { id: `${ipid}:entree`, kind: 'feature', title: 'Entrée', planId: ipid });
+      next = { ...next, revealed: [...new Set([...next.revealed, slotId, ...seen])] };
+    }
+    const interiors = (world.interiors ?? []).includes(slotId) ? world.interiors : [...(world.interiors ?? []), slotId];
+    onUpdate({ world: { ...world, interiors }, ...(next !== overlay ? { overlay: next } : {}), updatedAt: Date.now() });
+    setPlanId(ipid); setSelectedId(null); setPlacing(null);
+  };
+  /** Bâtiment de la cité sous un point du plan (0–1), d'après son empreinte. */
+  const buildingAt = (at: [number, number]): string | null => {
+    const b = map.surface?.theme === 'cite' ? map.surface.ground.b : null;
+    if (!b) return null;
+    const x = at[0] * map.width, y = at[1] * map.height;
+    for (let i = 0; i + 4 < b.length; i += 5) {
+      const [cx, cy, w, d, ang] = b.slice(i, i + 5);
+      const c = Math.cos(-ang), sn = Math.sin(-ang), dx = x - cx, dy = y - cy;
+      if (Math.abs(dx * c - dy * sn) <= w / 2 + 2 && Math.abs(dx * sn + dy * c) <= d / 2 + 2) return `${map.id}:b${i / 5}`;
+    }
+    return null;
+  };
   const onZoomLimit = rec.kind === 'monde' ? (dir: 'in' | 'out', at: [number, number]) => {
-    if (dir === 'out' && map.id !== wid) { toWorld(); return; }
-    if (dir !== 'in' || map.id !== wid) return;
+    if (dir === 'out' && map.id !== wid) { goUp(); return; }
+    if (dir !== 'in') return;
+    if (map.surface?.theme === 'cite') { const slot = buildingAt(at); if (slot) enterBuilding(slot); return; }
+    if (map.id !== wid) return;
     const near = data.features
       .filter((f) => f.opens)
       .map((f) => ({ f, g: data.geometries.find((g) => g.featureId === f.id && g.mapId === wid) }))
@@ -667,7 +725,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
           : <button className="maps-btn" onClick={onBack}>← Cartes</button>}
         <strong className="maps-title">{rec.title}</strong>
         {rec.kind === 'monde' && !battleOpen && map.id !== wid && (
-          <button className="maps-btn" onClick={toWorld} title="Revenir à la carte du monde (ou dézoomer au plus loin)" aria-label="Revenir à la carte du monde">↥</button>
+          <button className="maps-btn" onClick={goUp} title={inside ? 'Ressortir dans la rue (ou dézoomer au plus loin)' : 'Revenir à la carte du monde (ou dézoomer au plus loin)'} aria-label={inside ? 'Ressortir dans la rue' : 'Revenir à la carte du monde'}>↥</button>
         )}
         {atlasLike && !battleOpen && (
           <select className="maps-btn" value={planId} onChange={(e) => { setPlanId(e.target.value); setSelectedId(null); setPlacing(null); }}>
@@ -869,6 +927,11 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                   route: routeOf(feature.id), byPlayers: playerPick?.id === feature.id,
                 } : undefined}
               />
+            )}
+            {dm && side === 'lieu' && rec.kind === 'monde' && feature && /:b\d+$/.test(feature.id) && map.surface?.theme === 'cite' && (
+              <div className="maps-actions world-enter">
+                <button className="maps-btn gold" onClick={() => enterBuilding(feature.id)}>Entrer dans {feature.title}</button>
+              </div>
             )}
             {dm && side === 'lieu' && rec.kind === 'monde' && feature?.opens && (
               <div className="maps-actions world-enter">

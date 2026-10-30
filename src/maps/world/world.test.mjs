@@ -125,3 +125,34 @@ test('un lieu non découvert suit sa fiche ; un lieu découvert reste en place e
   const r4 = syncBindings({ world: { ...world, bindings: r3.bindings }, mapRecordId: 'rec', places: [], revealed });
   assert.equal(r4.bindings.forge.orphan, true);
 });
+
+test('un bâtiment a toujours le même intérieur, avec ses PNJ à leur place', async () => {
+  const { interiorPlanId } = await import('./generate.js');
+  const city = { ...CITY, at: [0.5, 0.5] };
+  const slots = citySlots(city, cityPlanId('rec', CITY.id));
+  const tav = slots.find((s) => s.type === 'taverne');
+  const binding = { entryId: 'chope', cityId: CITY.id, slotId: tav.id, type: 'taverne', title: 'La Chope Cassée', hint: 'taverne|',
+    npcs: [{ id: 'margot', name: 'Margot', role: 'tenancière' }, { id: 'brute', name: 'Brute', role: 'videur' }] };
+  const world = { seed: 2, name: 'Monde', cities: [city], bindings: { chope: binding }, interiors: [tav.id] };
+  const a = generateWorld(world, 'rec'), b = generateWorld(world, 'rec');
+  const pid = interiorPlanId(tav.id);
+  const plan = (d) => d.maps.find((m) => m.id === pid);
+  assert.ok(plan(a), 'le plan intérieur existe');
+  assert.equal(JSON.stringify(plan(a)), JSON.stringify(plan(b)));
+  assert.equal(plan(a).title, 'La Chope Cassée · intérieur');
+  const at = (id) => a.geometries.find((g) => g.featureId === id).coordinates;
+  const counter = a.features.find((f) => f.id.startsWith(`${pid}:objet`) && f.title === 'Comptoir');
+  const margot = at(`${pid}:pnj-margot`), brute = at(`${pid}:pnj-brute`), door = at(`${pid}:entree`);
+  const d = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1]);
+  assert.ok(d(margot, at(counter.id)) < d(brute, at(counter.id)), 'la tenancière est au comptoir');
+  assert.ok(d(brute, door) < d(margot, door), 'le videur est à la porte');
+  // La porte relie l'intérieur à la rue.
+  assert.ok(a.connections.some((c) => c.fromAnchorId === `${tav.id}:porte` && c.toAnchorId === `${pid}:sortie`));
+  // Plateau de combat : murs fermés, porte ouverte.
+  const m = plan(a), cols = 24, rows = 16, w = (cols * 1.524) / (m.surface.scale * m.width);
+  const win = { x0: 0.5 - w / 2, y0: 0.47 - (w * (m.width / m.height) * (rows / cols)) / 2, w, h: w * (m.width / m.height) * (rows / cols) };
+  const grid = rasterGround(m.surface, m.width, m.height, win, cols, rows, 1);
+  const lines = Array.from({ length: rows }, (_, r) => grid.slice(r * cols, r * cols + cols)).filter((l) => l.includes('#'));
+  const front = lines[lines.length - 1];
+  assert.match(front, /#+\.+#+/, `façade avec une porte : ${front}`);
+});

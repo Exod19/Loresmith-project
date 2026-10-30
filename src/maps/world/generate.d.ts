@@ -24,7 +24,7 @@ export interface CitySpec {
 /** Un lieu du lore posé sur un emplacement d'une cité. */
 export interface Binding {
   entryId: string; cityId: string; slotId: string; type: SlotType; district?: District | null;
-  title: string; summary?: string; npcs?: { id: string; name: string; role?: string }[];
+  title: string; summary?: string; npcs?: { id: string; name: string; role?: string; desc?: string }[];
   /** Type et quartier demandés par la fiche lors de l'assignation (une fiche modifiée peut déplacer un lieu non découvert). */
   hint: string;
   /** Contradiction signalée au MJ : la fiche demande un autre quartier, mais le lieu est déjà découvert. */
@@ -35,9 +35,11 @@ export interface Binding {
   excluded?: boolean;
 }
 
-export interface WorldSpec { seed: number; name: string; cities: CitySpec[]; bindings: Record<string, Binding> }
+/** `interiors` : bâtiments où l'on est entré (identifiants d'emplacement) ; chacun a son plan intérieur. */
+export interface WorldSpec { seed: number; name: string; cities: CitySpec[]; bindings: Record<string, Binding>; interiors?: string[] }
 
-export interface Slot { id: string; type: SlotType; district: District; at: [number, number]; x: number; y: number }
+/** Emplacement : position (0–1 et mètres), empreinte (mètres), orientation et façade (où donne la porte). */
+export interface Slot { id: string; type: SlotType; label?: string; district: District; at: [number, number]; x: number; y: number; w: number; d: number; ang: number; face: number }
 
 /** Sol d'un plan de surface : voir MapSurface (atlas/types.ts). */
 export type Surface = MapSurface;
@@ -59,4 +61,5 @@ export function cityPlanId(mapRecordId: string, cityId: string): string;
 export function placeCity(world: Pick<WorldSpec, 'seed' | 'cities'>, cityId: string): [number, number];
 export function generateWorld(world: WorldSpec, mapRecordId: string): AtlasData;
 export function citySlots(spec: CitySpec, planId: string): Slot[];
+export function interiorPlanId(slotId: string): string;
 export function rasterGround(surface: Surface, W: number, H: number, win: { x0: number; y0: number; w: number; h: number }, cols: number, rows: number, seed?: number): string;

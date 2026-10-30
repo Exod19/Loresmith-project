@@ -197,7 +197,7 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
     }
     : undefined;
   return {
-    mode: 'battle', title: local?.place ?? rec.title, backdrop: rec.image, theme: local?.surface ? 'surface' : undefined, cols: b.cols, rows: b.rows,
+    mode: 'battle', title: local?.place ?? rec.title, backdrop: rec.image, theme: local?.surface === 'interieur' ? 'interieur' : local?.surface ? 'surface' : undefined, cols: b.cols, rows: b.rows,
     feetPerCell: b.feetPerCell, round: b.round, tokens, terrain, elements, turn, fog, exits: exits.length ? exits : undefined,
     // Trait d'attaque : seulement si les joueurs voient l'attaquant et la cible.
     aim: b.aim && tokens.some((t) => t.id === b.aim!.from) && tokens.some((t) => t.id === b.aim!.to)

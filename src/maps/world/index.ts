@@ -4,12 +4,12 @@
  * identique d'une fois à l'autre, puis traité comme l'Atlas des profondeurs par le reste de l'application.
  */
 import { useEffect, useRef } from 'react';
-import { cityPlanId, generateWorld, hashSeed, placeCity, worldPlanId, type CitySpec, type WorldSpec } from './generate';
+import { cityPlanId, generateWorld, hashSeed, interiorPlanId, placeCity, worldPlanId, type CitySpec, type WorldSpec } from './generate';
 import { citySpecFromEntry, isSettlement, syncBindings, type LoreEntry } from './lore';
 import type { AtlasData } from '../atlas/types';
 import type { MapRecord } from '../mapStore';
 
-export { cityPlanId, worldPlanId };
+export { cityPlanId, interiorPlanId, worldPlanId };
 export type World = NonNullable<MapRecord['world']>;
 
 /** L'Atlas et la carte du monde partagent la même mécanique (lieux à révéler, chemins, brouillard, combat). */

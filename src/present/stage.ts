@@ -44,7 +44,7 @@ export type PlayerBoard =
     alert?: HaltAlert;
     /** Bifurcation en chemin : un passage à côté du sentier, à prendre ou non (les joueurs répondent depuis leur écran). */
     fork?: { key: string; line: string; out: string; on: string } }
-  | { mode: 'battle'; title: string; backdrop?: string; theme?: 'surface'; cols: number; rows: number; feetPerCell: number; round: number; tokens: PlayerToken[]; terrain?: string; elements: PlayerElement[]; turn?: PlayerTurn;
+  | { mode: 'battle'; title: string; backdrop?: string; theme?: 'surface' | 'interieur'; cols: number; rows: number; feetPerCell: number; round: number; tokens: PlayerToken[]; terrain?: string; elements: PlayerElement[]; turn?: PlayerTurn;
     /** Brouillard de guerre : cases vues par les héros, et déjà explorées. Absent = tout le plateau est visible. */
     fog?: { visible: number[]; explored: number[] };
     /** Sorties au bord du plateau, avec leur destination si les héros la connaissent. */
