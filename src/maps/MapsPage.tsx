@@ -3,8 +3,9 @@
  * (et le synchroniser avec les Archives), ouvrir une carte dans la visionneuse.
  */
 import BanquePanel from '../banque/BanquePanel';
-import { npcImage } from '../banque';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { npcImage, setUniverseBank, type BankImage } from '../banque';
+import { fileToCompressed } from '../media/images';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Hero } from './battle/CombatPanel';
 import { clearMapIntent, peekMapIntent } from './intent';
 import type { CombatSlot } from './battle/BattleMode';
@@ -42,7 +43,35 @@ type Props = {
   library?: LoreEntry[];
   /** Ouvre une fiche de la bibliothèque (repère lié à un lieu). */
   onOpenEntry?: (entryId: string) => void;
+  /** Images que les MJ ont ajoutées à la Banque Loresmith de cet univers (assets « banque »). */
+  bankAssets?: BankAsset[];
 };
+type BankAsset = { id: string; name?: string; dataUrl: string; campaignId?: string; createdBy?: string; banque?: Partial<BankImage> };
+
+/** Mesures d'une image ajoutée : proportions, couleur moyenne, et silhouette 8 × 8 (toits en L, en T, en U…). */
+function measure(src: string): Promise<{ ratio: number; couleur: string; masque: string }> {
+  return new Promise((resolve) => {
+    const im = new Image();
+    im.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = c.height = 8;
+      const g = c.getContext('2d');
+      if (!g) { resolve({ ratio: im.width / im.height, couleur: '#888888', masque: '' }); return; }
+      g.drawImage(im, 0, 0, 8, 8);
+      const d = g.getImageData(0, 0, 8, 8).data;
+      let r = 0, gg = 0, b = 0, n = 0, masque = '';
+      for (let i = 0; i < 64; i++) {
+        const a = d[i * 4 + 3];
+        masque += a > 110 ? '1' : '0';
+        if (a > 128) { r += d[i * 4]; gg += d[i * 4 + 1]; b += d[i * 4 + 2]; n++; }
+      }
+      const hex = (v: number) => Math.round(v / Math.max(1, n)).toString(16).padStart(2, '0');
+      resolve({ ratio: Math.round((im.width / im.height) * 1000) / 1000, couleur: `#${hex(r)}${hex(gg)}${hex(b)}`, masque });
+    };
+    im.onerror = () => resolve({ ratio: 1, couleur: '#888888', masque: '' });
+    im.src = src;
+  });
+}
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 /** Identifiants des lieux connus au dernier passage : c'est ce qui permet de compter les ajouts et retraits. */
@@ -57,12 +86,33 @@ function readKnown(): Set<string> | null {
   }
 }
 
-export default function MapsPage({ universe, maps, dispatch, flash, heroes = [], campaigns = [], bestiary = [], onReturnToTable, renderCombat, artOf, onOpenEntry, library = [] }: Props) {
+export default function MapsPage({ universe, maps, dispatch, flash, heroes = [], campaigns = [], bestiary = [], onReturnToTable, renderCombat, artOf, onOpenEntry, library = [], bankAssets = [] }: Props) {
   // La Table de jeu peut demander d'ouvrir une carte précise (et d'y lancer le combat).
   const [intent] = useState(peekMapIntent);
   useEffect(() => { clearMapIntent(); }, []);
   const [openId, setOpenId] = useState<string | null>(intent?.mapId ?? null);
   const [bankOpen, setBankOpen] = useState(false);
+  // Images propres à cet univers (et à la campagne en cours) : la banque y puise comme dans le catalogue commun.
+  const activeCampaign = universe?.activeCampaignId;
+  const ownBank = useMemo(() => bankAssets.filter((a) => a.dataUrl && (!a.campaignId || a.campaignId === activeCampaign)).map((a): BankImage => ({
+    nom: a.name ?? 'Image', type: 'element', vue: 'zenith', ratio: 1, couleur: '#888888', milieux: [], climats: [], saisons: [], region: ['surface'],
+    ...a.banque, id: `u-${a.id}`, assetId: a.id, src: a.dataUrl, campaignId: a.campaignId, mips: [1024],
+  })), [bankAssets, activeCampaign]);
+  useEffect(() => { setUniverseBank(ownBank); }, [ownBank]);
+  const uploadBank = async (file: File, kind: 'portrait' | 'jeton' | 'element' | 'texture', scope: 'univers' | 'campagne') => {
+    const dataUrl = await fileToCompressed(file, { max: 1024 }) as string;
+    const m = await measure(dataUrl);
+    const nom = file.name.replace(/\.[a-z0-9]+$/i, '').replace(/[-_]+/g, ' ').trim() || 'Image';
+    const base = kind === 'texture' ? { type: 'texture', vue: 'tuile', cat: 'sol', taille: 4 }
+      : kind === 'element' ? { type: 'element', vue: 'zenith', cat: 'divers', taille: [2, 2], usage: [] }
+        : { type: 'personnage', vue: kind, peuple: '', roles: [] };
+    const banque = { nom, ...base, milieux: [], climats: [], saisons: [], region: ['surface'], ratio: m.ratio, couleur: m.couleur, ...(kind === 'element' ? { masque: m.masque } : {}) } as Partial<BankImage>;
+    dispatch({ type: 'ADD_ASSET', asset: {
+      id: `banque-${uid()}`, name: nom, category: 'banque', targetType: 'banque', targetId: universe?.id, dataUrl, source: 'upload', prompt: '', createdAt: Date.now(),
+      universeId: universe?.id, ...(scope === 'campagne' && activeCampaign ? { campaignId: activeCampaign } : {}), banque,
+    } });
+    flash(`Image ajoutée à la banque${scope === 'campagne' ? ' de la campagne' : ' de l’univers'} : complète ses étiquettes.`);
+  };
   /** Image de la Banque Loresmith attribuée à une fiche : un « asset » comme une image téléversée (rien n'est écrasé, la plus récente l'emporte). */
   const assignImage = (targetType: 'library' | 'npc', targetId: string, src: string, name: string) => dispatch({
     type: 'ADD_ASSET',
@@ -227,7 +277,10 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
       ...bestiary.filter((n) => !n.isMonster).map((n) => ({ id: n.id, title: n.name, targetType: 'npc' as const })),
     ].sort((a, b) => a.title.localeCompare(b.title, 'fr'));
     return (
-      <BanquePanel onBack={() => setBankOpen(false)} fiches={fiches}
+      <BanquePanel onBack={() => setBankOpen(false)} fiches={fiches} onUpload={uploadBank}
+        campaignTitle={campaigns.find((c) => c.id === activeCampaign)?.title}
+        onEditOwn={(id, patch) => { const a = bankAssets.find((x) => x.id === id); if (a) dispatch({ type: 'UPDATE_ASSET', id, patch: { banque: { ...a.banque, ...patch }, ...(patch.nom ? { name: patch.nom } : {}) } }); }}
+        onDeleteOwn={(id) => dispatch({ type: 'DELETE_ASSET', id })}
         onAssign={(f, img, src) => { assignImage(f.targetType, f.id, src, `Banque Loresmith · ${img.nom}`); flash(`Image attribuée : ${f.title}`); }} />
     );
   }

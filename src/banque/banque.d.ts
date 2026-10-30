@@ -12,6 +12,8 @@ export interface BankImage {
   devine?: boolean; exclu?: boolean;
   /** Toits : silhouette 8 × 8 (lignes de 0 et de 1). */
   masque?: string;
+  /** Image ajoutée par un MJ à son univers : son adresse (une seule version), son asset et sa campagne éventuelle. */
+  src?: string; assetId?: string; campaignId?: string;
 }
 export interface Peoples { main: string[]; others: string[]; banned: string[]; hostile: boolean }
 export const PEUPLES: Record<string, RegExp>;

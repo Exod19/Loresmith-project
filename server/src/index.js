@@ -16,6 +16,7 @@ import { log } from './log.js';
 import { backupNow } from './backup.js';
 import { mountAccount, termsAccepted, termsGuard } from './account.js';
 import { mountBanque } from './banque.js';
+import { isAdminEmail } from './admins.js';
 
 const app = new Hono();
 
@@ -56,6 +57,8 @@ app.use('/api/*', async (c, next) => {
   c.set('termsAccepted', await termsAccepted(db, session.user.id));
   c.set('actor', {
     id: session.user.id,
+    // Administrateur de l'application (cf. admins.js) : seul à changer ce qui vaut pour tous.
+    admin: isAdminEmail(c.env, session.user.email),
     universes: Object.fromEntries(u.results.map((r) => [r.universe_id, r.role])),
     campaigns: Object.fromEntries(k.results.map((r) => [r.campaign_id, r.role])),
   });

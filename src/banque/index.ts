@@ -19,6 +19,10 @@ const readJson = <T,>(key: string, fallback: T): T => { try { return JSON.parse(
 const writeJson = (key: string, v: unknown) => { try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* stockage indisponible : valable pour la session */ } };
 
 let shared: Overrides = readJson(SHARED_KEY, {});
+/** Images que le MJ a ajoutées à son univers (ou à sa campagne en cours) : elles s'ajoutent au catalogue ici. */
+let own: BankImage[] = [];
+/** Compte administrateur de l'application (seul à retoucher les images communes) : su après la première synchronisation. */
+let admin = false;
 let pending: Record<string, Partial<BankImage> | null> = readJson(PENDING_KEY, {});
 let overrides: Overrides = {};
 let images: BankImage[] = RAW;
@@ -29,7 +33,7 @@ function recompute() {
   for (const [id, p] of Object.entries(pending)) {
     if (p === null) delete overrides[id]; else overrides[id] = { ...overrides[id], ...p };
   }
-  images = withOverrides(RAW, overrides);
+  images = [...withOverrides(RAW, overrides), ...own];
   listeners.forEach((f) => f());
 }
 recompute();
@@ -39,6 +43,14 @@ export const bankImages = () => images;
 export const overridesOf = () => overrides;
 /** Retouches pas encore partagées (compte non connecté, serveur injoignable). */
 export const pendingCount = () => Object.keys(pending).length;
+export const bankAdmin = () => admin;
+
+/** Images propres à l'univers ouvert (Cartes) : remplacent celles de l'univers précédent. */
+export function setUniverseBank(list: BankImage[]) {
+  if (list.length === own.length && list.every((x, i) => x === own[i])) return;
+  own = list;
+  recompute();
+}
 
 /** Envoie les retouches en attente puis relit les retouches partagées (sans compte : rien ne change, tout reste ici). */
 let running: Promise<'partage' | 'local'> | null = null;
@@ -49,9 +61,12 @@ export function syncBank(): Promise<'partage' | 'local'> {
 }
 async function syncOnce(): Promise<'partage' | 'local'> {
   try {
-    const { bankRetouches, putBankRetouche } = await import('../sync/client');
+    const { bankRetouches, currentAccount, putBankRetouche } = await import('../sync/client');
+    const me = await currentAccount().catch(() => null) as { admin?: boolean } | null;
+    admin = !!me && typeof me === 'object' && me.admin === true;
     for (const [id, p] of Object.entries(pending)) {
-      await putBankRetouche(id, p);
+      // Un compte qui n'est pas administrateur ne change pas les images communes : sa retouche est abandonnée.
+      if (admin) await putBankRetouche(id, p);
       const { [id]: _sent, ...rest } = pending; // eslint-disable-line @typescript-eslint/no-unused-vars
       pending = rest;
       writeJson(PENDING_KEY, pending);
@@ -69,8 +84,9 @@ async function syncOnce(): Promise<'partage' | 'local'> {
   }
 }
 
-/** Retoucher les étiquettes d'une image (pour toute l'application) ; `null` : revenir au catalogue. */
+/** Retoucher les étiquettes d'une image commune (administrateur seulement) ; `null` : revenir au catalogue. */
 export function setOverride(id: string, patch: Partial<BankImage> | null): Promise<'partage' | 'local'> {
+  if (!admin) return Promise.resolve('local');
   pending = { ...pending, [id]: patch === null ? null : { ...(pending[id] ?? {}), ...patch } };
   writeJson(PENDING_KEY, pending);
   recompute();
@@ -89,13 +105,14 @@ export function useBank(): BankImage[] {
 const BASE = (import.meta.env?.BASE_URL as string | undefined) ?? '/';
 /** Adresse de la version d'une image assez nette pour `px` pixels à l'écran (écrans haute densité compris). */
 export function bankSrc(img: BankImage, px = 256): string {
+  if (img.src) return img.src; // image ajoutée par le MJ : une seule version
   const dpr = typeof window !== 'undefined' ? Math.min(2, window.devicePixelRatio || 1) : 1;
   return bankUrl(img, mipFor(img, px, dpr), BASE);
 }
 export const bankById = (id: string | undefined | null) => (id ? images.find((i) => i.id === id) ?? null : null);
 
 /** Une adresse d'image vient-elle de la banque ? (jetons : on les dessine entiers et orientés, sans médaillon). */
-export const isBankSrc = (src: string | undefined) => !!src && src.includes('/banque/personnages/') && src.endsWith('.webp');
+export const isBankSrc = (src: string | undefined) => !!src && ((src.includes('/banque/personnages/') && src.endsWith('.webp')) || own.some((i) => i.vue === 'jeton' && i.src === src));
 
 /**
  * Image d'un PNJ (portrait ou jeton), cohérente avec le lieu : `role` (sous-titre du PNJ), `place` (fiche de la cité ou
