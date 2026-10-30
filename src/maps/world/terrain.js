@@ -231,11 +231,27 @@ function groundColor(t, tint, snowLine) {
 /**
  * Pixels du relief (RGBA, `w` × `h`) sur les bornes du monde. Calcul pur : le navigateur en fait une image.
  */
-export function renderRelief(relief, w, h) {
-  const [x0, y0, x1, y1] = relief.bounds;
+export function renderRelief(relief, w, h, win) {
+  // `win` (km) : une fenêtre du monde, rendue plus finement quand on zoome.
+  const [x0, y0, x1, y1] = win ?? relief.bounds;
   const px = (x1 - x0) / w, py = (y1 - y0) / h;
   const E = new Float32Array((w + 1) * (h + 1));
   for (let j = 0; j <= h; j++) for (let i = 0; i <= w; i++) E[j * (w + 1) + i] = elevationAt(relief, x0 + i * px, y0 + j * py);
+  // Zoom avant : un micro-relief pour l'ombrage seulement (le terrain du jeu, lui, ne change pas). Plus marqué en montagne.
+  const fine = [fieldsOf(relief).minW / 2, fieldsOf(relief).minW / 4, fieldsOf(relief).minW / 8].filter((wl) => wl >= px * 2.5);
+  if (win && fine.length) {
+    const ns = fine.map((wl) => [wl, smoothNoise(hash(`${relief.seed}:fin:${wl.toFixed(3)}`), wl)]);
+    for (let j = 0; j <= h; j++) for (let i = 0; i <= w; i++) {
+      const k = j * (w + 1) + i, e = E[k];
+      if (e < 0) continue;
+      // Coordonnées tournées : pas d'alignement sur la grille du bruit.
+      const x = x0 + i * px, y = y0 + j * py, rx = x * 0.8 + y * 0.6, ry = y * 0.8 - x * 0.6;
+      const m = smooth(600, 2200, e), rough = 0.025 + m * 0.25;
+      let d = 0;
+      for (const [wl, n] of ns) { const v = n(rx, ry); d += (m > 0.3 ? ridge(v) - 0.5 : v - 0.5) * wl * 1000 * rough; }
+      E[k] = e + d;
+    }
+  }
   const out = new Uint8ClampedArray(w * h * 4);
   const F = fieldsOf(relief);
   const tint = SEASON_TINT[relief.season] ?? {};
@@ -389,8 +405,8 @@ export function travelGrid(relief, lakes = [], mode = 'terre') {
   const inLake = (x, y) => lakes.some((p) => { let ins = false; for (let a = 0, b = p.length - 1; a < p.length; b = a++) { const [xa, ya] = p[a], [xb, yb] = p[b]; if ((ya > y) !== (yb > y) && x < ((xb - xa) * (y - ya)) / (yb - ya) + xa) ins = !ins; } return ins; });
   for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
     const k = j * cols + i, e = E[k];
-    // En mer : l'eau seulement (un navire longe les côtes sans les toucher).
-    if (mode === 'mer') { cost[k] = e < -15 ? 1 : e < 0 ? 1.6 : Infinity; continue; }
+        // Les navires longent volontiers les côtes et les îles (eaux moyennes), sans raser les hauts-fonds ; la haute mer coûte un peu plus.
+    if (mode === 'mer') { cost[k] = e < -500 ? 1.35 : e < -15 ? 1 : e < 0 ? 1.4 : Infinity; continue; }
     if (e < 0) { cost[k] = Infinity; continue; }
     const dx = (E[j * cols + Math.min(cols - 1, i + 1)] - E[j * cols + Math.max(0, i - 1)]) / (2 * g * 1000);
     const dy = (E[Math.min(rows - 1, j + 1) * cols + i] - E[Math.max(0, j - 1) * cols + i]) / (2 * g * 1000);

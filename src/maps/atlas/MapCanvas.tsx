@@ -4,7 +4,7 @@
  * anticollision des étiquettes, mini-carte, arrivée centrée sur une ancre.
  * Coordonnées normalisées 0–1 et viewBox fixe : un redimensionnement ne déplace jamais les points.
  */
-import { useReliefImage } from '../world/reliefImage';
+import { useReliefDetail, useReliefImage } from '../world/reliefImage';
 import type { Relief } from '../world/terrain';
 import { CityEmblem, paintedEmblem, peopleOf } from './emblems';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent } from 'react';
@@ -499,6 +499,9 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   /** Plan de surface : rues dessinées à leur largeur réelle (en mètres), sinon d'un trait fin à l'échelle du monde. */
   const surf = map.surface;
   const reliefUrl = useReliefImage(surf?.relief as Relief | undefined, W, H);
+  // Zoom avant sur un monde à l'échelle : la partie visible est redessinée finement (le relief entier serait flou).
+  const reliefView = surf?.relief && t.k >= 1.8 ? { x: -t.tx / t.k, y: -t.ty / t.k, w: W / t.k, h: H / t.k } : null;
+  const reliefDetail = useReliefDetail(surf?.relief as Relief | undefined, W, H, reliefView);
   const roadW = (tr: Trace) => (surf ? (ROAD_M[tr] ?? 3) / surf.scale : 0);
   const decorUnder = surf && map.decor ? map.decor.filter((x) => UNDER_ROADS.has(x.kind)) : [];
   const decorOver = map.decor ? (surf ? map.decor.filter((x) => !UNDER_ROADS.has(x.kind)) : map.decor) : [];
@@ -523,6 +526,7 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
           {surf ? (
             <>
               {surf.relief && reliefUrl && <image href={reliefUrl} x={0} y={0} width={W} height={H} preserveAspectRatio="none" className="am-relief" />}
+              {reliefDetail && <image href={reliefDetail.url} x={reliefDetail.x} y={reliefDetail.y} width={reliefDetail.w} height={reliefDetail.h} preserveAspectRatio="none" className="am-relief" />}
               {decorUnder.length > 0 && <g className="am-decor">{decorUnder.map(decorPath)}</g>}
               <g className="am-roads">
                 {surf.theme !== 'interieur' && shown.map((p) => {

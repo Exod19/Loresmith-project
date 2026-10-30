@@ -1199,7 +1199,7 @@ export function generateWorld(world, mapRecordId) {
   // que le MJ ne l'a ni défini, ni renommé, ni gardé (mode Exploration). Les cités, les rues et le lore sont canon.
   const canonSet = new Set(world.canon ?? []);
   const boundSlots = new Set(Object.values(world.bindings ?? {}).filter((b) => b && !b.excluded).map((b) => b.slotId));
-  const DRAFTABLE = /(:b\d+|:pnj-gen-\d+|:hameau(-\d+)?|:foret-[\w-]+|:riviere-[\w-]+|:lac(-[\w-]+)?|:monts-[\w-]+|:mer-[\w-]+)$/;
+  const DRAFTABLE = /(:escale-\d+|:b\d+|:pnj-gen-\d+|:hameau(-\d+)?|:foret-[\w-]+|:riviere-[\w-]+|:lac(-[\w-]+)?|:monts-[\w-]+|:mer-[\w-]+)$/;
   for (let i = 0; i < features.length; i++) {
     const f = features[i];
     if (DRAFTABLE.test(f.id) && !f.fixed && !canonSet.has(f.id) && !world.names?.[f.id] && !boundSlots.has(f.id)) features[i] = { ...f, draft: true };
@@ -1509,6 +1509,25 @@ function terrainV2(o) {
         routes.push({ a: a.c.id, b: b.c.id, km: r.km, effort: Math.round((r.km * PACE.normal * 10) / TRAVEL.navire) / 10, sea: true });
         features.push({ ...base, id, title: `Traversée de ${a.c.name} à ${b.c.name}`, subtitle: `${Math.round(r.km)} km · ${days < 1 ? `${Math.max(1, Math.round(days * 24))} h` : `${Math.round(days * 2) / 2} jour${days >= 1.75 ? 's' : ''}`} en navire`.replace('.5', ' ½'), category: 'voie', importance: 'regional', minZoom: 0, trace: 'maritime' });
         geometries.push({ id: `g-${id}`, mapId: wid, featureId: id, type: 'polyline', coordinates: r.pts.map(N) });
+        // Escales : chaque jour de mer, un mouillage sur la terre la plus proche (île ou côte), s'il y en a une à portée.
+        const er = rng(hashSeed(`escales:${seed}:${key}`));
+        let k = 0;
+        for (let t = TRAVEL.navire; t < r.km - TRAVEL.navire * 0.4; t += TRAVEL.navire) {
+          const p = along(r.pts, t);
+          let land = null;
+          for (const rr of [3, 6, 10, 15, 22, 30].map((v) => (v * S) / 400)) {
+            for (let a = 0; a < 12 && !land; a++) {
+              const q = [p.x + Math.cos((a / 12) * TAU) * rr, p.y + Math.sin((a / 12) * TAU) * rr];
+              if (inside(q) && terrainAt(relief, q[0], q[1]).e > 2) land = q;
+            }
+            if (land) break;
+          }
+          k++;
+          const nm = placeName(er);
+          // Pas de terre à portée : une nuit au large, sur la route (une étape quand même : le temps qu'il fait, une voile à l'horizon).
+          if (land) addPoint({ ...base, id: `${id}:escale-${k}`, title: `Mouillage ${deName(nm)}`, subtitle: `Escale · jour ${k} de la traversée`, category: 'eau', importance: 'local', minZoom: 0.9 }, ...N(land));
+          else addPoint({ ...base, id: `${id}:escale-${k}`, title: `Au large · jour ${k}`, subtitle: `Nuit à bord, loin des côtes · traversée de ${a.c.name} à ${b.c.name}`, category: 'eau', importance: 'local', minZoom: 0.9 }, ...N([p.x, p.y]));
+        }
       }
     }
   }

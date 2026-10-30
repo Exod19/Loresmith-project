@@ -512,3 +512,26 @@ test('qui peut parler : pas les crabes, oui les drows, par télépathie pour cer
   assert.equal(canSpeak(undefined).ok, false);
   assert.match(creatureVoice({ languages: 'gobelin', abil: [8, 14, 10, 5, 8, 8], meta: 'Humanoïde (gobelinoïde)' }), /très faible/);
 });
+
+test('escales : un mouillage par jour de mer quand la terre est à portée', async () => {
+  const T = await import('./terrain.js');
+  const seas = [{ id: '1', x: 0, y: 330, r: 190, side: 'S', ax: 2.4 }];
+  const base = { seed: 42, name: 'T', terrain: 2, scale: 'royaume', bindings: {}, seas, bounds: [-250, -175, 250, 700], cities: [{ id: 'a', name: 'Brumeval', population: 1500, km: [0, 0] }] };
+  const f = T.worldFrame(base);
+  const rel = T.reliefOf(base, f, [{ km: [0, 0] }]);
+  const p1 = T.placeOn(rel, f, [[0, 0]], { id: 'p1', population: 3000, port: true }, [], 42);
+  // Un port sur l'autre rive, loin : la traversée dure plusieurs jours.
+  let p2 = null;
+  for (let x = -200; x <= 200 && !p2; x += 10) for (let y = 520; y > 380 && !p2; y -= 2) if (T.elevationAt(rel, x, y) > 6 && T.elevationAt(rel, x, y - 4) < 0) p2 = [x, y];
+  assert.ok(p2, 'une côte sur l’autre rive');
+  const w = { ...base, cities: [...base.cities, { id: 'p1', name: 'Havre', population: 3000, km: p1.km, port: true }, { id: 'p2', name: 'Outremer', population: 1200, km: p2, port: true }] };
+  const d = generateWorld(w, 'r');
+  const sea = d.routes.find((r) => r.sea);
+  assert.ok(sea && sea.km > 120, `traversée ${sea?.km}`);
+  const stops = d.features.filter((x) => /:escale-\d+$/.test(x.id));
+  // Une étape par jour de mer (sauf le dernier) : un mouillage si la terre est à portée, sinon une nuit au large.
+  let days = 0; for (let t = 120; t < sea.km - 48; t += 120) days++;
+  assert.equal(stops.length, days);
+  assert.ok(stops.length >= 2);
+  for (const s of stops) assert.match(`${s.title} ${s.subtitle}`, /jour \d+/);
+});

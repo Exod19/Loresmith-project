@@ -16,7 +16,7 @@ export function reliefOf(world: unknown, frame: Frame, cities: { km: [number, nu
 export function elevationAt(relief: Relief, x: number, y: number): number;
 export function terrainAt(relief: Relief, x: number, y: number, e?: number): { e: number; T: number; moist: number; biome: string; forest: number; sea: boolean; rock: boolean };
 export function slopeAt(relief: Relief, x: number, y: number, step: number): number;
-export function renderRelief(relief: Relief, w: number, h: number): Uint8ClampedArray;
+export function renderRelief(relief: Relief, w: number, h: number, win?: [number, number, number, number]): Uint8ClampedArray;
 export function seaSideAt(relief: Relief, km: [number, number], r: number): 'N' | 'S' | 'E' | 'O' | null;
 export function seaBeyond(frame: Frame, km: [number, number], id: string, side?: string): { id: string; x: number; y: number; r: number; side: string; ax: number };
 export function placeOn(relief: Relief, frame: Frame, others: [number, number][], spec: unknown, wants?: unknown[], seed?: number): { km: [number, number]; score: number } | null;
