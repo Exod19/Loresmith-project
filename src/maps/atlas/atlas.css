@@ -576,16 +576,16 @@
 .am-surface .dc-street { fill: #5b5444; }
 .am-surface .dc-floor { fill: #6b4f35; stroke: #3a2a1c; stroke-width: 1; }
 .am-surface .dc-wall-in { fill: none; stroke: #2a2520; stroke-linecap: square; stroke-linejoin: miter; }
-.am-surface .dc-furn { fill: #8a6a45; stroke: #3e2c1a; stroke-width: 1; }
+.am-surface .dc-furn, .am-surface .dc-table { fill: #8a6a45; stroke: #3e2c1a; stroke-width: 1; }
 .am-surface .dc-bed { fill: #9a8a74; stroke: #4a3c2c; stroke-width: 1; }
 .am-surface .dc-stall { fill: #7a6a46; stroke: #3e321f; stroke-width: 1; }
 .am-surface .dc-hearth { fill: #5d5650; stroke: #c26a2e; stroke-width: 1.6; }
-.am-surface .dc-altar { fill: #b5ad9c; stroke: #5b554a; stroke-width: 1.2; }
+.am-surface .dc-altar, .am-surface .dc-throne, .am-surface .dc-tomb { fill: #b5ad9c; stroke: #5b554a; stroke-width: 1.2; }
 .am-surface .dc-anvil { fill: #3c3c40; stroke: #9a9aa2; stroke-width: 1; }
 .am-surface .dc-trough { fill: #2f5c69; stroke: #6b4f35; stroke-width: 1; }
 .am-surface .dc-stair { fill: #7d6446; stroke: #3a2a1c; stroke-width: 1; }
 .am-surface .dc-barrel { fill: #7a5232; stroke: #3a2414; stroke-width: 1; }
-.am-surface .dc-crate { fill: #9a7a4a; stroke: #4a3720; stroke-width: 1; }
+.am-surface .dc-crate, .am-surface .dc-chest { fill: #9a7a4a; stroke: #4a3720; stroke-width: 1; }
 .am-surface .dc-bars { fill: #3a3a40; stroke: #8c8c96; stroke-width: 1; }
 .am-surface .dc-rug { fill: #7a3a32; stroke: #b08a4a; stroke-width: 1; }
 .am-surface .dc-dais { fill: #5e4a3a; stroke: #b08a4a; stroke-width: 1; }

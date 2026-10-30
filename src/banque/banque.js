@@ -237,3 +237,64 @@ export function roofAngle(img, w, d, ang, seed = '') {
 
 /** Angle (radians) pour qu'un personnage vu du dessus — qui regarde vers le bas de l'image — fasse face à (dx, dy). */
 export const faceAngle = (dx, dy) => (dx || dy ? Math.atan2(dy, dx) - Math.PI / 2 : 0);
+
+/* ——— Toits sur des emprises composées (L, T, U, croix…) ——— */
+
+/** Silhouette 8 × 8 d'une emprise faite de rectangles `parts` ([u0, v0, u1, v1] entre 0 et 1 dans son cadre). */
+export function maskFromParts(parts, n = 8) {
+  let out = '';
+  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
+    const u = (i + 0.5) / n, v = (j + 0.5) / n;
+    out += parts.some(([u0, v0, u1, v1]) => u >= u0 && u <= u1 && v >= v0 && v <= v1) ? '1' : '0';
+  }
+  return out;
+}
+
+/** Silhouette d'une image tournée de `rot` quarts de tour (sens horaire à l'écran) après miroir horizontal (`flip`). */
+export function turnedMask(mask, rot, flip, n = 8) {
+  const th = (rot * Math.PI) / 2, c = Math.round(Math.cos(th)), s = Math.round(Math.sin(th));
+  let out = '';
+  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
+    const x = (i + 0.5) / n - 0.5, y = (j + 0.5) / n - 0.5;
+    // Inverse du dessin (rotation après miroir) : rotation inverse, puis miroir.
+    let sx = x * c + y * s;
+    const sy = -x * s + y * c;
+    if (flip) sx = -sx;
+    const ci = Math.min(n - 1, Math.max(0, Math.floor((sx + 0.5) * n))), cj = Math.min(n - 1, Math.max(0, Math.floor((sy + 0.5) * n)));
+    out += mask[cj * n + ci];
+  }
+  return out;
+}
+
+const iou = (a, b) => { let i = 0, u = 0; for (let k = 0; k < a.length; k++) { const x = a[k] === '1', y = b[k] === '1'; if (x && y) i++; if (x || y) u++; } return u ? i / u : 0; };
+
+/**
+ * Toit qui épouse une emprise : `mask` (silhouette 8 × 8 de l'emprise), `w` × `h` (mètres, dans son cadre), climat,
+ * usage. Chaque toit est essayé dans les quatre orientations, en miroir ou non ; on garde ceux qui recouvrent l'emprise
+ * (`min` : part commune minimale) et dont les proportions vont. Renvoie { img, rot, flip, iw, ih } : l'image se dessine
+ * en iw × ih (avant rotation), tournée de rot quarts de tour, en miroir si flip ; ou null.
+ */
+export function fitRoof(images, { mask, w, h, climat, usage, seed = '', min = 0.85 } = {}) {
+  const cands = [];
+  for (const img of images) {
+    if (img.type !== 'element' || img.cat !== 'toit' || !img.masque || !fits(img, { climat })) continue;
+    const t = Array.isArray(img.taille) ? img.taille : [img.ratio ?? 1, 1];
+    const r0 = t[0] / t[1];
+    let best = null;
+    for (let rot = 0; rot < 4; rot++) for (const flip of [false, true]) {
+      const m = iou(turnedMask(img.masque, rot, flip), mask);
+      // Proportions : l'image tournée d'un quart de tour échange largeur et hauteur.
+      const r = rot % 2 ? 1 / r0 : r0;
+      const d = Math.abs(Math.log(r) - Math.log(w / h));
+      const score = m ** 6 * Math.exp(-d * 1.2) * (usage && img.usage?.includes(usage) ? 1.6 : 1);
+      if (m >= min && (!best || score > best.score)) best = { img, rot, flip, iw: rot % 2 ? h : w, ih: rot % 2 ? w : h, score };
+    }
+    if (best) cands.push(best);
+  }
+  if (!cands.length) return null;
+  const top = Math.max(...cands.map((c) => c.score));
+  const keep = cands.filter((c) => c.score >= top * 0.5);
+  let x = ((hash(seed) % 100000) / 100000) * keep.reduce((s, c) => s + c.score, 0);
+  for (const c of keep) { x -= c.score; if (x < 0) return c; }
+  return keep[keep.length - 1];
+}

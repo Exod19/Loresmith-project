@@ -659,6 +659,50 @@ export function generateCity(rawSpec, planId, bindings = {}) {
   }
   for (const s of slots) if (!s.type) s.type = s.b.district === 'haute' ? 'manoir' : s.b.district === 'ferme' ? 'ferme' : 'maison';
 
+  // ——— Ailes : à l'arrière, côté cour, certains bâtiments ont une aile (L, T) ou deux (U) ———
+  // Le corps du bâtiment (son intérieur, sa porte) ne change pas ; l'aile est une dépendance. Tirage à part : le reste
+  // de la cité reste identique d'une version à l'autre.
+  const wings = [];
+  const wingsOf = new Map();
+  const SHAPES = { manoir: [['U', 0.55], ['L', 0.3]], auberge: [['T', 0.45], ['L', 0.3]], guilde: [['T', 0.5], ['L', 0.2]], caserne: [['T', 0.4], ['L', 0.4]],
+    temple: [['T', 0.6]], atelier: [['L', 0.5]], forge: [['L', 0.4]], ecurie: [['L', 0.5]], entrepot: [['L', 0.4]], ferme: [['L', 0.4]], maison: [['L', 0.12]] };
+  const wingOk = (w, parent) => {
+    const pts = corners(w);
+    if (!pts.every(([x, y]) => inPlan(x, y, 4))) return false;
+    if (river && pts.some(([x, y]) => lineDist(x, y, river.pts) < river.hw + 3)) return false;
+    if (sea && pts.some(([x, y]) => inSea(x, y, 2))) return false;
+    if (pts.some(([x, y]) => inMarket(x, y, 1.5) || (parent.district !== 'chateau' && inCastle(x, y, 5)))) return false;
+    if (spec.walls && intra(parent.x, parent.y) && !pts.every(([x, y]) => intra(x, y, 4.5))) return false;
+    if (nearStreet(w.x, w.y, Math.min(w.w, w.d) * 0.45 + 0.4) || pts.some(([x, y]) => nearStreet(x, y, 0.6))) return false;
+    if (grid.near(w.x, w.y).some((o) => o !== parent && overlap(w, o, 0.6)) || wings.some((o) => overlap(w, o, 0.6))) return false;
+    if (fields.some((f) => overlap(w, f, 0.5)) || trees.some(([x, y, rr]) => inRect(x, y, { ...w, w: w.w + rr * 2, d: w.d + rr * 2 }))) return false;
+    return true;
+  };
+  for (const sl of slots) {
+    const b = sl.b, wr = rng(hashSeed(`ailes:${spec.seed ?? spec.name}:${sl.i}`));
+    const opts = SHAPES[sl.type] ?? [];
+    let roll = wr(), shape = null;
+    for (const [k, p] of opts) { if (roll < p) { shape = k; break; } roll -= p; }
+    if (!shape || b.w < 6 || b.d < 6) continue;
+    const c = Math.cos(b.ang), sn = Math.sin(b.ang);
+    // Côté rue : là où regarde la porte ; l'aile part de l'autre côté.
+    const fv = b.face === undefined ? 1 : Math.sign(Math.cos(b.face) * -sn + Math.sin(b.face) * c) || 1;
+    const back = -fv;
+    const ww = b.w * (shape === 'T' ? 0.34 + wr() * 0.1 : 0.36 + wr() * 0.14), ld = b.d * (0.6 + wr() * 0.45);
+    const side = wr() < 0.5 ? -1 : 1;
+    const us = shape === 'T' ? [0] : shape === 'U' ? [-1, 1].map((k) => k * (b.w / 2 - ww / 2)) : [side * (b.w / 2 - ww / 2)];
+    const made = [];
+    for (const u of us) {
+      const v = back * (b.d / 2 + ld / 2 - 0.2);
+      const w = { x: b.x + u * c - v * sn, y: b.y + u * sn + v * c, w: ww, d: ld + 0.4, ang: b.ang, district: b.district, wingOf: sl.i, u, v };
+      if (!wingOk(w, b)) { made.length = 0; break; }
+      made.push(w);
+    }
+    if (made.length !== us.length) continue;
+    wings.push(...made);
+    wingsOf.set(sl.i, made);
+  }
+
   // ——— Lieux de l'Atlas ———
   const features = [];
   const geometries = [];
@@ -757,6 +801,7 @@ export function generateCity(rawSpec, planId, bindings = {}) {
     for (let k = 0; k < 6; k++) { const a = thC + (TAU * k) / 6 + 0.3; push('tower', circlePath(...U(C.x + Math.cos(a) * C.r, C.y + Math.sin(a) * C.r), 5.5 / scale)); }
   }
   for (const s of slots) push(roofKind(s), rectPath(corners(s.b).map(([x, y]) => U(x, y))));
+  for (const w of wings) push(roofKind(slots[w.wingOf]), rectPath(corners(w).map(([x, y]) => U(x, y))));
   push('fountain', circlePath(...U(mk.x, mk.y), 2.6 / scale));
   // Ponts : là où une rue franchit la rivière.
   const bridges = [];
@@ -781,9 +826,39 @@ export function generateCity(rawSpec, planId, bindings = {}) {
     ...ORDER.slice(4).filter((k) => paths[k]).map((k) => ({ kind: k, d: paths[k].join('') })),
   ];
 
+  function marketProps() {
+    const pr = rng(hashSeed(`marche:${spec.seed ?? spec.name}`));
+    const out = [['fontaine', ...U(mk.x, mk.y), r1(5.6 / scale), r1(5.6 / scale), 0]];
+    const want = spec.village ? 3 : Math.min(12, 5 + Math.round(pop / 1500));
+    const placed = [];
+    for (let k = 0; k < want * 12 && placed.length < want; k++) {
+      const u = (pr() - 0.5) * market.w * 0.86, v = (pr() - 0.5) * market.d * 0.86;
+      const x = market.x + u * Math.cos(market.ang) - v * Math.sin(market.ang), y = market.y + u * Math.sin(market.ang) + v * Math.cos(market.ang);
+      if (Math.hypot(x - mk.x, y - mk.y) < 7 || nearStreet(x, y, 2.4) || placed.some(([px, py]) => Math.hypot(px - x, py - y) < 5)) continue;
+      placed.push([x, y]);
+      const kind = pr() < 0.6 ? 'etal' : 'auvent';
+      const [w, d] = kind === 'etal' ? [3, 3] : [4, 3];
+      out.push([kind, ...U(x, y), r1(w / scale), r1(d / scale), Math.round((market.ang + Math.floor(pr() * 4) * (Math.PI / 2)) * 1000) / 1000]);
+    }
+    return out;
+  }
   const flatRect = (b) => [r1(b.x / scale + W / 2), r1(b.y / scale + H / 2), r1(b.w / scale), r1(b.d / scale), Math.round(b.ang * 1000) / 1000];
   const ground = {
-    b: buildings.flatMap(flatRect),
+    b: [...buildings, ...wings].flatMap(flatRect),
+    // Bâtiments entiers (corps et ailes), pour les toits de la Banque Loresmith : centre, largeur, profondeur, angle
+    // de l'emprise, puis ses rectangles [u0, v0, u1, v1] entre 0 et 1 dans ce cadre.
+    bx: buildings.map((b, i) => {
+      const ws = wingsOf.get(i) ?? [];
+      const rects = [{ u: 0, v: 0, w: b.w, d: b.d }, ...ws.map((w) => ({ u: w.u, v: w.v, w: w.w, d: w.d }))];
+      const u0 = Math.min(...rects.map((r) => r.u - r.w / 2)), u1 = Math.max(...rects.map((r) => r.u + r.w / 2));
+      const v0 = Math.min(...rects.map((r) => r.v - r.d / 2)), v1 = Math.max(...rects.map((r) => r.v + r.d / 2));
+      const W = u1 - u0, D = v1 - v0, cu = (u0 + u1) / 2, cv = (v0 + v1) / 2;
+      const cx = b.x + cu * Math.cos(b.ang) - cv * Math.sin(b.ang), cy = b.y + cu * Math.sin(b.ang) + cv * Math.cos(b.ang);
+      const n3 = (x) => Math.round(x * 1000) / 1000;
+      return [...U(cx, cy), r1(W / scale), r1(D / scale), n3(b.ang), ...rects.flatMap((r) => [n3((r.u - r.w / 2 - u0) / W), n3((r.v - r.d / 2 - v0) / D), n3((r.u + r.w / 2 - u0) / W), n3((r.v + r.d / 2 - v0) / D)])];
+    }),
+    // Place du marché : la fontaine et des étals, pour la Banque Loresmith ([nature, x, y, largeur, profondeur, angle]).
+    p: marketProps(),
     f: fields.flatMap(flatRect),
     t: trees.flatMap(([x, y, rr]) => [...U(x, y), r1(rr / scale)]),
     walls: [

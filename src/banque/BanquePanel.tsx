@@ -2,8 +2,8 @@
  * Page « Banque Loresmith » (dans Cartes) : parcourir les images, retoucher leurs étiquettes (gardées dans ce
  * navigateur), en exclure une des choix automatiques, et attribuer un portrait ou un jeton à une fiche.
  */
-import { useMemo, useState } from 'react';
-import { bankSrc, overridesOf, setOverride, useBank, type BankImage } from './index';
+import { useEffect, useMemo, useState } from 'react';
+import { bankSrc, overridesOf, pendingCount, setOverride, syncBank, useBank, type BankImage } from './index';
 
 type Fiche = { id: string; title: string; targetType: 'library' | 'npc' };
 type Props = {
@@ -20,6 +20,8 @@ const size = (img: BankImage) => (Array.isArray(img.taille) ? `${img.taille[0]} 
 
 export default function BanquePanel({ onBack, fiches, onAssign }: Props) {
   const images = useBank();
+  const [mode, setMode] = useState<'partage' | 'local' | null>(null);
+  useEffect(() => { void syncBank().then(setMode); }, []);
   const [type, setType] = useState<string>('');
   const [vue, setVue] = useState<string>('');
   const [q, setQ] = useState('');
@@ -33,7 +35,7 @@ export default function BanquePanel({ onBack, fiches, onAssign }: Props) {
   const sel = images.find((i) => i.id === selId) ?? null;
   const touched = overridesOf();
 
-  const edit = (patch: Partial<BankImage>) => sel && setOverride(sel.id, patch);
+  const edit = (patch: Partial<BankImage>) => { if (sel) void setOverride(sel.id, patch).then(setMode); };
 
   return (
     <div className="maps-page banque-page">
@@ -44,6 +46,8 @@ export default function BanquePanel({ onBack, fiches, onAssign }: Props) {
           {images.length} images : personnages (portraits et jetons vus du dessus), éléments à leur taille réelle et textures de sol.
           Loresmith y puise pour les cités, les intérieurs et les combats, selon le climat, la saison et les peuples du lieu.
           Pour ajouter les nouvelles images du Drive, demande à Claude : « synchronise la banque ».
+          <br />{mode === 'partage' ? 'Tes retouches valent pour toute l’application : tous les MJ qui y ont accès les voient.'
+            : mode === 'local' ? `Sans compte connecté, tes retouches restent dans ce navigateur${pendingCount() ? ` (${pendingCount()} en attente)` : ''} ; elles seront partagées à ta prochaine connexion.` : ''}
         </p>
         <div className="maps-actions banque-filters">
           <div className="maps-seg" role="group" aria-label="Type">
@@ -93,7 +97,7 @@ export default function BanquePanel({ onBack, fiches, onAssign }: Props) {
             <label>Saisons (vide : toutes) <input className="maps-btn" key={`s-${sel.id}`} defaultValue={sel.saisons.join(', ')} onBlur={(e) => edit({ saisons: list(e.target.value) })} /></label>
             <label>Région <input className="maps-btn" key={`g-${sel.id}`} defaultValue={sel.region.join(', ')} onBlur={(e) => edit({ region: list(e.target.value) })} title="surface, outreterre, mer" /></label>
             <label className="maps-row"><input type="checkbox" checked={!!sel.exclu} onChange={(e) => edit({ exclu: e.target.checked })} /> Exclure des choix automatiques</label>
-            {touched[sel.id] && <button className="maps-btn" onClick={() => setOverride(sel.id, null)}>Rétablir les étiquettes d’origine</button>}
+            {touched[sel.id] && <button className="maps-btn" onClick={() => { void setOverride(sel.id, null).then(setMode); }}>Rétablir les étiquettes d’origine</button>}
             {sel.type === 'personnage' && (
               <div className="banque-assign">
                 <h5>Attribuer à une fiche</h5>

@@ -93,3 +93,11 @@ export function assertCan(actor, action, resource) {
     throw err;
   }
 }
+
+/**
+ * Banque Loresmith : retouches des étiquettes communes à toute l'application (pas rattachées à un univers).
+ * Tout compte connecté les lit et les modifie : le site est réservé aux MJ admis (Cloudflare Access).
+ */
+export function canBanque(actor, action) {
+  return !!actor?.id && (action === 'read' || action === 'update');
+}

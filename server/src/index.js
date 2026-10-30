@@ -15,6 +15,7 @@ import { mountPublicInvitations, mountSharing } from './sharing.js';
 import { log } from './log.js';
 import { backupNow } from './backup.js';
 import { mountAccount, termsAccepted, termsGuard } from './account.js';
+import { mountBanque } from './banque.js';
 
 const app = new Hono();
 
@@ -163,6 +164,7 @@ app.put('/api/campaigns/:id', async (c) => {
 /* ——— Synchronisation et images (lot 5) ——— */
 
 mountSync(app);
+mountBanque(app);
 
 /* ——— Partage : invitations, membres, co-MJ (lot 6) ——— */
 

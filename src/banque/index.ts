@@ -9,28 +9,76 @@ import { bankUrl, mipFor, peoplesOf, pickPerson, withOverrides, type BankImage, 
 export * from './banque';
 
 const RAW = (catalogue as { images: BankImage[] }).images;
-const KEY = 'loresmith:banque:retouches:v1';
 type Overrides = Record<string, Partial<BankImage>>;
+/** Retouches partagées (serveur), gardées aussi ici pour travailler hors ligne. */
+const SHARED_KEY = 'loresmith:banque:partage:v1';
+/** Retouches pas encore envoyées (mode local, ou serveur injoignable) ; `null` : retouche à retirer. */
+const PENDING_KEY = 'loresmith:banque:retouches:v1';
 
-function readOverrides(): Overrides {
-  try { return JSON.parse(localStorage.getItem(KEY) || '{}') as Overrides; } catch { return {}; }
-}
-let overrides = readOverrides();
-let images = withOverrides(RAW, overrides);
+const readJson = <T,>(key: string, fallback: T): T => { try { return JSON.parse(localStorage.getItem(key) || 'null') ?? fallback; } catch { return fallback; } };
+const writeJson = (key: string, v: unknown) => { try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* stockage indisponible : valable pour la session */ } };
+
+let shared: Overrides = readJson(SHARED_KEY, {});
+let pending: Record<string, Partial<BankImage> | null> = readJson(PENDING_KEY, {});
+let overrides: Overrides = {};
+let images: BankImage[] = RAW;
 const listeners = new Set<() => void>();
 
-/** Catalogue courant (retouches comprises). */
-export const bankImages = () => images;
-
-/** Retoucher les étiquettes d'une image (ou l'exclure des choix automatiques). `null` : revenir au catalogue. */
-export function setOverride(id: string, patch: Partial<BankImage> | null) {
-  overrides = { ...overrides };
-  if (patch) overrides[id] = { ...overrides[id], ...patch }; else delete overrides[id];
-  try { localStorage.setItem(KEY, JSON.stringify(overrides)); } catch { /* stockage indisponible : la retouche vaut pour la session */ }
+function recompute() {
+  overrides = { ...shared };
+  for (const [id, p] of Object.entries(pending)) {
+    if (p === null) delete overrides[id]; else overrides[id] = { ...overrides[id], ...p };
+  }
   images = withOverrides(RAW, overrides);
   listeners.forEach((f) => f());
 }
+recompute();
+
+/** Catalogue courant (retouches comprises). */
+export const bankImages = () => images;
 export const overridesOf = () => overrides;
+/** Retouches pas encore partagées (compte non connecté, serveur injoignable). */
+export const pendingCount = () => Object.keys(pending).length;
+
+/** Envoie les retouches en attente puis relit les retouches partagées (sans compte : rien ne change, tout reste ici). */
+let running: Promise<'partage' | 'local'> | null = null;
+export function syncBank(): Promise<'partage' | 'local'> {
+  // Une seule synchronisation à la fois ; celle qui suit attend la précédente.
+  running = (running ?? Promise.resolve('local' as const)).then(syncOnce, syncOnce);
+  return running;
+}
+async function syncOnce(): Promise<'partage' | 'local'> {
+  try {
+    const { bankRetouches, putBankRetouche } = await import('../sync/client');
+    for (const [id, p] of Object.entries(pending)) {
+      await putBankRetouche(id, p);
+      const { [id]: _sent, ...rest } = pending; // eslint-disable-line @typescript-eslint/no-unused-vars
+      pending = rest;
+      writeJson(PENDING_KEY, pending);
+    }
+    const doc = await bankRetouches() as { retouches?: Overrides } | null;
+    // Site sans API (mode local) : la réponse n'est pas du JSON ; on garde ce qu'on a.
+    if (!doc || typeof doc !== 'object' || !doc.retouches || typeof doc.retouches !== 'object') throw new Error('Pas de serveur.');
+    shared = doc.retouches;
+    writeJson(SHARED_KEY, shared);
+    recompute();
+    return 'partage';
+  } catch {
+    recompute();
+    return 'local';
+  }
+}
+
+/** Retoucher les étiquettes d'une image (pour toute l'application) ; `null` : revenir au catalogue. */
+export function setOverride(id: string, patch: Partial<BankImage> | null): Promise<'partage' | 'local'> {
+  pending = { ...pending, [id]: patch === null ? null : { ...(pending[id] ?? {}), ...patch } };
+  writeJson(PENDING_KEY, pending);
+  recompute();
+  return syncBank();
+}
+
+// Au chargement : les retouches des autres MJ (sans compte ni serveur, rien ne se passe).
+if (typeof window !== 'undefined') setTimeout(() => { void syncBank(); }, 1500);
 
 const subscribe = (f: () => void) => { listeners.add(f); return () => listeners.delete(f); };
 /** Le catalogue, qui se met à jour quand le MJ retouche une image. */

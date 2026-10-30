@@ -5,7 +5,7 @@
  * Coordonnées normalisées 0–1 et viewBox fixe : un redimensionnement ne déplace jamais les points.
  */
 import { useReliefDetail, useReliefImage } from '../world/reliefImage';
-import BankLayer, { GroundPatterns, useGroundTextures } from '../../banque/BankLayer';
+import BankLayer, { BANK_COVERS, bankActive, GroundPatterns, useGroundTextures } from '../../banque/BankLayer';
 import type { Relief } from '../world/terrain';
 import { CityEmblem, paintedEmblem, peopleOf } from './emblems';
 import { type ReactElement, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent } from 'react';
@@ -544,7 +544,12 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   const pxPerUnit = t.k / px;
   const bankView = { x: -t.tx / t.k, y: -t.ty / t.k, w: W / t.k, h: H / t.k };
   const groundTex = useGroundTextures(map, bankOn ? pxPerUnit : 0);
+  // Quand la banque dessine toits, arbres, fontaine ou meubles, leur tracé vectoriel s'efface (pas de rectangle dessous).
+  // (Un plan d'avant la banque, sans liste d'objets, garde sa fontaine et ses meubles vectoriels.)
+  const bankHide = bankOn && bankActive(map, pxPerUnit)
+    ? new Set([...BANK_COVERS[surf!.theme]].filter((k) => surf!.ground.p?.length || !['fountain', ...BANK_COVERS.interieur].includes(k))) : undefined;
   const decorPath = (x: NonNullable<AtlasMap['decor']>[number], i: number) => {
+    if (bankHide?.has(x.kind)) return null;
     const tex = groundTex[x.kind];
     return <path key={i} d={x.d} className={`dc-${x.kind}${x.w ? ' dc-w' : ''}`} style={x.w || tex ? { ...(x.w ? { strokeWidth: x.w } : {}), ...(tex ? { fill: `url(#${tex.id})` } : {}) } : undefined} />;
   };

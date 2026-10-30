@@ -39,5 +39,11 @@ l'Outreterre reste sans image plutôt que d'y mettre un humain.
 ## Retouches du MJ
 
 Dans **Cartes → 🖼 Banque Loresmith**, tu peux corriger les étiquettes d'une image ou l'exclure des choix automatiques.
-Ces retouches sont gardées dans ce navigateur. Pour les rendre permanentes pour tous, demande à Claude de les reporter
-dans le script.
+
+Ces retouches valent pour toute l'application : le serveur les garde (`/api/banque/retouches`, espace KV) et tous
+les MJ qui ont accès au site les voient. Sans compte connecté, elles attendent dans le navigateur et partent à la
+prochaine connexion. Une synchronisation de la banque ne les écrase pas.
+
+Les toits reçoivent aussi une silhouette (`masque`, 8 × 8 cases), calculée par le script. Pour un nouveau toit en L,
+en T, en U ou en croix, ajoute une règle avec la bonne `forme`. Loresmith le pose ensuite tout seul, dans la bonne
+orientation, sur les bâtiments qui ont cette forme.

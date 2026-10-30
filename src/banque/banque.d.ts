@@ -10,6 +10,8 @@ export interface BankImage {
   milieux: string[]; climats: string[]; saisons: string[]; region: string[];
   peuple?: string; genre?: 'f' | 'm'; roles?: string[]; paire?: string | null; pose?: string;
   devine?: boolean; exclu?: boolean;
+  /** Toits : silhouette 8 × 8 (lignes de 0 et de 1). */
+  masque?: string;
 }
 export interface Peoples { main: string[]; others: string[]; banned: string[]; hostile: boolean }
 export const PEUPLES: Record<string, RegExp>;
@@ -31,3 +33,6 @@ export function bankUrl(img: { id: string; type: BankType }, size: number, base?
 export function withOverrides(images: BankImage[], overrides?: Record<string, Partial<BankImage>>): BankImage[];
 export function roofAngle(img: BankImage, w: number, d: number, ang: number, seed?: string): number;
 export function faceAngle(dx: number, dy: number): number;
+export function maskFromParts(parts: number[][], n?: number): string;
+export function turnedMask(mask: string, rot: number, flip: boolean, n?: number): string;
+export function fitRoof(images: BankImage[], o: { mask: string; w: number; h: number; climat?: string; usage?: string; seed?: string; min?: number }): { img: BankImage; rot: number; flip: boolean; iw: number; ih: number } | null;

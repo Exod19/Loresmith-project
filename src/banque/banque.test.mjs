@@ -112,3 +112,18 @@ test('Catalogue réel : chaque image a ses versions et des étiquettes utilisabl
   const pe = peoplesOf({ region: 'outreterre' });
   for (let i = 0; i < 20; i++) assert.notEqual(pickPerson(cat, { vue: 'jeton', role: 'tavernier', peoples: pe, seed: `u${i}` })?.peuple, 'humain');
 });
+
+test('Toit en L, en T ou en U : le bon toit, dans la bonne orientation', async () => {
+  const { maskFromParts, turnedMask, fitRoof } = await import('./banque.js');
+  const cat = JSON.parse(readFileSync(new URL('./catalogue.json', import.meta.url), 'utf8')).images;
+  // Un L : corps en bas sur toute la largeur, aile à gauche vers le haut.
+  const L = maskFromParts([[0, 0.5, 1, 1], [0, 0, 0.45, 1]]);
+  const got = fitRoof(cat, { mask: L, w: 14, h: 14, climat: 'tempere', seed: 'x' });
+  assert.equal(got?.img.forme, 'L');
+  assert.ok(turnedMask(got.img.masque, got.rot, got.flip).split('').filter((c, i) => c === L[i]).length >= 56);
+  // Une emprise pleine prend un toit plein, jamais un dôme qui laisserait voir les coins.
+  for (let i = 0; i < 20; i++) assert.ok(['rect', 'carre'].includes(fitRoof(cat, { mask: maskFromParts([[0, 0, 1, 1]]), w: 10, h: 7, climat: 'tempere', seed: `r${i}` }).img.forme));
+  const U = maskFromParts([[0, 0, 1, 0.4], [0, 0, 0.3, 1], [0.7, 0, 1, 1]]);
+  assert.equal(fitRoof(cat, { mask: U, w: 20, h: 16, climat: 'tempere', seed: 'u' })?.img.forme, 'U');
+  assert.equal(turnedMask('1000000000000000000000000000000000000000000000000000000000000000', 1, false)[7], '1', 'un quart de tour horaire envoie le coin haut-gauche en haut-droite');
+});
