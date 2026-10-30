@@ -160,14 +160,7 @@ function PlayerMap({ board, rev, onFollow, onPick, onFork }: { board: Extract<Pl
           )}
         </aside>
       )}
-      {board.talk && board.talk.lines.length > 0 && (
-        <div className="present-talk" role="log" aria-live="polite">
-          <div className="present-talk-head">{board.talk.image && <img src={board.talk.image} alt="" />}<b>{board.talk.name}</b></div>
-          {board.talk.lines.slice(-4).map((l, i) => (
-            <p key={`${board.talk!.at}-${i}`} className={l.who === board.talk!.name ? 'is-npc' : 'is-party'}><b>{l.who}</b> {l.text}</p>
-          ))}
-        </div>
-      )}
+      {board.talk && board.talk.lines.length > 0 && <TalkBox key={board.talk.key} talk={board.talk} />}
       {board.alert && <HaltNotice key={board.alert.key} alert={board.alert} />}
       {board.fork && !board.alert && (
         <ForkPrompt key={board.fork.key} fork={board.fork} readyAt={board.travel ? board.travel.at + journeyMs(board.travel.points, map.width, map.height) : 0} onChoose={onFork} />
@@ -515,4 +508,32 @@ function directionsOf(board: Extract<PlayerBoard, { mode: 'map' }>, id: string):
     out.push({ dir, toward: towardOf(far[0] - board.here[0], far[1] - board.here[1]) });
   }
   return out;
+}
+
+/**
+ * Conversation montrée aux joueurs : réduite à la dernière réplique d'un clic, ou fermée (×). Une nouvelle réplique la
+ * rouvre en petit, pour ne pas reprendre toute la place.
+ */
+function TalkBox({ talk }: { talk: { key: string; name: string; image?: string; lines: { who: string; text: string }[]; at: number } }) {
+  const [state, setState] = useState<'open' | 'small' | 'closed'>('open');
+  const [seen, setSeen] = useState(talk.lines.length);
+  useEffect(() => {
+    if (talk.lines.length !== seen) { setSeen(talk.lines.length); setState((s) => (s === 'closed' ? 'small' : s)); }
+  }, [talk.lines.length, seen]);
+  if (state === 'closed') return null;
+  const lines = state === 'small' ? talk.lines.slice(-1) : talk.lines.slice(-3);
+  return (
+    <div className={`present-talk${state === 'small' ? ' is-small' : ''}`} role="log" aria-live="polite">
+      <div className="present-talk-head">
+        {talk.image && <img src={talk.image} alt="" />}<b>{talk.name}</b>
+        <span className="present-talk-tools">
+          <button onClick={() => setState(state === 'small' ? 'open' : 'small')} aria-label={state === 'small' ? 'Agrandir la conversation' : 'Réduire la conversation'}>{state === 'small' ? '▴' : '▾'}</button>
+          <button onClick={() => setState('closed')} aria-label="Fermer la conversation">×</button>
+        </span>
+      </div>
+      {lines.map((l, i) => (
+        <p key={`${talk.at}-${i}`} className={l.who === talk.name ? 'is-npc' : 'is-party'}><b>{l.who}</b> {l.text}</p>
+      ))}
+    </div>
+  );
 }

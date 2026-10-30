@@ -4,7 +4,7 @@
  *  - Rêverie : rien n'est gardé, sauf le lore accepté.
  *  - Chronique : à la fin, la conversation entre dans la mémoire de l'univers (ce qui s'est passé en jeu).
  */
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { aiReady, askAI } from '../../ai/client';
 import type { AtlasData, AtlasFeature } from '../atlas/types';
 import type { MapRecord } from '../mapStore';
@@ -40,6 +40,12 @@ export default function TalkPanel({ rec, data, planId, npc, library, loreContext
   // Hors de la carte du monde (Atlas des profondeurs…), c'est le groupe qui parle.
   const avatar = world.avatar ?? { name: rec.world ? '' : 'Le groupe', mode: 'reverie' as const };
   const [shared, setShared] = useState(false);
+  // Le panneau se ferme (autre lieu, autre onglet) : la conversation quitte l'écran des joueurs.
+  const sharedRef = useRef(false);
+  sharedRef.current = shared;
+  const shareRef = useRef(onShare);
+  shareRef.current = onShare;
+  useEffect(() => () => { if (sharedRef.current) shareRef.current?.(null); }, []);
   const shareKey = useRef(`${npc.id}:${Date.now()}`);
   const share = (lines: TalkLine[], on = shared) => {
     if (!onShare || !on) return;
