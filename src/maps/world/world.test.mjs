@@ -457,3 +457,22 @@ test('placement : distances voulues respectées, un port sur une côte', async (
   assert.ok(T.elevationAt(wet, ...port.km) > 0);
   assert.ok(T.seaSideAt(wet, port.km, 1.5));
 });
+
+test('monde agrandi : ce qui existe ne bouge pas sur le terrain', async () => {
+  const T = await import('./terrain.js');
+  const world = { seed: 9, name: 'R', terrain: 2, scale: 'royaume', bindings: {}, cities: [
+    { id: 'a', name: 'Brumeval', population: 1500, km: [0, 0] }, { id: 'b', name: 'Givre', population: 800, km: [-100, -60] }] };
+  const big = { ...world, bounds: [-250, -175, 400, 175] };
+  const A = generateWorld(world, 'r'), B = generateWorld(big, 'r');
+  assert.equal(B.maps[0].width, Math.round(650 * 1000 / 400));
+  const km = (d, w, id) => { const g = d.geometries.find((x) => x.featureId === id); return T.toKm(T.worldFrame(w), g.coordinates); };
+  // Cités, forêts et montagnes du monde de départ : même position en km.
+  const ids = A.features.filter((f) => /:(cite|foret|monts)-/.test(f.id)).map((f) => f.id);
+  assert.ok(ids.length > 3);
+  for (const id of ids) {
+    const p = km(A, world, id), q = km(B, big, id);
+    assert.ok(Math.hypot(p[0] - q[0], p[1] - q[1]) < 0.5, id);
+  }
+  // Le climat garde ses latitudes : la cité du nord reste au même climat.
+  assert.equal(A.maps.find((m) => m.id === 'map-r-c-b').surface.climate, B.maps.find((m) => m.id === 'map-r-c-b').surface.climate);
+});

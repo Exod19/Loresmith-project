@@ -94,3 +94,4 @@ export function generateWorld(world: WorldSpec, mapRecordId: string): AtlasData 
 export function citySlots(spec: CitySpec, planId: string): Slot[];
 export function interiorPlanId(slotId: string): string;
 export function rasterGround(surface: Surface, W: number, H: number, win: { x0: number; y0: number; w: number; h: number }, cols: number, rows: number, seed?: number): string;
+export function seaNameOf(seed: number, id: string): string;

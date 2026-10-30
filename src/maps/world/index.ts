@@ -4,9 +4,9 @@
  * identique d'une fois à l'autre, puis traité comme l'Atlas des profondeurs par le reste de l'application.
  */
 import { useEffect, useRef } from 'react';
-import { cityPlanId, generateWorld, hashSeed, interiorPlanId, placeCity, worldPlanId, type CitySpec, type WorldSpec } from './generate';
+import { cityPlanId, generateWorld, hashSeed, interiorPlanId, placeCity, seaNameOf, worldPlanId, type CitySpec, type Sea, type WorldSpec } from './generate';
 import { nearestEdge } from './climate';
-import { DIR_ANGLE, PACE, atDir, SCALES, cityKm, cityRadiusKm, dirName, placeOn, reliefOf, seaBeyond, seaSideAt, toAt, toKm, worldFrame } from './terrain';
+import { DIR_ANGLE, PACE, atDir, SCALES, cityKm, cityRadiusKm, dirName, elevationAt, placeOn, reliefOf, seaBeyond, seaSideAt, toAt, toKm, worldFrame } from './terrain';
 import { norm } from './lore';
 import { citySpecFromEntry, isSettlement, syncBindings, type LoreEntry } from './lore';
 import type { AtlasData } from '../atlas/types';
@@ -52,10 +52,10 @@ export function newWorldRecord(universe: { id: string; name: string }, id: strin
 }
 
 /** Ajoute une cité au monde, à une place qui ne bouge plus ensuite. La première cité devient la cité par défaut du lore. */
-export function withCity(world: World, spec: CitySpec): World {
+export function withCity(world: World, spec: CitySpec, choice?: { sea: Sea; km: [number, number] }): World {
   const cities = world.cities.filter((c) => c.id !== spec.id);
   const frame = worldFrame(world);
-  if (!frame.legacy) return withCityKm(world, cities, spec);
+  if (!frame.legacy) return withCityKm(world, cities, spec, choice);
   const at = spec.at ?? placeCity({ seed: world.seed, cities }, spec.id);
   // Un port regarde vers le bord de carte le plus proche : la mer y restera, même si la cité est redessinée.
   const port = spec.port ? { seaDir: spec.seaDir ?? nearestEdge(at) } : { seaDir: undefined };
@@ -73,28 +73,139 @@ export function wantsOf(world: World, spec: CitySpec, cities = world.cities) {
   return out;
 }
 
-/** Monde à l'échelle : place la cité (km) selon ses distances voulues ; un port va sur une côte, quitte à créer une mer. */
-function withCityKm(world: World, cities: CitySpec[], spec: CitySpec): World {
+type Side = 'N' | 'S' | 'E' | 'O';
+const SIDES: Side[] = ['N', 'S', 'E', 'O'];
+/** Bornes agrandies d'une bande (30 % du monde de départ) d'un côté. */
+function grown(world: World, side: Side): [number, number, number, number] {
+  const f = worldFrame(world), sc = SCALES[f.scale];
+  const bw = Math.round(sc.w * 0.3), bh = Math.round(sc.h * 0.3);
+  return [f.x0 - (side === 'O' ? bw : 0), f.y0 - (side === 'N' ? bh : 0), f.x1 + (side === 'E' ? bw : 0), f.y1 + (side === 'S' ? bh : 0)];
+}
+/** Côtés où le monde peut s'agrandir : pas du côté d'une mer (au-delà, ce sont d'autres continents). */
+export const growSides = (world: World): Side[] => SIDES.filter((s) => !(world.seas ?? []).some((m) => m.side === s));
+/** Agrandit le monde d'une bande d'un côté. Le relief est défini partout : rien de ce qui existe ne change. */
+export function expandWorld(world: World, side: Side): World {
+  const f = worldFrame(world);
+  if (f.legacy || !growSides(world).includes(side)) return world;
+  return { ...world, bounds: grown(world, side), lat: f.lat };
+}
+/** Nom d'une mer : celui qu'on lui a donné, sinon celui que la carte affiche. */
+export const seaName = (world: World, s: Sea) => s.name ?? seaNameOf(world.seed, s.id);
+
+/** Où mettre un port : sur la côte d'une mer existante (la meilleure), ou près d'une nouvelle mer. */
+export function portChoices(world: World, spec: CitySpec) {
   const frame = worldFrame(world);
+  const cities = world.cities.filter((c) => c.id !== spec.id);
   const others = cities.map((c) => ({ ...c, km: cityKm(frame, c) }));
-  let seas = world.seas ?? [];
-  const relief = () => reliefOf({ ...world, seas }, frame, others);
+  const pts = others.map((o) => o.km);
   const wants = wantsOf(world, spec, cities);
-  let km = spec.km ?? null;
-  if (!km) {
-    let best = placeOn(relief(), frame, others.map((o) => o.km), spec, wants, world.seed);
-    if (spec.port && !best) {
-      // Pas de côte assez proche : une nouvelle mer, au-delà du bord le plus proche de la meilleure place sur terre.
-      const land = placeOn(relief(), frame, others.map((o) => o.km), { ...spec, port: false }, wants, world.seed);
-      seas = [...seas, seaBeyond(frame, land?.km ?? [(frame.x0 + frame.x1) / 2, frame.y1], String(seas.length + 1))];
-      best = placeOn(relief(), frame, others.map((o) => o.km), spec, wants, world.seed);
-    }
-    km = best?.km ?? [(frame.x0 + frame.x1) / 2, (frame.y0 + frame.y1) / 2];
+  const seas = world.seas ?? [];
+  const full = reliefOf(world, frame, others);
+  const valid = (km: [number, number] | undefined, relief = full) => !!km && elevationAt(relief, km[0], km[1]) > 4 && !!seaSideAt(relief, km, Math.max(cityRadiusKm(spec), 0.4) * 1.5);
+  let existing: { sea: Sea; km: [number, number]; score: number } | null = null;
+  for (const sea of seas) {
+    const p = placeOn({ ...full, seas: full.seas.filter((s) => s.x === sea.x && s.y === sea.y) }, frame, pts, spec, wants, world.seed);
+    if (p && valid(p.km) && (!existing || p.score > existing.score)) existing = { sea, km: p.km, score: p.score };
   }
-  const seaDir = spec.port ? spec.seaDir ?? seaSideAt(relief(), km, Math.max(cityRadiusKm(spec), 0.4) * 1.5) ?? 'S' : undefined;
+  const land = placeOn(full, frame, pts, { ...spec, port: false }, wants, world.seed);
+  const free = growSides({ ...world, seas: [] }).filter((s) => !seas.some((m) => m.side === s));
+  let fresh: { sea: Sea; km: [number, number]; score: number } | null = null;
+  if (free.length) {
+    const at = land?.km ?? [(frame.x0 + frame.x1) / 2, (frame.y0 + frame.y1) / 2];
+    const dist: Record<Side, number> = { O: at[0] - frame.x0, E: frame.x1 - at[0], N: at[1] - frame.y0, S: frame.y1 - at[1] };
+    const side = free.sort((a, b) => dist[a] - dist[b])[0];
+    const id = String(seas.length + 1);
+    const sea: Sea = { ...seaBeyond(frame, at, id, side), name: seaNameOf(world.seed, id) };
+    const withSea = reliefOf({ ...world, seas: [...seas, sea] }, frame, others);
+    const p = placeOn({ ...withSea, seas: [{ x: sea.x, y: sea.y, r: sea.r }] }, frame, pts, spec, wants, world.seed);
+    if (p && valid(p.km, withSea)) fresh = { sea, km: p.km, score: p.score };
+  }
+  return { existing, fresh };
+}
+
+/**
+ * Monde à l'échelle : place la cité (km) selon ses distances voulues, à l'écart des autres. Si la place manque (ou si
+ * une distance voulue sort du monde), le monde s'agrandit d'une bande du bon côté. Un port va sur la côte d'une mer
+ * (`choice` : une mer existante ou une nouvelle mer ; sinon la meilleure des deux).
+ */
+function withCityKm(world: World, cities: CitySpec[], spec: CitySpec, choice?: { sea: Sea; km: [number, number] }): World {
+  let w = world;
+  let km = spec.km ?? choice?.km ?? null;
+  let seas = w.seas ?? [];
+  if (choice && !seas.some((s) => s.id === choice.sea.id)) seas = [...seas, choice.sea];
+  w = { ...w, seas };
+  if (!km) {
+    const attempt = (ww: World) => {
+      const f = worldFrame(ww);
+      const others = cities.map((c) => ({ ...c, km: cityKm(f, c) }));
+      return placeOn(reliefOf(ww, f, others), f, others.map((o) => o.km), spec, wantsOf(ww, spec, cities), ww.seed);
+    };
+    if (spec.port) {
+      const pc = portChoices(w, spec);
+      const pick = pc.existing && (!pc.fresh || pc.existing.score >= pc.fresh.score - 1) ? pc.existing : pc.fresh;
+      if (pick) { km = pick.km; if (!seas.some((s) => s.id === pick.sea.id)) w = { ...w, seas: [...seas, pick.sea] }; }
+    }
+    if (!km) {
+      let best = attempt(w);
+      /** Plus grand écart relatif aux distances voulues (0 = toutes tenues). */
+      const err = (ww: World, km?: [number, number]) => (km ? Math.max(0, ...wantsOf(ww, spec, cities).map((x) => Math.abs(Math.hypot(km[0] - x.km[0], km[1] - x.km[1]) - x.dist) / x.dist)) : 9);
+      // Trop serré, ou une distance voulue hors du monde : on essaie d'agrandir (trois bandes au plus).
+      for (let n = 0; n < 3 && (!best || best.score < -4 || err(w, best.km) > 0.2); n++) {
+        let better: { w: World; p: NonNullable<ReturnType<typeof attempt>>; e: number } | null = null;
+        for (const side of growSides(w)) {
+          const ww = expandWorld(w, side), p = attempt(ww);
+          if (p && (!better || p.score > better.p.score)) better = { w: ww, p, e: err(ww, p.km) };
+        }
+        if (!better || (best && better.p.score < best.score + 1 && better.e > err(w, best.km) - 0.1)) break;
+        w = better.w; best = better.p;
+      }
+      const f = worldFrame(w);
+      km = best?.km ?? [(f.x0 + f.x1) / 2, (f.y0 + f.y1) / 2];
+    }
+  }
+  const f = worldFrame(w);
+  const others = cities.map((c) => ({ ...c, km: cityKm(f, c) }));
+  const seaDir = spec.port ? spec.seaDir ?? seaSideAt(reliefOf(w, f, others), km, Math.max(cityRadiusKm(spec), 0.4) * 1.5) ?? 'S' : undefined;
   const { at: _at, ...rest } = spec;
   void _at;
-  return { ...world, seas, cities: [...cities, { ...rest, km, seaDir }], defaultCityId: world.defaultCityId ?? spec.id };
+  return { ...w, cities: [...cities, { ...rest, km, seaDir }], defaultCityId: w.defaultCityId ?? spec.id };
+}
+
+/**
+ * Patch d'enregistrement d'un monde : si ses bornes ont changé, les positions gardées sur le plan monde (groupe, repères,
+ * chemins parcourus, personnage du MJ) sont recalées pour ne pas bouger sur le terrain.
+ */
+export function worldPatch(rec: MapRecord, next: World): Partial<MapRecord> {
+  const a = worldFrame(rec.world), b = worldFrame(next);
+  const same = a.legacy === b.legacy && a.x0 === b.x0 && a.y0 === b.y0 && a.x1 === b.x1 && a.y1 === b.y1;
+  if (same || a.legacy || b.legacy) return { world: next, updatedAt: Date.now() };
+  const wid = worldPlanId(rec.id);
+  const f = ([u, v]: [number, number]): [number, number] => toAt(b, toKm(a, [u, v]));
+  const world = next.avatar ? {
+    ...next, avatar: {
+      ...next.avatar,
+      ...(next.avatar.at?.planId === wid ? { at: { ...next.avatar.at, at: f(next.avatar.at.at) } } : {}),
+      ...(next.avatar.hidden?.planId === wid ? { hidden: { ...next.avatar.hidden, at: f(next.avatar.hidden.at) } } : {}),
+    },
+  } : next;
+  return { world, overlay: rec.overlay ? remapPlan(rec.overlay, wid, f) : rec.overlay, updatedAt: Date.now() };
+}
+const isPt = (v: unknown): v is [number, number] => Array.isArray(v) && v.length === 2 && typeof v[0] === 'number' && typeof v[1] === 'number';
+/** Recale toutes les coordonnées (0–1) rattachées à un plan, dans une structure quelconque (calque du MJ). */
+export function remapPlan<T>(value: T, planId: string, f: (p: [number, number]) => [number, number], on = false): T {
+  if (Array.isArray(value)) return (on && value.every(isPt) ? value.map((p) => f(p as [number, number])) : value.map((x) => remapPlan(x, planId, f, on))) as T;
+  if (!value || typeof value !== 'object') return value;
+  const o = value as Record<string, unknown>;
+  const here = o.planId === planId || o.mapId === planId || on;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(o)) {
+    if (k === 'explored' && v && typeof v === 'object' && !Array.isArray(v)) {
+      out[k] = Object.fromEntries(Object.entries(v as Record<string, [number, number][]>).map(([pid, pts]) => [pid, pid === planId ? pts.map(f) : pts]));
+    } else if (here && isPt(v)) out[k] = f(v);
+    else out[k] = remapPlan(v, planId, f, here && Array.isArray(v) && (v as unknown[]).every(isPt));
+  }
+  if (here && typeof o.x === 'number' && typeof o.y === 'number') { const [x, y] = f([o.x, o.y]); out.x = x; out.y = y; }
+  return out as T;
 }
 
 /** Déplace une cité (position 0–1 sur le plan monde). Son plan ne change pas : rien n'y bouge. */
@@ -213,4 +324,10 @@ export function useWorldSync(rec: MapRecord, library: LoreEntry[] | undefined, p
     if (changed) update.current({ world: { ...rec.world, bindings }, updatedAt: Date.now() });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rec.kind, rec.id, rec.world, library, people, revealedKey]);
+}
+
+/** Mer d'un port : la plus proche de la cité. */
+export function portSea(world: World, c: CitySpec): Sea | undefined {
+  const f = worldFrame(world), k = cityKm(f, c);
+  return (world.seas ?? []).map((s) => ({ s, d: Math.hypot(s.x - k[0], s.y - k[1]) - s.r })).sort((a, b) => a.d - b.d)[0]?.s;
 }

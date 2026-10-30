@@ -1511,3 +1511,6 @@ function terrainV2(o) {
   return (x, y) => terrainAt(relief, frame.x0 + (x * S) / 1000, frame.y0 + (y * S) / 1000).T;
 }
 const elevationIsSea = (relief, [x, y]) => terrainAt(relief, x, y).sea;
+
+/** Nom tiré au sort d'une mer (le même que celui que la carte affiche tant que le MJ ne l'a pas nommée). */
+export const seaNameOf = (seed, id) => `Mer de ${placeName(rng(hashSeed(`${seed >>> 0}:mer:${id}`)))}`;

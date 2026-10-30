@@ -484,13 +484,13 @@ export function seaSideAt(relief, km, r) {
 }
 
 /** Nouvelle mer au-delà du bord de carte le plus proche d'un point (km). */
-export function seaBeyond(frame, km, id) {
-  const w = frame.x1 - frame.x0, h = frame.y1 - frame.y0;
+export function seaBeyond(frame, km, id, forced) {
+  const sc = Object.values(SCALES).find((x) => x.m === frame.m) ?? SCALES.royaume;
   const d = { O: km[0] - frame.x0, E: frame.x1 - km[0], N: km[1] - frame.y0, S: frame.y1 - km[1] };
-  const side = Object.entries(d).sort((a, b) => a[1] - b[1])[0][0];
-  const r = Math.min(w, h) * 0.55;
-  // Le centre est au large : le rivage passe à peu près par le point demandé.
-  const reach = r * 0.92 - d[side];
+  const side = forced ?? Object.entries(d).sort((a, b) => a[1] - b[1])[0][0];
+  const r = Math.min(sc.w, sc.h) * 0.55;
+  // Le centre est au large : le rivage passe à peu près par le point demandé (jamais plus loin que le bord).
+  const reach = Math.max(r * 0.55, r * 0.92 - d[side]);
   const c = side === 'O' ? [frame.x0 - reach, km[1]] : side === 'E' ? [frame.x1 + reach, km[1]] : side === 'N' ? [km[0], frame.y0 - reach] : [km[0], frame.y1 + reach];
   return { id, x: r3(c[0]), y: r3(c[1]), r: r3(r), side };
 }
@@ -503,7 +503,9 @@ export function seaBeyond(frame, km, id) {
 export function placeOn(relief, frame, others, spec, wants = [], seed = 1) {
   const r = prng(hash(`place2:${seed}:${spec.id}`));
   const w = frame.x1 - frame.x0, h = frame.y1 - frame.y0;
-  const minSep = w * 0.05, rc = Math.max(cityRadiusKm(spec), 0.4);
+  // Écarts mesurés sur le monde de départ : agrandir le monde ne doit pas éloigner les cités.
+  const sw = (Object.values(SCALES).find((x) => x.m === frame.m) ?? SCALES.royaume).w;
+  const minSep = sw * 0.05, rc = Math.max(cityRadiusKm(spec), 0.4);
   let best = null;
   const tryAt = (x, y) => {
     if (!inBounds(relief, x, y, -Math.min(w, h) * 0.04)) return;
@@ -517,7 +519,7 @@ export function placeOn(relief, frame, others, spec, wants = [], seed = 1) {
     }
     const dmin = others.length ? Math.min(...others.map((o) => Math.hypot(o[0] - x, o[1] - y))) : Infinity;
     if (dmin < minSep) score -= 20 + (minSep - dmin) / minSep * 20;
-    else if (!wants.length) score += others.length ? (dmin < w * 0.35 ? dmin / w : 0.35 - (dmin / w - 0.35)) * 4 : -Math.hypot(x - (frame.x0 + w / 2), y - (frame.y0 + h / 2)) / w * 3;
+    else if (!wants.length) score += others.length ? (dmin < sw * 0.35 ? dmin / sw : 0.35 - (dmin / sw - 0.35)) * 4 : -Math.hypot(x - (frame.x0 + w / 2), y - (frame.y0 + h / 2)) / w * 3;
     for (const want of wants) {
       const d = Math.hypot(x - want.km[0], y - want.km[1]);
       score -= Math.abs(d - want.dist) / Math.max(want.dist, minSep) * 6;
