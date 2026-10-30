@@ -540,3 +540,164 @@
 /* Héros séparés du groupe (MJ). */
 .am-mark-hero .am-mark-ring { stroke: #b99cff; } .am-mark-hero .am-mark-dot { fill: #b99cff; }
 .am-mark-hero .am-mark-flag { fill: rgba(24,16,40,.92); stroke: #b99cff; } .am-mark-hero .am-mark-text { fill: #e6dcff; }
+
+/* ——— Plans de surface : carte du monde et cités générées (src/maps/world) ——— */
+.am-surface { --am-ground: #343f2a; --am-road: #b39e74; --am-road-edge: #5f523a; }
+.am-surface .am-ground { fill: var(--am-ground); }
+.am-surface.is-monde { --am-ground: #3a4530; }
+.am-surface .am-roads path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.am-surface .am-road .edge { stroke: var(--am-road-edge); stroke-width: 3.4px; }
+.am-surface .am-road .top { stroke: var(--am-road); stroke-width: 2.2px; cursor: pointer; }
+.am-surface .am-road.tr-boyau .top { stroke: #a08d68; }
+.am-surface .am-road:hover .top { stroke: #e0c890; }
+.am-surface .am-decor path.dc-w { vector-effect: none; }
+.am-surface .dc-plot { fill: #4b512f; stroke: #5e6438; stroke-width: .6; }
+.am-surface .dc-tree { fill: #22381f; stroke: #2c4728; stroke-width: .5; }
+.am-surface .dc-forest { fill: #25391f; stroke: #2f4728; stroke-width: 1; }
+.am-surface .dc-river { fill: none; stroke: #2f5c69; stroke-linecap: round; stroke-linejoin: round; }
+.am-surface .dc-lake { fill: #2f5c69; stroke: #47788a; stroke-width: .8; }
+.am-surface .dc-hill { fill: none; stroke: #6b6347; stroke-width: 1.2; }
+.am-surface .dc-square { fill: #8b8170; stroke: #5d5648; stroke-width: .8; }
+.am-surface .dc-court { fill: #6e695d; stroke: #4c483f; stroke-width: .8; }
+.am-surface .dc-wall { fill: none; stroke: #b9b1a1; stroke-linecap: round; stroke-linejoin: round; }
+.am-surface .dc-roof { fill: #8a4f3c; stroke: #3b241c; stroke-width: .6; }
+.am-surface .dc-roof-farm { fill: #7c6849; stroke: #3d3223; stroke-width: .6; }
+.am-surface .dc-roof-noble { fill: #58657a; stroke: #262c36; stroke-width: .6; }
+.am-surface .dc-roof-civic { fill: #a86c3b; stroke: #3d2618; stroke-width: .6; }
+.am-surface .dc-keep { fill: #6d6a72; stroke: #24232a; stroke-width: .9; }
+.am-surface .dc-bridge { fill: #9b8a69; stroke: #4e4433; stroke-width: .6; }
+.am-surface .dc-tower { fill: #9b958a; stroke: #4a463e; stroke-width: .6; }
+.am-surface .dc-fountain { fill: #3d7480; stroke: #b8b0a0; stroke-width: .6; }
+.am-surface .dc-town { fill: #8a4f3c; stroke: #e0d1a8; stroke-width: 1.2; }
+.am-surface .am-pin .lbl, .am-surface .am-pin .sub, .am-surface .am-area-label { stroke: #1b2114; }
+.am-surface .am-area-label { fill: #efe2bd; }
+/* Intérieurs de bâtiments */
+.am-surface.is-interieur { --am-ground: #4f493c; }
+.am-surface .dc-street { fill: #5b5444; }
+.am-surface .dc-floor { fill: #6b4f35; stroke: #3a2a1c; stroke-width: 1; }
+.am-surface .dc-wall-in { fill: none; stroke: #2a2520; stroke-linecap: square; stroke-linejoin: miter; }
+.am-surface .dc-furn { fill: #8a6a45; stroke: #3e2c1a; stroke-width: 1; }
+.am-surface .dc-bed { fill: #9a8a74; stroke: #4a3c2c; stroke-width: 1; }
+.am-surface .dc-stall { fill: #7a6a46; stroke: #3e321f; stroke-width: 1; }
+.am-surface .dc-hearth { fill: #5d5650; stroke: #c26a2e; stroke-width: 1.6; }
+.am-surface .dc-altar { fill: #b5ad9c; stroke: #5b554a; stroke-width: 1.2; }
+.am-surface .dc-anvil { fill: #3c3c40; stroke: #9a9aa2; stroke-width: 1; }
+.am-surface .dc-trough { fill: #2f5c69; stroke: #6b4f35; stroke-width: 1; }
+.am-surface .dc-stair { fill: #7d6446; stroke: #3a2a1c; stroke-width: 1; }
+.am-surface .dc-barrel { fill: #7a5232; stroke: #3a2414; stroke-width: 1; }
+.am-surface .dc-crate { fill: #9a7a4a; stroke: #4a3720; stroke-width: 1; }
+.am-surface .dc-bars { fill: #3a3a40; stroke: #8c8c96; stroke-width: 1; }
+.am-surface .dc-rug { fill: #7a3a32; stroke: #b08a4a; stroke-width: 1; }
+.am-surface .dc-dais { fill: #5e4a3a; stroke: #b08a4a; stroke-width: 1; }
+.am-surface .dc-floor-stone { fill: #4a4744; stroke: #23211f; stroke-width: 1; }
+.am-surface .dc-hatch { fill: #3a2a1c; stroke: #a08050; stroke-width: 1.2; }
+.am-surface .dc-pillar { fill: #6d6a66; stroke: #2a2826; stroke-width: 1; }
+.am-surface .dc-stair { fill: #7d6446; stroke: #3a2a1c; stroke-width: 1; stroke-dasharray: 2 3; }
+/* Climat et côtes (lot 9) : biomes du monde, mer, grèves, relief. */
+/* Bords adoucis : les biomes se fondent les uns dans les autres. */
+.am-surface [class^='dc-biome-'] { filter: blur(5px); }
+.am-surface .dc-biome-neige { fill: #c9d0d2; opacity: .82; }
+.am-surface .dc-biome-taiga { fill: #2c3a2c; opacity: .75; }
+.am-surface .dc-biome-steppe { fill: #6b6a3c; opacity: .7; }
+.am-surface .dc-biome-desert { fill: #b39257; opacity: .85; }
+.am-surface .dc-dune { fill: none; stroke: #8e7140; stroke-width: 1.1; }
+.am-surface .dc-pine { fill: #1d3226; stroke: #142219; stroke-width: .4; }
+.am-surface .dc-forest-sparse { fill: #4a5a2e; stroke: #56683a; stroke-width: .8; opacity: .8; }
+.am-surface .dc-mountain { fill: #6d6558; stroke: #2f2a22; stroke-width: .8; }
+.am-surface .dc-snowcap { fill: #eef1f2; stroke: none; }
+.am-surface .dc-shore { fill: none; stroke: #c9b27a; stroke-width: 3.5; stroke-linejoin: round; }
+.am-surface .dc-shore-cold { fill: none; stroke: #8f8e86; stroke-width: 3.5; stroke-linejoin: round; }
+.am-surface .dc-beach { fill: #d2bb82; stroke: #d2bb82; stroke-linejoin: round; }
+.am-surface .dc-sea { fill: #24505f; stroke: #3e7486; stroke-width: 1.2; }
+.am-surface .dc-pier { fill: #8a7350; stroke: #3e321f; stroke-width: .6; }
+/* Allure des cités selon le climat : toits sombres et sol pâle au froid, toits plats ocre et sol sec au chaud. */
+.am-surface.clim-froid { --am-ground: #4a5048; --am-road: #c3bba9; }
+.am-surface.clim-froid .dc-plot { fill: #5b6150; stroke: #6c725f; }
+.am-surface.clim-froid .dc-tree { fill: #1d3226; stroke: #142219; }
+.am-surface.clim-froid .dc-roof { fill: #4f4a4c; stroke: #1e1b1c; }
+.am-surface.clim-froid .dc-roof-farm { fill: #5a4e3e; stroke: #241e16; }
+.am-surface.clim-froid .dc-roof-civic { fill: #6a4636; stroke: #24170f; }
+.am-surface.clim-froid .dc-roof-noble { fill: #3f4a5a; }
+.am-surface.clim-froid .dc-beach { fill: #8f8e86; stroke: #8f8e86; }
+.am-surface.clim-froid .dc-sea { fill: #2a4652; }
+.am-surface.clim-chaud { --am-ground: #7a6741; --am-road: #d9c08a; --am-road-edge: #8a7148; }
+.am-surface.clim-chaud .dc-plot { fill: #8a7a42; stroke: #9a8a50; }
+.am-surface.clim-chaud .dc-tree { fill: #4e6a2c; stroke: #6c8a3a; }
+.am-surface.clim-chaud .dc-roof { fill: #d2b07a; stroke: #6d5634; }
+.am-surface.clim-chaud .dc-roof-farm { fill: #c49e66; stroke: #6d5634; }
+.am-surface.clim-chaud .dc-roof-civic { fill: #e3cfa2; stroke: #7a6038; }
+.am-surface.clim-chaud .dc-roof-noble { fill: #ebe0c8; stroke: #7a6a50; }
+.am-surface.clim-chaud .dc-wall { stroke: #d8c49a; }
+.am-surface.clim-chaud .dc-sea { fill: #1f6a78; }
+/* Saisons (lot 10) : couleurs des champs et des arbres, neige sur les cités, glace. */
+.am-surface .dc-lake-ice { fill: #b9d0d8; stroke: #e6f0f3; stroke-width: .8; }
+.am-surface.season-printemps .dc-plot { fill: #4f6a2e; stroke: #6a8a3c; }
+.am-surface.season-printemps .dc-tree { fill: #2c4a26; stroke: #4c7a3a; }
+.am-surface.season-ete .dc-plot { fill: #8a7a38; stroke: #a8944a; }
+.am-surface.season-automne .dc-plot { fill: #6a5030; stroke: #7e6038; }
+.am-surface.season-automne .dc-tree { fill: #8a4a1c; stroke: #b0662a; }
+.am-surface.season-automne .dc-forest { fill: #5a3a1c; stroke: #7a4a22; }
+.am-surface.season-automne.clim-froid .dc-tree { fill: #6a5a1c; stroke: #8a7a2a; }
+.am-surface.season-hiver .dc-plot { fill: #5a5448; stroke: #6a6456; }
+.am-surface.season-hiver .dc-tree { fill: #283428; stroke: #3a4a3a; }
+.am-surface.season-hiver.clim-chaud .dc-plot { fill: #5a6a34; stroke: #6c7e40; }
+.am-surface.season-hiver.clim-chaud .dc-tree { fill: #3a5a28; }
+.am-surface.snowy { --am-ground: #c4ccd0; --am-road: #8c8478; --am-road-edge: #5c5650; }
+.am-surface.snowy .dc-plot { fill: #dde3e6; stroke: #b8c2c6; }
+.am-surface.snowy .dc-tree { fill: #2a3a30; stroke: #e8eef0; stroke-width: .9; }
+.am-surface.snowy .dc-roof, .am-surface.snowy .dc-roof-farm, .am-surface.snowy .dc-roof-civic, .am-surface.snowy .dc-roof-noble, .am-surface.snowy .dc-keep { fill: #e9eef0; stroke: #5c5658; }
+.am-surface.snowy .dc-square, .am-surface.snowy .dc-court { fill: #d6dde0; }
+.am-surface.snowy .am-pin .lbl, .am-surface.snowy .am-pin .sub, .am-surface.snowy .am-area-label { stroke: #2a2e30; }
+.am-surface.frozen-rivieres .dc-river, .am-surface.frozen-tout .dc-river { stroke: #b9d0d8; }
+.am-surface.frozen-tout .dc-sea { fill: #a9c4ce; stroke: #e6f0f3; }
+/* Lumière du moment (carte du monde) */
+.am-surface.light-soir > svg { filter: sepia(.25) saturate(.9) brightness(.82) hue-rotate(-8deg); }
+.am-surface.light-nuit > svg { filter: saturate(.55) brightness(.5) hue-rotate(195deg) sepia(.2); }
+.am-surface .dc-stool { fill: #6e5032; stroke: #33241a; stroke-width: .8; }
+/* Mode Exploration : brouillons estompés, personnage du MJ */
+.is-exploring .am-pin.is-draft { opacity: .5; }
+.is-exploring .am-pin.is-draft .lbl, .is-exploring .am-area-label.is-draft { font-style: italic; opacity: .7; }
+.is-exploring .am-pin.is-draft.is-sel { opacity: 1; }
+.am-mark-dm .am-mark-ring { stroke: #f0c867; stroke-width: 3; } .am-mark-dm .am-mark-dot { fill: #f0c867; }
+.am-mark-dm .am-mark-flag { fill: rgba(40,28,10,.92); stroke: #f0c867; } .am-mark-dm .am-mark-text { fill: #ffe9b0; }
+.explore-card h4 { margin: 0 0 6px; }
+.explore-card form { display: grid; gap: 6px; }
+.explore-card label { display: grid; gap: 2px; font-size: 12px; }
+.explore-portrait { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid #f0c867; }
+.explore-head { display: flex; gap: 10px; align-items: center; }
+/* Conversations avec les PNJ (lot 11) */
+.talk-card { display: grid; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(240,200,103,.25); }
+.talk-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.talk-head h5 { margin: 0; }
+.talk-head small { opacity: .7; font-weight: normal; }
+.talk-log { display: grid; gap: 6px; max-height: 320px; overflow-y: auto; padding: 4px 2px; }
+.talk-line { padding: 6px 8px; border-radius: 8px; font-size: 13px; line-height: 1.4; }
+.talk-line b { display: block; font-size: 11px; opacity: .75; margin-bottom: 2px; }
+.talk-line.npc { background: rgba(240,200,103,.08); border-left: 2px solid #f0c867; }
+.talk-line.avatar { background: rgba(185,156,255,.08); border-left: 2px solid #b99cff; margin-left: 16px; }
+.talk-line.is-busy { opacity: .6; font-style: italic; }
+.talk-form { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: end; }
+.talk-form textarea { resize: vertical; min-height: 44px; }
+.talk-props { display: grid; gap: 6px; }
+.talk-props h5 { margin: 4px 0 0; }
+.talk-prop { font-size: 13px; padding: 6px 8px; border: 1px dashed rgba(240,200,103,.4); border-radius: 8px; }
+.talk-prop.is-ok { border-style: solid; border-color: #7fbf7f; }
+.talk-prop.is-non { opacity: .5; }
+/* Monde à l'échelle (lot 12) : relief en image, rivières d'un trait fin */
+.am-surface .am-relief { image-rendering: auto; }
+.am-surface .dc-stream { fill: none; stroke: #3f7a8e; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.am-surface.season-hiver .dc-stream { stroke: #8fb0bc; }
+/* Panneau Monde : avertissements et suggestion de mer (lots 12-13) */
+.world-warn { color: #f0b46a; font-size: 12px; }
+.world-suggest { border: 1px solid rgba(240,200,103,.45); border-radius: 8px; padding: 8px; margin: 6px 0; background: rgba(240,200,103,.06); }
+.world-suggest p { margin: 0 0 6px; }
+/* Traversées en mer (lot 14) */
+.am-surface .am-road.tr-maritime .edge { display: none; }
+.am-surface .am-road.tr-maritime .top { stroke: #d8ecf2; stroke-dasharray: 7 6; opacity: .85; }
+.am-surface .am-road.tr-maritime:hover .top { stroke: #fff; }
+/* Légende de la carte du monde à l'échelle (lot 17) */
+.am-legend { position: absolute; left: 12px; top: 12px; z-index: 3; max-width: 260px; font-size: 12px; color: #efe2bd; background: rgba(14,11,8,.86); border: 1px solid rgba(201,162,74,.4); border-radius: 8px; padding: 4px 8px; }
+.am-legend summary { cursor: pointer; font-weight: 600; }
+.am-legend ul { list-style: none; margin: 6px 0 2px; padding: 0; display: grid; gap: 4px; }
+.am-legend li { display: flex; align-items: center; gap: 8px; }
+.am-legend svg { flex: none; border-radius: 3px; }

@@ -160,6 +160,14 @@ function PlayerMap({ board, rev, onFollow, onPick, onFork }: { board: Extract<Pl
           )}
         </aside>
       )}
+      {board.talk && board.talk.lines.length > 0 && (
+        <div className="present-talk" role="log" aria-live="polite">
+          <div className="present-talk-head">{board.talk.image && <img src={board.talk.image} alt="" />}<b>{board.talk.name}</b></div>
+          {board.talk.lines.slice(-4).map((l, i) => (
+            <p key={`${board.talk!.at}-${i}`} className={l.who === board.talk!.name ? 'is-npc' : 'is-party'}><b>{l.who}</b> {l.text}</p>
+          ))}
+        </div>
+      )}
       {board.alert && <HaltNotice key={board.alert.key} alert={board.alert} />}
       {board.fork && !board.alert && (
         <ForkPrompt key={board.fork.key} fork={board.fork} readyAt={board.travel ? board.travel.at + journeyMs(board.travel.points, map.width, map.height) : 0} onChoose={onFork} />
@@ -340,7 +348,7 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
         ref={wrapRef} onPointerDown={down} onPointerMove={move}
       >
         <BattleBoard
-          cols={board.cols} rows={board.rows} backdrop={board.backdrop} terrain={board.terrain} elements={board.elements} tokens={tokens} fog={board.fog} exits={board.exits}
+          cols={board.cols} rows={board.rows} backdrop={board.backdrop} theme={board.theme} terrain={board.terrain} elements={board.elements} tokens={tokens} fog={board.fog} exits={board.exits}
           onElement={pick} aim={aim} ranges={ranges} hits={board.hits} ground={board.ground} surface={board.surface} aoes={board.aoes}
           path={dragPlan && dragToken ? {
             steps: dragPlan.possible ? dragPlan.steps : [from(dragToken), drag!.cur], size: dragToken.size, ok: dragPlan.ok, possible: dragPlan.possible,

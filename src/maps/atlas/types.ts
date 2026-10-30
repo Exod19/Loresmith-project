@@ -16,7 +16,7 @@ export type FeatureCategory =
   | 'vivant' | 'evenement' | 'institution' | 'ruine' | 'garde' | 'indetermine';
 
 /** Familles de chemins, du plus large au plus discret. */
-export type Trace = 'tunnel' | 'galerie' | 'boyau' | 'etroit' | 'crevasse' | 'ruisseau' | 'secret';
+export type Trace = 'tunnel' | 'galerie' | 'boyau' | 'etroit' | 'crevasse' | 'ruisseau' | 'secret' | 'maritime';
 
 export type ConnectionKind = 'tunnel' | 'galerie' | 'escalier' | 'puits' | 'ascenseur' | 'pont' | 'portail' | 'naturel' | 'inconnu';
 
@@ -57,11 +57,56 @@ export interface AtlasMap {
   ambiance?: string;
   /** Dessin vectoriel propre au plan (sculptures, escaliers, bâtiments, canalisations), en unités de plan. */
   decor?: MapDecor[];
+  /**
+   * Plan de surface (carte du monde, cité générée) : échelle en mètres par unité de plan, et sol réel
+   * (bâtiments, remparts, eaux, arbres, champs, rues) dont la carte de combat est tirée. Absent : plan souterrain.
+   */
+  surface?: MapSurface;
+}
+
+/** Sol d'un plan de surface (voir src/maps/world/generate.js) ; rectangles et tracés en unités de plan. */
+export interface MapSurface {
+  scale: number;
+  theme: 'cite' | 'monde' | 'interieur';
+  /** Lumière du moment (carte du monde) : le soir et la nuit, le plan s'assombrit. */
+  light?: 'soir' | 'nuit';
+  /** Climat d'une cité (allure du plan et du plateau de combat). */
+  climate?: 'froid' | 'tempere' | 'chaud';
+  /** Saison choisie par le MJ (couleurs du plan). */
+  season?: 'printemps' | 'ete' | 'automne' | 'hiver';
+  /** Part du sol couverte de neige (congères : terrain difficile au combat). */
+  snow?: number;
+  /** Eaux gelées : toutes, ou seulement les rivières. */
+  frozen?: 'tout' | 'rivieres';
+  /** Relief continu d'un monde à l'échelle (lot 12) : voir world/terrain.js. */
+  relief?: Record<string, unknown>;
+  ground: {
+    b: number[]; f: number[]; t: number[];
+    /** Obstacles intérieurs (comptoir, âtre, autel…) : rectangles comme `b`, infranchissables mais pas des murs. */
+    o?: number[];
+    /** Ouvertures (portes, passages) que la grille de combat garde ouvertes : [x, y] à plat. */
+    doors?: number[];
+    walls: { pts: number[]; hw: number }[];
+    water: { pts: number[]; hw: number; closed?: boolean }[];
+    roads: { pts: number[]; hw: number }[];
+    forests?: number[][];
+    towns?: number[];
+  };
 }
 
 export interface MapDecor {
-  kind: 'face' | 'eye' | 'pupil' | 'fang' | 'dark' | 'stair' | 'steps' | 'building' | 'ring' | 'fountain' | 'temple' | 'dome' | 'arch' | 'pit' | 'enclosure' | 'field' | 'mushroom' | 'tower' | 'pipe' | 'basin';
+  kind: 'face' | 'eye' | 'pupil' | 'fang' | 'dark' | 'stair' | 'steps' | 'building' | 'ring' | 'fountain' | 'temple' | 'dome' | 'arch' | 'pit' | 'enclosure' | 'field' | 'mushroom' | 'tower' | 'pipe' | 'basin'
+    /* Plans de surface (cités et monde générés). */
+    | 'plot' | 'tree' | 'river' | 'square' | 'court' | 'wall' | 'roof' | 'roof-farm' | 'roof-noble' | 'roof-civic' | 'keep' | 'bridge'
+    | 'forest' | 'lake' | 'hill' | 'town'
+    /* Climat et côtes (lot 9). */
+    | 'biome-neige' | 'biome-taiga' | 'biome-steppe' | 'biome-desert' | 'dune' | 'pine' | 'forest-sparse' | 'mountain' | 'snowcap'
+    | 'shore' | 'shore-cold' | 'beach' | 'sea' | 'pier' | 'lake-ice' | 'stream'
+    /* Intérieurs. */
+    | 'street' | 'floor' | 'floor-stone' | 'hatch' | 'pillar' | 'stool' | 'wall-in' | 'furn' | 'bed' | 'hearth' | 'altar' | 'anvil' | 'trough' | 'stair' | 'barrel' | 'crate' | 'bars' | 'rug' | 'dais' | 'stall';
   d: string;
+  /** Épaisseur du trait en unités de plan (rempart, rivière) : elle suit le zoom, contrairement aux traits fins. */
+  w?: number;
 }
 
 /** Cavité rocheuse : ellipse irrégulière générée de façon stable (cx, cy, rx, ry en coordonnées 0–1, graine). */
@@ -85,6 +130,10 @@ export interface AtlasFeature {
   image?: string;
   /** Conseils au MJ fournis par la source (cités importées) : jets, DD, conséquences. */
   dm?: { kind: 'test' | 'save' | 'info'; label: string; dc?: number; ok?: string; ko?: string }[];
+  /** Tiré au sort, pas encore défini par le MJ (carte du monde, mode Exploration). */
+  draft?: boolean;
+  /** PNJ expressément caché (carte du monde) : pas révélé d'office, jeton caché en combat. */
+  hiddenNpc?: boolean;
   demo?: boolean;
 }
 

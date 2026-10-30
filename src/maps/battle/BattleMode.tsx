@@ -6,6 +6,8 @@
  * Le lieu choisi donne la zone locale : ses passages (tracés réels de l'Atlas) et ses éléments y sont à leur position.
  * « Suivre » un passage ramène sur la carte de navigation, à sa destination, et y déplace le groupe.
  */
+import { terrainAt, type Relief } from '../world/terrain';
+import { boardTheme } from './theme';
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import BattleBoard, { anchorOf, type BoardElement, type BoardLabel, type BoardRange, type BoardToken } from './BattleBoard';
 import type { AtlasData, AtlasMap } from '../atlas/types';
@@ -140,6 +142,19 @@ export type CombatSlot = {
   /** Onglets propres à la carte (Lieu, Construire), rangés dans le pupitre à côté de ceux du combat. */
   side?: { tabs: { id: string; label: string; badge?: number }[]; active: string | null; onPick: (id: string | null) => void; render: (id: string) => ReactNode };
 };
+
+/** Thème du plateau d'un plan de surface : intérieur, neige, climat de la cité, ou terrain réel du monde à l'échelle. */
+function surfaceTheme(surface: NonNullable<AtlasMap['surface']>, win: { x0: number; y0: number; w: number; h: number }): 'interieur' | 'neige' | 'froid' | 'chaud' | true {
+  if (surface.theme === 'interieur') return 'interieur';
+  if ((surface.snow ?? 0) >= 0.1) return 'neige';
+  if (surface.relief) {
+    const r = surface.relief as unknown as Relief;
+    const [x0, y0, x1, y1] = r.bounds;
+    const t = terrainAt(r, x0 + (win.x0 + win.w / 2) * (x1 - x0), y0 + (win.y0 + win.h / 2) * (y1 - y0));
+    return t.biome === 'neige' ? 'neige' : t.T < 0.3 ? 'froid' : t.T > 0.7 ? 'chaud' : true;
+  }
+  return surface.climate === 'froid' || surface.climate === 'chaud' ? surface.climate : true;
+}
 
 export default function BattleMode({
   rec, battle, onBattle, context, atlas, plan, markers, onFollow, onLink, onMarker, onReveal, heroes = [], party, onSearchNote, bestiary = [], renderCombat, onLeave,
@@ -292,9 +307,34 @@ export default function BattleMode({
         && !kept.some((t) => t.x < x + size && x < t.x + t.size && t.y < y + size && y < t.y + t.size);
       tokens = [...kept, ...placeEncounter(groups, b.cols, b.rows, free, seed)];
     }
+    // Dans un bâtiment : ses PNJ y sont, combat ou pas. Chacun est posé à sa place (comptoir, porte…), visible des joueurs
+    // sauf s'il est expressément caché ; le MJ les déplace ensuite à sa guise. Un PNJ déjà sur le plateau n'est pas reposé.
+    if (plan.surface?.theme === 'interieur') {
+      const revealed = new Set(rec.overlay?.revealed ?? []);
+      const taken = (x: number, y: number) => tokens.some((t) => x >= t.x && x < t.x + t.size && y >= t.y && y < t.y + t.size);
+      for (const f of atlas.features.filter((x) => x.id.startsWith(`${plan.id}:pnj-`))) {
+        const id = `pnj-${f.entryId ?? f.id}`;
+        if (tokens.some((t) => t.id === id)) continue;
+        const g = atlas.geometries.find((x) => x.featureId === f.id && x.type === 'point');
+        const cell = g && cellIn(local.window, b.cols, b.rows, (g.coordinates as [number, number])[0], (g.coordinates as [number, number])[1]);
+        if (cell === undefined || !g) continue;
+        const cx = cell % b.cols, cy = Math.floor(cell / b.cols);
+        let best: { x: number; y: number } | null = null, bd = Infinity;
+        for (let y = 0; y < b.rows; y++) for (let x = 0; x < b.cols; x++) {
+          const d = Math.max(Math.abs(x - cx), Math.abs(y - cy));
+          if (d < bd && !blocksCell(ground, b.cols, x, y) && !taken(x, y)) { bd = d; best = { x, y }; }
+        }
+        if (!best || bd > 4) continue;
+        const ref = bestiary.find((r) => r.id === f.entryId);
+        tokens = [...tokens, {
+          id, name: f.title, kind: 'other', x: best.x, y: best.y, size: 1, visible: !f.hiddenNpc || revealed.has(f.id),
+          npcId: ref?.id, hp: ref?.hp, maxHp: ref?.hp, ac: ref?.ac, image: ref?.token,
+        }];
+      }
+    }
     set({
       terrain: { source, seed, grid: local.base },
-      local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous },
+      local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous, surface: plan.surface ? surfaceTheme(plan.surface, local.window) : undefined },
       tokens,
       encounterOf: groups?.length ? source : b.encounterOf,
       build: undefined,
@@ -1107,6 +1147,7 @@ export default function BattleMode({
           >
             <BattleBoard
               cols={b.cols} rows={b.rows} backdrop={rec.image} terrain={baseGrid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
+              theme={boardTheme(b.local?.surface)}
               ground={b.ground} surface={editor.view} overlay={building && editor.overlay ? { rules, focus: editor.focus } : undefined}
               path={pathView} surfaceSelected={editor.selectedId} draft={editor.draft}
               onCell={onBoardCell} onElement={building || aoeTool || aiming ? undefined : (id) => { if (boardElements.some((e) => e.id === id)) setInfoId(id); }} onHover={(x, y) => setHover({ x, y })}

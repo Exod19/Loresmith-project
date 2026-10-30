@@ -3,7 +3,7 @@
  * sur le tracé (une étape), on choisit sa direction depuis le milieu d'un tunnel, et on estime le temps de marche
  * (en heures de jeu) pour les jets de rencontre.
  */
-import type { AtlasData, AtlasGeometry } from './atlas/types';
+import type { AtlasData, AtlasGeometry, AtlasMap } from './atlas/types';
 import type { PartyPlace } from './mapStore';
 import { cavityPoints } from './atlas/model';
 
@@ -11,7 +11,9 @@ type Pt = [number, number];
 
 /** Traverser toute la largeur d'un plan prend environ 16 heures de marche prudente ; certains passages ralentissent. */
 const HOURS_PER_PLAN = 16;
-const SLOW: Record<string, number> = { tunnel: 1, galerie: 1, ruisseau: 1.4, boyau: 1.6, secret: 1.5, etroit: 1.8, crevasse: 2 };
+const SLOW: Record<string, number> = { tunnel: 1, galerie: 1, ruisseau: 1.4, boyau: 1.6, secret: 1.5, etroit: 1.8, crevasse: 2, maritime: 1 };
+/** Vitesses réelles (km/h) sur un plan à l'échelle : marche au rythme normal de D&D 5e (3 milles/h), navire à voile. */
+const KMH = { pied: 4.8, navire: 5 };
 
 const dist = (a: Pt, b: Pt) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 
@@ -61,9 +63,21 @@ export const towardOf = (dx: number, dy: number) => COMPASS[((Math.round(Math.at
 
 /** Heures de marche (jeu) pour une longueur de tracé, selon le type de passage. */
 export const hoursOf = (len: number, trace?: string) => len * HOURS_PER_PLAN * (SLOW[trace ?? ''] ?? 1.2);
+/**
+ * Heures de voyage le long d'un tracé (coordonnées 0–1) sur un plan. Un plan à l'échelle (carte du monde, cité) compte
+ * en vrais kilomètres ; l'Atlas des profondeurs garde sa durée par plan.
+ */
+export function hoursOn(plan: AtlasMap | undefined, pts: Pt[], trace?: string) {
+  if (!plan?.surface) return hoursOf(lengthOf(pts), trace);
+  const kw = (plan.width * plan.surface.scale) / 1000, kh = (plan.height * plan.surface.scale) / 1000;
+  const km = pts.reduce((sum, p, i) => (i ? sum + Math.hypot((p[0] - pts[i - 1][0]) * kw, (p[1] - pts[i - 1][1]) * kh) : 0), 0);
+  return trace === 'maritime' ? km / KMH.navire : (km / KMH.pied) * (SLOW[trace ?? ''] ?? 1.2);
+}
 
 /** « 1 h 20 », « 40 min » (arrondi à 10 minutes). */
-export function hoursLabel(h: number) {
+export function hoursLabel(h: number, inDays = false) {
+  // Plan à l'échelle (carte du monde) : au-delà d'une journée, en jours de marche (8 h par jour), puis les heures.
+  if (inDays && h >= 10) { const d = Math.round((h / 8) * 2) / 2; return `${String(d).replace('.5', ' ½')} jour${d >= 2 ? 's' : ''} (${Math.round(h)} h)`; }
   const m = Math.max(10, Math.round((h * 60) / 10) * 10);
   return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h${m % 60 ? ` ${String(m % 60).padStart(2, '0')}` : ''}`;
 }
@@ -227,7 +241,7 @@ export function legsOf(data: AtlasData, planId: string, g: AtlasGeometry, from: 
       side = { place: aside.place, at: aside.at, side: cross > 0 ? 'droite' : 'gauche' };
     }
     const walk = aside ? [from, ...route] : points;
-    legs.push({ dir, to, points: walk, hours: hoursOf(lengthOf(walk), trace), toward: towardOf(far[0] - from[0], far[1] - from[1]), aside: side });
+    legs.push({ dir, to, points: walk, hours: hoursOn(data.maps.find((m) => m.id === planId), walk, trace), toward: towardOf(far[0] - from[0], far[1] - from[1]), aside: side });
   }
   return legs;
 }
