@@ -57,11 +57,35 @@ export interface AtlasMap {
   ambiance?: string;
   /** Dessin vectoriel propre au plan (sculptures, escaliers, bâtiments, canalisations), en unités de plan. */
   decor?: MapDecor[];
+  /**
+   * Plan de surface (carte du monde, cité générée) : échelle en mètres par unité de plan, et sol réel
+   * (bâtiments, remparts, eaux, arbres, champs, rues) dont la carte de combat est tirée. Absent : plan souterrain.
+   */
+  surface?: MapSurface;
+}
+
+/** Sol d'un plan de surface (voir src/maps/world/generate.js) ; rectangles et tracés en unités de plan. */
+export interface MapSurface {
+  scale: number;
+  theme: 'cite' | 'monde';
+  ground: {
+    b: number[]; f: number[]; t: number[];
+    walls: { pts: number[]; hw: number }[];
+    water: { pts: number[]; hw: number; closed?: boolean }[];
+    roads: { pts: number[]; hw: number }[];
+    forests?: number[][];
+    towns?: number[];
+  };
 }
 
 export interface MapDecor {
-  kind: 'face' | 'eye' | 'pupil' | 'fang' | 'dark' | 'stair' | 'steps' | 'building' | 'ring' | 'fountain' | 'temple' | 'dome' | 'arch' | 'pit' | 'enclosure' | 'field' | 'mushroom' | 'tower' | 'pipe' | 'basin';
+  kind: 'face' | 'eye' | 'pupil' | 'fang' | 'dark' | 'stair' | 'steps' | 'building' | 'ring' | 'fountain' | 'temple' | 'dome' | 'arch' | 'pit' | 'enclosure' | 'field' | 'mushroom' | 'tower' | 'pipe' | 'basin'
+    /* Plans de surface (cités et monde générés). */
+    | 'plot' | 'tree' | 'river' | 'square' | 'court' | 'wall' | 'roof' | 'roof-farm' | 'roof-noble' | 'roof-civic' | 'keep' | 'bridge'
+    | 'forest' | 'lake' | 'hill' | 'town';
   d: string;
+  /** Épaisseur du trait en unités de plan (rempart, rivière) : elle suit le zoom, contrairement aux traits fins. */
+  w?: number;
 }
 
 /** Cavité rocheuse : ellipse irrégulière générée de façon stable (cx, cy, rx, ry en coordonnées 0–1, graine). */

@@ -325,7 +325,7 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
         ref={wrapRef} onPointerDown={down} onPointerMove={move}
       >
         <BattleBoard
-          cols={board.cols} rows={board.rows} backdrop={board.backdrop} terrain={board.terrain} elements={board.elements} tokens={tokens} fog={board.fog} exits={board.exits}
+          cols={board.cols} rows={board.rows} backdrop={board.backdrop} theme={board.theme} terrain={board.terrain} elements={board.elements} tokens={tokens} fog={board.fog} exits={board.exits}
           onElement={pick} aim={aim} ranges={ranges} hits={board.hits}
         />
         {aimer && <div className="present-aim-hint">🎯 {board.tokens.find((t) => t.id === aimer)?.name} vise : touche la cible sur le plateau.</div>}

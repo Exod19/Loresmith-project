@@ -540,3 +540,34 @@
 /* Héros séparés du groupe (MJ). */
 .am-mark-hero .am-mark-ring { stroke: #b99cff; } .am-mark-hero .am-mark-dot { fill: #b99cff; }
 .am-mark-hero .am-mark-flag { fill: rgba(24,16,40,.92); stroke: #b99cff; } .am-mark-hero .am-mark-text { fill: #e6dcff; }
+
+/* ——— Plans de surface : carte du monde et cités générées (src/maps/world) ——— */
+.am-surface { --am-ground: #343f2a; --am-road: #b39e74; --am-road-edge: #5f523a; }
+.am-surface .am-ground { fill: var(--am-ground); }
+.am-surface.is-monde { --am-ground: #3a4530; }
+.am-surface .am-roads path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.am-surface .am-road .edge { stroke: var(--am-road-edge); stroke-width: 3.4px; }
+.am-surface .am-road .top { stroke: var(--am-road); stroke-width: 2.2px; cursor: pointer; }
+.am-surface .am-road.tr-boyau .top { stroke: #a08d68; }
+.am-surface .am-road:hover .top { stroke: #e0c890; }
+.am-surface .am-decor path.dc-w { vector-effect: none; }
+.am-surface .dc-plot { fill: #4b512f; stroke: #5e6438; stroke-width: .6; }
+.am-surface .dc-tree { fill: #22381f; stroke: #2c4728; stroke-width: .5; }
+.am-surface .dc-forest { fill: #25391f; stroke: #2f4728; stroke-width: 1; }
+.am-surface .dc-river { fill: none; stroke: #2f5c69; stroke-linecap: round; stroke-linejoin: round; }
+.am-surface .dc-lake { fill: #2f5c69; stroke: #47788a; stroke-width: .8; }
+.am-surface .dc-hill { fill: none; stroke: #6b6347; stroke-width: 1.2; }
+.am-surface .dc-square { fill: #8b8170; stroke: #5d5648; stroke-width: .8; }
+.am-surface .dc-court { fill: #6e695d; stroke: #4c483f; stroke-width: .8; }
+.am-surface .dc-wall { fill: none; stroke: #b9b1a1; stroke-linecap: round; stroke-linejoin: round; }
+.am-surface .dc-roof { fill: #8a4f3c; stroke: #3b241c; stroke-width: .6; }
+.am-surface .dc-roof-farm { fill: #7c6849; stroke: #3d3223; stroke-width: .6; }
+.am-surface .dc-roof-noble { fill: #58657a; stroke: #262c36; stroke-width: .6; }
+.am-surface .dc-roof-civic { fill: #a86c3b; stroke: #3d2618; stroke-width: .6; }
+.am-surface .dc-keep { fill: #6d6a72; stroke: #24232a; stroke-width: .9; }
+.am-surface .dc-bridge { fill: #9b8a69; stroke: #4e4433; stroke-width: .6; }
+.am-surface .dc-tower { fill: #9b958a; stroke: #4a463e; stroke-width: .6; }
+.am-surface .dc-fountain { fill: #3d7480; stroke: #b8b0a0; stroke-width: .6; }
+.am-surface .dc-town { fill: #8a4f3c; stroke: #e0d1a8; stroke-width: 1.2; }
+.am-surface .am-pin .lbl, .am-surface .am-pin .sub, .am-surface .am-area-label { stroke: #1b2114; }
+.am-surface .am-area-label { fill: #efe2bd; }

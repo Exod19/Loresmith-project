@@ -24,6 +24,9 @@ const traceOf = (f: AtlasFeature): Trace => f.trace ?? (f.importance === 'landma
 /** Largeur des passages (unités de plan) : de vrais vides creusés dans la roche, pas des routes. */
 const PASS_W: Record<Trace, number> = { tunnel: 30, galerie: 19, boyau: 10, etroit: 6.5, crevasse: 0, ruisseau: 0, secret: 0 };
 const FLOOR = '#1f2a29', WALL = '#030607', RIM = '#6b7a75';
+/** Plans de surface : largeur des rues en mètres selon le tracé, et décor peint sous les rues (le reste par-dessus). */
+const ROAD_M: Partial<Record<Trace, number>> = { tunnel: 7.2, galerie: 5.4, boyau: 3.4, etroit: 2.4 };
+const UNDER_ROADS = new Set(['plot', 'tree', 'river', 'forest', 'lake', 'square', 'court', 'hill']);
 /** Vue mémorisée par carte : le retour retrouve position et échelle. */
 const saved = new Map<string, T>();
 /** Arrivées déjà appliquées (clé d'historique) : revenir en arrière ne recentre pas une seconde fois. */
@@ -118,7 +121,7 @@ export function journeyMs(points: [number, number][], W: number, H: number) {
   return Math.min(24000, Math.max(8000, (total / W) * 48000));
 }
 
-export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, dataKey, dm, marks = [], fog, journey }: {
+export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, dataKey, dm, marks = [], fog, journey, onZoomLimit }: {
   map: AtlasMap; layers: Layers; hidden: Set<FeatureCategory>;
   /** Mode MJ : révèle les passages secrets. Hors MJ, la carte est une carte de lore. */
   dm: boolean;
@@ -134,6 +137,11 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   fog?: MapFog | null;
   /** Déplacement du groupe à animer (ignoré s'il date de plus de quelques secondes). */
   journey?: MapTravel | null;
+  /**
+   * On continue de zoomer au-delà des limites du plan : `in` au zoom maximal, `out` au zoom minimal, avec le point
+   * visé (0–1). La carte du monde s'en sert pour entrer dans une cité, ou en sortir, sans changer de carte.
+   */
+  onZoomLimit?: (dir: 'in' | 'out', at: [number, number]) => void;
 }) {
   // Le groupe en chemin : position courante le long du tracé, image par image.
   const [walker, setWalker] = useState<[number, number] | null>(null);
@@ -260,7 +268,14 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
 
   // `dataKey` change quand le contenu du plan change (repères, révélations) sans changer de plan : les listes sont recalculées.
   const geos = useMemo(() => geometriesOn(map.id), [map.id, dataKey]);
-  const anchors = useMemo(() => anchorsOn(map.id), [map.id, dataKey]);
+  // Plan de surface : une ancre posée sous un lieu (l'entrée d'une cité sous son point) n'est pas redessinée.
+  const anchors = useMemo(() => {
+    const all = anchorsOn(map.id);
+    if (!map.surface) return all;
+    const pts = geometriesOn(map.id).filter((g) => g.type === 'point').map((g) => g.coordinates as [number, number]);
+    return all.filter((a) => !pts.some(([x, y]) => Math.abs(x - a.at[0]) < 0.002 && Math.abs(y - a.at[1]) < 0.002));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map.id, dataKey]);
   const cavities = useMemo(() => cavitiesOf(map.id), [map.id, dataKey]);
   const houses = useMemo(() => (map.scope.kind === 'site' && !map.decor ? buildings(map) : []), [map]);
   const relief = useMemo(() => terrain(cavities, W, H), [cavities, W, H]);
@@ -305,14 +320,28 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
     return p.matrixTransform(el.getScreenCTM()!.inverse());
   };
   const clampK = (k: number) => Math.min(maxK.current, Math.max(MIN_K, k));
+  /** Au bord du zoom, un nouveau geste dans le même sens est signalé (une fois par seconde au plus). */
+  const limitRef = useRef(onZoomLimit); limitRef.current = onZoomLimit;
+  const lastLimit = useRef(0);
+  const edge = (from: number, to: number, x: number, y: number, tx: number, ty: number) => {
+    const fn = limitRef.current; if (!fn) return;
+    const dir = to > from && from >= maxK.current * 0.999 ? 'in' : to < from && from <= MIN_K * 1.001 ? 'out' : null;
+    if (!dir || Date.now() - lastLimit.current < 1000) return;
+    lastLimit.current = Date.now();
+    fn(dir, [(x - tx) / from / W, (y - ty) / from / H]);
+  };
   const zoomAt = (x: number, y: number, k2: number) => setT((o) => { const k = clampK(k2); return { k, tx: x - ((x - o.tx) * k) / o.k, ty: y - ((y - o.ty) * k) / o.k }; });
-  const zoomBy = (f: number) => { fresh.current = false; setT((o) => { const k = clampK(o.k * f); const x = W / 2, y = H / 2; return { k, tx: x - ((x - o.tx) * k) / o.k, ty: y - ((y - o.ty) * k) / o.k }; }); };
+  const zoomBy = (f: number) => { fresh.current = false; edge(t.k, t.k * f, W / 2, H / 2, t.tx, t.ty); setT((o) => { const k = clampK(o.k * f); const x = W / 2, y = H / 2; return { k, tx: x - ((x - o.tx) * k) / o.k, ty: y - ((y - o.ty) * k) / o.k }; }); };
+  const tRef = useRef(t); tRef.current = t;
+  const edgeRef = useRef(edge); edgeRef.current = edge;
 
   useEffect(() => {
     const el = svg.current; if (!el) return;
     const wheel = (e: WheelEvent) => {
       e.preventDefault(); fresh.current = false;
       const p = toSvg(e.clientX, e.clientY);
+      const o0 = tRef.current;
+      edgeRef.current(o0.k, o0.k * Math.exp(-e.deltaY * 0.0015), p.x, p.y, o0.tx, o0.ty);
       setT((o) => { const k = clampK(o.k * Math.exp(-e.deltaY * 0.0015)); return { k, tx: p.x - ((p.x - o.tx) * k) / o.k, ty: p.y - ((p.y - o.ty) * k) / o.k }; });
     };
     el.addEventListener('wheel', wheel, { passive: false });
@@ -333,7 +362,9 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
     if (pointers.current.size === 2 && pinch.current) {
       const [a, b] = [...pointers.current.values()];
       const c = toSvg((a.x + b.x) / 2, (a.y + b.y) / 2);
-      zoomAt(c.x, c.y, pinch.current.k * (Math.hypot(a.x - b.x, a.y - b.y) / pinch.current.d)); return;
+      const k2 = pinch.current.k * (Math.hypot(a.x - b.x, a.y - b.y) / pinch.current.d);
+      edge(t.k, k2, c.x, c.y, t.tx, t.ty);
+      zoomAt(c.x, c.y, k2); return;
     }
     // Glisser : déplacement confié au compositeur (transformation CSS), validé au relâchement.
     const dr = drag.current; dr.x += e.clientX - prev.x; dr.y += e.clientY - prev.y;
@@ -375,13 +406,14 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
 
   /** Roche, parois, sols : couches figées (ne dépendent ni du déplacement ni du zoom). */
   const rock = useMemo(() => {
-    const litho = lithology(map.id.length * 131 + W, W, H, Math.round(160 * zf * zf));
+    const litho = map.surface ? '' : lithology(map.id.length * 131 + W, W, H, Math.round(160 * zf * zf));
     const floors = cavities.map((c) => cavityPath(c, W, H, 0, 44)).join('');
     const walls = cavities.map((c) => cavityPath(c, W, H, 7, 32)).join('');
     // Ombrage du sol : cœur plus clair, décalé vers la lumière, au lieu d'un dégradé par salle (bien plus léger).
     const light = cavities.map((c) => cavityPath({ ...c, cx: c.cx - c.rx * 0.08, cy: c.cy - c.ry * 0.1, rx: c.rx * 0.62, ry: c.ry * 0.55, seed: c.seed + 5 }, W, H, 0, 28)).join('');
     return { litho, floors, walls, light };
-  }, [cavities, W, H]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cavities, W, H, map.surface]);
   const carved = shown.filter((p) => PASS_W[p.tr] > 0);
   const layerWalls = useMemo(() => (
     <g className="am-walls">
@@ -458,11 +490,17 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   }
   const s = px / t.k; // échelle des marqueurs : taille constante à l'écran
   const kind = map.scope.kind;
-  const detailEmpty = rz >= 4.2 && !geos.some((g) => features.get(g.featureId)!.importance === 'detail');
+  const detailEmpty = !map.surface && rz >= 4.2 && !geos.some((g) => features.get(g.featureId)!.importance === 'detail');
+  /** Plan de surface : rues dessinées à leur largeur réelle (en mètres), sinon d'un trait fin à l'échelle du monde. */
+  const surf = map.surface;
+  const roadW = (tr: Trace) => (surf ? (ROAD_M[tr] ?? 3) / surf.scale : 0);
+  const decorUnder = surf && map.decor ? map.decor.filter((x) => UNDER_ROADS.has(x.kind)) : [];
+  const decorOver = map.decor ? (surf ? map.decor.filter((x) => !UNDER_ROADS.has(x.kind)) : map.decor) : [];
+  const decorPath = (x: NonNullable<AtlasMap['decor']>[number], i: number) => <path key={i} d={x.d} className={`dc-${x.kind}${x.w ? ' dc-w' : ''}`} style={x.w ? { strokeWidth: x.w } : undefined} />;
   const fade = (from: number) => Math.min(1, Math.max(0, (rz - from) / 0.6));
 
   return (
-    <div className="atlas-map">
+    <div className={`atlas-map${surf ? ` am-surface is-${surf.theme}` : ''}`}>
       <svg ref={svg} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" role="application"
         aria-label={`${map.title} — glisser pour déplacer, molette ou pincement pour zoomer`}
         onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
@@ -472,18 +510,37 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
           <radialGradient id="am-water" cx=".45" cy=".4" r=".7"><stop offset="0" stopColor="#2f5a5e" /><stop offset="1" stopColor="#14282c" /></radialGradient>
           <pattern id="am-hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(40)"><path d="M0 0V9" stroke="#8a5a49" strokeWidth="1.3" opacity=".55" /></pattern>
         </defs>
-        <rect x={-W} y={-H} width={W * 3} height={H * 3} fill="#090d0e" />
+        <rect x={-W} y={-H} width={W * 3} height={H * 3} fill={surf ? undefined : '#090d0e'} className={surf ? 'am-ground' : undefined} />
         <g transform={`translate(${t.tx} ${t.ty}) scale(${t.k})`} style={{ '--rim': `${(2.4 * px) / t.k}px` } as React.CSSProperties}>
           <path d={rock.litho} stroke="#2b3536" strokeWidth=".8" fill="none" opacity=".55" />
           {layers.ambiance && map.ambiance && <image href={map.ambiance} x={0} y={0} width={W} height={H} preserveAspectRatio="xMidYMid slice" className="am-ambiance" />}
-          <g className={layers.ambiance && map.ambiance ? 'am-caves see-through' : 'am-caves'}>
-            {layerWalls}
-            {layerFloors}
-          </g>
+          {surf ? (
+            <>
+              {decorUnder.length > 0 && <g className="am-decor">{decorUnder.map(decorPath)}</g>}
+              <g className="am-roads">
+                {shown.map((p) => {
+                  const w = roadW(p.tr);
+                  // À l'échelle du monde, une route serait plus fine qu'un pixel : trait d'épaisseur fixe à l'écran.
+                  const thin = w * t.k / px < 2.2;
+                  return (
+                    <g key={p.g.id} className={`am-road tr-${p.tr}`} onClick={tap(() => selectRef.current(p.f))}>
+                      <path d={p.d} className="edge" style={{ strokeWidth: thin ? undefined : w + 1.4 / surf.scale }} vectorEffect={thin ? 'non-scaling-stroke' : undefined} />
+                      <path d={p.d} className="top" style={{ strokeWidth: thin ? undefined : w }} vectorEffect={thin ? 'non-scaling-stroke' : undefined} />
+                    </g>
+                  );
+                })}
+              </g>
+            </>
+          ) : (
+            <g className={layers.ambiance && map.ambiance ? 'am-caves see-through' : 'am-caves'}>
+              {layerWalls}
+              {layerFloors}
+            </g>
+          )}
           <path d={relief.contours} className="am-contour" vectorEffect="non-scaling-stroke" style={{ opacity: fade(1.3) * 0.8 }} />
           {layerSpeleo && <path d={layerSpeleo} className="am-speleo" style={{ opacity: fade(2.25) }} />}
           {rz >= 3.4 && <path d={relief.blocks} className="am-blocks" style={{ opacity: fade(3.4) }} />}
-          {map.decor && <g className="am-decor">{map.decor.map((x, i) => <path key={i} d={x.d} className={`dc-${x.kind}`} />)}</g>}
+          {decorOver.length > 0 && <g className="am-decor">{decorOver.map(decorPath)}</g>}
           {houses.map((b, i) => (
             <g key={i} className="am-house"><rect x={b.x} y={b.y} width={b.w} height={b.h} rx="2" /><rect x={b.x + 4} y={b.y + 4} width={b.w * 0.76} height={b.h * 0.55} className="in" /></g>
           ))}

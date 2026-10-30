@@ -32,6 +32,9 @@ import { onPlayerFollow, onPlayerFork, onPlayerPick, publishStage } from '../pre
 import { zoneOf, inZone, trailInZone } from './zone';
 import LiveEncounters, { type LiveBestiaryRef } from './LiveEncounters';
 import { buildRoutes, distancesTo, goalNodes, judgeTrail, nodeOf, verdictText, type TrailVerdict } from './route';
+import { isAtlasLike, useWorldSync, worldPlanId } from './world';
+import WorldPanel from './world/WorldPanel';
+import type { LoreEntry } from './world/lore';
 import './maps.css';
 
 const LAYERS: Layers = { points: true, etiquettes: true, galeries: true, connexions: true, ambiance: true };
@@ -53,7 +56,7 @@ const FORK_LINES: ((side: string) => string)[] = [
   (c) => `Un écho différent, sur votre ${c} : la paroi s’ouvre sur un espace plus large. Vous allez voir, ou vous continuez ?`,
 ];
 
-export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false, onReturn, renderCombat, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [], artOf }: {
+export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false, onReturn, renderCombat, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [], artOf, library }: {
   rec: MapRecord; atlas: AtlasData; dm: boolean; onDm: (v: boolean) => void;
   /** Illustration d'une créature par son nom, pour l'écran joueur. */
   artOf?: (name: string, id: string) => string;
@@ -73,8 +76,14 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   onCampaignProgress?: (id: string, progress: { sceneId?: string; done?: string[] }) => void;
   /** Fiches de PNJ & Créatures (jetons, PV, CA) pour les rencontres et le combat. */
   bestiary?: BestiaryRef[];
+  /** Fiches de la Bibliothèque de l'univers : la carte du monde y prend ses cités et ses lieux. */
+  library?: LoreEntry[];
 }) {
   const data = activateMap(rec, dm, atlas);
+  /** L'Atlas et la carte du monde : lieux à révéler, chemins, brouillard. */
+  const atlasLike = isAtlasLike(rec);
+  // Carte du monde : les lieux du lore prennent leur bâtiment, avec leurs PNJ, dès qu'ils sont créés.
+  useWorldSync(rec, library, bestiary as unknown as LoreEntry[], onUpdate);
   // Le plan affiché d'abord : celui où se trouve le groupe, s'il est connu.
   const [planId, setPlanId] = useState(rec.overlay?.party?.at?.planId ?? (rec.kind === 'atlas' ? ATLAS_DEFAULT_PLAN : mapIdOf(rec)));
   /** Carte de combat ouverte à la place de la carte de navigation (même mise en page). */
@@ -86,7 +95,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   /** Lieu que les joueurs doivent voir au centre de l'écran (demandé depuis la fiche). */
   const [focus, setFocus] = useState<{ kind: 'anchor' | 'point'; id: string; tick: number } | null>(null);
   /** Colonne de droite de la carte de navigation (MJ) : un onglet à la fois. */
-  const [side, setSide] = useState<'lieu' | 'groupe' | 'campagne' | 'reperes'>('lieu');
+  const [side, setSide] = useState<'lieu' | 'groupe' | 'campagne' | 'reperes' | 'monde'>(rec.kind === 'monde' && !(rec.world?.cities.length) ? 'monde' : 'lieu');
   useEffect(() => { if (selectedId) setSide('lieu'); }, [selectedId]);
 
   const overlay = rec.overlay ?? EMPTY_OVERLAY;
@@ -118,7 +127,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   /** Sentiers qui partent de la position du groupe, sur le plan affiché. */
   const partyAt = party.at && party.at.planId === map.id ? placeCoords(data, rec, party.at) : null;
   const trails = useMemo(
-    () => (partyAt && rec.kind === 'atlas' ? trailsNear(data, map, partyAt, overlay.revealed, best.pp) : []),
+    () => (partyAt && atlasLike ? trailsNear(data, map, partyAt, overlay.revealed, best.pp) : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [data, map.id, partyAt?.[0], partyAt?.[1], overlay.revealed, best.pp, rec.kind],
   );
@@ -179,7 +188,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   }, [data, map.id, zone, overlay.markers, overlay.searchNotes]);
   // Chemins cachés qui débouchent dans cette salle (pas ceux de la caverne voisine).
   const hiddenTrails = useMemo(
-    () => (partyAt && zone && rec.kind === 'atlas' ? trailsNear(data, map, partyAt, overlay.revealed, best.pp, Infinity) : [])
+    () => (partyAt && zone && atlasLike ? trailsNear(data, map, partyAt, overlay.revealed, best.pp, Infinity) : [])
       .filter((t) => !t.noticed && !t.shown && t.profile.detect && trailInZone(zone!, t.g.coordinates as [number, number][])),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [data, map.id, zone, overlay.revealed, best.pp],
@@ -282,7 +291,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
 
   /** Lieux de l'atlas présents sur le plan : « tout révéler » ne touche qu'à ceux-là. */
   const planFeatureIds = useMemo(
-    () => (rec.kind === 'atlas' ? atlas.geometries.filter((g) => g.mapId === map.id).map((g) => g.featureId) : []),
+    () => (atlasLike ? atlas.geometries.filter((g) => g.mapId === map.id).map((g) => g.featureId) : []),
     [atlas, map.id, rec.kind],
   );
 
@@ -298,7 +307,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
 
   /** Amène la vue joueurs sur ce lieu : le révèle si besoin, centre la carte chez eux, et démarre la projection. */
   const bringPlayers = (id: string) => {
-    if (rec.kind === 'atlas' && !overlay.revealed.includes(id)) toggleReveal(id);
+    if (atlasLike && !overlay.revealed.includes(id)) toggleReveal(id);
     setFocus({ kind: 'point', id, tick: Date.now() });
     setProjecting(true);
   };
@@ -309,7 +318,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     let next = overlay;
     if (link.kind === 'marker') next = { ...next, markers: next.markers.map((m) => (m.id === link.id ? { ...m, revealed: true } : m)) };
     // Un lieu de l'Atlas qui n'est pas encore visible devient visible au passage.
-    if (link.kind === 'feature' && rec.kind === 'atlas' && !next.revealed.includes(link.id)) next = { ...next, revealed: [...next.revealed, link.id] };
+    if (link.kind === 'feature' && atlasLike && !next.revealed.includes(link.id)) next = { ...next, revealed: [...next.revealed, link.id] };
     next = withPartyAt(next, arrivalOf(link));
     setOverlay(next);
     setBattleOpen(false);
@@ -344,7 +353,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     if (opts.trailId) reveal.add(opts.trailId);
     if (to.kind === 'feature') reveal.add(to.id);
     const points = opts.points ?? [];
-    if (dest && rec.kind === 'atlas') {
+    if (dest && atlasLike) {
       const byId = new Map(data.features.map((f) => [f.id, f]));
       for (const g of data.geometries) {
         if (g.mapId !== to.planId || g.featureId.startsWith('mk-')) continue;
@@ -611,6 +620,44 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     setSelectedId(null);
   };
 
+  /** Carte du monde : entrer dans une cité (zoom au plus près, ou bouton), revenir au monde (dézoom au plus loin). */
+  const wid = worldPlanId(rec.id);
+  const cityOfPlan = rec.kind === 'monde' && map.scope.kind === 'site' ? data.features.find((f) => f.opens?.id === map.scope.id) : undefined;
+  const enterSite = (siteId: string) => {
+    const site = data.spaces.find((x) => x.id === siteId);
+    if (!site?.mapId) return;
+    // Le groupe se tient devant cette cité sur le plan monde : il y entre par la porte qui fait face à sa route.
+    const cityF = data.features.find((f) => f.opens?.id === siteId);
+    const cityXY = cityF ? placeCoords(data, rec, { id: cityF.id, kind: 'feature', title: cityF.title, planId: wid }) : null;
+    const here = party.at?.planId === wid ? placeCoords(data, rec, party.at) : null;
+    if (cityXY && here && Math.hypot(here[0] - cityXY[0], here[1] - cityXY[1]) < 0.012) {
+      const prev = [...party.trail].reverse().map((p) => (p.planId === wid ? placeCoords(data, rec, p) : null))
+        .find((c) => c && Math.hypot(c[0] - cityXY[0], c[1] - cityXY[1]) > 0.012);
+      const want = prev ? Math.atan2(prev[1] - cityXY[1], prev[0] - cityXY[0]) : null;
+      const gates = data.features.filter((f) => f.id.startsWith(`${site.mapId}:porte-`))
+        .map((f) => ({ f, at: data.geometries.find((g) => g.featureId === f.id)!.coordinates as [number, number] }))
+        .map((x) => ({ ...x, d: want === null ? 0 : Math.abs(Math.atan2(Math.sin(Math.atan2(x.at[1] - 0.5, x.at[0] - 0.5) - want), Math.cos(Math.atan2(x.at[1] - 0.5, x.at[0] - 0.5) - want))) }))
+        .sort((a, b) => a.d - b.d);
+      if (gates[0]) setOverlay(withExplored(withPartyAt(overlay, { id: gates[0].f.id, kind: 'feature', title: gates[0].f.title, planId: site.mapId }), site.mapId, [gates[0].at]));
+    }
+    setPlanId(site.mapId); setSelectedId(null); setPlacing(null);
+  };
+  const toWorld = () => {
+    setPlanId(wid); setSelectedId(cityOfPlan?.id ?? null); setPlacing(null);
+    if (cityOfPlan) setFocus({ kind: 'point', id: cityOfPlan.id, tick: Date.now() });
+  };
+  const onZoomLimit = rec.kind === 'monde' ? (dir: 'in' | 'out', at: [number, number]) => {
+    if (dir === 'out' && map.id !== wid) { toWorld(); return; }
+    if (dir !== 'in' || map.id !== wid) return;
+    const near = data.features
+      .filter((f) => f.opens)
+      .map((f) => ({ f, g: data.geometries.find((g) => g.featureId === f.id && g.mapId === wid) }))
+      .filter((x) => x.g)
+      .map((x) => ({ ...x, d: Math.hypot((x.g!.coordinates as [number, number])[0] - at[0], (x.g!.coordinates as [number, number])[1] - at[1]) }))
+      .sort((a, b) => a.d - b.d)[0];
+    if (near && near.d < 0.1) enterSite(near.f.opens!.id);
+  } : undefined;
+
   return (
     <div className={`atlas-page maps-viewer ${battleOpen && renderCombat ? 'has-encounter' : ''}`}>
       <div className="maps-toolbar">
@@ -619,7 +666,10 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
           ? <button className="maps-btn" onClick={() => setBattleOpen(false)}>← Carte de navigation</button>
           : <button className="maps-btn" onClick={onBack}>← Cartes</button>}
         <strong className="maps-title">{rec.title}</strong>
-        {rec.kind === 'atlas' && !battleOpen && (
+        {rec.kind === 'monde' && !battleOpen && map.id !== wid && (
+          <button className="maps-btn" onClick={toWorld} title="Revenir à la carte du monde (ou dézoomer au plus loin)" aria-label="Revenir à la carte du monde">↥</button>
+        )}
+        {atlasLike && !battleOpen && (
           <select className="maps-btn" value={planId} onChange={(e) => { setPlanId(e.target.value); setSelectedId(null); setPlacing(null); }}>
             {atlas.maps.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
           </select>
@@ -693,7 +743,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               journey={overlay.travel && overlay.travel.planId === map.id ? { ...overlay.travel, label: 'Groupe' } : null}
               onAnchor={() => {}}
               onPlace={dm && placing ? addMarker : undefined}
-              dataKey={rec.updatedAt}
+              dataKey={`${rec.updatedAt}:${dm}`}
+              onZoomLimit={onZoomLimit}
               focus={focus ? { kind: 'point', id: focus.id } : null}
               focusKey={focus ? String(focus.tick) : undefined}
               dm={dm}
@@ -703,7 +754,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
           <aside className="maps-panel maps-side">
             {dm && (
               <nav className="maps-tabs" role="tablist" aria-label="Panneau de la carte">
-                {([['lieu', '📍 Lieu'], ['groupe', '👥 Groupe'], ...(campaigns.length ? [['campagne', '📜 Campagne']] : []), ['reperes', '🔖 Repères']] as [typeof side, string][]).map(([id, label]) => (
+                {([...(rec.kind === 'monde' ? [['monde', '🏰 Monde']] : []), ['lieu', '📍 Lieu'], ['groupe', '👥 Groupe'], ...(campaigns.length ? [['campagne', '📜 Campagne']] : []), ['reperes', '🔖 Repères']] as [typeof side, string][]).map(([id, label]) => (
                   <button key={id} role="tab" aria-selected={side === id} className={side === id ? 'on' : ''} onClick={() => setSide(id)}>
                     {label}
                     {id === 'groupe' && (party.apart?.length ?? 0) > 0 && <small>{party.apart!.length}</small>}
@@ -805,8 +856,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 onClose={() => setSelectedId(null)}
                 onRoll={(ctx) => setEnc({ ctx, e: rollEncounter(ctx) })}
                 onBring={() => bringPlayers(feature.id)}
-                revealed={rec.kind === 'atlas' ? overlay.revealed.includes(feature.id) : undefined}
-                onToggleReveal={rec.kind === 'atlas' ? () => toggleReveal(feature.id) : undefined}
+                revealed={atlasLike ? overlay.revealed.includes(feature.id) : undefined}
+                onToggleReveal={atlasLike ? () => toggleReveal(feature.id) : undefined}
                 passive={best.pp}
                 partyHere={party.at?.id === feature.id} partyDest={party.dest?.id === feature.id}
                 onPartyHere={() => setOverlay(withExplored(withPartyAt(overlay, { id: feature.id, kind: 'feature', title: feature.title, planId: map.id }), map.id, pointsOf(feature.id)))}
@@ -818,6 +869,15 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                   route: routeOf(feature.id), byPlayers: playerPick?.id === feature.id,
                 } : undefined}
               />
+            )}
+            {dm && side === 'lieu' && rec.kind === 'monde' && feature?.opens && (
+              <div className="maps-actions world-enter">
+                <button className="maps-btn gold" onClick={() => enterSite(feature.opens!.id)}>Entrer dans {feature.title}</button>
+              </div>
+            )}
+            {dm && side === 'monde' && rec.kind === 'monde' && rec.world && (
+              <WorldPanel rec={rec} data={data} library={library ?? []} planId={map.id} revealed={overlay.revealed} onUpdate={onUpdate}
+                onShow={(pid, fid) => { setPlanId(pid); setSelectedId(fid ?? null); if (fid) { setSide('lieu'); setFocus({ kind: 'point', id: fid, tick: Date.now() }); } }} />
             )}
             {dm && side === 'lieu' && feature && !markerId && !feature.trace && rec.kind === 'atlas' && (
               <LiveEncounters
@@ -877,7 +937,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                     <li key={f.id} title={[entry.find, entry.loot && `Butin : ${entry.loot}`, entry.effect].filter(Boolean).join('\n')}>
                       <span className="finds-dc">{entry.skill} {entry.dc}</span>
                       <button className="maps-link" onClick={() => setSelectedId(f.id)}>🔍 {f.title}</button>
-                      {rec.kind === 'atlas' && !f.id.startsWith('mk-') && (
+                      {atlasLike && !f.id.startsWith('mk-') && (
                         <button className="maps-btn" onClick={() => toggleReveal(f.id)}>{overlay.revealed.includes(f.id) ? 'Visible' : 'Révéler'}</button>
                       )}
                     </li>
@@ -897,10 +957,10 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               />
             )}
 
-            {dm && side === 'groupe' && rec.kind === 'atlas' && (
+            {dm && side === 'groupe' && atlasLike && (
               <div className="maps-card">
                 <h3>Révélations</h3>
-                <p className="maps-sub">{overlay.revealed.length} lieu(x) visible(s) des joueurs, sur l'ensemble de l'Atlas.</p>
+                <p className="maps-sub">{overlay.revealed.length} lieu(x) visible(s) des joueurs, sur l'ensemble {rec.kind === 'monde' ? 'du monde' : 'de l’Atlas'}.</p>
                 <div className="maps-enc-ctrl">
                   <button className="maps-btn" onClick={() => revealPlan(true)}>Tout révéler sur ce plan</button>
                   <button className="maps-btn" onClick={() => revealPlan(false)}>Tout cacher sur ce plan</button>
@@ -959,7 +1019,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
 
 
       <p className="maps-footer">
-        {dm && rec.kind === 'atlas' && <>Statistiques : {SRD_CREDIT} </>}
+        {dm && atlasLike && <>Statistiques : {SRD_CREDIT} </>}
         {rec.kind === 'custom' && !dm && 'Les repères secrets restent cachés.'}
       </p>
     </div>

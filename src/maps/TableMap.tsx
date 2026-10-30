@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from 'react';
 import MapCanvas, { type Layers, type MapMark } from './atlas/MapCanvas';
 import { useUnderdarkFeed } from '../feeds/underdark';
 import { activateMap, ATLAS_DEFAULT_PLAN, EMPTY_OVERLAY, mapIdOf, placeCoords, type MapOverlay, type MapRecord, type PartyPlace } from './mapStore';
+import { sourceAtlas } from './world';
 import { DangerChip, trailsNear } from './TrailsPanel';
 import { detectLabel, passiveOf } from './atlas/trails';
 import { describe } from './atlas/lore';
@@ -100,7 +101,8 @@ export default function TableMap({ maps, universeId, heroes, dispatch, onOpenMap
   }, []);
 
   const ready = !!rec && (rec.kind !== 'atlas' || !!feed);
-  const data = ready ? activateMap(rec!, true, feed?.atlas as AtlasData) : null;
+  const source = rec ? sourceAtlas(rec, feed?.atlas as AtlasData) : null;
+  const data = ready ? activateMap(rec!, true, source as AtlasData) : null;
   const overlay: MapOverlay = rec?.overlay ?? EMPTY_OVERLAY;
   const party = overlay.party ?? { trail: [] };
   const planId = party.at?.planId ?? (rec?.kind === 'atlas' ? ATLAS_DEFAULT_PLAN : rec ? mapIdOf(rec) : '');
@@ -167,9 +169,9 @@ export default function TableMap({ maps, universeId, heroes, dispatch, onOpenMap
 
   // Projection : la carte des joueurs suit le groupe.
   useEffect(() => {
-    if (!projecting || !rec || !feed?.atlas || !map) return;
-    publishStage({ kind: 'board', board: mapBoard(rec, feed.atlas as AtlasData, map.id, focus ? { kind: 'point', id: focus.id, tick: focus.tick } : undefined) });
-  }, [projecting, rec, feed, map, focus]);
+    if (!projecting || !rec || !source || !map) return;
+    publishStage({ kind: 'board', board: mapBoard(rec, source, map.id, focus ? { kind: 'point', id: focus.id, tick: focus.tick } : undefined) });
+  }, [projecting, rec, source, map, focus]);
 
   if (!rec) {
     return (

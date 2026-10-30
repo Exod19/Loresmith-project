@@ -25,6 +25,8 @@ export type BoardRange = {
 };
 
 type Props = {
+  /** `surface` : plateau tiré d'une carte du monde (rues, bâtiments, champs) plutôt que d'une caverne. */
+  theme?: 'surface';
   cols: number;
   rows: number;
   backdrop?: string;
@@ -108,10 +110,11 @@ function loadTile(file: string): Promise<HTMLImageElement> {
 }
 
 /** Dessine le terrain case par case dans le canevas : une texture par type, avec la couleur de base dessous. */
-async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: number, terrain: string | undefined) {
+async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: number, terrain: string | undefined, theme?: 'surface') {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   canvas.width = cols * CELL_PX; canvas.height = rows * CELL_PX;
+  if (theme === 'surface') { paintSurface(ctx, cols, rows, terrain); return; }
   ctx.fillStyle = TILE_BASE.sol;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   if (!terrain) return;
@@ -129,6 +132,59 @@ async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: numbe
       if (col) ctx.drawImage(col, x, y, CELL_PX, CELL_PX);
     }
   });
+}
+
+/**
+ * Plateau de surface (cité, campagne), peint sans texture : sol de terre battue, bâtiments en toits (bordés là où ils
+ * touchent la rue), arbres, champs, eau et pont. Même grille que le terrain de caverne : seules les couleurs changent.
+ */
+function paintSurface(ctx: CanvasRenderingContext2D, cols: number, rows: number, terrain: string | undefined) {
+  const C = CELL_PX;
+  ctx.fillStyle = '#5b5444';
+  ctx.fillRect(0, 0, cols * C, rows * C);
+  if (!terrain) return;
+  const at = (x: number, y: number) => (x < 0 || y < 0 || x >= cols || y >= rows ? '' : terrain[y * cols + x]);
+  // Grain du sol : quelques pavés et cailloux, toujours au même endroit.
+  let z = 7;
+  const r = () => ((z = (1664525 * z + 1013904223) >>> 0) / 4294967296);
+  for (let i = 0; i < terrain.length; i++) {
+    const k = terrain[i], x = (i % cols) * C, y = Math.floor(i / cols) * C;
+    if (k === '~') { ctx.fillStyle = '#2f5c69'; ctx.fillRect(x, y, C, C); ctx.strokeStyle = 'rgba(160,200,210,.25)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + 8, y + C * 0.35 + r() * 8); ctx.quadraticCurveTo(x + C / 2, y + C * 0.25, x + C - 8, y + C * 0.4); ctx.stroke(); continue; }
+    if (k === ',') {
+      ctx.fillStyle = '#4b512f'; ctx.fillRect(x, y, C, C);
+      ctx.strokeStyle = 'rgba(120,130,70,.55)'; ctx.lineWidth = 2;
+      for (let s = 10; s < C; s += 14) { ctx.beginPath(); ctx.moveTo(x + 4, y + s); ctx.lineTo(x + C - 4, y + s + 3); ctx.stroke(); }
+      continue;
+    }
+    if (k === '.' || k === 'I') {
+      ctx.fillStyle = 'rgba(40,36,28,.35)';
+      for (let n = 0; n < 3; n++) ctx.fillRect(x + r() * (C - 6), y + r() * (C - 6), 3 + r() * 4, 2 + r() * 3);
+    }
+  }
+  for (let i = 0; i < terrain.length; i++) {
+    const k = terrain[i], cx = i % cols, cy = Math.floor(i / cols), x = cx * C, y = cy * C;
+    if (k === '#') {
+      ctx.fillStyle = '#8a4f3c'; ctx.fillRect(x, y, C, C);
+      ctx.fillStyle = '#9c5d47'; ctx.fillRect(x + 4, y + 4, C - 8, (C - 8) / 2);
+      // Bord du bâtiment, côté rue : un mur d'ombre là où la case voisine n'est pas bâtie.
+      ctx.fillStyle = '#3b241c';
+      if (at(cx, cy - 1) !== '#') ctx.fillRect(x, y, C, 5);
+      if (at(cx, cy + 1) !== '#') ctx.fillRect(x, y + C - 7, C, 7);
+      if (at(cx - 1, cy) !== '#') ctx.fillRect(x, y, 5, C);
+      if (at(cx + 1, cy) !== '#') ctx.fillRect(x + C - 5, y, 5, C);
+    } else if (k === '=') {
+      ctx.fillStyle = '#9b8a69'; ctx.fillRect(x, y, C, C);
+      ctx.strokeStyle = '#5e5340'; ctx.lineWidth = 2;
+      for (let s = 8; s < C; s += 12) { ctx.beginPath(); ctx.moveTo(x + s, y); ctx.lineTo(x + s, y + C); ctx.stroke(); }
+    } else if (k === 'I') {
+      ctx.fillStyle = '#22381f'; ctx.beginPath(); ctx.arc(x + C / 2, y + C / 2, C * 0.42, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#2f4a2a'; ctx.beginPath(); ctx.arc(x + C * 0.42, y + C * 0.4, C * 0.22, 0, Math.PI * 2); ctx.fill();
+    } else if (k === 'X') {
+      ctx.fillStyle = '#060606'; ctx.fillRect(x, y, C, C);
+    } else if (k === ':') {
+      ctx.fillStyle = '#6a604c'; ctx.fillRect(x, y, C, C);
+    }
+  }
 }
 
 const TEXTURES = (
@@ -206,7 +262,7 @@ function cellUnder(ev: ReactMouseEvent<SVGElement>, cols: number, rows: number) 
   return x >= 0 && y >= 0 && x < cols && y < rows ? { x, y } : undefined;
 }
 
-export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview, labels = [], highlight, fog, exits = [], aim, hits = [] }: Props) {
+export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview, labels = [], highlight, fog, exits = [], aim, hits = [], theme }: Props) {
   const lines: string[] = [];
   for (let x = 0; x <= cols; x++) lines.push(`M${x} 0V${rows}`);
   for (let y = 0; y <= rows; y++) lines.push(`M0 ${y}H${cols}`);
@@ -219,8 +275,8 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
   for (const h of hits) if (!seen.current.has(h.id)) seen.current.set(h.id, now);
   const shownHits = hits.filter((h) => now - (seen.current.get(h.id) ?? now) <= 4000);
   useEffect(() => {
-    if (canvasRef.current) void paintTerrain(canvasRef.current, cols, rows, terrain);
-  }, [cols, rows, terrain]);
+    if (canvasRef.current) void paintTerrain(canvasRef.current, cols, rows, terrain, theme);
+  }, [cols, rows, terrain, theme]);
 
   const pick = (id: string) => (ev: ReactMouseEvent<SVGElement>) => onElement?.(id, cellUnder(ev, cols, rows));
 

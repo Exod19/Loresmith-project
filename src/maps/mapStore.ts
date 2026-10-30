@@ -13,6 +13,7 @@ import { IMAGE_MAX, fitWithin } from '../store/imageRefs';
 import type { LocalElement } from './battle/local';
 import type { HaltAlert } from './atlas/omens';
 import type { AtlasData, AtlasFeature, AtlasGeometry, AtlasMap, FeatureCategory, Importance } from './atlas/types';
+import type { WorldSpec } from './world/generate';
 
 export type Zone = 'sauvage' | 'transit' | 'cite';
 
@@ -185,7 +186,9 @@ export interface Battle {
   /** Terrain généré depuis un lieu : `grid` = cols × rows caractères (cf. battle/terrain.ts). `source` = identifiant du lieu. */
   terrain?: { source: string; seed: number; grid: string };
   /** Zone locale autour du lieu : éléments de l'Atlas placés sur la grille, et ceux que le MJ a découverts. */
-  local?: { source: string; planId?: string; place?: string; window: { x0: number; y0: number; w: number; h: number }; elements: LocalElement[]; discovered: string[] };
+  local?: { source: string; planId?: string; place?: string; window: { x0: number; y0: number; w: number; h: number }; elements: LocalElement[]; discovered: string[];
+    /** Plateau tiré d'un plan de surface (cité, monde) : rues et bâtiments plutôt que roche. */
+    surface?: boolean };
   /** Identifiant de la rencontre dont les créatures sont déjà placées sur le plateau. */
   encounterOf?: string;
   /** Construction manuelle : surcharges du terrain généré et objets déposés (cf. battle/build.ts). */
@@ -218,7 +221,8 @@ export interface BattleBuild {
 export interface MapRecord {
   id: string;
   universeId: string;
-  kind: 'atlas' | 'custom';
+  /** `monde` : carte du monde générée (cités, routes, bâtiments), voir src/maps/world. */
+  kind: 'atlas' | 'custom' | 'monde';
   title: string;
   description?: string;
   /** Image de fond (data URL), pour une carte personnalisée. */
@@ -231,6 +235,8 @@ export interface MapRecord {
   battle?: Battle;
   /** Dernière synchronisation avec les Archives (atlas uniquement). */
   syncedAt?: number;
+  /** Carte du monde : graine, cités et lieux du lore posés. Le dessin en est entièrement déduit. */
+  world?: WorldSpec & { defaultCityId?: string };
   createdAt: number;
   updatedAt: number;
 }

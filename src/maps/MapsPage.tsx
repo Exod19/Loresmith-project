@@ -13,6 +13,8 @@ import { setBestiary } from './atlas/encounters';
 import { ATLAS_MAP_ID, imageFileToDataUrl, type MapRecord } from './mapStore';
 import type { AtlasData } from './atlas/types';
 import type { BestiaryRef, GuideCampaign } from './CampaignGuide';
+import { cityFromEntry, newWorldRecord, settlementEntries, sourceAtlas, withCity } from './world';
+import type { LoreEntry } from './world/lore';
 import './maps.css';
 import './atlas/atlas.css';
 
@@ -33,6 +35,8 @@ type Props = {
   bestiary?: BestiaryRef[];
   /** Illustration d'une créature par son nom, pour l'écran joueur. */
   artOf?: (name: string, id: string) => string;
+  /** Fiches de la Bibliothèque de l'univers (cités et lieux de la carte du monde). */
+  library?: LoreEntry[];
 };
 
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -48,7 +52,7 @@ function readKnown(): Set<string> | null {
   }
 }
 
-export default function MapsPage({ universe, maps, dispatch, flash, heroes = [], campaigns = [], bestiary = [], onReturnToTable, renderCombat, artOf }: Props) {
+export default function MapsPage({ universe, maps, dispatch, flash, heroes = [], campaigns = [], bestiary = [], onReturnToTable, renderCombat, artOf, library = [] }: Props) {
   // La Table de jeu peut demander d'ouvrir une carte précise (et d'y lancer le combat).
   const [intent] = useState(peekMapIntent);
   useEffect(() => { clearMapIntent(); }, []);
@@ -99,6 +103,17 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
     }
   };
 
+  /** Carte du monde : générée, puis tenue à jour par le lore. Les fiches de cité de l'univers y sont posées d'emblée. */
+  const hasWorld = mine.some((m) => m.kind === 'monde');
+  const newWorld = () => {
+    const rec = newWorldRecord(universe, uid());
+    let world = rec.world!;
+    for (const e of settlementEntries(world, library).filter((x) => !x.sourceId).slice(0, 8)) world = withCity(world, cityFromEntry(e));
+    dispatch({ type: 'ADD_MAP', map: { ...rec, world } });
+    setOpenId(rec.id);
+    flash(world.cities.length ? `Carte du monde créée : ${world.cities.length} cité(s) tirée(s) des fiches.` : 'Carte du monde créée : ajoute une première cité.');
+  };
+
   const importAtlas = () => {
     const now = Date.now();
     dispatch({ type: 'ADD_MAP', map: { id: ATLAS_MAP_ID, universeId: universe.id, kind: 'atlas', title: 'Atlas des profondeurs', description: 'Grands niveaux, strates, sites, passages et rencontres.', createdAt: now, updatedAt: now, syncedAt: now } });
@@ -147,7 +162,8 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
       <div className="maps-page">
         <MapViewer
           rec={open}
-          atlas={feed?.atlas as AtlasData}
+          atlas={sourceAtlas(open, feed?.atlas as AtlasData)}
+          library={library}
           dm={dm}
           onDm={setDm}
           onBack={() => setOpenId(null)}
@@ -178,6 +194,7 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
         </div>
         <p className="maps-sub">Cartes interactives à projeter aux joueurs. Ce que tu révèles ou places apparaît en direct sur leur écran ; le reste reste réservé au MJ.</p>
         <div className="maps-actions">
+          {!hasWorld && <button className="maps-btn gold" onClick={newWorld} title="Une carte du monde générée : cités, routes, bâtiments ; les lieux du lore y apparaissent d’eux-mêmes">+ Carte du monde</button>}
           <button className="maps-btn gold" onClick={newBlank}>+ Carte vierge</button>
           <button className="maps-btn" disabled={busy} onClick={() => fileRef.current?.click()}>{busy ? 'Lecture…' : 'Importer une image'}</button>
           {isUnderdark && !hasAtlas && <button className="maps-btn" onClick={importAtlas}>Importer l’Atlas des profondeurs</button>}
@@ -205,9 +222,10 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
       {universe.activeCampaignId && campaigns.some((c) => c.id === universe.activeCampaignId) && (
         <p className="maps-hint">📜 Campagne invoquée : <b>{campaigns.find((c) => c.id === universe.activeCampaignId)?.title}</b>. Ouvre une carte : le guide MJ indique où amener le groupe et quelles rencontres l’y attendent.</p>
       )}
-      {mine.length === 0 && <p className="maps-hint">Aucune carte pour cet univers. Crée une carte vierge, importe une image, ou ajoute l’Atlas des profondeurs.</p>}
+      {mine.length === 0 && <p className="maps-hint">Aucune carte pour cet univers. Crée la carte du monde, une carte vierge, importe une image, ou ajoute l’Atlas des profondeurs.</p>}
 
       {[
+        { id: 'Carte du monde', description: 'Générée à partir des fiches : cités, routes et bâtiments, tenue à jour par le lore.', docs: mine.filter((m) => m.kind === 'monde') },
         { id: 'Atlas intégré', description: 'Cartes fournies avec le projet.', docs: mine.filter((m) => m.kind === 'atlas') },
         { id: 'Cartes de l’univers', description: 'Cartes créées ou importées pour cet univers.', docs: mine.filter((m) => m.kind === 'custom') },
       ].filter((g) => g.docs.length > 0).map((g) => (
@@ -221,7 +239,7 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
               {g.docs.map((m) => (
                 <article key={m.id} className="maps-card">
                   <h3>{m.title}</h3>
-                  <p className="maps-sub">{m.kind === 'atlas' ? 'Atlas' : `${m.points?.length ?? 0} repère(s)`} · modifiée {new Date(m.updatedAt).toLocaleDateString('fr-CA')}</p>
+                  <p className="maps-sub">{m.kind === 'atlas' ? 'Atlas' : m.kind === 'monde' ? `${m.world?.cities.length ?? 0} cité(s) · ${Object.values(m.world?.bindings ?? {}).filter((b) => !b.excluded).length} lieu(x) du lore` : `${m.points?.length ?? 0} repère(s)`} · modifiée {new Date(m.updatedAt).toLocaleDateString('fr-CA')}</p>
                   {m.description && <p>{m.description}</p>}
                   <div className="maps-actions">
                     <button className="maps-btn gold" onClick={() => setOpenId(m.id)}>Ouvrir</button>
@@ -236,7 +254,7 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
               <tbody>{g.docs.map((m) => (
                 <tr key={m.id}>
                   <td><button className="maps-link" onClick={() => setOpenId(m.id)}>{m.title}</button></td>
-                  <td>{m.kind === 'atlas' ? '—' : m.points?.length ?? 0}</td>
+                  <td>{m.kind === 'atlas' ? '—' : m.kind === 'monde' ? `${m.world?.cities.length ?? 0} cité(s)` : m.points?.length ?? 0}</td>
                   <td>{new Date(m.updatedAt).toLocaleDateString('fr-CA')}</td>
                   <td><button className="maps-btn" onClick={() => { if (window.confirm(`Supprimer « ${m.title} » ?`)) dispatch({ type: 'DELETE_MAP', id: m.id }); }}>Supprimer</button></td>
                 </tr>
