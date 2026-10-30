@@ -23,7 +23,9 @@ import { placeHazard, trailHazard, type Hazard } from './atlas/hazards';
 import TrialPanel from './TrialPanel';
 import { searchFor, type SearchEntry } from './battle/search';
 import { VISION_R, seedExplored } from './playerBoard';
-import { hoursLabel, hoursOn, legsOf, lengthOf, subpath, type Leg } from './journey';
+import { hoursLabel, hoursOn, legsOf, lengthOf, project, subpath, type Leg } from './journey';
+import { arrivalHazard, caveDepth, legNote, legs3dOf, metres, planTop, type Leg3D } from './atlas/strata3d';
+import PassageProfile from './atlas/PassageProfile';
 import { journeyMs } from './atlas/MapCanvas';
 import { detectLabel, noticedPassively, passiveOf, trailProfile } from './atlas/trails';
 import Interactables from './Interactables';
@@ -164,11 +166,36 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     [data, map.id, partyAt?.[0], partyAt?.[1], overlay.revealed, best.pp, rec.kind],
   );
   /** Chaque chemin qui part du groupe, avec le lieu où il mène et l'épreuve qu'il demande (s'il en demande une). */
+  // Atlas en strates : étapes en 3D (on ne s'arrête qu'aux ouvertures), et épreuve d'arrivée (plafond, balcon, trou du sol).
+  const strates = rec.variant === 'strates';
   const trailsTo = useMemo(
-    () => (partyAt ? trails.flatMap((t) => legsOf(data, map.id, t.g, partyAt, t.f.trace, party.at?.id).map((leg) => ({ ...t, leg, to: leg.to, hazard: trailHazard(t.f, t.profile) }))) : []),
+    () => (partyAt ? trails.flatMap((t) => (strates ? legs3dOf(data, map.id, t.g, partyAt, t.f.trace, party.at?.id) : legsOf(data, map.id, t.g, partyAt, t.f.trace, party.at?.id))
+      .map((leg) => ({ ...t, leg, to: leg.to, hazard: trailHazard(t.f, t.profile) ?? (strates ? arrivalHazard(leg as Leg3D) : null) }))) : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [trails, party.at?.id],
   );
+  /** Atlas en strates : strates voisines (au-dessus, au-dessous) affichées en transparence. */
+  const [ghostOn, setGhostOn] = useState(true);
+  const [ghostOpacity, setGhostOpacity] = useState(0.35);
+  const neighbours = useMemo(() => {
+    if (!strates || map.scope.kind !== 'strate') return null;
+    const st = data.strata.find((x) => x.id === map.scope.id);
+    if (!st) return null;
+    const near = (d: number) => data.strata.find((x) => x.levelId === st.levelId && x.relativeDepthOrder === st.relativeDepthOrder + d);
+    const up = near(-1), down = near(1);
+    return { st, up, down, above: up?.mapId ? data.cavities[up.mapId] : undefined, below: down?.mapId ? data.cavities[down.mapId] : undefined };
+  }, [strates, map.id, data]);
+  /** Atlas en strates : palier, sol et voûte de la grotte qui contient un lieu. */
+  const depthOfFeature = (id: string) => {
+    const g = data.geometries.find((q) => q.featureId === id && q.mapId === map.id && q.type === 'point');
+    if (!g) return undefined;
+    const [x, y] = g.coordinates as [number, number];
+    const cavs = data.cavities[map.id] ?? [];
+    const c = cavs.filter((q) => ((x - q.cx) / q.rx) ** 2 + ((y - q.cy) / q.ry) ** 2 <= 1).sort((a, b) => a.rx * a.ry - b.rx * b.ry)[0];
+    if (!c) return undefined;
+    const d = caveDepth(c, planTop(data, map.id));
+    return `Palier ${d.palier} · sol ${metres(d.floor)} · voûte ${metres(d.ceiling)}`;
+  };
   // Réseau des chemins du plan (MJ) : où mène chaque sentier, et s'il rapproche le groupe de l'objectif par le labyrinthe.
   const routes = useMemo(() => buildRoutes(data, map.id), [data, map.id]);
   const goalTargets = useMemo(() => {
@@ -973,12 +1000,23 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               onPlace={dm && (placing || moving) ? addMarker : dm && movingCity && rec.world && map.id === wid ? (x, y) => { onUpdate({ world: moveCity(rec.world!, movingCity, [x, y]), updatedAt: Date.now() }); setMovingCity(null); } : undefined}
               onMovePin={dm ? (fid: string, x: number, y: number) => { if (fid.startsWith('mk-')) updateMarker(fid.slice(3), { x, y }); } : undefined}
               dataKey={`${rec.updatedAt}:${dm}`}
+              ghosts={dm && neighbours && ghostOn ? { above: neighbours.above, below: neighbours.below, opacity: ghostOpacity } : undefined}
               onZoomLimit={onZoomLimit}
               exploring={exploring}
               focus={focus ? { kind: 'point', id: focus.id } : null}
               focusKey={focus ? String(focus.tick) : undefined}
               dm={dm}
             />
+            {dm && neighbours && (
+              <div className="strata-panel" aria-label="Strates">
+                <b>Strates</b>
+                {neighbours.up && <span className="st-row above">◌ {neighbours.up.title} · au-dessus</span>}
+                <span className="st-row active">◉ {neighbours.st.title} · strate active · dès {metres(planTop(data, map.id))}</span>
+                {neighbours.down && <span className="st-row below">◌ {neighbours.down.title} · en dessous</span>}
+                <label className="build-check"><input type="checkbox" checked={ghostOn} onChange={(e) => setGhostOn(e.target.checked)} /> Strates voisines visibles</label>
+                {ghostOn && <label className="st-row">Transparence {Math.round(ghostOpacity * 100)} %<input type="range" min={0.1} max={0.8} step={0.05} value={ghostOpacity} onChange={(e) => setGhostOpacity(Number(e.target.value))} /></label>}
+              </div>
+            )}
           </div>
 
           <aside className="maps-panel maps-side">
@@ -1105,6 +1143,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
             {(!dm || side === 'lieu') && feature && !markerId && (
               <FeaturePanel
                 f={feature} dm={dm} notes={point?.notes ?? ''}
+                depthLine={strates ? depthOfFeature(feature.id) : undefined}
                 defaultCtx={{ zone: point?.zone ?? (rec.kind === 'monde' ? 'cite' : 'sauvage'), depth: point?.depth ?? 3, place: feature.title }}
                 onClose={() => setSelectedId(null)}
                 onRoll={(ctx) => setEnc({ ctx, e: rollEncounter(ctx) })}
@@ -1118,8 +1157,13 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 onPartyDest={() => setDest(party.dest?.id === feature.id ? undefined : { id: feature.id, kind: 'feature', title: feature.title, planId: map.id })}
                 follow={dm && feature.trace ? {
                   days: !!map.surface,
-                  legs: trailsTo.filter((x) => x.f.id === feature.id).map((x) => ({ label: `Vers ${x.leg.toward}`, to: x.to, hours: x.leg.hours, onGo: () => followTrail(x) })),
+                  legs: trailsTo.filter((x) => x.f.id === feature.id).map((x) => ({ label: `Vers ${x.leg.toward}`, to: x.to, hours: x.leg.hours, onGo: () => followTrail(x), note: strates ? legNote(x.leg as Leg3D) : undefined, trial: strates && !!x.hazard })),
                   hazard: trailHazard(feature, trailProfile(feature, feature.trace === 'secret' ? 15 : undefined)),
+                  strates,
+                  profile: strates ? (() => {
+                    const g = data.geometries.find((q) => q.featureId === feature.id && q.mapId === map.id && q.type === 'polyline');
+                    return g ? <PassageProfile data={data} planId={map.id} g={g} at={partyAt ? project(g.coordinates as [number, number][], partyAt).s : undefined} /> : null;
+                  })() : undefined,
                   route: routeOf(feature.id), byPlayers: playerPick?.id === feature.id,
                 } : undefined}
               />
@@ -1348,14 +1392,18 @@ function PartyBar({ party, inBattle, onShow, onBattle, onClearDest, onRejoin }: 
   );
 }
 
-function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring, partyHere, partyDest, onPartyHere, onPartyDest, passive = 10, follow, onForget }: {
+function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring, partyHere, partyDest, onPartyHere, onPartyDest, passive = 10, follow, onForget, depthLine }: {
   f: AtlasFeature; dm: boolean; notes: string; defaultCtx: EncCtx; onClose: () => void; onRoll: (ctx: EncCtx) => void;
+  /** Atlas en strates : palier et profondeur de la grotte où se trouve le lieu. */
+  depthLine?: string;
   revealed?: boolean; onToggleReveal?: () => void; onBring?: () => void;
   partyHere?: boolean; partyDest?: boolean; onPartyHere?: () => void; onPartyDest?: () => void;
   /** Perception passive du groupe, pour dire si un sentier se voit sans chercher. */
   passive?: number;
   /** Chemin (MJ) : où il mène depuis le groupe, l'épreuve qu'il demande, et l'action de le suivre. */
-  follow?: { legs: { label: string; to: PartyPlace | null; hours: number; onGo: () => void }[]; hazard: Hazard | null; days?: boolean; route?: TrailVerdict & { text: string; ends?: string }; byPlayers?: boolean };
+  follow?: { legs: { label: string; to: PartyPlace | null; hours: number; onGo: () => void; note?: string; trial?: boolean }[]; hazard: Hazard | null; days?: boolean; route?: TrailVerdict & { text: string; ends?: string }; byPlayers?: boolean;
+    /** Atlas en strates : profil du passage, et arrêts seulement aux ouvertures. */
+    strates?: boolean; profile?: React.ReactNode };
   /** Brouillard (MJ) : replonger ce lieu dans le noir chez les joueurs. */
   onForget?: () => void;
 }) {
@@ -1371,6 +1419,7 @@ function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onT
       </div>
       <h3>{f.title}</h3>
       {f.subtitle && <p className="maps-sub">{f.subtitle}</p>}
+      {depthLine && <p className="maps-depth">⛰ {depthLine}</p>}
       <p>{text}</p>
       {f.trace && (() => {
         const t = trailProfile(f, f.trace === 'secret' ? 15 : undefined);
@@ -1405,11 +1454,15 @@ function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onT
                   <p><span className="ko">Échec :</span> {follow.hazard.fail}{follow.hazard.damage ? ` ${follow.hazard.damage} dégâts.` : ''}{follow.hazard.setback ? ` ${follow.hazard.setback}` : ''}</p>
                 </div>
               ) : <p className="maps-sub">Se suit sans jet.</p>}
-              <p className="maps-sub">Le groupe s’arrête à la prochaine caverne ou au prochain lieu sur le tracé.</p>
+              {follow.profile}
+              <p className="maps-sub">{follow.strates
+                ? 'Le groupe ne s’arrête qu’aux salles où le passage débouche : une salle croisée au-dessus ou en dessous n’est pas une étape.'
+                : 'Le groupe s’arrête à la prochaine caverne ou au prochain lieu sur le tracé.'}</p>
               <div className="trail-legs">
                 {follow.legs.map((l) => (
                   <button key={l.label} className="maps-btn gold" disabled={!l.to} onClick={l.onGo}>
-                    {l.label} → <b>{l.to?.title ?? 'aucun lieu connu'}</b> <small>≈ {hoursLabel(l.hours, follow.days)}{follow.hazard ? ' · épreuve' : ''}</small>
+                    {l.label} → <b>{l.to?.title ?? 'aucun lieu connu'}</b> <small>≈ {hoursLabel(l.hours, follow.days)}{follow.hazard || l.trial ? ' · épreuve' : ''}</small>
+                    {l.note && <small className="trail-leg-3d">{l.note}</small>}
                   </button>
                 ))}
               </div>

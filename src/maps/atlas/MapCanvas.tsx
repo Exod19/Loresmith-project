@@ -124,7 +124,7 @@ export function journeyMs(points: [number, number][], W: number, H: number) {
   return Math.min(24000, Math.max(8000, (total / W) * 48000));
 }
 
-export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, onMovePin, dataKey, dm, marks = [], fog, journey, onZoomLimit, exploring }: {
+export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, onMovePin, dataKey, dm, marks = [], fog, journey, onZoomLimit, exploring, ghosts }: {
   map: AtlasMap; layers: Layers; hidden: Set<FeatureCategory>;
   /** Mode MJ : révèle les passages secrets. Hors MJ, la carte est une carte de lore. */
   dm: boolean;
@@ -142,6 +142,8 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   fog?: MapFog | null;
   /** Déplacement du groupe à animer (ignoré s'il date de plus de quelques secondes). */
   journey?: MapTravel | null;
+  /** Atlas en strates : les grottes des strates voisines, en transparence (au-dessus en violet, au-dessous en turquoise). */
+  ghosts?: { above?: Cavity[]; below?: Cavity[]; opacity: number };
   /**
    * On continue de zoomer au-delà des limites du plan : `in` au zoom maximal, `out` au zoom minimal, avec le point
    * visé (0–1). La carte du monde s'en sert pour entrer dans une cité, ou en sortir, sans changer de carte.
@@ -575,6 +577,12 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
             </>
           ) : (
             <g className={layers.ambiance && map.ambiance ? 'am-caves see-through' : 'am-caves'}>
+              {ghosts && (
+                <g className="am-ghosts" pointerEvents="none" style={{ opacity: ghosts.opacity }}>
+                  {ghosts.below && <path d={ghosts.below.map((c) => cavityPath(c, W, H, 0, 36)).join('')} className="am-ghost below" vectorEffect="non-scaling-stroke" />}
+                  {ghosts.above && <path d={ghosts.above.map((c) => cavityPath(c, W, H, 0, 36)).join('')} className="am-ghost above" vectorEffect="non-scaling-stroke" />}
+                </g>
+              )}
               {layerWalls}
               {layerFloors}
             </g>

@@ -259,6 +259,8 @@ export interface MapRecord {
   universeId: string;
   /** `monde` : carte du monde générée (cités, routes, bâtiments), voir src/maps/world. */
   kind: 'atlas' | 'custom' | 'monde';
+  /** Atlas en strates : copie de l'Atlas des profondeurs, en 3D (paliers, passages en pente, ouvertures). */
+  variant?: 'strates';
   title: string;
   description?: string;
   /** Image de fond (data URL), pour une carte personnalisée. */

@@ -701,3 +701,8 @@
 .am-legend ul { list-style: none; margin: 6px 0 2px; padding: 0; display: grid; gap: 4px; }
 .am-legend li { display: flex; align-items: center; gap: 8px; }
 .am-legend svg { flex: none; border-radius: 3px; }
+
+/* Atlas en strates : grottes des strates voisines, en transparence. */
+.am-ghost { fill-opacity: .18; stroke-width: 1.6; }
+.am-ghost.above { fill: #6a4f9a; stroke: #b39be0; stroke-dasharray: 6 5; }
+.am-ghost.below { fill: #1f5a5e; stroke: #6fc4c2; }

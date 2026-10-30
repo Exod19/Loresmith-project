@@ -117,6 +117,15 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
     flash(world.cities.length ? `Carte du monde créée : ${world.cities.length} cité(s) tirée(s) des fiches.` : 'Carte du monde créée : ajoute une première cité.');
   };
 
+  /** Copie de l'Atlas en strates : mêmes cavernes et passages, navigation en 3D. L'Atlas d'origine n'est pas touché. */
+  const hasStrates = mine.some((m) => m.kind === 'atlas' && m.variant === 'strates');
+  const copyStrates = () => {
+    const now = Date.now();
+    const id = uid();
+    dispatch({ type: 'ADD_MAP', map: { id, universeId: universe.id, kind: 'atlas', variant: 'strates', title: 'Atlas des profondeurs · strates', description: 'Copie en 3D : paliers, passages en pente, ouvertures au sol et au plafond.', overlay: { revealed: [], markers: [] }, createdAt: now, updatedAt: now } });
+    flash('Atlas en strates créé (copie) : l’Atlas d’origine reste tel quel.');
+  };
+
   const importAtlas = () => {
     const now = Date.now();
     dispatch({ type: 'ADD_MAP', map: { id: ATLAS_MAP_ID, universeId: universe.id, kind: 'atlas', title: 'Atlas des profondeurs', description: 'Grands niveaux, strates, sites, passages et rencontres.', createdAt: now, updatedAt: now, syncedAt: now } });
@@ -211,6 +220,7 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
           <button className="maps-btn gold" onClick={newBlank}>+ Carte vierge</button>
           <button className="maps-btn" disabled={busy} onClick={() => fileRef.current?.click()}>{busy ? 'Lecture…' : 'Importer une image'}</button>
           {isUnderdark && !hasAtlas && <button className="maps-btn" onClick={importAtlas}>Importer l’Atlas des profondeurs</button>}
+          {hasAtlas && !hasStrates && <button className="maps-btn" onClick={copyStrates} title="Une copie de l’Atlas, en 3D : paliers, passages en pente, ouvertures au sol et au plafond. L’original n’est pas modifié.">+ Atlas en strates (copie 3D)</button>}
           {hasAtlas && (
             <button className="maps-btn" disabled={busy} onClick={sync}>
               {busy ? 'Synchronisation…' : '⟳ Synchroniser les Archives'}
