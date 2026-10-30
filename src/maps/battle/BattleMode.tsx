@@ -15,7 +15,7 @@ import {
   DEFAULT_BATTLE, type Battle, type BattleBuild, type BattleToken, type MapMarker, type MapRecord, type PartyTrack, type PassageLink, type SearchNote,
 } from '../mapStore';
 import { blocksCell, effectiveGrid, generateTerrain, seedOf, TERRAIN, type LocationHint, type TerrainKind } from './terrain';
-import { buildLocalMap, cellIn } from './local';
+import { buildLocalMap, cellIn, trimPassages } from './local';
 import { attackCells, rangedCells, speedCells } from './ranges';
 import { tokenImage } from './vignettes';
 import BuildPanel from './BuildPanel';
@@ -334,7 +334,7 @@ export default function BattleMode({
     }
     set({
       terrain: { source, seed, grid: local.base },
-      local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous, surface: plan.surface ? surfaceTheme(plan.surface, local.window) : undefined },
+      local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous, surface: plan.surface ? surfaceTheme(plan.surface, local.window) : undefined, trimmed: !plan.surface },
       tokens,
       encounterOf: groups?.length ? source : b.encounterOf,
       build: undefined,
@@ -343,6 +343,13 @@ export default function BattleMode({
     setHistory([]);
     if (groups?.length && !renderCombat) setTab('combat');
   };
+
+  // Plateaux ouverts avant ce nettoyage : on retire une fois les galeries intérieures (souterrain seulement).
+  useEffect(() => {
+    if (!b.local || b.local.trimmed || b.local.surface || !b.terrain) return;
+    set({ local: { ...b.local, elements: trimPassages(b.terrain.grid, b.local.elements, b.cols, b.rows), trimmed: true } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [b.local?.source]);
 
   useEffect(() => {
     if (!context) return;
@@ -633,7 +640,8 @@ export default function BattleMode({
   const exitList = passages.filter((p) => {
     const link = linkOf(p.id);
     if (p.secret || !link) return false;
-    if (!(rec.overlay?.passageLinks?.[p.id] || link.kind === 'anchor' || onEdge(p.cells))) return false;
+    // Sous terre, seules les sorties au bord du plateau comptent (les galeries intérieures sont sur la navigation).
+    if (b.local && !b.local.surface ? !onEdge(p.cells) : !(rec.overlay?.passageLinks?.[p.id] || link.kind === 'anchor' || onEdge(p.cells))) return false;
     if (seenDest.has(link.id)) return false;
     seenDest.add(link.id);
     return true;
@@ -703,7 +711,8 @@ export default function BattleMode({
   const labels: BoardLabel[] = [
     ...search.flatMap((s) => { const c = cellsOf(s.id)[0]; return c === undefined ? [] : [{ cell: c, text: s.label, tone: 'search' as const, noticed: !!s.seenBy && !s.shown }]; }),
     ...secrets.flatMap((s) => { const c = cellsOf(s.id); return c.length ? [{ cell: anchorOf(c, b.cols), text: s.label, tone: 'secret' as const, noticed: !!s.seenBy && !s.found }] : []; }),
-    ...exits.flatMap((e) => { const c = cellsOf(e.id); return c.length ? [{ cell: anchorOf(c, b.cols), text: e.label, tone: e.toward ? 'dest' as const : 'exit' as const }] : []; }),
+    // Sous terre, chaque sortie est au bord et sa flèche porte déjà son code (E1 · vers…) : pas d'étiquette en double.
+    ...(b.local && !b.local.surface ? [] : exits.flatMap((e) => { const c = cellsOf(e.id); return c.length ? [{ cell: anchorOf(c, b.cols), text: e.label, tone: e.toward ? 'dest' as const : 'exit' as const }] : []; })),
   ];
   const highlight = hoverId ? cellsOf(hoverId) : infoId ? cellsOf(infoId) : undefined;
 
