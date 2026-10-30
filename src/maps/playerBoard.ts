@@ -79,7 +79,10 @@ export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus
   let fog: MapFogData | undefined;
   if (view.fog) {
     const vision: [number, number][] = [];
-    for (const p of [party?.at, ...(party?.apart ?? []).map((h) => h.at)]) { const c = at(p); if (c) vision.push(c); }
+    // Arrêté en chemin (halte, bifurcation), le groupe voit depuis le tracé, pas depuis le lieu quitté.
+    const stopped = party?.fork?.point ?? party?.halt?.point;
+    if (stopped && (party?.fork?.planId ?? party?.halt?.planId) === planId) vision.push(stopped);
+    for (const p of [stopped ? undefined : party?.at, ...(party?.apart ?? []).map((h) => h.at)]) { const c = at(p); if (c) vision.push(c); }
     // La mémoire du brouillard (ce que le MJ n'a pas replongé dans le noir) ; une carte d'avant cette mémoire part
     // des lieux révélés et du parcours du groupe.
     const explored = rec.overlay?.explored?.[planId] ?? seedExplored(data, rec, planId, at);
@@ -100,7 +103,9 @@ export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus
   const here = party?.at && party.at.planId === planId ? placeCoords(full ?? mapDataFor(rec, atlas, true), rec, party.at) ?? undefined : undefined;
   const a = rec.overlay?.alert;
   const alert = a && (a.phase !== 'calm' || Date.now() - a.at < CALM_MS) ? a : undefined;
-  return { mode: 'map', title: rec.title, planId, data, focus, marks: marks.length ? marks : undefined, fog, travel, here, alert };
+  const f = party?.fork && party.fork.planId === planId ? party.fork : undefined;
+  const fork = f ? { key: f.key, line: f.line, out: f.out, on: f.on } : undefined;
+  return { mode: 'map', title: rec.title, planId, data, focus, marks: marks.length ? marks : undefined, fog, travel, here: f ? f.point : here, alert, fork };
 }
 
 /** Combat tel que les joueurs le voient : jetons visibles seulement, sans points de vie ni CA. */

@@ -1,0 +1,5445 @@
+{
+  "packName": "LoreSmith Underdark - Rencontres vivantes",
+  "version": "1.0.0",
+  "sourceBank": "volumes 2-5; Moriquendi sans statblock provisoire",
+  "count": 89,
+  "encounters": [
+    {
+      "id": "enc_001",
+      "name": "Patrouille Moriquendi interclanique",
+      "kind": "patrol",
+      "faction": "moriquendi",
+      "locationTags": [
+        "checkpoint",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": null,
+          "archetypeId": "moriquendi.capitaine",
+          "countDice": "1",
+          "relationToLeader": "member",
+          "species": "moriquendi",
+          "displayRole": "moriquendi.capitaine"
+        },
+        {
+          "creatureId": null,
+          "archetypeId": "moriquendi.garde",
+          "countDice": "1d4+1",
+          "relationToLeader": "member",
+          "species": "moriquendi",
+          "displayRole": "moriquendi.garde"
+        },
+        {
+          "creatureId": null,
+          "archetypeId": "moriquendi.eclaireur",
+          "countDice": "1",
+          "relationToLeader": "member",
+          "species": "moriquendi",
+          "displayRole": "moriquendi.eclaireur"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "sceau de patrouille",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "rations de voyage",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "registre de mission",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Contrôler un corridor de la Famille",
+      "hook": "Les gardes cherchent une personne disparue.",
+      "rarity": "common",
+      "initialStance": "wary",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Enregistrer l’identite des visiteurs et l’issue du controle.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_002",
+      "name": "Marchand Moriquendi et escorte de la Famille",
+      "kind": "caravan",
+      "faction": "moriquendi",
+      "locationTags": [
+        "route",
+        "market"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": null,
+          "archetypeId": "moriquendi.negociant",
+          "countDice": "1",
+          "relationToLeader": "member",
+          "species": "moriquendi",
+          "displayRole": "moriquendi.negociant"
+        },
+        {
+          "creatureId": null,
+          "archetypeId": "moriquendi.garde",
+          "countDice": "1d3",
+          "relationToLeader": "member",
+          "species": "moriquendi",
+          "displayRole": "moriquendi.garde"
+        },
+        {
+          "creatureId": null,
+          "archetypeId": "moriquendi.porteur",
+          "countDice": "1d3",
+          "relationToLeader": "member",
+          "species": "moriquendi",
+          "displayRole": "moriquendi.porteur"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "caisse de textiles",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "outils de mesure",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "livres de compte",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Livrer des marchandises entre etablissements",
+      "hook": "La cargaison tarde; le marchand cherche une escorte.",
+      "rarity": "uncommon",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_003",
+      "name": "Guildiers moriquendi en mission",
+      "kind": "workers",
+      "faction": "moriquendi",
+      "locationTags": [
+        "forge",
+        "mine",
+        "scholar"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": null,
+          "archetypeId": "moriquendi.maitre_guilde",
+          "countDice": "1",
+          "relationToLeader": "member",
+          "species": "moriquendi",
+          "displayRole": "moriquendi.maitre_guilde"
+        },
+        {
+          "creatureId": null,
+          "archetypeId": "moriquendi.artisan",
+          "countDice": "1d4",
+          "relationToLeader": "member",
+          "species": "moriquendi",
+          "displayRole": "moriquendi.artisan"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "outils du métier",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "consignes scellées",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "caisse de pièces",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Entretenir un ouvrage de la Famille",
+      "hook": "Une réparation exige un composant inhabituel.",
+      "rarity": "uncommon",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_004",
+      "name": "Portiers Moriquendi aux accès surveillés",
+      "kind": "patrol",
+      "faction": "moriquendi",
+      "locationTags": [
+        "checkpoint",
+        "portals"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": null,
+          "archetypeId": "moriquendi.garde",
+          "countDice": "1d4",
+          "relationToLeader": "member",
+          "species": "moriquendi",
+          "displayRole": "moriquendi.garde"
+        },
+        {
+          "creatureId": null,
+          "archetypeId": "moriquendi.officier",
+          "countDice": "1",
+          "relationToLeader": "member",
+          "species": "moriquendi",
+          "displayRole": "moriquendi.officier"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "tablette de service",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "corde de balisage",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Contrôler un accès restreint",
+      "hook": "Une autorisation semble contrefaite.",
+      "rarity": "common",
+      "initialStance": "wary",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_005",
+      "name": "Messagers de la Famille",
+      "kind": "travelers",
+      "faction": "moriquendi",
+      "locationTags": [
+        "route",
+        "portals",
+        "scholar"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": null,
+          "archetypeId": "moriquendi.messager",
+          "countDice": "1d2",
+          "relationToLeader": "member",
+          "species": "moriquendi",
+          "displayRole": "moriquendi.messager"
+        },
+        {
+          "creatureId": null,
+          "archetypeId": "moriquendi.eclaireur",
+          "countDice": "1",
+          "relationToLeader": "member",
+          "species": "moriquendi",
+          "displayRole": "moriquendi.eclaireur"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "correspondance scellée",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "rations",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "étui de carte",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Transmettre une information",
+      "hook": "Le message ne doit pas tomber entre de mauvaises mains.",
+      "rarity": "uncommon",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_006",
+      "name": "Pèlerins moriquendi",
+      "kind": "pilgrimage",
+      "faction": "moriquendi",
+      "locationTags": [
+        "religious",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": null,
+          "archetypeId": "moriquendi.officiant",
+          "countDice": "1",
+          "relationToLeader": "member",
+          "species": "moriquendi",
+          "displayRole": "moriquendi.officiant"
+        },
+        {
+          "creatureId": null,
+          "archetypeId": "moriquendi.pelerin",
+          "countDice": "1d4+2",
+          "relationToLeader": "member",
+          "species": "moriquendi",
+          "displayRole": "moriquendi.pelerin"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "offrandes ordinaires",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "rubans rituels",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Accomplir un rite",
+      "hook": "Un objet sacré est perdu dans une crevasse.",
+      "rarity": "uncommon",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_007",
+      "name": "Etudiants interclaniques en voyage",
+      "kind": "travelers",
+      "faction": "moriquendi",
+      "locationTags": [
+        "scholar",
+        "route",
+        "residential"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": null,
+          "archetypeId": "moriquendi.formateur",
+          "countDice": "1",
+          "relationToLeader": "member",
+          "species": "moriquendi",
+          "displayRole": "moriquendi.formateur"
+        },
+        {
+          "creatureId": null,
+          "archetypeId": "moriquendi.apprenti",
+          "countDice": "1d4",
+          "relationToLeader": "member",
+          "species": "moriquendi",
+          "displayRole": "moriquendi.apprenti"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "tablettes d’exercice",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "sacs de livres",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Poursuivre une formation",
+      "hook": "Un novice a pris un mauvais embranchement.",
+      "rarity": "uncommon",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_008",
+      "name": "Garde de Royolo en surveillance",
+      "kind": "patrol",
+      "faction": "moriquendi",
+      "locationTags": [
+        "surface",
+        "checkpoint"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": null,
+          "archetypeId": "moriquendi.officier",
+          "countDice": "1",
+          "relationToLeader": "member",
+          "species": "moriquendi",
+          "displayRole": "moriquendi.officier"
+        },
+        {
+          "creatureId": null,
+          "archetypeId": "moriquendi.guetteur",
+          "countDice": "1d3",
+          "relationToLeader": "member",
+          "species": "moriquendi",
+          "displayRole": "moriquendi.guetteur"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "registre d’observations",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "équipement d’observation",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Surveiller la surface sans créer de contact inutile",
+      "hook": "Des traces récentes sont repérées près de l’avant-poste.",
+      "rarity": "uncommon",
+      "initialStance": "wary",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_009",
+      "name": "Moriquendi dignitaire et suite",
+      "kind": "travelers",
+      "faction": "moriquendi",
+      "locationTags": [
+        "urban",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": null,
+          "archetypeId": "moriquendi.dignitaire",
+          "countDice": "1",
+          "relationToLeader": "member",
+          "species": "moriquendi",
+          "displayRole": "moriquendi.dignitaire"
+        },
+        {
+          "creatureId": null,
+          "archetypeId": "moriquendi.garde",
+          "countDice": "1d4",
+          "relationToLeader": "member",
+          "species": "moriquendi",
+          "displayRole": "moriquendi.garde"
+        },
+        {
+          "creatureId": null,
+          "archetypeId": "moriquendi.intendant",
+          "countDice": "1",
+          "relationToLeader": "member",
+          "species": "moriquendi",
+          "displayRole": "moriquendi.intendant"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "sceaux de la maison",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "bagages",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "registres de cour",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Rejoindre une autre Palissade",
+      "hook": "Un invité inattendu réclame audience.",
+      "rarity": "rare",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_010",
+      "name": "Marchand Mori célèbre et serviteurs kobolds",
+      "kind": "trade",
+      "faction": "moriquendi",
+      "locationTags": [
+        "market",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": null,
+          "archetypeId": "moriquendi.negociant_celebre",
+          "countDice": "1",
+          "relationToLeader": "member",
+          "species": "moriquendi",
+          "displayRole": "moriquendi.negociant_celebre"
+        },
+        {
+          "creatureId": "underdark_435",
+          "archetypeId": null,
+          "countDice": "1d3",
+          "relationToLeader": "servant",
+          "species": "kobold",
+          "displayRole": "Kobold porteur de provisions"
+        },
+        {
+          "creatureId": "underdark_423",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "contract_guard",
+          "species": "kobold",
+          "displayRole": "Kobold arbalétrier"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "étoffes",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "caisses verrouillées",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "parchemins de commandes",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Vendre sans attirer l’attention",
+      "hook": "La présence des serviteurs suscite une rumeur; leur relation au négociant doit être contextualisée.",
+      "rarity": "exceptional",
+      "initialStance": "neutral",
+      "groupCategory": "named_exception",
+      "exceptionId": "mori_merchant_kobold_retinue",
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Consigner le marchand nommé et la justification exceptionnelle; aucune diffusion comme règle ordinaire.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_011",
+      "name": "Famille gobeline en exode",
+      "kind": "travelers",
+      "faction": "gobelin",
+      "locationTags": [
+        "route",
+        "residential"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_227",
+          "archetypeId": null,
+          "countDice": "2d3",
+          "relationToLeader": "family",
+          "species": "gobelin",
+          "displayRole": "Gobelin"
+        },
+        {
+          "creatureId": "underdark_229",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "escort",
+          "species": "gobelin",
+          "displayRole": "Gobelin archer"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "couvertures usées",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "gamelles",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "sac de racines",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Trouver un refuge",
+      "hook": "Un petit gobelin s’est égaré.",
+      "rarity": "common",
+      "initialStance": "afraid",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_012",
+      "name": "Colporteurs gobelins",
+      "kind": "trade",
+      "faction": "gobelin",
+      "locationTags": [
+        "market",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_348",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "gobelin",
+          "displayRole": "Marchand gobelin"
+        },
+        {
+          "creatureId": "underdark_227",
+          "archetypeId": null,
+          "countDice": "1d3",
+          "relationToLeader": "employee",
+          "species": "gobelin",
+          "displayRole": "Gobelin"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "broches en os",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "champignons secs",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "objets de récupération",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Troquer de petites fournitures",
+      "hook": "Ils ont retrouvé un médaillon dont ils ignorent l’origine.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_013",
+      "name": "Mineurs gobelins",
+      "kind": "workers",
+      "faction": "gobelin",
+      "locationTags": [
+        "mine",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_235",
+          "archetypeId": null,
+          "countDice": "1d4+1",
+          "relationToLeader": "employee",
+          "species": "gobelin",
+          "displayRole": "Gobelin mineur"
+        },
+        {
+          "creatureId": "underdark_232",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "escort",
+          "species": "gobelin",
+          "displayRole": "Gobelin porte-bouclier"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "pioches émoussées",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "huile",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "cordage",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Extraire du minerai pauvre",
+      "hook": "Le plafond menace de céder.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_014",
+      "name": "Rassembleurs de rats gobelins",
+      "kind": "workers",
+      "faction": "gobelin",
+      "locationTags": [
+        "farm",
+        "residential"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_416",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "gobelin",
+          "displayRole": "Gobelin berger de rats"
+        },
+        {
+          "creatureId": "underdark_266",
+          "archetypeId": null,
+          "countDice": "1d4",
+          "relationToLeader": "domesticated",
+          "species": "fauna",
+          "displayRole": "Rat cavernicole"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "cages tordues",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "restes de nourriture",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Déplacer un petit élevage",
+      "hook": "Les rats sont agités par un prédateur invisible.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_015",
+      "name": "Guetteurs gobelins de péage",
+      "kind": "patrol",
+      "faction": "gobelin",
+      "locationTags": [
+        "checkpoint",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_110",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "escort",
+          "species": "gobelin",
+          "displayRole": "Sentinelle gobeline"
+        },
+        {
+          "creatureId": "underdark_229",
+          "archetypeId": null,
+          "countDice": "1d3",
+          "relationToLeader": "member",
+          "species": "gobelin",
+          "displayRole": "Gobelin archer"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "panneau de péage peint",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "cloche de fer",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Extorquer ou négocier un droit de passage",
+      "hook": "Un marchand prétend avoir déjà payé.",
+      "rarity": "common",
+      "initialStance": "wary",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_016",
+      "name": "Chasseurs gobelins et filets",
+      "kind": "hunters",
+      "faction": "gobelin",
+      "locationTags": [
+        "route",
+        "cave"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_233",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "member",
+          "species": "gobelin",
+          "displayRole": "Gobelin lanceur de filet"
+        },
+        {
+          "creatureId": "underdark_229",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "member",
+          "species": "gobelin",
+          "displayRole": "Gobelin archer"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "filets rapiécés",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "appâts malodorants",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Capturer du gibier",
+      "hook": "Le piège contient une bête non agressive.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_017",
+      "name": "Troupe de guerre gobeline",
+      "kind": "military",
+      "faction": "gobelin",
+      "locationTags": [
+        "route",
+        "checkpoint",
+        "ruins"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_111",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "gobelin",
+          "displayRole": "Boss gobelin"
+        },
+        {
+          "creatureId": "underdark_229",
+          "archetypeId": null,
+          "countDice": "1d4",
+          "relationToLeader": "member",
+          "species": "gobelin",
+          "displayRole": "Gobelin archer"
+        },
+        {
+          "creatureId": "underdark_112",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "member",
+          "species": "gobelin",
+          "displayRole": "Chaman gobelin"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "tambour cabossé",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "rations volées",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Intimider les voyageurs",
+      "hook": "Des réfugiés attendent cachés dans un boyau.",
+      "rarity": "uncommon",
+      "initialStance": "hostile",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_018",
+      "name": "Cueilleurs gobelins de champignons",
+      "kind": "workers",
+      "faction": "gobelin",
+      "locationTags": [
+        "farm",
+        "ecology"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_227",
+          "archetypeId": null,
+          "countDice": "1d4",
+          "relationToLeader": "member",
+          "species": "gobelin",
+          "displayRole": "Gobelin"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "paniers de fibres",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "couteaux émoussés",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Cueillir sans déranger un nid voisin",
+      "hook": "Un panier contient des spores dangereuses.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_019",
+      "name": "Convoyeurs kobolds de vivres",
+      "kind": "caravan",
+      "faction": "kobold",
+      "locationTags": [
+        "route",
+        "market"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_435",
+          "archetypeId": null,
+          "countDice": "1d4+1",
+          "relationToLeader": "employee",
+          "species": "kobold",
+          "displayRole": "Kobold porteur de provisions"
+        },
+        {
+          "creatureId": "underdark_242",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "escort",
+          "species": "kobold",
+          "displayRole": "Kobold sentinelle"
+        },
+        {
+          "creatureId": "underdark_614",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "beast_of_burden",
+          "species": "fauna",
+          "displayRole": "Lézard cavernicole de bât"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "sacs de tubercules",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "outres",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "roues de rechange",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Livrer des réserves à une couvée",
+      "hook": "Une charge s’est détachée dans le passage.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_020",
+      "name": "Équipe de trappeurs kobolds",
+      "kind": "workers",
+      "faction": "kobold",
+      "locationTags": [
+        "route",
+        "mine"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_241",
+          "archetypeId": null,
+          "countDice": "1d3",
+          "relationToLeader": "member",
+          "species": "kobold",
+          "displayRole": "Kobold trappeur"
+        },
+        {
+          "creatureId": "underdark_243",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "kobold",
+          "displayRole": "Kobold dompteur de lézards"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "fil de cuivre",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "petits clous",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "collets",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Sécuriser leur passage",
+      "hook": "Un collet a capturé un animal apprécié des personnages.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_021",
+      "name": "Gardes kobolds de couvée",
+      "kind": "patrol",
+      "faction": "kobold",
+      "locationTags": [
+        "residential",
+        "checkpoint"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_432",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "kobold",
+          "displayRole": "Kobold garde des œufs"
+        },
+        {
+          "creatureId": "underdark_239",
+          "archetypeId": null,
+          "countDice": "1d4",
+          "relationToLeader": "member",
+          "species": "kobold",
+          "displayRole": "Kobold piquier"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "sifflet d’alarme",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "lances courtes",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Protéger les œufs",
+      "hook": "La garde veut savoir pourquoi les PJ approchent.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_022",
+      "name": "Marchande kobolde de racines",
+      "kind": "trade",
+      "faction": "kobold",
+      "locationTags": [
+        "market",
+        "farm",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_237",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "kobold",
+          "displayRole": "Kobold"
+        },
+        {
+          "creatureId": "underdark_435",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "employee",
+          "species": "kobold",
+          "displayRole": "Kobold porteur de provisions"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "racines séchées",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "balances en bois",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Troquer nourriture et ingrédients",
+      "hook": "Une livraison a disparu.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_023",
+      "name": "Sapeurs kobolds",
+      "kind": "workers",
+      "faction": "kobold",
+      "locationTags": [
+        "mine",
+        "hazard"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_120",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "kobold",
+          "displayRole": "Kobold inventeur"
+        },
+        {
+          "creatureId": "underdark_241",
+          "archetypeId": null,
+          "countDice": "1d3",
+          "relationToLeader": "member",
+          "species": "kobold",
+          "displayRole": "Kobold trappeur"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "petites charges artisanales",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "mèches humides",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "pelles",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Réparer un boyau fragilisé",
+      "hook": "Leur plan d’étayage risque d’aggraver la fissure.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_024",
+      "name": "Pélerins kobolds des écailles",
+      "kind": "pilgrimage",
+      "faction": "kobold",
+      "locationTags": [
+        "religious",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_425",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "kobold",
+          "displayRole": "Kobold prêtre du dragon"
+        },
+        {
+          "creatureId": "underdark_237",
+          "archetypeId": null,
+          "countDice": "1d4",
+          "relationToLeader": "member",
+          "species": "kobold",
+          "displayRole": "Kobold"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "offrandes de cailloux polis",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "banderoles usées",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Accomplir une offrande",
+      "hook": "Le lieu de culte est occupé par un autre groupe.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_025",
+      "name": "Chasseurs kobolds aux arbalètes",
+      "kind": "hunters",
+      "faction": "kobold",
+      "locationTags": [
+        "route",
+        "cave"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_423",
+          "archetypeId": null,
+          "countDice": "1d3",
+          "relationToLeader": "member",
+          "species": "kobold",
+          "displayRole": "Kobold arbalétrier"
+        },
+        {
+          "creatureId": "underdark_118",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "kobold",
+          "displayRole": "Kobold éclaireur"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "carreaux récupérés",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "petites cages",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Chasser pour nourrir leur communauté",
+      "hook": "Ils confondent une monture domestique avec du gibier.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_026",
+      "name": "Caravane d’apprivoiseurs kobolds",
+      "kind": "caravan",
+      "faction": "kobold",
+      "locationTags": [
+        "route",
+        "farm"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_243",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "kobold",
+          "displayRole": "Kobold dompteur de lézards"
+        },
+        {
+          "creatureId": "underdark_237",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "member",
+          "species": "kobold",
+          "displayRole": "Kobold"
+        },
+        {
+          "creatureId": "underdark_064",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "mount",
+          "species": "fauna",
+          "displayRole": "Lézard de selle"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "harnais",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "sac de fourrage",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "sifflets",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Vendre ou conduire des montures",
+      "hook": "Un lézard refuse de franchir le pont.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_027",
+      "name": "Chasseurs orcs des galeries",
+      "kind": "hunters",
+      "faction": "orc",
+      "locationTags": [
+        "route",
+        "cave"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_444",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "orc",
+          "displayRole": "Orc pisteur des profondeurs"
+        },
+        {
+          "creatureId": "underdark_246",
+          "archetypeId": null,
+          "countDice": "1d3",
+          "relationToLeader": "member",
+          "species": "orc",
+          "displayRole": "Orc archer"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "lances usées",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "viande séchée",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Pister un prédateur",
+      "hook": "Leur piste converge vers le camp des PJ.",
+      "rarity": "common",
+      "initialStance": "wary",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_028",
+      "name": "Chamane orc et guérisseurs",
+      "kind": "pilgrimage",
+      "faction": "orc",
+      "locationTags": [
+        "religious",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_439",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "orc",
+          "displayRole": "Orc chaman"
+        },
+        {
+          "creatureId": "underdark_448",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "member",
+          "species": "orc",
+          "displayRole": "Orc herboriste de guerre"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "herbes amères",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "bâton rituel",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "peaux",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Soigner des blessés",
+      "hook": "Le chamane demande une plante rare.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_029",
+      "name": "Ouvriers orcs de forge",
+      "kind": "workers",
+      "faction": "orc",
+      "locationTags": [
+        "forge",
+        "mine"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_451",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "orc",
+          "displayRole": "Orc gardien de forge"
+        },
+        {
+          "creatureId": "underdark_245",
+          "archetypeId": null,
+          "countDice": "1d3",
+          "relationToLeader": "employee",
+          "species": "orc",
+          "displayRole": "Orc"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "pinces",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "marteaux",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "lingots imparfaits",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Forger ou réparer des outils",
+      "hook": "La chaleur du four s’éteint brusquement.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_030",
+      "name": "Poste orc en alerte",
+      "kind": "patrol",
+      "faction": "orc",
+      "locationTags": [
+        "checkpoint",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_449",
+          "archetypeId": null,
+          "countDice": "1d4",
+          "relationToLeader": "member",
+          "species": "orc",
+          "displayRole": "Orc garde de l'avant-poste"
+        },
+        {
+          "creatureId": "underdark_443",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "orc",
+          "displayRole": "Orc chef de bande"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "sceau de garde",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "registre de passage",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Bloquer une menace",
+      "hook": "Le chef a des instructions contradictoires.",
+      "rarity": "common",
+      "initialStance": "wary",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_031",
+      "name": "Escorte hobgobeline contractuelle",
+      "kind": "patrol",
+      "faction": "hobgobelin",
+      "locationTags": [
+        "route",
+        "market"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_454",
+          "archetypeId": null,
+          "countDice": "1d3",
+          "relationToLeader": "member",
+          "species": "hobgobelin",
+          "displayRole": "Hobgobelin archer de ligne"
+        },
+        {
+          "creatureId": "underdark_457",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "member",
+          "species": "hobgobelin",
+          "displayRole": "Hobgobelin garde au pavois"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "lettre de contrat",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "vivres en caisse",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Livrer une cargaison protégée",
+      "hook": "Le client leur demande de changer d’itinéraire.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_032",
+      "name": "Garnison hobgobeline",
+      "kind": "military",
+      "faction": "hobgobelin",
+      "locationTags": [
+        "checkpoint",
+        "ruins"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_116",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "hobgobelin",
+          "displayRole": "Capitaine hobgobelin"
+        },
+        {
+          "creatureId": "underdark_250",
+          "archetypeId": null,
+          "countDice": "1d4",
+          "relationToLeader": "member",
+          "species": "hobgobelin",
+          "displayRole": "Hobgobelin piquier"
+        },
+        {
+          "creatureId": "underdark_251",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "member",
+          "species": "hobgobelin",
+          "displayRole": "Hobgobelin arbalétrier"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "fiches de tour de garde",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "munitions",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Sécuriser une fortification",
+      "hook": "La garnison n’a pas été ravitaillée.",
+      "rarity": "common",
+      "initialStance": "wary",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_033",
+      "name": "Éclaireurs gnolls charognards",
+      "kind": "hunters",
+      "faction": "gnoll",
+      "locationTags": [
+        "ruins",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_255",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "gnoll",
+          "displayRole": "Gnoll pisteur"
+        },
+        {
+          "creatureId": "underdark_474",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "member",
+          "species": "gnoll",
+          "displayRole": "Gnoll archer des charniers"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "ossements",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "outils de dépeçage",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Chercher une charogne ou un convoi",
+      "hook": "Ils suivent une odeur de sang.",
+      "rarity": "common",
+      "initialStance": "hostile",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_034",
+      "name": "Clan gobelours errant",
+      "kind": "travelers",
+      "faction": "gobelin",
+      "locationTags": [
+        "route",
+        "cave"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_473",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "member",
+          "species": "gobelin",
+          "displayRole": "Gobelours porteur de butin"
+        },
+        {
+          "creatureId": "underdark_227",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "member",
+          "species": "gobelin",
+          "displayRole": "Gobelin"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "peaux grossières",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "sac de noix",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Trouver un abri",
+      "hook": "Le plus jeune transporte une lettre d’un ancien compagnon.",
+      "rarity": "uncommon",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_035",
+      "name": "Caravane duergar de minerai",
+      "kind": "caravan",
+      "faction": "duergar",
+      "locationTags": [
+        "route",
+        "market",
+        "mine"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_495",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "duergar",
+          "displayRole": "Duergar négociant de minerais"
+        },
+        {
+          "creatureId": "underdark_486",
+          "archetypeId": null,
+          "countDice": "1d3",
+          "relationToLeader": "escort",
+          "species": "duergar",
+          "displayRole": "Duergar garde au marteau"
+        },
+        {
+          "creatureId": "underdark_614",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "beast_of_burden",
+          "species": "fauna",
+          "displayRole": "Lézard cavernicole de bât"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "sacs de minerai",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "lingots non affinés",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "balances de mine",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Acheminer minerai et vivres",
+      "hook": "Un chargement affiche un poids incohérent.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_036",
+      "name": "Mineurs duergar et contremaître",
+      "kind": "workers",
+      "faction": "duergar",
+      "locationTags": [
+        "mine"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_489",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "duergar",
+          "displayRole": "Duergar contremaître"
+        },
+        {
+          "creatureId": "underdark_123",
+          "archetypeId": null,
+          "countDice": "1d4+1",
+          "relationToLeader": "employee",
+          "species": "duergar",
+          "displayRole": "Mineur duergar"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "pioches",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "marteaux de vérification",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "lampes",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Exploiter une veine",
+      "hook": "Le filon traverse une ancienne chambre close.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_037",
+      "name": "Artisans duergar de forge",
+      "kind": "workers",
+      "faction": "duergar",
+      "locationTags": [
+        "forge",
+        "market"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_490",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "duergar",
+          "displayRole": "Duergar forgeron de campagne"
+        },
+        {
+          "creatureId": "underdark_352",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "employee",
+          "species": "duergar",
+          "displayRole": "Artisan duergar"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "marteaux de forge",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "pinces",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "résidus de métal",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Livrer un outil spécialisé",
+      "hook": "Une commande a été sabotée.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_038",
+      "name": "Inspection duergar des convois",
+      "kind": "patrol",
+      "faction": "duergar",
+      "locationTags": [
+        "checkpoint",
+        "market"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_124",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "duergar",
+          "displayRole": "Chef de patrouille duergar"
+        },
+        {
+          "creatureId": "underdark_484",
+          "archetypeId": null,
+          "countDice": "1d3",
+          "relationToLeader": "member",
+          "species": "duergar",
+          "displayRole": "Duergar arbalétrier de rempart"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "registre de poids",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "sceaux",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "craie",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Contrôler taxes et qualité selon les règles locales du MJ",
+      "hook": "Une caisse est mal déclarée.",
+      "rarity": "common",
+      "initialStance": "wary",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_039",
+      "name": "Équipe duergar des ponts",
+      "kind": "workers",
+      "faction": "duergar",
+      "locationTags": [
+        "route",
+        "hazard",
+        "forge"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_487",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "member",
+          "species": "duergar",
+          "displayRole": "Duergar sapeur de galerie"
+        },
+        {
+          "creatureId": "underdark_352",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "member",
+          "species": "duergar",
+          "displayRole": "Artisan duergar"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "étançons",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "corde",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "niveaux",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Réparer un pont",
+      "hook": "Une arche se déforme.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_040",
+      "name": "Geôliers duergar en transfert",
+      "kind": "patrol",
+      "faction": "duergar",
+      "locationTags": [
+        "checkpoint",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_353",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "duergar",
+          "displayRole": "Geôlier duergar"
+        },
+        {
+          "creatureId": "underdark_486",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "escort",
+          "species": "duergar",
+          "displayRole": "Duergar garde au marteau"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "clefs",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "papier de transfert",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Acheminer un prisonnier",
+      "hook": "Un témoin affirme que le détenu est innocent.",
+      "rarity": "uncommon",
+      "initialStance": "wary",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_041",
+      "name": "Négociants duergar de l’atelier",
+      "kind": "trade",
+      "faction": "duergar",
+      "locationTags": [
+        "market",
+        "forge"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_354",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "duergar",
+          "displayRole": "Marchand duergar"
+        },
+        {
+          "creatureId": "underdark_352",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "employee",
+          "species": "duergar",
+          "displayRole": "Artisan duergar"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "limes",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "charnières",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "rivets",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Vendre outils et pièces",
+      "hook": "Une pièce est identifiée comme provenant d’une ruine.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_042",
+      "name": "Éclaireurs duergar des mines",
+      "kind": "patrol",
+      "faction": "duergar",
+      "locationTags": [
+        "mine",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_492",
+          "archetypeId": null,
+          "countDice": "1d3",
+          "relationToLeader": "member",
+          "species": "duergar",
+          "displayRole": "Duergar éclaireur des mines"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "fil de marquage",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "cartes de tunnel",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Cartographier et sécuriser une route",
+      "hook": "Un ancien marqueur a été déplacé.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_043",
+      "name": "Expédition minière svirfneblin",
+      "kind": "workers",
+      "faction": "svirfneblin",
+      "locationTags": [
+        "mine"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_518",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "svirfneblin",
+          "displayRole": "Svirfneblin maître de mine"
+        },
+        {
+          "creatureId": "underdark_521",
+          "archetypeId": null,
+          "countDice": "1d3",
+          "relationToLeader": "employee",
+          "species": "svirfneblin",
+          "displayRole": "Svirfneblin mineur vétéran"
+        },
+        {
+          "creatureId": "underdark_262",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "escort",
+          "species": "svirfneblin",
+          "displayRole": "Svirfneblin guetteur"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "pioches",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "corde",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "boîtes de minéraux",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Vérifier la rentabilité d’un filon",
+      "hook": "Un mineur a trouvé un cristal au pouvoir inconnu.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_044",
+      "name": "Marchand de gemmes svirfneblin",
+      "kind": "trade",
+      "faction": "svirfneblin",
+      "locationTags": [
+        "market",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_519",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "svirfneblin",
+          "displayRole": "Svirfneblin négociant de cristaux"
+        },
+        {
+          "creatureId": "underdark_511",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "escort",
+          "species": "svirfneblin",
+          "displayRole": "Svirfneblin frondeur"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "cailloux polis",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "balances",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "gemmes communes",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Échanger une gemme ou un renseignement",
+      "hook": "Un joyau semble avoir changé de couleur.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_045",
+      "name": "Cartographes svirfneblins",
+      "kind": "travelers",
+      "faction": "svirfneblin",
+      "locationTags": [
+        "route",
+        "scholar"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_514",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "svirfneblin",
+          "displayRole": "Svirfneblin cartographe"
+        },
+        {
+          "creatureId": "underdark_516",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "escort",
+          "species": "svirfneblin",
+          "displayRole": "Svirfneblin éclaireur de faille"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "parchemins vierges",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "boussoles",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "charbon",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Relever une galerie",
+      "hook": "Ils ont dessiné un raccourci qui n’existe plus.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_046",
+      "name": "Prospecteurs svirfneblins discrets",
+      "kind": "workers",
+      "faction": "svirfneblin",
+      "locationTags": [
+        "mine",
+        "cave"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_133",
+          "archetypeId": null,
+          "countDice": "1d4",
+          "relationToLeader": "member",
+          "species": "svirfneblin",
+          "displayRole": "Mineur svirfneblin"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "pioches usées",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "sachets d’échantillons",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Sonder une veine",
+      "hook": "Leur marteau sonde un vide derrière la paroi.",
+      "rarity": "common",
+      "initialStance": "wary",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_047",
+      "name": "Réparateurs svirfneblins",
+      "kind": "workers",
+      "faction": "svirfneblin",
+      "locationTags": [
+        "forge",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_512",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "svirfneblin",
+          "displayRole": "Svirfneblin artificier"
+        },
+        {
+          "creatureId": "underdark_521",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "employee",
+          "species": "svirfneblin",
+          "displayRole": "Svirfneblin mineur vétéran"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "étaux portables",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "petites vis",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "tournevis",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Entretenir une structure",
+      "hook": "L’objet à réparer ne leur appartient pas.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_048",
+      "name": "Guetteurs svirfneblins",
+      "kind": "patrol",
+      "faction": "svirfneblin",
+      "locationTags": [
+        "checkpoint",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_510",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "member",
+          "species": "svirfneblin",
+          "displayRole": "Svirfneblin piquier de garde"
+        },
+        {
+          "creatureId": "underdark_262",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "svirfneblin",
+          "displayRole": "Svirfneblin guetteur"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "sifflets",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "lanternes sourdes",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Surveiller une brèche",
+      "hook": "Ils évitent d’abord le conflit.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_049",
+      "name": "Émissaire drow avec escorte",
+      "kind": "diplomatic",
+      "faction": "drow",
+      "locationTags": [
+        "route",
+        "urban",
+        "checkpoint"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_129",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "drow",
+          "displayRole": "Mage drow"
+        },
+        {
+          "creatureId": "underdark_127",
+          "archetypeId": null,
+          "countDice": "1d3",
+          "relationToLeader": "escort",
+          "species": "drow",
+          "displayRole": "Guerrier drow"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "parchemins scellés",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "présent d’audience",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Négocier un passage",
+      "hook": "Un garde reconnaît l’emblème d’une maison rivale.",
+      "rarity": "uncommon",
+      "initialStance": "wary",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_050",
+      "name": "Marchande drow de poisons",
+      "kind": "trade",
+      "faction": "drow",
+      "locationTags": [
+        "market",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_263",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "drow",
+          "displayRole": "Drow novice"
+        },
+        {
+          "creatureId": "underdark_499",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "escort",
+          "species": "drow",
+          "displayRole": "Drow arbalétrier d'embuscade"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "flacons verrouillés",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "sacs de poudres",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Acheter ou échanger des substances",
+      "hook": "Un flacon fuit sur le chemin.",
+      "rarity": "uncommon",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_051",
+      "name": "Patrouille drow des passerelles",
+      "kind": "patrol",
+      "faction": "drow",
+      "locationTags": [
+        "checkpoint",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_505",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "member",
+          "species": "drow",
+          "displayRole": "Drow garde de passerelle"
+        },
+        {
+          "creatureId": "underdark_355",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "member",
+          "species": "drow",
+          "displayRole": "Archer drow des remparts"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "arbalètes",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "feuillets de consignes",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Contrôler les accès",
+      "hook": "Un détournement de convoi est signalé.",
+      "rarity": "common",
+      "initialStance": "wary",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_052",
+      "name": "Tisseuses drow de pièges",
+      "kind": "workers",
+      "faction": "drow",
+      "locationTags": [
+        "route",
+        "religious"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_500",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "drow",
+          "displayRole": "Drow tisseur de pièges"
+        },
+        {
+          "creatureId": "underdark_263",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "employee",
+          "species": "drow",
+          "displayRole": "Drow novice"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "soie",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "aiguilles",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "crochets",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Sécuriser un passage",
+      "hook": "La nouvelle toile bloque aussi les civils.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_053",
+      "name": "Chasseurs drow d’araignées",
+      "kind": "hunters",
+      "faction": "drow",
+      "locationTags": [
+        "cave",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_502",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "drow",
+          "displayRole": "Drow dompteur d'araignées"
+        },
+        {
+          "creatureId": "underdark_035",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "domesticated",
+          "species": "fauna",
+          "displayRole": "Araignée géante"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "filets",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "appâts",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Capturer un spécimen",
+      "hook": "L’araignée s’enfuit pendant la négociation.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_054",
+      "name": "Jardiniers myconides",
+      "kind": "workers",
+      "faction": "myconide",
+      "locationTags": [
+        "farm",
+        "ecology"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_357",
+          "archetypeId": null,
+          "countDice": "1d4",
+          "relationToLeader": "member",
+          "species": "myconide",
+          "displayRole": "Jardinier myconide"
+        },
+        {
+          "creatureId": "underdark_374",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "escort",
+          "species": "myconide",
+          "displayRole": "Myconide éclaireur"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "paniers de spores",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "outils en fibres",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Entretenir une culture",
+      "hook": "Une espèce parasite a envahi les plates-bandes.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_055",
+      "name": "Médiateurs myconides",
+      "kind": "diplomatic",
+      "faction": "myconide",
+      "locationTags": [
+        "farm",
+        "route",
+        "market"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_569",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "myconide",
+          "displayRole": "Myconide diplomate des cercles"
+        },
+        {
+          "creatureId": "underdark_356",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "member",
+          "species": "myconide",
+          "displayRole": "Médiateur myconide"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "échantillons végétaux",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "symboles de cercle",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Éviter un conflit entre colonies",
+      "hook": "Ils ne parlent que par spores.",
+      "rarity": "uncommon",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_056",
+      "name": "Guérisseurs myconides",
+      "kind": "workers",
+      "faction": "myconide",
+      "locationTags": [
+        "farm",
+        "scholar"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_375",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "myconide",
+          "displayRole": "Myconide guérisseur"
+        },
+        {
+          "creatureId": "underdark_075",
+          "archetypeId": null,
+          "countDice": "1d3",
+          "relationToLeader": "member",
+          "species": "myconide",
+          "displayRole": "Pousse myconide"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "compresses de mycélium",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "spores médicinales",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Soigner un proche",
+      "hook": "Une pousse réagit mal à un champignon importé.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_057",
+      "name": "Gardes-nurserie myconides",
+      "kind": "patrol",
+      "faction": "myconide",
+      "locationTags": [
+        "farm",
+        "residential"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_574",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "member",
+          "species": "myconide",
+          "displayRole": "Myconide garde-nurserie"
+        },
+        {
+          "creatureId": "underdark_376",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "myconide",
+          "displayRole": "Myconide protecteur"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "sacs de terre",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "marqueurs de nid",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Protéger de jeunes myconides",
+      "hook": "La nurserie est perturbée par des vibrations.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_058",
+      "name": "Semeurs myconides",
+      "kind": "workers",
+      "faction": "myconide",
+      "locationTags": [
+        "farm",
+        "cave"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_568",
+          "archetypeId": null,
+          "countDice": "1d3",
+          "relationToLeader": "member",
+          "species": "myconide",
+          "displayRole": "Myconide semeur"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "spores de culture",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "fibres végétales",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Réensemencer un réseau de grottes",
+      "hook": "La nouvelle colonie risque de déranger des animaux.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_059",
+      "name": "Pêcheurs kuo-toa",
+      "kind": "workers",
+      "faction": "kuo-toa",
+      "locationTags": [
+        "aquatic",
+        "market"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_527",
+          "archetypeId": null,
+          "countDice": "1d3",
+          "relationToLeader": "member",
+          "species": "kuo-toa",
+          "displayRole": "Kuo-toa pêcheur de grotte"
+        },
+        {
+          "creatureId": "underdark_529",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "escort",
+          "species": "kuo-toa",
+          "displayRole": "Kuo-toa éclaireur des canaux"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "hameçons de pierre",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "filets",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "poisson séché",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Nourrir la colonie",
+      "hook": "Les prises présentent des marques étranges.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_060",
+      "name": "Pèlerins kuo-toa",
+      "kind": "pilgrimage",
+      "faction": "kuo-toa",
+      "locationTags": [
+        "religious",
+        "aquatic"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_135",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "kuo-toa",
+          "displayRole": "Kuo-toa fouetteur"
+        },
+        {
+          "creatureId": "underdark_028",
+          "archetypeId": null,
+          "countDice": "1d4",
+          "relationToLeader": "member",
+          "species": "kuo-toa",
+          "displayRole": "Kuo-toa"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "offrandes humides",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "bandages",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Rejoindre un sanctuaire",
+      "hook": "Un groupe les suit à distance.",
+      "rarity": "uncommon",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_061",
+      "name": "Gardes de bassin kuo-toa",
+      "kind": "patrol",
+      "faction": "kuo-toa",
+      "locationTags": [
+        "aquatic",
+        "checkpoint"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_525",
+          "archetypeId": null,
+          "countDice": "1d3",
+          "relationToLeader": "member",
+          "species": "kuo-toa",
+          "displayRole": "Kuo-toa garde de bassin"
+        },
+        {
+          "creatureId": "underdark_522",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "member",
+          "species": "kuo-toa",
+          "displayRole": "Kuo-toa harponneur"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "harpons",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "barils de saumure",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Protéger un plan d’eau",
+      "hook": "Ils ont perdu une jarre rituelle.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_062",
+      "name": "Guetteurs des canaux kuo-toa",
+      "kind": "patrol",
+      "faction": "kuo-toa",
+      "locationTags": [
+        "aquatic",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_529",
+          "archetypeId": null,
+          "countDice": "1d3",
+          "relationToLeader": "member",
+          "species": "kuo-toa",
+          "displayRole": "Kuo-toa éclaireur des canaux"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "lignes lestées",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "balises",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Cartographier une crue",
+      "hook": "Une voie navigable est devenue impraticable.",
+      "rarity": "common",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_063",
+      "name": "Troupeau de lézards cavernicoles",
+      "kind": "fauna",
+      "faction": "fauna",
+      "locationTags": [
+        "cave",
+        "route",
+        "farm"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_273",
+          "archetypeId": null,
+          "countDice": "1d4",
+          "relationToLeader": "wild_follower",
+          "species": "fauna",
+          "displayRole": "Lézard des cavernes"
+        }
+      ],
+      "cargo": [],
+      "primaryGoal": "Se déplacer vers une source de nourriture",
+      "hook": "Le troupeau coupe le passage et fuit si effrayé.",
+      "rarity": "common",
+      "initialStance": "unaware",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "L animal se nourrit, dort, chasse une autre proie ou s écarte; le groupe peut simplement passer.",
+        "tension": "La bête défend son territoire, fuit ou exhibe une menace, selon le nid et ses blessures.",
+        "combat": "Combat seulement si attaque, menace réelle, faim, territorialité ou réaction aux personnages; fuite possible."
+      },
+      "aftermath": "Le passage des bêtes laisse traces et excréments.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_064",
+      "name": "Vol de chauves-souris cavernicoles",
+      "kind": "fauna",
+      "faction": "fauna",
+      "locationTags": [
+        "cave",
+        "ecology"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_265",
+          "archetypeId": null,
+          "countDice": "2d6",
+          "relationToLeader": "wild_follower",
+          "species": "fauna",
+          "displayRole": "Chauve-souris ordinaire"
+        }
+      ],
+      "cargo": [],
+      "primaryGoal": "Dormir ou éviter une perturbation",
+      "hook": "Un bruit déclenche un envol soudain.",
+      "rarity": "common",
+      "initialStance": "unaware",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "L animal se nourrit, dort, chasse une autre proie ou s écarte; le groupe peut simplement passer.",
+        "tension": "La bête défend son territoire, fuit ou exhibe une menace, selon le nid et ses blessures.",
+        "combat": "Combat seulement si attaque, menace réelle, faim, territorialité ou réaction aux personnages; fuite possible."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_065",
+      "name": "Araignée gardant son nid",
+      "kind": "fauna",
+      "faction": "fauna",
+      "locationTags": [
+        "cave",
+        "ecology"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_035",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "wild_follower",
+          "species": "fauna",
+          "displayRole": "Araignée géante"
+        }
+      ],
+      "cargo": [],
+      "primaryGoal": "Protéger son nid",
+      "hook": "Des jeunes araignées sont cachées dans une faille.",
+      "rarity": "common",
+      "initialStance": "wary",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "L animal se nourrit, dort, chasse une autre proie ou s écarte; le groupe peut simplement passer.",
+        "tension": "La bête défend son territoire, fuit ou exhibe une menace, selon le nid et ses blessures.",
+        "combat": "Combat seulement si attaque, menace réelle, faim, territorialité ou réaction aux personnages; fuite possible."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_066",
+      "name": "Charognards sur une carcasse",
+      "kind": "fauna",
+      "faction": "fauna",
+      "locationTags": [
+        "ruins",
+        "cave"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_266",
+          "archetypeId": null,
+          "countDice": "1d4",
+          "relationToLeader": "wild_follower",
+          "species": "fauna",
+          "displayRole": "Rat cavernicole"
+        }
+      ],
+      "cargo": [],
+      "primaryGoal": "Se nourrir",
+      "hook": "La carcasse porte un insigne militaire.",
+      "rarity": "common",
+      "initialStance": "unaware",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "L animal se nourrit, dort, chasse une autre proie ou s écarte; le groupe peut simplement passer.",
+        "tension": "La bête défend son territoire, fuit ou exhibe une menace, selon le nid et ses blessures.",
+        "combat": "Combat seulement si attaque, menace réelle, faim, territorialité ou réaction aux personnages; fuite possible."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_067",
+      "name": "Nuée d’insectes attirée par les vivres",
+      "kind": "fauna",
+      "faction": "fauna",
+      "locationTags": [
+        "route",
+        "farm"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_302",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "wild_follower",
+          "species": "fauna",
+          "displayRole": "Nuée d'araignées"
+        }
+      ],
+      "cargo": [],
+      "primaryGoal": "Se nourrir, pas combattre",
+      "hook": "Les provisions attirent la nuée.",
+      "rarity": "common",
+      "initialStance": "unaware",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "L animal se nourrit, dort, chasse une autre proie ou s écarte; le groupe peut simplement passer.",
+        "tension": "La bête défend son territoire, fuit ou exhibe une menace, selon le nid et ses blessures.",
+        "combat": "Combat seulement si attaque, menace réelle, faim, territorialité ou réaction aux personnages; fuite possible."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_068",
+      "name": "Limon dans une galerie abandonnée",
+      "kind": "fauna",
+      "faction": "fauna",
+      "locationTags": [
+        "ruins",
+        "cave"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_017",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "wild_follower",
+          "species": "fauna",
+          "displayRole": "Roper"
+        }
+      ],
+      "cargo": [],
+      "primaryGoal": "Absorber les déchets organiques",
+      "hook": "Le sol est anormalement propre.",
+      "rarity": "common",
+      "initialStance": "unaware",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "L animal se nourrit, dort, chasse une autre proie ou s écarte; le groupe peut simplement passer.",
+        "tension": "La bête défend son territoire, fuit ou exhibe une menace, selon le nid et ses blessures.",
+        "combat": "Combat seulement si attaque, menace réelle, faim, territorialité ou réaction aux personnages; fuite possible."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_069",
+      "name": "Lézards de bât échappés",
+      "kind": "fauna",
+      "faction": "fauna",
+      "locationTags": [
+        "route",
+        "farm"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_614",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "wild_follower",
+          "species": "fauna",
+          "displayRole": "Lézard cavernicole de bât"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "harnais cassé",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Chercher de l’eau et un abri",
+      "hook": "Un sac porte la marque d’un convoi disparu.",
+      "rarity": "common",
+      "initialStance": "afraid",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "L animal se nourrit, dort, chasse une autre proie ou s écarte; le groupe peut simplement passer.",
+        "tension": "La bête défend son territoire, fuit ou exhibe une menace, selon le nid et ses blessures.",
+        "combat": "Combat seulement si attaque, menace réelle, faim, territorialité ou réaction aux personnages; fuite possible."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_070",
+      "name": "Nuée de rats à la recherche de nourriture",
+      "kind": "fauna",
+      "faction": "fauna",
+      "locationTags": [
+        "ruins",
+        "farm",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_044",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "wild_follower",
+          "species": "fauna",
+          "displayRole": "Nuée de rats"
+        }
+      ],
+      "cargo": [],
+      "primaryGoal": "Chercher des provisions",
+      "hook": "Des miettes attirent les rats hors du nid.",
+      "rarity": "common",
+      "initialStance": "unaware",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "L animal se nourrit, dort, chasse une autre proie ou s écarte; le groupe peut simplement passer.",
+        "tension": "La bête défend son territoire, fuit ou exhibe une menace, selon le nid et ses blessures.",
+        "combat": "Combat seulement si attaque, menace réelle, faim, territorialité ou réaction aux personnages; fuite possible."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_071",
+      "name": "Colonie de champignons criards",
+      "kind": "ecology",
+      "faction": "fauna",
+      "locationTags": [
+        "ecology",
+        "cave"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_077",
+          "archetypeId": null,
+          "countDice": "1d3",
+          "relationToLeader": "wild_follower",
+          "species": "fauna",
+          "displayRole": "Serviteur sporulé"
+        }
+      ],
+      "cargo": [],
+      "primaryGoal": "Réagir aux vibrations",
+      "hook": "Le cri révèle le passage à une patrouille.",
+      "rarity": "common",
+      "initialStance": "unaware",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "L animal se nourrit, dort, chasse une autre proie ou s écarte; le groupe peut simplement passer.",
+        "tension": "La bête défend son territoire, fuit ou exhibe une menace, selon le nid et ses blessures.",
+        "combat": "Combat seulement si attaque, menace réelle, faim, territorialité ou réaction aux personnages; fuite possible."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_072",
+      "name": "Traces de roper dans une grotte",
+      "kind": "sign",
+      "faction": "fauna",
+      "locationTags": [
+        "cave",
+        "ruins"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [],
+      "cargo": [],
+      "primaryGoal": "Aucun groupe conscient",
+      "hook": "Des os suspendus au plafond signalent un piège naturel.",
+      "rarity": "common",
+      "initialStance": "unaware",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Observer, comprendre ou contourner le phénomène; aucun personnage ne doit être inventé.",
+        "tension": "Un risque peut exister (accident, mauvaise interprétation, temps perdu) mais ne signifie pas combat.",
+        "combat": "Aucun adversaire par défaut : ne pas lancer de combat automatique pour un signe, un danger ou un indice."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_073",
+      "name": "Mue de prédateur cavernicole",
+      "kind": "sign",
+      "faction": "fauna",
+      "locationTags": [
+        "cave",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [],
+      "cargo": [],
+      "primaryGoal": "Aucun groupe conscient",
+      "hook": "Une peau récemment abandonnée indique la proximité d’un territoire.",
+      "rarity": "common",
+      "initialStance": "unaware",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Observer, comprendre ou contourner le phénomène; aucun personnage ne doit être inventé.",
+        "tension": "Un risque peut exister (accident, mauvaise interprétation, temps perdu) mais ne signifie pas combat.",
+        "combat": "Aucun adversaire par défaut : ne pas lancer de combat automatique pour un signe, un danger ou un indice."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_074",
+      "name": "Mycélium fluorescent en floraison",
+      "kind": "ecology",
+      "faction": "fauna",
+      "locationTags": [
+        "ecology",
+        "farm"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [],
+      "cargo": [],
+      "primaryGoal": "Cycle biologique",
+      "hook": "Les spores attirent de petites bêtes.",
+      "rarity": "common",
+      "initialStance": "unaware",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Observer, comprendre ou contourner le phénomène; aucun personnage ne doit être inventé.",
+        "tension": "Un risque peut exister (accident, mauvaise interprétation, temps perdu) mais ne signifie pas combat.",
+        "combat": "Aucun adversaire par défaut : ne pas lancer de combat automatique pour un signe, un danger ou un indice."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_075",
+      "name": "Caravane commerciale non moriquendi",
+      "kind": "caravan",
+      "faction": "independent",
+      "locationTags": [
+        "route",
+        "market"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_354",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "duergar",
+          "displayRole": "Marchand duergar"
+        },
+        {
+          "creatureId": "underdark_348",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "client",
+          "species": "gobelin",
+          "displayRole": "Marchand gobelin"
+        },
+        {
+          "creatureId": "underdark_588",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "contract_guard",
+          "species": "independent",
+          "displayRole": "Garde de caravane des profondeurs"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "sel",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "cordes",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "sacs de vivres",
+          "owner": "merchant",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Commercer entre établissements",
+      "hook": "Deux marchands se disputent un contrat.",
+      "rarity": "uncommon",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ],
+      "associationJustification": {
+        "type": "contrat_commercial",
+        "description": "Convoi multipeuple constitué par un accord commercial explicite ; aucun Moriquendi.",
+        "scope": "encounter_only"
+      }
+    },
+    {
+      "id": "enc_076",
+      "name": "Guide svirfneblin engagé par des duergars",
+      "kind": "travelers",
+      "faction": "independent",
+      "locationTags": [
+        "route",
+        "mine"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_495",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "duergar",
+          "displayRole": "Duergar négociant de minerais"
+        },
+        {
+          "creatureId": "underdark_514",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "employee",
+          "species": "svirfneblin",
+          "displayRole": "Svirfneblin cartographe"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "cartes",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "pièces de rechange",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Trouver un nouveau passage",
+      "hook": "Le guide connaît un secret sur le terrain.",
+      "rarity": "uncommon",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ],
+      "associationJustification": {
+        "type": "contrat_guide",
+        "description": "Un guide svirfneblin a été engagé par des duergars pour ce trajet seulement.",
+        "scope": "encounter_only"
+      }
+    },
+    {
+      "id": "enc_077",
+      "name": "Réfugiés de plusieurs peuples",
+      "kind": "travelers",
+      "faction": "independent",
+      "locationTags": [
+        "route",
+        "ruins"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_227",
+          "archetypeId": null,
+          "countDice": "1d3",
+          "relationToLeader": "family",
+          "species": "gobelin",
+          "displayRole": "Gobelin"
+        },
+        {
+          "creatureId": "underdark_237",
+          "archetypeId": null,
+          "countDice": "1d3",
+          "relationToLeader": "family",
+          "species": "kobold",
+          "displayRole": "Kobold"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "couvertures",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "gamelles",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "réserves maigres",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Rejoindre une région sûre",
+      "hook": "Le groupe hésite à faire confiance aux aventuriers.",
+      "rarity": "common",
+      "initialStance": "afraid",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ],
+      "associationJustification": {
+        "type": "danger_commun",
+        "description": "Deux familles déplacées font route ensemble pour survivre, sans union politique.",
+        "scope": "encounter_only"
+      }
+    },
+    {
+      "id": "enc_078",
+      "name": "Travailleurs sous contrat de plusieurs peuples",
+      "kind": "workers",
+      "faction": "independent",
+      "locationTags": [
+        "mine",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_123",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "duergar",
+          "displayRole": "Mineur duergar"
+        },
+        {
+          "creatureId": "underdark_235",
+          "archetypeId": null,
+          "countDice": "1d3",
+          "relationToLeader": "employee",
+          "species": "gobelin",
+          "displayRole": "Gobelin mineur"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "pioches",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "sacs de gravats",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Finir une tâche rémunérée",
+      "hook": "Un travailleur réclame un paiement équitable.",
+      "rarity": "uncommon",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ],
+      "associationJustification": {
+        "type": "contrat_travail",
+        "description": "Équipe de travail à durée limitée sous contrat connu du meneur duergar.",
+        "scope": "encounter_only"
+      }
+    },
+    {
+      "id": "enc_079",
+      "name": "Saqueurs de caravane en attente",
+      "kind": "military",
+      "faction": "independent",
+      "locationTags": [
+        "route",
+        "ruins"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_577",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "member",
+          "species": "independent",
+          "displayRole": "Bandit archer des galeries"
+        },
+        {
+          "creatureId": "underdark_230",
+          "archetypeId": null,
+          "countDice": "1d3",
+          "relationToLeader": "member",
+          "species": "gobelin",
+          "displayRole": "Gobelin pilleur"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "corde",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "bâtons",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "sacs vides",
+          "owner": "faction",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Attaquer un convoi isolé",
+      "hook": "Ils hésitent devant la taille du groupe.",
+      "rarity": "uncommon",
+      "initialStance": "hostile",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ],
+      "associationJustification": {
+        "type": "bande_temporaire",
+        "description": "Collaboration opportuniste de pillards pour cette embuscade.",
+        "scope": "encounter_only"
+      }
+    },
+    {
+      "id": "enc_080",
+      "name": "Scène de convoi pillé",
+      "kind": "sign",
+      "faction": "independent",
+      "locationTags": [
+        "route",
+        "ruins"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [],
+      "cargo": [
+        {
+          "name": "caisse brisée",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "roue tordue",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Aucune intention",
+      "hook": "La cargaison porte la marque d’une communauté voisine.",
+      "rarity": "common",
+      "initialStance": "unaware",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Observer, comprendre ou contourner le phénomène; aucun personnage ne doit être inventé.",
+        "tension": "Un risque peut exister (accident, mauvaise interprétation, temps perdu) mais ne signifie pas combat.",
+        "combat": "Aucun adversaire par défaut : ne pas lancer de combat automatique pour un signe, un danger ou un indice."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_081",
+      "name": "Péage improvisé sur un pont",
+      "kind": "social",
+      "faction": "independent",
+      "locationTags": [
+        "route",
+        "checkpoint"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_230",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "gobelin",
+          "displayRole": "Gobelin pilleur"
+        },
+        {
+          "creatureId": "underdark_251",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "contract_guard",
+          "species": "hobgobelin",
+          "displayRole": "Hobgobelin arbalétrier"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "feuilles de compte",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "corde de barrage",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Obtenir un paiement pour un passage",
+      "hook": "Le pont est plus dangereux qu’annoncé.",
+      "rarity": "uncommon",
+      "initialStance": "wary",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ],
+      "associationJustification": {
+        "type": "securite_contrat",
+        "description": "Gardes contractuels hobgobelins employés par le péager gobelin.",
+        "scope": "encounter_only"
+      }
+    },
+    {
+      "id": "enc_082",
+      "name": "Réparation d’un escalier des profondeurs",
+      "kind": "workers",
+      "faction": "independent",
+      "locationTags": [
+        "route",
+        "hazard"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_133",
+          "archetypeId": null,
+          "countDice": "1d2",
+          "relationToLeader": "employee",
+          "species": "svirfneblin",
+          "displayRole": "Mineur svirfneblin"
+        },
+        {
+          "creatureId": "underdark_352",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "duergar",
+          "displayRole": "Artisan duergar"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "étais",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "marteaux",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "poulies",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Rendre le passage praticable",
+      "hook": "Les réparateurs demandent du renfort.",
+      "rarity": "uncommon",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ],
+      "associationJustification": {
+        "type": "chantier_commun",
+        "description": "Artisans et travailleurs de deux peuples sur une réparation conjointe.",
+        "scope": "encounter_only"
+      }
+    },
+    {
+      "id": "enc_083",
+      "name": "Bivouac de chasseurs",
+      "kind": "social",
+      "faction": "independent",
+      "locationTags": [
+        "route",
+        "cave"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_444",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "orc",
+          "displayRole": "Orc pisteur des profondeurs"
+        },
+        {
+          "creatureId": "underdark_227",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "client",
+          "species": "gobelin",
+          "displayRole": "Gobelin"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "silex",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "sac de nourriture",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Se reposer avant une chasse",
+      "hook": "Ils proposent de partager des nouvelles.",
+      "rarity": "uncommon",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ],
+      "associationJustification": {
+        "type": "chasse_compagnie",
+        "description": "Accord provisoire entre chasseurs, pas une alliance entre leurs peuples.",
+        "scope": "encounter_only"
+      }
+    },
+    {
+      "id": "enc_084",
+      "name": "Fouilles de ruines",
+      "kind": "exploration",
+      "faction": "independent",
+      "locationTags": [
+        "ruins"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [
+        {
+          "creatureId": "underdark_514",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "leader",
+          "species": "svirfneblin",
+          "displayRole": "Svirfneblin cartographe"
+        },
+        {
+          "creatureId": "underdark_348",
+          "archetypeId": null,
+          "countDice": "1",
+          "relationToLeader": "client",
+          "species": "gobelin",
+          "displayRole": "Marchand gobelin"
+        }
+      ],
+      "cargo": [
+        {
+          "name": "pelles",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "cordes",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "ardoises de relevé",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Trouver un objet ancien",
+      "hook": "La fouille met au jour une porte scellée.",
+      "rarity": "uncommon",
+      "initialStance": "neutral",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Discussion, assistance, échange ou passage sans violence selon l’objectif.",
+        "tension": "Les personnages évaluent les intentions, protègent leur matériel ou se replient.",
+        "combat": "Si la situation dégénère : les civils fuient, les gardes couvrent la retraite, sauf tempérament contraire."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ],
+      "associationJustification": {
+        "type": "expedition_commune",
+        "description": "Partenaires temporaires ayant chacun une raison de visiter les ruines.",
+        "scope": "encounter_only"
+      }
+    },
+    {
+      "id": "enc_085",
+      "name": "Éboulement sur la route",
+      "kind": "hazard",
+      "faction": "fauna",
+      "locationTags": [
+        "hazard",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [],
+      "cargo": [
+        {
+          "name": "pierres tombées",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "corde rompue",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Phénomène du terrain",
+      "hook": "Un marchand bloqué appelle depuis l’autre côté.",
+      "rarity": "common",
+      "initialStance": "unaware",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Observer, comprendre ou contourner le phénomène; aucun personnage ne doit être inventé.",
+        "tension": "Un risque peut exister (accident, mauvaise interprétation, temps perdu) mais ne signifie pas combat.",
+        "combat": "Aucun adversaire par défaut : ne pas lancer de combat automatique pour un signe, un danger ou un indice."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_086",
+      "name": "Passage inondé",
+      "kind": "hazard",
+      "faction": "fauna",
+      "locationTags": [
+        "aquatic",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [],
+      "cargo": [
+        {
+          "name": "branches",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "détritus",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Événement hydrologique",
+      "hook": "Le niveau de l’eau monte progressivement.",
+      "rarity": "common",
+      "initialStance": "unaware",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Observer, comprendre ou contourner le phénomène; aucun personnage ne doit être inventé.",
+        "tension": "Un risque peut exister (accident, mauvaise interprétation, temps perdu) mais ne signifie pas combat.",
+        "combat": "Aucun adversaire par défaut : ne pas lancer de combat automatique pour un signe, un danger ou un indice."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_087",
+      "name": "Puits abandonné et matériel",
+      "kind": "exploration",
+      "faction": "independent",
+      "locationTags": [
+        "mine",
+        "ruins"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [],
+      "cargo": [
+        {
+          "name": "pioche cassée",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "filin usé",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "balise ancienne",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Aucun groupe présent",
+      "hook": "Les marques de corde suggèrent une chute récente.",
+      "rarity": "common",
+      "initialStance": "unaware",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Observer, comprendre ou contourner le phénomène; aucun personnage ne doit être inventé.",
+        "tension": "Un risque peut exister (accident, mauvaise interprétation, temps perdu) mais ne signifie pas combat.",
+        "combat": "Aucun adversaire par défaut : ne pas lancer de combat automatique pour un signe, un danger ou un indice."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_088",
+      "name": "Restes de repas inconnus",
+      "kind": "sign",
+      "faction": "fauna",
+      "locationTags": [
+        "cave",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [],
+      "cargo": [
+        {
+          "name": "os rongés",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        },
+        {
+          "name": "peau sèche",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Aucun groupe présent",
+      "hook": "La forme des dents permet d’identifier une espèce.",
+      "rarity": "common",
+      "initialStance": "unaware",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Observer, comprendre ou contourner le phénomène; aucun personnage ne doit être inventé.",
+        "tension": "Un risque peut exister (accident, mauvaise interprétation, temps perdu) mais ne signifie pas combat.",
+        "combat": "Aucun adversaire par défaut : ne pas lancer de combat automatique pour un signe, un danger ou un indice."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    },
+    {
+      "id": "enc_089",
+      "name": "Bruit de travail derrière une paroi",
+      "kind": "exploration",
+      "faction": "independent",
+      "locationTags": [
+        "mine",
+        "route"
+      ],
+      "excludedTags": [],
+      "zone": null,
+      "groupMembers": [],
+      "cargo": [
+        {
+          "name": "poussière de roche",
+          "owner": "personal",
+          "type": "goods",
+          "isLootByDefault": false
+        }
+      ],
+      "primaryGoal": "Origine à identifier",
+      "hook": "Le bruit provient d’un autre groupe de voyageurs ou d’une poche naturelle.",
+      "rarity": "common",
+      "initialStance": "unaware",
+      "groupCategory": "normal",
+      "exceptionId": null,
+      "branches": {
+        "peaceful": "Observer, comprendre ou contourner le phénomène; aucun personnage ne doit être inventé.",
+        "tension": "Un risque peut exister (accident, mauvaise interprétation, temps perdu) mais ne signifie pas combat.",
+        "combat": "Aucun adversaire par défaut : ne pas lancer de combat automatique pour un signe, un danger ou un indice."
+      },
+      "aftermath": "Noter témoins, pertes, marchandises prises et impact sur la réputation locale.",
+      "lootSource": "individual_creature_loot_and_scene_cargo_separate",
+      "status": "proposition_mj",
+      "tags": [
+        "Underdark",
+        "Encounter"
+      ]
+    }
+  ]
+}

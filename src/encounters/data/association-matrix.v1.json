@@ -1,0 +1,739 @@
+{
+  "schema": "loresmith-association-matrix-v1",
+  "canonScope": "Only Moriquendi restrictions and cross-clan coexistence are source-confirmed. Remaining cross-species defaults are design proposals, NOT canonical diplomatic treaties.",
+  "peoples": [
+    "moriquendi",
+    "gobelin",
+    "kobold",
+    "orc",
+    "hobgobelin",
+    "duergar",
+    "drow",
+    "svirfneblin",
+    "myconide",
+    "kuo-toa",
+    "gnoll",
+    "grimlock",
+    "derro"
+  ],
+  "orderedPairs": {
+    "moriquendi": {
+      "moriquendi": {
+        "mode": "same_people_contextual",
+        "baseWeight": 1
+      },
+      "gobelin": {
+        "mode": "blocked_default_requires_named_gm_exception_and_mori_lead",
+        "baseWeight": 0
+      },
+      "kobold": {
+        "mode": "blocked_default_requires_named_gm_exception_and_mori_lead",
+        "baseWeight": 0
+      },
+      "orc": {
+        "mode": "blocked_default_requires_named_gm_exception_and_mori_lead",
+        "baseWeight": 0
+      },
+      "hobgobelin": {
+        "mode": "blocked_default_requires_named_gm_exception_and_mori_lead",
+        "baseWeight": 0
+      },
+      "duergar": {
+        "mode": "blocked_default_requires_named_gm_exception_and_mori_lead",
+        "baseWeight": 0
+      },
+      "drow": {
+        "mode": "blocked_default_requires_named_gm_exception_and_mori_lead",
+        "baseWeight": 0
+      },
+      "svirfneblin": {
+        "mode": "blocked_default_requires_named_gm_exception_and_mori_lead",
+        "baseWeight": 0
+      },
+      "myconide": {
+        "mode": "blocked_default_requires_named_gm_exception_and_mori_lead",
+        "baseWeight": 0
+      },
+      "kuo-toa": {
+        "mode": "blocked_default_requires_named_gm_exception_and_mori_lead",
+        "baseWeight": 0
+      },
+      "gnoll": {
+        "mode": "blocked_default_requires_named_gm_exception_and_mori_lead",
+        "baseWeight": 0
+      },
+      "grimlock": {
+        "mode": "blocked_default_requires_named_gm_exception_and_mori_lead",
+        "baseWeight": 0
+      },
+      "derro": {
+        "mode": "blocked_default_requires_named_gm_exception_and_mori_lead",
+        "baseWeight": 0
+      }
+    },
+    "gobelin": {
+      "moriquendi": {
+        "mode": "blocked_default_requires_named_gm_exception_and_mori_lead",
+        "baseWeight": 0
+      },
+      "gobelin": {
+        "mode": "same_people_contextual",
+        "baseWeight": 1
+      },
+      "kobold": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "orc": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "hobgobelin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "duergar": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "drow": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "svirfneblin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "myconide": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "kuo-toa": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "gnoll": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "grimlock": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "derro": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      }
+    },
+    "kobold": {
+      "moriquendi": {
+        "mode": "blocked_default_requires_named_gm_exception_and_mori_lead",
+        "baseWeight": 0
+      },
+      "gobelin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "kobold": {
+        "mode": "same_people_contextual",
+        "baseWeight": 1
+      },
+      "orc": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "hobgobelin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "duergar": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "drow": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "svirfneblin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "myconide": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "kuo-toa": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "gnoll": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "grimlock": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "derro": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      }
+    },
+    "orc": {
+      "moriquendi": {
+        "mode": "blocked_default_requires_named_gm_exception_and_mori_lead",
+        "baseWeight": 0
+      },
+      "gobelin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "kobold": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "orc": {
+        "mode": "same_people_contextual",
+        "baseWeight": 1
+      },
+      "hobgobelin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "duergar": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "drow": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "svirfneblin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "myconide": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "kuo-toa": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "gnoll": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "grimlock": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "derro": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      }
+    },
+    "hobgobelin": {
+      "moriquendi": {
+        "mode": "blocked_default_requires_named_gm_exception_and_mori_lead",
+        "baseWeight": 0
+      },
+      "gobelin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "kobold": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "orc": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "hobgobelin": {
+        "mode": "same_people_contextual",
+        "baseWeight": 1
+      },
+      "duergar": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "drow": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "svirfneblin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "myconide": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "kuo-toa": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "gnoll": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "grimlock": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "derro": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      }
+    },
+    "duergar": {
+      "moriquendi": {
+        "mode": "blocked_default_requires_named_gm_exception_and_mori_lead",
+        "baseWeight": 0
+      },
+      "gobelin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "kobold": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "orc": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "hobgobelin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "duergar": {
+        "mode": "same_people_contextual",
+        "baseWeight": 1
+      },
+      "drow": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "svirfneblin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "myconide": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "kuo-toa": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "gnoll": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "grimlock": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "derro": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      }
+    },
+    "drow": {
+      "moriquendi": {
+        "mode": "blocked_default_requires_named_gm_exception_and_mori_lead",
+        "baseWeight": 0
+      },
+      "gobelin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "kobold": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "orc": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "hobgobelin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "duergar": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "drow": {
+        "mode": "same_people_contextual",
+        "baseWeight": 1
+      },
+      "svirfneblin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "myconide": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "kuo-toa": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "gnoll": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "grimlock": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "derro": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      }
+    },
+    "svirfneblin": {
+      "moriquendi": {
+        "mode": "blocked_default_requires_named_gm_exception_and_mori_lead",
+        "baseWeight": 0
+      },
+      "gobelin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "kobold": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "orc": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "hobgobelin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "duergar": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "drow": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "svirfneblin": {
+        "mode": "same_people_contextual",
+        "baseWeight": 1
+      },
+      "myconide": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "kuo-toa": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "gnoll": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "grimlock": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "derro": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      }
+    },
+    "myconide": {
+      "moriquendi": {
+        "mode": "blocked_default_requires_named_gm_exception_and_mori_lead",
+        "baseWeight": 0
+      },
+      "gobelin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "kobold": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "orc": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "hobgobelin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "duergar": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "drow": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "svirfneblin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "myconide": {
+        "mode": "same_people_contextual",
+        "baseWeight": 1
+      },
+      "kuo-toa": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "gnoll": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "grimlock": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "derro": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      }
+    },
+    "kuo-toa": {
+      "moriquendi": {
+        "mode": "blocked_default_requires_named_gm_exception_and_mori_lead",
+        "baseWeight": 0
+      },
+      "gobelin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "kobold": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "orc": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "hobgobelin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "duergar": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "drow": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "svirfneblin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "myconide": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "kuo-toa": {
+        "mode": "same_people_contextual",
+        "baseWeight": 1
+      },
+      "gnoll": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "grimlock": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "derro": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      }
+    },
+    "gnoll": {
+      "moriquendi": {
+        "mode": "blocked_default_requires_named_gm_exception_and_mori_lead",
+        "baseWeight": 0
+      },
+      "gobelin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "kobold": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "orc": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "hobgobelin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "duergar": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "drow": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "svirfneblin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "myconide": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "kuo-toa": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "gnoll": {
+        "mode": "same_people_contextual",
+        "baseWeight": 1
+      },
+      "grimlock": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "derro": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      }
+    },
+    "grimlock": {
+      "moriquendi": {
+        "mode": "blocked_default_requires_named_gm_exception_and_mori_lead",
+        "baseWeight": 0
+      },
+      "gobelin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "kobold": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "orc": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "hobgobelin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "duergar": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "drow": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "svirfneblin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "myconide": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "kuo-toa": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "gnoll": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "grimlock": {
+        "mode": "same_people_contextual",
+        "baseWeight": 1
+      },
+      "derro": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      }
+    },
+    "derro": {
+      "moriquendi": {
+        "mode": "blocked_default_requires_named_gm_exception_and_mori_lead",
+        "baseWeight": 0
+      },
+      "gobelin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "kobold": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "orc": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "hobgobelin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "duergar": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "drow": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "svirfneblin": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "myconide": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "kuo-toa": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "gnoll": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "grimlock": {
+        "mode": "possible_only_with_explicit_scene_relationship",
+        "baseWeight": 0.35
+      },
+      "derro": {
+        "mode": "same_people_contextual",
+        "baseWeight": 1
+      }
+    }
+  },
+  "directionality": {
+    "moriquendi_as_servant_under_nonmori": "forbidden",
+    "moriquendi_as_leader_of_foreign_servants": "named_exception_only",
+    "moriquendi_across_five_clans": "normal",
+    "nonmori_species_mixed": "specific_contextual_contract_or_shared_motive"
+  },
+  "requiredForNonMoriMix": [
+    "associationJustification.type",
+    "associationJustification.description",
+    "associationJustification.scope"
+  ],
+  "specialStatuses": {
+    "independent": "umbrella_not_species",
+    "fauna": "not_a_social_people",
+    "moriquendi": "Moriquendi clans are internal nation subgroups"
+  }
+}

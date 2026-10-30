@@ -9,7 +9,9 @@ import type { BattleToken } from '../mapStore';
  * Groupe de créatures d'une rencontre. `stat` : fiche SRD (ou simple nom). Une créature de PNJ & Créatures
  * apporte son nom, son jeton et ses valeurs (`name`, `image`, `hp`, `ac`, `size`), prioritaires sur la fiche SRD.
  */
-export type EncounterGroup = { stat: string; role?: string; n: number; detail: string; name?: string; image?: string; hp?: number; ac?: number; size?: 1 | 2 };
+export type EncounterGroup = { stat: string; role?: string; n: number; detail: string; name?: string; image?: string; hp?: number; ac?: number; size?: 1 | 2;
+  /** Fiche de PNJ & Créatures (bestiaire Underdark importé) : le combattant reprend ses statistiques et ses actions. */
+  npcId?: string };
 
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 const CLUSTER = /caravane|escorte|garde|troupe|groupe|meute|bande|soldat|cortege|famille|patrouille|escadron/;
@@ -97,7 +99,7 @@ export function placeEncounter(
         id: `e-${seed.toString(36)}-${tokens.length}`,
         name: g.n > 1 ? `${name} ${i + 1}` : name,
         kind: 'monster', x: spot.x, y: spot.y, size, visible: false,
-        hp, maxHp: hp, ac, statId: st ? g.stat : undefined, icon: iconFor('monster', st), image: g.image,
+        hp, maxHp: hp, ac, statId: st ? g.stat : undefined, icon: iconFor('monster', st), image: g.image, npcId: g.npcId,
       });
     }
   }

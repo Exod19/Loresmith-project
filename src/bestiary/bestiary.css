@@ -74,3 +74,31 @@
 .bx-nav-group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .bx-nav-group .btn { flex: none; }
 .bx-layout > main { min-width: 0; }
+
+/* Bestiaire Underdark : import non destructif et filtres */
+.ud-import{margin-top:10px;padding:10px 12px;border:1px solid var(--line-2,#4a3c22);border-radius:8px;background:rgba(201,162,74,.05);display:flex;flex-direction:column;gap:8px}
+.ud-import-head{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
+.ud-import-head b{font-family:'Cinzel',serif;color:var(--gold,#c9a24a)}
+.ud-import-plan p{margin:0 0 6px}
+.ud-import-btns{display:flex;gap:8px;flex-wrap:wrap}
+.ud-review{max-height:180px;overflow:auto;margin:6px 0;padding-left:18px;font-size:12.5px}
+.ud-done{margin:0;display:flex;gap:10px;align-items:center}
+.bx-ud{margin:6px 0;display:flex;flex-direction:column;gap:6px}
+.bx-ud-toggle{align-self:flex-start;padding:3px 10px;border-radius:999px;border:1px solid var(--line-2,#4a3c22);background:transparent;color:inherit;cursor:pointer;font-size:12px}
+.bx-ud-toggle[data-on="1"]{border-color:var(--gold,#c9a24a);background:rgba(201,162,74,.14)}
+.bx-ud-filters{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px}
+.bx-ud-filters label{display:flex;align-items:center;gap:6px}
+.bx-ud-filters label .in{width:64px}
+.bx-ud-filters > input{grid-column:1/-1}
+
+/* Liste rangée : types, familles, variantes */
+.bx-tree{display:flex;flex-direction:column;gap:4px;overflow:auto}
+.bx-cat-head,.bx-fam-head{display:flex;justify-content:space-between;align-items:center;width:100%;gap:8px;padding:6px 8px;border:0;border-radius:6px;background:transparent;color:inherit;cursor:pointer;text-align:left;font:inherit}
+.bx-cat-head{font-family:'Cinzel',serif;letter-spacing:.04em;color:var(--gold,#c9a24a);background:rgba(201,162,74,.06)}
+.bx-cat-head[data-open="1"]{background:rgba(201,162,74,.12)}
+.bx-cat-head small,.bx-fam-head small{color:var(--faint,#8d7b55);font-size:11px;font-family:inherit;letter-spacing:0}
+.bx-fam{margin-left:8px;border-left:1px solid var(--line-2,#4a3c22)}
+.bx-fam-head{font-size:13.5px;padding:5px 8px}
+.bx-fam-head:hover,.bx-cat-head:hover{background:rgba(201,162,74,.1)}
+.bx-tree .bx-items{margin:0 0 2px 8px}
+.bx-variant{padding-left:6px}

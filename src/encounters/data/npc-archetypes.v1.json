@@ -1,0 +1,652 @@
+{
+  "schema": "loresmith-npc-archetypes-v1",
+  "count": 32,
+  "archetypes": [
+    {
+      "id": "moriquendi.capitaine",
+      "name": "Capitaine moriquendi",
+      "species": "moriquendi",
+      "domain": "military",
+      "sentienceTier": 4,
+      "size": "Medium",
+      "gridFootprint": {
+        "widthCells": 1,
+        "heightCells": 1
+      },
+      "typicalCarriedItems": [
+        "arme de service",
+        "insigne de commandement",
+        "consignes repliées"
+      ],
+      "expectedMotivation": "Hold position until civilian evacuation is complete",
+      "lootNotes": "Les objets sont des possessions, pas du butin automatique; objets ordinaires et souvent peu utiles.",
+      "statblockStatus": "NOT_YET_DEFINED",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "randomization": {
+        "clan": "choose_from_five_only_if_known",
+        "name": "generate_if_requested"
+      }
+    },
+    {
+      "id": "moriquendi.garde",
+      "name": "Garde moriquendi",
+      "species": "moriquendi",
+      "domain": "military",
+      "sentienceTier": 4,
+      "size": "Medium",
+      "gridFootprint": {
+        "widthCells": 1,
+        "heightCells": 1
+      },
+      "typicalCarriedItems": [
+        "arme réglementaire",
+        "fibule usée",
+        "ration de garde"
+      ],
+      "expectedMotivation": "Check travel authorization, obey command",
+      "lootNotes": "Les objets sont des possessions, pas du butin automatique; objets ordinaires et souvent peu utiles.",
+      "statblockStatus": "NOT_YET_DEFINED",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "randomization": {
+        "clan": "choose_from_five_only_if_known",
+        "name": "generate_if_requested"
+      }
+    },
+    {
+      "id": "moriquendi.eclaireur",
+      "name": "Éclaireur moriquendi",
+      "species": "moriquendi",
+      "domain": "military",
+      "sentienceTier": 4,
+      "size": "Medium",
+      "gridFootprint": {
+        "widthCells": 1,
+        "heightCells": 1
+      },
+      "typicalCarriedItems": [
+        "lame courte",
+        "corde fine",
+        "marqueur de chemin"
+      ],
+      "expectedMotivation": "Observe, report, avoid unnecessary contact",
+      "lootNotes": "Les objets sont des possessions, pas du butin automatique; objets ordinaires et souvent peu utiles.",
+      "statblockStatus": "NOT_YET_DEFINED",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "randomization": {
+        "clan": "choose_from_five_only_if_known",
+        "name": "generate_if_requested"
+      }
+    },
+    {
+      "id": "moriquendi.negociant",
+      "name": "Négociant moriquendi",
+      "species": "moriquendi",
+      "domain": "commerce",
+      "sentienceTier": 4,
+      "size": "Medium",
+      "gridFootprint": {
+        "widthCells": 1,
+        "heightCells": 1
+      },
+      "typicalCarriedItems": [
+        "petite balance",
+        "carnet de transactions",
+        "sceau de marchand"
+      ],
+      "expectedMotivation": "Trade among authorized parties",
+      "lootNotes": "Les objets sont des possessions, pas du butin automatique; objets ordinaires et souvent peu utiles.",
+      "statblockStatus": "NOT_YET_DEFINED",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "randomization": {
+        "clan": "choose_from_five_only_if_known",
+        "name": "generate_if_requested"
+      }
+    },
+    {
+      "id": "moriquendi.negociant_celebre",
+      "name": "Négociant moriquendi de renom",
+      "species": "moriquendi",
+      "domain": "commerce",
+      "sentienceTier": 4,
+      "size": "Medium",
+      "gridFootprint": {
+        "widthCells": 1,
+        "heightCells": 1
+      },
+      "typicalCarriedItems": [
+        "bourse de négociant",
+        "balances pliantes",
+        "correspondance commerciale"
+      ],
+      "expectedMotivation": "Named exception only; never generated as default mixed outsider caravan",
+      "lootNotes": "Les objets sont des possessions, pas du butin automatique; objets ordinaires et souvent peu utiles.",
+      "statblockStatus": "NOT_YET_DEFINED",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "randomization": {
+        "clan": "choose_from_five_only_if_known",
+        "name": "generate_if_requested"
+      }
+    },
+    {
+      "id": "moriquendi.porteur",
+      "name": "Porteur moriquendi",
+      "species": "moriquendi",
+      "domain": "labor",
+      "sentienceTier": 4,
+      "size": "Medium",
+      "gridFootprint": {
+        "widthCells": 1,
+        "heightCells": 1
+      },
+      "typicalCarriedItems": [
+        "cordelettes",
+        "sangle de portage",
+        "bon de chargement"
+      ],
+      "expectedMotivation": "Keep cargo intact",
+      "lootNotes": "Les objets sont des possessions, pas du butin automatique; objets ordinaires et souvent peu utiles.",
+      "statblockStatus": "NOT_YET_DEFINED",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "randomization": {
+        "clan": "choose_from_five_only_if_known",
+        "name": "generate_if_requested"
+      }
+    },
+    {
+      "id": "moriquendi.maitre_guilde",
+      "name": "Maître de guilde moriquendi",
+      "species": "moriquendi",
+      "domain": "civic",
+      "sentienceTier": 4,
+      "size": "Medium",
+      "gridFootprint": {
+        "widthCells": 1,
+        "heightCells": 1
+      },
+      "typicalCarriedItems": [
+        "tablette de registre",
+        "marteau de contrôle",
+        "sceau de guilde"
+      ],
+      "expectedMotivation": "Inspect contract and guild workmanship",
+      "lootNotes": "Les objets sont des possessions, pas du butin automatique; objets ordinaires et souvent peu utiles.",
+      "statblockStatus": "NOT_YET_DEFINED",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "randomization": {
+        "clan": "choose_from_five_only_if_known",
+        "name": "generate_if_requested"
+      }
+    },
+    {
+      "id": "moriquendi.artisan",
+      "name": "Artisan moriquendi",
+      "species": "moriquendi",
+      "domain": "labor",
+      "sentienceTier": 4,
+      "size": "Medium",
+      "gridFootprint": {
+        "widthCells": 1,
+        "heightCells": 1
+      },
+      "typicalCarriedItems": [
+        "outils professionnels ordinaires",
+        "tablier réparé",
+        "deux clous"
+      ],
+      "expectedMotivation": "Complete commission",
+      "lootNotes": "Les objets sont des possessions, pas du butin automatique; objets ordinaires et souvent peu utiles.",
+      "statblockStatus": "NOT_YET_DEFINED",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "randomization": {
+        "clan": "choose_from_five_only_if_known",
+        "name": "generate_if_requested"
+      }
+    },
+    {
+      "id": "moriquendi.officier",
+      "name": "Officier moriquendi",
+      "species": "moriquendi",
+      "domain": "military",
+      "sentienceTier": 4,
+      "size": "Medium",
+      "gridFootprint": {
+        "widthCells": 1,
+        "heightCells": 1
+      },
+      "typicalCarriedItems": [
+        "ordres de surveillance",
+        "insigne",
+        "arme de service"
+      ],
+      "expectedMotivation": "Protect strategic post",
+      "lootNotes": "Les objets sont des possessions, pas du butin automatique; objets ordinaires et souvent peu utiles.",
+      "statblockStatus": "NOT_YET_DEFINED",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "randomization": {
+        "clan": "choose_from_five_only_if_known",
+        "name": "generate_if_requested"
+      }
+    },
+    {
+      "id": "moriquendi.messager",
+      "name": "Messager moriquendi",
+      "species": "moriquendi",
+      "domain": "travel",
+      "sentienceTier": 4,
+      "size": "Medium",
+      "gridFootprint": {
+        "widthCells": 1,
+        "heightCells": 1
+      },
+      "typicalCarriedItems": [
+        "étui à message scellé",
+        "chaussures usées",
+        "cordelette"
+      ],
+      "expectedMotivation": "Deliver message to designated contact",
+      "lootNotes": "Les objets sont des possessions, pas du butin automatique; objets ordinaires et souvent peu utiles.",
+      "statblockStatus": "NOT_YET_DEFINED",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "randomization": {
+        "clan": "choose_from_five_only_if_known",
+        "name": "generate_if_requested"
+      }
+    },
+    {
+      "id": "moriquendi.officiant",
+      "name": "Officiant moriquendi",
+      "species": "moriquendi",
+      "domain": "religious",
+      "sentienceTier": 4,
+      "size": "Medium",
+      "gridFootprint": {
+        "widthCells": 1,
+        "heightCells": 1
+      },
+      "typicalCarriedItems": [
+        "offrande rituelle non précieuse",
+        "bâton",
+        "parchemin"
+      ],
+      "expectedMotivation": "Maintain rite",
+      "lootNotes": "Les objets sont des possessions, pas du butin automatique; objets ordinaires et souvent peu utiles.",
+      "statblockStatus": "NOT_YET_DEFINED",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "randomization": {
+        "clan": "choose_from_five_only_if_known",
+        "name": "generate_if_requested"
+      }
+    },
+    {
+      "id": "moriquendi.pelerin",
+      "name": "Pèlerin moriquendi",
+      "species": "moriquendi",
+      "domain": "religious",
+      "sentienceTier": 4,
+      "size": "Medium",
+      "gridFootprint": {
+        "widthCells": 1,
+        "heightCells": 1
+      },
+      "typicalCarriedItems": [
+        "petit contenant de nourriture",
+        "vêtement usé",
+        "objet de dévotion"
+      ],
+      "expectedMotivation": "Fulfil pilgrimage",
+      "lootNotes": "Les objets sont des possessions, pas du butin automatique; objets ordinaires et souvent peu utiles.",
+      "statblockStatus": "NOT_YET_DEFINED",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "randomization": {
+        "clan": "choose_from_five_only_if_known",
+        "name": "generate_if_requested"
+      }
+    },
+    {
+      "id": "moriquendi.formateur",
+      "name": "Formateur moriquendi",
+      "species": "moriquendi",
+      "domain": "scholar",
+      "sentienceTier": 4,
+      "size": "Medium",
+      "gridFootprint": {
+        "widthCells": 1,
+        "heightCells": 1
+      },
+      "typicalCarriedItems": [
+        "tablette d exercices",
+        "sifflet",
+        "bâton d instruction"
+      ],
+      "expectedMotivation": "Educate apprentices",
+      "lootNotes": "Les objets sont des possessions, pas du butin automatique; objets ordinaires et souvent peu utiles.",
+      "statblockStatus": "NOT_YET_DEFINED",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "randomization": {
+        "clan": "choose_from_five_only_if_known",
+        "name": "generate_if_requested"
+      }
+    },
+    {
+      "id": "moriquendi.apprenti",
+      "name": "Apprenti moriquendi",
+      "species": "moriquendi",
+      "domain": "scholar",
+      "sentienceTier": 4,
+      "size": "Medium",
+      "gridFootprint": {
+        "widthCells": 1,
+        "heightCells": 1
+      },
+      "typicalCarriedItems": [
+        "ardoise de notes",
+        "outil emprunté",
+        "restes de repas"
+      ],
+      "expectedMotivation": "Complete training",
+      "lootNotes": "Les objets sont des possessions, pas du butin automatique; objets ordinaires et souvent peu utiles.",
+      "statblockStatus": "NOT_YET_DEFINED",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "randomization": {
+        "clan": "choose_from_five_only_if_known",
+        "name": "generate_if_requested"
+      }
+    },
+    {
+      "id": "moriquendi.guetteur",
+      "name": "Guetteur moriquendi",
+      "species": "moriquendi",
+      "domain": "military",
+      "sentienceTier": 4,
+      "size": "Medium",
+      "gridFootprint": {
+        "widthCells": 1,
+        "heightCells": 1
+      },
+      "typicalCarriedItems": [
+        "lunette d observation ou repères de guet",
+        "relevé de surveillance",
+        "ration"
+      ],
+      "expectedMotivation": "Watch assigned direction",
+      "lootNotes": "Les objets sont des possessions, pas du butin automatique; objets ordinaires et souvent peu utiles.",
+      "statblockStatus": "NOT_YET_DEFINED",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "randomization": {
+        "clan": "choose_from_five_only_if_known",
+        "name": "generate_if_requested"
+      }
+    },
+    {
+      "id": "moriquendi.dignitaire",
+      "name": "Dignitaire moriquendi",
+      "species": "moriquendi",
+      "domain": "civic",
+      "sentienceTier": 4,
+      "size": "Medium",
+      "gridFootprint": {
+        "widthCells": 1,
+        "heightCells": 1
+      },
+      "typicalCarriedItems": [
+        "correspondance scellée",
+        "bijou de fonction",
+        "document de visite"
+      ],
+      "expectedMotivation": "Travel with protection",
+      "lootNotes": "Les objets sont des possessions, pas du butin automatique; objets ordinaires et souvent peu utiles.",
+      "statblockStatus": "NOT_YET_DEFINED",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "randomization": {
+        "clan": "choose_from_five_only_if_known",
+        "name": "generate_if_requested"
+      }
+    },
+    {
+      "id": "moriquendi.intendant",
+      "name": "Intendant moriquendi",
+      "species": "moriquendi",
+      "domain": "civic",
+      "sentienceTier": 4,
+      "size": "Medium",
+      "gridFootprint": {
+        "widthCells": 1,
+        "heightCells": 1
+      },
+      "typicalCarriedItems": [
+        "clefs",
+        "plaque de service",
+        "registre de ration"
+      ],
+      "expectedMotivation": "Coordinate household logistics",
+      "lootNotes": "Les objets sont des possessions, pas du butin automatique; objets ordinaires et souvent peu utiles.",
+      "statblockStatus": "NOT_YET_DEFINED",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "randomization": {
+        "clan": "choose_from_five_only_if_known",
+        "name": "generate_if_requested"
+      }
+    },
+    {
+      "id": "profession.marchand",
+      "name": "Marchand civil",
+      "species": null,
+      "allowedSpecies": "requires explicit cultural fit and permissions",
+      "domain": "civilian",
+      "typicalCarriedItems": [
+        "balance rudimentaire",
+        "petit registre",
+        "emballage usé"
+      ],
+      "statblockStatus": "OVERLAY_EXISTING_CREATURE",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "lootNotes": "Possessions propres à la profession; la cargaison est listée séparément et possédée par son propriétaire."
+    },
+    {
+      "id": "profession.mineur",
+      "name": "Mineur",
+      "species": null,
+      "allowedSpecies": "requires explicit cultural fit and permissions",
+      "domain": "civilian",
+      "typicalCarriedItems": [
+        "pioche",
+        "lampe entretenue",
+        "sac de cailloux"
+      ],
+      "statblockStatus": "OVERLAY_EXISTING_CREATURE",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "lootNotes": "Possessions propres à la profession; la cargaison est listée séparément et possédée par son propriétaire."
+    },
+    {
+      "id": "profession.porteur",
+      "name": "Porteur",
+      "species": null,
+      "allowedSpecies": "requires explicit cultural fit and permissions",
+      "domain": "civilian",
+      "typicalCarriedItems": [
+        "sangle de cuir",
+        "corde",
+        "rations"
+      ],
+      "statblockStatus": "OVERLAY_EXISTING_CREATURE",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "lootNotes": "Possessions propres à la profession; la cargaison est listée séparément et possédée par son propriétaire."
+    },
+    {
+      "id": "profession.conducteur",
+      "name": "Conducteur de bêtes",
+      "species": null,
+      "allowedSpecies": "requires explicit cultural fit and permissions",
+      "domain": "civilian",
+      "typicalCarriedItems": [
+        "fouet de conduite ou longe",
+        "sac de fourrage"
+      ],
+      "statblockStatus": "OVERLAY_EXISTING_CREATURE",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "lootNotes": "Possessions propres à la profession; la cargaison est listée séparément et possédée par son propriétaire."
+    },
+    {
+      "id": "profession.artisan",
+      "name": "Artisan",
+      "species": null,
+      "allowedSpecies": "requires explicit cultural fit and permissions",
+      "domain": "civilian",
+      "typicalCarriedItems": [
+        "outils usuels",
+        "tablier"
+      ],
+      "statblockStatus": "OVERLAY_EXISTING_CREATURE",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "lootNotes": "Possessions propres à la profession; la cargaison est listée séparément et possédée par son propriétaire."
+    },
+    {
+      "id": "profession.forgeron",
+      "name": "Forgeron",
+      "species": null,
+      "allowedSpecies": "requires explicit cultural fit and permissions",
+      "domain": "civilian",
+      "typicalCarriedItems": [
+        "marteau",
+        "pinces",
+        "résidus de charbon"
+      ],
+      "statblockStatus": "OVERLAY_EXISTING_CREATURE",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "lootNotes": "Possessions propres à la profession; la cargaison est listée séparément et possédée par son propriétaire."
+    },
+    {
+      "id": "profession.cueilleur",
+      "name": "Cueilleur",
+      "species": null,
+      "allowedSpecies": "requires explicit cultural fit and permissions",
+      "domain": "civilian",
+      "typicalCarriedItems": [
+        "panier",
+        "couteau à récolte",
+        "spores sur un tissu"
+      ],
+      "statblockStatus": "OVERLAY_EXISTING_CREATURE",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "lootNotes": "Possessions propres à la profession; la cargaison est listée séparément et possédée par son propriétaire."
+    },
+    {
+      "id": "profession.pêcheur",
+      "name": "Pêcheur",
+      "species": null,
+      "allowedSpecies": "requires explicit cultural fit and permissions",
+      "domain": "civilian",
+      "typicalCarriedItems": [
+        "filet raccommodé",
+        "couteau",
+        "appât"
+      ],
+      "statblockStatus": "OVERLAY_EXISTING_CREATURE",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "lootNotes": "Possessions propres à la profession; la cargaison est listée séparément et possédée par son propriétaire."
+    },
+    {
+      "id": "profession.enfant",
+      "name": "Enfant civil",
+      "species": null,
+      "allowedSpecies": "requires explicit cultural fit and permissions",
+      "domain": "civilian",
+      "typicalCarriedItems": [
+        "jouet improvisé",
+        "petite ration"
+      ],
+      "statblockStatus": "OVERLAY_EXISTING_CREATURE",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "lootNotes": "Possessions propres à la profession; la cargaison est listée séparément et possédée par son propriétaire."
+    },
+    {
+      "id": "profession.guérisseur",
+      "name": "Soigneur",
+      "species": null,
+      "allowedSpecies": "requires explicit cultural fit and permissions",
+      "domain": "civilian",
+      "typicalCarriedItems": [
+        "bandages",
+        "aiguilles",
+        "herbes communes"
+      ],
+      "statblockStatus": "OVERLAY_EXISTING_CREATURE",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "lootNotes": "Possessions propres à la profession; la cargaison est listée séparément et possédée par son propriétaire."
+    },
+    {
+      "id": "profession.scribe",
+      "name": "Scribe",
+      "species": null,
+      "allowedSpecies": "requires explicit cultural fit and permissions",
+      "domain": "civilian",
+      "typicalCarriedItems": [
+        "encrier",
+        "plume",
+        "registre"
+      ],
+      "statblockStatus": "OVERLAY_EXISTING_CREATURE",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "lootNotes": "Possessions propres à la profession; la cargaison est listée séparément et possédée par son propriétaire."
+    },
+    {
+      "id": "profession.garde",
+      "name": "Garde de métier",
+      "species": null,
+      "allowedSpecies": "requires explicit cultural fit and permissions",
+      "domain": "civilian",
+      "typicalCarriedItems": [
+        "arme de patrouille",
+        "insigne",
+        "ration"
+      ],
+      "statblockStatus": "OVERLAY_EXISTING_CREATURE",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "lootNotes": "Possessions propres à la profession; la cargaison est listée séparément et possédée par son propriétaire."
+    },
+    {
+      "id": "profession.contremaitre",
+      "name": "Contremaître",
+      "species": null,
+      "allowedSpecies": "requires explicit cultural fit and permissions",
+      "domain": "civilian",
+      "typicalCarriedItems": [
+        "registre de quotas",
+        "sifflet",
+        "lampe"
+      ],
+      "statblockStatus": "OVERLAY_EXISTING_CREATURE",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "lootNotes": "Possessions propres à la profession; la cargaison est listée séparément et possédée par son propriétaire."
+    },
+    {
+      "id": "profession.pelerin",
+      "name": "Pèlerin",
+      "species": null,
+      "allowedSpecies": "requires explicit cultural fit and permissions",
+      "domain": "civilian",
+      "typicalCarriedItems": [
+        "vêtement de voyage",
+        "offrande modeste"
+      ],
+      "statblockStatus": "OVERLAY_EXISTING_CREATURE",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "lootNotes": "Possessions propres à la profession; la cargaison est listée séparément et possédée par son propriétaire."
+    },
+    {
+      "id": "profession.marchand_ambulant",
+      "name": "Colporteur",
+      "species": null,
+      "allowedSpecies": "requires explicit cultural fit and permissions",
+      "domain": "civilian",
+      "typicalCarriedItems": [
+        "cordelette",
+        "pochettes d échantillons",
+        "balance pliable"
+      ],
+      "statblockStatus": "OVERLAY_EXISTING_CREATURE",
+      "canonStatus": "PROPOSITION_JEU_NON_CANON",
+      "lootNotes": "Possessions propres à la profession; la cargaison est listée séparément et possédée par son propriétaire."
+    }
+  ]
+}

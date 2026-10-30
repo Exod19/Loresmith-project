@@ -1,0 +1,51 @@
+{
+  "version": "1.0.0",
+  "default": {"zone": "sauvage", "traffic": "unknown", "security": "unknown", "biomes": [], "owner": null, "clan": null, "needsReview": true},
+  "atlasCategories": {
+    "cite": ["urban", "civilian", "administration"],
+    "sanctuaire": ["ritual", "pilgrimage"],
+    "grotte": ["cave", "wildlife"],
+    "voie": ["route", "transit"],
+    "eau": ["water", "aquatic"],
+    "danger": ["hazard", "wilderness"],
+    "ressource": ["resource", "trade_or_extraction"],
+    "vivant": ["ecology", "wildlife"],
+    "evenement": ["historic_trace", "exploration"],
+    "institution": ["civic", "administration"],
+    "ruine": ["ruins", "scavengers"],
+    "garde": ["military", "checkpoint"],
+    "indetermine": ["unknown"]
+  },
+  "keywords": {
+    "market": ["marché", "marche", "bazar", "échoppe", "echoppe", "comptoir", "commerce", "bourse", "halle des rations", "taverne", "auberge", "parvis des marchands"],
+    "mine": ["mine", "filon", "gisement", "carrière", "carriere", "extraction", "galerie d'adamantite", "minerai", "puisatier"],
+    "forge": ["forge", "fonderie", "haut fourneau", "fourneaux", "soufflet", "scories", "enclume", "trempe"],
+    "farm": ["ferme", "champignon", "jardin", "nurserie", "serre", "élevage", "elevage", "vivier", "enclos", "grenier", "cellier"],
+    "residential": ["quartier", "résidentiel", "residentiel", "habitation", "foyers", "résidence", "residence"],
+    "checkpoint": ["poste", "douane", "frontière", "frontiere", "rempart", "herse", "porte", "garnison", "caserne", "bastion", "guet", "retranchement"],
+    "route": ["galerie", "pont", "passage", "tunnel", "allée", "allee", "route", "rue", "escalier", "quai", "carrefour", "corniche", "ascenseur", "treuil"],
+    "aquatic": ["lac", "bassin", "rivière", "riviere", "fleuve", "source", "eau", "étang", "etang", "canal", "citerne", "cascade", "ruisseau", "gour", "siphon"],
+    "religious": ["temple", "sanctuaire", "autel", "crypte", "rituel", "votif"],
+    "scholar": ["archives", "bibliothèque", "bibliotheque", "académie", "academie", "étudiant", "etudiant", "école", "ecole"],
+    "hazard": ["danger", "faille", "éboulement", "eboulement", "gouffre", "effondre", "instable", "crue", "magma", "fosses", "précipice", "precipice"],
+    "ruin": ["ruine", "abandonn", "détruit", "detruit", "brisée", "brisee", "effacée", "effacee"],
+    "portals": ["portail", "transfert magique", "téléport", "teleport"],
+    "surface": ["royolo", "surface"]
+  },
+  "tagEncounterTypes": {
+    "market": ["commerce", "negociation", "contrebandes", "vol", "rumeurs"],
+    "mine": ["mineurs", "prospection", "accident", "surveillance", "faune"],
+    "forge": ["artisans", "livraison", "surveillance", "incident"],
+    "farm": ["culture", "recolte", "animaux", "pest_control"],
+    "residential": ["civils", "familles", "communaute", "rumeurs"],
+    "checkpoint": ["patrouille", "controle", "autorisation", "escorte"],
+    "route": ["caravane", "voyageurs", "brigands", "faune", "obstacle"],
+    "aquatic": ["peche", "traverse", "predateur_aquatique", "crue"],
+    "religious": ["pelerins", "offrandes", "gardiens", "ceremonie"],
+    "scholar": ["chercheurs", "scribes", "apprentis", "vol_de_livre"],
+    "hazard": ["terrain_dangereux", "detresse", "exploration"],
+    "ruin": ["explorateurs", "charognards", "mort_vivants", "indices"],
+    "portals": ["transit_reglemente", "surveillance", "courrier"],
+    "surface": ["observation", "controle_frontiere", "informations"]
+  }
+}

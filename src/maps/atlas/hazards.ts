@@ -51,5 +51,15 @@ export function trailHazard(t: { title: string; trace?: string }, profile: Trail
   return { ...base, dc: base.dc + (level - 3) };
 }
 
+/**
+ * L'épreuve pour rejoindre un lieu dangereux à côté du chemin (éboulis instable, poche de gaz, gouffre…), d'après son
+ * nom ; rien pour un lieu sans danger.
+ */
+export function placeHazard(f: { title: string; category?: string }): Hazard | null {
+  const hit = BY_NAME.find(([re]) => re.test(norm(f.title)))?.[1];
+  if (hit) return { ...hit };
+  return f.category === 'danger' ? { ...BY_TRACE.etroit, dc: 12 } : null;
+}
+
 /** Modificateur d'une valeur de caractéristique (10 par défaut). */
 export const abilityMod = (score?: number) => Math.floor(((score ?? 10) - 10) / 2);

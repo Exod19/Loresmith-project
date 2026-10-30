@@ -57,7 +57,7 @@ export interface MapMarker {
   notes: string;
   revealed: boolean;
   /** Créatures d'une rencontre tirée au sort : fiche MJ seulement. */
-  groups?: { stat: string; role?: string; n: number; detail: string; name?: string; image?: string; hp?: number; ac?: number; size?: 1 | 2 }[];
+  groups?: { stat: string; role?: string; n: number; detail: string; name?: string; image?: string; hp?: number; ac?: number; size?: 1 | 2; npcId?: string }[];
   /** Élément interactif : ce qu'on lit au joueur, ce que ça fait, s'il peut le garder, DC d'investigation, connaissances. */
   reading?: string;
   effect?: string;
@@ -93,10 +93,13 @@ export interface MapOverlay {
   party?: PartyTrack;
   /** Fiches de fouille réécrites par le MJ (ou par l'IA), par identifiant de lieu. */
   searchNotes?: Record<string, SearchNote>;
+  /** Rencontres vivantes tenues pour cette campagne (gardées, posées, ou « rien ») : jamais réécrites dans le canon. */
+  encounterLog?: { eventId: string; locationId: string; templateId?: string; title?: string; seed?: string; result: 'kept' | 'nothing' | 'placed'; at: number }[];
 }
 
 /** Un lieu repéré pour le suivi du groupe : un lieu de l'Atlas, une ancre ou un repère, sur un plan. */
-export interface PartyPlace { id: string; kind: 'feature' | 'anchor' | 'marker'; title: string; planId: string }
+/** `spot` : un point du plan sans lieu nommé (l'embouchure d'un tunnel), avec ses coordonnées `at`. */
+export interface PartyPlace { id: string; kind: 'feature' | 'anchor' | 'marker' | 'spot'; title: string; planId: string; at?: [number, number] }
 
 export interface PartyTrack {
   at?: PartyPlace;
@@ -111,7 +114,24 @@ export interface PartyTrack {
   walked?: number;
   nextCheck?: number;
   /** Halte en chemin pour un jet de rencontre : où le groupe s'est arrêté, et la suite de la route jusqu'à l'étape. */
-  halt?: { trailId: string; trail: string; planId: string; point: [number, number]; rest: [number, number][]; to: PartyPlace; back: [number, number][]; from?: PartyPlace; hours: number; restHours: number; encounter?: boolean };
+  halt?: { trailId: string; trail: string; planId: string; point: [number, number]; rest: [number, number][]; to: PartyPlace; back: [number, number][]; from?: PartyPlace; hours: number; restHours: number; encounter?: boolean;
+    /** La route s'arrête vis-à-vis d'un lieu à côté du chemin (la bifurcation à proposer en arrivant). */
+    fork?: PartyFork;
+    /** Bifurcation d'où le groupe est reparti (un demi-tour l'y ramène). */
+    prevFork?: PartyFork };
+  /** Arrêt sur le chemin, vis-à-vis d'un lieu à côté du tracé : les joueurs choisissent d'y aller ou de continuer. */
+  fork?: PartyFork;
+}
+
+/** Bifurcation en chemin : le lieu vu en passant, et ce que les joueurs lisent (le nom du lieu s'il est connu). */
+export interface PartyFork {
+  key: string; trailId: string; trail: string; planId: string; dir: 'a' | 'b';
+  /** Où le groupe s'est arrêté sur le tracé, et où est le lieu. */
+  point: [number, number]; place: PartyPlace; placeAt: [number, number];
+  side: 'gauche' | 'droite'; known: boolean;
+  /** Annonce aux joueurs, et libellés des deux choix. */
+  line: string; out: string; on: string;
+  from?: PartyPlace;
 }
 
 /** Ce que le MJ sait d'un élément à fouiller : comment le trouver, ce qu'on y trouve, et ce que ça fait. */
@@ -266,6 +286,7 @@ export const mapIdOf = (rec: MapRecord) => (rec.kind === 'atlas' ? ATLAS_DEFAULT
  */
 /** Coordonnées d'un lieu suivi (lieu de l'Atlas, ancre ou repère) sur son plan. */
 export function placeCoords(data: AtlasData, rec: MapRecord, p: PartyPlace): [number, number] | null {
+  if (p.kind === 'spot') return p.at ?? null;
   if (p.kind === 'marker') {
     const m = rec.overlay?.markers.find((x) => x.id === p.id);
     return m ? [m.x, m.y] : null;

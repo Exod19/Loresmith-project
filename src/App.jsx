@@ -84,7 +84,11 @@ import SessionReportPanel from './campaign/SessionReportPanel';
 import DeleteUniverseDialog from './universe/DeleteUniverseDialog';
 import { removeUniverse, canDeleteUniverse } from './universe/deleteUniverse';
 import './combat/wartable.css';
-import { entityFromSrd, generateEntities } from './bestiary/entityGen';
+import { entityFromSrd, generateEntities, normalizeEntity, xpForCr } from './bestiary/entityGen';
+import CreaturePicker from './bestiary/CreaturePicker';
+import UnderdarkImport from './bestiary/UnderdarkImport';
+import { underdarkIdOf } from './bestiary/underdark.js';
+import { buildCatalog, siblingsOf } from './bestiary/catalog.js';
 import StatSheet from './bestiary/StatSheet';
 import ArchiveImagePicker from './media/ArchiveImagePicker';
 import { CLANS, archiveImageIndex, clanPaintBrief, compressImage, fileToCompressed, generatePortrait, makeToken, matchArchiveImages, matchPortrait } from './media/images';
@@ -4854,6 +4858,12 @@ function reducer(s, a) {
     }
     case 'ADD_NPC':
       return { ...s, npcs: { ...s.npcs, [a.n.id]: { ...a.n, universeId: U } } };
+    case 'ADD_NPCS': {
+      // Ajout en lot (bestiaire Underdark) : jamais d'écrasement d'une fiche existante.
+      const npcs = { ...s.npcs };
+      for (const n of a.list) if (!npcs[n.id]) npcs[n.id] = { ...n, universeId: U };
+      return { ...s, npcs };
+    }
     case 'UPDATE_NPC':
       return {
         ...s,
@@ -12539,6 +12549,11 @@ function Bestiary({ dispatch, state, universe, npcs, party, campaigns, flash }) 
   const [err, setErr] = useState('');
   const [filter, setFilter] = useState('all');
   const [q, setQ] = useState('');
+  /** Filtres du bestiaire Underdark (fiches importées) : famille, rôle, taille, danger, sentience, habitat. */
+  const [ud, setUd] = useState({ on: false, family: '', role: '', size: '', danger: 0, sentience: 0, habitat: '' });
+  /** Rubriques ouvertes de la liste (types et familles) : la liste ne déroule que ce qu'on consulte. */
+  const [openCat, setOpenCat] = useState(() => new Set());
+  const toggleCat = (k) => setOpenCat((cur) => { const next = new Set(cur); if (next.has(k)) next.delete(k); else next.add(k); return next; });
   const [selectedId, setSelectedId] = useState(() => {
     try {
       return localStorage.getItem(BESTIARY_SEL_KEY) || '';
@@ -12555,16 +12570,48 @@ function Bestiary({ dispatch, state, universe, npcs, party, campaigns, flash }) 
   const size = party.length || 4;
   const isMon = (n) => n.entityType === 'monster' || n.isMonster;
 
+  const udCount = useMemo(() => npcs.filter((n) => underdarkIdOf(n)).length, [npcs]);
+  const udOptions = useMemo(() => {
+    const fams = new Set(), roles = new Set(), sizes = new Set();
+    for (const n of npcs) {
+      const u = n.underdark;
+      if (!u) continue;
+      if (u.category) fams.add(u.category);
+      (u.roles || []).forEach((r) => roles.add(r));
+      if (u.size) sizes.add(u.size);
+    }
+    const sort = (x) => [...x].sort((a, b) => a.localeCompare(b, 'fr'));
+    return { fams: sort(fams), roles: sort(roles), sizes: sort(sizes) };
+  }, [npcs]);
+  const udMatch = (n) => {
+    if (!ud.on) return true;
+    const u = n.underdark;
+    if (!u) return false;
+    if (ud.family && u.category !== ud.family) return false;
+    if (ud.role && !(u.roles || []).includes(ud.role)) return false;
+    if (ud.size && u.size !== ud.size) return false;
+    if (ud.danger && (u.danger?.tier ?? 0) < ud.danger) return false;
+    if (ud.sentience && (u.sentience?.tier ?? 0) < ud.sentience) return false;
+    if (ud.habitat && !normName((u.habitat || []).join(' ')).includes(normName(ud.habitat))) return false;
+    return true;
+  };
   const list = useMemo(() => {
     const k = normName(q);
     return npcs.filter(
       (n) =>
         (filter === 'all' || (filter === 'monster') === isMon(n)) &&
-        (!k || normName(`${n.name} ${n.kind} ${n.type} ${n.role} ${n.shortDescription} ${n.faction}`).includes(k))
+        udMatch(n) &&
+        (!k || normName(`${n.name} ${n.kind} ${n.type} ${n.role} ${n.shortDescription} ${n.faction} ${(n.habitat || []).join(' ')}`).includes(k))
     );
-  }, [npcs, filter, q]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [npcs, filter, q, ud]);
+  // Sans recherche : la liste est rangée par type, puis par famille (souche et variantes, de la plus faible à la plus forte).
+  const catalog = useMemo(() => buildCatalog(list), [list]);
+  const grouped = !q.trim() && list.length > 12;
+  // Ordre de navigation (↑ ↓) : celui de l'arborescence affichée.
+  const navList = useMemo(() => (grouped ? catalog.flatMap((t) => t.families.flatMap((f) => f.members)) : list), [grouped, catalog, list]);
   const selected = npcs.find((n) => n.id === selectedId) || list[0] || null;
-  const pos = selected ? list.findIndex((n) => n.id === selected.id) : -1;
+  const pos = selected ? navList.findIndex((n) => n.id === selected.id) : -1;
 
   function select(id) {
     setSelectedId(id);
@@ -12574,9 +12621,14 @@ function Bestiary({ dispatch, state, universe, npcs, party, campaigns, flash }) 
     } catch {}
   }
   const step = (d) => {
-    if (!list.length) return;
-    const i = pos === -1 ? 0 : (pos + d + list.length) % list.length;
-    select(list[i].id);
+    if (!navList.length) return;
+    const i = pos === -1 ? 0 : (pos + d + navList.length) % navList.length;
+    const next = navList[i];
+    select(next.id);
+    // La fiche atteinte au clavier est rendue visible : sa rubrique et sa famille s'ouvrent.
+    const t = catalog.find((c) => c.families.some((f) => f.members.includes(next)));
+    const f = t?.families.find((x) => x.members.includes(next));
+    if (t && f) setOpenCat((cur) => new Set([...cur, `t:${t.type}`, `f:${t.type}:${f.key}`]));
   };
 
   // Navigation au clavier : ↑/↓ (ou j/k) d'une fiche à l'autre, hors des champs de saisie.
@@ -12849,6 +12901,13 @@ function Bestiary({ dispatch, state, universe, npcs, party, campaigns, flash }) 
             Importer
           </button>
         </div>
+        {universe.archives === 'underdark' && (
+          <UnderdarkImport
+            npcs={npcs} universe={universe}
+            normalize={(e) => ({ ...normalizeEntity(e, 'monster'), id: uid(), createdAt: now() })}
+            onImport={(list) => { dispatch({ type: 'ADD_NPCS', list }); flash(`${list.length} fiches du bestiaire Underdark ajoutées.`); }}
+          />
+        )}
         <div className="faint" style={{ fontSize: 12 }}>
           Équilibré pour {size} héros de niveau {lvl}.
         </div>
@@ -12875,23 +12934,95 @@ function Bestiary({ dispatch, state, universe, npcs, party, campaigns, flash }) 
                 </button>
               ))}
             </div>
-            <ul className="bx-items">
-              {list.map((n) => {
-                const img = n.token || portraitOf(state, n);
-                return (
-                  <li key={n.id}>
-                    <button type="button" className="bx-item" data-on={selected?.id === n.id ? 1 : 0} onClick={() => select(n.id)}>
-                      {img ? <img src={img} alt="" loading="lazy" /> : <span className="bx-ph">{isMon(n) ? '👹' : '✦'}</span>}
-                      <span>
-                        <b>{n.name}</b>
-                        <small>{[isMon(n) ? 'Créature' : 'PNJ', n.kind || n.type || n.role].filter(Boolean).join(' · ')}</small>
-                      </span>
-                      <span className="bx-cr">FP {n.cr || '—'}</span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+            {udCount > 0 && (
+              <div className="bx-ud">
+                <button type="button" className="bx-ud-toggle" data-on={ud.on ? 1 : 0} onClick={() => setUd({ ...ud, on: !ud.on })}>
+                  Underdark · {udCount}
+                </button>
+                {ud.on && (
+                  <div className="bx-ud-filters">
+                    <select className="in" value={ud.family} onChange={(e) => setUd({ ...ud, family: e.target.value })}>
+                      <option value="">Toutes les familles</option>
+                      {udOptions.fams.map((x) => <option key={x} value={x}>{x}</option>)}
+                    </select>
+                    <select className="in" value={ud.role} onChange={(e) => setUd({ ...ud, role: e.target.value })}>
+                      <option value="">Tous les rôles</option>
+                      {udOptions.roles.map((x) => <option key={x} value={x}>{x}</option>)}
+                    </select>
+                    <select className="in" value={ud.size} onChange={(e) => setUd({ ...ud, size: e.target.value })}>
+                      <option value="">Toutes tailles</option>
+                      {udOptions.sizes.map((x) => <option key={x} value={x}>{x}</option>)}
+                    </select>
+                    <label>Danger ≥ <input className="in" type="number" min="0" max="10" value={ud.danger} onChange={(e) => setUd({ ...ud, danger: Number(e.target.value) || 0 })} /></label>
+                    <label>Sentience ≥ <input className="in" type="number" min="0" max="5" value={ud.sentience} onChange={(e) => setUd({ ...ud, sentience: Number(e.target.value) || 0 })} /></label>
+                    <input className="in" placeholder="Habitat (ex. mine, forêt fongique)" value={ud.habitat} onChange={(e) => setUd({ ...ud, habitat: e.target.value })} />
+                  </div>
+                )}
+              </div>
+            )}
+            {grouped ? (
+              <div className="bx-tree">
+                {catalog.map((t) => {
+                  const tk = `t:${t.type}`;
+                  const tOpen = openCat.has(tk) || t.families.some((f) => f.members.some((m) => m.id === selected?.id));
+                  return (
+                    <section key={tk} className="bx-cat">
+                      <button type="button" className="bx-cat-head" data-open={tOpen ? 1 : 0} onClick={() => toggleCat(tk)}>
+                        <span>{tOpen ? '▾' : '▸'} {t.type}</span><small>{t.count}</small>
+                      </button>
+                      {tOpen && t.families.map((f) => {
+                        const one = f.members.length === 1;
+                        const fk = `f:${t.type}:${f.key}`;
+                        const fOpen = openCat.has(fk) || f.members.some((m) => m.id === selected?.id);
+                        const row = (n, indent) => {
+                          const img = n.token || portraitOf(state, n);
+                          return (
+                            <li key={n.id}>
+                              <button type="button" className={`bx-item ${indent ? 'bx-variant' : ''}`} data-on={selected?.id === n.id ? 1 : 0} onClick={() => select(n.id)}>
+                                {img ? <img src={img} alt="" loading="lazy" /> : <span className="bx-ph">{isMon(n) ? '👹' : '✦'}</span>}
+                                <span>
+                                  <b>{n.name}</b>
+                                  <small>{[n.underdark?.variantRoleLabel, !indent && (n.kind || n.type || n.role)].filter(Boolean).join(' · ')}</small>
+                                </span>
+                                <span className="bx-cr">FP {n.cr || '—'}</span>
+                              </button>
+                            </li>
+                          );
+                        };
+                        if (one) return <ul key={fk} className="bx-items">{row(f.members[0], false)}</ul>;
+                        return (
+                          <div key={fk} className="bx-fam">
+                            <button type="button" className="bx-fam-head" data-open={fOpen ? 1 : 0} onClick={() => toggleCat(fk)}>
+                              <span>{fOpen ? '▾' : '▸'} {f.name}</span>
+                              <small>{f.members.length} variantes · FP {f.members[0].cr}–{f.members[f.members.length - 1].cr}</small>
+                            </button>
+                            {fOpen && <ul className="bx-items">{f.members.map((n) => row(n, true))}</ul>}
+                          </div>
+                        );
+                      })}
+                    </section>
+                  );
+                })}
+              </div>
+            ) : (
+              <ul className="bx-items">
+                {list.map((n) => {
+                  const img = n.token || portraitOf(state, n);
+                  return (
+                    <li key={n.id}>
+                      <button type="button" className="bx-item" data-on={selected?.id === n.id ? 1 : 0} onClick={() => select(n.id)}>
+                        {img ? <img src={img} alt="" loading="lazy" /> : <span className="bx-ph">{isMon(n) ? '👹' : '✦'}</span>}
+                        <span>
+                          <b>{n.name}</b>
+                          <small>{[isMon(n) ? 'Créature' : 'PNJ', n.kind || n.type || n.role].filter(Boolean).join(' · ')}</small>
+                        </span>
+                        <span className="bx-cr">FP {n.cr || '—'}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
             <div className="bx-hint">↑ ↓ (ou j / k) pour passer d’une fiche à l’autre</div>
           </aside>
 
@@ -12904,7 +13035,7 @@ function Bestiary({ dispatch, state, universe, npcs, party, campaigns, flash }) 
                       ◀
                     </button>
                     <span className="muted" style={{ fontSize: 13 }}>
-                      {pos + 1} / {list.length}
+                      {pos + 1} / {navList.length}
                     </span>
                     <button className="btn ghost sm" onClick={() => step(1)} title="Fiche suivante">
                       ▶
@@ -13752,6 +13883,23 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
     const boardTokens = new Map((boardBattle?.tokens || []).map((t) => [t.id, t]));
     const setBoardBattle = embedded ? embedded.setBattle : (b) => dispatch({ type: 'UPDATE_MAP', id: boundMapRec.id, patch: { battle: b, updatedAt: Date.now() } });
     const hiddenCount = (boardBattle?.tokens || []).filter((t) => t.visible === false).length;
+    /**
+     * Une créature passe à une autre variante de sa famille (plus forte ou plus faible) : nouvelles statistiques et
+     * actions, même place sur le plateau, même initiative et états ; ses PV gardent la même proportion.
+     */
+    const swapVariant = (t, n) => {
+      const base = buildNpcCombatant(n);
+      const ratio = Number(t.hp) / Math.max(1, Number(t.maxHp));
+      const hp = Math.max(Number(t.hp) > 0 ? 1 : 0, Math.round(base.maxHp * ratio));
+      // Garde le numéro du jeton (« Gobelin 2 » → « Gobelin élite 2 »).
+      const num = String(t.name || '').match(/ (\d+)$/)?.[1];
+      const name = num ? `${n.name} ${num}` : n.name;
+      update(t.id, { ...base, name, id: t.id, init: t.init, hp, conditions: t.conditions, deathSaves: t.deathSaves, token: t.token }, `${t.name} devient ${n.name}`, { tone: 'state' });
+      if (boardBattle) {
+        const cells = Math.min(3, Math.max(1, Math.round(n.underdark?.gridFootprint?.recommendedTokenCells?.width ?? ({ G: 2, TG: 3, Gig: 4 }[n.size] || 1))));
+        setBoardBattle({ ...boardBattle, tokens: boardBattle.tokens.map((q) => (q.id === t.id ? { ...q, npcId: n.id, name, image: n.token || q.image, hp, maxHp: base.maxHp, ac: base.ac, size: cells, statId: n.srdId || undefined } : q)) });
+      }
+    };
     const pstate = partyStateOf(combatants, party);
     const foes = combatants.filter((x) => !x.isPC && Number(x.hp) > 0);
     const rating = foes.length && pstate.levels.length
@@ -13921,6 +14069,8 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
                   activeName={activeCombatant?.name}
                   art={combatantArtOf(state, selectedCombatant)}
                   sourceNpc={npcs.find((n) => n.id === selectedCombatant.sourceId)}
+                  variants={(() => { const src = npcs.find((n) => n.id === selectedCombatant.sourceId); return src ? siblingsOf(src, npcs) : null; })()}
+                  onSwap={(n) => swapVariant(selectedCombatant, n)}
                   tactics={tacticsById?.[selectedCombatant.id]}
                   boardToken={boardTokens.get(selectedCombatant.id)}
                   onBoardVisible={boardBattle ? (visible) => setBoardBattle({ ...boardBattle, tokens: boardBattle.tokens.map((q) => (q.id === selectedCombatant.id ? { ...q, visible } : q)) }) : null}
@@ -14000,7 +14150,7 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
                     </section>
                   )}
                   {boardBattle ? (
-                    <SkirmishPanel battle={boardBattle} setBattle={setBoardBattle} combatants={combatants} party={party} dispatch={dispatch} place={place} flash={flash} />
+                    <SkirmishPanel battle={boardBattle} setBattle={setBoardBattle} combatants={combatants} party={party} npcs={npcs} dispatch={dispatch} place={place} flash={flash} />
                   ) : (
                     <p className="wt-note">
                       Le champ de bataille improvisé (renforts, rencontre au niveau voulu, placement tactique) s’ouvre avec une carte de combat : choisis « Carte de combat » ci-dessus.
@@ -14083,7 +14233,7 @@ const hpTone = (t) => {
 
 /** Fiche du combattant choisi (par défaut celui dont c’est le tour) : PV, défenses, états, attaques, fiche complète. */
 function WarInspector({
-  t, isActive, activeName, art, sourceNpc, tactics, boardToken, onBoardVisible, amount, onAmount, lastRoll, hpPulse, ops, onInfo, onBackToTurn,
+  t, isActive, activeName, art, sourceNpc, tactics, boardToken, onBoardVisible, amount, onAmount, lastRoll, hpPulse, ops, onInfo, onBackToTurn, variants, onSwap,
 }) {
   const calc = getCombatantDerivedStats(t);
   const [editing, setEditing] = useState(false);
@@ -14147,6 +14297,22 @@ function WarInspector({
         <button type="button" className="wt-backturn" onClick={onBackToTurn}>
           ↩ Revenir au tour de <b>{activeName}</b>
         </button>
+      )}
+
+      {!t.isPC && variants && (variants.weaker || variants.stronger) && (
+        <section className="wt-variants" aria-label="Variante de la créature">
+          <span className="wt-variants-label">{variants.family.name} · {variants.index + 1}/{variants.family.members.length}</span>
+          <button type="button" className="wt-btn" disabled={!variants.weaker} onClick={() => onSwap(variants.weaker)} title={variants.weaker ? `Remplacer par ${variants.weaker.name} (FP ${variants.weaker.cr})` : ''}>
+            ⬇ {variants.weaker ? variants.weaker.name : 'déjà la plus faible'}
+          </button>
+          <button type="button" className="wt-btn" disabled={!variants.stronger} onClick={() => onSwap(variants.stronger)} title={variants.stronger ? `Remplacer par ${variants.stronger.name} (FP ${variants.stronger.cr})` : ''}>
+            ⬆ {variants.stronger ? variants.stronger.name : 'déjà la plus forte'}
+          </button>
+          <select className="wt-variants-pick" value="" onChange={(e) => { const n = variants.family.members.find((m) => m.id === e.target.value); if (n) onSwap(n); }}>
+            <option value="">Autre variante…</option>
+            {variants.family.members.map((m) => <option key={m.id} value={m.id} disabled={m.id === sourceNpc?.id}>{m.name} · FP {m.cr}</option>)}
+          </select>
+        </section>
       )}
 
       <section className="wt-hp" data-tone={tone}>
@@ -14703,7 +14869,7 @@ const skNorm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\
  * ou écrite par l’IA), proposer une rencontre à la difficulté voulue et la placer de façon tactique, et suivre la
  * difficulté en cours de combat pour la doser.
  */
-function SkirmishPanel({ battle, setBattle, combatants, party, dispatch, place, flash }) {
+function SkirmishPanel({ battle, setBattle, combatants, party, npcs = [], dispatch, place, flash }) {
   const { ai } = useContext(AIContext);
   const [tab, setTab] = useState(null);
   const [query, setQuery] = useState('');
@@ -14730,6 +14896,18 @@ function SkirmishPanel({ battle, setBattle, combatants, party, dispatch, place, 
     id: `pc-${h.id}-${uid()}`, name: h.name, kind: 'pc', size: 1, visible: true, heroId: h.id, sight: sightFor(h.race),
     hp: Number(h.hp || h.maxHp || 20), maxHp: Number(h.hp || h.maxHp || 20), ac: Number(h.ac || 14),
   }));
+  /** Une fiche du bestiaire comme groupe à poser (ses valeurs, son jeton, sa taille de grille). */
+  const cellsOf = (n) => n.underdark?.gridFootprint?.recommendedTokenCells?.width ?? ({ G: 2, TG: 3, Gig: 4 }[n.size] || 1);
+  const groupOfNpc = (n, count) => ({
+    stat: n.srdId || '', n: count, npcId: n.id, name: n.name, hp: Number(n.hp) || undefined, ac: Number(n.ac) || undefined,
+    size: Math.min(3, Math.max(1, Math.round(cellsOf(n)))), image: n.token || undefined,
+    ranged: (n.actions || []).some((a) => /distance|portée|ranged/i.test(`${a.range} ${a.desc}`)) && !(n.actions || []).some((a) => /mêlée|allonge|corps à corps|melee/i.test(`${a.range} ${a.desc}`)),
+  });
+  const rateWith = (n, count) => {
+    const xp = xpForCr(n.cr) || 0;
+    const r = rateEncounter([...foes.map((c) => xpOfCombatant(c, byId.get(c.id))), ...Array(count).fill(xp)], pstate);
+    return { ...r, before: current.label };
+  };
   const addGroups = (groups, opts = {}) => {
     const base = opts.replace ? { ...battle, tokens: battle.tokens.filter((t) => t.kind !== 'monster') } : battle;
     const needParty = opts.party && !base.tokens.some((t) => t.kind === 'pc') && party.length > 0;
@@ -14849,20 +15027,32 @@ function SkirmishPanel({ battle, setBattle, combatants, party, dispatch, place, 
       {tab === 'add' && (
         <div className="skirmish-body skirmish-add">
           <div className="skirmish-col">
-            <div className="skirmish-row">
-              <input className="input" placeholder="Chercher : gobelin, orc, squelette, loup…" value={query} onChange={(e) => setQuery(e.target.value)} />
-              <label className="skirmish-qty">× <input className="input" type="number" min="1" max="12" value={qty} onChange={(e) => setQty(e.target.value)} /></label>
-            </div>
-            <ul className="skirmish-list">
-              {matches.map((s) => (
-                <li key={s.id}>
-                  <img src={tokenImage({ kind: 'monster', statId: s.id })} alt="" />
-                  <span><b>{s.name}</b><small>FP {s.cr.split(' ')[0]} · PV {parseInt(s.hp, 10)} · CA {parseInt(s.ac, 10)}</small></span>
-                  <button className="btn sm" onClick={() => addGroups([{ stat: s.id, n: Math.max(1, Number(qty) || 1) }])}>Ajouter</button>
-                </li>
-              ))}
-              {!matches.length && <li className="muted">Rien de tel au bestiaire : crée-la à droite.</li>}
-            </ul>
+            {npcs.some((n) => n.entityType === 'monster' || n.isMonster) && (
+              <CreaturePicker
+                npcs={npcs}
+                imageOf={(n) => n.token || ''}
+                rate={rateWith}
+                payloadOf={groupOfNpc}
+                onAdd={(n, count) => addGroups([groupOfNpc(n, count)])}
+              />
+            )}
+            <details className="skirmish-srd" open={!npcs.some((n) => n.entityType === 'monster' || n.isMonster)}>
+              <summary>Fiches SRD de base</summary>
+              <div className="skirmish-row">
+                <input className="input" placeholder="Chercher : gobelin, orc, squelette, loup…" value={query} onChange={(e) => setQuery(e.target.value)} />
+                <label className="skirmish-qty">× <input className="input" type="number" min="1" max="12" value={qty} onChange={(e) => setQty(e.target.value)} /></label>
+              </div>
+              <ul className="skirmish-list">
+                {matches.map((s) => (
+                  <li key={s.id}>
+                    <img src={tokenImage({ kind: 'monster', statId: s.id })} alt="" />
+                    <span><b>{s.name}</b><small>FP {s.cr.split(' ')[0]} · PV {parseInt(s.hp, 10)} · CA {parseInt(s.ac, 10)}</small></span>
+                    <button className="btn sm" onClick={() => addGroups([{ stat: s.id, n: Math.max(1, Number(qty) || 1) }])}>Ajouter</button>
+                  </li>
+                ))}
+                {!matches.length && <li className="muted">Rien de tel au SRD : crée-la à droite.</li>}
+              </ul>
+            </details>
           </div>
           <div className="skirmish-col">
             <div className="skirmish-sub">Créature générique rapide</div>

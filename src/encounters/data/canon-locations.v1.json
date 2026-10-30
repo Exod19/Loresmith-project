@@ -1,0 +1,13 @@
+{
+  "schema": "loresmith-underdark-canon-locations-v1",
+  "source": "Fiches_Encyclopediques_Tome_II.md et Tome_II_Les_Domaines_Moriquendi.docx, plus cartographie actuelle Atlas (revue 2026-10-28)",
+  "locations": [
+    {"id":"lieu-ozzoloh","entryId":"li-ozzoloh","name":"Ozzoloh Ventreen","category":"cite","owner":"moriquendi","clan":"Norrianiss","status":"confirme","placement":"unknown","relativePosition":"nord du Grand niveau I, strate profonde sans numero exact","tags":["urban","capital","archives","guilds","moriquendi_territory"],"note":"Le nom Ventreen fait partie du toponyme, ce n'est PAS un clan."},
+    {"id":"lieu-hosten-valak","entryId":"li-hosten-valak","name":"Hosten Valak","category":"cite","owner":"moriquendi","clan":"Warral","status":"confirme","placement":"unknown","relativePosition":null,"tags":["urban","capital","moriquendi_territory"],"needsReview":true,"note":"Tome II ne fixe pas l'architecture ni le positionnement; atlas 2026 contient un plan de paliers et la mention sud. Conserver cette difference de provenance; ne pas inventer une strate."},
+    {"id":"canon-li-dasnogood","entryId":"li-dasnogood","name":"Dasnogood","category":"cite","owner":"moriquendi","clan":"Iznogood","status":"confirme","placement":"unknown","relativePosition":null,"tags":["urban","capital","moriquendi_territory"]},
+    {"id":"canon-li-gualidurth","entryId":"li-gualidurth","name":"Gualidurth","category":"cite","owner":"moriquendi","clan":"Bois-de-l'Est","status":"confirme","placement":"unknown","relativePosition":null,"tags":["urban","capital","moriquendi_territory"]},
+    {"id":"canon-li-gjertet","entryId":"li-gjertet","name":"Gjertet","category":"cite","owner":"moriquendi","clan":"Drehjur","status":"confirme","placement":"unknown","relativePosition":null,"tags":["urban","capital","moriquendi_territory"],"note":"Capitale perdue puis recuperee; ne pas inventer les circonstances."},
+    {"id":"lieu-royolo","entryId":"li-royolo","name":"Avant-poste de Royolo","category":"garde","owner":"moriquendi","clan":null,"status":"confirme","placement":"unknown","relativePosition":"surface, localisation precise inconnue","tags":["surface","moriquendi_territory","outpost","surveillance","checkpoint"],"note":"Unique avant-poste moriquendi a la surface, pas une Palissade."},
+    {"id":"lieu-bibliotheque","entryId":"li-bibliotheque","name":"Bibliothèque centrale d'Ozzoloh Ventreen","category":"institution","owner":"moriquendi","clan":"Norrianiss","status":"confirme","placement":"unknown","relativePosition":"a Ozzoloh Ventreen, salle inconnue","tags":["scholar","archives","moriquendi_territory"],"parentId":"lieu-ozzoloh"}
+  ]
+}
