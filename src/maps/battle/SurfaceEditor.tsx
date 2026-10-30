@@ -409,6 +409,12 @@ export function useSurfaceEditor({ b, set, rules, active, pointAt }: {
         <div className="surface-sel">
           <b>{WALLS.find((w) => w.kind === selWall.kind)?.label}</b>
           <div className="build-seg">{WALLS.map((w) => <button key={w.kind} className={selWall.kind === w.kind ? 'on' : ''} onClick={() => patchWall(selWall.id, { kind: w.kind })}>{w.label}</button>)}</div>
+          {(selWall.kind === 'porte' || selWall.kind === 'herse') && (
+            <>
+              <label className="surface-field">Nom <input value={selWall.label ?? ''} placeholder={selWall.kind === 'porte' ? 'Porte' : 'Herse'} onChange={(e) => patchWall(selWall.id, { label: e.target.value || undefined })} /></label>
+              <label className="build-check"><input type="checkbox" checked={!!selWall.open} onChange={(e) => patchWall(selWall.id, { open: e.target.checked })} /> {selWall.kind === 'porte' ? 'Ouverte' : 'Levée'}</label>
+            </>
+          )}
           <button className="maps-btn" onClick={() => remove(sel!)}>Retirer</button>
         </div>
       )}

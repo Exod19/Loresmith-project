@@ -341,7 +341,7 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
       >
         <BattleBoard
           cols={board.cols} rows={board.rows} backdrop={board.backdrop} terrain={board.terrain} elements={board.elements} tokens={tokens} fog={board.fog} exits={board.exits}
-          onElement={pick} aim={aim} ranges={ranges} hits={board.hits} ground={board.ground} surface={board.surface}
+          onElement={pick} aim={aim} ranges={ranges} hits={board.hits} ground={board.ground} surface={board.surface} aoes={board.aoes}
           path={dragPlan && dragToken ? {
             steps: dragPlan.possible ? dragPlan.steps : [from(dragToken), drag!.cur], size: dragToken.size, ok: dragPlan.ok, possible: dragPlan.possible,
             label: dragPlan.possible ? `${dragPlan.cost * board.feetPerCell} pi${dragPlan.ok ? '' : ' ⚠'}` : '⛔',

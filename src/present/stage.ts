@@ -17,7 +17,9 @@ export type PlayerToken = { id: string; name: string; kind: 'pc' | 'monster' | '
   /** Socle (terrain sous le jeton), sur un pont, et modes de déplacement (nage, vol, escalade). */
   socle?: string; layer?: 'pont'; modes?: { vol?: boolean; nage?: boolean; escalade?: boolean }; speed?: string;
   /** Déplacement restant pendant ce tour, en cases (héros). */
-  left?: number };
+  left?: number;
+  /** Élévation sous le jeton, en pieds (plateau, corniche). */
+  elev?: number };
 
 /** Dégâts (amount < 0) ou soins reçus par un jeton, écrits en grand au-dessus de lui. */
 export type BoardHit = { id: string; to: string; amount: number; at: number };
@@ -61,7 +63,12 @@ export type PlayerBoard =
     /** Dégâts et soins récents, à écrire en grand sur le plateau. */
     hits?: BoardHit[];
     /** Terrain en couches (sol du fond, zones, éléments visibles, murs), et règles par case : le même calcul que chez le MJ. */
-    ground?: TerrainId; surface?: { zones?: TerrainZone[]; objects?: BattleObject[]; walls?: BattleWall[] }; rules?: SurfaceRules };
+    ground?: TerrainId; surface?: { zones?: TerrainZone[]; objects?: BattleObject[]; walls?: BattleWall[] }; rules?: SurfaceRules;
+    /** Zones d'effet posées par le MJ : contour exact et cases touchées. */
+    aoes?: AoeView[] };
+
+/** Zone d'effet telle qu'on la dessine : contour (tracé SVG, en cases), cases touchées, nom. */
+export type AoeView = { id: string; label: string; outline: string; cells: number[]; at: [number, number]; draft?: boolean };
 
 export type Stage =
   | { kind: 'blank' }

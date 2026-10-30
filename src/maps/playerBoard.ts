@@ -23,6 +23,7 @@ import { effectiveOf, moveLeft, surfaceOf } from './battle/placement';
 import { moverOf } from './battle/movement';
 import { attackCells, rangedCells, speedCells } from './battle/ranges';
 import { socleOf } from './battle/surface';
+import { aoeView } from './battle/aoe';
 
 /** Points découverts d'un plan, déduits de ce qui est révélé (lieux, repères) et du parcours du groupe. */
 export function seedExplored(data: AtlasData, rec: MapRecord, planId: string, at: (p?: PartyPlace) => [number, number] | null): [number, number][] {
@@ -126,6 +127,7 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
       return {
         id, name, kind, x, y, size, icon, image: portrait, statId, layer, modes, speed: (statId && STATS[statId]?.speed) || undefined,
         socle: socleOf(rules, { x, y, size, layer, socle }) ?? undefined,
+        elev: Math.max(0, ...Array.from({ length: size * size }, (_, k) => rules.cells[(y + Math.floor(k / size)) * b.cols + x + (k % size)]?.elev ?? 0)) || undefined,
         ...(kind === 'pc' ? { left: moveLeft(b, id, moverOf({ size, move, modes }, statId ? STATS[statId]?.speed : undefined, speedCells(statId ? STATS[statId] : undefined)).speed) } : {}),
         active: id === b.turn || undefined,
         ...(kind === 'pc' ? { hp, maxHp, move, reach } : {
@@ -222,5 +224,6 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
     surface: b.zones?.length || b.objects?.length || b.walls?.length
       ? { zones: b.zones, objects: b.objects?.filter((o) => !o.hidden), walls: b.walls } : undefined,
     rules,
+    aoes: b.aoes?.length ? b.aoes.map((a) => aoeView(a, rules, b.feetPerCell)) : undefined,
   };
 }

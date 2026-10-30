@@ -34,6 +34,8 @@ export interface TerrainDef {
   slippery?: boolean;
   /** Danger à l'entrée (texte de règle pour le MJ). Le tracé l'évite quand c'est possible. */
   danger?: string;
+  /** Dégâts en y entrant : une fois par déplacement (`entree`) ou par case traversée (`case`). */
+  hazard?: { dice: string; type: string; per: 'entree' | 'case' };
   /** Priorité par défaut d'une zone de ce terrain (une zone peut la changer). */
   priority: number;
   /** Groupe affiché dans les palettes. */
@@ -56,7 +58,7 @@ export const TERRAINS: TerrainDef[] = [
   T('mousse', 'Mousse fleurie', 'terrains/mousse.webp', '#3e5a2c', 'marche', 12, 'Végétation'),
   T('sous_bois', 'Sous-bois', 'terrains/sous_bois.webp', '#4a3626', 'marche', 12, 'Végétation'),
   T('sol_tropical', 'Sol de jungle', 'terrains/sol_tropical.webp', '#5a3a26', 'marche', 12, 'Végétation'),
-  T('ronces', 'Ronces', 'terrains/ronces.webp', '#3d3a26', 'marche', 31, 'Végétation', { difficult: true }),
+  T('ronces', 'Ronces', 'terrains/ronces.webp', '#3d3a26', 'marche', 31, 'Végétation', { difficult: true, danger: 'Ronces épineuses : 1d4 dégâts perforants par case traversée.', hazard: { dice: '1d4', type: 'perforants', per: 'case' } }),
   T('terre', 'Terre', 'terrains/terre.webp', '#6a4a30', 'marche', 10, 'Sols'),
   T('chemin', 'Chemin de terre', 'terrains/terre.webp', '#6a4a30', 'marche', 35, 'Sols'),
   T('route', 'Route pavée', 'terrains/paves.webp', '#6b675e', 'marche', 36, 'Sols'),
@@ -77,7 +79,7 @@ export const TERRAINS: TerrainDef[] = [
   T('escarpement', 'Escarpement', 'terrains/escarpement.webp', '#8b877e', 'escalade', 45, 'Roche'),
   T('paroi', 'Paroi rocheuse', 'terrains/flanc_granite.webp', '#6d6a63', 'escalade', 46, 'Roche'),
   T('cendre', 'Cendres', 'terrains/cendre.webp', '#3a3533', 'marche', 16, 'Feu'),
-  T('lave', 'Lave', 'terrains/lave.webp', '#3a1a10', 'marche', 65, 'Feu', { danger: 'Lave : 10d10 dégâts de feu en y entrant, puis à chaque tour passé dedans (MJ).' }),
+  T('lave', 'Lave', 'terrains/lave.webp', '#3a1a10', 'marche', 65, 'Feu', { danger: 'Lave : 10d10 dégâts de feu en y entrant, puis à chaque tour passé dedans (MJ).', hazard: { dice: '10d10', type: 'feu', per: 'entree' } }),
   T('pont', 'Pont', 'terrains/planches.webp', '#6b4c2a', 'marche', 90, 'Sols'),
 ];
 export const TERRAIN_DEF = Object.fromEntries(TERRAINS.map((t) => [t.id, t])) as Record<TerrainId, TerrainDef>;
@@ -261,15 +263,23 @@ export function objectHas(o: BattleObject, px: number, py: number) {
   return Math.hypot(px - o.x, py - o.y) <= (d.radius ?? 0.4);
 }
 
-/* ——— Murs, falaises, murets : sur les arêtes de la grille ——— */
+/* ——— Murs, falaises, murets, portes et herses : sur les arêtes de la grille ——— */
 
-export type WallKind = 'mur' | 'falaise' | 'muret';
+export type WallKind = 'mur' | 'falaise' | 'muret' | 'porte' | 'herse';
 export const WALLS: { kind: WallKind; label: string; text: string }[] = [
   { kind: 'mur', label: 'Mur', text: 'Infranchissable, même en volant ; bloque la vue.' },
   { kind: 'falaise', label: 'Falaise', text: 'Il faut escalader pour la franchir (le vol passe).' },
   { kind: 'muret', label: 'Muret', text: 'Franchissable : compte double ; demi-couvert.' },
+  { kind: 'porte', label: 'Porte', text: 'Fermée : comme un mur (bloque le passage et la vue). Ouverte : rien. Le MJ l’ouvre ou la ferme en combat.' },
+  { kind: 'herse', label: 'Herse', text: 'Baissée : bloque le passage mais laisse voir (abri partiel). Levée : rien.' },
 ];
-export interface BattleWall { id: string; kind: WallKind; /** Sommets de la grille (entiers). */ points: Pt[] }
+/** Une porte ou une herse peut s'ouvrir. */
+export const OPENABLE = new Set<WallKind>(['porte', 'herse']);
+export interface BattleWall { id: string; kind: WallKind; /** Sommets de la grille (entiers). */ points: Pt[];
+  /** Porte ou herse ouverte : elle ne compte plus. */
+  open?: boolean;
+  /** Nom affiché au MJ (« Porte du nord »). */
+  label?: string }
 
 /** Clés des arêtes : `h x,y` sépare (x, y-1) de (x, y) ; `v x,y` sépare (x-1, y) de (x, y). */
 export function wallEdges(w: BattleWall): string[] {
@@ -397,7 +407,8 @@ export function compileSurface(s: SurfaceInput): SurfaceRules {
     c.amb = undefined;
   }
   const walls: Record<string, WallKind> = {};
-  for (const w of s.walls ?? []) for (const e of wallEdges(w)) walls[e] = w.kind;
+  // Une porte ouverte ou une herse levée ne compte pas.
+  for (const w of s.walls ?? []) if (!(OPENABLE.has(w.kind) && w.open)) for (const e of wallEdges(w)) walls[e] = w.kind;
   const out = { cols, rows, cells, walls };
   memo = { key, out };
   return out;

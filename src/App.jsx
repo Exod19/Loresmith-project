@@ -13483,6 +13483,19 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
     flash(`${combatant.name} ajouté au combat`);
   }
 
+  /** Plusieurs exemplaires d'une créature d'un coup (chacun garde ses PV, états et position). */
+  function addCombatants(source, count) {
+    let list = combatants;
+    const added = [];
+    for (let i = 0; i < Math.max(1, count); i++) {
+      const one = withFreshInstance(list, buildNpcCombatant(source), blockedCells);
+      added.push(one);
+      list = [...list, one];
+    }
+    setC({ combatants: list }, `${added.length > 1 ? `${added.length} × ` : ''}${source.name} rejoi${added.length > 1 ? 'gnent' : 'nt'} le combat`, { tone: 'join' });
+    flash(`${added.length > 1 ? `${added.length} × ` : ''}${source.name} ajouté${added.length > 1 ? 's' : ''} au combat`);
+  }
+
   function addWholeParty() {
     const present = new Set(combatants.filter((x) => x.isPC).map((x) => x.sourceId));
     const fresh = [];
@@ -13568,6 +13581,16 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
     update(id, patch, label, { tone: delta < 0 ? 'hit' : 'heal' });
     setHpPulse({ id, delta, key: uid() });
   }
+
+  // Dégâts venus du plateau (lave, ronces, chute) : appliqués un par un, avec PV temporaires et concentration.
+  const pendingDamage = embedded?.battle?.damage;
+  useEffect(() => {
+    const next = pendingDamage?.[0];
+    if (!next) return;
+    if (combatants.some((x) => x.id === next.to)) adjustHp(next.to, -Math.abs(next.amount));
+    embedded.setBattle({ ...embedded.battle, damage: pendingDamage.slice(1) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingDamage?.[0]?.id]);
 
   function applyHp(id, sign) {
     const v = parseInt(dmg[id], 10);
@@ -13867,7 +13890,7 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
 
     const ops = {
       update, remove, adjustHp, applyHp, setHpExact, setTempHp, toggleCondition, changeDeathSaves, rollAttack,
-      toggleEffect, changeEffectUses, changeActionUses, addCombatant, addWholeParty, addBlank, rollInitiative,
+      toggleEffect, changeEffectUses, changeActionUses, addCombatant, addCombatants, addWholeParty, addBlank, rollInitiative,
       refreshFromSheet: (t) => {
         const source = npcs.find((n) => n.id === t.sourceId);
         if (!source) {
@@ -14088,6 +14111,10 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
                   sorted={sorted}
                   party={party}
                   npcs={npcs}
+                  onBoard={!!boardBattle}
+                  rate={(n, count) => (pstate.levels.length
+                    ? { ...rateEncounter([...foes.map((x) => xpOfCombatant(x, boardTokens.get(x.id))), ...Array(count).fill(xpForCr(n.cr) || 0)], pstate), before: rating?.label ?? 'aucun ennemi' }
+                    : null)}
                   activeId={activeCombatant?.id}
                   selectedId={selectedCombatant?.id}
                   ops={ops}
@@ -14575,7 +14602,14 @@ function WarInspector({
 }
 
 /** Onglet Groupe : ajouter des combattants (héros, bestiaire, improvisé) et les voir tous, en compact. */
-function WarRoster({ sorted, party, npcs, activeId, selectedId, ops, onPick }) {
+/** Ce que porte la vignette glissée sur le plateau (cf. BattleMode : pose à l'endroit visé). */
+const creatureDragPayload = (n, count) => ({
+  stat: n.srdId || '', n: count, npcId: n.id, name: n.name, hp: Number(n.hp) || undefined, ac: Number(n.ac) || undefined,
+  size: Math.min(3, Math.max(1, Math.round(n.underdark?.gridFootprint?.recommendedTokenCells?.width ?? ({ G: 2, TG: 3, Gig: 4 }[n.size] || 1)))),
+  image: n.token || undefined,
+});
+
+function WarRoster({ sorted, party, npcs, activeId, selectedId, ops, onPick, rate, onBoard }) {
   return (
     <div className="wt-stack">
       <section className="wt-card">
@@ -14595,22 +14629,33 @@ function WarRoster({ sorted, party, npcs, activeId, selectedId, ops, onPick }) {
               <option key={p.id} value={p.id}>{p.name}</option>
             ))}
           </select>
-          <select
-            className="in"
-            value=""
-            aria-label="Ajouter depuis le bestiaire"
-            onChange={(e) => {
-              const m = npcs.find((x) => x.id === e.target.value);
-              if (m) ops.addCombatant(m, false);
-            }}
-          >
-            <option value="">+ Bestiaire…</option>
-            {npcs.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name} {m.isMonster || m.entityType === 'monster' ? '(monstre)' : '(PNJ)'}
-              </option>
-            ))}
-          </select>
+          {npcs.some((m) => !(m.isMonster || m.entityType === 'monster')) && (
+            <select
+              className="in"
+              value=""
+              aria-label="Ajouter un PNJ"
+              onChange={(e) => {
+                const m = npcs.find((x) => x.id === e.target.value);
+                if (m) ops.addCombatant(m, false);
+              }}
+            >
+              <option value="">+ PNJ…</option>
+              {npcs.filter((m) => !(m.isMonster || m.entityType === 'monster')).map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+            </select>
+          )}
+          {npcs.some((m) => m.isMonster || m.entityType === 'monster') && (
+            <details className="wt-picker" open>
+              <summary>👹 Ajouter des créatures</summary>
+              <CreaturePicker
+                npcs={npcs}
+                imageOf={(n) => n.token || ''}
+                rate={rate || (() => null)}
+                payloadOf={creatureDragPayload}
+                onAdd={(n, count) => ops.addCombatants(n, count)}
+              />
+              {onBoard && <p className="wt-note">Glisse une vignette sur le plateau pour poser la créature à cet endroit (cachée aux joueurs jusqu’à ce que tu la révèles).</p>}
+            </details>
+          )}
           <div className="wt-row">
             <button type="button" className="wt-btn" onClick={ops.addWholeParty} disabled={!party.length}>
               <Users size={14} aria-hidden="true" /> Tout le groupe

@@ -9,12 +9,13 @@ import { wallEdges } from './surface';
 
 /** Murs qui cachent la vue (arêtes de la grille, cf. surface.ts). Les falaises et murets laissent voir. */
 type Walls = Record<string, string> | undefined;
-const wallsOf = (b: Battle): Walls => (b.walls?.length ? Object.fromEntries(b.walls.flatMap((w) => wallEdges(w).map((e) => [e, w.kind]))) : undefined);
+const wallsOf = (b: Battle): Walls => (b.walls?.length ? Object.fromEntries(b.walls.filter((w) => !w.open).flatMap((w) => wallEdges(w).map((e) => [e, w.kind]))) : undefined);
 /** Un mur sépare-t-il deux cases voisines (diagonale : les deux chemins en L sont coupés) ? */
 function walled(w: Walls, ax: number, ay: number, bx: number, by: number) {
   if (!w) return false;
-  const v = (x: number, y: number, sx: number) => w[`v${sx > 0 ? x + 1 : x},${y}`] === 'mur';
-  const h = (x: number, y: number, sy: number) => w[`h${x},${sy > 0 ? y + 1 : y}`] === 'mur';
+  // Un mur et une porte fermée cachent la vue ; une herse baissée laisse voir.
+  const v = (x: number, y: number, sx: number) => /^(mur|porte)$/.test(w[`v${sx > 0 ? x + 1 : x},${y}`] ?? '');
+  const h = (x: number, y: number, sy: number) => /^(mur|porte)$/.test(w[`h${x},${sy > 0 ? y + 1 : y}`] ?? '');
   const dx = Math.sign(bx - ax), dy = Math.sign(by - ay);
   if (dx && !dy) return v(ax, ay, dx);
   if (dy && !dx) return h(ax, ay, dy);

@@ -64,7 +64,8 @@ function wallBetween(r: SurfaceRules, ax: number, ay: number, bx: number, by: nu
   if (dy && !dx) return h(ax, ay, dy);
   if (!dx && !dy) return undefined;
   const a = v(ax, ay, dx) || h(ax + dx, ay, dy), c = h(ax, ay, dy) || v(ax, ay + dy, dx);
-  return a && c ? (a === 'mur' || c === 'mur' ? 'mur' : a) : undefined;
+  const solid = (k: string) => k === 'mur' || k === 'porte';
+  return a && c ? (solid(a) || solid(c) ? 'mur' : a) : undefined;
 }
 
 /** Ce qui coupe la ligne entre deux points (en coordonnées de case), sans compter les cases des deux jetons. */
@@ -81,8 +82,8 @@ function lineBlock(b: Battle, grid: string | undefined, ax: number, ay: number, 
       const here = { x: Math.floor(px - (bx - ax) * 1e-4), y: Math.floor(py - (by - ay) * 1e-4) };
       if (prev && (prev.x !== here.x || prev.y !== here.y)) {
         const k = wallBetween(scene, prev.x, prev.y, here.x, here.y);
-        if (k === 'mur') return { wall: 'un mur', creature };
-        if (k === 'muret' && !creature) creature = 'un muret';
+        if (k === 'mur' || k === 'porte') return { wall: k === 'porte' ? 'une porte fermée' : 'un mur', creature };
+        if ((k === 'muret' || k === 'herse') && !creature) creature = k === 'herse' ? 'une herse' : 'un muret';
       }
       prev = here;
     }

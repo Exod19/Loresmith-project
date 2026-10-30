@@ -195,6 +195,7 @@ export function WallsLayer({ walls, selectedId }: { walls: BattleWall[]; selecte
   return (
     <g className="surface-walls" pointerEvents="none">
       {walls.map((w) => {
+        if (w.kind === 'porte' || w.kind === 'herse') return <DoorArt key={w.id} w={w} selected={selectedId === w.id} />;
         const s = WALL_STYLE[w.kind] ?? WALL_STYLE.mur;
         const d = pathOf(w.points, false);
         return (
@@ -209,9 +210,44 @@ export function WallsLayer({ walls, selectedId }: { walls: BattleWall[]; selecte
   );
 }
 
+/** Porte (battant de bois, ouvert à 90° sur ses gonds) ou herse (barreaux de fer, levée = simple trace). */
+function DoorArt({ w, selected }: { w: BattleWall; selected: boolean }) {
+  const segs = w.points.slice(1).map((b, i) => [w.points[i], b] as const);
+  return (
+    <g className={`surface-door kind-${w.kind} ${w.open ? 'is-open' : ''}`}>
+      {segs.map(([a, b], i) => {
+        const d = `M${a[0]} ${a[1]}L${b[0]} ${b[1]}`;
+        if (w.kind === 'herse') {
+          return w.open
+            ? <path key={i} d={d} stroke="#9fb4c8" strokeWidth={0.06} strokeDasharray="0.08 0.12" opacity={0.55} />
+            : (
+              <g key={i}>
+                <path d={d} stroke="#16191c" strokeWidth={0.2} strokeLinecap="square" />
+                <path d={d} stroke={selected ? '#ecd289' : '#8e9aa6'} strokeWidth={0.14} strokeDasharray="0.05 0.11" />
+              </g>
+            );
+        }
+        // Porte : fermée, un battant dans l'encadrement ; ouverte, pivotée d'un quart de tour sur son gond (premier point).
+        const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+        const ux = (b[0] - a[0]) / len, uy = (b[1] - a[1]) / len;
+        const leaf = w.open ? `M${a[0]} ${a[1]}l${-uy * len * 0.9} ${ux * len * 0.9}` : d;
+        return (
+          <g key={i}>
+            <path d={d} stroke="#1a120a" strokeWidth={w.open ? 0.08 : 0.26} strokeLinecap="butt" opacity={w.open ? 0.6 : 1} />
+            <path d={leaf} stroke={selected ? '#ecd289' : '#7a5228'} strokeWidth={0.16} strokeLinecap="butt" />
+            <path d={leaf} stroke="#b07a3e" strokeWidth={0.05} strokeDasharray="0.18 0.06" />
+            {!w.open && <circle cx={a[0] + ux * len * 0.78} cy={a[1] + uy * len * 0.78} r={0.05} fill="#e2c26a" />}
+          </g>
+        );
+      })}
+    </g>
+  );
+}
+
 const CAT_FILL: Record<Category, string> = {
   normal: 'rgba(110,200,120,0.16)', difficile: 'rgba(240,180,60,0.42)', special: 'rgba(70,150,240,0.45)', bloquee: 'rgba(210,50,40,0.5)', danger: 'rgba(240,60,200,0.48)',
 };
+const EDGE_COLOR: Record<string, string> = { mur: '#ff4b3a', falaise: '#4696f0', muret: '#f0b43c', porte: '#c98a3a', herse: '#9fb4c8' };
 export const CATEGORY_COLOR: Record<Category, string> = {
   normal: '#6ec878', difficile: '#f0b43c', special: '#4696f0', bloquee: '#d23228', danger: '#f03cc8',
 };
@@ -239,7 +275,7 @@ export function RulesOverlay({ rules, focus }: { rules: SurfaceRules; focus?: nu
       <path d={deck.join('')} stroke="#7fe0ff" strokeWidth={0.12} strokeLinecap="round" opacity={0.85} />
       <path d={amb.join('')} fill="none" stroke="#fff" strokeWidth={0.06} strokeDasharray="0.12 0.08" />
       <path d={fixed.join('')} fill="#ecd289" stroke="#0b0906" strokeWidth={0.02} />
-      {edges.map((e, i) => <path key={i} d={e.d} stroke={e.kind === 'mur' ? '#ff4b3a' : e.kind === 'falaise' ? '#4696f0' : '#f0b43c'} strokeWidth={0.12} strokeLinecap="round" />)}
+      {edges.map((e, i) => <path key={i} d={e.d} stroke={EDGE_COLOR[e.kind] ?? '#f0b43c'} strokeWidth={0.12} strokeLinecap="round" />)}
       {focus != null && <rect x={focus % cols} y={Math.floor(focus / cols)} width={1} height={1} fill="none" stroke="#ecd289" strokeWidth={0.08} />}
     </g>
   );
