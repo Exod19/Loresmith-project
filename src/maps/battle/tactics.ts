@@ -11,6 +11,8 @@ import { cellKind, TERRAIN } from './terrain';
 import { attackCells, rangedCells } from './ranges';
 import { isOut, statOf } from './combat';
 import { trailMoveNotes, trailNotes } from './trailRules';
+import { surfaceOf } from './placement';
+import { OBJECT_DEF, type SurfaceRules } from './surface';
 
 export type Note = { tone: 'buff' | 'malus' | 'alert' | 'chance'; label: string; why: string };
 
@@ -49,14 +51,41 @@ const opaque = (grid: string | undefined, cols: number, x: number, y: number) =>
 
 type Block = { wall: string | null; creature: string | null };
 
+/** Murs de la scène (arêtes) et obstacles partiels (buisson, tonneau, muret) : ils comptent pour l'abri. */
+function sceneOf(b: Battle): SurfaceRules | null {
+  return b.walls?.length || b.objects?.length ? surfaceOf(b) : null;
+}
+/** Mur entre deux cases voisines (diagonale : les deux chemins en L sont coupés). */
+function wallBetween(r: SurfaceRules, ax: number, ay: number, bx: number, by: number): string | undefined {
+  const v = (x: number, y: number, sx: number) => r.walls[`v${sx > 0 ? x + 1 : x},${y}`];
+  const h = (x: number, y: number, sy: number) => r.walls[`h${x},${sy > 0 ? y + 1 : y}`];
+  const dx = Math.sign(bx - ax), dy = Math.sign(by - ay);
+  if (dx && !dy) return v(ax, ay, dx);
+  if (dy && !dx) return h(ax, ay, dy);
+  if (!dx && !dy) return undefined;
+  const a = v(ax, ay, dx) || h(ax + dx, ay, dy), c = h(ax, ay, dy) || v(ax, ay + dy, dx);
+  return a && c ? (a === 'mur' || c === 'mur' ? 'mur' : a) : undefined;
+}
+
 /** Ce qui coupe la ligne entre deux points (en coordonnées de case), sans compter les cases des deux jetons. */
-function lineBlock(b: Battle, grid: string | undefined, ax: number, ay: number, bx: number, by: number, skip: Set<number>, tokens: BattleToken[]): Block {
+function lineBlock(b: Battle, grid: string | undefined, ax: number, ay: number, bx: number, by: number, skip: Set<number>, tokens: BattleToken[], scene: SurfaceRules | null = null): Block {
   const len = Math.hypot(bx - ax, by - ay);
   const steps = Math.max(2, Math.ceil(len * 10));
   const eps = 1e-6;
   let wall: string | null = null, creature: string | null = null;
+  // Case traversée au pas précédent (au centre du segment), pour repérer le franchissement d'un mur.
+  let prev: { x: number; y: number } | null = null;
   for (let i = 1; i < steps; i++) {
     const px = ax + ((bx - ax) * i) / steps, py = ay + ((by - ay) * i) / steps;
+    if (scene) {
+      const here = { x: Math.floor(px - (bx - ax) * 1e-4), y: Math.floor(py - (by - ay) * 1e-4) };
+      if (prev && (prev.x !== here.x || prev.y !== here.y)) {
+        const k = wallBetween(scene, prev.x, prev.y, here.x, here.y);
+        if (k === 'mur') return { wall: 'un mur', creature };
+        if (k === 'muret' && !creature) creature = 'un muret';
+      }
+      prev = here;
+    }
     // Sur un bord de case, la ligne ne compte comme coupée que si les cases des deux côtés la coupent (elle « longe »).
     const xs = Math.abs(px - Math.round(px)) < eps ? [Math.round(px) - 1, Math.round(px)] : [Math.floor(px)];
     const ys = Math.abs(py - Math.round(py)) < eps ? [Math.round(py) - 1, Math.round(py)] : [Math.floor(py)];
@@ -71,6 +100,11 @@ function lineBlock(b: Battle, grid: string | undefined, ax: number, ay: number, 
     if (!creature) {
       const who = rest.map((c) => tokens.find((t) => c.x >= t.x && c.x < t.x + t.size && c.y >= t.y && c.y < t.y + t.size));
       if (who.every(Boolean)) creature = who[0]!.name;
+    }
+    if (!creature && scene) {
+      // Buisson, tonneau, souche : un obstacle bas qui ne donne qu'un abri partiel.
+      const low = rest.map((c) => scene.cells[c.y * b.cols + c.x]?.obs).filter((o) => o?.c === 'partiel');
+      if (low.length === rest.length && low[0]) creature = `${OBJECT_DEF[low[0].kind].label.toLowerCase()}`;
     }
   }
   return { wall, creature };
@@ -93,6 +127,7 @@ const cellsOf = (t: BattleToken) => {
 /** Abri de `target` contre une attaque de `attacker` (le meilleur coin pour l'attaquant). */
 export function coverAgainst(b: Battle, grid: string | undefined, attacker: BattleToken, target: BattleToken): Cover {
   const skip = new Set([...cellsOf(attacker), ...cellsOf(target)].map((c) => c.y * b.cols + c.x));
+  const scene = sceneOf(b);
   const others = b.tokens.filter((t) => t.id !== attacker.id && t.id !== target.id && alive(t));
   const corners = (x: number, y: number) => [[x, y], [x + 1, y], [x, y + 1], [x + 1, y + 1]];
   const from = cellsOf(attacker).flatMap((c) => corners(c.x, c.y));
@@ -104,7 +139,7 @@ export function coverAgainst(b: Battle, grid: string | undefined, attacker: Batt
       let walls = 0, creatures = 0;
       const reasons: string[] = [];
       for (const [bx, by] of to) {
-        const r = lineBlock(b, grid, ax, ay, bx, by, skip, others);
+        const r = lineBlock(b, grid, ax, ay, bx, by, skip, others, scene);
         if (r.wall) { walls++; reasons.push(r.wall); } else if (r.creature) { creatures++; reasons.push(r.creature); }
       }
       const score = walls * 10 + creatures;
@@ -122,7 +157,7 @@ export function coverAgainst(b: Battle, grid: string | undefined, attacker: Batt
     ? `Depuis ${attacker.name} : les 4 lignes vers ${target.name} sont dégagées.`
     : level === 3
       ? `Depuis ${attacker.name} : aucune ligne n'atteint ${target.name} (${uniq.join(', ')}). Pas de ligne de vue.`
-      : `Depuis le meilleur coin de ${attacker.name} : ${blocked} ligne${blocked > 1 ? 's' : ''} sur 4 vers ${target.name} coupée${blocked > 1 ? 's' : ''} par ${uniq.join(', ')}${walls === 0 ? ' (une créature ne donne qu’un abri partiel)' : ''}.`;
+      : `Depuis le meilleur coin de ${attacker.name} : ${blocked} ligne${blocked > 1 ? 's' : ''} sur 4 vers ${target.name} coupée${blocked > 1 ? 's' : ''} par ${uniq.join(', ')}${walls === 0 ? ' (une créature ou un obstacle bas ne donne qu’un abri partiel)' : ''}.`;
   return { ...COVER[level], why };
 }
 

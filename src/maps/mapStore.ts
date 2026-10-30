@@ -207,6 +207,8 @@ export interface Battle {
   walls?: BattleWall[];
   /** Corrections du MJ, case par case : elles priment sur le calcul automatique. */
   cellFix?: Record<string, CellFix>;
+  /** Déplacement déjà parcouru pendant le tour en cours (en cases), et qui fonce (vitesse doublée). `key` = round:tour. */
+  moved?: { key: string; used: Record<string, number>; dash?: string[] };
   /** Jeton dont c'est le tour, et journal des derniers jets. */
   turn?: string;
   log?: { id: string; text: string; tone?: 'hit' | 'miss' | 'crit' | 'info' }[];

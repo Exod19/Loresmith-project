@@ -15,7 +15,9 @@ export type PlayerToken = { id: string; name: string; kind: 'pc' | 'monster' | '
   /** Héros : déplacement en cases et portée de l'arme en main (allonge, portée courte et longue, en cases). */
   move?: number; reach?: { melee: number; short: number; long: number; weapon?: string };
   /** Socle (terrain sous le jeton), sur un pont, et modes de déplacement (nage, vol, escalade). */
-  socle?: string; layer?: 'pont'; modes?: { vol?: boolean; nage?: boolean; escalade?: boolean }; speed?: string };
+  socle?: string; layer?: 'pont'; modes?: { vol?: boolean; nage?: boolean; escalade?: boolean }; speed?: string;
+  /** Déplacement restant pendant ce tour, en cases (héros). */
+  left?: number };
 
 /** Dégâts (amount < 0) ou soins reçus par un jeton, écrits en grand au-dessus de lui. */
 export type BoardHit = { id: string; to: string; amount: number; at: number };

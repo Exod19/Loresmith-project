@@ -19,7 +19,9 @@ import { inSight, partyVision } from './battle/fog';
 import { visionShapes, memoryShapes } from './zone';
 import { exitsOf } from './battle/trailRules';
 import type { BattleToken } from './mapStore';
-import { effectiveOf, surfaceOf } from './battle/placement';
+import { effectiveOf, moveLeft, surfaceOf } from './battle/placement';
+import { moverOf } from './battle/movement';
+import { speedCells } from './battle/ranges';
 import { socleOf } from './battle/surface';
 
 /** Points découverts d'un plan, déduits de ce qui est révélé (lieux, repères) et du parcours du groupe. */
@@ -124,6 +126,7 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
       return {
         id, name, kind, x, y, size, icon, image: portrait, statId, layer, modes, speed: (statId && STATS[statId]?.speed) || undefined,
         socle: socleOf(rules, { x, y, size, layer, socle }) ?? undefined,
+        ...(kind === 'pc' ? { left: moveLeft(b, id, moverOf({ size, move, modes }, statId ? STATS[statId]?.speed : undefined, speedCells(statId ? STATS[statId] : undefined)).speed) } : {}),
         active: id === b.turn || undefined,
         ...(kind === 'pc' ? { hp, maxHp, move, reach } : { state: woundState({ hp, maxHp }) }),
         info: { subtitle: (statId && STATS[statId]?.meta) || undefined, text: (statId && CREATURE_LORE[statId]) || KIND_LORE[kind], image: artOf?.(name, id) || portrait },

@@ -38,6 +38,23 @@ export function fits(b: Battle, id: string | null, size: number, x: number, y: n
   return !b.tokens.some((t) => t.id !== id && t.x < x + size && x < t.x + t.size && t.y < y + size && y < t.y + t.size);
 }
 
+/** Tour en cours : le déplacement parcouru se remet à zéro à chaque changement de tour. */
+export const turnKey = (b: Battle) => `${b.round}:${b.turn ?? ''}`;
+const movedNow = (b: Battle) => (b.moved?.key === turnKey(b) ? b.moved : undefined);
+export const isDashing = (b: Battle, id: string) => !!movedNow(b)?.dash?.includes(id);
+export const usedMove = (b: Battle, id: string) => movedNow(b)?.used[id] ?? 0;
+/** Déplacement restant dans le tour, en cases : la vitesse (doublée en fonçant), moins ce qui a été parcouru. */
+export const moveLeft = (b: Battle, id: string, speed: number) => Math.max(0, speed * (isDashing(b, id) ? 2 : 1) - usedMove(b, id));
+/** Note un déplacement (en cases), ou change l'état « Foncer ». */
+export function withMove(b: Battle, id: string, patch: { cost?: number; dash?: boolean; reset?: boolean }): NonNullable<Battle['moved']> {
+  const cur = movedNow(b) ?? { key: turnKey(b), used: {}, dash: [] };
+  const used = { ...cur.used };
+  if (patch.reset) delete used[id];
+  if (patch.cost) used[id] = (used[id] ?? 0) + patch.cost;
+  const dash = patch.dash === undefined ? cur.dash ?? [] : patch.dash ? [...new Set([...(cur.dash ?? []), id])] : (cur.dash ?? []).filter((x) => x !== id);
+  return { key: turnKey(b), used, dash };
+}
+
 /** La place est-elle hors du plateau ou déjà prise par un autre jeton ? (le terrain n'est pas regardé) */
 export function overlaps(b: Battle, id: string | null, size: number, x: number, y: number) {
   if (x < 0 || y < 0 || x + size > b.cols || y + size > b.rows) return true;

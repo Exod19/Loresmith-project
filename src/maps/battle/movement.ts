@@ -12,7 +12,9 @@
  * - Pas de diagonale à travers un mur, ni entre deux obstacles qui se touchent par le coin.
  * - Une grande créature : toutes les cases de son empreinte doivent être praticables ; le pas le plus coûteux compte.
  * - Pont : une surface à part. On y monte depuis la rive (pas depuis l'eau) ; dessous, on nage.
- * - Les autres jetons ne bloquent pas le trajet ; seule la case d'arrivée doit être libre (vérifiée à part).
+ * - On ne traverse pas une créature hostile ; traverser une créature non hostile compte comme terrain difficile.
+ *   La case d'arrivée doit être libre (vérifiée à part).
+ * - Budget : la vitesse, doublée en cas de Foncer, moins ce qui a déjà été parcouru pendant ce tour.
  */
 import { cellLabel, OBJECT_DEF, TERRAIN_DEF, type CellInfo, type SurfaceRules } from './surface';
 
@@ -22,6 +24,22 @@ export interface Mover {
   /** Budget de déplacement, en cases (vitesse de vol pour une créature qui vole). */
   speed: number;
   swim?: boolean; climb?: boolean; fly?: boolean;
+  /** Cases occupées par les autres créatures : hostiles (infranchissables) ou non (terrain difficile). */
+  occ?: Map<number, 'ennemi' | 'allie'>;
+}
+
+/** Créatures sur le plateau, vues par celle qui se déplace : joueurs contre créatures, les autres sont neutres. */
+export function occupancy(cols: number, me: { id: string; kind: string }, tokens: { id: string; kind: string; x: number; y: number; size: number; unplaced?: boolean }[]) {
+  const occ = new Map<number, 'ennemi' | 'allie'>();
+  for (const t of tokens) {
+    if (t.id === me.id || t.unplaced) continue;
+    const hostile = (me.kind === 'pc' && t.kind === 'monster') || (me.kind === 'monster' && t.kind === 'pc');
+    for (let dy = 0; dy < t.size; dy++) for (let dx = 0; dx < t.size; dx++) {
+      const i = (t.y + dy) * cols + t.x + dx;
+      if (hostile || !occ.has(i)) occ.set(i, hostile ? 'ennemi' : 'allie');
+    }
+  }
+  return occ;
 }
 export type Spot = { x: number; y: number; layer?: Layer };
 
@@ -130,6 +148,9 @@ function step(r: SurfaceRules, m: Mover, x: number, y: number, la: Layer, dx: nu
       if ('blocked' in e) return null;
       cost = Math.max(cost, e.cost);
       tags.push(...e.tags);
+      const who = m.occ?.get(cy * r.cols + cx);
+      if (who === 'ennemi') return null;
+      if (who === 'allie') { cost = Math.max(cost, 2); tags.push('allie'); }
     }
   }
   for (let j = 0; j < s; j++) for (let i = 0; i < s; i++) {
@@ -199,7 +220,7 @@ export interface MovePlan {
   reason?: string;
 }
 
-const NOTE: Record<string, string> = { nage: 'nage', escalade: 'escalade', difficile: 'terrain difficile', glissant: 'sol glissant', danger: 'zone dangereuse', vol: 'en vol' };
+const NOTE: Record<string, string> = { nage: 'nage', escalade: 'escalade', difficile: 'terrain difficile', glissant: 'sol glissant', danger: 'zone dangereuse', vol: 'en vol', allie: 'à travers un allié' };
 
 /** Le trajet le moins coûteux vers une case, avec ce qu'il traverse : le même calcul pour l'aperçu et la validation. */
 export function planMove(r: SurfaceRules, m: Mover, from: Spot, to: { x: number; y: number }, budget = m.speed, field?: MoveField): MovePlan {
@@ -213,7 +234,8 @@ export function planMove(r: SurfaceRules, m: Mover, from: Spot, to: { x: number;
   if (!Number.isFinite(best)) {
     // Pourquoi : la case elle-même, ou le chemin (murs, obstacles).
     const here = enterCell(c, c?.deck ? 'pont' : 'sol', m);
-    let reason = 'blocked' in here ? here.blocked : 'Aucun passage : murs ou obstacles en travers';
+    let reason = 'blocked' in here ? here.blocked : 'Aucun passage : murs, obstacles ou créatures hostiles en travers';
+    for (let j = 0; j < m.size; j++) for (let i = 0; i < m.size; i++) if (m.occ?.get((to.y + j) * r.cols + to.x + i) === 'ennemi') reason = 'Une créature hostile occupe la place';
     if (!('blocked' in here) && m.size > 1) {
       for (let j = 0; j < m.size; j++) for (let i = 0; i < m.size; i++) {
         const q = r.cells[(to.y + j) * r.cols + to.x + i];

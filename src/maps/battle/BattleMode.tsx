@@ -31,8 +31,8 @@ import { detectLabel, trailProfile } from '../atlas/trails';
 import { describeLite } from '../atlas/lore';
 import { placeEncounter, type EncounterGroup } from './encounter';
 import { askAI, aiReady, parseJson } from '../../ai/client';
-import { baseGridOf, effectiveOf, fits, overlaps, placeTokens as placeOnBoard, surfaceOf } from './placement';
-import { moveField, moverOf, planMove, reachable, type MovePlan } from './movement';
+import { baseGridOf, effectiveOf, fits, isDashing, moveLeft, overlaps, placeTokens as placeOnBoard, surfaceOf, usedMove, withMove } from './placement';
+import { moveField, moverOf, occupancy, planMove, reachable, type MovePlan } from './movement';
 import { socleOf, TERRAIN_DEF, TERRAINS, type TerrainId } from './surface';
 import { useSurfaceEditor } from './SurfaceEditor';
 import type { PathView } from './SurfaceLayers';
@@ -51,6 +51,11 @@ type Box = { x: number; y: number; size: number };
 
 /** Capacités de déplacement d'un jeton : vitesses de sa fiche (ou déplacement du héros), modes accordés par le MJ. */
 const moverFor = (t: BattleToken) => moverOf(t, statOf(t)?.speed, speedCells(statOf(t)));
+/** …avec les autres créatures du plateau (hostiles infranchissables, alliés en terrain difficile). */
+const moverIn = (b: Battle, t: BattleToken) => ({ ...moverFor(t), occ: occupancy(b.cols, t, b.tokens) });
+/** Déplacement restant dans le tour (en cases). */
+const leftOf = (b: Battle, t: BattleToken) => moveLeft(b, t.id, moverFor(t).speed);
+const spot = (t: BattleToken) => ({ x: t.x, y: t.y, layer: t.layer === 'pont' ? 'pont' as const : 'sol' as const });
 /** Ce que le terrain impose au déplacement validé : à rappeler au MJ. */
 function terrainNotes(p: MovePlan): Note[] {
   const out: Note[] = [];
@@ -165,7 +170,7 @@ export default function BattleMode({
     const view = latestView.current;
     if (!t || !t.visible || (t.x === x && t.y === y)) return;
     // Mêmes règles que l'aperçu des joueurs : trajet possible, dans le déplacement du héros, case libre.
-    const plan = planMove(surfaceOf(view), moverFor(t), { x: t.x, y: t.y, layer: t.layer === 'pont' ? 'pont' : 'sol' }, { x, y });
+    const plan = planMove(surfaceOf(view), moverIn(view, t), spot(t), { x, y }, leftOf(cur, t));
     const free = plan.possible ? !overlaps(view, id, t.size, x, y) : false;
     if (!plan.ok || !free) {
       const why = !plan.possible ? plan.reason ?? 'Passage impossible' : !free ? 'La case d’arrivée est occupée.' : plan.reason ?? 'Trop loin';
@@ -177,7 +182,7 @@ export default function BattleMode({
     const exit = exitAt(view, { x, y, size: t.size });
     setLastMove(notes.length || exit ? { name: t.name, notes, exit: exit && { id, label: exit.label, passage: exit.id } } : null);
     if (exit) setInfoId(exit.id);
-    onBattle({ ...cur, tokens: cur.tokens.map((q) => (q.id === id ? { ...q, x, y, layer: plan.layer === 'pont' ? 'pont' : undefined } : q)) });
+    onBattle({ ...cur, tokens: cur.tokens.map((q) => (q.id === id ? { ...q, x, y, layer: plan.layer === 'pont' ? 'pont' : undefined } : q)), moved: withMove(cur, id, { cost: plan.cost }) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), []);
   const build: BattleBuild = b.build ?? { edits: {}, props: [] };
@@ -347,7 +352,7 @@ export default function BattleMode({
       if (t && drag.moved) {
         const x = drag.origin.x + drag.cur.x - drag.start.x, y = drag.origin.y + drag.cur.y - drag.start.y;
         // Même calcul que l'aperçu. Un trajet impossible est refusé, sauf déplacement libre du MJ (bouton ou Alt).
-        const plan = t.unplaced ? null : planMove(rules, moverFor(t), { x: t.x, y: t.y, layer: t.layer === 'pont' ? 'pont' : 'sol' }, { x, y });
+        const plan = t.unplaced ? null : planMove(rules, moverIn(bv, t), spot(t), { x, y }, leftOf(b, t));
         const free = freeMove || ev.altKey;
         const placeable = plan?.possible ? !overlaps(bv, t.id, t.size, x, y) : fits(bv, t.id, t.size, x, y) || (free && !overlaps(bv, t.id, t.size, x, y));
         if (plan && !plan.possible && !free) {
@@ -359,7 +364,9 @@ export default function BattleMode({
           // Sur une sortie : sa fiche s'ouvre (praticabilité, test à faire, destination).
           if (exit) setInfoId(exit.id);
           const layer = plan?.possible ? (plan.layer === 'pont' ? 'pont' as const : undefined) : rules.cells[y * b.cols + x]?.deck ? 'pont' as const : undefined;
-          patchToken(t.id, t.unplaced ? { x, y, unplaced: undefined, visible: true, layer } : { x, y, layer });
+          const patch = t.unplaced ? { x, y, unplaced: undefined, visible: true, layer } : { x, y, layer };
+          // Le trajet compte dans le déplacement du tour (pas un placement ni un déplacement libre du MJ).
+          set({ tokens: b.tokens.map((q) => (q.id === t.id ? { ...q, ...patch } : q)), ...(plan?.possible && !free ? { moved: withMove(b, t.id, { cost: plan.cost }) } : {}) });
         }
         justDropped.current = true;
         setTimeout(() => { justDropped.current = false; }, 0);
@@ -554,7 +561,7 @@ export default function BattleMode({
   // Portées : déplacement (cases atteignables, terrain compté) et anneau d'attaque, pour chaque créature et chaque joueur.
   const rangeOf = (t: BattleToken): BoardRange => ({
     id: t.id, x: t.x, y: t.y, size: t.size,
-    move: reachable(moveField(rules, moverFor(t), { x: t.x, y: t.y, layer: t.layer === 'pont' ? 'pont' : 'sol' })),
+    move: reachable(moveField(rules, moverIn(bv, t), spot(t)), leftOf(b, t)),
     attack: attackCells(statOf(t)), ranged: rangedCells(statOf(t)), selected: t.id === selectedId,
     ...(t.kind === 'pc' ? { sight: sightOf(t), search: 1 } : {}),
   });
@@ -620,7 +627,7 @@ export default function BattleMode({
   const moving = dragged && drag ? dragged : !building && selected && hover && !aiming && !selected.unplaced ? selected : null;
   const target = dragged && drag ? liveAt(dragged) : hover;
   const movePlan: MovePlan | null = moving && target && (target.x !== moving.x || target.y !== moving.y)
-    ? planMove(rules, moverFor(moving), { x: moving.x, y: moving.y, layer: moving.layer === 'pont' ? 'pont' : 'sol' }, target)
+    ? planMove(rules, moverIn(bv, moving), spot(moving), target, leftOf(b, moving))
     : null;
   const pathView: PathView | undefined = movePlan && moving ? {
     steps: movePlan.possible ? movePlan.steps : [{ x: moving.x, y: moving.y }, { x: target!.x, y: target!.y }],
@@ -889,7 +896,14 @@ export default function BattleMode({
             <div className="battle-token-opts" aria-label={`Options de ${selected.name}`}>
               <b>{selected.name}</b>
               {selected.layer === 'pont' && <span className="battle-token-layer">sur le pont</span>}
-              <span className="battle-sub">{m.speed * b.feetPerCell} pi{m.fly ? ' en vol' : ''}</span>
+              <span className={`battle-token-left ${leftOf(b, selected) ? '' : 'is-empty'}`} title="Déplacement restant pendant ce tour (remis à zéro au tour suivant)">
+                Reste <b>{leftOf(b, selected) * b.feetPerCell}</b> / {m.speed * (isDashing(b, selected.id) ? 2 : 1) * b.feetPerCell} pi{m.fly ? ' en vol' : ''}
+              </span>
+              <button className={`maps-btn ${isDashing(b, selected.id) ? 'gold' : ''}`} title="Foncer (action) : vitesse doublée pour ce tour"
+                onClick={() => set({ moved: withMove(b, selected.id, { dash: !isDashing(b, selected.id) }) })}>🏃 Foncer</button>
+              {usedMove(b, selected.id) > 0 && (
+                <button className="maps-btn" title="Rendre le déplacement de ce tour (erreur, retour en arrière)" onClick={() => set({ moved: withMove(b, selected.id, { reset: true }) })}>↺</button>
+              )}
               <label className="build-check" title="Nage : l'eau profonde compte normalement"><input type="checkbox" checked={!!m.swim} onChange={(e) => toggle('nage', e.target.checked)} /> Nage</label>
               <label className="build-check" title="Vol : ignore le sol (eau, vide, terrain difficile)"><input type="checkbox" checked={!!m.fly} onChange={(e) => toggle('vol', e.target.checked)} /> Vol</label>
               <label className="build-check" title="Escalade : parois et dénivelés comptent normalement"><input type="checkbox" checked={!!m.climb} onChange={(e) => toggle('escalade', e.target.checked)} /> Escalade</label>
@@ -986,7 +1000,7 @@ export default function BattleMode({
                   <>
                     <b>{movePlan.dest}</b>
                     {movePlan.possible
-                      ? <span className="battle-sub"> · {movePlan.cost * b.feetPerCell} pi{movePlan.notes.length ? ` (${movePlan.notes.join(', ')})` : ''}{movePlan.ok ? '' : ` · au-delà de ${moverFor(moving!).speed * b.feetPerCell} pi`}</span>
+                      ? <span className="battle-sub"> · {movePlan.cost * b.feetPerCell} pi{movePlan.notes.length ? ` (${movePlan.notes.join(', ')})` : ''}{movePlan.ok ? '' : ` · au-delà des ${leftOf(b, moving!) * b.feetPerCell} pi restants`}</span>
                       : <span className="battle-sub"> · ⛔ {movePlan.reason}</span>}
                   </>
                 ) : readout ? <span className="battle-sub">{readout.feet} pi à vol d'oiseau</span> : null}
