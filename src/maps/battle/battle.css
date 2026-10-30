@@ -920,3 +920,19 @@
 .attack-duel-arrow{font-size:18px;opacity:.85}
 .present-verdict-who{display:flex!important;flex-direction:row!important;align-items:center;justify-content:center;flex-wrap:wrap;gap:.4em}
 .present-verdict-who .present-verdict-pic{display:inline-block;flex:none;width:2.6em;height:2.6em;border-radius:50%;object-fit:cover;border:2px solid rgba(236,210,137,.6);box-shadow:0 2px 8px rgba(0,0,0,.6)}
+
+/* Zone d'effet : réglages et résolution des dégâts. */
+.battle-aoe-fx{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;padding:6px 0;border-top:1px solid rgba(201,162,74,.25)}
+.battle-aoe-fx .build-check{grid-column:1/-1}
+.battle-aoe-chip .maps-btn{padding:1px 7px;font-size:11.5px}
+.aoe-rule{margin:4px 0 8px;font-size:12.5px;color:#d8c9a2}
+.aoe-roll{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:8px;font-size:12.5px}
+.aoe-roll input{width:70px}
+.aoe-list{list-style:none;margin:0 0 8px;padding:0;display:flex;flex-direction:column;gap:4px}
+.aoe-list li{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:8px;padding:5px 8px;border-radius:7px;background:rgba(255,255,255,.03);border-left:3px solid #c0492f;font-size:12.5px}
+.aoe-list li[data-side="pc"]{border-left-color:#54d8c6}
+.aoe-list li[data-on="0"]{opacity:.45}
+.aoe-who{display:flex;align-items:center;gap:6px;min-width:0}
+.aoe-who b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.aoe-save input{width:56px;padding:2px 4px;text-align:center}
+.aoe-dmg b{font-size:15px;color:#ff9a6b}

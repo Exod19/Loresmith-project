@@ -99,3 +99,17 @@ test('plateau souterrain : galeries intérieures retirées, sorties au bord réd
   // Lieu-couloir : tout est roche, le passage est gardé entier.
   assert.equal(S.trimPassages('#'.repeat(18), [inner], cols, rows).length, 1);
 });
+
+test('dégâts de zone : sauvegarde de la fiche, moitié si réussie, résistances (pas celles « non magiques »)', () => {
+  assert.equal(S.damageFactor('feu', { resist: 'feu' }), 0.5);
+  assert.equal(S.damageFactor('feu', { immune: 'poison; feu' }), 0);
+  assert.equal(S.damageFactor('froid', { vuln: 'froid' }), 2);
+  assert.equal(S.damageFactor('contondant', { resist: 'contondants, perforants et tranchants d’attaques non magiques' }), 1);
+  assert.deepEqual(S.saveBonus('dex', { saves: 'Dex +5, Con +4', score: 10 }), { bonus: 5, proficient: true });
+  assert.deepEqual(S.saveBonus('sag', { saves: '', score: 14 }), { bonus: 2, proficient: false });
+  const fire = { dice: '8d6', type: 'feu', save: { ability: 'dex', dc: 15, half: true } };
+  assert.equal(S.aoeDamage(28, fire, false, 1), 28);
+  assert.equal(S.aoeDamage(28, fire, true, 1), 14);
+  assert.equal(S.aoeDamage(28, fire, true, 0.5), 7);
+  assert.equal(S.aoeDamage(28, { ...fire, save: { ...fire.save, half: false } }, true, 1), 0);
+});

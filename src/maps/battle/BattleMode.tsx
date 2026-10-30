@@ -38,7 +38,7 @@ import { hazardsOf, moveField, moverOf, occupancy, planMove, reachDetail, type M
 import { roll } from '../atlas/encounters';
 import { OPENABLE, socleOf, TERRAIN_DEF, TERRAINS, type SurfaceRules, type TerrainId } from './surface';
 import { useSurfaceEditor } from './SurfaceEditor';
-import { AOE_SHAPES, aoeName, aoeView, type AoeShape } from './aoe';
+import { AOE_PRESETS, AOE_SHAPES, aoeName, aoeView, DAMAGE_TYPES, SAVE_LABEL, type AoeEffect, type AoeShape, type BattleAoe, type SaveAbility } from './aoe';
 import type { PathView } from './SurfaceLayers';
 import './battle.css';
 
@@ -138,7 +138,7 @@ export type CombatSlot = {
   selectedId: string | null;
   onSelect: (id: string | null) => void;
   /** 'encounter' : le pupitre de combat, à droite du plateau ; 'attack' : le panneau de l'attaque en cours. */
-  area: 'encounter' | 'card' | 'attack';
+  area: 'encounter' | 'card' | 'attack' | 'aoe';
   /** Onglets propres à la carte (Lieu, Construire), rangés dans le pupitre à côté de ceux du combat. */
   side?: { tabs: { id: string; label: string; badge?: number }[]; active: string | null; onPick: (id: string | null) => void; render: (id: string) => ReactNode };
 };
@@ -196,7 +196,7 @@ export default function BattleMode({
   /** Déplacement libre du MJ : ignore les règles de terrain (déplacement exceptionnel). */
   const [freeMove, setFreeMove] = useState(false);
   /** Zone d'effet : réglages, outil de pose actif, origine choisie et point visé. */
-  const [aoeSetup, setAoeSetup] = useState<{ shape: AoeShape; size: number; label: string }>({ shape: 'sphere', size: 20, label: '' });
+  const [aoeSetup, setAoeSetup] = useState<{ shape: AoeShape; size: number; label: string; effect?: AoeEffect }>({ shape: 'sphere', size: 20, label: '' });
   const [aoeTool, setAoeTool] = useState(false);
   const [aoeOrigin, setAoeOrigin] = useState<[number, number] | null>(null);
   const [aoeAim, setAoeAim] = useState<[number, number] | null>(null);
@@ -372,8 +372,15 @@ export default function BattleMode({
   };
   /** Pose d'une zone d'effet ; elle reste sur le plateau jusqu'à ce que le MJ la retire. */
   const placeAoe = (o: [number, number], dir: number) => {
-    set({ aoes: [...(b.aoes ?? []), { id: uid(), shape: aoeSetup.shape, size: aoeSetup.size, x: o[0], y: o[1], dir, label: aoeSetup.label.trim() || undefined }] });
+    const a: BattleAoe = { id: uid(), shape: aoeSetup.shape, size: aoeSetup.size, x: o[0], y: o[1], dir, label: aoeSetup.label.trim() || undefined, effect: aoeSetup.effect };
+    // Avec des dégâts : la fenêtre de résolution s'ouvre aussitôt pour les créatures touchées.
+    set({ aoes: [...(b.aoes ?? []), a], ...(a.effect ? { aoeHit: { aoeId: a.id, targets: aoeTargets(a), at: Date.now() } } : {}) });
     setAoeTool(false); setAoeOrigin(null);
+  };
+  /** Créatures dans la zone (une case de leur empreinte suffit), moins le camp épargné. */
+  const aoeTargets = (a: BattleAoe) => {
+    const cells = aoeView(a, rules, b.feetPerCell).cells;
+    return b.tokens.filter((t) => !t.unplaced && touches(cells, t, b.cols) && !(a.effect?.spare && t.kind === a.effect.spare)).map((t) => t.id);
   };
   /** Point du plateau sous le pointeur, en cases (continu). */
   const pointAt = (clientX: number, clientY: number): [number, number] | null => {
@@ -1068,6 +1075,15 @@ export default function BattleMode({
             <details className="battle-menu battle-aoe-menu">
               <summary className={`maps-btn ${aoeTool ? 'gold' : ''}`}>✸ Zone d’effet ▾</summary>
               <div className="battle-menu-pop">
+                <label className="surface-field">Modèle
+                  <select value="" onChange={(e) => {
+                    const pr = AOE_PRESETS.find((x) => x.label === e.target.value);
+                    if (pr) setAoeSetup({ shape: pr.shape, size: pr.size, label: pr.label, effect: { ...pr.effect, save: pr.effect.save && { ...pr.effect.save } } });
+                  }}>
+                    <option value="">Choisir un sort ou un souffle…</option>
+                    {AOE_PRESETS.map((x) => <option key={x.label} value={x.label}>{x.label} · {x.effect.dice} {DAMAGE_TYPES.find((d) => d.id === x.effect.type)?.label.toLowerCase()}</option>)}
+                  </select>
+                </label>
                 <div className="build-seg">
                   {AOE_SHAPES.map((x) => (
                     <button key={x.shape} className={aoeSetup.shape === x.shape ? 'on' : ''} title={x.hint}
@@ -1082,6 +1098,43 @@ export default function BattleMode({
                 <label className="surface-field">Nom (facultatif)
                   <input value={aoeSetup.label} placeholder="Boule de feu" onChange={(e) => setAoeSetup({ ...aoeSetup, label: e.target.value })} />
                 </label>
+                <label className="build-check">
+                  <input type="checkbox" checked={!!aoeSetup.effect} onChange={(e) => setAoeSetup({ ...aoeSetup, effect: e.target.checked ? { dice: '8d6', type: 'feu', save: { ability: 'dex', dc: 15, half: true } } : undefined })} />
+                  Inflige des dégâts
+                </label>
+                {aoeSetup.effect && (() => {
+                  const fx = aoeSetup.effect;
+                  const setFx = (patch: Partial<AoeEffect>) => setAoeSetup({ ...aoeSetup, effect: { ...fx, ...patch } });
+                  return (
+                    <div className="battle-aoe-fx">
+                      <label className="surface-field">Dés <input value={fx.dice} onChange={(e) => setFx({ dice: e.target.value.replace(/\s/g, '') })} placeholder="8d6" /></label>
+                      <label className="surface-field">Nature
+                        <select value={fx.type} onChange={(e) => setFx({ type: e.target.value })}>
+                          {DAMAGE_TYPES.map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
+                        </select>
+                      </label>
+                      <label className="surface-field">Sauvegarde
+                        <select value={fx.save?.ability ?? ''} onChange={(e) => setFx({ save: e.target.value ? { ability: e.target.value as SaveAbility, dc: fx.save?.dc ?? 15, half: fx.save?.half ?? true } : undefined })}>
+                          <option value="">Aucune (touche d’office)</option>
+                          {(Object.keys(SAVE_LABEL) as SaveAbility[]).map((k) => <option key={k} value={k}>{SAVE_LABEL[k]}</option>)}
+                        </select>
+                      </label>
+                      {fx.save && (
+                        <>
+                          <label className="surface-field">DD <input type="number" min={5} max={30} value={fx.save.dc} onChange={(e) => setFx({ save: { ...fx.save!, dc: Number(e.target.value) || 10 } })} /></label>
+                          <label className="build-check"><input type="checkbox" checked={fx.save.half} onChange={(e) => setFx({ save: { ...fx.save!, half: e.target.checked } })} /> Moitié des dégâts si réussie</label>
+                        </>
+                      )}
+                      <label className="surface-field">Qui est touché
+                        <select value={fx.spare ?? ''} onChange={(e) => setFx({ spare: (e.target.value || undefined) as AoeEffect['spare'] })}>
+                          <option value="">Toutes les créatures (alliés compris)</option>
+                          <option value="pc">Épargner les héros</option>
+                          <option value="monster">Épargner les créatures</option>
+                        </select>
+                      </label>
+                    </div>
+                  );
+                })()}
                 <button className="maps-btn gold" onClick={(e) => { setAoeTool(true); setAoeOrigin(null); (e.currentTarget.closest('details') as HTMLDetailsElement | null)?.removeAttribute('open'); }}>Placer sur le plateau</button>
               </div>
             </details>
@@ -1155,11 +1208,13 @@ export default function BattleMode({
               const hit = view ? b.tokens.filter((t) => !t.unplaced && touches(view.cells, t, b.cols)).map((t) => t.name) : [];
               return (
                 <span key={a.id} className="battle-chip battle-aoe-chip">
-                  ✸ <b>{aoeName(a)}</b> · {hit.length ? `touche : ${hit.join(', ')}` : 'personne'}
-                  <button className="maps-link" onClick={() => set({ aoes: (b.aoes ?? []).filter((q) => q.id !== a.id) })} aria-label="Retirer la zone">✕</button>
+                  ✸ <b>{aoeName(a)}</b>{a.effect ? ` · ${a.effect.dice} ${DAMAGE_TYPES.find((d) => d.id === a.effect!.type)?.label.toLowerCase() ?? a.effect.type}` : ''} · {hit.length ? `touche : ${hit.join(', ')}` : 'personne'}
+                  {a.effect && <button className="maps-btn" title="Lancer les dégâts sur les créatures dans la zone (de nouveau, au tour suivant par exemple)" onClick={() => set({ aoeHit: { aoeId: a.id, targets: aoeTargets(a), at: Date.now() } })}>⚡ Résoudre</button>}
+                  <button className="maps-btn" onClick={() => set({ aoes: (b.aoes ?? []).filter((q) => q.id !== a.id), ...(b.aoeHit?.aoeId === a.id ? { aoeHit: undefined } : {}) })}>✕ Retirer</button>
                 </span>
               );
             })}
+            {(b.aoes ?? []).length > 1 && <button className="battle-chip" onClick={() => set({ aoes: [], aoeHit: undefined })}>✕ Tout retirer</button>}
           </div>
         )}
         {(b.walls ?? []).some((w) => OPENABLE.has(w.kind)) && !building && (
@@ -1243,11 +1298,16 @@ export default function BattleMode({
             </div>
           )}
           {/* Une seule colonne à gauche : l'attaque en cours, la fiche ouverte, puis les alertes du déplacement. */}
-          {renderCombat && (fiche || (b.aim && !building) || alertsNode) && (
+          {renderCombat && (fiche || ((b.aim || b.aoeHit) && !building) || alertsNode) && (
             <div className="battle-overlays">
               {b.aim && !building && (
                 <div className="battle-token-card battle-attack-card">
                   {renderCombat({ battle: b, setBattle: onBattle, place: placeTitle, combatKey, selectedId, onSelect: setSelectedId, area: 'attack' })}
+                </div>
+              )}
+              {b.aoeHit && !building && (
+                <div className="battle-token-card battle-attack-card">
+                  {renderCombat({ battle: b, setBattle: onBattle, place: placeTitle, combatKey, selectedId, onSelect: setSelectedId, area: 'aoe' })}
                 </div>
               )}
               {fiche}

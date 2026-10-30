@@ -219,6 +219,8 @@ export interface Battle {
   damage?: { id: string; to: string; amount: number; why: string }[];
   /** Zones d'effet de sorts posées sur le plateau (cf. battle/aoe.ts). */
   aoes?: BattleAoe[];
+  /** Zone dont les dégâts sont à résoudre : créatures touchées (la Table de guerre lance sauvegardes et dégâts). */
+  aoeHit?: { aoeId: string; targets: string[]; at: number };
   /** Déplacement déjà parcouru pendant le tour en cours (en cases), et qui fonce (vitesse doublée). `key` = round:tour. */
   moved?: { key: string; used: Record<string, number>; dash?: string[] };
   /** Jeton dont c'est le tour, et journal des derniers jets. */
