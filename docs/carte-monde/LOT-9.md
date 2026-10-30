@@ -1,4 +1,4 @@
-# Carte du monde : lot 9, climat et terrain (statut : à valider)
+# Carte du monde : lot 9, climat et terrain (statut : validé)
 
 ## Ce qui change
 

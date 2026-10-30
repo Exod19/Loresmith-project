@@ -1,4 +1,4 @@
-# Carte du monde : lot 13, monde extensible et mers nommées (statut : à valider)
+# Carte du monde : lot 13, monde extensible et mers nommées (statut : validé)
 
 ## Ce qui change
 

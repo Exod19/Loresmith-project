@@ -4,7 +4,7 @@
  * identique d'une fois à l'autre, puis traité comme l'Atlas des profondeurs par le reste de l'application.
  */
 import { useEffect, useRef } from 'react';
-import { cityPlanId, generateWorld, hashSeed, interiorPlanId, placeCity, seaNameOf, worldPlanId, type CitySpec, type Sea, type WorldSpec } from './generate';
+import { cityPlanId, generateWorld, hashSeed, interiorPlanId, landNameOf, placeCity, seaNameOf, worldPlanId, type CitySpec, type Sea, type WorldSpec } from './generate';
 import { nearestEdge } from './climate';
 import { DIR_ANGLE, PACE, atDir, SCALES, cityKm, cityRadiusKm, dirName, elevationAt, placeOn, reliefOf, seaBeyond, seaSideAt, toAt, toKm, worldFrame } from './terrain';
 import { norm } from './lore';
@@ -82,7 +82,32 @@ function grown(world: World, side: Side): [number, number, number, number] {
   return [f.x0 - (side === 'O' ? bw : 0), f.y0 - (side === 'N' ? bh : 0), f.x1 + (side === 'E' ? bw : 0), f.y1 + (side === 'S' ? bh : 0)];
 }
 /** Côtés où le monde peut s'agrandir : pas du côté d'une mer (au-delà, ce sont d'autres continents). */
-export const growSides = (world: World): Side[] => SIDES.filter((s) => !(world.seas ?? []).some((m) => m.side === s));
+export const growSides = (world: World): Side[] => SIDES.filter((s) => !(world.seas ?? []).some((m) => m.side === s && !m.crossed));
+
+/**
+ * Traverser une mer : le monde s'étend au-delà, jusqu'à l'autre rive et un peu plus. Ces terres lointaines (un autre
+ * continent) reçoivent un nom ; on peut ensuite y fonder des cités et des ports, reliés par la mer.
+ */
+export function crossSea(world: World, seaId: string): World {
+  const f = worldFrame(world);
+  const sea = (world.seas ?? []).find((s) => s.id === seaId);
+  if (f.legacy || !sea || sea.crossed || !sea.side) return world;
+  const sc = SCALES[f.scale];
+  const reach = sea.r * 1.15 + sc.h * 0.25;
+  const b: [number, number, number, number] = [f.x0, f.y0, f.x1, f.y1];
+  if (sea.side === 'S') b[3] = Math.max(b[3], sea.y + reach);
+  if (sea.side === 'N') b[1] = Math.min(b[1], sea.y - reach);
+  if (sea.side === 'E') b[2] = Math.max(b[2], sea.x + reach);
+  if (sea.side === 'O') b[0] = Math.min(b[0], sea.x - reach);
+  const off = sea.r * 1.3;
+  const at = sea.side === 'S' ? [sea.x, sea.y + off] : sea.side === 'N' ? [sea.x, sea.y - off] : sea.side === 'E' ? [sea.x + off, sea.y] : [sea.x - off, sea.y];
+  const id = String((world.lands ?? []).length + 1);
+  return {
+    ...world, bounds: b.map((v) => Math.round(v)) as [number, number, number, number], lat: f.lat,
+    seas: (world.seas ?? []).map((s) => (s.id === seaId ? { ...s, crossed: true } : s)),
+    lands: [...(world.lands ?? []), { id, name: landNameOf(world.seed, id), side: sea.side, x: Math.round(at[0]), y: Math.round(at[1]) }],
+  };
+}
 /** Agrandit le monde d'une bande d'un côté. Le relief est défini partout : rien de ce qui existe ne change. */
 export function expandWorld(world: World, side: Side): World {
   const f = worldFrame(world);
@@ -117,7 +142,7 @@ export function portChoices(world: World, spec: CitySpec) {
     const id = String(seas.length + 1);
     const sea: Sea = { ...seaBeyond(frame, at, id, side), name: seaNameOf(world.seed, id) };
     const withSea = reliefOf({ ...world, seas: [...seas, sea] }, frame, others);
-    const p = placeOn({ ...withSea, seas: [{ x: sea.x, y: sea.y, r: sea.r }] }, frame, pts, spec, wants, world.seed);
+    const p = placeOn({ ...withSea, seas: withSea.seas.filter((s) => s.x === sea.x && s.y === sea.y) }, frame, pts, spec, wants, world.seed);
     if (p && valid(p.km, withSea)) fresh = { sea, km: p.km, score: p.score };
   }
   return { existing, fresh };
@@ -252,12 +277,12 @@ export function withScale(world: World, scale: 'region' | 'royaume' | 'continent
   return { ...world, terrain: 2, scale, bounds: undefined, lat: undefined, seas, cities };
 }
 
-export type Travel = { id: string; name: string; km: number; effort: number; road: boolean; dir: string };
+export type Travel = { id: string; name: string; km: number; effort: number; road: boolean; dir: string; seaKm?: number };
 /** Distances depuis une cité : par la route (le plus court chemin dans le réseau), sinon à vol d'oiseau. */
 export function travelFrom(world: World, data: AtlasData, fromId: string): Travel[] {
   const frame = worldFrame(world);
-  const routes = ((data as AtlasData & { routes?: { a: string; b: string; km: number; effort: number }[] }).routes) ?? [];
-  const best = new Map<string, { km: number; effort: number }>([[fromId, { km: 0, effort: 0 }]]);
+  const routes = ((data as AtlasData & { routes?: { a: string; b: string; km: number; effort: number; sea?: boolean }[] }).routes) ?? [];
+  const best = new Map<string, { km: number; effort: number; seaKm: number }>([[fromId, { km: 0, effort: 0, seaKm: 0 }]]);
   const todo = [fromId];
   while (todo.length) {
     const u = todo.shift()!;
@@ -265,7 +290,7 @@ export function travelFrom(world: World, data: AtlasData, fromId: string): Trave
     for (const r of routes) {
       const v = r.a === u ? r.b : r.b === u ? r.a : null;
       if (!v) continue;
-      const cand = { km: bu.km + r.km, effort: bu.effort + r.effort };
+      const cand = { km: bu.km + r.km, effort: bu.effort + r.effort, seaKm: bu.seaKm + (r.sea ? r.km : 0) };
       if (!best.has(v) || best.get(v)!.effort > cand.effort) { best.set(v, cand); todo.push(v); }
     }
   }
@@ -277,7 +302,7 @@ export function travelFrom(world: World, data: AtlasData, fromId: string): Trave
     const r = best.get(c.id);
     const straight = Math.hypot(b[0] - a[0], b[1] - a[1]);
     return r
-      ? { id: c.id, name: c.name, km: r.km, effort: r.effort, road: true, dir: dirName(a, b) }
+      ? { id: c.id, name: c.name, km: r.km, effort: r.effort, road: true, dir: dirName(a, b), seaKm: r.seaKm }
       : { id: c.id, name: c.name, km: Math.round(straight * 10) / 10, effort: straight * 1.3, road: false, dir: dirName(a, b) };
   }).sort((x, y) => x.effort - y.effort);
 }

@@ -691,3 +691,7 @@
 .world-warn { color: #f0b46a; font-size: 12px; }
 .world-suggest { border: 1px solid rgba(240,200,103,.45); border-radius: 8px; padding: 8px; margin: 6px 0; background: rgba(240,200,103,.06); }
 .world-suggest p { margin: 0 0 6px; }
+/* Traversées en mer (lot 14) */
+.am-surface .am-road.tr-maritime .edge { display: none; }
+.am-surface .am-road.tr-maritime .top { stroke: #d8ecf2; stroke-dasharray: 7 6; opacity: .85; }
+.am-surface .am-road.tr-maritime:hover .top { stroke: #fff; }

@@ -1,4 +1,4 @@
-# Carte du monde : lot 11, conversations IA avec les PNJ (statut : à valider)
+# Carte du monde : lot 11, conversations IA avec les PNJ (statut : validé)
 
 ## Ce qui change
 

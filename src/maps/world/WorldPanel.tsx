@@ -9,7 +9,7 @@ import { SLOT_TYPES, citySpecDefaults, type Binding, type CitySpec, type Sea } f
 import { DISTRICT_LABEL, norm, type LoreEntry } from './lore';
 
 const entryText = (e: LoreEntry) => JSON.stringify([e.title, e.subtitle, e.shortSummary, e.body]);
-import { cityFromEntry, cityPlanId, expandWorld, growSides, portChoices, portSea, replaceCity, seaName, settlementEntries, travelFrom, unmetWants, withCity, withScale, worldPatch, worldPlanId, type World } from './index';
+import { cityFromEntry, cityPlanId, crossSea, expandWorld, growSides, portChoices, portSea, replaceCity, seaName, settlementEntries, travelFrom, unmetWants, withCity, withScale, worldPatch, worldPlanId, type World } from './index';
 import { CLIMATE_RANGES, nearestEdge } from './climate';
 import { PACE, SCALES, atDir, cityKm, daysLabel, dirName, worldFrame } from './terrain';
 
@@ -139,7 +139,13 @@ export default function WorldPanel({ rec, data, library, planId, revealed, onUpd
                   <li key={m.id}>
                     <b>{seaName(world, m)}</b> <small>· {({ N: 'au nord', S: 'au sud', E: 'à l’est', O: 'à l’ouest' } as Record<string, string>)[m.side ?? ''] ?? ''}</small>
                     <div className="maps-sub">Ports : {world.cities.filter((c) => c.port && portSea(world, c)?.id === m.id).map((c) => c.name).join(', ') || 'aucun'}</div>
-                    <button className="maps-btn" onClick={() => { const n = window.prompt('Nom de la mer ?', seaName(world, m))?.trim(); if (n) save({ ...world, seas: (world.seas ?? []).map((x) => (x.id === m.id ? { ...x, name: n } : x)) }); }}>✎ Renommer</button>
+                    {m.crossed
+                      ? <div className="maps-sub">Autre rive : {(world.lands ?? []).filter((l) => l.side === m.side).map((l) => l.name).join(', ') || 'terres lointaines'}</div>
+                      : null}
+                    <div className="maps-actions">
+                      <button className="maps-btn" onClick={() => { const n = window.prompt('Nom de la mer ?', seaName(world, m))?.trim(); if (n) save({ ...world, seas: (world.seas ?? []).map((x) => (x.id === m.id ? { ...x, name: n } : x)) }); }}>✎ Renommer</button>
+                      {!m.crossed && <button className="maps-btn" onClick={() => save(crossSea(world, m.id))} title="Le monde s’étend au-delà de la mer : une autre rive, un autre continent, où fonder des cités et des ports">🌊 Traverser : découvrir l’autre rive</button>}
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -229,13 +235,13 @@ export default function WorldPanel({ rec, data, library, planId, revealed, onUpd
               <li key={t.id}>
                 <b>{t.name}</b> <small>· {atDir(t.dir)}</small>
                 <div className="maps-sub">
-                  {Math.round(t.km)} km {t.road ? 'par la route' : 'à vol d’oiseau (pas de route)'} · {daysLabel(t.effort / PACE.normal)}
+                  {Math.round(t.km)} km {t.road ? (t.seaKm ? (t.seaKm >= t.km - 1 ? 'par la mer' : `par la route et la mer (dont ${Math.round(t.seaKm)} km en navire)`) : 'par la route') : 'à vol d’oiseau (pas de route)'} · {daysLabel(t.effort / PACE.normal).replace(' de marche', t.seaKm ? ' de voyage' : ' de marche')}
                   {' '}<small>(lent {daysLabel(t.effort / PACE.lent).replace(' de marche', '')}, rapide {daysLabel(t.effort / PACE.rapide).replace(' de marche', '')})</small>
                 </div>
               </li>
             ))}
           </ul>
-          <p className="maps-sub">Rythmes de D&amp;D 5e : lent 29 km, normal 38 km, rapide 48 km par jour. Pentes, cols et forêts allongent le trajet.</p>
+          <p className="maps-sub">Rythmes de D&amp;D 5e : lent 29 km, normal 38 km, rapide 48 km par jour. Pentes, cols et forêts allongent le trajet. En navire : environ 120 km par jour.</p>
         </>
       )}
 

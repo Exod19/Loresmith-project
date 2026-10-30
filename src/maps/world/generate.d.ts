@@ -61,10 +61,12 @@ export interface Avatar {
 /** `canon` : lieux tirés au sort que le MJ a gardés tels quels (ils ne sont plus des brouillons). */
 export interface WorldSpec { seed: number; name: string; cities: CitySpec[]; bindings: Record<string, Binding>; interiors?: string[]; time?: Period; season?: Season; residents?: Record<string, Resident[]>; names?: Record<string, string>; canon?: string[]; avatar?: Avatar; climate?: WorldClimate;
   /** Mondes à l'échelle (lot 12) : version du terrain, échelle, bornes (km), latitudes du climat, mers. */
-  terrain?: 2; scale?: 'region' | 'royaume' | 'continent'; bounds?: [number, number, number, number]; lat?: [number, number]; seas?: Sea[] }
+  terrain?: 2; scale?: 'region' | 'royaume' | 'continent'; bounds?: [number, number, number, number]; lat?: [number, number]; seas?: Sea[];
+  /** Terres d'au-delà des mers (autres continents) : nom et point où l'écrire (km). */
+  lands?: { id: string; name: string; side: string; x: number; y: number }[] }
 
 export interface Near { km: number; dir?: string; to: string; label?: string }
-export interface Sea { id: string; name?: string; x: number; y: number; r: number; side?: string }
+export interface Sea { id: string; name?: string; x: number; y: number; r: number; side?: string; crossed?: boolean; ax?: number }
 
 /** Climat du monde : hémisphère (nord : froid en haut de la carte ; sud : l'inverse) et étendue des climats. */
 export interface WorldClimate { hemisphere?: 'nord' | 'sud'; range?: 'complet' | 'froid' | 'tempere' | 'chaud' }
@@ -95,3 +97,4 @@ export function citySlots(spec: CitySpec, planId: string): Slot[];
 export function interiorPlanId(slotId: string): string;
 export function rasterGround(surface: Surface, W: number, H: number, win: { x0: number; y0: number; w: number; h: number }, cols: number, rows: number, seed?: number): string;
 export function seaNameOf(seed: number, id: string): string;
+export function landNameOf(seed: number, id: string): string;

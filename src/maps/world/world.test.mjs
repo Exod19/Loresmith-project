@@ -476,3 +476,26 @@ test('monde agrandi : ce qui existe ne bouge pas sur le terrain', async () => {
   // Le climat garde ses latitudes : la cité du nord reste au même climat.
   assert.equal(A.maps.find((m) => m.id === 'map-r-c-b').surface.climate, B.maps.find((m) => m.id === 'map-r-c-b').surface.climate);
 });
+
+test('voyages en mer : traversées entre ports, terres d’au-delà', async () => {
+  const T = await import('./terrain.js');
+  const seas = [{ id: '1', x: 0, y: 330, r: 190, side: 'S' }];
+  const base = { seed: 42, name: 'T', terrain: 2, scale: 'royaume', bindings: {}, seas, cities: [{ id: 'a', name: 'Brumeval', population: 1500, km: [0, 0] }] };
+  const f = T.worldFrame(base);
+  const rel = T.reliefOf(base, f, [{ km: [0, 0] }]);
+  const p1 = T.placeOn(rel, f, [[0, 0]], { id: 'p1', population: 3000, port: true }, [], 42);
+  const p2 = T.placeOn(rel, f, [[0, 0], p1.km], { id: 'p2', population: 1200, port: true }, [], 42);
+  const w = { ...base, cities: [...base.cities, { id: 'p1', name: 'Havre', population: 3000, km: p1.km, port: true }, { id: 'p2', name: 'Sel', population: 1200, km: p2.km, port: true }] };
+  const d = generateWorld(w, 'r');
+  const sea = d.routes.find((r) => r.sea);
+  assert.ok(sea, 'une traversée');
+  // En navire, le voyage est bien plus rapide qu'à pied pour la même distance.
+  assert.ok(sea.effort < sea.km / 2);
+  const f2 = d.features.find((x) => x.trace === 'maritime');
+  assert.match(f2.subtitle, /en navire/);
+  // Terres d'au-delà de la mer : leur nom sur la carte quand elles sont dans le monde.
+  const far = generateWorld({ ...w, bounds: [-250, -175, 250, 700], lands: [{ id: '1', name: 'Terres de Test', side: 'S', x: 0, y: 580 }] }, 'r');
+  assert.ok(far.features.some((x) => x.id === 'map-r:terres-1' && x.title === 'Terres de Test'));
+  // L'autre rive est bien de la terre ferme.
+  assert.ok(T.elevationAt(T.reliefOf({ ...w }, T.worldFrame({ ...w, bounds: [-250, -175, 250, 700] }), []), 0, 580) > 0);
+});

@@ -16,7 +16,7 @@ export type FeatureCategory =
   | 'vivant' | 'evenement' | 'institution' | 'ruine' | 'garde' | 'indetermine';
 
 /** Familles de chemins, du plus large au plus discret. */
-export type Trace = 'tunnel' | 'galerie' | 'boyau' | 'etroit' | 'crevasse' | 'ruisseau' | 'secret';
+export type Trace = 'tunnel' | 'galerie' | 'boyau' | 'etroit' | 'crevasse' | 'ruisseau' | 'secret' | 'maritime';
 
 export type ConnectionKind = 'tunnel' | 'galerie' | 'escalier' | 'puits' | 'ascenseur' | 'pont' | 'portail' | 'naturel' | 'inconnu';
 

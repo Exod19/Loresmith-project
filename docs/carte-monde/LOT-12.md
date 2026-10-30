@@ -1,4 +1,4 @@
-# Carte du monde : lot 12, échelle, relief, distances et placement (statut : à valider)
+# Carte du monde : lot 12, échelle, relief, distances et placement (statut : validé)
 
 ## Ce qui change
 

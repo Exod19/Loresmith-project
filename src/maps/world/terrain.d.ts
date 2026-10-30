@@ -1,5 +1,5 @@
 export type Frame = { legacy: boolean; scale: 'region' | 'royaume' | 'continent'; m: number; x0: number; y0: number; x1: number; y1: number; W: number; H: number; lat: [number, number] };
-export type Relief = { v: 2; seed: number; m: number; bounds: [number, number, number, number]; lat: [number, number]; climate: { hemisphere: string; range: string }; season: string | null; seas: { x: number; y: number; r: number }[]; flats: { x: number; y: number; r: number; port: boolean }[] };
+export type Relief = { v: 2; seed: number; m: number; bounds: [number, number, number, number]; lat: [number, number]; climate: { hemisphere: string; range: string }; season: string | null; seas: { x: number; y: number; r: number; ax?: number; side?: string }[]; flats: { x: number; y: number; r: number; port: boolean }[] };
 export const SCALES: Record<'region' | 'royaume' | 'continent', { label: string; m: number; w: number; h: number }>;
 export const PACE: { lent: number; normal: number; rapide: number };
 export const TRAVEL: Record<string, number>;
@@ -18,6 +18,9 @@ export function terrainAt(relief: Relief, x: number, y: number, e?: number): { e
 export function slopeAt(relief: Relief, x: number, y: number, step: number): number;
 export function renderRelief(relief: Relief, w: number, h: number): Uint8ClampedArray;
 export function seaSideAt(relief: Relief, km: [number, number], r: number): 'N' | 'S' | 'E' | 'O' | null;
-export function seaBeyond(frame: Frame, km: [number, number], id: string, side?: string): { id: string; x: number; y: number; r: number; side: string };
+export function seaBeyond(frame: Frame, km: [number, number], id: string, side?: string): { id: string; x: number; y: number; r: number; side: string; ax: number };
 export function placeOn(relief: Relief, frame: Frame, others: [number, number][], spec: unknown, wants?: unknown[], seed?: number): { km: [number, number]; score: number } | null;
 export function atDir(d: string): string;
+export function travelGrid(relief: Relief, lakes?: [number, number][][], mode?: 'terre' | 'mer'): unknown;
+export function routeOn(grid: unknown, a: [number, number], b: [number, number]): { pts: [number, number][]; km: number; effort: number } | null;
+export function nearestWater(grid: unknown, km: [number, number], maxKm: number): [number, number] | null;

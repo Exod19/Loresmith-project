@@ -24,7 +24,7 @@ const PIN_R = { landmark: 17, regional: 14, local: 10, detail: 5 } as const;
 const LBL_FS = { landmark: 15, regional: 13, local: 12, detail: 11 } as const;
 const traceOf = (f: AtlasFeature): Trace => f.trace ?? (f.importance === 'landmark' ? 'galerie' : f.importance === 'regional' ? 'galerie' : 'boyau');
 /** Largeur des passages (unités de plan) : de vrais vides creusés dans la roche, pas des routes. */
-const PASS_W: Record<Trace, number> = { tunnel: 30, galerie: 19, boyau: 10, etroit: 6.5, crevasse: 0, ruisseau: 0, secret: 0 };
+const PASS_W: Record<Trace, number> = { tunnel: 30, galerie: 19, boyau: 10, etroit: 6.5, crevasse: 0, ruisseau: 0, secret: 0, maritime: 0 };
 const FLOOR = '#1f2a29', WALL = '#030607', RIM = '#6b7a75';
 /** Plans de surface : largeur des rues en mètres selon le tracé, et décor peint sous les rues (le reste par-dessus). */
 const ROAD_M: Partial<Record<Trace, number>> = { tunnel: 7.2, galerie: 5.4, boyau: 3.4, etroit: 2.4 };

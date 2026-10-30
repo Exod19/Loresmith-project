@@ -87,7 +87,7 @@ export function reliefOf(world, frame, cities) {
     v: 2, seed: (world.seed ?? 1) >>> 0, m: frame.m, bounds: [frame.x0, frame.y0, frame.x1, frame.y1], lat: frame.lat,
     climate: { hemisphere: world.climate?.hemisphere ?? 'nord', range: world.climate?.range ?? 'complet' },
     season: world.season ?? null,
-    seas: (world.seas ?? []).map((s) => ({ x: s.x, y: s.y, r: s.r })),
+    seas: (world.seas ?? []).map((s) => ({ x: s.x, y: s.y, r: s.r, ...(s.ax && s.side ? { ax: s.ax, side: s.side } : {}) })),
     // Les cités aplanissent le terrain autour d'elles (une cité ne s'accroche pas à un pic) ; leurs champs colorent la campagne.
     flats: cities.map((c) => ({ x: r3(c.km[0]), y: r3(c.km[1]), r: r3(Math.max(cityRadiusKm(c), 0.4)), port: !!c.port })),
   };
@@ -140,6 +140,10 @@ function coastNoise(F, relief, sea) {
   return f;
 }
 const ridge = (n) => 1 - Math.abs(2 * n - 1);
+/** Allongement d'une mer le long de son côté (les mers d'avant le lot 14 restent rondes). */
+const seaStretch = (s) => (s.ax && s.side ? (s.side === 'N' || s.side === 'S' ? [s.ax, 1] : [1, s.ax]) : [1, 1]);
+/** Distance « elliptique » au centre d'une mer (km, ramenée au rayon). */
+const seaDist = (s, x, y) => { const [sx, sy] = seaStretch(s); return Math.hypot((x - s.x) / sx, (y - s.y) / sy); };
 
 /** Altitude (m) en un point (km) : collines, chaînes de montagnes, plaines des cités, mers. */
 export function elevationAt(relief, x, y) {
@@ -164,7 +168,7 @@ export function elevationAt(relief, x, y) {
     if (d < c.r * 4) e = Math.min(e, 220) + (e - Math.min(e, 220)) * smooth(c.r, c.r * 4, d);
   }
   for (const s of relief.seas) {
-    const d = Math.hypot(x - s.x, y - s.y);
+    const d = seaDist(s, x, y);
     if (d > s.r * 1.6) continue;
     const v = (s.r - d) / s.r + (coastNoise(F, relief, s)(x, y) - 0.5) * 0.7;
     e -= smooth(-0.06, 0.2, v) * (900 + 2500 * clamp(v, 0, 1));
@@ -376,7 +380,7 @@ export function landmarksOf(relief) {
  * Grille de coût du voyage : la pente, la haute montagne et la forêt ralentissent ; la mer et les lacs bloquent.
  * `lakes` : polygones (km).
  */
-export function travelGrid(relief, lakes = []) {
+export function travelGrid(relief, lakes = [], mode = 'terre') {
   const [x0, y0, x1, y1] = relief.bounds;
   const g = Math.max(fieldsOf(relief).minW * 1.2, (x1 - x0) / 220);
   const cols = Math.ceil((x1 - x0) / g) + 1, rows = Math.ceil((y1 - y0) / g) + 1;
@@ -385,6 +389,8 @@ export function travelGrid(relief, lakes = []) {
   const inLake = (x, y) => lakes.some((p) => { let ins = false; for (let a = 0, b = p.length - 1; a < p.length; b = a++) { const [xa, ya] = p[a], [xb, yb] = p[b]; if ((ya > y) !== (yb > y) && x < ((xb - xa) * (y - ya)) / (yb - ya) + xa) ins = !ins; } return ins; });
   for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
     const k = j * cols + i, e = E[k];
+    // En mer : l'eau seulement (un navire longe les côtes sans les toucher).
+    if (mode === 'mer') { cost[k] = e < -15 ? 1 : e < 0 ? 1.6 : Infinity; continue; }
     if (e < 0) { cost[k] = Infinity; continue; }
     const dx = (E[j * cols + Math.min(cols - 1, i + 1)] - E[j * cols + Math.max(0, i - 1)]) / (2 * g * 1000);
     const dy = (E[Math.min(rows - 1, j + 1) * cols + i] - E[Math.max(0, j - 1) * cols + i]) / (2 * g * 1000);
@@ -452,6 +458,19 @@ export function routeOn(grid, a, b) {
   return { pts: pts.map(([x, y]) => [r3(x), r3(y)]), km: r1(km), effort: r1(effort) };
 }
 
+/** Point d'eau navigable le plus proche (km) d'un port, dans un rayon donné : le départ d'une traversée. */
+export function nearestWater(grid, km, maxKm) {
+  const { g, cols, rows, x0, y0, cost } = grid;
+  const ci = Math.round((km[0] - x0) / g), cj = Math.round((km[1] - y0) / g), n = Math.ceil(maxKm / g);
+  let best = null;
+  for (let j = Math.max(0, cj - n); j <= Math.min(rows - 1, cj + n); j++) for (let i = Math.max(0, ci - n); i <= Math.min(cols - 1, ci + n); i++) {
+    if (!Number.isFinite(cost[j * cols + i])) continue;
+    const d = Math.hypot(i - ci, j - cj);
+    if (!best || d < best.d) best = { d, p: [x0 + i * g, y0 + j * g] };
+  }
+  return best ? best.p : null;
+}
+
 /** Effort (km équivalents) à travers champs, en ligne droite : la pente et la forêt comptent pleinement. */
 export function crossCountry(grid, a, b) {
   const n = Math.max(2, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / grid.g));
@@ -492,7 +511,8 @@ export function seaBeyond(frame, km, id, forced) {
   // Le centre est au large : le rivage passe à peu près par le point demandé (jamais plus loin que le bord).
   const reach = Math.max(r * 0.55, r * 0.92 - d[side]);
   const c = side === 'O' ? [frame.x0 - reach, km[1]] : side === 'E' ? [frame.x1 + reach, km[1]] : side === 'N' ? [km[0], frame.y0 - reach] : [km[0], frame.y1 + reach];
-  return { id, x: r3(c[0]), y: r3(c[1]), r: r3(r), side };
+  // Une mer s'allonge le long de la côte (un bras de mer d'un bord à l'autre), pas un lac rond.
+  return { id, x: r3(c[0]), y: r3(c[1]), r: r3(r), side, ax: 2.4 };
 }
 
 /**
@@ -540,7 +560,8 @@ export function placeOn(relief, frame, others, spec, wants = [], seed = 1) {
   if (spec.port) for (const s of relief.seas) for (let k = 0; k < 160; k++) {
     const a = r() * Math.PI * 2;
     for (let f = 0.55; f < 1.3; f += 0.04) {
-      const x = s.x + Math.cos(a) * s.r * f, y = s.y + Math.sin(a) * s.r * f;
+      const [sx, sy] = seaStretch(s);
+      const x = s.x + Math.cos(a) * s.r * f * sx, y = s.y + Math.sin(a) * s.r * f * sy;
       if (elevationAt(relief, x, y) > 4) { tryAt(x + Math.cos(a) * rc * 0.5, y + Math.sin(a) * rc * 0.5); break; }
     }
   }

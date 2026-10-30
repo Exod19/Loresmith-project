@@ -1,4 +1,4 @@
-# Carte du monde : lot 10, saisons (statut : à valider)
+# Carte du monde : lot 10, saisons (statut : validé)
 
 ## Ce qui change
 

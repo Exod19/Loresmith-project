@@ -23,7 +23,7 @@ import { placeHazard, trailHazard, type Hazard } from './atlas/hazards';
 import TrialPanel from './TrialPanel';
 import { searchFor, type SearchEntry } from './battle/search';
 import { VISION_R, seedExplored } from './playerBoard';
-import { hoursLabel, hoursOf, legsOf, lengthOf, subpath, type Leg } from './journey';
+import { hoursLabel, hoursOn, legsOf, lengthOf, subpath, type Leg } from './journey';
 import { journeyMs } from './atlas/MapCanvas';
 import { detectLabel, noticedPassively, passiveOf, trailProfile } from './atlas/trails';
 import Interactables from './Interactables';
@@ -412,12 +412,14 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
    * Prendre une direction sur un chemin jusqu'à la prochaine étape. Toutes les 1 à 2 heures de marche (jeu), le groupe
    * fait halte en chemin : le MJ décide d'une rencontre, la tire au hasard, ou laisse le groupe continuer.
    */
+  /** Heures entre deux jets de rencontre : 1 à 2 h sous terre ou en ville ; une ou deux fois par jour sur la carte du monde. */
+  const checkEvery = () => (map.surface?.theme === 'monde' ? 4 + Math.random() * 4 : 1 + Math.random());
   const go = (e: { f: { id: string; title: string }; leg: Leg }, note?: string) => {
     const leg = e.leg;
     if (!leg.to) return;
     const fork = leg.aside ? forkOf(e.f, leg) : undefined;
     const walked = party.walked ?? 0;
-    const nextCheck = party.nextCheck ?? 1 + Math.random();
+    const nextCheck = party.nextCheck ?? checkEvery();
     if (walked + leg.hours >= nextCheck && leg.hours > 0.2) {
       const frac = Math.max(0.2, Math.min(0.8, (nextCheck - walked) / leg.hours));
       const L = lengthOf(leg.points);
@@ -480,7 +482,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     if (choice === 'out') {
       // Le court passage jusqu'au lieu : son épreuve s'il est dangereux, puis la marche (et sa halte de rencontre).
       const points: [number, number][] = [k.point, k.placeAt];
-      const leg: Leg = { dir: k.dir, to: k.place, points, hours: hoursOf(lengthOf(points), f.trace), toward: '' };
+      const leg: Leg = { dir: k.dir, to: k.place, points, hours: hoursOn(map, points, f.trace), toward: '' };
       const place = data.features.find((x) => x.id === k.place.id);
       const hazard = place ? placeHazard(place) : null;
       if (hazard) { setTrial({ trailId: f.id, trail: `passage vers ${k.place.title}`, to: k.place, hazard, by, leg, aside: true }); setSide('lieu'); return; }
@@ -512,7 +514,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     const h = party.halt;
     if (!h) return;
     const walked = party.walked ?? 0;
-    const nextCheck = walked + 1 + Math.random();
+    const nextCheck = walked + checkEvery();
     const alert = calm ? calmAlert() : undefined;
     if (back) {
       const from = h.from ?? party.at;

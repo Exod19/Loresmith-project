@@ -43,7 +43,7 @@ export function rng(seed) {
 import { generateInterior } from './interior.js';
 import { EDGE_ANGLE, biomeOf, climateOf, smoothNoise, temperatureAt } from './climate.js';
 import { SNOW_LINE, snowOf } from './seasons.js';
-import { PACE, SCALES, cityKm, cityRadiusKm, daysLabel, landmarksOf, reliefOf, riversOf, routeOn, slopeAt, terrainAt, toAt, travelGrid, worldFrame } from './terrain.js';
+import { PACE, SCALES, TRAVEL, cityKm, nearestWater, cityRadiusKm, daysLabel, landmarksOf, reliefOf, riversOf, routeOn, slopeAt, terrainAt, toAt, travelGrid, worldFrame } from './terrain.js';
 
 /* ——— Types de bâtiments ——— */
 
@@ -1381,7 +1381,7 @@ function terrainV2(o) {
     const d = rectPath(l.poly.map(U));
     decor.push({ kind: T < 0.3 ? 'shore-cold' : 'shore', d });
     push(season === 'hiver' && T < 0.45 ? 'lake-ice' : 'lake', d);
-    if (inside([l.x, l.y])) addPoint({ ...base, id: `${wid}:lac-${l.id}`, title: `Lac de ${placeName(nameRng(`lac:${l.id}`))}`, category: 'eau', importance: 'local', minZoom: 0.9, area: true }, ...N([l.x, l.y]));
+    if (inside([l.x, l.y])) addPoint({ ...base, id: `${wid}:lac-${l.id}`, title: `Lac ${deName(placeName(nameRng(`lac:${l.id}`)))}`, category: 'eau', importance: 'local', minZoom: 0.9, area: true }, ...N([l.x, l.y]));
   }
   for (const r of rivers) {
     decor.push({ kind: 'stream', d: linePath(r.pts.map(U)) });
@@ -1393,8 +1393,8 @@ function terrainV2(o) {
   }
   // Forêts, montagnes, mers : leurs noms, au cœur de chacune.
   for (const m of landmarksOf(relief)) {
-    if (m.kind === 'foret') addPoint({ ...base, id: `${wid}:foret-${m.id}`, title: `${m.biome === 'taiga' ? 'Forêt' : nameRng(`fb:${m.id}`)() < 0.5 ? 'Forêt' : 'Bois'} de ${placeName(nameRng(`foret:${m.id}`))}`, category: 'vivant', importance: 'local', minZoom: 0.9, area: true }, ...N([m.x, m.y]));
-    else addPoint({ ...base, id: `${wid}:monts-${m.id}`, title: `Monts de ${placeName(nameRng(`monts:${m.id}`))}`, subtitle: `Sommets vers ${(Math.round(m.e / 100) * 100).toLocaleString('fr-CA')} m`, category: 'vivant', importance: 'regional', minZoom: 0, area: true }, ...N([m.x, m.y]));
+    if (m.kind === 'foret') addPoint({ ...base, id: `${wid}:foret-${m.id}`, title: `${m.biome === 'taiga' ? 'Forêt' : nameRng(`fb:${m.id}`)() < 0.5 ? 'Forêt' : 'Bois'} ${deName(placeName(nameRng(`foret:${m.id}`)))}`, category: 'vivant', importance: 'local', minZoom: 0.9, area: true }, ...N([m.x, m.y]));
+    else addPoint({ ...base, id: `${wid}:monts-${m.id}`, title: `Monts ${deName(placeName(nameRng(`monts:${m.id}`)))}`, subtitle: `Sommets vers ${(Math.round(m.e / 100) * 100).toLocaleString('fr-CA')} m`, category: 'vivant', importance: 'regional', minZoom: 0, area: true }, ...N([m.x, m.y]));
   }
   for (const sea of world.seas ?? []) {
     // Le nom de la mer, au large de la côte la plus proche du centre du monde.
@@ -1405,7 +1405,7 @@ function terrainV2(o) {
       if (inside(p) && relief && elevationIsSea(relief, p)) { at = [cx + (sea.x - cx) * Math.min(1, t + 0.08), cy + (sea.y - cy) * Math.min(1, t + 0.08)]; break; }
     }
     if (!at || !inside(at)) continue;
-    addPoint({ ...base, id: `${wid}:mer-${sea.id}`, title: sea.name || `Mer de ${placeName(nameRng(`mer:${sea.id}`))}`, category: 'eau', importance: 'landmark', minZoom: 0, area: true }, ...N(at));
+    addPoint({ ...base, id: `${wid}:mer-${sea.id}`, title: sea.name || `Mer ${deName(placeName(nameRng(`mer:${sea.id}`)))}`, category: 'eau', importance: 'landmark', minZoom: 0, area: true }, ...N(at));
   }
 
   // Cités : leur vraie taille (une cité de 1 500 habitants fait un kilomètre ou deux), et un repère qui l'ouvre.
@@ -1468,7 +1468,7 @@ function terrainV2(o) {
       const hk = [frame.x0 + (hu[0] * S) / 1000, frame.y0 + (hu[1] * S) / 1000];
       const t = terrainAt(relief, hk[0], hk[1]);
       if (t.sea || t.e > 1500) continue;
-      const hname = `Hameau de ${placeName(r)}`;
+      const hname = `Hameau ${deName(placeName(r))}`;
       const hid = `hameau-${A.c.id}-${B.c.id}${k ? `-${k + 1}` : ''}`;
       const spec = citySpecDefaults({ id: hid, name: hname, population: 50 + Math.floor(r() * 170), village: true, walls: false, castle: false, highTown: false, faubourgs: false, farms: true, river: false, at: N(hk) });
       const hpid = cityPlanId(mapRecordId, hid);
@@ -1484,6 +1484,37 @@ function terrainV2(o) {
       anchors.push({ id: aid, mapId: wid, at: N(hk), label: hname });
       for (const gt of hg.gates) connections.push({ id: `cx-${hid}-${gt.i}`, kind: 'naturel', fromAnchorId: gt.anchorId, toAnchorId: aid, direction: 'both', title: `${gt.name} · ${hname}`, ...base });
     }
+  }
+
+  // Traversées : chaque port est relié par la mer à ses deux ports les plus proches (même mer, ou par-delà).
+  const ports = cities.map((c, i) => ({ c, i })).filter((x) => x.c.port);
+  if (ports.length > 1) {
+    const sea = travelGrid(relief, [], 'mer');
+    const done = new Set();
+    for (const p of ports) {
+      const near = ports.filter((q) => q !== p).sort((a, b) => dist(p.i, a.i) - dist(p.i, b.i)).slice(0, 2);
+      for (const q of near) {
+        const [a, b] = p.c.id < q.c.id ? [p, q] : [q, p];
+        const key = `${a.c.id}-${b.c.id}`;
+        if (done.has(key)) continue;
+        done.add(key);
+        // Du port au large : on part du point d'eau le plus proche de chaque port.
+        const wa = nearestWater(sea, cityKms[a.i], 12), wb = nearestWater(sea, cityKms[b.i], 12);
+        const leg = wa && wb ? routeOn(sea, wa, wb) : null;
+        if (!leg) continue;
+        const pts = [cityKms[a.i], ...leg.pts, cityKms[b.i]];
+        const r = { pts, km: Math.round(polyLen(pts) * 10) / 10 };
+        const id = `${wid}:mer-route-${key}`;
+        const days = r.km / TRAVEL.navire;
+        routes.push({ a: a.c.id, b: b.c.id, km: r.km, effort: Math.round((r.km * PACE.normal * 10) / TRAVEL.navire) / 10, sea: true });
+        features.push({ ...base, id, title: `Traversée de ${a.c.name} à ${b.c.name}`, subtitle: `${Math.round(r.km)} km · ${days < 1 ? `${Math.max(1, Math.round(days * 24))} h` : `${Math.round(days * 2) / 2} jour${days >= 1.75 ? 's' : ''}`} en navire`.replace('.5', ' ½'), category: 'voie', importance: 'regional', minZoom: 0, trace: 'maritime' });
+        geometries.push({ id: `g-${id}`, mapId: wid, featureId: id, type: 'polyline', coordinates: r.pts.map(N) });
+      }
+    }
+  }
+  // Terres d'au-delà des mers : leur nom, sur l'autre rive.
+  for (const land of world.lands ?? []) {
+    if (inside([land.x, land.y])) addPoint({ ...base, id: `${wid}:terres-${land.id}`, title: land.name, subtitle: 'Terres d’au-delà de la mer', category: 'vivant', importance: 'landmark', minZoom: 0, area: true }, ...N([land.x, land.y]));
   }
 
   const out = (ks) => ks.filter((k) => paths[k]).map((k) => ({ kind: k, d: paths[k].join('') }));
@@ -1513,4 +1544,9 @@ function terrainV2(o) {
 const elevationIsSea = (relief, [x, y]) => terrainAt(relief, x, y).sea;
 
 /** Nom tiré au sort d'une mer (le même que celui que la carte affiche tant que le MJ ne l'a pas nommée). */
-export const seaNameOf = (seed, id) => `Mer de ${placeName(rng(hashSeed(`${seed >>> 0}:mer:${id}`)))}`;
+/** Nom tiré au sort de terres lointaines (un autre continent). */
+export const landNameOf = (seed, id) => `Terres ${deName(placeName(rng(hashSeed(`${seed >>> 0}:terres:${id}`))))}`;
+export const seaNameOf = (seed, id) => `Mer ${deName(placeName(rng(hashSeed(`${seed >>> 0}:mer:${id}`))))}`;
+
+/** « de Brumeval », « d’Aubelande » : l'élision devant une voyelle. */
+function deName(n) { return /^[aeiouyàâéèêëîïôöûüh]/i.test(n) ? `d’${n}` : `de ${n}`; }
