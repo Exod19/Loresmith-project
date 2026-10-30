@@ -5,6 +5,7 @@
  */
 import { useEffect, useRef } from 'react';
 import { cityPlanId, generateWorld, hashSeed, interiorPlanId, placeCity, worldPlanId, type CitySpec, type WorldSpec } from './generate';
+import { nearestEdge } from './climate';
 import { citySpecFromEntry, isSettlement, syncBindings, type LoreEntry } from './lore';
 import type { AtlasData } from '../atlas/types';
 import type { MapRecord } from '../mapStore';
@@ -51,7 +52,9 @@ export function newWorldRecord(universe: { id: string; name: string }, id: strin
 export function withCity(world: World, spec: CitySpec): World {
   const cities = world.cities.filter((c) => c.id !== spec.id);
   const at = spec.at ?? placeCity({ seed: world.seed, cities }, spec.id);
-  return { ...world, cities: [...cities, { ...spec, at }], defaultCityId: world.defaultCityId ?? spec.id };
+  // Un port regarde vers le bord de carte le plus proche : la mer y restera, même si la cité est redessinée.
+  const port = spec.port ? { seaDir: spec.seaDir ?? nearestEdge(at) } : { seaDir: undefined };
+  return { ...world, cities: [...cities, { ...spec, ...port, at }], defaultCityId: world.defaultCityId ?? spec.id };
 }
 
 /** Cité tirée d'une fiche de lieu (paramètres lus sur la fiche). */

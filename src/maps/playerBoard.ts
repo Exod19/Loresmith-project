@@ -2,6 +2,7 @@
  * Instantanés envoyés à l'écran joueur. Ce module est le seul à décider de ce que voient les joueurs :
  * il part de la vue joueurs (sans notes, repères secrets ni jetons cachés) et ne garde que le plan montré.
  */
+import { boardTheme } from './battle/theme';
 import type { AtlasData } from './atlas/types';
 import { mapDataFor, placeCoords, restrictToPlan, DEFAULT_BATTLE, type MapRecord, type PartyPlace } from './mapStore';
 import { effectiveGrid } from './battle/terrain';
@@ -197,7 +198,7 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
     }
     : undefined;
   return {
-    mode: 'battle', title: local?.place ?? rec.title, backdrop: rec.image, theme: local?.surface === 'interieur' ? 'interieur' : local?.surface ? 'surface' : undefined, cols: b.cols, rows: b.rows,
+    mode: 'battle', title: local?.place ?? rec.title, backdrop: rec.image, theme: boardTheme(local?.surface), cols: b.cols, rows: b.rows,
     feetPerCell: b.feetPerCell, round: b.round, tokens, terrain, elements, turn, fog, exits: exits.length ? exits : undefined,
     // Trait d'attaque : seulement si les joueurs voient l'attaquant et la cible.
     aim: b.aim && tokens.some((t) => t.id === b.aim!.from) && tokens.some((t) => t.id === b.aim!.to)

@@ -6,6 +6,7 @@
  * Le lieu choisi donne la zone locale : ses passages (tracés réels de l'Atlas) et ses éléments y sont à leur position.
  * « Suivre » un passage ramène sur la carte de navigation, à sa destination, et y déplace le groupe.
  */
+import { boardTheme } from './theme';
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import BattleBoard, { anchorOf, type BoardElement, type BoardLabel, type BoardRange, type BoardToken } from './BattleBoard';
 import type { AtlasData, AtlasMap } from '../atlas/types';
@@ -216,7 +217,7 @@ export default function BattleMode({
     }
     set({
       terrain: { source, seed, grid: local.base },
-      local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous, surface: plan.surface ? (plan.surface.theme === 'interieur' ? 'interieur' : true) : undefined },
+      local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous, surface: plan.surface ? (plan.surface.theme === 'interieur' ? 'interieur' : plan.surface.climate === 'froid' || plan.surface.climate === 'chaud' ? plan.surface.climate : true) : undefined },
       tokens,
       encounterOf: groups?.length ? source : b.encounterOf,
       build: undefined,
@@ -872,7 +873,7 @@ export default function BattleMode({
           >
             <BattleBoard
               cols={b.cols} rows={b.rows} backdrop={rec.image} terrain={grid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
-              theme={b.local?.surface === 'interieur' ? 'interieur' : b.local?.surface ? 'surface' : undefined}
+              theme={boardTheme(b.local?.surface)}
               onCell={onBoardCell} onElement={(id) => { if (boardElements.some((e) => e.id === id)) setInfoId(id); }} onHover={(x, y) => setHover({ x, y })}
               preview={stroke && brush.tool === 'terrain' ? stroke.cells : undefined}
               labels={labels} highlight={highlight} fog={fogLayer} exits={dmExits} aim={aimLine} hits={b.hits}

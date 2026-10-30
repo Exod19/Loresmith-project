@@ -2,6 +2,7 @@
  * Plateau de combat sur grille (5 pieds par case). Sert à la console MJ (interactif) et à l'écran joueur (lecture seule).
  * Le terrain est dessiné avec de vraies textures (SVG), les lieux et créatures avec des icônes.
  */
+import type { BoardTheme } from './theme';
 import { useEffect, useRef, type MouseEvent as ReactMouseEvent } from 'react';
 import type { PlayerElement, PlayerToken } from '../../present/stage';
 import type { TerrainKind } from './terrain';
@@ -26,7 +27,7 @@ export type BoardRange = {
 
 type Props = {
   /** `surface` : plateau tiré d'une carte du monde (rues, bâtiments, champs) plutôt que d'une caverne. */
-  theme?: 'surface' | 'interieur';
+  theme?: BoardTheme;
   cols: number;
   rows: number;
   backdrop?: string;
@@ -110,11 +111,11 @@ function loadTile(file: string): Promise<HTMLImageElement> {
 }
 
 /** Dessine le terrain case par case dans le canevas : une texture par type, avec la couleur de base dessous. */
-async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: number, terrain: string | undefined, theme?: 'surface' | 'interieur') {
+async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: number, terrain: string | undefined, theme?: BoardTheme) {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   canvas.width = cols * CELL_PX; canvas.height = rows * CELL_PX;
-  if (theme === 'surface') { paintSurface(ctx, cols, rows, terrain); return; }
+  if (theme?.startsWith('surface')) { paintSurface(ctx, cols, rows, terrain, theme === 'surface-froid' ? 'froid' : theme === 'surface-chaud' ? 'chaud' : 'tempere'); return; }
   if (theme === 'interieur') { paintInterior(ctx, cols, rows, terrain); return; }
   ctx.fillStyle = TILE_BASE.sol;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -139,9 +140,17 @@ async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: numbe
  * Plateau de surface (cité, campagne), peint sans texture : sol de terre battue, bâtiments en toits (bordés là où ils
  * touchent la rue), arbres, champs, eau et pont. Même grille que le terrain de caverne : seules les couleurs changent.
  */
-function paintSurface(ctx: CanvasRenderingContext2D, cols: number, rows: number, terrain: string | undefined) {
+/** Couleurs du plateau de surface selon le climat de la cité : sol, champs, toits, eau, arbres. */
+const SURFACE_PALETTE = {
+  tempere: { ground: '#5b5444', field: '#4b512f', furrow: 'rgba(120,130,70,.55)', roof: '#8a4f3c', roofHi: '#9c5d47', roofEdge: '#3b241c', water: '#2f5c69', tree: '#22381f', treeHi: '#2f4a2a' },
+  froid: { ground: '#6a6e68', field: '#5b6150', furrow: 'rgba(200,205,200,.45)', roof: '#4f4a4c', roofHi: '#625c5e', roofEdge: '#1e1b1c', water: '#2a4652', tree: '#1d3226', treeHi: '#2a4433' },
+  chaud: { ground: '#8a7650', field: '#8a7a42', furrow: 'rgba(180,160,90,.55)', roof: '#d2b07a', roofHi: '#e0c290', roofEdge: '#6d5634', water: '#1f6a78', tree: '#4e6a2c', treeHi: '#6c8a3a' },
+};
+
+function paintSurface(ctx: CanvasRenderingContext2D, cols: number, rows: number, terrain: string | undefined, climate: keyof typeof SURFACE_PALETTE = 'tempere') {
   const C = CELL_PX;
-  ctx.fillStyle = '#5b5444';
+  const P = SURFACE_PALETTE[climate];
+  ctx.fillStyle = P.ground;
   ctx.fillRect(0, 0, cols * C, rows * C);
   if (!terrain) return;
   const at = (x: number, y: number) => (x < 0 || y < 0 || x >= cols || y >= rows ? '' : terrain[y * cols + x]);
@@ -150,10 +159,10 @@ function paintSurface(ctx: CanvasRenderingContext2D, cols: number, rows: number,
   const r = () => ((z = (1664525 * z + 1013904223) >>> 0) / 4294967296);
   for (let i = 0; i < terrain.length; i++) {
     const k = terrain[i], x = (i % cols) * C, y = Math.floor(i / cols) * C;
-    if (k === '~') { ctx.fillStyle = '#2f5c69'; ctx.fillRect(x, y, C, C); ctx.strokeStyle = 'rgba(160,200,210,.25)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + 8, y + C * 0.35 + r() * 8); ctx.quadraticCurveTo(x + C / 2, y + C * 0.25, x + C - 8, y + C * 0.4); ctx.stroke(); continue; }
+    if (k === '~') { ctx.fillStyle = P.water; ctx.fillRect(x, y, C, C); ctx.strokeStyle = 'rgba(160,200,210,.25)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + 8, y + C * 0.35 + r() * 8); ctx.quadraticCurveTo(x + C / 2, y + C * 0.25, x + C - 8, y + C * 0.4); ctx.stroke(); continue; }
     if (k === ',') {
-      ctx.fillStyle = '#4b512f'; ctx.fillRect(x, y, C, C);
-      ctx.strokeStyle = 'rgba(120,130,70,.55)'; ctx.lineWidth = 2;
+      ctx.fillStyle = P.field; ctx.fillRect(x, y, C, C);
+      ctx.strokeStyle = P.furrow; ctx.lineWidth = 2;
       for (let s = 10; s < C; s += 14) { ctx.beginPath(); ctx.moveTo(x + 4, y + s); ctx.lineTo(x + C - 4, y + s + 3); ctx.stroke(); }
       continue;
     }
@@ -165,10 +174,10 @@ function paintSurface(ctx: CanvasRenderingContext2D, cols: number, rows: number,
   for (let i = 0; i < terrain.length; i++) {
     const k = terrain[i], cx = i % cols, cy = Math.floor(i / cols), x = cx * C, y = cy * C;
     if (k === '#') {
-      ctx.fillStyle = '#8a4f3c'; ctx.fillRect(x, y, C, C);
-      ctx.fillStyle = '#9c5d47'; ctx.fillRect(x + 4, y + 4, C - 8, (C - 8) / 2);
+      ctx.fillStyle = P.roof; ctx.fillRect(x, y, C, C);
+      ctx.fillStyle = P.roofHi; ctx.fillRect(x + 4, y + 4, C - 8, (C - 8) / 2);
       // Bord du bâtiment, côté rue : un mur d'ombre là où la case voisine n'est pas bâtie.
-      ctx.fillStyle = '#3b241c';
+      ctx.fillStyle = P.roofEdge;
       if (at(cx, cy - 1) !== '#') ctx.fillRect(x, y, C, 5);
       if (at(cx, cy + 1) !== '#') ctx.fillRect(x, y + C - 7, C, 7);
       if (at(cx - 1, cy) !== '#') ctx.fillRect(x, y, 5, C);
@@ -178,8 +187,8 @@ function paintSurface(ctx: CanvasRenderingContext2D, cols: number, rows: number,
       ctx.strokeStyle = '#5e5340'; ctx.lineWidth = 2;
       for (let s = 8; s < C; s += 12) { ctx.beginPath(); ctx.moveTo(x + s, y); ctx.lineTo(x + s, y + C); ctx.stroke(); }
     } else if (k === 'I') {
-      ctx.fillStyle = '#22381f'; ctx.beginPath(); ctx.arc(x + C / 2, y + C / 2, C * 0.42, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#2f4a2a'; ctx.beginPath(); ctx.arc(x + C * 0.42, y + C * 0.4, C * 0.22, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = P.tree; ctx.beginPath(); ctx.arc(x + C / 2, y + C / 2, C * 0.42, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = P.treeHi; ctx.beginPath(); ctx.arc(x + C * 0.42, y + C * 0.4, C * 0.22, 0, Math.PI * 2); ctx.fill();
     } else if (k === 'X') {
       ctx.fillStyle = '#060606'; ctx.fillRect(x, y, C, C);
     } else if (k === ':') {

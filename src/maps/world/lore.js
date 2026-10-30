@@ -85,7 +85,9 @@ export function citySpecFromEntry(entry) {
     highTown: yes(/\b(haute[- ]ville|quartier noble|quartier des nobles|nobles|bourgeois\w*|patriciens?)\b/),
     faubourgs: yes(/\b(faubourgs?|banlieue|hors les murs|echoppes)\b/),
     farms: yes(/\b(fermes?|champs|campagne|agricole|cultures|paysans?|metairies?)\b/),
-    river: yes(/\b(riviere|fleuve|port|quais?|pont de pierre|rive)\b/),
+    river: yes(/\b(riviere|fleuve|pont de pierre|rive)\b/),
+    // Cité portuaire : la mer s'étendra du côté du bord de carte le plus proche (voir withCity).
+    port: yes(/\b(port|portuaire|quais?|docks?|havre|rade|sur la cote|ville cotiere|cotiere|bord de mer|littoral|maritime|baie|chantier naval|armateurs?)\b/, /\b(sans port|loin de la mer|pas de port)\b/),
   };
 }
 

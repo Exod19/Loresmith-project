@@ -1,4 +1,4 @@
-# Carte du monde : lot 8, personnage du MJ et mode Exploration (statut : à valider)
+# Carte du monde : lot 8, personnage du MJ et mode Exploration (statut : validé)
 
 ## Ce que fait le lot
 

@@ -8,6 +8,7 @@ import type { MapRecord } from '../mapStore';
 import { SLOT_TYPES, citySpecDefaults, type Binding, type CitySpec } from './generate';
 import { DISTRICT_LABEL, type LoreEntry } from './lore';
 import { cityFromEntry, cityPlanId, settlementEntries, withCity, worldPlanId, type World } from './index';
+import { CLIMATE_RANGES, climateOf, nearestEdge, temperatureAt } from './climate';
 
 type Props = {
   rec: MapRecord;
@@ -23,7 +24,9 @@ type Props = {
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 const BLANK: CitySpec = { id: '', name: '', population: 1500, walls: true, castle: true, highTown: true, faubourgs: true, farms: true, river: false };
-const TOGGLES: [keyof CitySpec, string][] = [['walls', 'Muraille'], ['castle', 'Château'], ['highTown', 'Haute-ville'], ['faubourgs', 'Faubourgs'], ['farms', 'Fermes'], ['river', 'Rivière']];
+const TOGGLES: [keyof CitySpec, string][] = [['walls', 'Muraille'], ['castle', 'Château'], ['highTown', 'Haute-ville'], ['faubourgs', 'Faubourgs'], ['farms', 'Fermes'], ['river', 'Rivière'], ['port', 'Port de mer']];
+const CLIMATE_LABEL = { froid: '❄ climat froid', tempere: '🌿 climat tempéré', chaud: '☀ climat chaud' } as const;
+const SEA_LABEL = { N: 'au nord', S: 'au sud', E: 'à l’est', O: 'à l’ouest' } as const;
 
 export default function WorldPanel({ rec, data, library, planId, revealed, onUpdate, onShow }: Props) {
   const world = rec.world as World;
@@ -46,13 +49,17 @@ export default function WorldPanel({ rec, data, library, planId, revealed, onUpd
     const entry = library.find((e) => e.id === c.entryId);
     if (!entry) return;
     const fresh = cityFromEntry(entry);
-    save({ ...world, cities: world.cities.map((x) => (x.id === c.id ? { ...fresh, id: c.id, seed: c.seed, at: c.at } : x)) });
+    save({ ...world, cities: world.cities.map((x) => (x.id === c.id ? { ...fresh, id: c.id, seed: c.seed, at: c.at, seaDir: fresh.port ? (c.seaDir ?? nearestEdge(c.at ?? [0.5, 0.5])) : undefined } : x)) });
   };
   const removeCity = (c: CitySpec) => {
     if (!window.confirm(`Retirer « ${c.name} » de la carte ? Sa fiche n’est pas touchée ; les lieux qui y étaient posés seront replacés si une autre cité les accueille.`)) return;
     save({ ...world, cities: world.cities.filter((x) => x.id !== c.id), defaultCityId: world.defaultCityId === c.id ? world.cities.find((x) => x.id !== c.id)?.id : world.defaultCityId });
     if (planId === cityPlanId(rec.id, c.id)) onShow(worldPlanId(rec.id));
   };
+  const togglePort = (c: CitySpec) => save({ ...world, cities: world.cities.map((x) => (x.id === c.id ? { ...x, port: !x.port, seaDir: x.port ? undefined : (x.seaDir ?? nearestEdge(x.at ?? [0.5, 0.5])) } : x)) });
+  const climate = world.climate ?? {};
+  const setClimate = (patch: Partial<NonNullable<World['climate']>>) => save({ ...world, climate: { ...climate, ...patch } });
+  const climateAt = (c: CitySpec) => climateOf(temperatureAt(climate, c.at?.[1] ?? 0.5));
   const setBinding = (b: Binding, patch: Partial<Binding>) => save({ ...world, bindings: { ...world.bindings, [b.entryId]: { ...b, ...patch } } });
 
   return (
@@ -62,6 +69,18 @@ export default function WorldPanel({ rec, data, library, planId, revealed, onUpd
       <p className="maps-sub">
         Une seule carte : zoome dans une cité pour y entrer, dézoome pour revenir au monde. Les lieux créés dans le lore prennent la place d’un bâtiment non découvert, avec leurs PNJ.
       </p>
+
+      <h5>Climat</h5>
+      <div className="maps-seg" role="group" aria-label="Hémisphère">
+        <button className={climate.hemisphere !== 'sud' ? 'on' : ''} onClick={() => setClimate({ hemisphere: 'nord' })} title="Le froid en haut de la carte, la chaleur en bas">Hémisphère nord</button>
+        <button className={climate.hemisphere === 'sud' ? 'on' : ''} onClick={() => setClimate({ hemisphere: 'sud' })} title="La chaleur en haut de la carte, le froid en bas">Hémisphère sud</button>
+      </div>
+      <label>Étendue des climats
+        <select className="maps-btn" value={climate.range ?? 'complet'} onChange={(e) => setClimate({ range: e.target.value as NonNullable<World['climate']>['range'] })}>
+          {Object.entries(CLIMATE_RANGES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+        </select>
+      </label>
+      <p className="maps-sub">Neige vers le pôle, désert vers l’équateur, grèves au bord des lacs. La mer n’apparaît que du côté des cités portuaires.</p>
 
       <h5>Cités ({world.cities.length})</h5>
       {world.cities.length === 0 && <p className="maps-sub">Aucune cité. Ajoute-en une depuis une fiche de lieu, ou par ses paramètres.</p>}
@@ -73,7 +92,7 @@ export default function WorldPanel({ rec, data, library, planId, revealed, onUpd
             <li key={c.id} className={here?.id === c.id ? 'on' : ''}>
               <button className="linklike" onClick={() => onShow(cityPlanId(rec.id, c.id))}><b>{c.name}</b></button>
               <small> · {d.population.toLocaleString('fr-CA')} hab.{world.defaultCityId === c.id ? ' · cité par défaut du lore' : ''}</small>
-              <div className="maps-sub">{TOGGLES.filter(([k]) => d[k as keyof typeof d]).map(([, l]) => l).join(' · ') || 'Hameau ouvert'}</div>
+              <div className="maps-sub">{TOGGLES.filter(([k]) => d[k as keyof typeof d]).map(([, l]) => (l === 'Port de mer' && c.seaDir ? `Port (mer ${SEA_LABEL[c.seaDir]})` : l)).join(' · ') || 'Hameau ouvert'} · {CLIMATE_LABEL[climateAt(c)]}</div>
               <div className="maps-actions">
                 {c.entryId && (
                   <button className="maps-btn" disabled={locked} onClick={() => regenerate(c)}
@@ -81,6 +100,8 @@ export default function WorldPanel({ rec, data, library, planId, revealed, onUpd
                 )}
                 {world.defaultCityId !== c.id && <button className="maps-btn" onClick={() => save({ ...world, defaultCityId: c.id })} title="Les lieux du lore qui ne nomment aucune cité iront ici">Par défaut</button>}
                 <button className="maps-btn" onClick={() => { const n = window.prompt('Nom de la cité ?', c.name)?.trim(); if (n) save({ ...world, cities: world.cities.map((x) => (x.id === c.id ? { ...x, name: n } : x)) }); }}>✎ Renommer</button>
+                <button className="maps-btn" disabled={locked} onClick={() => togglePort(c)}
+                  title={locked ? 'Des lieux de cette cité sont déjà découverts : ajouter ou retirer la mer les déplacerait.' : c.port ? 'Retirer la mer' : 'Faire de la cité un port : la mer s’étend vers le bord de carte le plus proche'}>⚓ {c.port ? 'Plus de port' : 'Port'}</button>
                 <button className="maps-btn" onClick={() => removeCity(c)}>Retirer</button>
               </div>
             </li>

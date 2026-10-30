@@ -70,6 +70,8 @@ export interface MapSurface {
   theme: 'cite' | 'monde' | 'interieur';
   /** Lumière du moment (carte du monde) : le soir et la nuit, le plan s'assombrit. */
   light?: 'soir' | 'nuit';
+  /** Climat d'une cité (allure du plan et du plateau de combat). */
+  climate?: 'froid' | 'tempere' | 'chaud';
   ground: {
     b: number[]; f: number[]; t: number[];
     /** Obstacles intérieurs (comptoir, âtre, autel…) : rectangles comme `b`, infranchissables mais pas des murs. */
@@ -89,6 +91,9 @@ export interface MapDecor {
     /* Plans de surface (cités et monde générés). */
     | 'plot' | 'tree' | 'river' | 'square' | 'court' | 'wall' | 'roof' | 'roof-farm' | 'roof-noble' | 'roof-civic' | 'keep' | 'bridge'
     | 'forest' | 'lake' | 'hill' | 'town'
+    /* Climat et côtes (lot 9). */
+    | 'biome-neige' | 'biome-taiga' | 'biome-steppe' | 'biome-desert' | 'dune' | 'pine' | 'forest-sparse' | 'mountain' | 'snowcap'
+    | 'shore' | 'shore-cold' | 'beach' | 'sea' | 'pier'
     /* Intérieurs. */
     | 'street' | 'floor' | 'floor-stone' | 'hatch' | 'pillar' | 'stool' | 'wall-in' | 'furn' | 'bed' | 'hearth' | 'altar' | 'anvil' | 'trough' | 'stair' | 'barrel' | 'crate' | 'bars' | 'rug' | 'dais' | 'stall';
   d: string;

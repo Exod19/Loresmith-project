@@ -283,3 +283,58 @@ test('mode Exploration : brouillons, bâtiment défini à la main, personnage du
   assert.equal(r.bindings.sang.slotId, house.id);
   assert.ok(!r.bindings.sang.conflict);
 });
+
+test('climat : la latitude décide du biome, et l’hémisphère sud l’inverse', async () => {
+  const { temperatureAt, biomeOf, climateOf, nearestEdge } = await import('./climate.js');
+  assert.equal(biomeOf(temperatureAt({}, 0.02)), 'neige');
+  assert.equal(biomeOf(temperatureAt({}, 0.98), 0.3), 'desert');
+  assert.equal(biomeOf(temperatureAt({}, 0.98), 1), 'steppe');
+  assert.equal(biomeOf(temperatureAt({ hemisphere: 'sud' }, 0.02), 0.3), 'desert');
+  assert.equal(biomeOf(temperatureAt({ hemisphere: 'sud' }, 0.98)), 'neige');
+  assert.equal(climateOf(temperatureAt({ range: 'tempere' }, 0.02)), 'tempere');
+  assert.equal(nearestEdge([0.5, 0.9]), 'S');
+  assert.equal(nearestEdge([0.05, 0.5]), 'O');
+  const base = { seed: 7, name: 'M', bindings: {}, cities: [{ id: 'n', name: 'Givre', population: 900, at: [0.5, 0.1] }, { id: 's', name: 'Soleil', population: 900, at: [0.5, 0.9] }] };
+  const climOf = (d, id) => d.maps.find((m) => m.id === cityPlanId('r', id)).surface.climate;
+  const north = generateWorld(base, 'r');
+  assert.equal(climOf(north, 'n'), 'froid');
+  assert.equal(climOf(north, 's'), 'chaud');
+  const south = generateWorld({ ...base, climate: { hemisphere: 'sud' } }, 'r');
+  assert.equal(climOf(south, 'n'), 'chaud');
+  assert.equal(climOf(south, 's'), 'froid');
+  const kinds = new Set(north.maps[0].decor.map((x) => x.kind));
+  assert.ok(kinds.has('biome-neige') && kinds.has('biome-desert'));
+  // Sans port, pas de mer.
+  assert.ok(!kinds.has('sea'));
+  // Le climat ne change pas le plan des cités (les lieux posés restent en place).
+  assert.deepEqual(north.features.filter((f) => f.id.startsWith(cityPlanId('r', 'n'))).map((f) => f.id), south.features.filter((f) => f.id.startsWith(cityPlanId('r', 'n'))).map((f) => f.id));
+});
+
+test('une cité portuaire a sa mer, ses quais et ses pontons ; le monde a sa côte de ce côté', () => {
+  const spec = { id: 'port', name: 'Port-Lune', population: 3000, port: true, seaDir: 'S' };
+  const c = generateCity(spec, 'p');
+  const kinds = c.map.decor.map((x) => x.kind);
+  assert.ok(kinds.includes('sea') && kinds.includes('beach') && kinds.includes('pier'));
+  assert.ok(c.features.some((f) => f.title === 'Les Quais') && c.features.some((f) => f.title === 'Rue du Port'));
+  assert.ok(c.slots.some((s) => s.type === 'entrepot'));
+  // Aucun bâtiment dans l'eau : la mer est au sud (y vers le bas), au-delà de la ville.
+  const sea = c.map.surface.ground.water.find((w) => w.closed);
+  assert.ok(sea);
+  // Aucune porte vers la mer.
+  assert.ok(c.gates.every((g) => Math.sin(g.a) < 0.96));
+  // Sur la carte de combat, un ponton se traverse à pied ('=') au-dessus de l'eau.
+  const g = c.map.surface.ground;
+  const pier = g.roads[g.roads.length - 1];
+  const [x, y] = [pier.pts[2] / c.map.width, pier.pts[3] / c.map.height];
+  const grid = rasterGround(c.map.surface, c.map.width, c.map.height, { x0: x - 0.02, y0: y - 0.02, w: 0.04, h: 0.04 }, 9, 9);
+  assert.ok(grid.includes('~'));
+  // Une cité qui n'est pas un port reste identique.
+  assert.equal(JSON.stringify(generateCity({ ...spec, port: false }, 'p')), JSON.stringify(generateCity({ id: 'port', name: 'Port-Lune', population: 3000 }, 'p')));
+  const w = generateWorld({ seed: 3, name: 'M', bindings: {}, cities: [{ ...spec, at: [0.5, 0.86] }, { id: 'b', name: 'Terre', population: 1000, at: [0.5, 0.3] }] }, 'r');
+  assert.ok(w.maps[0].decor.some((x) => x.kind === 'sea'));
+  assert.ok(w.features.some((f) => f.id === 'map-r:mer-0'));
+  assert.ok(w.maps[0].surface.ground.water.some((x) => x.closed && x.pts.length > 50));
+  // La fiche d'une ville portuaire en fait un port.
+  assert.equal(citySpecFromEntry({ id: 'x', title: 'Havre-Gris', shortSummary: 'Une ville portuaire aux quais animés.' }).port, true);
+  assert.equal(citySpecFromEntry({ id: 'y', title: 'Brumeval', shortSummary: 'Une ville à côté de la forêt.' }).port, undefined);
+});

@@ -16,6 +16,8 @@ export const SLOT_TYPES: Record<SlotType, { label: string; category: FeatureCate
 export interface CitySpec {
   id: string; name: string; seed?: number; population?: number; people?: string;
   walls?: boolean; castle?: boolean; highTown?: boolean; faubourgs?: boolean; farms?: boolean; river?: boolean; village?: boolean;
+  /** Cité portuaire : la mer s'étend du côté `seaDir` (bord de carte le plus proche, fixé à la création). */
+  port?: boolean; seaDir?: 'N' | 'S' | 'E' | 'O';
   /** Fiche de lieu d'où vient la cité. */
   entryId?: string;
   at?: [number, number];
@@ -52,7 +54,10 @@ export interface Avatar {
   hidden?: { planId: string; at: [number, number] };
 }
 /** `canon` : lieux tirés au sort que le MJ a gardés tels quels (ils ne sont plus des brouillons). */
-export interface WorldSpec { seed: number; name: string; cities: CitySpec[]; bindings: Record<string, Binding>; interiors?: string[]; time?: Period; residents?: Record<string, Resident[]>; names?: Record<string, string>; canon?: string[]; avatar?: Avatar }
+export interface WorldSpec { seed: number; name: string; cities: CitySpec[]; bindings: Record<string, Binding>; interiors?: string[]; time?: Period; residents?: Record<string, Resident[]>; names?: Record<string, string>; canon?: string[]; avatar?: Avatar; climate?: WorldClimate }
+
+/** Climat du monde : hémisphère (nord : froid en haut de la carte ; sud : l'inverse) et étendue des climats. */
+export interface WorldClimate { hemisphere?: 'nord' | 'sud'; range?: 'complet' | 'froid' | 'tempere' | 'chaud' }
 
 /** Emplacement : position (0–1 et mètres), empreinte (mètres), orientation et façade (où donne la porte). */
 export interface Slot { id: string; type: SlotType; label?: string; district: District; at: [number, number]; x: number; y: number; w: number; d: number; ang: number; face: number }

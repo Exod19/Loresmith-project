@@ -2,6 +2,7 @@
  * Plateau de la carte de combat en version compacte (page Combat, colonne de droite) : le même terrain et les mêmes
  * jetons que la carte, glisser-déposer compris, avec les alertes d'attaque d'opportunité.
  */
+import { boardTheme } from './theme';
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import BattleBoard, { type BoardToken } from './BattleBoard';
 import type { Battle } from '../mapStore';
@@ -77,7 +78,7 @@ export default function MiniBattle({ battle, onBattle, selectedId, onSelect }: {
   return (
     <div className="mini-battle">
       <div ref={wrapRef} className={`mini-battle-board ${drag ? 'dragging' : ''}`} onPointerDown={down} onPointerMove={move}>
-        <BattleBoard cols={b.cols} rows={b.rows} theme={b.local?.surface === 'interieur' ? 'interieur' : b.local?.surface ? 'surface' : undefined} terrain={grid} elements={[]} ranges={[]} tokens={tokens} interactive={false} hits={b.hits} />
+        <BattleBoard cols={b.cols} rows={b.rows} theme={boardTheme(b.local?.surface)} terrain={grid} elements={[]} ranges={[]} tokens={tokens} interactive={false} hits={b.hits} />
         {shown.length > 0 && (
           <div className={`battle-move-alerts ${live ? 'live' : ''}`} role="status">
             {shown.map((n, i) => <div key={i} className={`battle-move-alert tone-${n.tone}`}><b>{n.label}</b><span>{n.why}</span></div>)}
