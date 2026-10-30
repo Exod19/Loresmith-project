@@ -77,6 +77,12 @@ import {
   toScene,
 } from './forge/campaignPipeline';
 import './forge/forge.css';
+import UniverseForge from './universe/UniverseForge';
+import { buildForgeResult } from './universe/forgeBrief';
+import { setLibraryIntent, takeLibraryIntent } from './library/intent';
+import SessionReportPanel from './campaign/SessionReportPanel';
+import DeleteUniverseDialog from './universe/DeleteUniverseDialog';
+import { removeUniverse, canDeleteUniverse } from './universe/deleteUniverse';
 import './combat/wartable.css';
 import { entityFromSrd, generateEntities, normalizeEntity, xpForCr } from './bestiary/entityGen';
 import CreaturePicker from './bestiary/CreaturePicker';
@@ -4811,12 +4817,8 @@ function reducer(s, a) {
           [a.id]: { ...s.universes[a.id], ...a.patch },
         },
       };
-    case 'DELETE_UNIVERSE': {
-      const un = { ...s.universes };
-      delete un[a.id];
-      const rest = Object.keys(un);
-      return { ...s, universes: un, activeUniverseId: rest[0] || null };
-    }
+    case 'DELETE_UNIVERSE':
+      return removeUniverse(s, a.id);
     case 'SET_UNIVERSE':
       return { ...s, activeUniverseId: a.id };
     case 'ADD_CHARACTER':
@@ -5090,6 +5092,7 @@ export default function App() {
   const [toast, setToast] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [sideOpen, setSideOpen] = useState(false);
+  const [forgeOpen, setForgeOpen] = useState(false);
   const [diceOpen, setDiceOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [saveState, setSaveState] = useState({ status: 'saved' });
@@ -5268,6 +5271,20 @@ export default function App() {
       <>
         <style>{STYLE}</style>
         <div className="ls-root lsx-root">
+          {forgeOpen && (
+            <UniverseForge
+              onClose={() => setForgeOpen(false)}
+              onForge={(brief, lore) => {
+                const r = buildForgeResult(brief, lore, { newId: uid, now: now() });
+                dispatch({ type: 'ADD_UNIVERSE', u: r.universe });
+                if (r.entry) dispatch({ type: 'ADD_LIBRARY_ENTRY', entry: r.entry });
+                if (r.map) dispatch({ type: 'ADD_MAP', map: r.map });
+                setForgeOpen(false);
+                goTo(r.nextView);
+                flash(r.entry ? 'Univers forgé : crée maintenant ta première campagne, le monde se découvrira en jouant.' : 'Univers forgé : tu peux affiner son canon dans la page Univers.');
+              }}
+            />
+          )}
           <Sidebar
             view={view}
             setView={goTo}
@@ -5276,6 +5293,7 @@ export default function App() {
             universe={universe}
             universeImage={universeImage}
             onSwitchUniverse={(id) => dispatch({ type: 'SET_UNIVERSE', id })}
+            onCreateUniverse={() => setForgeOpen(true)}
             onOpenSearch={() => setSearchOpen(true)}
             onOpenDice={() => setDiceOpen(true)}
             onSettings={() => setSettingsOpen(true)}
@@ -5402,7 +5420,7 @@ export default function App() {
             ) : view === 'archives' ? (
               <ArchivesPage universe={universe} dispatch={dispatch} flash={flash} />
             ) : view === 'maps' ? (
-              <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} heroes={party} campaigns={campaigns} bestiary={npcs} library={inU(state.libraryEntries || {})} onReturnToTable={() => setView('scene')}
+              <MapsPage library={inU(state.libraryEntries || {})} universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} onOpenEntry={(id) => { setLibraryIntent(id); goTo('library'); }} heroes={party} campaigns={campaigns} bestiary={npcs} onReturnToTable={() => setView('scene')}
                 artOf={(name, id) => combatantArtOf(state, (state.combat?.combatants || []).find((c) => c.id === id), faunaFeed) || creatureArtOf(state, name, faunaFeed)}
                 renderCombat={(slot) => slot.area === 'attack'
                   ? <AttackPanel key={slot.battle.aim?.at} state={state} dispatch={dispatch} battle={slot.battle} setBattle={slot.setBattle} />
@@ -5670,6 +5688,7 @@ function Dashboard({
   setExportOpen,
 }) {
   const { ai } = useContext(AIContext);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const library = Object.values(state.libraryEntries || {})
     .filter((e) => e.universeId === universe.id)
     .map((e) => ({ ...e, typeLabel: LIBRARY_TYPES[e.archiveType]?.singular || '' }));
@@ -5779,19 +5798,27 @@ function Dashboard({
           >
             ✦ Nouvel univers
           </button>
-          {Object.keys(state.universes).length > 1 && (
-            <button
-              className="btn ghost danger"
-              style={{ flex: 'none' }}
-              onClick={() => {
-                if (confirm('Supprimer cet univers et basculer vers un autre ?')) {
-                  dispatch({ type: 'DELETE_UNIVERSE', id: universe.id });
-                  flash('Univers supprimé');
-                }
+          <button
+            className="btn ghost danger"
+            style={{ flex: 'none' }}
+            disabled={!canDeleteUniverse(state, universe.id)}
+            title={canDeleteUniverse(state, universe.id) ? undefined : 'Crée un autre univers avant de supprimer celui-ci.'}
+            onClick={() => setDeleteOpen(true)}
+          >
+            Supprimer l’univers
+          </button>
+          {deleteOpen && (
+            <DeleteUniverseDialog
+              state={state}
+              universe={universe}
+              flash={flash}
+              onClose={() => setDeleteOpen(false)}
+              onConfirm={() => {
+                dispatch({ type: 'DELETE_UNIVERSE', id: universe.id });
+                setDeleteOpen(false);
+                flash('Univers supprimé');
               }}
-            >
-              Supprimer l’univers
-            </button>
+            />
           )}
         </div>
       </div>
@@ -7531,6 +7558,7 @@ function CampaignCard({
                     <div className="camp-session-head">
                       <h4>
                         Séance {s.sessionNumber} · {s.title}
+                        {s.played && <span className="tag" style={{ marginLeft: 8 }}>✓ jouée</span>}
                       </h4>
                       <button className="btn ghost sm" style={{ flex: 'none' }} disabled={!!writing} onClick={() => writeSessions([s.sessionNumber])}>
                         {writing === s.sessionNumber ? <Spin /> : s.detailed ? '↻ Réécrire' : '✎ Écrire cette séance'}
@@ -7601,6 +7629,16 @@ function CampaignCard({
           <CampaignArchiveSuggestions
             suggestions={camp.librarySuggestions || []}
             campaignId={camp.id}
+            dispatch={dispatch}
+            flash={flash}
+          />
+          <SessionReportPanel
+            universe={universe}
+            campaign={camp}
+            library={Object.values(state.libraryEntries || {}).filter((e) => e.universeId === universe.id)}
+            maps={state.maps || {}}
+            ask={(o) => callAI(ai, o)}
+            aiReady={!!ai.apiKey}
             dispatch={dispatch}
             flash={flash}
           />
@@ -10974,6 +11012,12 @@ Ne révèle pas les secrets du MJ aux paliers faciles. Reste fidèle à la fiche
     setType(target.archiveType);
     setSelectedId(id);
   }
+
+  // Arrivée depuis une autre page (ex. un repère de la carte) : on ouvre la fiche demandée.
+  useEffect(() => {
+    const id = takeLibraryIntent();
+    if (id) openEntry(id);
+  }, []);
 
   async function polishEntry(entry) {
     setBusy(true);

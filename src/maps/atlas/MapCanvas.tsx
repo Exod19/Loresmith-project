@@ -124,7 +124,7 @@ export function journeyMs(points: [number, number][], W: number, H: number) {
   return Math.min(24000, Math.max(8000, (total / W) * 48000));
 }
 
-export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, dataKey, dm, marks = [], fog, journey, onZoomLimit, exploring }: {
+export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, onMovePin, dataKey, dm, marks = [], fog, journey, onZoomLimit, exploring }: {
   map: AtlasMap; layers: Layers; hidden: Set<FeatureCategory>;
   /** Mode MJ : révèle les passages secrets. Hors MJ, la carte est une carte de lore. */
   dm: boolean;
@@ -134,6 +134,8 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   onSelect: (f: AtlasFeature) => void; onAnchor: (a: AtlasAnchor) => void;
   /** Mode placement : un clic sur le fond de la carte renvoie sa position normalisée (0–1). */
   onPlace?: (x: number, y: number) => void;
+  /** Mode MJ : un repère (id de caractéristique `mk-…`) glissé puis lâché renvoie sa nouvelle position normalisée (0–1). */
+  onMovePin?: (featureId: string, x: number, y: number) => void;
   dataKey?: string | number;
   marks?: MapMark[];
   /** Brouillard de guerre (vue joueurs), en coordonnées 0–1 du plan ; rayons en largeur de plan. */
@@ -390,6 +392,35 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   /** Un clic n'est valide que si le pointeur ne s'est presque pas déplacé (pas pendant un glisser). */
   const tap = (fn: () => void) => () => { if (travel.current.dist <= 6) fn(); };
   const selectRef = useRef(onSelect); selectRef.current = onSelect;
+  // Glisser-déposer d'un repère (MJ) : la position suit le pointeur, elle n'est validée qu'au relâchement.
+  const [pinDrag, setPinDrag] = useState<{ id: string; x: number; y: number } | null>(null);
+  const pinStart = useRef<{ id: string; sx: number; sy: number; moved: boolean } | null>(null);
+  const pinAt = (cx: number, cy: number) => {
+    const c = toSvg(cx, cy);
+    return { x: Math.min(0.99, Math.max(0.01, (c.x - t.tx) / t.k / W)), y: Math.min(0.99, Math.max(0.01, (c.y - t.ty) / t.k / H)) };
+  };
+  const pinDown = (id: string) => (e: RPointerEvent) => {
+    if (!dm || !onMovePin || !id.startsWith('mk-')) return;
+    e.stopPropagation(); // le fond ne doit pas démarrer un déplacement de la vue
+    (e.currentTarget as Element).setPointerCapture(e.pointerId);
+    travel.current.dist = 0;
+    pinStart.current = { id, sx: e.clientX, sy: e.clientY, moved: false };
+  };
+  const pinMove = (e: RPointerEvent) => {
+    const st = pinStart.current; if (!st) return;
+    if (!st.moved && Math.hypot(e.clientX - st.sx, e.clientY - st.sy) < 6) return;
+    st.moved = true;
+    setPinDrag({ id: st.id, ...pinAt(e.clientX, e.clientY) });
+  };
+  const pinUp = (e: RPointerEvent) => {
+    const st = pinStart.current; pinStart.current = null; if (!st) return;
+    if (st.moved) {
+      const p = pinAt(e.clientX, e.clientY);
+      onMovePin?.(st.id, p.x, p.y);
+      travel.current.dist = 99; // pas de clic de sélection après un glisser
+    }
+    setPinDrag(null);
+  };
 
   // ——— Ce qui est à l'écran ———
   const rz = t.k / zf; // zoom ramené à l'échelle des plans saisis
@@ -588,11 +619,13 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
             );
           })}
           {points.filter((g) => !features.get(g.featureId)!.area).map((g) => {
-            const f = features.get(g.featureId)!; const [x, y] = g.coordinates as [number, number]; const cat = CATEGORIES[f.category];
+            const f = features.get(g.featureId)!; const [x0, y0] = g.coordinates as [number, number]; const cat = CATEGORIES[f.category];
+            const dragged = pinDrag && pinDrag.id === f.id; const x = dragged ? pinDrag.x : x0; const y = dragged ? pinDrag.y : y0;
             const isFocus = focus?.kind === 'point' && focus.id === f.id; const R = PIN_R[f.importance];
             return (
               <g key={g.id} className={`am-pin imp-${f.importance} ${selectedId === f.id ? 'is-sel' : ''} ${isFocus ? 'is-focus' : ''} ${f.draft ? 'is-draft' : ''}`} style={{ '--c': cat.color } as React.CSSProperties}
                 transform={`translate(${x * W} ${y * H}) scale(${s})`} tabIndex={0} role="button" aria-label={`${f.title} — ${f.category === 'cite' && f.people ? peopleOf(f.people)!.label : cat.label}`}
+                onPointerDown={pinDown(f.id)} onPointerMove={pinMove} onPointerUp={pinUp} onPointerCancel={pinUp}
                 onClick={tap(() => onSelect(f))} onKeyDown={(e) => e.key === 'Enter' && onSelect(f)}>
                 {f.importance === 'detail' && <circle r="12" className="hit" />}
                 {f.category === 'cite' && f.people ? <CityEmblem people={f.people} R={R * 1.25} id={f.id} variant={f.emblem} /> : <>

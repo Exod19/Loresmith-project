@@ -94,7 +94,7 @@ export function buildLoreContext({ universe, state, feed, focus = '', budget = 1
 
   const memory = universe.memoryLog || [];
   if (memory.length) {
-    parts.push('MÉMOIRE VIVANTE (ce qui s’est passé en jeu) :\n' + memory.slice(0, 14).map((m) => `- ${m.title} : ${clip(m.summary, 220)}`).join('\n'));
+    parts.push('MÉMOIRE VIVANTE (ce qui s’est passé en jeu) :\n' + memory.slice(0, 14).map((m) => `- ${m.title} : ${clip(m.summary, m.source ? 380 : 220)}`).join('\n'));
   }
 
   if (party.length) {

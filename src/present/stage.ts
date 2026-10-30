@@ -5,6 +5,7 @@
  * Rien n'est sauvegardé. Les données envoyées sont déjà filtrées pour les joueurs : aucune note ni repère secret.
  */
 import type { HaltAlert } from '../maps/atlas/omens';
+import type { BattleObject, BattleWall, SurfaceRules, TerrainId, TerrainZone } from '../maps/battle/surface';
 import type { AtlasData } from '../maps/atlas/types';
 
 /** `info` : fiche en jeu montrée quand un joueur clique sur le jeton. */
@@ -12,7 +13,11 @@ export type PlayerToken = { id: string; name: string; kind: 'pc' | 'monster' | '
   /** C'est son tour. PV : chiffres pour les héros seulement ; les créatures n'ont qu'un état en mots. */
   active?: boolean; hp?: number; maxHp?: number; state?: string;
   /** Héros : déplacement en cases et portée de l'arme en main (allonge, portée courte et longue, en cases). */
-  move?: number; reach?: { melee: number; short: number; long: number; weapon?: string } };
+  move?: number; reach?: { melee: number; short: number; long: number; weapon?: string };
+  /** Socle (terrain sous le jeton), sur un pont, et modes de déplacement (nage, vol, escalade). */
+  socle?: string; layer?: 'pont'; modes?: { vol?: boolean; nage?: boolean; escalade?: boolean }; speed?: string;
+  /** Déplacement restant pendant ce tour, en cases (héros). */
+  left?: number };
 
 /** Dégâts (amount < 0) ou soins reçus par un jeton, écrits en grand au-dessus de lui. */
 export type BoardHit = { id: string; to: string; amount: number; at: number };
@@ -56,7 +61,9 @@ export type PlayerBoard =
       /** Verdict du jet pour toucher, total obtenu, phrase de récit, et dégâts infligés une fois appliqués. */
       verdict?: 'hit' | 'crit' | 'miss' | 'fumble'; roll?: number; line?: string; damage?: number; weapon?: string; importance?: 'minor' | 'major' | 'epic' };
     /** Dégâts et soins récents, à écrire en grand sur le plateau. */
-    hits?: BoardHit[] };
+    hits?: BoardHit[];
+    /** Terrain en couches (sol du fond, zones, éléments visibles, murs), et règles par case : le même calcul que chez le MJ. */
+    ground?: TerrainId; surface?: { zones?: TerrainZone[]; objects?: BattleObject[]; walls?: BattleWall[] }; rules?: SurfaceRules };
 
 export type Stage =
   | { kind: 'blank' }

@@ -38,6 +38,8 @@ type Props = {
   artOf?: (name: string, id: string) => string;
   /** Fiches de la Bibliothèque de l'univers (cités et lieux de la carte du monde). */
   library?: LoreEntry[];
+  /** Ouvre une fiche de la bibliothèque (repère lié à un lieu). */
+  onOpenEntry?: (entryId: string) => void;
 };
 
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -53,7 +55,7 @@ function readKnown(): Set<string> | null {
   }
 }
 
-export default function MapsPage({ universe, maps, dispatch, flash, heroes = [], campaigns = [], bestiary = [], onReturnToTable, renderCombat, artOf, library = [] }: Props) {
+export default function MapsPage({ universe, maps, dispatch, flash, heroes = [], campaigns = [], bestiary = [], onReturnToTable, renderCombat, artOf, onOpenEntry, library = [] }: Props) {
   // La Table de jeu peut demander d'ouvrir une carte précise (et d'y lancer le combat).
   const [intent] = useState(peekMapIntent);
   useEffect(() => { clearMapIntent(); }, []);
@@ -182,6 +184,7 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
           startInBattle={intent?.mapId === open.id && intent.battle}
           onReturn={intent?.from === 'table' && intent.mapId === open.id ? onReturnToTable : undefined}
           renderCombat={renderCombat}
+          onOpenEntry={onOpenEntry}
           campaigns={campaigns}
           activeCampaignId={universe.activeCampaignId}
           onCampaign={(id) => dispatch({ type: 'UPDATE_UNIVERSE', id: universe.id, patch: { activeCampaignId: id || undefined } })}
@@ -249,7 +252,7 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
               {g.docs.map((m) => (
                 <article key={m.id} className="maps-card">
                   <h3>{m.title}</h3>
-                  <p className="maps-sub">{m.kind === 'atlas' ? 'Atlas' : m.kind === 'monde' ? `${m.world?.cities.length ?? 0} cité(s) · ${Object.values(m.world?.bindings ?? {}).filter((b) => !b.excluded).length} lieu(x) du lore` : `${m.points?.length ?? 0} repère(s)`} · modifiée {new Date(m.updatedAt).toLocaleDateString('fr-CA')}</p>
+                  <p className="maps-sub">{m.kind === 'atlas' ? 'Atlas' : m.kind === 'monde' ? `${m.world?.cities.length ?? 0} cité(s) · ${Object.values(m.world?.bindings ?? {}).filter((b) => !b.excluded).length} lieu(x) du lore` : `${(m.points?.length ?? 0) + (m.overlay?.markers?.length ?? 0)} repère(s)`} · modifiée {new Date(m.updatedAt).toLocaleDateString('fr-CA')}</p>
                   {m.description && <p>{m.description}</p>}
                   <div className="maps-actions">
                     <button className="maps-btn gold" onClick={() => setOpenId(m.id)}>Ouvrir</button>

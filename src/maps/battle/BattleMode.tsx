@@ -14,9 +14,9 @@ import type { AtlasData, AtlasMap } from '../atlas/types';
 import {
   DEFAULT_BATTLE, type Battle, type BattleBuild, type BattleToken, type MapMarker, type MapRecord, type PartyTrack, type PassageLink, type SearchNote,
 } from '../mapStore';
-import { blocksCell, effectiveGrid, generateTerrain, pathCost, seedOf, TERRAIN, type LocationHint, type TerrainKind } from './terrain';
+import { blocksCell, effectiveGrid, generateTerrain, seedOf, TERRAIN, type LocationHint, type TerrainKind } from './terrain';
 import { buildLocalMap, cellIn } from './local';
-import { attackCells, rangedCells, reachableCells, speedCells } from './ranges';
+import { attackCells, rangedCells, speedCells } from './ranges';
 import { tokenImage } from './vignettes';
 import BuildPanel from './BuildPanel';
 import CombatPanel, { type Hero } from './CombatPanel';
@@ -33,7 +33,11 @@ import { detectLabel, trailProfile } from '../atlas/trails';
 import { describeLite } from '../atlas/lore';
 import { placeEncounter, type EncounterGroup } from './encounter';
 import { askAI, aiReady, parseJson } from '../../ai/client';
-import { effectiveOf, fits, placeTokens as placeOnBoard } from './placement';
+import { baseGridOf, effectiveOf, fits, isDashing, moveLeft, overlaps, placeTokens as placeOnBoard, surfaceOf, usedMove, withMove } from './placement';
+import { moveField, moverOf, occupancy, planMove, reachDetail, type MovePlan } from './movement';
+import { socleOf, TERRAIN_DEF, TERRAINS, type TerrainId } from './surface';
+import { useSurfaceEditor } from './SurfaceEditor';
+import type { PathView } from './SurfaceLayers';
 import './battle.css';
 
 /** Niveaux de zoom du plateau (même logique que la carte de navigation). */
@@ -46,6 +50,23 @@ const LEGEND_ORDER: TerrainKind[] = ['.', '#', '~', ':', '=', 'X', 'I', ','];
 const SWATCH: Partial<Record<TerrainKind, string>> = { '.': 'floor', '#': 'rock', '~': 'water', ':': 'rubble', '=': 'bridge', X: 'chasm', I: 'pillar', ',': 'decor' };
 
 type Box = { x: number; y: number; size: number };
+
+/** Capacités de déplacement d'un jeton : vitesses de sa fiche (ou déplacement du héros), modes accordés par le MJ. */
+const moverFor = (t: BattleToken) => moverOf(t, statOf(t)?.speed, speedCells(statOf(t)));
+/** …avec les autres créatures du plateau (hostiles infranchissables, alliés en terrain difficile). */
+const moverIn = (b: Battle, t: BattleToken) => ({ ...moverFor(t), occ: occupancy(b.cols, t, b.tokens) });
+/** Déplacement restant dans le tour (en cases). */
+const leftOf = (b: Battle, t: BattleToken) => moveLeft(b, t.id, moverFor(t).speed);
+const spot = (t: BattleToken) => ({ x: t.x, y: t.y, layer: t.layer === 'pont' ? 'pont' as const : 'sol' as const });
+/** Ce que le terrain impose au déplacement validé : à rappeler au MJ. */
+function terrainNotes(p: MovePlan): Note[] {
+  const out: Note[] = [];
+  if (p.notes.includes('zone dangereuse')) out.push({ tone: 'alert', label: 'Zone dangereuse', why: `Le trajet traverse une zone dangereuse : applique ses effets (${p.dest}).` });
+  if (p.notes.includes('sol glissant')) out.push({ tone: 'malus', label: 'Sol glissant', why: 'Jet de sauvegarde de Dextérité DD 10 pour qui se presse, ou il tombe à terre (selon le MJ).' });
+  if (p.notes.includes('nage')) out.push({ tone: 'malus', label: 'Nage', why: 'Chaque case en eau profonde compte double sans vitesse de nage. Armure lourde, objets lourds : au MJ de juger.' });
+  if (p.notes.includes('escalade')) out.push({ tone: 'malus', label: 'Escalade', why: 'Chaque case escaladée compte double sans vitesse d’escalade ; une paroi lisse peut demander un test de Force (Athlétisme).' });
+  return out;
+}
 type Tab = 'combat' | 'lieu' | 'construction';
 
 /** Distance entre deux jetons (centres), selon la règle 5e : la diagonale compte comme une case droite. */
@@ -118,7 +139,11 @@ export default function BattleMode({
   /** Portées affichées sur le plateau : réservé au MJ, jamais envoyé aux joueurs. */
   const [showRanges, setShowRanges] = useState(false);
   /** Alertes du dernier déplacement (attaque d'opportunité, allonge ennemie), gardées jusqu'au prochain. */
-  const [lastMove, setLastMove] = useState<{ name: string; notes: Note[]; exit?: { id: string; label: string; passage: string } } | null>(null);
+  const [lastMove, setLastMove] = useState<{ name: string; notes: Note[]; exit?: { id: string; label: string; passage: string };
+    /** Déplacement refusé (demandé par les joueurs) que le MJ peut accepter quand même. */
+    force?: { id: string; x: number; y: number; layer?: 'pont' } } | null>(null);
+  /** Déplacement libre du MJ : ignore les règles de terrain (déplacement exceptionnel). */
+  const [freeMove, setFreeMove] = useState(false);
   /** Construction manuelle : outil, tracé en cours, et historique pour « Annuler ». */
   const building = tab === 'construction';
   const [brush, setBrush] = useState<Brush>(DEFAULT_BRUSH);
@@ -158,13 +183,21 @@ export default function BattleMode({
     const cur = latest.current;
     const t = cur.tokens.find((q) => q.id === id);
     const view = latestView.current;
-    if (!t || !t.visible || (t.x === x && t.y === y) || !fits(view, id, t.size, x, y)) return;
+    if (!t || !t.visible || (t.x === x && t.y === y)) return;
+    // Mêmes règles que l'aperçu des joueurs : trajet possible, dans le déplacement du héros, case libre.
+    const plan = planMove(surfaceOf(view), moverIn(view, t), spot(t), { x, y }, leftOf(cur, t));
+    const free = plan.possible ? !overlaps(view, id, t.size, x, y) : false;
+    if (!plan.ok || !free) {
+      const why = !plan.possible ? plan.reason ?? 'Passage impossible' : !free ? 'La case d’arrivée est occupée.' : plan.reason ?? 'Trop loin';
+      setLastMove({ name: t.name, notes: [{ tone: 'alert', label: `Déplacement refusé : ${t.name}`, why: `${why} (${plan.dest}).` }], force: { id, x, y, layer: plan.layer === 'pont' ? 'pont' : undefined } });
+      return;
+    }
     // Comme un glisser du MJ : alertes de déplacement, et la fiche de la sortie s'ouvre si le jeton s'y pose.
-    const notes = moveAlerts(view, id, { x, y });
+    const notes = [...terrainNotes(plan), ...moveAlerts(view, id, { x, y })];
     const exit = exitAt(view, { x, y, size: t.size });
     setLastMove(notes.length || exit ? { name: t.name, notes, exit: exit && { id, label: exit.label, passage: exit.id } } : null);
     if (exit) setInfoId(exit.id);
-    onBattle({ ...cur, tokens: cur.tokens.map((q) => (q.id === id ? { ...q, x, y } : q)) });
+    onBattle({ ...cur, tokens: cur.tokens.map((q) => (q.id === id ? { ...q, x, y, layer: plan.layer === 'pont' ? 'pont' : undefined } : q)), moved: withMove(cur, id, { cost: plan.cost }) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), []);
   const build: BattleBuild = b.build ?? { edits: {}, props: [] };
@@ -178,6 +211,9 @@ export default function BattleMode({
   const latestView = useRef(bv);
   latestView.current = bv;
   const grid = effectiveOf(bv);
+  /** Classification des cases (règles) et grille de base (dessin). */
+  const rules = surfaceOf(bv);
+  const baseGrid = baseGridOf(bv);
   const placeTitle = context?.title ?? b.local?.place ?? rec.title;
 
   /**
@@ -260,6 +296,16 @@ export default function BattleMode({
     const y = Math.floor((clientY - (r.top + (r.height - b.rows * s) / 2)) / s);
     return x >= 0 && y >= 0 && x < b.cols && y < b.rows ? { x, y } : null;
   };
+  /** Point du plateau sous le pointeur, en cases (continu). */
+  const pointAt = (clientX: number, clientY: number): [number, number] | null => {
+    const svg = wrapRef.current?.querySelector('svg.battle-board');
+    if (!(svg instanceof SVGSVGElement)) return null;
+    const r = svg.getBoundingClientRect();
+    const s = Math.min(r.width / b.cols, r.height / b.rows);
+    const x = (clientX - (r.left + (r.width - b.cols * s) / 2)) / s, y = (clientY - (r.top + (r.height - b.rows * s) / 2)) / s;
+    return x >= 0 && y >= 0 && x <= b.cols && y <= b.rows ? [x, y] : null;
+  };
+  const editor = useSurfaceEditor({ b, set, rules, active: building, pointAt });
   const paintCells = (cells: number[], kind: TerrainKind | 'gomme') => {
     const edits = { ...build.edits };
     for (const c of cells) { if (kind === 'gomme') delete edits[c]; else edits[c] = kind; }
@@ -294,6 +340,7 @@ export default function BattleMode({
   };
   const onBoardDown = (e: ReactPointerEvent) => {
     if (e.button !== 0) return;
+    if (building && editor.onDown(e)) return;
     if (!building) {
       // Saisir un jeton : il est sélectionné, et le glisser le déplace. Sans mouvement, c'est un simple clic.
       const c = cellAt(e.clientX, e.clientY);
@@ -318,6 +365,12 @@ export default function BattleMode({
     setStroke({ anchor: c, cur: c, cells: [c.y * b.cols + c.x] });
   };
   const onBoardMove = (e: ReactPointerEvent) => {
+    if (building && editor.onMove(e)) return;
+    // Case survolée d'après le pointeur : les passages et vignettes posés dessus ne la masquent pas.
+    if (!drag && !building) {
+      const c = cellAt(e.clientX, e.clientY);
+      if (c && (c.x !== hover?.x || c.y !== hover?.y)) setHover(c);
+    }
     if (drag) {
       const c = cellAt(e.clientX, e.clientY);
       if (c && (c.x !== drag.cur.x || c.y !== drag.cur.y)) setDrag({ ...drag, cur: c, moved: true });
@@ -334,17 +387,26 @@ export default function BattleMode({
   // Le glisser se termine au relâchement : le jeton reste là si la case n'est pas libre.
   useEffect(() => {
     if (!drag) return;
-    const up = () => {
+    const up = (ev: PointerEvent) => {
       const t = b.tokens.find((q) => q.id === drag.id);
       if (t && drag.moved) {
         const x = drag.origin.x + drag.cur.x - drag.start.x, y = drag.origin.y + drag.cur.y - drag.start.y;
-        if (fits(bv, t.id, t.size, x, y)) {
-          const notes = moveAlerts(bv, t.id, { x, y });
+        // Même calcul que l'aperçu. Un trajet impossible est refusé, sauf déplacement libre du MJ (bouton ou Alt).
+        const plan = t.unplaced ? null : planMove(rules, moverIn(bv, t), spot(t), { x, y }, leftOf(b, t));
+        const free = freeMove || ev.altKey;
+        const placeable = plan?.possible ? !overlaps(bv, t.id, t.size, x, y) : fits(bv, t.id, t.size, x, y) || (free && !overlaps(bv, t.id, t.size, x, y));
+        if (plan && !plan.possible && !free) {
+          setLastMove({ name: t.name, notes: [{ tone: 'alert', label: 'Déplacement impossible', why: `${plan.reason ?? 'Aucun passage'} (${plan.dest}). Alt + glisser, ou « Déplacement libre », pour passer outre.` }] });
+        } else if (placeable) {
+          const notes = [...(plan ? terrainNotes(plan) : []), ...moveAlerts(bv, t.id, { x, y })];
           const exit = exitAt(bv, { x, y, size: t.size });
           setLastMove(notes.length || exit ? { name: t.name, notes, exit: exit && { id: t.id, label: exit.label, passage: exit.id } } : null);
           // Sur une sortie : sa fiche s'ouvre (praticabilité, test à faire, destination).
           if (exit) setInfoId(exit.id);
-          patchToken(t.id, t.unplaced ? { x, y, unplaced: undefined, visible: true } : { x, y });
+          const layer = plan?.possible ? (plan.layer === 'pont' ? 'pont' as const : undefined) : rules.cells[y * b.cols + x]?.deck ? 'pont' as const : undefined;
+          const patch = t.unplaced ? { x, y, unplaced: undefined, visible: true, layer } : { x, y, layer };
+          // Le trajet compte dans le déplacement du tour (pas un placement ni un déplacement libre du MJ).
+          set({ tokens: b.tokens.map((q) => (q.id === t.id ? { ...q, ...patch } : q)), ...(plan?.possible && !free ? { moved: withMove(b, t.id, { cost: plan.cost }) } : {}) });
         }
         justDropped.current = true;
         setTimeout(() => { justDropped.current = false; }, 0);
@@ -357,6 +419,7 @@ export default function BattleMode({
     return () => window.removeEventListener('pointerup', up);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [drag]);
+
 
   // Le tracé se termine au relâchement, même hors du plateau.
   useEffect(() => {
@@ -536,15 +599,24 @@ export default function BattleMode({
   const highlight = hoverId ? cellsOf(hoverId) : infoId ? cellsOf(infoId) : undefined;
 
   // Portées : déplacement (cases atteignables, terrain compté) et anneau d'attaque, pour chaque créature et chaque joueur.
-  const rangeOf = (t: BattleToken): BoardRange => ({
-    id: t.id, x: t.x, y: t.y, size: t.size,
-    move: reachableCells(grid, b.cols, b.rows, t, speedCells(statOf(t))),
-    attack: attackCells(statOf(t)), ranged: rangedCells(statOf(t)), selected: t.id === selectedId,
-    ...(t.kind === 'pc' ? { sight: sightOf(t), search: 1 } : {}),
-  });
-  // Pendant un glisser, la zone de déplacement du jeton s'affiche depuis sa case de départ.
+  /** Allonge et portée : l'arme en main d'un héros, sinon la fiche. */
+  const reachOf = (t: BattleToken) => ({ attack: t.reach?.melee || attackCells(statOf(t)), ranged: t.reach?.short ?? rangedCells(statOf(t)) });
+  const rangeOf = (t: BattleToken): BoardRange => {
+    const d = reachDetail(moveField(rules, moverIn(bv, t), spot(t)), leftOf(b, t));
+    return {
+      id: t.id, x: t.x, y: t.y, size: t.size, move: d.cells, costly: d.costly,
+      ...reachOf(t), selected: t.id === selectedId,
+      ...(t.kind === 'pc' ? { sight: sightOf(t), search: 1 } : {}),
+    };
+  };
+  // Pendant un glisser : les cases accessibles depuis la case de départ (plus coûteuses en ambre), et l'allonge et la
+  // portée d'attaque depuis la case visée.
   const dragged = drag?.moved ? b.tokens.find((t) => t.id === drag.id) : undefined;
-  const ranges: BoardRange[] = showRanges ? b.tokens.map(rangeOf) : dragged ? [{ ...rangeOf(dragged), attack: 0, ranged: 0 }] : [];
+  const dragRanges = (t: BattleToken): BoardRange[] => {
+    const at = { x: drag!.origin.x + drag!.cur.x - drag!.start.x, y: drag!.origin.y + drag!.cur.y - drag!.start.y };
+    return [{ ...rangeOf(t), attack: 0, ranged: 0, sight: undefined, search: undefined }, { id: `${t.id}-at`, ...at, size: t.size, move: [], ...reachOf(t), selected: true }];
+  };
+  const ranges: BoardRange[] = showRanges ? b.tokens.map(rangeOf) : dragged ? dragRanges(dragged) : [];
 
   const liveAt = (t: BattleToken) => (drag?.moved && drag.id === t.id
     ? { x: drag.origin.x + drag.cur.x - drag.start.x, y: drag.origin.y + drag.cur.y - drag.start.y }
@@ -594,12 +666,23 @@ export default function BattleMode({
     return {
       id: t.id, name: t.name, kind: t.kind, x: at.x, y: at.y, size: t.size, icon: t.icon, image: tokenImage(t),
       selected: t.id === selectedId, hidden: !t.visible, active: t.id === b.turn, hp: t.hp, maxHp: t.maxHp, out: isOut(t), conditions: t.conditions,
+      // Socle : terrain sous la position validée (pas pendant le glisser, pour éviter les clignotements).
+      socle: socleOf(rules, t) ?? undefined,
     };
   });
 
-  const readout = selected && hover ? feetBetween(selected, { ...hover, size: 1 }, b.feetPerCell) : null;
-  const walk = selected && hover ? pathCost(grid, b.cols, b.rows, selected, hover) : null;
-  const hoverKind = hover && grid ? TERRAIN[grid[hover.y * b.cols + hover.x] as keyof typeof TERRAIN]?.label : null;
+  const readout = selected && hover && !building ? feetBetween(selected, { ...hover, size: 1 }, b.feetPerCell) : null;
+  // Trajet prévu : pendant un glisser (vers la case visée), ou au survol quand un jeton est sélectionné.
+  const moving = dragged && drag ? dragged : !building && selected && hover && !aiming && !selected.unplaced ? selected : null;
+  const target = dragged && drag ? liveAt(dragged) : hover;
+  const movePlan: MovePlan | null = moving && target && (target.x !== moving.x || target.y !== moving.y)
+    ? planMove(rules, moverIn(bv, moving), spot(moving), target, leftOf(b, moving))
+    : null;
+  const pathView: PathView | undefined = movePlan && moving ? {
+    steps: movePlan.possible ? movePlan.steps : [{ x: moving.x, y: moving.y }, { x: target!.x, y: target!.y }],
+    size: moving.size, ok: movePlan.ok, possible: movePlan.possible,
+    label: movePlan.possible ? `${movePlan.cost * b.feetPerCell} pi${movePlan.ok ? '' : ' ⚠'}` : '⛔',
+  } : undefined;
   const present = new Set<string>(grid ? Array.from(grid) : []);
   const activeToken = b.tokens.find((t) => t.id === b.turn);
 
@@ -794,11 +877,14 @@ export default function BattleMode({
           />
   );
   const buildPanel = (
+    <>
+    {editor.panel}
     <BuildPanel
             brush={brush} onBrush={setBrush} propVisible={propVisible} onPropVisible={setPropVisible}
             canUndo={history.length > 0} onUndo={undo} propCount={build.props.length}
             onClear={() => { if (window.confirm('Effacer toutes les modifications à la main ?')) commitBuild(undefined); }}
           />
+    </>
   );
 
   const combatKey = `${rec.id}:${b.local?.source ?? b.terrain?.source ?? 'plateau'}`;
@@ -844,10 +930,45 @@ export default function BattleMode({
               <button className={`maps-btn ${aiming ? 'gold' : ''}`} title="Attaquer : clique ensuite la cible sur le plateau (Échap pour annuler)" onClick={() => setAiming(aiming ? null : selected.id)}>🎯 Attaquer</button>
             )}
             <button className={`maps-btn ${showRanges ? 'gold' : ''}`} title="Déplacements et portées d'attaque (MJ seulement)" onClick={() => setShowRanges((v) => !v)}>◎ Portées</button>
+            <button className={`maps-btn ${freeMove ? 'gold' : ''}`} title="Déplacement libre : le MJ pose un jeton où il veut, sans règles de terrain (téléportation, chute, poussée). Alt + glisser fait de même pour un seul déplacement." onClick={() => setFreeMove((v) => !v)}>{freeMove ? '🔓 Libre' : '🔒 Règles'}</button>
             <button className={`maps-btn ${b.fog?.on ? 'gold' : ''}`} title="Brouillard de guerre : les joueurs ne voient que ce que voient leurs héros (portée de vue et ligne de vue). Les cases explorées restent en mémoire." onClick={() => set({ fog: { on: !b.fog?.on, source: fogSource, explored: b.fog?.source === fogSource ? b.fog.explored : [] } })}>🌫 Brouillard</button>
             {b.fog?.on && explored.length > 0 && <button className="maps-btn" title="Oublier les cases explorées" onClick={() => set({ fog: { on: true, source: fogSource, explored: [] } })}>↺</button>}
           </div>
         </div>
+
+        {selected && !building && !selected.unplaced && (() => {
+          const m = moverFor(selected);
+          const auto = socleOf(rules, { ...selected, socle: undefined });
+          const value = selected.socle?.mode === 'manuel' ? selected.socle.t : selected.socle?.mode ?? 'auto';
+          const toggle = (k: 'nage' | 'vol' | 'escalade', on: boolean) => patchToken(selected.id, { modes: { ...selected.modes, [k]: on } });
+          return (
+            <div className="battle-token-opts" aria-label={`Options de ${selected.name}`}>
+              <b>{selected.name}</b>
+              {selected.layer === 'pont' && <span className="battle-token-layer">sur le pont</span>}
+              <span className={`battle-token-left ${leftOf(b, selected) ? '' : 'is-empty'}`} title="Déplacement restant pendant ce tour (remis à zéro au tour suivant)">
+                Reste <b>{leftOf(b, selected) * b.feetPerCell}</b> / {m.speed * (isDashing(b, selected.id) ? 2 : 1) * b.feetPerCell} pi{m.fly ? ' en vol' : ''}
+              </span>
+              <button className={`maps-btn ${isDashing(b, selected.id) ? 'gold' : ''}`} title="Foncer (action) : vitesse doublée pour ce tour"
+                onClick={() => set({ moved: withMove(b, selected.id, { dash: !isDashing(b, selected.id) }) })}>🏃 Foncer</button>
+              {usedMove(b, selected.id) > 0 && (
+                <button className="maps-btn" title="Rendre le déplacement de ce tour (erreur, retour en arrière)" onClick={() => set({ moved: withMove(b, selected.id, { reset: true }) })}>↺</button>
+              )}
+              <label className="build-check" title="Nage : l'eau profonde compte normalement"><input type="checkbox" checked={!!m.swim} onChange={(e) => toggle('nage', e.target.checked)} /> Nage</label>
+              <label className="build-check" title="Vol : ignore le sol (eau, vide, terrain difficile)"><input type="checkbox" checked={!!m.fly} onChange={(e) => toggle('vol', e.target.checked)} /> Vol</label>
+              <label className="build-check" title="Escalade : parois et dénivelés comptent normalement"><input type="checkbox" checked={!!m.climb} onChange={(e) => toggle('escalade', e.target.checked)} /> Escalade</label>
+              <label className="battle-token-socle" title="Socle sous le jeton : purement visuel">Socle
+                <select value={value} onChange={(e) => {
+                  const v = e.target.value;
+                  patchToken(selected.id, { socle: v === 'auto' ? undefined : v === 'aucun' ? { mode: 'aucun' } : { mode: 'manuel', t: v as TerrainId } });
+                }}>
+                  <option value="auto">Automatique{auto ? ` (${TERRAIN_DEF[auto].label.toLowerCase()})` : ''}</option>
+                  <option value="aucun">Aucun</option>
+                  <optgroup label="Choisi">{TERRAINS.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}</optgroup>
+                </select>
+              </label>
+            </div>
+          );
+        })()}
 
         {secrets.length > 0 && (
           <div className="battle-chips" aria-label="Passages secrets">
@@ -867,7 +988,7 @@ export default function BattleMode({
           <div
             ref={wrapRef} className={`battle-board-wrap ${building ? 'building' : ''} ${zoom !== 1 ? 'zoomed' : ''} ${drag ? 'dragging' : ''}`}
             style={{ width: `${zoom * 100}%` }}
-            onPointerDown={onBoardDown} onPointerMove={onBoardMove}
+            onPointerDown={onBoardDown} onPointerMove={onBoardMove} onDoubleClick={() => editor.onDouble()}
             onDragOver={(e) => { if (building || e.dataTransfer.types.includes(CREATURE_DRAG)) e.preventDefault(); }}
             onDrop={(e) => {
               const creature = e.dataTransfer.getData(CREATURE_DRAG);
@@ -886,9 +1007,11 @@ export default function BattleMode({
             }}
           >
             <BattleBoard
-              cols={b.cols} rows={b.rows} backdrop={rec.image} terrain={grid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
+              cols={b.cols} rows={b.rows} backdrop={rec.image} terrain={baseGrid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
               theme={boardTheme(b.local?.surface)}
-              onCell={onBoardCell} onElement={(id) => { if (boardElements.some((e) => e.id === id)) setInfoId(id); }} onHover={(x, y) => setHover({ x, y })}
+              ground={b.ground} surface={editor.view} overlay={building && editor.overlay ? { rules, focus: editor.focus } : undefined}
+              path={pathView} surfaceSelected={editor.selectedId} draft={editor.draft}
+              onCell={onBoardCell} onElement={building ? undefined : (id) => { if (boardElements.some((e) => e.id === id)) setInfoId(id); }} onHover={(x, y) => setHover({ x, y })}
               preview={stroke && brush.tool === 'terrain' ? stroke.cells : undefined}
               labels={labels} highlight={highlight} fog={fogLayer} exits={dmExits} aim={aimLine} hits={b.hits}
             />
@@ -910,17 +1033,30 @@ export default function BattleMode({
                       <span><button className="maps-btn gold battle-exit-btn" onClick={() => leaveBy(exit)}>Quitter la carte{linkOf(exit.passage) ? ` → ${linkOf(exit.passage)!.label.split(' · ')[0]}` : ''}</button></span>
                     </div>
                   )}
+                  {!live && lastMove?.force && (
+                    <span><button className="maps-btn gold battle-exit-btn" onClick={() => {
+                      const f = lastMove.force!;
+                      patchToken(f.id, { x: f.x, y: f.y, layer: f.layer });
+                      setLastMove(null);
+                    }}>Accepter quand même (MJ)</button></span>
+                  )}
                   {!live && <button className="present-info-close" onClick={() => setLastMove(null)} aria-label="Fermer">×</button>}
                 </div>
               );
             })()}
-            {readout && (
-              <div className="battle-readout">
-                {walk === null ? 'Chemin coupé' : <>{walk * b.feetPerCell} pieds de marche</>}
-                {walk !== null && <span className="battle-sub"> · {readout.feet} à vol d'oiseau</span>}
-                {hoverKind && <span className="battle-sub"> · {hoverKind}</span>}
+            {(movePlan || readout) && (
+              <div className={`battle-readout ${movePlan && !movePlan.possible ? 'is-blocked' : movePlan && !movePlan.ok ? 'is-over' : ''}`}>
+                {movePlan ? (
+                  <>
+                    <b>{movePlan.dest}</b>
+                    {movePlan.possible
+                      ? <span className="battle-sub"> · {movePlan.cost * b.feetPerCell} pi{movePlan.notes.length ? ` (${movePlan.notes.join(', ')})` : ''}{movePlan.ok ? '' : ` · au-delà des ${leftOf(b, moving!) * b.feetPerCell} pi restants`}</span>
+                      : <span className="battle-sub"> · ⛔ {movePlan.reason}</span>}
+                  </>
+                ) : readout ? <span className="battle-sub">{readout.feet} pi à vol d'oiseau</span> : null}
               </div>
             )}
+            {editor.cellCard}
           </div>
 
           {waiting.length > 0 && !building && (

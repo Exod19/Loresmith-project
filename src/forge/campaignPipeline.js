@@ -261,10 +261,5 @@ export function librarySuggestionsFrom(bible) {
   ];
 }
 
-/** Ce qui s'est passé dans les séances déjà écrites, en bref, pour la suivante. */
-export function previousDigest(campaign, beforeSession) {
-  return (campaign.sessions || [])
-    .filter((s) => s.sessionNumber < beforeSession && s.detailed)
-    .map((s) => `S${s.sessionNumber} ${s.title} : ${s.summary}${s.cliffhanger ? ` (fin : ${s.cliffhanger})` : ''}`)
-    .join('\n');
-}
+// Le digest vit dans un module pur (testable) : le vécu des comptes rendus prime sur le prévu.
+export { previousDigest } from '../campaign/digest.js';

@@ -63,10 +63,12 @@ const FORK_LINES: ((side: string) => string)[] = [
   (c) => `Un écho différent, sur votre ${c} : la paroi s’ouvre sur un espace plus large. Vous allez voir, ou vous continuez ?`,
 ];
 
-export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false, onReturn, renderCombat, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [], artOf, library, onCreateNpc, onCreateEntry, loreContext, onUpdateEntry, onChronicle }: {
+export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false, onReturn, renderCombat, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [], artOf, onOpenEntry, library, onCreateNpc, onCreateEntry, loreContext, onUpdateEntry, onChronicle }: {
   rec: MapRecord; atlas: AtlasData; dm: boolean; onDm: (v: boolean) => void;
   /** Illustration d'une créature par son nom, pour l'écran joueur. */
   artOf?: (name: string, id: string) => string;
+  /** Ouvre la fiche de bibliothèque liée à un repère. */
+  onOpenEntry?: (entryId: string) => void;
   onUpdate: (patch: Partial<MapRecord>) => void; onBack: () => void;
   /** Personnages du groupe, pour les ajouter au combat. */
   heroes?: Hero[];
@@ -111,6 +113,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   const [placing, setPlacing] = useState<Draft | null>(null);
   /** Cité que le MJ déplace : le prochain clic sur la carte du monde la pose. */
   const [movingCity, setMovingCity] = useState<string | null>(null);
+  /** Repère en cours de déplacement : le prochain clic sur la carte devient sa nouvelle position. */
+  const [moving, setMoving] = useState<string | null>(null);
   /** Lieu que les joueurs doivent voir au centre de l'écran (demandé depuis la fiche). */
   const [focus, setFocus] = useState<{ kind: 'anchor' | 'point'; id: string; tick: number } | null>(null);
   /** Colonne de droite de la carte de navigation (MJ) : un onglet à la fois. */
@@ -626,6 +630,11 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   };
 
   function addMarker(x: number, y: number) {
+    if (moving) {
+      updateMarker(moving, { x: Math.min(1, Math.max(0, x)), y: Math.min(1, Math.max(0, y)) });
+      setMoving(null);
+      return;
+    }
     if (!placing) return;
     createMarker(placing, x, y, map.id);
   }
@@ -649,7 +658,11 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     ...overlay, markers: overlay.markers.map((m) => (m.id === id ? { ...m, ...patch } : m)),
   });
   const removeMarker = (id: string) => {
-    setOverlay({ ...overlay, markers: overlay.markers.filter((m) => m.id !== id) });
+    const gone = overlay.markers.find((m) => m.id === id);
+    const next = { ...overlay, markers: overlay.markers.filter((m) => m.id !== id) };
+    // Un lieu retiré de la carte des lieux n'y revient pas à la prochaine séance : on s'en souvient.
+    if (gone?.entryId) onUpdate({ overlay: next, placeDismissed: [...new Set([...(rec.placeDismissed ?? []), gone.entryId])], updatedAt: Date.now() });
+    else setOverlay(next);
     setSelectedId(null);
   };
 
@@ -957,7 +970,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               fog={dm ? null : playerPreview.fog}
               journey={overlay.travel && overlay.travel.planId === map.id ? { ...overlay.travel, label: 'Groupe' } : null}
               onAnchor={(a) => { if (dm && rec.kind === 'monde') followAnchor(a.id); }}
-              onPlace={dm && placing ? addMarker : dm && movingCity && rec.world && map.id === wid ? (x, y) => { onUpdate({ world: moveCity(rec.world!, movingCity, [x, y]), updatedAt: Date.now() }); setMovingCity(null); } : undefined}
+              onPlace={dm && (placing || moving) ? addMarker : dm && movingCity && rec.world && map.id === wid ? (x, y) => { onUpdate({ world: moveCity(rec.world!, movingCity, [x, y]), updatedAt: Date.now() }); setMovingCity(null); } : undefined}
+              onMovePin={dm ? (fid: string, x: number, y: number) => { if (fid.startsWith('mk-')) updateMarker(fid.slice(3), { x, y }); } : undefined}
               dataKey={`${rec.updatedAt}:${dm}`}
               onZoomLimit={onZoomLimit}
               exploring={exploring}
@@ -1055,6 +1069,11 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 {map.id === wid ? 'Clique sur la carte du monde pour poser la cité.' : 'Reviens à la carte du monde pour poser la cité.'} <button className="maps-link" onClick={() => setMovingCity(null)}>Annuler</button>
               </p>
             )}
+            {dm && moving && (
+              <p className="maps-hint maps-placing">
+                Clique sur la carte pour déplacer le repère. <button className="maps-link" onClick={() => setMoving(null)}>Annuler</button>
+              </p>
+            )}
             {dm && placing && (
               <p className="maps-hint maps-placing">
                 Clique sur la carte pour placer « {placing.title} ». <button className="maps-link" onClick={() => setPlacing(null)}>Annuler</button>
@@ -1073,6 +1092,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 onTalk={(g, s) => setTalkWith({ markerId: selectedMarker.id, name: g.name ?? s.name, stat: s, detail: g.detail })}
                 m={selectedMarker}
                 onChange={(patch) => updateMarker(selectedMarker.id, patch)}
+                onMove={() => { setPlacing(null); setMoving(selectedMarker.id); }}
+                onOpenEntry={selectedMarker.entryId && onOpenEntry ? () => onOpenEntry(selectedMarker.entryId as string) : undefined}
                 onRemove={() => { if (window.confirm(`Supprimer « ${selectedMarker.title} » ?`)) removeMarker(selectedMarker.id); }}
                 onClose={() => setSelectedId(null)}
               />
@@ -1432,8 +1453,8 @@ function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onT
   );
 }
 
-function MarkerEditor({ m, onChange, onRemove, onClose, onTalk }: {
-  m: MapMarker; onChange: (patch: Partial<MapMarker>) => void; onRemove: () => void; onClose: () => void;
+function MarkerEditor({ m, onChange, onMove, onOpenEntry, onRemove, onClose, onTalk }: {
+  m: MapMarker; onChange: (patch: Partial<MapMarker>) => void; onMove: () => void; onOpenEntry?: () => void; onRemove: () => void; onClose: () => void;
   /** Parler à une créature de la rencontre (seulement si elle parle). */
   onTalk?: (g: NonNullable<MapMarker['groups']>[number], s: Stat) => void;
 }) {
@@ -1467,6 +1488,8 @@ function MarkerEditor({ m, onChange, onRemove, onClose, onTalk }: {
           })}
         </Block>
       )}
+      {onOpenEntry && <button className="maps-btn" onClick={onOpenEntry}>Ouvrir la fiche</button>}
+      <button className="maps-btn" onClick={onMove}>Déplacer sur la carte</button>
       <button className="maps-btn" onClick={onRemove}>Supprimer le repère</button>
     </div>
   );

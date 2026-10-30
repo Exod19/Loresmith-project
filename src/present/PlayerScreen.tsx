@@ -8,6 +8,7 @@ import { setAtlasData } from '../maps/atlas/model';
 import type { AtlasData, AtlasFeature, FeatureCategory } from '../maps/atlas/types';
 import BattleBoard, { CATEGORY_ICON, type BoardRange } from '../maps/battle/BattleBoard';
 import { reachableCells } from '../maps/battle/ranges';
+import { moveField, moverOf, occupancy, planMove, reachDetail, type MovePlan } from '../maps/battle/movement';
 import { trailProfile } from '../maps/atlas/trails';
 import { describe } from '../maps/atlas/lore';
 import { CALM_MS, type HaltAlert } from '../maps/atlas/omens';
@@ -271,6 +272,13 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
     return x >= 0 && y >= 0 && x < board.cols && y < board.rows ? { x, y } : null;
   };
   const tokenAt = (c: { x: number; y: number }) => [...board.tokens].reverse().find((t) => c.x >= t.x && c.x < t.x + t.size && c.y >= t.y && c.y < t.y + t.size);
+  /** Capacités d'un jeton (vitesses de sa fiche, déplacement du héros, modes accordés par le MJ). */
+  const moverFor = (t: PlayerToken) => ({ ...moverOf({ size: t.size, move: t.move, modes: t.modes }, t.speed), occ: occupancy(board.cols, t, board.tokens) });
+  /** Déplacement restant ce tour (envoyé par le MJ pour les héros). */
+  const leftOf = (t: PlayerToken) => t.left ?? moverFor(t).speed;
+  const from = (t: PlayerToken) => ({ x: t.x, y: t.y, layer: t.layer === 'pont' ? 'pont' as const : 'sol' as const });
+  const dragToken = drag ? board.tokens.find((t) => t.id === drag.id) : undefined;
+  const dragPlan: MovePlan | null = drag?.moved && dragToken && board.rules ? planMove(board.rules, moverFor(dragToken), from(dragToken), drag.cur, leftOf(dragToken)) : null;
   const down = (e: ReactPointerEvent) => {
     if (aimer || !onMove || e.button !== 0) return;
     const c = cellAt(e.clientX, e.clientY);
@@ -290,24 +298,31 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
   useEffect(() => {
     if (!drag) return;
     const up = () => {
-      if (drag.moved) { dragged.current = true; onMove?.(drag.id, drag.cur.x, drag.cur.y); setTimeout(() => { dragged.current = false; }, 0); }
+      // Même règle que le MJ : un trajet impossible ou trop long n'est pas envoyé (le jeton revient à sa place).
+      if (drag.moved && (!dragPlan || dragPlan.ok)) { dragged.current = true; onMove?.(drag.id, drag.cur.x, drag.cur.y); setTimeout(() => { dragged.current = false; }, 0); }
       setDrag(null);
     };
     window.addEventListener('pointerup', up);
     window.addEventListener('pointercancel', up);
     return () => { window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up); };
-  }, [drag, onMove]);
+  }, [drag, onMove, dragPlan]);
   const tokens = drag?.moved ? board.tokens.map((t) => (t.id === drag.id ? { ...t, ...drag.cur } : t)) : board.tokens;
 
   // Héros dont on montre le déplacement et la portée : celui qu'on glisse, sinon celui dont c'est le tour, sinon la fiche ouverte.
   const activeHero = tokens.find((t) => t.kind === 'pc' && t.id === board.turn?.active);
-  const hero = tokens.find((t) => t.kind === 'pc' && t.id === drag?.id) ?? activeHero ?? tokens.find((t) => t.kind === 'pc' && t.id === openId);
-  const ranges: BoardRange[] = hero && (showMove || showReach || drag?.id === hero.id) ? [{
-    id: hero.id, x: hero.x, y: hero.y, size: hero.size, selected: true,
-    move: showMove || drag?.id === hero.id ? reachableCells(board.terrain, board.cols, board.rows, drag?.id === hero.id ? board.tokens.find((t) => t.id === hero.id)! : hero, hero.move ?? 6) : [],
-    attack: showReach ? hero.reach?.melee ?? 1 : 0,
-    ranged: showReach ? hero.reach?.short ?? 0 : 0,
-  }] : [];
+  const hero = tokens.find((t) => t.id === drag?.id && drag?.moved) ?? activeHero ?? tokens.find((t) => t.kind === 'pc' && t.id === openId);
+  // Déplacement (cases accessibles, plus coûteuses en ambre) depuis la case de départ ; allonge et portée depuis la case
+  // visée pendant un glisser.
+  const detail = (h: PlayerToken) => (board.rules ? reachDetail(moveField(board.rules, moverFor(h), from(h)), leftOf(h)) : { cells: reachableCells(board.terrain, board.cols, board.rows, h, hero?.move ?? 6), costly: [] });
+  const draggingHero = !!hero && drag?.id === hero.id;
+  const startOf = hero ? (draggingHero ? board.tokens.find((t) => t.id === hero.id)! : hero) : null;
+  const moveDetail = hero && (showMove || draggingHero) ? detail(startOf!) : null;
+  const ranges: BoardRange[] = hero && (showMove || showReach || draggingHero) ? [{
+    id: hero.id, x: startOf!.x, y: startOf!.y, size: hero.size, selected: true,
+    move: moveDetail?.cells ?? [], costly: moveDetail?.costly,
+    attack: showReach && !draggingHero ? hero.reach?.melee ?? 1 : 0,
+    ranged: showReach && !draggingHero ? hero.reach?.short ?? 0 : 0,
+  }, ...(draggingHero ? [{ id: `${hero.id}-at`, x: hero.x, y: hero.y, size: hero.size, selected: true, move: [], attack: hero.reach?.melee ?? 1, ranged: hero.reach?.short ?? 0 }] : [])] : [];
 
   const centre = (id: string) => { const t = tokens.find((q) => q.id === id); return t && { x: t.x + t.size / 2, y: t.y + t.size / 2 }; };
   const a1 = board.aim && centre(board.aim.from), a2 = board.aim && centre(board.aim.to);
@@ -320,7 +335,7 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
       <header className="present-battle-head">
         <span>{board.title}</span>
         <span className="present-toggles">
-          <button type="button" aria-pressed={showMove} data-on={showMove ? 1 : undefined} onClick={() => setShowMove(!showMove)}>👣 Déplacement{showMove && hero?.move ? ` · ${hero.move} cases` : ''}</button>
+          <button type="button" aria-pressed={showMove} data-on={showMove ? 1 : undefined} onClick={() => setShowMove(!showMove)}>👣 Déplacement{showMove && hero ? ` · reste ${leftOf(hero) * board.feetPerCell} pi` : ''}</button>
           <button type="button" aria-pressed={showReach} data-on={showReach ? 1 : undefined} onClick={() => setShowReach(!showReach)}>
             ⚔ Portée{showReach && reach ? ` · ${reach.weapon ?? 'arme'} : ${reach.short ? `${reach.short * board.feetPerCell}/${reach.long * board.feetPerCell} pi` : `allonge ${(reach.melee || 1) * board.feetPerCell} pi`}` : ''}
           </button>
@@ -334,8 +349,20 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
       >
         <BattleBoard
           cols={board.cols} rows={board.rows} backdrop={board.backdrop} theme={board.theme} terrain={board.terrain} elements={board.elements} tokens={tokens} fog={board.fog} exits={board.exits}
-          onElement={pick} aim={aim} ranges={ranges} hits={board.hits}
+          onElement={pick} aim={aim} ranges={ranges} hits={board.hits} ground={board.ground} surface={board.surface}
+          path={dragPlan && dragToken ? {
+            steps: dragPlan.possible ? dragPlan.steps : [from(dragToken), drag!.cur], size: dragToken.size, ok: dragPlan.ok, possible: dragPlan.possible,
+            label: dragPlan.possible ? `${dragPlan.cost * board.feetPerCell} pi${dragPlan.ok ? '' : ' ⚠'}` : '⛔',
+          } : undefined}
         />
+        {dragPlan && (
+          <div className={`present-move-info ${dragPlan.possible ? (dragPlan.ok ? '' : 'is-over') : 'is-blocked'}`} role="status">
+            <b>{dragPlan.dest}</b>
+            <span>{dragPlan.possible
+              ? `${dragPlan.cost * board.feetPerCell} pieds${dragPlan.notes.length ? ` · ${dragPlan.notes.join(', ')}` : ''}${dragPlan.ok ? '' : ' · trop loin'}`
+              : `⛔ ${dragPlan.reason}`}</span>
+          </div>
+        )}
         {aimer && <div className="present-aim-hint">🎯 {board.tokens.find((t) => t.id === aimer)?.name} vise : touche la cible sur le plateau.</div>}
         {!aimer && board.aim?.verdict ? (
           board.aim.damage !== undefined && (board.aim.verdict === 'hit' || board.aim.verdict === 'crit') ? (

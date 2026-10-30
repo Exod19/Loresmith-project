@@ -10,7 +10,7 @@
 .battle-round{font-family:'Cinzel',serif;color:#ecd289;letter-spacing:.06em;margin-right:6px}
 .battle-hint{font-size:13px;color:var(--muted,#9a8a63);margin-left:auto}
 .battle-board-wrap{position:relative}
-.battle-readout{position:absolute;right:10px;top:10px;background:rgba(0,0,0,.7);color:#ecd289;padding:4px 10px;border:1px solid #7d6128;border-radius:4px;font-size:13px;pointer-events:none}
+.battle-readout{position:absolute;left:10px;bottom:10px;z-index:5;background:rgba(0,0,0,.7);color:#ecd289;padding:4px 10px;border:1px solid #7d6128;border-radius:4px;font-size:13px;pointer-events:none}
 .battle-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
 .battle-list li{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 6px;border-radius:4px}
 .battle-list li[data-on="1"]{background:rgba(201,162,74,.12)}
@@ -842,6 +842,51 @@
 .present-fork-btns .maps-btn{font-size:clamp(14px,2vmin,20px);padding:.5em 1.1em}
 .present-fork-btns .maps-btn[data-on="1"]{outline:2px solid var(--gold,#c9a24a)}
 .present-fork-sent{display:block;margin-top:1vmin;opacity:.7;font-style:italic}
+
+/* ——— Terrain en couches : préparation (MJ), vérification, trajets, socles ——— */
+.surface-panel h3{margin-bottom:4px}
+.surface-row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin:6px 0 4px}
+.surface-field{display:flex;flex-direction:column;gap:3px;font-size:12px;color:#c9b88f;margin:4px 0}
+.surface-field select,.surface-field input[type=number],.surface-field input:not([type]){background:#120e09;border:1px solid #5c4a28;color:#eadcb6;border-radius:6px;padding:4px 6px;font:inherit;font-size:13px}
+.surface-tools{flex-wrap:wrap}
+.surface-sub{margin:6px 0 4px;padding:8px;border:1px solid rgba(201,162,74,.22);border-radius:8px;background:rgba(10,8,6,.35)}
+.surface-objs{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}
+.surface-objs .build-tile{display:flex;flex-direction:column;align-items:flex-start;gap:1px;text-align:left}
+.surface-objs .build-tile small{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#a8946a}
+.surface-terrains{display:flex;flex-direction:column;gap:4px;max-height:280px;overflow:auto;padding-right:2px}
+.surface-swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:5px}
+.surface-swatch{display:flex;align-items:center;gap:6px;padding:3px 6px 3px 3px;border-radius:7px;border:1px solid #3e321c;background:#14100b;color:#e6d8b2;font-size:12px;cursor:pointer;text-align:left}
+.surface-swatch span{flex:none;width:24px;height:24px;border-radius:5px;background-size:cover;background-position:center;box-shadow:inset 0 0 0 1px rgba(0,0,0,.5)}
+.surface-swatch.on{border-color:#ecd289;box-shadow:0 0 0 1px #ecd289 inset;background:#2a2112}
+.surface-sel{margin:8px 0;padding:8px 10px;border:1px solid #7d6128;border-radius:8px;background:rgba(40,30,14,.45)}
+.surface-sel b{font-family:'Cinzel',serif;color:#f1e3bd}
+.surface-legend{display:flex;flex-direction:column;gap:3px;margin:8px 0;font-size:12px;color:#d8c9a2}
+.surface-legend span{display:flex;align-items:center;gap:6px}
+.surface-legend i{width:14px;height:14px;border-radius:3px;flex:none}
+.surface-legend i.dash{border:2px dashed #fff;background:transparent}
+.surface-legend i.deck{background:transparent;border-bottom:4px solid #7fe0ff;border-radius:0;height:8px}
+.surface-cellcard{position:absolute;left:10px;top:10px;z-index:6;display:flex;flex-direction:column;gap:3px;max-width:300px;padding:9px 12px;border-radius:9px;
+  border:1px solid #7d6128;background:rgba(10,8,6,.95);color:#eadcb6;font-size:12.5px;box-shadow:0 10px 30px rgba(0,0,0,.55)}
+.surface-cellcard b{font-family:'Cinzel',serif;color:#f6e8c4}
+.surface-cat{align-self:flex-start;padding:1px 8px;border-radius:999px;color:#0b0906;font-weight:700;font-size:11px}
+.surface-amb{color:#ffd28a}
+.battle-board-wrap.building{cursor:crosshair}
+.battle-readout b{color:#f6e8c4}
+.battle-readout.is-over{border-color:#d08a2c}
+.battle-readout.is-blocked{border-color:#d0452c}
+.battle-readout.is-blocked .battle-sub{color:#ff9a84}
+.battle-token-opts{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:4px 0 6px;padding:5px 10px;border:1px solid rgba(201,162,74,.3);border-radius:8px;background:rgba(10,8,6,.55);font-size:12.5px;color:#e6d8b2}
+.battle-token-opts b{font-family:'Cinzel',serif;color:#f6e8c4}
+.battle-token-opts select{background:#120e09;border:1px solid #5c4a28;color:#eadcb6;border-radius:6px;padding:2px 4px;margin-left:5px;font-size:12px}
+.battle-token-layer{padding:1px 7px;border-radius:999px;background:#1d3a44;color:#bfe9f0;font-size:11px}
+.socle-ripple{transform-box:fill-box;transform-origin:center;animation:socle-ripple 2.6s ease-out infinite}
+@keyframes socle-ripple{0%{opacity:.75;transform:scale(1)}100%{opacity:0;transform:scale(1.35)}}
+@media (prefers-reduced-motion:reduce){.socle-ripple{animation:none;opacity:.5}}
+.present-move-info{position:absolute;left:50%;bottom:2vmin;transform:translateX(-50%);z-index:6;display:flex;flex-direction:column;align-items:center;gap:2px;padding:1vmin 2.4vmin;border-radius:10px;
+  border:1px solid #2f8f84;background:rgba(8,12,12,.92);color:#dff5f0;font-size:clamp(14px,2vmin,20px);pointer-events:none;box-shadow:0 8px 30px rgba(0,0,0,.6)}
+.present-move-info b{font-family:var(--font-joueurs-titre,'Cinzel',serif);font-size:1.1em;color:#f6e8c4}
+.present-move-info.is-over{border-color:#d08a2c}
+.present-move-info.is-blocked{border-color:#d0452c;color:#ffc2b5}
 /* Conversation montrée aux joueurs (lot 15) */
 .present-talk{position:absolute;left:50%;bottom:4vh;z-index:6;transform:translateX(-50%);width:min(820px,90%);max-height:42vh;overflow:hidden;padding:1.6vmin 2.6vmin;border-radius:12px;
   background:rgba(14,11,8,.9);border:1px solid rgba(201,162,74,.5);box-shadow:0 18px 60px rgba(0,0,0,.7);color:#efe2bd;font-size:clamp(14px,1.9vmin,22px);line-height:1.45}
