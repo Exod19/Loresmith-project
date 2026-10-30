@@ -75,9 +75,9 @@ export function hoursOn(plan: AtlasMap | undefined, pts: Pt[], trace?: string) {
 }
 
 /** « 1 h 20 », « 40 min » (arrondi à 10 minutes). */
-export function hoursLabel(h: number) {
-  // Au-delà d'une journée : en jours de marche (8 h par jour), puis les heures.
-  if (h >= 10) { const d = Math.round((h / 8) * 2) / 2; return `${String(d).replace('.5', ' ½')} jour${d >= 2 ? 's' : ''} (${Math.round(h)} h)`; }
+export function hoursLabel(h: number, inDays = false) {
+  // Plan à l'échelle (carte du monde) : au-delà d'une journée, en jours de marche (8 h par jour), puis les heures.
+  if (inDays && h >= 10) { const d = Math.round((h / 8) * 2) / 2; return `${String(d).replace('.5', ' ½')} jour${d >= 2 ? 's' : ''} (${Math.round(h)} h)`; }
   const m = Math.max(10, Math.round((h * 60) / 10) * 10);
   return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h${m % 60 ? ` ${String(m % 60).padStart(2, '0')}` : ''}`;
 }

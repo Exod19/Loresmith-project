@@ -982,7 +982,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               <div className="maps-halt" role="status">
                 <h4>⏸ Halte en chemin</h4>
                 <p className="maps-sub">
-                  Sur « {party.halt.trail} », en route vers <b>{party.halt.to.title}</b>, après ≈ {hoursLabel(party.halt.hours)} de marche depuis le dernier jet.
+                  Sur « {party.halt.trail} », en route vers <b>{party.halt.to.title}</b>, après ≈ {hoursLabel(party.halt.hours, !!map.surface)} de marche depuis le dernier jet.
                 </p>
                 {overlay.alert && overlay.alert.phase !== 'calm' && (
                   <p className="maps-halt-said">Écran joueurs : « {overlay.alert.line} »{overlay.alert.title ? ` · ${overlay.alert.title}` : ''}{overlay.alert.phase === 'encounter' && !overlay.alert.image ? ' (sans image)' : ''}</p>
@@ -1093,6 +1093,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 onForget={dm && pv.fog ? () => forgetFog(pointsOf(feature.id)) : undefined}
                 onPartyDest={() => setDest(party.dest?.id === feature.id ? undefined : { id: feature.id, kind: 'feature', title: feature.title, planId: map.id })}
                 follow={dm && feature.trace ? {
+                  days: !!map.surface,
                   legs: trailsTo.filter((x) => x.f.id === feature.id).map((x) => ({ label: `Vers ${x.leg.toward}`, to: x.to, hours: x.leg.hours, onGo: () => followTrail(x) })),
                   hazard: trailHazard(feature, trailProfile(feature, feature.trace === 'secret' ? 15 : undefined)),
                   route: routeOf(feature.id), byPlayers: playerPick?.id === feature.id,
@@ -1330,7 +1331,7 @@ function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onT
   /** Perception passive du groupe, pour dire si un sentier se voit sans chercher. */
   passive?: number;
   /** Chemin (MJ) : où il mène depuis le groupe, l'épreuve qu'il demande, et l'action de le suivre. */
-  follow?: { legs: { label: string; to: PartyPlace | null; hours: number; onGo: () => void }[]; hazard: Hazard | null; route?: TrailVerdict & { text: string; ends?: string }; byPlayers?: boolean };
+  follow?: { legs: { label: string; to: PartyPlace | null; hours: number; onGo: () => void }[]; hazard: Hazard | null; days?: boolean; route?: TrailVerdict & { text: string; ends?: string }; byPlayers?: boolean };
   /** Brouillard (MJ) : replonger ce lieu dans le noir chez les joueurs. */
   onForget?: () => void;
 }) {
@@ -1384,7 +1385,7 @@ function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onT
               <div className="trail-legs">
                 {follow.legs.map((l) => (
                   <button key={l.label} className="maps-btn gold" disabled={!l.to} onClick={l.onGo}>
-                    {l.label} → <b>{l.to?.title ?? 'aucun lieu connu'}</b> <small>≈ {hoursLabel(l.hours)}{follow.hazard ? ' · épreuve' : ''}</small>
+                    {l.label} → <b>{l.to?.title ?? 'aucun lieu connu'}</b> <small>≈ {hoursLabel(l.hours, follow.days)}{follow.hazard ? ' · épreuve' : ''}</small>
                   </button>
                 ))}
               </div>
