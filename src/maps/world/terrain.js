@@ -165,7 +165,10 @@ export function elevationAt(relief, x, y) {
   }
   for (const c of relief.flats) {
     const d = Math.hypot(x - c.x, y - c.y);
-    if (d < c.r * 4) e = Math.min(e, 220) + (e - Math.min(e, 220)) * smooth(c.r, c.r * 4, d);
+    if (d > c.r * 5.5) continue;
+    // La plaine d'une cité a un contour irrégulier (pas un cratère rond).
+    const a = Math.atan2(y - c.y, x - c.x), reach = c.r * (3 + 2.5 * F.farm(c.x * 3 + Math.cos(a) * 3.2, c.y * 3 + Math.sin(a) * 3.2));
+    if (d < reach) e = Math.min(e, 220) + (e - Math.min(e, 220)) * smooth(c.r, reach, d);
   }
   for (const s of relief.seas) {
     const d = seaDist(s, x, y);
@@ -258,6 +261,18 @@ export function renderRelief(relief, w, h, win) {
   // Exagération du relief pour l'ombrage : plus forte quand un pixel couvre beaucoup de terrain.
   const ex = clamp((px * 1000) / 60, 2, 40);
   const L = [-0.6, -0.6, 0.53].map((v) => v / Math.hypot(0.6, 0.6, 0.53));
+  // Symboles de carte (arbres, conifères, sommets, touffes d'herbe), dessinés dans l'image : une case de ~6 px, ancrée
+  // sur une grille en km (puissance de deux) pour ne pas « grouiller » quand on fait glisser la carte.
+  const ck = 2 ** Math.round(Math.log2(6 * px)), mk = ck * 2.5;
+  const seedH = relief.seed | 0;
+  const hh = (a, b, salt) => { let v = Math.imul(a, 73856093) ^ Math.imul(b, 19349663) ^ Math.imul(seedH + salt, 83492791); v = Math.imul(v ^ (v >>> 13), 1274126177); return ((v ^ (v >>> 16)) >>> 0) / 4294967296; };
+  const cellAt = (x, y, size, salt) => {
+    const ci = Math.floor(x / size), cj = Math.floor(y / size);
+    const cx = (ci + 0.5 + (hh(ci, cj, salt) - 0.5) * 0.6) * size, cy = (cj + 0.5 + (hh(ci, cj, salt + 1) - 0.5) * 0.6) * size;
+    return { u: (x - cx) / size, v: (y - cy) / size, r: hh(ci, cj, salt + 2), q: hh(ci, cj, salt + 3) };
+  };
+  const step = px * 1000 < 300 ? 200 : 500;
+  const shadeBy = (c, f) => [c[0] * f, c[1] * f, c[2] * f];
   for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
     const k = j * (w + 1) + i;
     const e = (E[k] + E[k + 1] + E[k + w + 1] + E[k + w + 2]) / 4;
@@ -265,28 +280,77 @@ export function renderRelief(relief, w, h, win) {
     let c;
     if (e < 0) {
       c = mix(COLORS.shallow, COLORS.deep, clamp(-e / 1400, 0, 1));
+      // Près des côtes : eaux claires, et un trait de rivage.
+      const coast = E[k] >= 0 || E[k + 1] >= 0 || E[k + w + 1] >= 0 || E[k + w + 2] >= 0;
+      if (coast) c = [32, 52, 60];
+      else if (e > -90) c = mix(c, [120, 178, 186], (1 - -e / 90) * 0.45 * (0.75 + 0.25 * Math.sin((x + y) / (ck * 1.6))));
     } else {
       const t = terrainAt(relief, x, y, e);
       c = groundColor(t, tint, SNOW_LINE[relief.season] ?? 0.17);
-      if (t.forest > 0) {
-        const fc = t.biome === 'tempere' && tint.forest ? tint.forest : COLORS.forest[t.biome] ?? COLORS.forest.tempere;
+      const fc = t.forest > 0 ? (t.biome === 'tempere' && tint.forest ? tint.forest : COLORS.forest[t.biome] ?? COLORS.forest.tempere) : null;
+      if (fc) {
         // La canopée : un grain fin d'arbres, plus sombre au cœur de la forêt.
-        c = mix(c, mix(fc, [fc[0] * 0.7, fc[1] * 0.7, fc[2] * 0.7], F.canopy(x, y)), t.forest * 0.9);
+        c = mix(c, mix(fc, [fc[0] * 0.7, fc[1] * 0.7, fc[2] * 0.7], F.canopy(x, y)), t.forest * 0.75);
       }
       // Champs autour des cités : une marqueterie de parcelles.
+      // Le terroir n'est pas un disque : son bord suit le terrain (bruit), avec des parcelles qui s'effilochent.
+      const farmR = (f) => { const a = Math.atan2(y - f.y, x - f.x); return f.r * 2.2 * (0.55 + 0.9 * F.farm(f.x * 3 + Math.cos(a) * 3.2, f.y * 3 + Math.sin(a) * 3.2)); };
+      let farmed = false;
       for (const f of relief.flats) {
-        const d = Math.hypot(x - f.x, y - f.y);
-        if (d < f.r * 2.2 && e < 600 && t.biome !== 'neige') { c = mix(c, COLORS.field, (1 - d / (f.r * 2.2)) * (0.35 + 0.4 * F.farm(x, y))); break; }
+        const d = Math.hypot(x - f.x, y - f.y), R = farmR(f);
+        if (d < R && e < 600 && t.biome !== 'neige') { c = mix(c, COLORS.field, (1 - d / R) ** 0.6 * (0.3 + 0.45 * F.farm(x, y))); farmed = true; break; }
       }
       if (e > 1300) c = mix(c, COLORS.rock, smooth(1300, 2300, e));
       if (t.T < (SNOW_LINE[relief.season] ?? 0.17) + 0.02 && e > 900) c = mix(c, COLORS.neige, smooth(900, 1600, e));
       if (e < 14 && relief.seas.length) c = mix(c, COLORS.sand, 1 - e / 14);
+      // Désert : des rides de dunes ; steppe et prairie : quelques touffes d'herbe.
+      if (t.biome === 'desert' && !fc) c = shadeBy(c, 1 + 0.08 * Math.sin(((x * 0.8 + y * 0.35) / (ck * 2.4)) * 6.283 + F.moist2(x, y) * 14));
+      // Courbes de niveau (tous les 500 m, 200 m de près) : on lit le relief même sans ombrage.
+      const lv = Math.floor(E[k] / step);
+      if (e > 60 && (lv !== Math.floor(E[k + 1] / step) || lv !== Math.floor(E[k + w + 1] / step))) c = shadeBy(c, 0.86);
+      // Symboles.
+      const cell = cellAt(x, y, ck, 11);
+      if (fc && cell.r < t.forest * 0.95) {
+        const dark = shadeBy(fc, 0.72), light = mix(fc, [200, 210, 150], 0.18);
+        if (t.biome === 'taiga' || t.T < 0.3) {
+          // Conifère : un triangle, face éclairée à gauche.
+          const hw = 0.34 * ((cell.v + 0.5) / 0.9);
+          if (cell.v > -0.5 && cell.v < 0.4 && Math.abs(cell.u) < hw) c = cell.u < 0 ? light : dark;
+          else if (cell.v > -0.3 && cell.v < 0.5 && cell.u > 0 && cell.u < hw + 0.12) c = shadeBy(c, 0.8);
+        } else {
+          // Feuillu : une boule, éclairée en haut à gauche, avec son ombre portée.
+          const d = Math.hypot(cell.u, cell.v);
+          if (d < 0.4) c = cell.u + cell.v < -0.2 ? light : d > 0.28 && cell.u + cell.v > 0.05 ? dark : fc;
+          else if (Math.hypot(cell.u - 0.12, cell.v - 0.12) < 0.42) c = shadeBy(c, 0.78);
+        }
+      } else if (!fc && (t.biome === 'steppe' || t.biome === 'tempere') && e < 1200 && cell.q < (t.biome === 'steppe' ? 0.32 : 0.14)) {
+        // Touffe d'herbe : un petit « v ».
+        if (Math.abs(cell.u) < 0.2 && Math.abs(cell.v - 0.1 - Math.abs(cell.u) * 1.2) < 0.07) c = shadeBy(c, 0.74);
+      }
+      // Sommets : un pic dessiné, face au soleil claire, versant opposé sombre, coiffé de neige quand il fait froid.
+      if (e > 1800 && !fc) {
+        const pk = cellAt(x, y, mk, 23);
+        if (pk.r < 0.5) {
+          const hw = 0.42 * ((pk.v + 0.45) / 0.85);
+          if (pk.v > -0.45 && pk.v < 0.4 && Math.abs(pk.u) < hw) {
+            const snowy = t.T < 0.3 || e > 2700;
+            c = pk.v < -0.2 && snowy ? (pk.u < 0 ? [240, 243, 246] : [196, 206, 218]) : pk.u < 0 ? mix(COLORS.rock, [235, 225, 205], 0.35) : shadeBy(COLORS.rock, 0.62);
+          }
+        }
+      }
+      // Champs de près : les limites des parcelles.
+      if (px < 0.15 && farmed) {
+        const fs = 0.35, a = (x * 0.94 + y * 0.34) / fs, b = (y * 0.94 - x * 0.34) / (fs * 0.6);
+        if (a - Math.floor(a) < 0.07 || b - Math.floor(b) < 0.07) c = shadeBy(c, 0.85);
+      }
       // Ombrage des pentes (lumière du nord-ouest).
       const dx = ((E[k + 1] + E[k + w + 2]) - (E[k] + E[k + w + 1])) / (2 * px * 1000);
       const dy = ((E[k + w + 1] + E[k + w + 2]) - (E[k] + E[k + 1])) / (2 * py * 1000);
       const nx = -dx * ex, ny = -dy * ex, nl = Math.hypot(nx, ny, 1);
       const shade = clamp(1 + 0.95 * ((nx * L[0] + ny * L[1] + L[2]) / nl - L[2]), 0.5, 1.3);
       c = [c[0] * shade, c[1] * shade, c[2] * shade];
+      // Neige à l'ombre : un reflet bleuté.
+      if (t.biome === 'neige' && shade < 1) c = mix(c, [176, 192, 220], (1 - shade) * 0.8);
     }
     const o = (j * w + i) * 4;
     out[o] = c[0]; out[o + 1] = c[1]; out[o + 2] = c[2]; out[o + 3] = 255;

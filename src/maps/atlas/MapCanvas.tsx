@@ -7,7 +7,7 @@
 import { useReliefDetail, useReliefImage } from '../world/reliefImage';
 import type { Relief } from '../world/terrain';
 import { CityEmblem, paintedEmblem, peopleOf } from './emblems';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent } from 'react';
+import { type ReactElement, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent } from 'react';
 import {
   CATEGORIES, anchorsOn, cavitiesOf, cavityPath, connectionAt, densityOf, features, geometriesOn, maps, smoothPath, spaces, strata,
 } from './model';
@@ -672,6 +672,7 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
         <button onClick={() => setT(home())} aria-label="Recentrer" title="Recentrer">⌖</button>
       </div>
       <div className="atlas-density">Échelle : <b>{densityOf(rz).label}</b> · ×{rz.toFixed(1)}</div>
+      {surf?.relief && <ReliefLegend />}
       {detailEmpty && <div className="atlas-empty-scale">Aucun relevé plus précis disponible.</div>}
       {kind !== 'site' && !fog && <MiniMap map={map} t={t} />}
       <VisibleList points={points.map((g) => features.get(g.featureId)!)} onSelect={onSelect} />
@@ -707,6 +708,28 @@ function VisibleList({ points, onSelect }: { points: AtlasFeature[]; onSelect: (
     <details className="atlas-visible">
       <summary>Lieux visibles ({points.length})</summary>
       <ul>{points.map((f) => <li key={f.id}><button className="linklike" onClick={() => onSelect(f)}>{f.title}</button> <small>{CATEGORIES[f.category].label}</small></li>)}</ul>
+    </details>
+  );
+}
+
+/** Légende de la carte du monde à l'échelle : ce que représentent les couleurs et les symboles du relief. */
+function ReliefLegend() {
+  const item = (svg: ReactElement, label: string) => <li><svg viewBox="0 0 20 14" width="22" height="16" aria-hidden>{svg}</svg>{label}</li>;
+  return (
+    <details className="am-legend">
+      <summary>Légende</summary>
+      <ul>
+        {item(<><rect width="20" height="14" fill="#6f8a4a" /><circle cx="7" cy="7" r="4" fill="#34582e" /><circle cx="14" cy="8" r="3.4" fill="#3d6234" /></>, 'Forêt de feuillus')}
+        {item(<><rect width="20" height="14" fill="#566852" /><path d="M5 2 L8.5 11 H1.5Z M14 2 L17.5 11 H10.5Z" fill="#2c4634" /></>, 'Forêt de conifères')}
+        {item(<><rect width="20" height="14" fill="#a39a5c" /><path d="M4 9 l2 -3 l2 3 M12 8 l2 -3 l2 3" stroke="#6e683c" fill="none" /></>, 'Steppe, prairie sèche')}
+        {item(<><rect width="20" height="14" fill="#d1b47a" /><path d="M0 5 Q5 3 10 5 T20 5 M0 10 Q5 8 10 10 T20 10" stroke="#b39257" fill="none" /></>, 'Désert, dunes')}
+        {item(<><rect width="20" height="14" fill="#6f8a4a" /><path d="M10 2 L16 12 H4Z" fill="#807868" /><path d="M10 2 L12.4 6 H7.6Z" fill="#f0f3f6" /></>, 'Montagnes, sommets enneigés')}
+        {item(<><rect width="20" height="14" fill="#e8ecef" /><path d="M0 9 Q10 4 20 9" stroke="#b0c0dc" fill="none" /></>, 'Neige, toundra')}
+        {item(<><rect width="20" height="14" fill="#968c50" /><path d="M0 5 H20 M0 10 H20 M7 0 V14 M14 0 V14" stroke="#7a7240" strokeWidth=".8" /></>, 'Champs autour des cités')}
+        {item(<><rect width="20" height="14" fill="#6f8a4a" /><path d="M0 4 Q10 0 20 4 M0 10 Q10 6 20 10" stroke="#4e6236" fill="none" strokeWidth=".8" /></>, 'Courbes de niveau (500 m, 200 m de près)')}
+        {item(<><rect width="20" height="14" fill="#24505f" /><path d="M0 4 Q6 7 12 3 T20 4" stroke="#20343c" fill="none" strokeWidth="1.4" /></>, 'Mer, rivage')}
+        {item(<><rect width="20" height="14" fill="#24505f" /><path d="M1 10 L19 4" stroke="#d8ecf2" strokeDasharray="3 2.5" /></>, 'Traversée en navire')}
+      </ul>
     </details>
   );
 }
