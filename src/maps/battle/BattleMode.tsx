@@ -434,6 +434,14 @@ export default function BattleMode({
         setAiming(null);
         return;
       }
+      // Un jeton sélectionné : un clic sur une autre case l'y déplace (le trajet suivait déjà le pointeur).
+      if (c && !t && selected && !selected.unplaced) {
+        e.preventDefault();
+        commitMove(selected, c.x, c.y, freeMove || e.altKey);
+        justDropped.current = true;
+        setTimeout(() => { justDropped.current = false; }, 0);
+        return;
+      }
       if (!c || !t) return;
       e.preventDefault();
       setDrag({ id: t.id, origin: { x: t.x, y: t.y }, start: c, cur: c, moved: false, wasSelected: selectedId === t.id });
@@ -475,24 +483,7 @@ export default function BattleMode({
       const t = b.tokens.find((q) => q.id === drag.id);
       if (t && drag.moved) {
         const x = drag.origin.x + drag.cur.x - drag.start.x, y = drag.origin.y + drag.cur.y - drag.start.y;
-        // Même calcul que l'aperçu. Un trajet impossible est refusé, sauf déplacement libre du MJ (bouton ou Alt).
-        const plan = t.unplaced ? null : planMove(rules, moverIn(bv, t), spot(t), { x, y }, leftOf(b, t));
-        const free = freeMove || ev.altKey;
-        const placeable = plan?.possible ? !overlaps(bv, t.id, t.size, x, y) : fits(bv, t.id, t.size, x, y) || (free && !overlaps(bv, t.id, t.size, x, y));
-        if (plan && !plan.possible && !free) {
-          setLastMove({ name: t.name, notes: [{ tone: 'alert', label: 'Déplacement impossible', why: `${plan.reason ?? 'Aucun passage'} (${plan.dest}). Alt + glisser, ou « Déplacement libre », pour passer outre.` }] });
-        } else if (placeable) {
-          const danger = t.unplaced ? { notes: [], hurt: [] } : dangersOf(rules, t, moverIn(bv, t), plan, { x, y }, free);
-          const notes = [...danger.notes, ...(plan ? terrainNotes(plan) : []), ...moveAlerts(bv, t.id, { x, y })];
-          const exit = exitAt(bv, { x, y, size: t.size });
-          setLastMove(notes.length || exit ? { name: t.name, notes, hurt: danger.hurt, exit: exit && { id: t.id, label: exit.label, passage: exit.id } } : null);
-          // Sur une sortie : sa fiche s'ouvre (praticabilité, test à faire, destination).
-          if (exit) setInfoId(exit.id);
-          const layer = plan?.possible ? (plan.layer === 'pont' ? 'pont' as const : undefined) : rules.cells[y * b.cols + x]?.deck ? 'pont' as const : undefined;
-          const patch = t.unplaced ? { x, y, unplaced: undefined, visible: true, layer } : { x, y, layer };
-          // Le trajet compte dans le déplacement du tour (pas un placement ni un déplacement libre du MJ).
-          set({ tokens: b.tokens.map((q) => (q.id === t.id ? { ...q, ...patch } : q)), ...(plan?.possible && !free ? { moved: withMove(b, t.id, { cost: plan.cost }) } : {}) });
-        }
+        commitMove(t, x, y, freeMove || ev.altKey);
         justDropped.current = true;
         setTimeout(() => { justDropped.current = false; }, 0);
       } else if (drag.wasSelected) {
@@ -505,6 +496,33 @@ export default function BattleMode({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [drag]);
 
+
+  /**
+   * Déplacer un jeton (glisser ou clic) : même calcul que l'aperçu. Un trajet impossible est refusé, sauf déplacement
+   * libre du MJ (bouton ou Alt). Dangers, alertes, sortie et déplacement du tour suivent.
+   */
+  function commitMove(t: BattleToken, x: number, y: number, free: boolean) {
+    const plan = t.unplaced ? null : planMove(rules, moverIn(bv, t), spot(t), { x, y }, leftOf(b, t));
+    const placeable = plan?.possible ? !overlaps(bv, t.id, t.size, x, y) : fits(bv, t.id, t.size, x, y) || (free && !overlaps(bv, t.id, t.size, x, y));
+    if (plan && !plan.possible && !free) {
+      setLastMove({ name: t.name, notes: [{ tone: 'alert', label: 'Déplacement impossible', why: `${plan.reason ?? 'Aucun passage'} (${plan.dest}). Alt + clic ou glisser, ou « Déplacement libre », pour passer outre.` }] });
+      return;
+    }
+    if (!placeable) {
+      setLastMove({ name: t.name, notes: [{ tone: 'alert', label: 'Case occupée', why: 'Une autre créature occupe déjà cette place.' }] });
+      return;
+    }
+    const danger = t.unplaced ? { notes: [], hurt: [] } : dangersOf(rules, t, moverIn(bv, t), plan, { x, y }, free);
+    const notes = [...danger.notes, ...(plan ? terrainNotes(plan) : []), ...moveAlerts(bv, t.id, { x, y })];
+    const exit = exitAt(bv, { x, y, size: t.size });
+    setLastMove(notes.length || exit ? { name: t.name, notes, hurt: danger.hurt, exit: exit && { id: t.id, label: exit.label, passage: exit.id } } : null);
+    // Sur une sortie : sa fiche s'ouvre (praticabilité, test à faire, destination).
+    if (exit) setInfoId(exit.id);
+    const layer = plan?.possible ? (plan.layer === 'pont' ? 'pont' as const : undefined) : rules.cells[y * b.cols + x]?.deck ? 'pont' as const : undefined;
+    const patch = t.unplaced ? { x, y, unplaced: undefined, visible: true, layer } : { x, y, layer };
+    // Le trajet compte dans le déplacement du tour (pas un placement ni un déplacement libre du MJ).
+    set({ tokens: b.tokens.map((q) => (q.id === t.id ? { ...q, ...patch } : q)), ...(plan?.possible && !free ? { moved: withMove(b, t.id, { cost: plan.cost }) } : {}) });
+  }
 
   // Le tracé se termine au relâchement, même hors du plateau.
   useEffect(() => {
@@ -765,7 +783,9 @@ export default function BattleMode({
 
   const readout = selected && hover && !building ? feetBetween(selected, { ...hover, size: 1 }, b.feetPerCell) : null;
   // Trajet prévu : pendant un glisser (vers la case visée), ou au survol quand un jeton est sélectionné.
-  const moving = dragged && drag ? dragged : !building && selected && hover && !aiming && !selected.unplaced ? selected : null;
+  // Survoler une autre créature, c'est la viser, pas s'y rendre : pas de trajet.
+  const onCreature = !!hover && b.tokens.some((q) => q.id !== selected?.id && !q.unplaced && hover.x >= q.x && hover.x < q.x + q.size && hover.y >= q.y && hover.y < q.y + q.size);
+  const moving = dragged && drag ? dragged : !building && selected && hover && !aiming && !aoeTool && !onCreature && !selected.unplaced ? selected : null;
   const target = dragged && drag ? liveAt(dragged) : hover;
   const movePlan: MovePlan | null = moving && target && (target.x !== moving.x || target.y !== moving.y)
     ? planMove(rules, moverIn(bv, moving), spot(moving), target, leftOf(b, moving))
@@ -981,6 +1001,43 @@ export default function BattleMode({
 
   const combatKey = `${rec.id}:${b.local?.source ?? b.terrain?.source ?? 'plateau'}`;
 
+  /** Alertes du dernier déplacement (ou du glisser en cours). */
+  const alertsNode = (() => {
+              const live = dragged && drag ? moveAlerts(bv, dragged.id, { x: drag.origin.x + drag.cur.x - drag.start.x, y: drag.origin.y + drag.cur.y - drag.start.y }) : null;
+              const shown = live ? { name: dragged!.name, notes: live } : drag ? null : lastMove;
+              const exit = !live && lastMove?.exit && lastMove.exit.passage !== infoId ? lastMove.exit : null;
+              if (!shown || (!shown.notes.length && !exit)) return null;
+              return (
+                <div className={`battle-move-alerts ${live ? 'live' : ''}`} role="status">
+                  {shown.notes.map((n, i) => (
+                    <div key={i} className={`battle-move-alert tone-${n.tone}`}>
+                      <b>{n.label}</b><span>{n.why}</span>
+                    </div>
+                  ))}
+                  {exit && (
+                    <div className="battle-move-alert tone-chance">
+                      <b>🚪 {shown!.name} est sur la sortie {exit.label}</b>
+                      <span><button className="maps-btn gold battle-exit-btn" onClick={() => leaveBy(exit)}>Quitter la carte{linkOf(exit.passage) ? ` → ${linkOf(exit.passage)!.label.split(' · ')[0]}` : ''}</button></span>
+                    </div>
+                  )}
+                  {!live && lastMove?.hurt?.map((h, i) => (
+                    <span key={`h${i}`}><button className="maps-btn gold battle-exit-btn" onClick={() => {
+                      applyHurt(h);
+                      setLastMove((m) => (m ? { ...m, hurt: m.hurt?.filter((_, k) => k !== i) } : m));
+                    }}>Appliquer {h.amount} dégâts à {b.tokens.find((q) => q.id === h.to)?.name ?? '…'}</button></span>
+                  ))}
+                  {!live && lastMove?.force && (
+                    <span><button className="maps-btn gold battle-exit-btn" onClick={() => {
+                      const f = lastMove.force!;
+                      patchToken(f.id, { x: f.x, y: f.y, layer: f.layer });
+                      setLastMove(null);
+                    }}>Accepter quand même (MJ)</button></span>
+                  )}
+                  {!live && <button className="present-info-close" onClick={() => setLastMove(null)} aria-label="Fermer">×</button>}
+                </div>
+              );
+            })();
+
   return (
     <>
     <div className="maps-body battle-body">
@@ -1150,45 +1207,11 @@ export default function BattleMode({
               theme={boardTheme(b.local?.surface)}
               ground={b.ground} surface={editor.view} overlay={building && editor.overlay ? { rules, focus: editor.focus } : undefined}
               path={pathView} surfaceSelected={editor.selectedId} draft={editor.draft}
-              onCell={onBoardCell} onElement={building || aoeTool || aiming ? undefined : (id) => { if (boardElements.some((e) => e.id === id)) setInfoId(id); }} onHover={(x, y) => setHover({ x, y })}
+              onCell={onBoardCell} onElement={building || aoeTool || aiming || (selected && !selected.unplaced) ? undefined : (id) => { if (boardElements.some((e) => e.id === id)) setInfoId(id); }} onHover={(x, y) => setHover({ x, y })}
               preview={stroke && brush.tool === 'terrain' ? stroke.cells : undefined}
               labels={labels} highlight={highlight} fog={fogLayer} exits={dmExits} aim={aimLine} hits={b.hits} aoes={aoeViews}
             />
-            {(() => {
-              const live = dragged && drag ? moveAlerts(bv, dragged.id, { x: drag.origin.x + drag.cur.x - drag.start.x, y: drag.origin.y + drag.cur.y - drag.start.y }) : null;
-              const shown = live ? { name: dragged!.name, notes: live } : drag ? null : lastMove;
-              const exit = !live && lastMove?.exit && lastMove.exit.passage !== infoId ? lastMove.exit : null;
-              if (!shown || (!shown.notes.length && !exit)) return null;
-              return (
-                <div className={`battle-move-alerts ${live ? 'live' : ''}`} role="status">
-                  {shown.notes.map((n, i) => (
-                    <div key={i} className={`battle-move-alert tone-${n.tone}`}>
-                      <b>{n.label}</b><span>{n.why}</span>
-                    </div>
-                  ))}
-                  {exit && (
-                    <div className="battle-move-alert tone-chance">
-                      <b>🚪 {shown!.name} est sur la sortie {exit.label}</b>
-                      <span><button className="maps-btn gold battle-exit-btn" onClick={() => leaveBy(exit)}>Quitter la carte{linkOf(exit.passage) ? ` → ${linkOf(exit.passage)!.label.split(' · ')[0]}` : ''}</button></span>
-                    </div>
-                  )}
-                  {!live && lastMove?.hurt?.map((h, i) => (
-                    <span key={`h${i}`}><button className="maps-btn gold battle-exit-btn" onClick={() => {
-                      applyHurt(h);
-                      setLastMove((m) => (m ? { ...m, hurt: m.hurt?.filter((_, k) => k !== i) } : m));
-                    }}>Appliquer {h.amount} dégâts à {b.tokens.find((q) => q.id === h.to)?.name ?? '…'}</button></span>
-                  ))}
-                  {!live && lastMove?.force && (
-                    <span><button className="maps-btn gold battle-exit-btn" onClick={() => {
-                      const f = lastMove.force!;
-                      patchToken(f.id, { x: f.x, y: f.y, layer: f.layer });
-                      setLastMove(null);
-                    }}>Accepter quand même (MJ)</button></span>
-                  )}
-                  {!live && <button className="present-info-close" onClick={() => setLastMove(null)} aria-label="Fermer">×</button>}
-                </div>
-              );
-            })()}
+            {!renderCombat && alertsNode}
             {(movePlan || readout) && (
               <div className={`battle-readout ${movePlan && !movePlan.possible ? 'is-blocked' : movePlan && !movePlan.ok ? 'is-over' : ''}`}>
                 {movePlan ? (
@@ -1210,7 +1233,8 @@ export default function BattleMode({
               <small>Caché aux joueurs tant qu’il n’est pas posé.</small>
             </div>
           )}
-          {renderCombat && (fiche || (b.aim && !building)) && (
+          {/* Une seule colonne à gauche : l'attaque en cours, la fiche ouverte, puis les alertes du déplacement. */}
+          {renderCombat && (fiche || (b.aim && !building) || alertsNode) && (
             <div className="battle-overlays">
               {b.aim && !building && (
                 <div className="battle-token-card battle-attack-card">
@@ -1218,6 +1242,7 @@ export default function BattleMode({
                 </div>
               )}
               {fiche}
+              {alertsNode}
             </div>
           )}
         </div>
@@ -1225,7 +1250,7 @@ export default function BattleMode({
           {aoeTool ? `✸ Zone d'effet : ${aoeSetup.shape === 'sphere' ? 'clique le centre' : aoeOrigin ? 'clique la direction' : 'clique l’origine (le lanceur, ou un bord de case)'} — Échap pour annuler.`
             : aiming ? `🎯 ${b.tokens.find((t) => t.id === aiming)?.name ?? ''} attaque : clique la cible (Échap pour annuler).`
             : building ? 'Construction : peins le terrain ou glisse des objets sur le plateau.'
-            : selected ? `${selected.name} sélectionné : glisse-le pour le déplacer, clique à côté ou Échap pour le désélectionner.`
+            : selected ? `${selected.name} sélectionné : clique une case (ou glisse-le) pour le déplacer · clique-le de nouveau ou Échap pour le désélectionner.`
               : 'Glisse un jeton pour le déplacer · clique un élément pour sa fiche · survole une ligne du panneau pour la repérer.'}
         </p>
       </div>

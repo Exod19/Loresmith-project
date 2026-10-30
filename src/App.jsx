@@ -15713,7 +15713,17 @@ function AttackPanel({ state, dispatch, battle, setBattle }) {
   return (
     <div className="attack-panel">
       <div className="attack-head">
-        <b>🎯 {A.name} → {T.name}</b>
+        <div className="attack-duel">
+          {[A, T].map((x, i) => {
+            const pic = combatantPictureOf(state, x) || (i === 0 ? tA.image : tT.image);
+            return (
+              <span key={x.id} className={`attack-duel-who ${x.isPC ? 'is-pc' : 'is-foe'}`}>
+                {pic ? <img src={pic} alt="" /> : <i aria-hidden="true">{x.isPC ? '🛡' : '👹'}</i>}
+                <b>{x.name}</b>
+              </span>
+            );
+          }).reduce((acc, el, i) => (i ? [...acc, <span key="arrow" className="attack-duel-arrow" aria-hidden="true">🎯</span>, el] : [el]), [])}
+        </div>
         <button type="button" className="token-sheet-close" onClick={close} aria-label="Terminer l’attaque">✕</button>
       </div>
       <label className="attack-target">
