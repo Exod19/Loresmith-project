@@ -7,6 +7,7 @@ import type { Hero } from './battle/CombatPanel';
 import { clearMapIntent, peekMapIntent } from './intent';
 import type { CombatSlot } from './battle/BattleMode';
 import MapViewer from './MapViewer';
+import { buildLoreContext } from '../ai/loreContext';
 import { useUnderdarkFeed, ARCHIVES_URL_KEY } from '../feeds/underdark';
 import { bestiaryEncounters } from '../feeds/bestiary';
 import { setBestiary } from './atlas/encounters';
@@ -166,6 +167,13 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
           library={library}
           onCreateNpc={(n) => { dispatch({ type: 'ADD_NPC', n }); flash(`Fiche créée : ${n.name} (PNJ & créatures)`); }}
           onCreateEntry={(entry) => { dispatch({ type: 'ADD_LIBRARY_ENTRY', entry }); flash(`Fiche créée : ${entry.title} (Bibliothèque)`); }}
+          onUpdateEntry={(id, patch) => { dispatch({ type: 'UPDATE_LIBRARY_ENTRY', id, patch }); flash('Fiche complétée (Bibliothèque)'); }}
+          loreContext={(focus) => buildLoreContext({ universe, state: { libraryEntries: Object.fromEntries(library.map((e) => [e.id, e])) }, focus, budget: 5000 })}
+          onChronicle={(m) => {
+            const memory = { id: Math.random().toString(36).slice(2, 10), createdAt: Date.now(), title: m.title, summary: m.summary, consequences: [], futureSeeds: [], nostalgicEchoes: [] };
+            dispatch({ type: 'UPDATE_UNIVERSE', id: universe.id, patch: { memoryLog: [memory, ...((universe as { memoryLog?: unknown[] }).memoryLog ?? [])].slice(0, 80) } });
+            flash('Conversation gardée dans la mémoire de l’univers');
+          }}
           dm={dm}
           onDm={setDm}
           onBack={() => setOpenId(null)}

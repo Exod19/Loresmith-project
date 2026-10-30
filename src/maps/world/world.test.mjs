@@ -378,3 +378,24 @@ test('saisons : neige selon le climat, glace, affluence et répliques de saison'
   const slot = tav[0];
   assert.equal(JSON.stringify(generateInterior({ slot, planId: 'i', siteId: 's', parentSiteId: 'p' })), JSON.stringify(generateInterior({ slot, planId: 'i', siteId: 's', parentSiteId: 'p', season: undefined })));
 });
+
+test('conversations : le prompt joue le PNJ dans son contexte, la réponse se lit avec ses propositions', async () => {
+  const { npcSystemPrompt, npcUserPrompt, parseNpcReply, chronicleOf } = await import('./talk.js');
+  const sys = npcSystemPrompt({
+    npc: { name: 'Margot Lafleur', role: 'tenancière', summary: 'Rousse et rieuse.' }, fiche: 'Ancienne contrebandière.',
+    place: { title: 'La Chope Cassée', type: 'Taverne' }, city: { name: 'Brumeval', population: 1500 },
+    ctx: { season: 'hiver', climate: 'froid', time: 'soir' }, avatar: { name: 'Le Chroniqueur', role: 'conteur' }, mode: 'chronique', lore: 'UNIVERS : Test',
+  });
+  for (const s of ['Margot Lafleur', 'tenancière', 'Ancienne contrebandière', 'La Chope Cassée', 'Brumeval', 'hiver', 'froid', 'le soir', 'Le Chroniqueur', 'réelle', 'UNIVERS : Test', 'PROPOSITIONS']) assert.ok(sys.includes(s), s);
+  assert.ok(npcSystemPrompt({ npc: { name: 'X' }, mode: 'reverie' }).includes('rêverie'));
+  const user = npcUserPrompt([{ from: 'avatar', text: 'Bonsoir.' }, { from: 'npc', text: 'Salut !' }], 'Des nouvelles ?', 'Le Chroniqueur', 'Margot');
+  assert.match(user, /Le Chroniqueur : Bonsoir\.\nMargot : Salut !\n\nLe Chroniqueur : Des nouvelles \?/);
+  const r = parseNpcReply('« *essuie une chope* Fait froid, hein ? Le vieux moulin est hanté, à ce qu’on dit. »\n\nPROPOSITIONS :\n- [lieu] Le Vieux Moulin : un moulin abandonné au nord de la ville.\n- [rumeur] Le moulin hanté : on y entend des chaînes la nuit.\n- n’importe quoi');
+  assert.match(r.say, /^\*essuie une chope\* Fait froid/);
+  assert.ok(!r.say.includes('PROPOSITIONS'));
+  assert.deepEqual(r.proposals.map((p) => [p.type, p.title]), [['lieu', 'Le Vieux Moulin'], ['rumeur', 'Le moulin hanté']]);
+  assert.equal(parseNpcReply('Juste une réplique.').proposals.length, 0);
+  const c = chronicleOf({ avatar: { name: 'Le Chroniqueur' }, npc: { name: 'Margot', role: 'tenancière' }, place: { title: 'La Chope Cassée' }, city: { name: 'Brumeval' }, ctx: { season: 'hiver', time: 'soir' }, history: [{ from: 'avatar', text: 'Des nouvelles ?' }, { from: 'npc', text: 'Le moulin est hanté.' }], accepted: [{ type: 'lieu', title: 'Le Vieux Moulin', text: '…' }] });
+  assert.match(c.summary, /Margot \(tenancière\) à La Chope Cassée, Brumeval, l’hiver, le soir/);
+  assert.match(c.summary, /Le Vieux Moulin \(Lieu\)/);
+});

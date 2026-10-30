@@ -61,7 +61,7 @@ const FORK_LINES: ((side: string) => string)[] = [
   (c) => `Un écho différent, sur votre ${c} : la paroi s’ouvre sur un espace plus large. Vous allez voir, ou vous continuez ?`,
 ];
 
-export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false, onReturn, renderCombat, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [], artOf, library, onCreateNpc, onCreateEntry }: {
+export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false, onReturn, renderCombat, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [], artOf, library, onCreateNpc, onCreateEntry, loreContext, onUpdateEntry, onChronicle }: {
   rec: MapRecord; atlas: AtlasData; dm: boolean; onDm: (v: boolean) => void;
   /** Illustration d'une créature par son nom, pour l'écran joueur. */
   artOf?: (name: string, id: string) => string;
@@ -87,6 +87,12 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   onCreateNpc?: (npc: Record<string, unknown> & { id: string; name: string }) => void;
   /** Crée une fiche de lieu dans la Bibliothèque (mode Exploration). */
   onCreateEntry?: (entry: Record<string, unknown> & { id: string; title: string }) => void;
+  /** Contexte de l'univers pour l'IA (conversations avec les PNJ), orienté par un texte de recherche. */
+  loreContext?: (focus: string) => string;
+  /** Complète une fiche de la Bibliothèque (lore accepté en conversation). */
+  onUpdateEntry?: (id: string, patch: Record<string, unknown>) => void;
+  /** Ajoute une conversation (mode Chronique) à la mémoire de l'univers. */
+  onChronicle?: (memory: { title: string; summary: string }) => void;
 }) {
   const data = activateMap(rec, dm, atlas);
   /** L'Atlas et la carte du monde : lieux à révéler, chemins, brouillard. */
@@ -1090,6 +1096,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
             )}
             {dm && side === 'explore' && exploring && rec.world && (
               <ExplorePanel rec={rec} data={data} planId={map.id} feature={feature} onUpdate={onUpdate} onCreateEntry={onCreateEntry}
+                library={library} loreContext={loreContext} onUpdateEntry={onUpdateEntry} onChronicle={onChronicle}
                 onGo={(f) => {
                   const g = data.geometries.find((x) => x.featureId === f.id && x.mapId === map.id);
                   if (!g) return;

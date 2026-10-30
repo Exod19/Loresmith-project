@@ -665,3 +665,21 @@
 .explore-card label { display: grid; gap: 2px; font-size: 12px; }
 .explore-portrait { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid #f0c867; }
 .explore-head { display: flex; gap: 10px; align-items: center; }
+/* Conversations avec les PNJ (lot 11) */
+.talk-card { display: grid; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(240,200,103,.25); }
+.talk-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.talk-head h5 { margin: 0; }
+.talk-head small { opacity: .7; font-weight: normal; }
+.talk-log { display: grid; gap: 6px; max-height: 320px; overflow-y: auto; padding: 4px 2px; }
+.talk-line { padding: 6px 8px; border-radius: 8px; font-size: 13px; line-height: 1.4; }
+.talk-line b { display: block; font-size: 11px; opacity: .75; margin-bottom: 2px; }
+.talk-line.npc { background: rgba(240,200,103,.08); border-left: 2px solid #f0c867; }
+.talk-line.avatar { background: rgba(185,156,255,.08); border-left: 2px solid #b99cff; margin-left: 16px; }
+.talk-line.is-busy { opacity: .6; font-style: italic; }
+.talk-form { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: end; }
+.talk-form textarea { resize: vertical; min-height: 44px; }
+.talk-props { display: grid; gap: 6px; }
+.talk-props h5 { margin: 4px 0 0; }
+.talk-prop { font-size: 13px; padding: 6px 8px; border: 1px dashed rgba(240,200,103,.4); border-radius: 8px; }
+.talk-prop.is-ok { border-style: solid; border-color: #7fbf7f; }
+.talk-prop.is-non { opacity: .5; }

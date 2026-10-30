@@ -8,6 +8,8 @@ import type { AtlasData, AtlasFeature } from '../atlas/types';
 import type { MapRecord } from '../mapStore';
 import { SLOT_TYPES, type Avatar, type Binding, type SlotType } from './generate';
 import type { World } from './index';
+import type { LoreEntry } from './lore';
+import TalkPanel from './TalkPanel';
 
 type Props = {
   rec: MapRecord;
@@ -20,6 +22,11 @@ type Props = {
   onCreateEntry?: (entry: Record<string, unknown> & { id: string; title: string }) => void;
   /** Déplace le personnage du MJ sur ce lieu. */
   onGo: (f: AtlasFeature) => void;
+  /** Conversations avec les PNJ : fiches, contexte de l'univers, mise à jour d'une fiche, mémoire de l'univers. */
+  library?: LoreEntry[];
+  loreContext?: (focus: string) => string;
+  onUpdateEntry?: (id: string, patch: Record<string, unknown>) => void;
+  onChronicle?: (memory: { title: string; summary: string }) => void;
 };
 
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -43,12 +50,15 @@ function portraitOf(file: File): Promise<string> {
   });
 }
 
-export default function ExplorePanel({ rec, data, planId, feature, onUpdate, onCreateEntry, onGo }: Props) {
+export default function ExplorePanel({ rec, data, planId, feature, onUpdate, onCreateEntry, onGo, library = [], loreContext, onUpdateEntry, onChronicle }: Props) {
   const world = rec.world as World;
   const avatar: Avatar = world.avatar ?? { name: '', mode: 'reverie' };
   const [editing, setEditing] = useState(!world.avatar?.name);
   const [draft, setDraft] = useState<Avatar>(avatar);
   const [define, setDefine] = useState<{ title: string; type: SlotType; summary: string } | null>(null);
+  const [talkTo, setTalkTo] = useState<AtlasFeature | null>(null);
+  /** Un PNJ (du lore, généré ou créé par le MJ) à qui parler ; pas le personnage du MJ caché. */
+  const isNpc = !!feature && /:pnj-/.test(feature.id) && !/:pnj-mj$/.test(feature.id);
   const save = (w: World) => onUpdate({ world: w, updatedAt: Date.now() });
   const setAvatar = (a: Avatar) => save({ ...world, avatar: a });
 
@@ -119,11 +129,16 @@ export default function ExplorePanel({ rec, data, planId, feature, onUpdate, onC
       )}
       {avatar.hidden && <p className="maps-sub">🥚 Caché dans le monde : les joueurs pourront le croiser.</p>}
 
-      {feature && !editing && (
+      {talkTo && !editing && (
+        <TalkPanel rec={rec} data={data} planId={planId} npc={data.features.find((f) => f.id === talkTo.id) ?? talkTo} library={library} loreContext={loreContext}
+          onCreateEntry={onCreateEntry} onUpdateEntry={onUpdateEntry} onChronicle={onChronicle} onClose={() => setTalkTo(null)} />
+      )}
+      {feature && !editing && !talkTo && (
         <>
           <h5>📍 {feature.title}</h5>
           <div className="maps-actions">
             <button className="maps-btn gold" onClick={() => onGo(feature)}>🎭 Y aller</button>
+            {isNpc && <button className="maps-btn gold" onClick={() => { onGo(feature); setTalkTo(feature); }} title="Ton personnage va lui parler : l’IA joue ce PNJ">💬 Parler</button>}
             {feature.draft && !isBuilding && <button className="maps-btn" onClick={() => keep(feature)} title="Garder ce lieu tel quel : il n'est plus un brouillon">✓ Garder tel quel</button>}
             {isBuilding && !bound && !define && (
               <button className="maps-btn" onClick={() => setDefine({ title: feature.draft ? '' : feature.title, type: (DEFINABLE.find((t) => SLOT_TYPES[t].label === feature.title || feature.subtitle === SLOT_TYPES[t].label) ?? 'maison'), summary: '' })}>
