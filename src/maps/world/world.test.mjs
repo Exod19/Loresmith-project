@@ -338,3 +338,43 @@ test('une cité portuaire a sa mer, ses quais et ses pontons ; le monde a sa cô
   assert.equal(citySpecFromEntry({ id: 'x', title: 'Havre-Gris', shortSummary: 'Une ville portuaire aux quais animés.' }).port, true);
   assert.equal(citySpecFromEntry({ id: 'y', title: 'Brumeval', shortSummary: 'Une ville à côté de la forêt.' }).port, undefined);
 });
+
+test('saisons : neige selon le climat, glace, affluence et répliques de saison', async () => {
+  const { snowOf, seasonLine } = await import('./seasons.js');
+  const { generateInterior } = await import('./interior.js');
+  assert.deepEqual(snowOf('hiver', 'chaud'), {});
+  assert.equal(snowOf('hiver', 'froid').frozen, 'tout');
+  assert.equal(snowOf('hiver', 'tempere').frozen, 'rivieres');
+  assert.match(seasonLine('tavernier', 'hiver', 'tempere', () => 0), /froid dehors/);
+  assert.match(seasonLine('tavernier', 'ete', 'tempere', () => 0), /pinte/);
+  assert.match(seasonLine('tavernier', 'hiver', 'chaud', () => 0), /pluie/);
+  const base = { seed: 7, name: 'M', bindings: {}, cities: [{ id: 'n', name: 'Givre', population: 900, at: [0.5, 0.1], river: true }] };
+  const plan = (d) => d.maps.find((m) => m.id === cityPlanId('r', 'n'));
+  const hiver = generateWorld({ ...base, season: 'hiver' }, 'r');
+  assert.equal(plan(hiver).surface.season, 'hiver');
+  assert.ok(plan(hiver).surface.snow >= 0.3);
+  // Plus de neige sur le monde l'hiver qu'en été.
+  const snowLen = (d) => d.maps[0].decor.find((x) => x.kind === 'biome-neige')?.d.length ?? 0;
+  assert.ok(snowLen(hiver) > snowLen(generateWorld({ ...base, season: 'ete' }, 'r')));
+  // Au combat : des congères et la rivière gelée (terrain difficile, plus d'eau).
+  const s = plan(hiver).surface;
+  const grid = rasterGround(s, plan(hiver).width, plan(hiver).height, { x0: 0, y0: 0, w: 1, h: 1 }, 80, 60);
+  assert.ok(grid.includes(':') && !grid.includes('~'));
+  const sansSaison = rasterGround(plan(generateWorld(base, 'r')).surface, 1240, 860, { x0: 0, y0: 0, w: 1, h: 1 }, 80, 60);
+  assert.ok(sansSaison.includes('~'));
+  // Taverne : la réplique d'hiver du tavernier, et plus de monde l'hiver que sans saison (en moyenne).
+  const slots = citySlots({ id: 'n', name: 'Givre', population: 900 }, 'p');
+  const tav = slots.filter((x) => x.type === 'taverne');
+  let n0 = 0, n1 = 0, said = false;
+  for (const slot of tav) for (const period of ['jour', 'soir']) {
+    const a = generateInterior({ slot, planId: 'i', siteId: 's', parentSiteId: 'p', period });
+    const b = generateInterior({ slot, planId: 'i', siteId: 's', parentSiteId: 'p', period, season: 'hiver', climate: 'tempere' });
+    n0 += a.features.filter((f) => /pnj-gen/.test(f.id)).length; n1 += b.features.filter((f) => /pnj-gen/.test(f.id)).length;
+    said ||= b.features.some((f) => /tavern/i.test(f.subtitle ?? '') && /^« /.test(f.summary ?? ''));
+  }
+  assert.ok(n1 > n0);
+  assert.ok(said);
+  // Sans saison, rien ne change.
+  const slot = tav[0];
+  assert.equal(JSON.stringify(generateInterior({ slot, planId: 'i', siteId: 's', parentSiteId: 'p' })), JSON.stringify(generateInterior({ slot, planId: 'i', siteId: 's', parentSiteId: 'p', season: undefined })));
+});

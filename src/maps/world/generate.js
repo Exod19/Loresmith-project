@@ -42,6 +42,7 @@ export function rng(seed) {
 
 import { generateInterior } from './interior.js';
 import { EDGE_ANGLE, biomeOf, climateOf, smoothNoise, temperatureAt } from './climate.js';
+import { SNOW_LINE, snowOf } from './seasons.js';
 
 /* ——— Types de bâtiments ——— */
 
@@ -891,6 +892,9 @@ export function generateWorld(world, mapRecordId) {
   const climate = world.climate ?? {};
   const tNoise = smoothNoise(hashSeed(`climat:${seed}`), 150);
   const tempAt = (x, y) => temperatureAt(climate, y / H, (tNoise(x, y) - 0.5) * 0.14);
+  // Saison (choisie par le MJ) : la neige descend l'hiver, les lacs du nord gèlent.
+  const season = world.season;
+  const snowLine = SNOW_LINE[season] ?? 0.17;
   // Mer : seulement du côté des cités portuaires. Chaque côté qui porte un port devient une côte, qui passe au ras de
   // ses ports et reste au large des autres cités.
   const coasts = [];
@@ -968,7 +972,7 @@ export function generateWorld(world, mapRecordId) {
       const poly = blob(rand, x, y, rx, rx * 0.7, 22);
       // Une grève autour du lac : sable au tempéré et au chaud, galets au froid.
       decor.push({ kind: tempAt(x, y) < 0.3 ? 'shore-cold' : 'shore', d: rectPath(poly) });
-      push('lake', rectPath(poly));
+      push(season === 'hiver' && tempAt(x, y) < 0.45 ? 'lake-ice' : 'lake', rectPath(poly));
       addPoint({ ...base, id: `${wid}:lac`, title: `Lac de ${placeName(rand)}`, category: 'eau', importance: 'local', minZoom: 0.9, area: true }, x / W, y / H);
       rivers.push({ pts: poly.concat([poly[0]]), name: '', lake: true });
       break;
@@ -990,7 +994,10 @@ export function generateWorld(world, mapRecordId) {
     const x = gx * BC + (h() - 0.5) * 16, y = gy * BC + (h() - 0.5) * 16;
     if (inSeaW(x, y, -6)) continue;
     const wet = waters.some(([wx, wy]) => Math.abs(wx - x) < 70 && Math.abs(wy - y) < 70) || inSeaW(x, y, 60) ? 1 : 0.3;
-    const b = biomeOf(tempAt(x, y), wet);
+    const T = tempAt(x, y);
+    let b = biomeOf(T, wet);
+    if (T < snowLine) b = 'neige';
+    else if (b === 'neige') b = 'taiga';
     if (b === 'tempere') continue;
     push(`biome-${b}`, circlePath(x, y, BC * (0.72 + h() * 0.25)));
     if (b === 'desert' && h() < 0.55 && farFromCities(x, y, 30)) for (let j = 0; j < 3; j++) {
@@ -1014,7 +1021,7 @@ export function generateWorld(world, mapRecordId) {
   ranges.forEach((r, i) => {
     for (const [px, py, s2] of r.peaks) {
       push('mountain', `M${f1(px - s2)} ${f1(py + s2 * 0.5)}L${f1(px)} ${f1(py - s2)}L${f1(px + s2)} ${f1(py + s2 * 0.5)}Z`);
-      if (tempAt(px, py) < 0.45) push('snowcap', `M${f1(px - s2 * 0.38)} ${f1(py - s2 * 0.43)}L${f1(px)} ${f1(py - s2)}L${f1(px + s2 * 0.38)} ${f1(py - s2 * 0.43)}Z`);
+      if (tempAt(px, py) < (season === 'hiver' ? 0.75 : 0.45)) push('snowcap', `M${f1(px - s2 * 0.38)} ${f1(py - s2 * 0.43)}L${f1(px)} ${f1(py - s2)}L${f1(px + s2 * 0.38)} ${f1(py - s2 * 0.43)}Z`);
     }
     const nr = rng(hashSeed(`monts:${seed}:${i}`));
     addPoint({ ...base, id: `${wid}:monts-${i}`, title: `Monts de ${placeName(nr)}`, category: 'vivant', importance: 'local', minZoom: 0.9, area: true }, clamp(r.x / W, 0.03, 0.97), clamp((r.y - 22) / H, 0.03, 0.97));
@@ -1122,7 +1129,7 @@ export function generateWorld(world, mapRecordId) {
     const slot = city?.g.slots.find((s) => s.id === slotId);
     if (!city || !slot) continue;
     const bound = byCity.get(city.c.id)?.[slotId];
-    const it = cachedInterior(slot, bound, city.g.map.scope.id, world.time ?? 'jour', world.residents?.[slotId] ?? []);
+    const it = cachedInterior(slot, bound, city.g.map.scope.id, world.time ?? 'jour', world.residents?.[slotId] ?? [], season, climateOf(tempAt(city.c.at[0] * W, city.c.at[1] * H)));
     for (const lv of [it, ...it.levels]) { maps.push(lv.map); features.push(...lv.features); geometries.push(...lv.geometries); anchors.push(...lv.anchors); spaces.push(lv.space); }
     connections.push(...it.connections);
     // Côté rue : une ancre sous le bâtiment (cachée sous son repère s'il en a un).
@@ -1148,7 +1155,7 @@ export function generateWorld(world, mapRecordId) {
   const worldDecor = [
     ...out(ORDER.slice(0, 10)),
     ...decor.filter((x) => x.kind === 'shore' || x.kind === 'shore-cold'),
-    ...out(['lake']),
+    ...out(['lake', 'lake-ice']),
     ...decor.filter((x) => x.kind === 'river'),
     ...decor.filter((x) => x.kind === 'beach' || x.kind === 'sea'),
     ...out(ORDER.slice(11)),
@@ -1203,10 +1210,12 @@ export function generateWorld(world, mapRecordId) {
   const light = world.time === 'nuit' || world.time === 'soir' ? world.time : null;
   // Climat de chaque cité (et hameau) : il décide de l'allure de son plan (toits, sol, végétation) et de son plateau de combat.
   const climOf = new Map(placesOut.map(({ c, pid }) => [pid, climateOf(tempAt(c.at[0] * W, c.at[1] * H))]));
+  // Saison : chaque plan de surface la connaît (couleurs) ; une cité enneigée ou gelée le dit aussi au plateau de combat.
   const shown = maps.map((m) => {
     if (!m.surface) return m;
     const cl = climOf.get(m.id);
-    return light || cl ? { ...m, surface: { ...m.surface, ...(light ? { light } : {}), ...(cl ? { climate: cl } : {}) } } : m;
+    const extra = { ...(light ? { light } : {}), ...(cl ? { climate: cl } : {}), ...(season ? { season } : {}), ...(cl && season ? snowOf(season, cl) : {}) };
+    return Object.keys(extra).length ? { ...m, surface: { ...m.surface, ...extra } } : m;
   });
   return {
     version: 'monde-1',
@@ -1232,11 +1241,11 @@ function cachedCity(spec, planId, bindings) {
 /** Identifiant du plan intérieur d'un bâtiment. */
 export const interiorPlanId = (slotId) => `${slotId}:int`;
 const interiorCache = new Map();
-function cachedInterior(slot, bound, parentSiteId, period, residents) {
-  const key = `${slot.id}|${period}|${JSON.stringify(bound ?? null)}|${JSON.stringify(residents)}`;
+function cachedInterior(slot, bound, parentSiteId, period, residents, season, climate) {
+  const key = `${slot.id}|${period}|${season}|${climate}|${JSON.stringify(bound ?? null)}|${JSON.stringify(residents)}`;
   let hit = interiorCache.get(key);
   if (!hit) {
-    hit = generateInterior({ slot, planId: interiorPlanId(slot.id), siteId: `${slot.id}:site`, parentSiteId, bound, period, residents });
+    hit = generateInterior({ slot, planId: interiorPlanId(slot.id), siteId: `${slot.id}:site`, parentSiteId, bound, period, residents, season, climate });
     interiorCache.set(key, hit);
     if (interiorCache.size > 60) interiorCache.delete(interiorCache.keys().next().value);
   }
@@ -1276,6 +1285,9 @@ export function rasterGround(surface, W, H, win, cols, rows, seed = 0) {
   const lineNear = (l) => l.pts.some(([x, y]) => near(x, y, 60));
   const Wl = walls.filter(lineNear), Wa = water.filter(lineNear), Ro = roads.filter(lineNear);
   const rand = rng(seed);
+  // Neige : des congères sur le sol à découvert (terrain difficile) ; glace : l'eau gelée se traverse (terrain difficile).
+  const snow = surface.snow ?? 0, frozen = surface.frozen;
+  const srand = rng((seed ^ 0x9e3779b9) >>> 0);
   const out = [];
   const doors = pairs(g.doors ?? []);
   // Taille d'une case en unités de plan : un mur plus fin qu'une case (cloison) en occupe quand même une, et un petit
@@ -1300,13 +1312,15 @@ export function rasterGround(surface, W, H, win, cols, rows, seed = 0) {
     const idx = r * cols + c;
     if (!doorCells.has(idx) && (wallCells.has(idx) || Wl.some((w) => lineDist(x, y, w.pts) <= w.hw))) { out.push('#'); continue; }
     if (R.some((q) => q.kind === 'o' && samples(x, y).some(([sx, sy]) => inRect(sx, sy, q)))) { out.push('I'); continue; }
-    const wet = Wa.some((w) => (w.closed ? insidePoly(x, y, w.pts) : lineDist(x, y, w.pts) <= w.hw));
+    const wetW = Wa.find((w) => (w.closed ? insidePoly(x, y, w.pts) : lineDist(x, y, w.pts) <= w.hw));
+    const wet = !!wetW, ice = wet && (frozen === 'tout' || (frozen === 'rivieres' && !wetW.closed));
     const road = Ro.some((w) => lineDist(x, y, w.pts) <= w.hw);
-    if (wet) { out.push(road ? '=' : '~'); continue; }
+    if (wet) { out.push(road ? '=' : ice ? ':' : '~'); continue; }
     if (road) { out.push('.'); continue; }
     if (towns.some(([tx, ty, tr]) => Math.hypot(tx - x, ty - y) < tr)) { out.push(jitter < 0.55 ? '#' : '.'); continue; }
     if (T.some(([tx, ty, tr]) => Math.hypot(tx - x, ty - y) <= tr * 0.6)) { out.push('I'); continue; }
     if (T.some(([tx, ty, tr]) => Math.hypot(tx - x, ty - y) <= tr)) { out.push(','); continue; }
+    if (snow && srand() < snow) { out.push(':'); continue; }
     if (forests.some((p) => insidePoly(x, y, p))) { out.push(jitter < 0.2 ? 'I' : jitter < 0.55 ? ',' : '.'); continue; }
     if ((b && b.kind === 'f') || R.some((q) => q.kind === 'f' && samples(x, y).some(([sx, sy]) => inRect(sx, sy, q)))) { out.push(','); continue; }
     out.push('.');

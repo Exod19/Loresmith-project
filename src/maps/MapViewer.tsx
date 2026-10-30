@@ -37,7 +37,8 @@ import WorldPanel from './world/WorldPanel';
 import ExplorePanel from './world/ExplorePanel';
 import { isHiddenNpc } from './world/interior';
 import { normalizeEntity } from '../bestiary/entityGen';
-import type { Period } from './world/generate';
+import type { Period, Season } from './world/generate';
+import { SEASONS } from './world/seasons';
 import type { LoreEntry } from './world/lore';
 import './maps.css';
 
@@ -852,6 +853,13 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
           <select className="maps-btn" value={rec.world.time ?? 'jour'} aria-label="Moment de la journée" title="Moment de la journée : qui est dans les bâtiments, et la lumière"
             onChange={(e) => onUpdate({ world: { ...rec.world!, time: e.target.value as Period }, updatedAt: Date.now() })}>
             <option value="matin">🌅 Matin</option><option value="jour">☀ Jour</option><option value="soir">🌇 Soir</option><option value="nuit">🌙 Nuit</option>
+          </select>
+        )}
+        {rec.kind === 'monde' && rec.world && (
+          <select className="maps-btn" value={rec.world.season ?? ''} aria-label="Saison" title="Saison : neige et glace selon le climat, couleurs, affluence et répliques des gens"
+            onChange={(e) => onUpdate({ world: { ...rec.world!, season: (e.target.value || undefined) as Season | undefined }, updatedAt: Date.now() })}>
+            <option value="">Saison…</option>
+            {Object.entries(SEASONS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
           </select>
         )}
         {rec.kind === 'monde' && !battleOpen && map.id !== wid && (

@@ -42,6 +42,7 @@ export interface Binding {
 /** `interiors` : bâtiments où l'on est entré (identifiants d'emplacement) ; chacun a son plan intérieur. */
 /** Moment de la journée : qui est là dans les bâtiments, et la lumière des plans. */
 export type Period = 'matin' | 'jour' | 'soir' | 'nuit';
+export type Season = 'printemps' | 'ete' | 'automne' | 'hiver';
 /** Occupant dont le MJ a créé la fiche : il reste à cet endroit (niveau, coordonnées 0–1), à toute heure. */
 export interface Resident { id: string; name: string; role?: string; desc?: string; level: 'rdc' | 'etage' | 'cave'; at: [number, number] }
 /** `names` : noms choisis par le MJ, par identifiant de lieu (rues, bâtiments, hameaux, forêts, pièces…). */
@@ -54,7 +55,7 @@ export interface Avatar {
   hidden?: { planId: string; at: [number, number] };
 }
 /** `canon` : lieux tirés au sort que le MJ a gardés tels quels (ils ne sont plus des brouillons). */
-export interface WorldSpec { seed: number; name: string; cities: CitySpec[]; bindings: Record<string, Binding>; interiors?: string[]; time?: Period; residents?: Record<string, Resident[]>; names?: Record<string, string>; canon?: string[]; avatar?: Avatar; climate?: WorldClimate }
+export interface WorldSpec { seed: number; name: string; cities: CitySpec[]; bindings: Record<string, Binding>; interiors?: string[]; time?: Period; season?: Season; residents?: Record<string, Resident[]>; names?: Record<string, string>; canon?: string[]; avatar?: Avatar; climate?: WorldClimate }
 
 /** Climat du monde : hémisphère (nord : froid en haut de la carte ; sud : l'inverse) et étendue des climats. */
 export interface WorldClimate { hemisphere?: 'nord' | 'sud'; range?: 'complet' | 'froid' | 'tempere' | 'chaud' }

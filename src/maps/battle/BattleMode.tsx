@@ -217,7 +217,7 @@ export default function BattleMode({
     }
     set({
       terrain: { source, seed, grid: local.base },
-      local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous, surface: plan.surface ? (plan.surface.theme === 'interieur' ? 'interieur' : plan.surface.climate === 'froid' || plan.surface.climate === 'chaud' ? plan.surface.climate : true) : undefined },
+      local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous, surface: plan.surface ? (plan.surface.theme === 'interieur' ? 'interieur' : (plan.surface.snow ?? 0) >= 0.1 ? 'neige' : plan.surface.climate === 'froid' || plan.surface.climate === 'chaud' ? plan.surface.climate : true) : undefined },
       tokens,
       encounterOf: groups?.length ? source : b.encounterOf,
       build: undefined,

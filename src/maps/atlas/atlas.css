@@ -629,6 +629,27 @@
 .am-surface.clim-chaud .dc-roof-noble { fill: #ebe0c8; stroke: #7a6a50; }
 .am-surface.clim-chaud .dc-wall { stroke: #d8c49a; }
 .am-surface.clim-chaud .dc-sea { fill: #1f6a78; }
+/* Saisons (lot 10) : couleurs des champs et des arbres, neige sur les cités, glace. */
+.am-surface .dc-lake-ice { fill: #b9d0d8; stroke: #e6f0f3; stroke-width: .8; }
+.am-surface.season-printemps .dc-plot { fill: #4f6a2e; stroke: #6a8a3c; }
+.am-surface.season-printemps .dc-tree { fill: #2c4a26; stroke: #4c7a3a; }
+.am-surface.season-ete .dc-plot { fill: #8a7a38; stroke: #a8944a; }
+.am-surface.season-automne .dc-plot { fill: #6a5030; stroke: #7e6038; }
+.am-surface.season-automne .dc-tree { fill: #8a4a1c; stroke: #b0662a; }
+.am-surface.season-automne .dc-forest { fill: #5a3a1c; stroke: #7a4a22; }
+.am-surface.season-automne.clim-froid .dc-tree { fill: #6a5a1c; stroke: #8a7a2a; }
+.am-surface.season-hiver .dc-plot { fill: #5a5448; stroke: #6a6456; }
+.am-surface.season-hiver .dc-tree { fill: #283428; stroke: #3a4a3a; }
+.am-surface.season-hiver.clim-chaud .dc-plot { fill: #5a6a34; stroke: #6c7e40; }
+.am-surface.season-hiver.clim-chaud .dc-tree { fill: #3a5a28; }
+.am-surface.snowy { --am-ground: #c4ccd0; --am-road: #8c8478; --am-road-edge: #5c5650; }
+.am-surface.snowy .dc-plot { fill: #dde3e6; stroke: #b8c2c6; }
+.am-surface.snowy .dc-tree { fill: #2a3a30; stroke: #e8eef0; stroke-width: .9; }
+.am-surface.snowy .dc-roof, .am-surface.snowy .dc-roof-farm, .am-surface.snowy .dc-roof-civic, .am-surface.snowy .dc-roof-noble, .am-surface.snowy .dc-keep { fill: #e9eef0; stroke: #5c5658; }
+.am-surface.snowy .dc-square, .am-surface.snowy .dc-court { fill: #d6dde0; }
+.am-surface.snowy .am-pin .lbl, .am-surface.snowy .am-pin .sub, .am-surface.snowy .am-area-label { stroke: #2a2e30; }
+.am-surface.frozen-rivieres .dc-river, .am-surface.frozen-tout .dc-river { stroke: #b9d0d8; }
+.am-surface.frozen-tout .dc-sea { fill: #a9c4ce; stroke: #e6f0f3; }
 /* Lumière du moment (carte du monde) */
 .am-surface.light-soir > svg { filter: sepia(.25) saturate(.9) brightness(.82) hue-rotate(-8deg); }
 .am-surface.light-nuit > svg { filter: saturate(.55) brightness(.5) hue-rotate(195deg) sepia(.2); }

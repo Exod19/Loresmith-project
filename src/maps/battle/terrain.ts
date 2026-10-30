@@ -11,7 +11,7 @@ export const TERRAIN: Record<TerrainKind, { label: string; blocks: boolean; diff
   '.': { label: 'Sol : praticable', blocks: false, difficult: false },
   '#': { label: 'Roche : infranchissable', blocks: true, difficult: false },
   '~': { label: 'Eau : praticable, terrain difficile (compte double)', blocks: false, difficult: true },
-  ':': { label: 'Éboulis : praticable, terrain difficile (compte double)', blocks: false, difficult: true },
+  ':': { label: 'Éboulis, neige ou glace : praticable, terrain difficile (compte double)', blocks: false, difficult: true },
   '=': { label: 'Pont : praticable', blocks: false, difficult: false },
   X: { label: 'Gouffre ou faille : infranchissable', blocks: true, difficult: false },
   I: { label: 'Stalagmite ou pilier : infranchissable', blocks: true, difficult: false },

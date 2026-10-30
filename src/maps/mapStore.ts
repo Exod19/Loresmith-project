@@ -188,7 +188,7 @@ export interface Battle {
   /** Zone locale autour du lieu : éléments de l'Atlas placés sur la grille, et ceux que le MJ a découverts. */
   local?: { source: string; planId?: string; place?: string; window: { x0: number; y0: number; w: number; h: number }; elements: LocalElement[]; discovered: string[];
     /** Plateau tiré d'un plan de surface (cité, monde) : rues et bâtiments plutôt que roche ; `interieur` : dans un bâtiment. */
-    surface?: boolean | 'interieur' | 'froid' | 'chaud' };
+    surface?: boolean | 'interieur' | 'froid' | 'chaud' | 'neige' };
   /** Identifiant de la rencontre dont les créatures sont déjà placées sur le plateau. */
   encounterOf?: string;
   /** Construction manuelle : surcharges du terrain généré et objets déposés (cf. battle/build.ts). */

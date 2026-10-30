@@ -8,6 +8,7 @@
  *
  * JavaScript pur : testé par world.test.mjs.
  */
+import { crowdFactor, greets, homeBonus, seasonLine } from './seasons.js';
 import { SLOT_TYPES, hashSeed, rng } from './generate.js';
 
 const W = 1240, H = 1000;
@@ -309,7 +310,7 @@ export function levelsOf(slot, type) {
  * Tous les niveaux partagent les mêmes dimensions et la même orientation : les escaliers tombent au même endroit.
  * `slot` : emplacement de la cité (dimensions et façade) ; `bound` : lieu du lore posé dessus.
  */
-export function generateInterior({ slot, planId, siteId, parentSiteId, bound, period = 'jour', residents = [] }) {
+export function generateInterior({ slot, planId, siteId, parentSiteId, bound, period = 'jour', residents = [], season, climate }) {
   const type = bound?.type ?? slot.type;
   const tpl0 = TPL[type] ?? TPL.maison;
   const rand = rng(hashSeed(`interieur:${slot.id}`));
@@ -606,10 +607,16 @@ export function generateInterior({ slot, planId, siteId, parentSiteId, bound, pe
   }
   const names = shuffle(rng(hashSeed(`noms:${slot.id}`)), NAMES).filter(([nm]) => !taken.has(norm(nm)));
   let gen = 0;
+  // Saison : une réplique pour le visiteur qui entre (tirage à part : sans saison, rien ne change).
+  const srng = season ? rng(hashSeed(`saison:${slot.id}:${season}:${period}`)) : null;
   const addAt = (lvl, at, roleKey, summary) => {
     const [name, fem] = names[gen % names.length];
     const role = (ROLE[roleKey] ?? [roleKey, roleKey])[fem];
-    const text = summary ?? pickText(orng, roleKey);
+    let text = summary ?? pickText(orng, roleKey);
+    if (srng && !/^Dort/.test(text ?? '') && (greets(roleKey) || srng() < 0.33)) {
+      const line = seasonLine(roleKey, season, climate, srng);
+      if (line) text = `« ${line} » ${text ?? ''}`.trim();
+    }
     lvl.addPoint({ id: `${lvl.pre}pnj-gen-${gen++}`, title: name, subtitle: role, summary: text, category: 'institution', importance: 'regional', minZoom: 0 }, at);
   };
   const addOccupant = (lvl, room, roleKey, summary, jitter = 0) => addAt(lvl, roomPoint(room, jitter), roleKey, summary);
@@ -629,14 +636,14 @@ export function generateInterior({ slot, planId, siteId, parentSiteId, bound, pe
   const crowd = sched.crowd;
   if (crowd && !closed) {
     const night = period === 'nuit' && sched.nightZone;
-    const n = night ? between(sched.nightN ?? [0, 0]) : between(crowd.n[period] ?? [0, 0]);
+    const n = night ? between(sched.nightN ?? [0, 0]) : Math.round(between(crowd.n[period] ?? [0, 0]) * crowdFactor(season, type));
     for (let i = 0; i < n; i++) addAt(rdc, inZone(night ? sched.nightZone : crowd.zone), crowd.roles[Math.floor(orng() * crowd.roles.length)], night ? 'Dort.' : undefined);
   } else if (closed && sched.nightZone && sched.nightN) {
     for (let i = 0, n = between(sched.nightN); i < n; i++) addAt(rdc, inZone(sched.nightZone), crowd?.roles[0] ?? 'habitant', 'Dort.');
   }
 
   // Étage, selon l'heure : on dort la nuit et au petit matin, on sort le jour.
-  const AT_HOME = { nuit: 0.75, matin: 0.55, soir: 0.4, jour: 0.2 }[period];
+  const AT_HOME = { nuit: 0.75, matin: 0.55, soir: 0.4, jour: 0.2 }[period] + homeBonus(season);
   if (up && upRooms) {
     const rooms = upRooms.filter((r) => r[0] !== 'Palier' && !occupied.has(`etage:${r[0]}`));
     const asleep = period === 'nuit' ? 'Dort.' : undefined;

@@ -115,7 +115,7 @@ async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: numbe
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   canvas.width = cols * CELL_PX; canvas.height = rows * CELL_PX;
-  if (theme?.startsWith('surface')) { paintSurface(ctx, cols, rows, terrain, theme === 'surface-froid' ? 'froid' : theme === 'surface-chaud' ? 'chaud' : 'tempere'); return; }
+  if (theme?.startsWith('surface')) { paintSurface(ctx, cols, rows, terrain, theme === 'surface-froid' ? 'froid' : theme === 'surface-chaud' ? 'chaud' : theme === 'surface-neige' ? 'neige' : 'tempere'); return; }
   if (theme === 'interieur') { paintInterior(ctx, cols, rows, terrain); return; }
   ctx.fillStyle = TILE_BASE.sol;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -144,6 +144,7 @@ async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: numbe
 const SURFACE_PALETTE = {
   tempere: { ground: '#5b5444', field: '#4b512f', furrow: 'rgba(120,130,70,.55)', roof: '#8a4f3c', roofHi: '#9c5d47', roofEdge: '#3b241c', water: '#2f5c69', tree: '#22381f', treeHi: '#2f4a2a' },
   froid: { ground: '#6a6e68', field: '#5b6150', furrow: 'rgba(200,205,200,.45)', roof: '#4f4a4c', roofHi: '#625c5e', roofEdge: '#1e1b1c', water: '#2a4652', tree: '#1d3226', treeHi: '#2a4433' },
+  neige: { ground: '#cfd6da', field: '#c3cbcc', furrow: 'rgba(255,255,255,.55)', roof: '#6a6466', roofHi: '#eef2f4', roofEdge: '#2a2627', water: '#7fa3b3', tree: '#1d3226', treeHi: '#e6edf0' },
   chaud: { ground: '#8a7650', field: '#8a7a42', furrow: 'rgba(180,160,90,.55)', roof: '#d2b07a', roofHi: '#e0c290', roofEdge: '#6d5634', water: '#1f6a78', tree: '#4e6a2c', treeHi: '#6c8a3a' },
 };
 
@@ -191,6 +192,11 @@ function paintSurface(ctx: CanvasRenderingContext2D, cols: number, rows: number,
       ctx.fillStyle = P.treeHi; ctx.beginPath(); ctx.arc(x + C * 0.42, y + C * 0.4, C * 0.22, 0, Math.PI * 2); ctx.fill();
     } else if (k === 'X') {
       ctx.fillStyle = '#060606'; ctx.fillRect(x, y, C, C);
+    } else if (k === ':' && climate === 'neige') {
+      // Congère ou glace : blanc bleuté, quelques ombres de vent.
+      ctx.fillStyle = '#eef3f6'; ctx.fillRect(x, y, C, C);
+      ctx.strokeStyle = 'rgba(120,150,175,.45)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x + 6, y + C * 0.6); ctx.quadraticCurveTo(x + C / 2, y + C * 0.4 + r() * 6, x + C - 6, y + C * 0.62); ctx.stroke();
     } else if (k === ':') {
       ctx.fillStyle = '#6a604c'; ctx.fillRect(x, y, C, C);
     }
