@@ -3,6 +3,8 @@
  * Le terrain est dessiné avec de vraies textures (SVG), les lieux et créatures avec des icônes.
  */
 import type { BoardTheme } from './theme';
+import { dressBoard } from '../../banque/boardDress';
+import { faceAngle, isBankSrc } from '../../banque';
 import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
 import type { AoeView, PlayerElement, PlayerToken } from '../../present/stage';
 import type { TerrainKind } from './terrain';
@@ -153,6 +155,7 @@ const TILE_BASE: Record<string, string> = {
 /** Taille d'une case dans le canevas de terrain (pixels). Le canevas est ensuite mis à l'échelle par le CSS. */
 const CELL_PX = 64;
 const imageCache = new Map<string, Promise<HTMLImageElement>>();
+const paintGen = new WeakMap<HTMLCanvasElement, number>();
 function loadTile(file: string): Promise<HTMLImageElement> {
   let p = imageCache.get(file);
   if (!p) {
@@ -178,14 +181,38 @@ function loadUrl(url: string): Promise<HTMLImageElement> {
   return p;
 }
 
+/** Angle d'un jeton de la banque : face au jeton du camp d'en face le plus proche (le groupe face aux monstres, et
+ *  inversement) ; à défaut, vers le centre du plateau occupé. */
+function facing(t: PlayerToken, all: PlayerToken[]) {
+  const foe = (o: PlayerToken) => o.id !== t.id && !o.out && (t.kind === 'pc' ? o.kind !== 'pc' : o.kind === 'pc');
+  let best: PlayerToken | null = null, bd = Infinity;
+  for (const o of all) if (foe(o)) { const d = Math.hypot(o.x - t.x, o.y - t.y); if (d < bd) { bd = d; best = o; } }
+  if (!best) {
+    const others = all.filter((o) => o.id !== t.id);
+    if (!others.length) return 0;
+    const mx = others.reduce((s, o) => s + o.x, 0) / others.length, my = others.reduce((s, o) => s + o.y, 0) / others.length;
+    return faceAngle(mx - t.x, my - t.y);
+  }
+  return faceAngle(best.x + best.size / 2 - (t.x + t.size / 2), best.y + best.size / 2 - (t.y + t.size / 2));
+}
+
 /** Dessine le terrain case par case dans le canevas : une texture par type, avec la couleur de base dessous. */
 async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: number, terrain: string | undefined, ground?: TerrainId, theme?: BoardTheme) {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   canvas.width = cols * CELL_PX; canvas.height = rows * CELL_PX;
   // Plans de la carte du monde (cité, campagne, intérieur) : peints sans texture, selon le climat et la saison.
-  if (theme?.startsWith('surface')) { paintSurface(ctx, cols, rows, terrain, theme === 'surface-froid' ? 'froid' : theme === 'surface-chaud' ? 'chaud' : theme === 'surface-neige' ? 'neige' : 'tempere'); return; }
-  if (theme === 'interieur') { paintInterior(ctx, cols, rows, terrain); return; }
+  // Chaque dessin a son numéro : l'habillage (Banque Loresmith), qui charge ses images, s'efface devant un dessin plus récent.
+  const gen = (paintGen.get(canvas) ?? 0) + 1;
+  paintGen.set(canvas, gen);
+  const alive = () => paintGen.get(canvas) === gen;
+  if (theme?.startsWith('surface')) {
+    const climate = theme === 'surface-froid' ? 'froid' : theme === 'surface-chaud' ? 'chaud' : theme === 'surface-neige' ? 'neige' : 'tempere';
+    paintSurface(ctx, cols, rows, terrain, climate);
+    await dressBoard(canvas, cols, rows, terrain, climate, CELL_PX, alive);
+    return;
+  }
+  if (theme === 'interieur') { paintInterior(ctx, cols, rows, terrain); await dressBoard(canvas, cols, rows, terrain, 'interieur', CELL_PX, alive); return; }
   const g = ground && ground !== 'sol' ? TERRAIN_DEF[ground] : undefined;
   ctx.fillStyle = g?.color ?? TILE_BASE.sol;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -574,7 +601,7 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
                 {t.socle === 'lave' && <circle cx={cx} cy={cy} r={r + 0.07} fill="none" stroke="#ff7a2a" strokeWidth={0.05} opacity={0.75} />}
               </g>
             )}
-            {t.image && isCutout(t.image) ? (
+            {t.image && (isBankSrc(t.image) || isCutout(t.image)) ? (
               <>
                 {/* Sans socle de terrain (réglé sur « aucun »), un socle de pierre teinté selon le camp. */}
                 {!t.socle && (
@@ -587,7 +614,9 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
                   </>
                 )}
                 <circle cx={cx} cy={cy} r={r - 0.035} fill="none" stroke={KIND_FILL[t.kind]} strokeOpacity={0.55} strokeWidth={0.03} />
-                <image href={t.image} x={cx - r * 1.12} y={cy - r * 1.12} width={2.24 * r} height={2.24 * r} preserveAspectRatio="xMidYMid meet" style={{ filter: 'drop-shadow(0 0.04px 0.05px rgba(0,0,0,.85))' }} />
+                <image href={t.image} x={cx - r * 1.12} y={cy - r * 1.12} width={2.24 * r} height={2.24 * r} preserveAspectRatio="xMidYMid meet" style={{ filter: 'drop-shadow(0 0.04px 0.05px rgba(0,0,0,.85))' }}
+                  // Jeton de la Banque Loresmith (vu du dessus) : tourné vers son vis-à-vis le plus proche.
+                  transform={isBankSrc(t.image) ? `rotate(${(facing(t, tokens) * 180) / Math.PI} ${cx} ${cy})` : undefined} />
                 <circle cx={cx} cy={cy} r={r} fill="none" stroke={t.selected ? '#ecd289' : '#0b0906'} strokeWidth={t.selected ? 0.12 : 0.05} strokeDasharray={t.hidden ? '0.12 0.08' : undefined} />
               </>
             ) : t.image ? (

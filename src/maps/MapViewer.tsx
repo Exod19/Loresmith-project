@@ -976,7 +976,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
           onFollow={followPassage} onLink={setPassageLink} onMarker={(id, patch) => updateMarker(id, patch)} onLeave={leaveBattle}
           onReveal={(id) => toggleReveal(id)}
           onBattle={(b) => onUpdate({ battle: b, updatedAt: Date.now() })}
-          heroes={heroes} party={party} bestiary={bestiary} renderCombat={renderCombat}
+          heroes={heroes} party={party} bestiary={bestiary} renderCombat={renderCombat} library={library}
           onSearchNote={(id, note) => {
             const notesMap = { ...(overlay.searchNotes ?? {}) };
             if (note) notesMap[id] = note; else delete notesMap[id];

@@ -13,6 +13,7 @@ import type { LoreEntry } from './lore';
 import { PROPOSAL_TYPES, chronicleOf, npcSystemPrompt, npcUserPrompt, parseNpcReply, type Proposal, type TalkLine } from './talk';
 import type { World } from './index';
 import { canSpeak, creatureVoice } from './speech';
+import { npcBankImage } from '../../banque/place';
 
 type Props = {
   rec: MapRecord;
@@ -47,9 +48,11 @@ export default function TalkPanel({ rec, data, planId, npc, library, loreContext
   shareRef.current = onShare;
   useEffect(() => () => { if (sharedRef.current) shareRef.current?.(null); }, []);
   const shareKey = useRef(`${npc.id}:${Date.now()}`);
+  // Visage du PNJ : le sien, sinon un portrait de la Banque Loresmith cohérent avec la cité (jamais pour une créature).
+  const face = npc.image ?? (creature ? undefined : npcBankImage(rec, planId, library, npc, 'portrait', 256));
   const share = (lines: TalkLine[], on = shared) => {
     if (!onShare || !on) return;
-    onShare({ key: shareKey.current, name: npc.title, image: npc.image, at: Date.now(), lines: lines.slice(-6).map((m) => ({ who: m.from === 'avatar' ? avatar.name || 'Le groupe' : npc.title, text: m.text })) });
+    onShare({ key: shareKey.current, name: npc.title, image: face, at: Date.now(), lines: lines.slice(-6).map((m) => ({ who: m.from === 'avatar' ? avatar.name || 'Le groupe' : npc.title, text: m.text })) });
   };
   const mode = avatar.mode === 'chronique' ? 'chronique' : 'reverie';
   const [history, setHistory] = useState<TalkLine[]>([]);
@@ -124,7 +127,7 @@ export default function TalkPanel({ rec, data, planId, npc, library, loreContext
   return (
     <div className="talk-card">
       <div className="talk-head">
-        <h5>💬 {npc.title}{subtitle ? <small> · {subtitle}</small> : null}</h5>
+        <h5>{face ? <img className="talk-face" src={face} alt="" /> : '💬 '}{npc.title}{subtitle ? <small> · {subtitle}</small> : null}</h5>
         <button className="maps-btn" onClick={close} title={mode === 'chronique' ? 'Clore : la conversation entre dans la mémoire de l’univers' : 'Clore : rien n’est gardé, sauf le lore accepté'}>Clore</button>
       </div>
       <p className="maps-sub">{mode === 'chronique' ? '📜 Chronique : cette conversation sera gardée dans la mémoire de l’univers.' : '💭 Rêverie : rien n’est gardé, sauf le lore que tu acceptes.'}</p>

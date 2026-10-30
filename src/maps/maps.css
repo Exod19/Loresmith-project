@@ -263,3 +263,21 @@
 .pp-open.o-plafond,.pp-open.o-balcon{stroke-dasharray:2 2}
 .pp-party{fill:#54d8c6;stroke:#0b0906;stroke-width:1.5}
 .pp-label{font-size:9px;fill:#e6d8b2}
+
+/* Banque Loresmith */
+.banque-filters { flex-wrap: wrap; gap: 8px; }
+.banque-body { display: grid; grid-template-columns: 1fr; gap: 16px; }
+@media (min-width: 900px) { .banque-body { grid-template-columns: 1fr 340px; align-items: start; } }
+.banque-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+.banque-card { display: grid; gap: 3px; padding: 6px; background: rgba(255,255,255,.04); border: 1px solid rgba(236,210,137,.18); border-radius: 8px; color: inherit; cursor: pointer; text-align: left; }
+.banque-card img { width: 100%; aspect-ratio: 1; object-fit: contain; background: #2a2620; border-radius: 6px; }
+.banque-card img.tex, .banque-detail img.tex { object-fit: cover; }
+.banque-card span { font-size: 12px; line-height: 1.25; }
+.banque-card small { font-size: 11px; opacity: .65; }
+.banque-card.is-sel { border-color: #ecd289; box-shadow: 0 0 0 1px #ecd289; }
+.banque-card.is-off { opacity: .45; }
+.banque-detail { position: sticky; top: 8px; display: grid; gap: 8px; padding: 10px; background: rgba(0,0,0,.25); border: 1px solid rgba(236,210,137,.25); border-radius: 10px; }
+.banque-detail img { width: 100%; aspect-ratio: 1; object-fit: contain; background: #2a2620; border-radius: 8px; }
+.banque-detail label { display: grid; gap: 3px; font-size: 12px; }
+.banque-assign { display: grid; gap: 6px; border-top: 1px solid rgba(236,210,137,.2); padding-top: 8px; }
+.banque-assign h5 { margin: 0; }

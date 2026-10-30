@@ -91,6 +91,8 @@ export interface MapSurface {
     roads: { pts: number[]; hw: number }[];
     forests?: number[][];
     towns?: number[];
+    /** Mobilier des intérieurs, dessiné avec la Banque Loresmith : [nature, x, y, largeur, profondeur, angle]. */
+    p?: [string, number, number, number, number, number][];
   };
 }
 
