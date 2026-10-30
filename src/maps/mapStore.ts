@@ -200,6 +200,8 @@ export interface BattleBuild {
 export interface MapRecord {
   /** Carte des lieux découverts, tenue à jour par les comptes rendus de séance (cf. placeMap.js). */
   placeMap?: boolean;
+  /** Lieux retirés à la main de la carte des lieux : les prochaines séances ne les y remettent pas. */
+  placeDismissed?: string[];
   id: string;
   universeId: string;
   kind: 'atlas' | 'custom';

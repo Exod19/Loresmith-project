@@ -50,3 +50,9 @@ test('jamais de doublon, repères découverts, planId de la carte', () => {
   assert.equal(r2.map, r1.map);
   assert.equal(m0.overlay.markers.length, 0); // l'original n'est pas modifié
 });
+
+test('un lieu retiré à la main n’est pas remis par une séance suivante', () => {
+  const map = { ...emptyPlaceMap('u', 1), placeDismissed: ['p1'] };
+  const r = addPlaces(map, [place(1), place(2)], { now: 2 });
+  assert.deepEqual(r.map.overlay.markers.map((m) => m.entryId), ['p2']);
+});

@@ -58,13 +58,14 @@ export function positionFor(markers, neighborIds = []) {
 
 /**
  * Ajoute à la carte un repère pour chaque lieu qui n'y est pas encore (jamais de doublon, jamais de retrait).
+ * Un lieu que le MJ a retiré à la main (`placeDismissed`) n'est pas remis.
  * `edges` : liens {from, to} entre fiches ; un lieu relié à un lieu déjà sur la carte est posé à côté de lui.
  */
 export function addPlaces(map, places, { edges = [], now }) {
   const markers = [...(map.overlay?.markers || [])];
   let added = 0;
   for (const place of places) {
-    if (markers.some((m) => m.entryId === place.id)) continue;
+    if (markers.some((m) => m.entryId === place.id) || (map.placeDismissed || []).includes(place.id)) continue;
     const neighbors = edges.flatMap((e) => (e.from === place.id ? [e.to] : e.to === place.id ? [e.from] : []));
     const { x, y } = positionFor(markers, neighbors);
     markers.push({

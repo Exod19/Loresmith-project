@@ -33,6 +33,8 @@ type Props = {
   bestiary?: BestiaryRef[];
   /** Illustration d'une créature par son nom, pour l'écran joueur. */
   artOf?: (name: string, id: string) => string;
+  /** Ouvre une fiche de la bibliothèque (repère lié à un lieu). */
+  onOpenEntry?: (entryId: string) => void;
 };
 
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -48,7 +50,7 @@ function readKnown(): Set<string> | null {
   }
 }
 
-export default function MapsPage({ universe, maps, dispatch, flash, heroes = [], campaigns = [], bestiary = [], onReturnToTable, renderCombat, artOf }: Props) {
+export default function MapsPage({ universe, maps, dispatch, flash, heroes = [], campaigns = [], bestiary = [], onReturnToTable, renderCombat, artOf, onOpenEntry }: Props) {
   // La Table de jeu peut demander d'ouvrir une carte précise (et d'y lancer le combat).
   const [intent] = useState(peekMapIntent);
   useEffect(() => { clearMapIntent(); }, []);
@@ -156,6 +158,7 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
           startInBattle={intent?.mapId === open.id && intent.battle}
           onReturn={intent?.from === 'table' && intent.mapId === open.id ? onReturnToTable : undefined}
           renderCombat={renderCombat}
+          onOpenEntry={onOpenEntry}
           campaigns={campaigns}
           activeCampaignId={universe.activeCampaignId}
           onCampaign={(id) => dispatch({ type: 'UPDATE_UNIVERSE', id: universe.id, patch: { activeCampaignId: id || undefined } })}

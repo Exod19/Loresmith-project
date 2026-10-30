@@ -79,6 +79,7 @@ import {
 import './forge/forge.css';
 import UniverseForge from './universe/UniverseForge';
 import { buildUniverse } from './universe/forgeBrief';
+import { setLibraryIntent, takeLibraryIntent } from './library/intent';
 import SessionReportPanel from './campaign/SessionReportPanel';
 import DeleteUniverseDialog from './universe/DeleteUniverseDialog';
 import { removeUniverse, canDeleteUniverse } from './universe/deleteUniverse';
@@ -5409,7 +5410,7 @@ export default function App() {
             ) : view === 'archives' ? (
               <ArchivesPage universe={universe} dispatch={dispatch} flash={flash} />
             ) : view === 'maps' ? (
-              <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} heroes={party} campaigns={campaigns} bestiary={npcs} onReturnToTable={() => setView('scene')}
+              <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} onOpenEntry={(id) => { setLibraryIntent(id); goTo('library'); }} heroes={party} campaigns={campaigns} bestiary={npcs} onReturnToTable={() => setView('scene')}
                 artOf={(name, id) => combatantArtOf(state, (state.combat?.combatants || []).find((c) => c.id === id), faunaFeed) || creatureArtOf(state, name, faunaFeed)}
                 renderCombat={(slot) => slot.area === 'attack'
                   ? <AttackPanel key={slot.battle.aim?.at} state={state} dispatch={dispatch} battle={slot.battle} setBattle={slot.setBattle} />
@@ -11001,6 +11002,12 @@ Ne révèle pas les secrets du MJ aux paliers faciles. Reste fidèle à la fiche
     setType(target.archiveType);
     setSelectedId(id);
   }
+
+  // Arrivée depuis une autre page (ex. un repère de la carte) : on ouvre la fiche demandée.
+  useEffect(() => {
+    const id = takeLibraryIntent();
+    if (id) openEntry(id);
+  }, []);
 
   async function polishEntry(entry) {
     setBusy(true);

@@ -43,10 +43,12 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 /** Repère en cours de placement : le prochain clic sur la carte le crée. */
 type Draft = { kind: MarkerKind; title: string; summary?: string; notes?: string; groups?: MapMarker['groups'] };
 
-export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false, onReturn, renderCombat, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [], artOf }: {
+export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false, onReturn, renderCombat, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [], artOf, onOpenEntry }: {
   rec: MapRecord; atlas: AtlasData; dm: boolean; onDm: (v: boolean) => void;
   /** Illustration d'une créature par son nom, pour l'écran joueur. */
   artOf?: (name: string, id: string) => string;
+  /** Ouvre la fiche de bibliothèque liée à un repère. */
+  onOpenEntry?: (entryId: string) => void;
   onUpdate: (patch: Partial<MapRecord>) => void; onBack: () => void;
   /** Personnages du groupe, pour les ajouter au combat. */
   heroes?: Hero[];
@@ -539,7 +541,11 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     ...overlay, markers: overlay.markers.map((m) => (m.id === id ? { ...m, ...patch } : m)),
   });
   const removeMarker = (id: string) => {
-    setOverlay({ ...overlay, markers: overlay.markers.filter((m) => m.id !== id) });
+    const gone = overlay.markers.find((m) => m.id === id);
+    const next = { ...overlay, markers: overlay.markers.filter((m) => m.id !== id) };
+    // Un lieu retiré de la carte des lieux n'y revient pas à la prochaine séance : on s'en souvient.
+    if (gone?.entryId) onUpdate({ overlay: next, placeDismissed: [...new Set([...(rec.placeDismissed ?? []), gone.entryId])], updatedAt: Date.now() });
+    else setOverlay(next);
     setSelectedId(null);
   };
 
@@ -625,6 +631,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               journey={overlay.travel && overlay.travel.planId === map.id ? { ...overlay.travel, label: 'Groupe' } : null}
               onAnchor={() => {}}
               onPlace={dm && (placing || moving) ? addMarker : undefined}
+              onMovePin={dm ? (fid: string, x: number, y: number) => { if (fid.startsWith('mk-')) updateMarker(fid.slice(3), { x, y }); } : undefined}
               dataKey={rec.updatedAt}
               focus={focus ? { kind: 'point', id: focus.id } : null}
               focusKey={focus ? String(focus.tick) : undefined}
@@ -717,6 +724,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 m={selectedMarker}
                 onChange={(patch) => updateMarker(selectedMarker.id, patch)}
                 onMove={() => { setPlacing(null); setMoving(selectedMarker.id); }}
+                onOpenEntry={selectedMarker.entryId && onOpenEntry ? () => onOpenEntry(selectedMarker.entryId as string) : undefined}
                 onRemove={() => { if (window.confirm(`Supprimer « ${selectedMarker.title} » ?`)) removeMarker(selectedMarker.id); }}
                 onClose={() => setSelectedId(null)}
               />
@@ -1027,8 +1035,8 @@ function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onT
   );
 }
 
-function MarkerEditor({ m, onChange, onMove, onRemove, onClose }: {
-  m: MapMarker; onChange: (patch: Partial<MapMarker>) => void; onMove: () => void; onRemove: () => void; onClose: () => void;
+function MarkerEditor({ m, onChange, onMove, onOpenEntry, onRemove, onClose }: {
+  m: MapMarker; onChange: (patch: Partial<MapMarker>) => void; onMove: () => void; onOpenEntry?: () => void; onRemove: () => void; onClose: () => void;
 }) {
   return (
     <div className="maps-card">
@@ -1053,6 +1061,7 @@ function MarkerEditor({ m, onChange, onMove, onRemove, onClose }: {
           })}
         </Block>
       )}
+      {onOpenEntry && <button className="maps-btn" onClick={onOpenEntry}>Ouvrir la fiche</button>}
       <button className="maps-btn" onClick={onMove}>Déplacer sur la carte</button>
       <button className="maps-btn" onClick={onRemove}>Supprimer le repère</button>
     </div>
