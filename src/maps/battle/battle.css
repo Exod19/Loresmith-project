@@ -842,3 +842,12 @@
 .present-fork-btns .maps-btn{font-size:clamp(14px,2vmin,20px);padding:.5em 1.1em}
 .present-fork-btns .maps-btn[data-on="1"]{outline:2px solid var(--gold,#c9a24a)}
 .present-fork-sent{display:block;margin-top:1vmin;opacity:.7;font-style:italic}
+/* Conversation montrée aux joueurs (lot 15) */
+.present-talk{position:absolute;left:50%;bottom:4vh;z-index:6;transform:translateX(-50%);width:min(820px,90%);max-height:42vh;overflow:hidden;padding:1.6vmin 2.6vmin;border-radius:12px;
+  background:rgba(14,11,8,.9);border:1px solid rgba(201,162,74,.5);box-shadow:0 18px 60px rgba(0,0,0,.7);color:#efe2bd;font-size:clamp(14px,1.9vmin,22px);line-height:1.45}
+.present-talk-head{display:flex;align-items:center;gap:10px;margin-bottom:.6vmin;font-family:Cinzel,serif;color:#f0c867}
+.present-talk-head img{width:3.4vmin;height:3.4vmin;min-width:28px;min-height:28px;border-radius:50%;object-fit:cover}
+.present-talk p{margin:.4vmin 0}
+.present-talk p b{display:block;font-size:.72em;letter-spacing:.06em;opacity:.7}
+.present-talk p.is-npc{border-left:2px solid #f0c867;padding-left:10px}
+.present-talk p.is-party{border-left:2px solid #b99cff;padding-left:10px;opacity:.85}

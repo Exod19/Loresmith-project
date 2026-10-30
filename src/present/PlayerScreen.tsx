@@ -159,6 +159,14 @@ function PlayerMap({ board, rev, onFollow, onPick, onFork }: { board: Extract<Pl
           )}
         </aside>
       )}
+      {board.talk && board.talk.lines.length > 0 && (
+        <div className="present-talk" role="log" aria-live="polite">
+          <div className="present-talk-head">{board.talk.image && <img src={board.talk.image} alt="" />}<b>{board.talk.name}</b></div>
+          {board.talk.lines.slice(-4).map((l, i) => (
+            <p key={`${board.talk!.at}-${i}`} className={l.who === board.talk!.name ? 'is-npc' : 'is-party'}><b>{l.who}</b> {l.text}</p>
+          ))}
+        </div>
+      )}
       {board.alert && <HaltNotice key={board.alert.key} alert={board.alert} />}
       {board.fork && !board.alert && (
         <ForkPrompt key={board.fork.key} fork={board.fork} readyAt={board.travel ? board.travel.at + journeyMs(board.travel.points, map.width, map.height) : 0} onChoose={onFork} />

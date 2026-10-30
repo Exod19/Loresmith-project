@@ -86,6 +86,8 @@ export interface MapOverlay {
   /** Illustrations des rencontres, par titre de rencontre (fournies par le MJ). */
   encounterImages?: Record<string, string>;
   markers: MapMarker[];
+  /** Conversation montrée aux joueurs (personnage du MJ ou groupe, et un PNJ ou une créature) : les dernières répliques. */
+  talk?: { key: string; name: string; image?: string; lines: { who: string; text: string }[]; at: number };
   /** Destinations inscrites par le MJ, par identifiant de passage (tracé de l'Atlas). */
   passageLinks?: Record<string, PassageLink>;
   /** Où est le groupe, où il veut aller, et par où il est passé (MJ seulement). */

@@ -106,7 +106,7 @@ export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus
   const alert = a && (a.phase !== 'calm' || Date.now() - a.at < CALM_MS) ? a : undefined;
   const f = party?.fork && party.fork.planId === planId ? party.fork : undefined;
   const fork = f ? { key: f.key, line: f.line, out: f.out, on: f.on } : undefined;
-  return { mode: 'map', title: rec.title, planId, data, focus, marks: marks.length ? marks : undefined, fog, travel, here: f ? f.point : here, alert, fork };
+  return { mode: 'map', title: rec.title, planId, data, focus, marks: marks.length ? marks : undefined, fog, travel, here: f ? f.point : here, alert, fork, ...(rec.overlay?.talk ? { talk: rec.overlay.talk } : {}) };
 }
 
 /** Combat tel que les joueurs le voient : jetons visibles seulement, sans points de vie ni CA. */

@@ -499,3 +499,16 @@ test('voyages en mer : traversées entre ports, terres d’au-delà', async () =
   // L'autre rive est bien de la terre ferme.
   assert.ok(T.elevationAt(T.reliefOf({ ...w }, T.worldFrame({ ...w, bounds: [-250, -175, 250, 700] }), []), 0, 580) > 0);
 });
+
+test('qui peut parler : pas les crabes, oui les drows, par télépathie pour certains', async () => {
+  const { canSpeak, creatureVoice } = await import('./speech.js');
+  assert.equal(canSpeak({ languages: '—', abil: [2, 11, 10, 1, 9, 3] }).ok, false); // crabe
+  assert.equal(canSpeak({ languages: '', abil: [12, 15, 12, 3, 12, 6] }).ok, false); // loup
+  assert.equal(canSpeak({ languages: 'comprend les langues de son vivant mais ne parle pas', abil: [10, 14, 15, 6, 8, 5] }).ok, false); // zombie
+  assert.equal(canSpeak({ languages: 'elfique, commun des profondeurs', abil: [10, 14, 10, 11, 11, 12] }).ok, true); // drow
+  const t = canSpeak({ languages: 'commun des profondeurs, télépathie 36 m', abil: [10, 10, 10, 19, 17, 17] });
+  assert.equal(t.how, 'telepathie');
+  assert.equal(canSpeak({ languages: 'commun', abil: [10, 10, 10, 2, 10, 10] }).ok, false);
+  assert.equal(canSpeak(undefined).ok, false);
+  assert.match(creatureVoice({ languages: 'gobelin', abil: [8, 14, 10, 5, 8, 8], meta: 'Humanoïde (gobelinoïde)' }), /très faible/);
+});

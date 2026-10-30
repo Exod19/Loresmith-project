@@ -27,6 +27,7 @@ type Props = {
   loreContext?: (focus: string) => string;
   onUpdateEntry?: (id: string, patch: Record<string, unknown>) => void;
   onChronicle?: (memory: { title: string; summary: string }) => void;
+  onShare?: Parameters<typeof TalkPanel>[0]['onShare'];
 };
 
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -50,7 +51,7 @@ function portraitOf(file: File): Promise<string> {
   });
 }
 
-export default function ExplorePanel({ rec, data, planId, feature, onUpdate, onCreateEntry, onGo, library = [], loreContext, onUpdateEntry, onChronicle }: Props) {
+export default function ExplorePanel({ rec, data, planId, feature, onUpdate, onCreateEntry, onGo, library = [], loreContext, onUpdateEntry, onChronicle, onShare }: Props) {
   const world = rec.world as World;
   const avatar: Avatar = world.avatar ?? { name: '', mode: 'reverie' };
   const [editing, setEditing] = useState(!world.avatar?.name);
@@ -131,7 +132,7 @@ export default function ExplorePanel({ rec, data, planId, feature, onUpdate, onC
 
       {talkTo && !editing && (
         <TalkPanel rec={rec} data={data} planId={planId} npc={data.features.find((f) => f.id === talkTo.id) ?? talkTo} library={library} loreContext={loreContext}
-          onCreateEntry={onCreateEntry} onUpdateEntry={onUpdateEntry} onChronicle={onChronicle} onClose={() => setTalkTo(null)} />
+          onCreateEntry={onCreateEntry} onUpdateEntry={onUpdateEntry} onChronicle={onChronicle} onShare={onShare} onClose={() => setTalkTo(null)} />
       )}
       {feature && !editing && !talkTo && (
         <>

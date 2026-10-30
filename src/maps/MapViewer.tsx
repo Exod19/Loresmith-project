@@ -35,6 +35,8 @@ import { buildRoutes, distancesTo, goalNodes, judgeTrail, nodeOf, verdictText, t
 import { interiorPlanId, isAtlasLike, moveCity, useWorldSync, worldPlanId } from './world';
 import WorldPanel from './world/WorldPanel';
 import ExplorePanel from './world/ExplorePanel';
+import TalkPanel from './world/TalkPanel';
+import { canSpeak } from './world/speech';
 import { isHiddenNpc } from './world/interior';
 import { normalizeEntity } from '../bestiary/entityGen';
 import type { Period, Season } from './world/generate';
@@ -118,6 +120,13 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   useEffect(() => { if (selectedId) setSide((cur) => (cur === 'explore' ? cur : 'lieu')); }, [selectedId]);
 
   const overlay = rec.overlay ?? EMPTY_OVERLAY;
+  const overlayRef = useRef(overlay);
+  overlayRef.current = overlay;
+  /** Conversation montrée aux joueurs (ou retirée) : toujours sur le calque le plus récent (réponse de l'IA tardive). */
+  const shareTalk = (talk: MapOverlay['talk'] | null) => onUpdate({ overlay: { ...overlayRef.current, talk: talk ?? undefined }, updatedAt: Date.now() });
+  /** Créature d'une rencontre à qui l'on parle. */
+  const [talkWith, setTalkWith] = useState<{ markerId: string; name: string; stat: Stat; detail?: string } | null>(null);
+  useEffect(() => { setTalkWith(null); }, [selectedId, planId]);
   const pv = overlay.playerView ?? {};
   const map = data.maps.find((m) => m.id === planId) ?? data.maps[0];
   const markers = overlay.markers.filter((m) => m.planId === map.id);
@@ -1052,8 +1061,16 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               </p>
             )}
 
-            {(!dm || side === 'lieu') && dm && selectedMarker && (
+            {dm && talkWith && side === 'lieu' && (
+              <div className="maps-card">
+                <TalkPanel rec={rec} data={data} planId={map.id} library={library ?? []} loreContext={loreContext} onCreateEntry={onCreateEntry} onUpdateEntry={onUpdateEntry} onChronicle={onChronicle}
+                  npc={{ id: `${talkWith.markerId}:${talkWith.name}`, title: talkWith.name, subtitle: talkWith.stat.meta, summary: talkWith.detail, category: 'danger', importance: 'local', minZoom: 0, canonStatus: 'creation', placementStatus: 'documented' } as AtlasFeature}
+                  creature={{ stat: talkWith.stat, place: selectedMarker?.title ?? map.title }} onShare={shareTalk} onClose={() => setTalkWith(null)} />
+              </div>
+            )}
+            {(!dm || side === 'lieu') && dm && selectedMarker && !talkWith && (
               <MarkerEditor
+                onTalk={(g, s) => setTalkWith({ markerId: selectedMarker.id, name: g.name ?? s.name, stat: s, detail: g.detail })}
                 m={selectedMarker}
                 onChange={(patch) => updateMarker(selectedMarker.id, patch)}
                 onRemove={() => { if (window.confirm(`Supprimer « ${selectedMarker.title} » ?`)) removeMarker(selectedMarker.id); }}
@@ -1105,7 +1122,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
             )}
             {dm && side === 'explore' && exploring && rec.world && (
               <ExplorePanel rec={rec} data={data} planId={map.id} feature={feature} onUpdate={onUpdate} onCreateEntry={onCreateEntry}
-                library={library} loreContext={loreContext} onUpdateEntry={onUpdateEntry} onChronicle={onChronicle}
+                library={library} loreContext={loreContext} onUpdateEntry={onUpdateEntry} onChronicle={onChronicle} onShare={shareTalk}
                 onGo={(f) => {
                   const g = data.geometries.find((x) => x.featureId === f.id && x.mapId === map.id);
                   if (!g) return;
@@ -1414,8 +1431,10 @@ function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onT
   );
 }
 
-function MarkerEditor({ m, onChange, onRemove, onClose }: {
+function MarkerEditor({ m, onChange, onRemove, onClose, onTalk }: {
   m: MapMarker; onChange: (patch: Partial<MapMarker>) => void; onRemove: () => void; onClose: () => void;
+  /** Parler à une créature de la rencontre (seulement si elle parle). */
+  onTalk?: (g: NonNullable<MapMarker['groups']>[number], s: Stat) => void;
 }) {
   return (
     <div className="maps-card">
@@ -1436,7 +1455,14 @@ function MarkerEditor({ m, onChange, onRemove, onClose }: {
         <Block title="Créatures (MJ)">
           {m.groups.map((g, i) => {
             const s: Stat | undefined = STATS[g.stat];
-            return <div key={i}>{g.n} × {g.name ?? s?.name ?? g.stat}{g.role ? ` (${g.role})` : ''} {(g.hp || s) && <span className="maps-sub">CA {g.ac ?? s?.ac} · PV {g.hp ?? s?.hp}</span>}</div>;
+            const sp = canSpeak(s);
+            return (
+              <div key={i}>
+                {g.n} × {g.name ?? s?.name ?? g.stat}{g.role ? ` (${g.role})` : ''} {(g.hp || s) && <span className="maps-sub">CA {g.ac ?? s?.ac} · PV {g.hp ?? s?.hp}</span>}
+                {s && sp.ok && onTalk && <button className="maps-btn" onClick={() => onTalk(g, s)} title={sp.how === 'telepathie' ? 'Elle communique par télépathie' : `Langues : ${s.languages}`}>💬 Parler</button>}
+                {!sp.ok && <span className="maps-sub"> · 🔇 {sp.why}</span>}
+              </div>
+            );
           })}
         </Block>
       )}

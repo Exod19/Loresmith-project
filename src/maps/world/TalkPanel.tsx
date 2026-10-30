@@ -12,6 +12,7 @@ import { SLOT_TYPES } from './generate';
 import type { LoreEntry } from './lore';
 import { PROPOSAL_TYPES, chronicleOf, npcSystemPrompt, npcUserPrompt, parseNpcReply, type Proposal, type TalkLine } from './talk';
 import type { World } from './index';
+import { canSpeak, creatureVoice } from './speech';
 
 type Props = {
   rec: MapRecord;
@@ -25,14 +26,25 @@ type Props = {
   onUpdateEntry?: (id: string, patch: Record<string, unknown>) => void;
   onChronicle?: (memory: { title: string; summary: string }) => void;
   onClose: () => void;
+  /** Créature (rencontre) : son bloc de statistiques (langues, intelligence) et où on la croise. */
+  creature?: { stat: { languages?: string; abil?: number[]; meta?: string }; place?: string };
+  /** Montrer la conversation sur l'écran des joueurs (`null` : la retirer). */
+  onShare?: (talk: { key: string; name: string; image?: string; lines: { who: string; text: string }[]; at: number } | null) => void;
 };
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 const text = (v: unknown): string => (typeof v === 'string' ? v : Array.isArray(v) ? v.map(text).join(' ') : v && typeof v === 'object' ? Object.values(v as object).map(text).join(' ') : '');
 
-export default function TalkPanel({ rec, data, planId, npc, library, loreContext, onCreateEntry, onUpdateEntry, onChronicle, onClose }: Props) {
-  const world = rec.world as World;
-  const avatar = world.avatar ?? { name: '', mode: 'reverie' as const };
+export default function TalkPanel({ rec, data, planId, npc, library, loreContext, onCreateEntry, onUpdateEntry, onChronicle, onClose, creature, onShare }: Props) {
+  const world = (rec.world ?? { cities: [], bindings: {} }) as World;
+  // Hors de la carte du monde (Atlas des profondeurs…), c'est le groupe qui parle.
+  const avatar = world.avatar ?? { name: rec.world ? '' : 'Le groupe', mode: 'reverie' as const };
+  const [shared, setShared] = useState(false);
+  const shareKey = useRef(`${npc.id}:${Date.now()}`);
+  const share = (lines: TalkLine[], on = shared) => {
+    if (!onShare || !on) return;
+    onShare({ key: shareKey.current, name: npc.title, image: npc.image, at: Date.now(), lines: lines.slice(-6).map((m) => ({ who: m.from === 'avatar' ? avatar.name || 'Le groupe' : npc.title, text: m.text })) });
+  };
   const mode = avatar.mode === 'chronique' ? 'chronique' : 'reverie';
   const [history, setHistory] = useState<TalkLine[]>([]);
   const [said, setSaid] = useState('');
@@ -52,7 +64,7 @@ export default function TalkPanel({ rec, data, planId, npc, library, loreContext
   const subtitle = (npc.subtitle ?? '').trim();
   const entry = library.find((e) => e.id === npc.entryId);
   const fiche = entry ? text([entry.subtitle, entry.shortSummary, entry.body, entry.sections]).slice(0, 2400) : '';
-  const place = building ? { title: building.title, type: binding ? SLOT_TYPES[binding.type]?.label : building.subtitle, summary: building.summary } : undefined;
+  const place = building ? { title: building.title, type: binding ? SLOT_TYPES[binding.type]?.label : building.subtitle, summary: building.summary } : creature?.place ? { title: creature.place } : undefined;
   const city = cityMap ? { name: cityMap.title, population: citySpec?.population } : undefined;
   const ctx = { season: world.season, climate: cityMap?.surface?.climate, time: world.time ?? 'jour' };
 
@@ -64,9 +76,10 @@ export default function TalkPanel({ rec, data, planId, npc, library, loreContext
     setHistory(next); setSaid('');
     try {
       const lore = loreContext?.([npc.title, subtitle, place?.title, city?.name, msg].filter(Boolean).join(' ')) ?? '';
-      const system = npcSystemPrompt({ npc: { name: npc.title, role: subtitle, summary: npc.summary }, fiche, place, city, ctx, avatar, mode, lore });
+      const system = npcSystemPrompt({ npc: { name: npc.title, role: subtitle, summary: npc.summary }, fiche: [fiche, creature ? creatureVoice(creature.stat, canSpeak(creature.stat)) : ''].filter(Boolean).join('\n\n'), place, city, ctx, avatar, mode, lore });
       const reply = parseNpcReply(await askAI(system, npcUserPrompt(history, msg, avatar.name || 'Le voyageur', npc.title)));
       setHistory([...next, { from: 'npc', text: reply.say }]);
+      share([...next, { from: 'npc', text: reply.say }]);
       if (reply.proposals.length) setProposals((p) => [...p, ...reply.proposals.map((x) => ({ ...x, id: uid() }))]);
       requestAnimationFrame(() => logRef.current?.scrollTo({ top: logRef.current.scrollHeight }));
     } catch (e) {
@@ -95,6 +108,7 @@ export default function TalkPanel({ rec, data, planId, npc, library, loreContext
   const reject = (id: string) => setProposals((ps) => ps.map((x) => (x.id === id ? { ...x, state: 'non' } : x)));
 
   const close = () => {
+    if (shared) onShare?.(null);
     if (mode === 'chronique' && history.length && onChronicle) {
       onChronicle(chronicleOf({ avatar, npc: { name: npc.title, role: subtitle }, place, city, ctx, history, accepted: proposals.filter((p) => p.state === 'ok') }));
     }
@@ -108,6 +122,11 @@ export default function TalkPanel({ rec, data, planId, npc, library, loreContext
         <button className="maps-btn" onClick={close} title={mode === 'chronique' ? 'Clore : la conversation entre dans la mémoire de l’univers' : 'Clore : rien n’est gardé, sauf le lore accepté'}>Clore</button>
       </div>
       <p className="maps-sub">{mode === 'chronique' ? '📜 Chronique : cette conversation sera gardée dans la mémoire de l’univers.' : '💭 Rêverie : rien n’est gardé, sauf le lore que tu acceptes.'}</p>
+      {onShare && (
+        <label className="maps-row" title="La conversation s’affiche sur l’écran des joueurs, réplique après réplique">
+          <input type="checkbox" checked={shared} onChange={(e) => { setShared(e.target.checked); if (e.target.checked) share(history, true); else onShare(null); }} /> 📺 Montrer aux joueurs
+        </label>
+      )}
       {!aiReady() && <p className="world-warn">Configure l’IA dans Réglages (clé API) pour parler aux PNJ.</p>}
       <div className="talk-log" ref={logRef} aria-live="polite">
         {npc.summary && /^« /.test(npc.summary) && <div className="talk-line npc"><b>{npc.title}</b> {npc.summary.match(/^« ([^»]+) »/)?.[1]}</div>}

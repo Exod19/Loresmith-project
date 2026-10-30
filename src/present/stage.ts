@@ -43,7 +43,9 @@ export type PlayerBoard =
     /** Annonce de halte : suspense, fausse alerte ou rencontre (avec son image). */
     alert?: HaltAlert;
     /** Bifurcation en chemin : un passage à côté du sentier, à prendre ou non (les joueurs répondent depuis leur écran). */
-    fork?: { key: string; line: string; out: string; on: string } }
+    fork?: { key: string; line: string; out: string; on: string };
+    /** Conversation en cours (personnage du MJ ou groupe, et un PNJ ou une créature). */
+    talk?: { key: string; name: string; image?: string; lines: { who: string; text: string }[]; at: number } }
   | { mode: 'battle'; title: string; backdrop?: string; theme?: import('../maps/battle/theme').BoardTheme; cols: number; rows: number; feetPerCell: number; round: number; tokens: PlayerToken[]; terrain?: string; elements: PlayerElement[]; turn?: PlayerTurn;
     /** Brouillard de guerre : cases vues par les héros, et déjà explorées. Absent = tout le plateau est visible. */
     fog?: { visible: number[]; explored: number[] };
