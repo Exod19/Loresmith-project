@@ -9,6 +9,7 @@ import {
   composeLore,
   buildUniverse,
   parseExtraQuestions,
+  buildForgeResult,
 } from './forgeBrief.js';
 
 test('le nom est obligatoire, le reste est optionnel', () => {
@@ -68,4 +69,42 @@ test('une question passée est comptée, sauf si elle a finalement une réponse'
   const b = { ...emptyBrief(), skipped: { conflit: true, pouvoir: true }, answers: { pouvoir: 'Un conseil.' } };
   assert.equal(skippedCount(b), 1);
   assert.doesNotMatch(composeLore(b), /conflit central/);
+});
+
+test('en mode découverte, le lieu de départ est obligatoire', () => {
+  const b = { ...emptyBrief(), name: 'Aerth', mode: 'discover' };
+  assert.equal(canForge(b), false);
+  assert.equal(canForge({ ...b, start: { name: 'Brumecombe', description: '', tension: '' } }), true);
+  assert.equal(canForge({ ...emptyBrief(), name: 'Aerth' }), true);
+});
+
+test('le canon du mode découverte dit que le monde se découvre en jouant', () => {
+  const b = { ...emptyBrief(), name: 'A', mode: 'discover', start: { name: 'Brumecombe', description: 'Port.', tension: 'Rumeurs.' } };
+  const lore = composeLore(b);
+  assert.match(lore, /Point de départ : Brumecombe : Port\./);
+  assert.match(lore, /Tension du moment : Rumeurs\./);
+  assert.match(lore, /se découvre en jouant/);
+});
+
+test('mode complet : pas de fiche ni de carte, retour au tableau de bord', () => {
+  let n = 0;
+  const r = buildForgeResult({ ...emptyBrief(), name: 'Aerth' }, null, { newId: () => `i${++n}`, now: 5 });
+  assert.equal(r.entry, null);
+  assert.equal(r.map, null);
+  assert.equal(r.nextView, 'dashboard');
+  assert.equal(r.universe.growth, 'built');
+});
+
+test('mode découverte : l’univers naît avec son lieu et une carte qui ne montre que lui', () => {
+  let n = 0;
+  const brief = { ...emptyBrief(), name: 'Aerth', mode: 'discover', start: { name: 'Brumecombe', description: 'Port.', tension: '' } };
+  const r = buildForgeResult(brief, null, { newId: () => `i${++n}`, now: 5 });
+  assert.equal(r.universe.growth, 'discover');
+  assert.equal(r.entry.archiveType, 'place');
+  assert.equal(r.entry.title, 'Brumecombe');
+  assert.equal(r.map.universeId, r.universe.id);
+  assert.equal(r.map.overlay.markers.length, 1);
+  assert.equal(r.map.overlay.markers[0].entryId, r.entry.id);
+  assert.deepEqual([r.map.overlay.markers[0].x, r.map.overlay.markers[0].y], [0.5, 0.5]);
+  assert.equal(r.nextView, 'forge');
 });

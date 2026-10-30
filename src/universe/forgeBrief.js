@@ -1,3 +1,5 @@
+import { addPlaces, emptyPlaceMap } from '../maps/placeMap.js';
+
 /**
  * Forge d'univers : contenu et logique pure de l'assistant de création.
  * Aucune dépendance à React : tout ce qui est ici est testable.
@@ -19,6 +21,14 @@ export const SPECIFIC_EXAMPLES = [
   'Il n’y a jamais de nuit : le soleil ne se couche plus depuis un siècle.',
   'Les dieux sont réels, mortels, et peuvent être tués.',
   'Aucune monnaie : tout s’échange contre des souvenirs ou des faveurs.',
+];
+
+/** Exemples de points de départ : l'univers se découvre ensuite, campagne après campagne. */
+export const START_EXAMPLES = [
+  'Brumecombe, un port de pêche que la brume avale chaque soir.',
+  'Les Trois-Ponts, une ville marchande bâtie sur un fleuve sacré.',
+  'Fort-Cendre, un avant-poste isolé au bord d’un désert de verre.',
+  'Le marché flottant d’Aïzel, où l’on vend tout, même les noms.',
 ];
 
 export const SIZES = [
@@ -93,6 +103,8 @@ export const GUIDED_QUESTIONS = [
 /** Brief vide de départ. */
 export function emptyBrief() {
   return {
+    mode: 'full', // 'full' : on bâtit tout maintenant · 'discover' : on part d'un lieu et le monde se découvre en jouant
+    start: { name: '', description: '', tension: '' },
     name: '',
     style: '',
     size: '',
@@ -108,7 +120,8 @@ const clean = (s) => String(s ?? '').trim();
 
 /** Le nom est la seule information obligatoire pour forger l'univers. */
 export function canForge(brief) {
-  return clean(brief?.name).length > 0;
+  if (clean(brief?.name).length === 0) return false;
+  return brief?.mode !== 'discover' || clean(brief?.start?.name).length > 0;
 }
 
 /** Combien de questions guidées (fixes ou ajoutées) ont reçu une réponse. */
@@ -150,6 +163,14 @@ export function composeLore(brief) {
   const specifics = clean(brief?.specifics);
   if (specifics) out.push(`Spécificités : ${specifics}`);
 
+  if (brief?.mode === 'discover') {
+    const st = brief.start || {};
+    const place = [clean(st.name), clean(st.description)].filter(Boolean).join(' : ');
+    if (place) out.push(`Point de départ : ${place}`);
+    if (clean(st.tension)) out.push(`Tension du moment : ${clean(st.tension)}`);
+    out.push('Cet univers se découvre en jouant : seul le point de départ est connu pour l’instant. Le reste sera établi au fil des campagnes et des séances.');
+  }
+
   const questions = [...GUIDED_QUESTIONS, ...(brief?.extraQuestions || [])];
   for (const q of questions) {
     const a = clean(brief?.answers?.[q.id]);
@@ -166,7 +187,10 @@ export function buildUniverse(brief, { id, createdAt, lore }) {
     tone: toneFromBrief(brief),
     lore: lore ?? composeLore(brief),
     createdAt,
+    growth: brief.mode === 'discover' ? 'discover' : 'built',
     forgeBrief: {
+      mode: brief.mode || 'full',
+      start: { ...(brief.start || {}) },
       style: clean(brief.style),
       size: brief.size || '',
       complexity: brief.complexity || '',
@@ -204,4 +228,32 @@ export function parseExtraQuestions(data) {
     }))
     .filter((q) => q.question)
     .slice(0, 6);
+}
+
+/**
+ * Tout ce qu'il faut créer à la fin de la forge. En mode « découverte », l'univers naît avec son lieu de départ :
+ * une fiche de lieu et une carte des lieux découverts qui ne montre que lui. La suite vient des séances.
+ * `nextView` : la page où atterrir (la création de campagne en mode découverte, le tableau de bord sinon).
+ */
+export function buildForgeResult(brief, lore, { newId, now }) {
+  const universe = buildUniverse(brief, { id: newId(), createdAt: now, lore: lore ?? undefined });
+  if (brief.mode !== 'discover') return { universe, entry: null, map: null, nextView: 'dashboard' };
+  const st = brief.start || {};
+  const entry = {
+    id: newId(),
+    archiveType: 'place',
+    title: clean(st.name),
+    subtitle: '',
+    shortSummary: clean(st.description),
+    body: [clean(st.description), clean(st.tension) && `Tension du moment : ${clean(st.tension)}`].filter(Boolean).join('\n\n'),
+    secrets: '',
+    tags: [],
+    linkedCampaignIds: [],
+    related: [],
+    source: { kind: 'forge-start' },
+    createdAt: now,
+    updatedAt: now,
+  };
+  const { map } = addPlaces(emptyPlaceMap(universe.id, now), [entry], { now });
+  return { universe, entry, map, nextView: 'forge' };
 }

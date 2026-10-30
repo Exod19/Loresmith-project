@@ -3,6 +3,7 @@ import { X, Hammer, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { aiReady, askAI, parseJson } from '../ai/client';
 import {
   STYLE_EXAMPLES,
+  START_EXAMPLES,
   SPECIFIC_EXAMPLES,
   SIZES,
   COMPLEXITIES,
@@ -23,6 +24,12 @@ const STEPS = [
   { id: 'questions', label: 'Les questions' },
   { id: 'forge', label: 'La forge' },
 ];
+// Mode « découverte » : on ne bâtit qu'un lieu de départ, le reste vient des campagnes.
+const DISCOVER_STEPS = [
+  { id: 'souffle', label: 'Le souffle' },
+  { id: 'depart', label: 'Le point de départ' },
+  { id: 'forge', label: 'La forge' },
+];
 
 /** Assistant plein écran de création d'univers : affiché avant que l'univers devienne actif. */
 export default function UniverseForge({ onClose, onForge }) {
@@ -38,7 +45,10 @@ export default function UniverseForge({ onClose, onForge }) {
   const questions = [...GUIDED_QUESTIONS, ...brief.extraQuestions];
   const composed = composeLore(brief);
   const finalLore = lore ?? composed;
-  const last = step === STEPS.length - 1;
+  const steps = brief.mode === 'discover' ? DISCOVER_STEPS : STEPS;
+  const cur = steps[Math.min(step, steps.length - 1)].id;
+  const last = step >= steps.length - 1;
+  const setStart = (patch) => setBrief((b) => ({ ...b, start: { ...b.start, ...patch } }));
 
   async function suggestQuestions() {
     setBusy('questions');
@@ -86,7 +96,7 @@ export default function UniverseForge({ onClose, onForge }) {
           </div>
         </div>
         <ol className="uf-steps" aria-label="Étapes">
-          {STEPS.map((s, i) => (
+          {steps.map((s, i) => (
             <li key={s.id} data-state={i === step ? 'on' : i < step ? 'done' : 'todo'}>
               <button type="button" onClick={() => setStep(i)} aria-current={i === step ? 'step' : undefined}>
                 <i>{i + 1}</i>
@@ -101,8 +111,18 @@ export default function UniverseForge({ onClose, onForge }) {
       </header>
 
       <main className="uf-body">
-        {step === 0 && (
+        {cur === 'souffle' && (
           <section className="uf-card">
+            <div className="uf-modes" role="radiogroup" aria-label="Façon de commencer">
+              <button type="button" role="radio" aria-checked={brief.mode === 'full'} data-on={brief.mode === 'full' ? 1 : 0} onClick={() => set({ mode: 'full' })}>
+                <b>Tout bâtir maintenant</b>
+                <small>Ampleur, questions, canon : je pose les fondations avant de jouer.</small>
+              </button>
+              <button type="button" role="radio" aria-checked={brief.mode === 'discover'} data-on={brief.mode === 'discover' ? 1 : 0} onClick={() => set({ mode: 'discover' })}>
+                <b>Partir d’un lieu et découvrir en jouant</b>
+                <small>Je commence par une ville : le monde se révèle campagne après campagne, comme un brouillard qui se lève.</small>
+              </button>
+            </div>
             <h2>Donne un nom et un souffle à ton monde</h2>
             <p className="uf-lead">Décris-le avec tes mots, comme à un ami : on n’a pas besoin d’une case à cocher.</p>
             <label className="uf-field">
@@ -140,7 +160,37 @@ export default function UniverseForge({ onClose, onForge }) {
           </section>
         )}
 
-        {step === 1 && (
+        {cur === 'depart' && (
+          <section className="uf-card">
+            <h2>Où commence l’aventure ?</h2>
+            <p className="uf-lead">
+              Un seul lieu suffit. Ce qui l’entoure se découvrira au fil des séances : chaque ville, chaque peuple et chaque secret
+              que tu joueras s’ajoutera à l’univers et à sa carte.
+            </p>
+            <label className="uf-field">
+              <span>Nom du lieu de départ</span>
+              <input className="in" autoFocus value={brief.start.name} placeholder="Brumecombe, Fort-Cendre, Les Trois-Ponts…" onChange={(e) => setStart({ name: e.target.value })} />
+            </label>
+            <label className="uf-field">
+              <span>À quoi ressemble-t-il ?</span>
+              <textarea className="in" rows={3} value={brief.start.description} placeholder="Ambiance, habitants, ce qu’on y voit en arrivant…" onChange={(e) => setStart({ description: e.target.value })} />
+            </label>
+            <label className="uf-field">
+              <span>Qu’est-ce qui s’y passe en ce moment ? (facultatif)</span>
+              <textarea className="in" rows={2} value={brief.start.tension} placeholder="Une tension, une rumeur, un danger qui monte…" onChange={(e) => setStart({ tension: e.target.value })} />
+            </label>
+            <div className="uf-examples">
+              <small>Besoin d’inspiration ?</small>
+              {START_EXAMPLES.map((ex) => (
+                <button type="button" key={ex} onClick={() => setStart({ name: ex.split(',')[0], description: ex.includes(',') ? ex.slice(ex.indexOf(',') + 1).trim() : '' })}>
+                  {ex}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {cur === 'ampleur' && (
           <section className="uf-card">
             <h2>Quelle est l’ampleur de ton univers ?</h2>
             <p className="uf-lead">
@@ -203,7 +253,7 @@ export default function UniverseForge({ onClose, onForge }) {
           </section>
         )}
 
-        {step === 2 && (
+        {cur === 'questions' && (
           <section className="uf-card">
             <h2>Quelques questions pour bâtir le monde</h2>
             <p className="uf-lead">
@@ -244,7 +294,7 @@ export default function UniverseForge({ onClose, onForge }) {
               );
             })}
             <div className="uf-ai">
-              <button type="button" className="btn ghost" onClick={() => setStep(3)}>
+              <button type="button" className="btn ghost" onClick={() => setStep(steps.length - 1)}>
                 Passer toutes les questions
               </button>
               {aiReady() ? (
@@ -259,7 +309,7 @@ export default function UniverseForge({ onClose, onForge }) {
           </section>
         )}
 
-        {step === 3 && (
+        {cur === 'forge' && (
           <section className="uf-card">
             <h2>{brief.name.trim() || 'Ton univers'} est prêt à être forgé</h2>
             <p className="uf-lead">
@@ -271,9 +321,15 @@ export default function UniverseForge({ onClose, onForge }) {
                 quand l’univers se précisera.
               </p>
             )}
+            {brief.mode === 'discover' && (
+              <p className="uf-note">
+                Ton univers naîtra avec son lieu de départ et une carte qui ne montre que lui. Ensuite, tu crées une campagne : à chaque séance jouée,
+                les lieux, personnages et peuples découverts s’ajoutent et la carte grandit.
+              </p>
+            )}
             {!canForge(brief) && (
               <p className="uf-warn" role="alert">
-                Il manque un nom : retourne à la première étape.
+                {brief.mode === 'discover' && brief.name.trim() ? 'Il manque le lieu de départ : retourne à l’étape précédente.' : 'Il manque un nom : retourne à la première étape.'}
               </p>
             )}
             <label className="uf-field">

@@ -78,7 +78,7 @@ import {
 } from './forge/campaignPipeline';
 import './forge/forge.css';
 import UniverseForge from './universe/UniverseForge';
-import { buildUniverse } from './universe/forgeBrief';
+import { buildForgeResult } from './universe/forgeBrief';
 import { setLibraryIntent, takeLibraryIntent } from './library/intent';
 import SessionReportPanel from './campaign/SessionReportPanel';
 import DeleteUniverseDialog from './universe/DeleteUniverseDialog';
@@ -5265,13 +5265,13 @@ export default function App() {
             <UniverseForge
               onClose={() => setForgeOpen(false)}
               onForge={(brief, lore) => {
-                dispatch({
-                  type: 'ADD_UNIVERSE',
-                  u: buildUniverse(brief, { id: uid(), createdAt: now(), lore: lore ?? undefined }),
-                });
+                const r = buildForgeResult(brief, lore, { newId: uid, now: now() });
+                dispatch({ type: 'ADD_UNIVERSE', u: r.universe });
+                if (r.entry) dispatch({ type: 'ADD_LIBRARY_ENTRY', entry: r.entry });
+                if (r.map) dispatch({ type: 'ADD_MAP', map: r.map });
                 setForgeOpen(false);
-                goTo('dashboard');
-                flash('Univers forgé : tu peux affiner son canon dans la page Univers.');
+                goTo(r.nextView);
+                flash(r.entry ? 'Univers forgé : crée maintenant ta première campagne, le monde se découvrira en jouant.' : 'Univers forgé : tu peux affiner son canon dans la page Univers.');
               }}
             />
           )}
