@@ -105,7 +105,7 @@ function buildings(m: AtlasMap) {
 }
 
 /** Repère MJ dessiné au-dessus de la carte (position du groupe, destination), en coordonnées de plan 0–1. */
-export type MapMark = { id: string; x: number; y: number; label: string; tone: 'party' | 'dest' | 'hero' };
+export type MapMark = { id: string; x: number; y: number; label: string; tone: 'party' | 'dest' | 'hero' | 'dm' };
 
 /** Brouillard de guerre : `vision` (cercles éclairés, rayon r), `explored` (déjà découvert, assombri, rayon er) ; le reste est noir. */
 type FogShapes = { polys: [number, number][][]; lines: [number, number][][] };
@@ -121,7 +121,7 @@ export function journeyMs(points: [number, number][], W: number, H: number) {
   return Math.min(24000, Math.max(8000, (total / W) * 48000));
 }
 
-export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, dataKey, dm, marks = [], fog, journey, onZoomLimit }: {
+export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, dataKey, dm, marks = [], fog, journey, onZoomLimit, exploring }: {
   map: AtlasMap; layers: Layers; hidden: Set<FeatureCategory>;
   /** Mode MJ : révèle les passages secrets. Hors MJ, la carte est une carte de lore. */
   dm: boolean;
@@ -142,6 +142,8 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
    * visé (0–1). La carte du monde s'en sert pour entrer dans une cité, ou en sortir, sans changer de carte.
    */
   onZoomLimit?: (dir: 'in' | 'out', at: [number, number]) => void;
+  /** Mode Exploration (carte du monde) : les lieux encore tirés au sort s'affichent en brouillon. */
+  exploring?: boolean;
 }) {
   // Le groupe en chemin : position courante le long du tracé, image par image.
   const [walker, setWalker] = useState<[number, number] | null>(null);
@@ -500,7 +502,7 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   const fade = (from: number) => Math.min(1, Math.max(0, (rz - from) / 0.6));
 
   return (
-    <div className={`atlas-map${surf ? ` am-surface is-${surf.theme}${surf.light ? ` light-${surf.light}` : ''}` : ''}`}>
+    <div className={`atlas-map${surf ? ` am-surface is-${surf.theme}${surf.light ? ` light-${surf.light}` : ''}` : ''}${exploring ? ' is-exploring' : ''}`}>
       <svg ref={svg} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" role="application"
         aria-label={`${map.title} — glisser pour déplacer, molette ou pincement pour zoomer`}
         onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
@@ -572,7 +574,7 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
           {points.filter((g) => features.get(g.featureId)!.area && labelled.has(g.id)).map((g) => {
             const f = features.get(g.featureId)!; const [x, y] = g.coordinates as [number, number];
             return (
-              <text key={g.id} className={`am-area-label imp-${f.importance} ${selectedId === f.id ? 'is-sel' : ''}`} textAnchor="middle"
+              <text key={g.id} className={`am-area-label imp-${f.importance} ${selectedId === f.id ? 'is-sel' : ''} ${f.draft ? 'is-draft' : ''}`} textAnchor="middle"
                 transform={`translate(${x * W} ${y * H}) scale(${s})`} onClick={tap(() => onSelect(f))}>{f.title}</text>
             );
           })}
@@ -580,7 +582,7 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
             const f = features.get(g.featureId)!; const [x, y] = g.coordinates as [number, number]; const cat = CATEGORIES[f.category];
             const isFocus = focus?.kind === 'point' && focus.id === f.id; const R = PIN_R[f.importance];
             return (
-              <g key={g.id} className={`am-pin imp-${f.importance} ${selectedId === f.id ? 'is-sel' : ''} ${isFocus ? 'is-focus' : ''}`} style={{ '--c': cat.color } as React.CSSProperties}
+              <g key={g.id} className={`am-pin imp-${f.importance} ${selectedId === f.id ? 'is-sel' : ''} ${isFocus ? 'is-focus' : ''} ${f.draft ? 'is-draft' : ''}`} style={{ '--c': cat.color } as React.CSSProperties}
                 transform={`translate(${x * W} ${y * H}) scale(${s})`} tabIndex={0} role="button" aria-label={`${f.title} — ${f.category === 'cite' && f.people ? peopleOf(f.people)!.label : cat.label}`}
                 onClick={tap(() => onSelect(f))} onKeyDown={(e) => e.key === 'Enter' && onSelect(f)}>
                 {f.importance === 'detail' && <circle r="12" className="hit" />}

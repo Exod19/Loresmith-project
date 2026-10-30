@@ -33,6 +33,8 @@ export interface Binding {
   orphan?: boolean;
   /** Le MJ a retiré ce lieu de la carte : il n'est plus posé, et la fiche n'est plus reprise. */
   excluded?: boolean;
+  /** Posé à la main par le MJ (mode Exploration) : ce lieu ne quitte jamais ce bâtiment. */
+  pinned?: boolean;
 }
 
 /** `interiors` : bâtiments où l'on est entré (identifiants d'emplacement) ; chacun a son plan intérieur. */
@@ -41,7 +43,16 @@ export type Period = 'matin' | 'jour' | 'soir' | 'nuit';
 /** Occupant dont le MJ a créé la fiche : il reste à cet endroit (niveau, coordonnées 0–1), à toute heure. */
 export interface Resident { id: string; name: string; role?: string; desc?: string; level: 'rdc' | 'etage' | 'cave'; at: [number, number] }
 /** `names` : noms choisis par le MJ, par identifiant de lieu (rues, bâtiments, hameaux, forêts, pièces…). */
-export interface WorldSpec { seed: number; name: string; cities: CitySpec[]; bindings: Record<string, Binding>; interiors?: string[]; time?: Period; residents?: Record<string, Resident[]>; names?: Record<string, string> }
+/** Personnage du MJ : il arpente le monde en mode Exploration. `hidden` : caché quelque part dans le monde, comme un PNJ. */
+export interface Avatar {
+  name: string; role?: string; desc?: string; portrait?: string;
+  /** Rêverie : rien ne compte sauf ce que le MJ accepte ; Chronique : ce qui arrive est réel. */
+  mode: 'reverie' | 'chronique';
+  at?: { planId: string; at: [number, number]; title: string };
+  hidden?: { planId: string; at: [number, number] };
+}
+/** `canon` : lieux tirés au sort que le MJ a gardés tels quels (ils ne sont plus des brouillons). */
+export interface WorldSpec { seed: number; name: string; cities: CitySpec[]; bindings: Record<string, Binding>; interiors?: string[]; time?: Period; residents?: Record<string, Resident[]>; names?: Record<string, string>; canon?: string[]; avatar?: Avatar }
 
 /** Emplacement : position (0–1 et mètres), empreinte (mètres), orientation et façade (où donne la porte). */
 export interface Slot { id: string; type: SlotType; label?: string; district: District; at: [number, number]; x: number; y: number; w: number; d: number; ang: number; face: number }

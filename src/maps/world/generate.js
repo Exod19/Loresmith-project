@@ -628,6 +628,8 @@ export function generateCity(rawSpec, planId, bindings = {}) {
       subtitle: bound ? (s.label && bound.type === s.type ? s.label : T.label) : (b.district === 'haute' && type !== 'manoir' ? 'Haute-ville' : undefined),
       summary: [bound?.summary, npcLine].filter(Boolean).join('\n\n') || undefined,
       entryId: bound?.entryId, relatedEntryIds: bound?.npcs?.map((n) => n.id),
+      // Le château fait partie de la cité : jamais un brouillon.
+      ...(b.district === 'chateau' ? { fixed: true } : {}),
     }, b.x, b.y);
   }
   // Repères de la ville : marché, portes, quartiers.
@@ -1000,6 +1002,21 @@ export function generateWorld(world, mapRecordId) {
     },
   });
 
+  // Le personnage du MJ, caché dans le monde : un PNJ comme les autres, que les joueurs trouveront peut-être.
+  const hid = world.avatar?.hidden;
+  if (hid && maps.some((m) => m.id === hid.planId)) {
+    const av = world.avatar;
+    addPoint({ ...base, id: `${hid.planId}:pnj-mj`, title: av.name || 'Voyageur', subtitle: av.role || 'voyageur', summary: av.desc || undefined, image: av.portrait || undefined, category: 'institution', importance: 'regional', minZoom: 0 }, hid.at[0], hid.at[1], hid.planId);
+  }
+  // Brouillon ou canon : un bâtiment, un occupant, un hameau ou un élément naturel tiré au sort reste un brouillon tant
+  // que le MJ ne l'a ni défini, ni renommé, ni gardé (mode Exploration). Les cités, les rues et le lore sont canon.
+  const canonSet = new Set(world.canon ?? []);
+  const boundSlots = new Set(Object.values(world.bindings ?? {}).filter((b) => b && !b.excluded).map((b) => b.slotId));
+  const DRAFTABLE = /(:b\d+|:pnj-gen-\d+|:hameau|:foret-\d+|:riviere-\d+|:lac)$/;
+  for (let i = 0; i < features.length; i++) {
+    const f = features[i];
+    if (DRAFTABLE.test(f.id) && !f.fixed && !canonSet.has(f.id) && !world.names?.[f.id] && !boundSlots.has(f.id)) features[i] = { ...f, draft: true };
+  }
   // Noms choisis par le MJ : ils remplacent les noms tirés au sort (ou ceux des fiches), partout où le lieu apparaît.
   const names = world.names ?? {};
   if (Object.keys(names).length) {

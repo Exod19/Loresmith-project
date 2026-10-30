@@ -117,6 +117,8 @@ export interface AtlasFeature {
   image?: string;
   /** Conseils au MJ fournis par la source (cités importées) : jets, DD, conséquences. */
   dm?: { kind: 'test' | 'save' | 'info'; label: string; dc?: number; ok?: string; ko?: string }[];
+  /** Tiré au sort, pas encore défini par le MJ (carte du monde, mode Exploration). */
+  draft?: boolean;
   /** PNJ expressément caché (carte du monde) : pas révélé d'office, jeton caché en combat. */
   hiddenNpc?: boolean;
   demo?: boolean;

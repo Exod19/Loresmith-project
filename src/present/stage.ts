@@ -32,7 +32,7 @@ export type PlayerBoard =
   /** `data` ne contient que le plan montré et ses lieux révélés. */
   | { mode: 'map'; title: string; planId: string; data: AtlasData; focus?: { kind: 'anchor' | 'point'; id: string; tick: number };
     /** Jetons du groupe et des héros séparés (si le MJ les montre), et brouillard de guerre. */
-    marks?: { id: string; x: number; y: number; label: string; tone: 'party' | 'dest' | 'hero' }[];
+    marks?: { id: string; x: number; y: number; label: string; tone: 'party' | 'dest' | 'hero' | 'dm' }[];
     fog?: { vision: [number, number][]; explored: [number, number][]; r: number; er: number;
       /** Vue arrêtée par les parois, cavernes visitées, et région où la mémoire peut s'éclaircir. */
       see?: { polys: [number, number][][]; lines: [number, number][][] }; memory?: { polys: [number, number][][]; lines: [number, number][][] }; clip?: { polys: [number, number][][]; lines: [number, number][][] }; lit?: number };

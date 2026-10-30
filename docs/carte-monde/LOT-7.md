@@ -1,4 +1,4 @@
-# Carte du monde : lot 7, tout renommer et un tracé plus naturel (statut : à valider)
+# Carte du monde : lot 7, tout renommer et un tracé plus naturel (statut : validé)
 
 ## Tout renommer
 

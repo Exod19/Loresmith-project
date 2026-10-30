@@ -264,3 +264,22 @@ test('un nom choisi par le MJ remplace le nom tiré au sort, partout', async () 
   assert.equal(d.features.find((f) => f.id === `${pid}:marche`).title, 'Place aux Herbes');
   assert.equal(d.maps.find((m) => m.id === interiorPlanId(tav.id)).title, 'Le Sanglier Borgne · intérieur');
 });
+
+test('mode Exploration : brouillons, bâtiment défini à la main, personnage du MJ caché dans le monde', async () => {
+  const { syncBindings } = await import('./lore.js');
+  const city = { ...CITY, at: [0.5, 0.5] };
+  const pid = cityPlanId('rec', CITY.id);
+  const house = citySlots(city, pid).find((s) => s.type === 'maison');
+  const binding = { entryId: 'sang', cityId: CITY.id, slotId: house.id, type: 'taverne', title: 'Le Sanglier Borgne', hint: 'taverne|', npcs: [], pinned: true };
+  const world = { seed: 1, name: 'M', cities: [city], bindings: { sang: binding }, canon: [], avatar: { name: 'Le Chroniqueur', role: 'conteur', mode: 'reverie', hidden: { planId: pid, at: [0.5, 0.52] } } };
+  const d = generateWorld(world, 'rec');
+  const f = (id) => d.features.find((x) => x.id === id);
+  assert.equal(f(house.id).title, 'Le Sanglier Borgne');
+  assert.ok(!f(house.id).draft, 'le bâtiment défini est canon');
+  assert.ok(d.features.some((x) => /:b\d+$/.test(x.id) && x.draft), 'les autres bâtiments sont des brouillons');
+  assert.equal(f(`${pid}:pnj-mj`).title, 'Le Chroniqueur', 'le personnage du MJ est caché dans la cité');
+  // La fiche (sans mot de métier dans son titre) ne déloge jamais le lieu posé à la main.
+  const r = syncBindings({ world, mapRecordId: 'rec', places: [{ id: 'sang', archiveType: 'place', title: 'Le Sanglier Borgne', shortSummary: 'Une taverne enfumée.', currentLocation: 'Brumeval' }] });
+  assert.equal(r.bindings.sang.slotId, house.id);
+  assert.ok(!r.bindings.sang.conflict);
+});

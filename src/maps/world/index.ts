@@ -20,7 +20,8 @@ const cache = new Map<string, AtlasData>();
 /** Jeu de données d'une carte du monde (mis en cache : il ne change que si ses paramètres changent). */
 export function worldAtlas(rec: MapRecord): AtlasData {
   const world = rec.world ?? EMPTY_WORLD;
-  const key = `${rec.id}|${JSON.stringify(world)}`;
+  // La position du personnage du MJ ne change pas le dessin : elle n'entre pas dans la clé.
+  const key = `${rec.id}|${JSON.stringify({ ...world, avatar: world.avatar && { ...world.avatar, at: undefined } })}`;
   let d = cache.get(key);
   if (!d) {
     d = generateWorld(world as WorldSpec, rec.id) as AtlasData;

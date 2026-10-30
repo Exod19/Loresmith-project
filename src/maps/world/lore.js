@@ -186,7 +186,7 @@ export function syncBindings({ world, mapRecordId, places, people = [], revealed
   const taken = new Set();
   // Les lieux déjà découverts gardent leur emplacement en priorité.
   const keep = Object.values(before).filter((b) => b && cityIds.has(b.cityId) && slotsOf.get(b.cityId)?.some((s) => s.id === b.slotId));
-  for (const b of keep) if (revealed.has(b.slotId) || b.orphan || b.excluded) { out[b.entryId] = b; if (!b.excluded) taken.add(b.slotId); }
+  for (const b of keep) if (revealed.has(b.slotId) || b.orphan || b.excluded || b.pinned) { out[b.entryId] = b; if (!b.excluded) taken.add(b.slotId); }
 
   const byId = new Map(places.map((p) => [p.id, p]));
   // Fiche supprimée : le lieu reste où il est, signalé.
@@ -206,7 +206,8 @@ export function syncBindings({ world, mapRecordId, places, people = [], revealed
     if (kept?.excluded) { out[p.id] = { ...kept, ...snap }; continue; }
     if (kept && (!kept.orphan || revealed.has(kept.slotId))) {
       // Découvert : il reste où il est. Si la fiche demande désormais autre chose, on le signale.
-      const moved = kept.hint !== hint || kept.cityId !== city.id;
+      // Un lieu épinglé par le MJ ne bouge jamais, et ne signale rien : c'est lui qui l'a posé là.
+      const moved = !kept.pinned && (kept.hint !== hint || kept.cityId !== city.id);
       const conflict = moved && (kept.cityId !== city.id || (cls.district && kept.district && !(NEAR[cls.district] ?? []).includes(kept.district)))
         ? `La fiche place désormais ce lieu ${kept.cityId !== city.id ? `à ${city.name}` : DISTRICT_LABEL[cls.district] ?? 'ailleurs'} ; déjà découvert, il reste où il est.`
         : undefined;

@@ -34,6 +34,7 @@ import LiveEncounters, { type LiveBestiaryRef } from './LiveEncounters';
 import { buildRoutes, distancesTo, goalNodes, judgeTrail, nodeOf, verdictText, type TrailVerdict } from './route';
 import { interiorPlanId, isAtlasLike, useWorldSync, worldPlanId } from './world';
 import WorldPanel from './world/WorldPanel';
+import ExplorePanel from './world/ExplorePanel';
 import { isHiddenNpc } from './world/interior';
 import { normalizeEntity } from '../bestiary/entityGen';
 import type { Period } from './world/generate';
@@ -59,7 +60,7 @@ const FORK_LINES: ((side: string) => string)[] = [
   (c) => `Un écho différent, sur votre ${c} : la paroi s’ouvre sur un espace plus large. Vous allez voir, ou vous continuez ?`,
 ];
 
-export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false, onReturn, renderCombat, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [], artOf, library, onCreateNpc }: {
+export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false, onReturn, renderCombat, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [], artOf, library, onCreateNpc, onCreateEntry }: {
   rec: MapRecord; atlas: AtlasData; dm: boolean; onDm: (v: boolean) => void;
   /** Illustration d'une créature par son nom, pour l'écran joueur. */
   artOf?: (name: string, id: string) => string;
@@ -83,6 +84,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   library?: LoreEntry[];
   /** Crée une fiche de PNJ (PNJ & Créatures) : un occupant anonyme devient un PNJ du lore. */
   onCreateNpc?: (npc: Record<string, unknown> & { id: string; name: string }) => void;
+  /** Crée une fiche de lieu dans la Bibliothèque (mode Exploration). */
+  onCreateEntry?: (entry: Record<string, unknown> & { id: string; title: string }) => void;
 }) {
   const data = activateMap(rec, dm, atlas);
   /** L'Atlas et la carte du monde : lieux à révéler, chemins, brouillard. */
@@ -100,8 +103,10 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   /** Lieu que les joueurs doivent voir au centre de l'écran (demandé depuis la fiche). */
   const [focus, setFocus] = useState<{ kind: 'anchor' | 'point'; id: string; tick: number } | null>(null);
   /** Colonne de droite de la carte de navigation (MJ) : un onglet à la fois. */
-  const [side, setSide] = useState<'lieu' | 'groupe' | 'campagne' | 'reperes' | 'monde'>(rec.kind === 'monde' && !(rec.world?.cities.length) ? 'monde' : 'lieu');
-  useEffect(() => { if (selectedId) setSide('lieu'); }, [selectedId]);
+  /** Mode Exploration (carte du monde) : le personnage du MJ arpente le monde et le définit. */
+  const [exploring, setExploring] = useState(false);
+  const [side, setSide] = useState<'lieu' | 'groupe' | 'campagne' | 'reperes' | 'monde' | 'explore'>(rec.kind === 'monde' && !(rec.world?.cities.length) ? 'monde' : 'lieu');
+  useEffect(() => { if (selectedId) setSide((cur) => (cur === 'explore' ? cur : 'lieu')); }, [selectedId]);
 
   const overlay = rec.overlay ?? EMPTY_OVERLAY;
   const pv = overlay.playerView ?? {};
@@ -215,6 +220,9 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     const at = hs[0].at.planId === map.id ? placeCoords(data, rec, hs[0].at) : null;
     if (at) partyMarks.push({ id: `hero-${hs[0].at.id}`, x: at[0], y: at[1], label: hs.map((h) => h.name).join(', '), tone: 'hero' });
   }
+  /** Le personnage du MJ sur le plan affiché (mode Exploration). */
+  const av = rec.world?.avatar;
+  const avatarMarks: MapMark[] = exploring && av?.at && av.at.planId === map.id ? [{ id: 'mj', x: av.at.at[0], y: av.at.at[1], label: `🎭 ${av.name || 'MJ'}`, tone: 'dm' }] : [];
   /** Aperçu « Joueurs » : mêmes jetons et même brouillard que sur l'écran joueur. */
   const playerPreview = useMemo(() => {
     if (dm) return { marks: [] as MapMark[], fog: null };
@@ -631,6 +639,12 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   const enterSite = (siteId: string) => {
     const site = data.spaces.find((x) => x.id === siteId);
     if (!site?.mapId) return;
+    if (exploring) {
+      const gate = data.geometries.find((g) => g.featureId === `${site.mapId}:porte-0`);
+      if (gate) moveAvatar(site.mapId, gate.coordinates as [number, number], data.features.find((f) => f.id === gate.featureId)?.title ?? site.name);
+      setPlanId(site.mapId); setSelectedId(null); setPlacing(null);
+      return;
+    }
     // Le groupe se tient devant cette cité sur le plan monde : il y entre par la porte qui fait face à sa route.
     const cityF = data.features.find((f) => f.opens?.id === siteId);
     const cityXY = cityF ? placeCoords(data, rec, { id: cityF.id, kind: 'feature', title: cityF.title, planId: wid }) : null;
@@ -667,8 +681,13 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     }
     if (inside) {
       const slotF = data.features.find((f) => f.id === inside.slotId);
+      if (exploring) {
+        const at = data.geometries.find((g) => g.featureId === inside.slotId)?.coordinates as [number, number] | undefined
+          ?? data.anchors.find((a) => a.id === `${inside.slotId}:porte`)?.at as [number, number] | undefined;
+        if (at) moveAvatar(inside.cityPlan, at, slotF?.title ?? 'Rue');
+      }
       // Le groupe ressort avec la vue : il se retrouve devant le bâtiment, dans la rue.
-      if (party.at?.planId === map.id) {
+      else if (party.at?.planId === map.id) {
         const at = data.anchors.find((a) => a.id === `${inside.slotId}:porte`)?.at as [number, number] | undefined;
         const place: PartyPlace = slotF ? { id: slotF.id, kind: 'feature', title: slotF.title, planId: inside.cityPlan } : { id: `${inside.slotId}:rue`, kind: 'spot', title: 'Devant le bâtiment', planId: inside.cityPlan, at };
         setOverlay(withPartyAt(overlay, place));
@@ -693,6 +712,13 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     const here = party.at && party.at.planId === map.id ? placeCoords(data, rec, party.at) : null;
     const partyIn = !!here && (party.at!.id === slotId || (!!slotXY && Math.hypot(here[0] - slotXY[0], here[1] - slotXY[1]) < 0.02));
     let next = overlay;
+    if (exploring) {
+      const entry = interiorPlanId(slotId);
+      const interiors = (world.interiors ?? []).includes(slotId) ? world.interiors : [...(world.interiors ?? []), slotId];
+      onUpdate({ world: { ...world, interiors, avatar: { ...(world.avatar ?? { name: '', mode: 'reverie' }), at: { planId: entry, at: [0.5, 0.5], title: 'Entrée' } } }, updatedAt: Date.now() });
+      setPlanId(entry); setSelectedId(null); setPlacing(null);
+      return;
+    }
     if (partyIn) {
       const bound = Object.values(world.bindings ?? {}).find((b) => b.slotId === slotId && !b.excluded);
       const seen = [`${ipid}:entree`, `${ipid}:piece-0`, ...(bound?.npcs ?? []).filter((n) => !isHiddenNpc(n)).map((n) => `${ipid}:pnj-${n.id}`)];
@@ -708,11 +734,23 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
    * Le groupe suit s'il se tient sur ce niveau d'un bâtiment, ou près de l'ancre ailleurs ; ce qu'il voit à l'arrivée
    * (le palier, la pièce du bas) est révélé aux joueurs.
    */
+  /** Déplace le personnage du MJ (mode Exploration) : le groupe et ce que voient les joueurs ne bougent pas. */
+  const moveAvatar = (planId: string, at: [number, number], title: string) => {
+    const world = rec.world;
+    if (!world) return;
+    onUpdate({ world: { ...world, avatar: { ...(world.avatar ?? { name: '', mode: 'reverie' }), at: { planId, at, title } } }, updatedAt: Date.now() });
+  };
   const followAnchor = (anchorId: string) => {
     const c = connectionAt(anchorId);
     if (!c || !c.canFollow) return;
     const here = data.anchors.find((a) => a.id === anchorId);
     const to = c.other;
+    if (exploring) {
+      moveAvatar(to.mapId, to.at as [number, number], to.label);
+      setPlanId(to.mapId); setSelectedId(null); setPlacing(null);
+      setFocus({ kind: 'anchor', id: to.id, tick: Date.now() });
+      return;
+    }
     const partyXY = party.at?.planId === map.id ? placeCoords(data, rec, party.at) : null;
     const partyFollows = !!partyXY && !!here && (!!inside || Math.hypot(partyXY[0] - here.at[0], partyXY[1] - here.at[1]) < 0.03);
     if (partyFollows) {
@@ -805,6 +843,11 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
           ? <button className="maps-btn" onClick={() => setBattleOpen(false)}>← Carte de navigation</button>
           : <button className="maps-btn" onClick={onBack}>← Cartes</button>}
         <strong className="maps-title">{rec.title}</strong>
+        {rec.kind === 'monde' && dm && !battleOpen && (
+          <button className={`maps-btn ${exploring ? 'gold' : ''}`} aria-pressed={exploring}
+            title="Mode Exploration : ton personnage arpente le monde et le définit au fil de ses pas"
+            onClick={() => { const on = !exploring; setExploring(on); setSide(on ? 'explore' : 'lieu'); }}>🎭 Exploration</button>
+        )}
         {rec.kind === 'monde' && rec.world && (
           <select className="maps-btn" value={rec.world.time ?? 'jour'} aria-label="Moment de la journée" title="Moment de la journée : qui est dans les bâtiments, et la lumière"
             onChange={(e) => onUpdate({ world: { ...rec.world!, time: e.target.value as Period }, updatedAt: Date.now() })}>
@@ -883,13 +926,14 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               hidden={new Set<FeatureCategory>()}
               selectedId={selectedId}
               onSelect={(f: AtlasFeature) => { setSelectedId(f.id); setEnc(null); }}
-              marks={dm ? partyMarks : playerPreview.marks}
+              marks={dm ? [...partyMarks, ...avatarMarks] : playerPreview.marks}
               fog={dm ? null : playerPreview.fog}
               journey={overlay.travel && overlay.travel.planId === map.id ? { ...overlay.travel, label: 'Groupe' } : null}
               onAnchor={(a) => { if (dm && rec.kind === 'monde') followAnchor(a.id); }}
               onPlace={dm && placing ? addMarker : undefined}
               dataKey={`${rec.updatedAt}:${dm}`}
               onZoomLimit={onZoomLimit}
+              exploring={exploring}
               focus={focus ? { kind: 'point', id: focus.id } : null}
               focusKey={focus ? String(focus.tick) : undefined}
               dm={dm}
@@ -899,7 +943,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
           <aside className="maps-panel maps-side">
             {dm && (
               <nav className="maps-tabs" role="tablist" aria-label="Panneau de la carte">
-                {([...(rec.kind === 'monde' ? [['monde', '🏰 Monde']] : []), ['lieu', '📍 Lieu'], ['groupe', '👥 Groupe'], ...(campaigns.length ? [['campagne', '📜 Campagne']] : []), ['reperes', '🔖 Repères']] as [typeof side, string][]).map(([id, label]) => (
+                {([...(exploring ? [['explore', '🎭 Exploration']] : []), ...(rec.kind === 'monde' ? [['monde', '🏰 Monde']] : []), ['lieu', '📍 Lieu'], ['groupe', '👥 Groupe'], ...(campaigns.length ? [['campagne', '📜 Campagne']] : []), ['reperes', '🔖 Repères']] as [typeof side, string][]).map(([id, label]) => (
                   <button key={id} role="tab" aria-selected={side === id} className={side === id ? 'on' : ''} onClick={() => setSide(id)}>
                     {label}
                     {id === 'groupe' && (party.apart?.length ?? 0) > 0 && <small>{party.apart!.length}</small>}
@@ -1035,6 +1079,15 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               <div className="maps-actions world-enter">
                 <button className="maps-btn gold" onClick={() => enterSite(feature.opens!.id)}>Entrer dans {feature.title}</button>
               </div>
+            )}
+            {dm && side === 'explore' && exploring && rec.world && (
+              <ExplorePanel rec={rec} data={data} planId={map.id} feature={feature} onUpdate={onUpdate} onCreateEntry={onCreateEntry}
+                onGo={(f) => {
+                  const g = data.geometries.find((x) => x.featureId === f.id && x.mapId === map.id);
+                  if (!g) return;
+                  const pts = (g.type === 'point' ? [g.coordinates] : g.coordinates) as [number, number][];
+                  moveAvatar(map.id, pts[Math.floor(pts.length / 2)], f.title);
+                }} />
             )}
             {dm && side === 'monde' && rec.kind === 'monde' && rec.world && (
               <WorldPanel rec={rec} data={data} library={library ?? []} planId={map.id} revealed={overlay.revealed} onUpdate={onUpdate}

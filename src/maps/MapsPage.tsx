@@ -165,6 +165,7 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
           atlas={sourceAtlas(open, feed?.atlas as AtlasData)}
           library={library}
           onCreateNpc={(n) => { dispatch({ type: 'ADD_NPC', n }); flash(`Fiche créée : ${n.name} (PNJ & créatures)`); }}
+          onCreateEntry={(entry) => { dispatch({ type: 'ADD_LIBRARY_ENTRY', entry }); flash(`Fiche créée : ${entry.title} (Bibliothèque)`); }}
           dm={dm}
           onDm={setDm}
           onBack={() => setOpenId(null)}

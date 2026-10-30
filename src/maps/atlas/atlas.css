@@ -597,3 +597,14 @@
 .am-surface.light-soir > svg { filter: sepia(.25) saturate(.9) brightness(.82) hue-rotate(-8deg); }
 .am-surface.light-nuit > svg { filter: saturate(.55) brightness(.5) hue-rotate(195deg) sepia(.2); }
 .am-surface .dc-stool { fill: #6e5032; stroke: #33241a; stroke-width: .8; }
+/* Mode Exploration : brouillons estompés, personnage du MJ */
+.is-exploring .am-pin.is-draft { opacity: .5; }
+.is-exploring .am-pin.is-draft .lbl, .is-exploring .am-area-label.is-draft { font-style: italic; opacity: .7; }
+.is-exploring .am-pin.is-draft.is-sel { opacity: 1; }
+.am-mark-dm .am-mark-ring { stroke: #f0c867; stroke-width: 3; } .am-mark-dm .am-mark-dot { fill: #f0c867; }
+.am-mark-dm .am-mark-flag { fill: rgba(40,28,10,.92); stroke: #f0c867; } .am-mark-dm .am-mark-text { fill: #ffe9b0; }
+.explore-card h4 { margin: 0 0 6px; }
+.explore-card form { display: grid; gap: 6px; }
+.explore-card label { display: grid; gap: 2px; font-size: 12px; }
+.explore-portrait { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid #f0c867; }
+.explore-head { display: flex; gap: 10px; align-items: center; }
