@@ -5,6 +5,7 @@
  * Coordonnées normalisées 0–1 et viewBox fixe : un redimensionnement ne déplace jamais les points.
  */
 import { useReliefDetail, useReliefImage } from '../world/reliefImage';
+import BankLayer, { GroundPatterns, useGroundTextures } from '../../banque/BankLayer';
 import type { Relief } from '../world/terrain';
 import { CityEmblem, paintedEmblem, peopleOf } from './emblems';
 import { type ReactElement, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent } from 'react';
@@ -536,7 +537,15 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   const roadW = (tr: Trace) => (surf ? (ROAD_M[tr] ?? 3) / surf.scale : 0);
   const decorUnder = surf && map.decor ? map.decor.filter((x) => UNDER_ROADS.has(x.kind)) : [];
   const decorOver = map.decor ? (surf ? map.decor.filter((x) => !UNDER_ROADS.has(x.kind)) : map.decor) : [];
-  const decorPath = (x: NonNullable<AtlasMap['decor']>[number], i: number) => <path key={i} d={x.d} className={`dc-${x.kind}${x.w ? ' dc-w' : ''}`} style={x.w ? { strokeWidth: x.w } : undefined} />;
+  // Banque Loresmith (cités et intérieurs) : sols en texture, arbres, toits et mobilier à leur taille réelle.
+  const bankOn = !!surf && surf.theme !== 'monde';
+  const pxPerUnit = t.k / px;
+  const bankView = { x: -t.tx / t.k, y: -t.ty / t.k, w: W / t.k, h: H / t.k };
+  const groundTex = useGroundTextures(map, bankOn ? pxPerUnit : 0);
+  const decorPath = (x: NonNullable<AtlasMap['decor']>[number], i: number) => {
+    const tex = groundTex[x.kind];
+    return <path key={i} d={x.d} className={`dc-${x.kind}${x.w ? ' dc-w' : ''}`} style={x.w || tex ? { ...(x.w ? { strokeWidth: x.w } : {}), ...(tex ? { fill: `url(#${tex.id})` } : {}) } : undefined} />;
+  };
   const fade = (from: number) => Math.min(1, Math.max(0, (rz - from) / 0.6));
 
   return (
@@ -548,6 +557,7 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
           <radialGradient id="am-floor" cx=".46" cy=".42" r=".62"><stop offset="0" stopColor="#2c3836" /><stop offset=".7" stopColor="#222d2c" /><stop offset="1" stopColor={FLOOR} /></radialGradient>
           <radialGradient id="am-floor-b" cx=".55" cy=".45" r=".62"><stop offset="0" stopColor="#2a3333" /><stop offset=".75" stopColor="#212a2a" /><stop offset="1" stopColor={FLOOR} /></radialGradient>
           <radialGradient id="am-water" cx=".45" cy=".4" r=".7"><stop offset="0" stopColor="#2f5a5e" /><stop offset="1" stopColor="#14282c" /></radialGradient>
+          <GroundPatterns tex={groundTex} />
           <pattern id="am-hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(40)"><path d="M0 0V9" stroke="#8a5a49" strokeWidth="1.3" opacity=".55" /></pattern>
         </defs>
         <rect x={-W} y={-H} width={W * 3} height={H * 3} fill={surf ? undefined : '#090d0e'} className={surf ? 'am-ground' : undefined} />
@@ -559,6 +569,7 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
               {surf.relief && reliefUrl && <image href={reliefUrl} x={0} y={0} width={W} height={H} preserveAspectRatio="none" className="am-relief" />}
               {reliefDetail && <image href={reliefDetail.url} x={reliefDetail.x} y={reliefDetail.y} width={reliefDetail.w} height={reliefDetail.h} preserveAspectRatio="none" className="am-relief" />}
               {decorUnder.length > 0 && <g className="am-decor">{decorUnder.map(decorPath)}</g>}
+              {bankOn && <BankLayer map={map} layer="arbres" pxPerUnit={pxPerUnit} view={bankView} />}
               <g className="am-roads">
                 {surf.theme !== 'interieur' && shown.map((p) => {
                   const w = roadW(p.tr);
@@ -583,6 +594,7 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
           {layerSpeleo && <path d={layerSpeleo} className="am-speleo" style={{ opacity: fade(2.25) }} />}
           {rz >= 3.4 && <path d={relief.blocks} className="am-blocks" style={{ opacity: fade(3.4) }} />}
           {decorOver.length > 0 && <g className="am-decor">{decorOver.map(decorPath)}</g>}
+          {bankOn && <BankLayer map={map} layer="dessus" pxPerUnit={pxPerUnit} view={bankView} />}
           {houses.map((b, i) => (
             <g key={i} className="am-house"><rect x={b.x} y={b.y} width={b.w} height={b.h} rx="2" /><rect x={b.x + 4} y={b.y + 4} width={b.w * 0.76} height={b.h * 0.55} className="in" /></g>
           ))}

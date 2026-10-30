@@ -344,7 +344,9 @@ export function generateInterior({ slot, planId, siteId, parentSiteId, bound, pe
     const pid = ids[lv], pre = `${pid}:`;
     const paths = {};
     const push = (k, d) => { (paths[k] ??= []).push(d); };
-    const ground = { b: [], f: [], t: [], o: [], walls: [], water: [], roads: [] };
+    const ground = { b: [], f: [], t: [], o: [], walls: [], water: [], roads: [], p: [] };
+    // Mobilier à dessiner avec la Banque Loresmith : [nature, x, y, largeur, profondeur, angle] en unités de plan.
+    const prop = (k, x, y, w, h, a = 0) => ground.p.push([k, r1(x), r1(y), r1(w), r1(h), Math.round(a * 1000) / 1000]);
     const rectFlat = ([x, y, w, h]) => [r1(x + w / 2), r1(y + h / 2), r1(w), r1(h), 0];
     const features = [], geometries = [], anchors = [];
     const addPoint = (f, at) => { features.push({ ...base, ...f }); geometries.push({ id: `g-${f.id}`, mapId: pid, featureId: f.id, type: 'point', coordinates: at }); };
@@ -384,6 +386,7 @@ export function generateInterior({ slot, planId, siteId, parentSiteId, bound, pe
             push('furn', `M${pts.map(([px, py]) => `${f1(px)} ${f1(py)}`).join('L')}Z`);
           }
           ground.f.push(r1(x), r1(y), r1(tw), r1(th), Math.round(ang * 1000) / 1000);
+          prop(round ? 'table-ronde' : 'table', x, y, tw, th, ang);
           // Tabourets autour.
           const seats = round ? 3 + Math.floor(rand() * 2) : 4;
           for (let k = 0; k < seats; k++) {
@@ -408,6 +411,8 @@ export function generateInterior({ slot, planId, siteId, parentSiteId, bound, pe
           if (stairs.some(([, [su, sv]]) => { const [sx, sy] = P(su, sv); return Math.abs(sx - (r[0] + r[2] / 2)) < m(1.6) && Math.abs(sy - (r[1] + r[3] / 2)) < m(1.8); })) continue;
           push({ beds: 'bed', stalls: 'stall', pillars: 'pillar', tombs: 'altar' }[kind] ?? 'furn', rectD(r));
           (kind === 'pillars' || kind === 'tombs' ? ground.o : ground.f).push(...rectFlat(r));
+          const pk = { beds: 'lit', tombs: 'sarcophage', pillars: 'colonne' }[kind];
+          if (pk) prop(pk, r[0] + r[2] / 2, r[1] + r[3] / 2, r[2], r[3]);
         }
         if (label) named.push([label, cx, cy]);
         continue;
@@ -416,13 +421,15 @@ export function generateInterior({ slot, planId, siteId, parentSiteId, bound, pe
         const n = Math.max(3, Math.round((bx[2] * bx[3]) / (m(1) * m(1)) / 2.2));
         for (let k = 0; k < n; k++) {
           const x = bx[0] + rand() * bx[2], y = bx[1] + rand() * bx[3];
-          if (kind === 'barrels') { push('barrel', circleD(x, y, m(0.4))); ground.o.push(r1(x), r1(y), r1(m(0.8)), r1(m(0.8)), 0); } else { const sz = m(0.8 + rand() * 0.4); push('crate', rectD([x - sz / 2, y - sz / 2, sz, sz])); ground.o.push(r1(x), r1(y), r1(sz), r1(sz), 0); }
+          if (kind === 'barrels') { push('barrel', circleD(x, y, m(0.4))); ground.o.push(r1(x), r1(y), r1(m(0.8)), r1(m(0.8)), 0); prop('tonneau', x, y, m(0.8), m(0.8), rand() * 6.283); } else { const sz = m(0.8 + rand() * 0.4); push('crate', rectD([x - sz / 2, y - sz / 2, sz, sz])); ground.o.push(r1(x), r1(y), r1(sz), r1(sz), 0); }
         }
         if (label) named.push([label, cx, cy]);
         continue;
       }
       const decorKind = { counter: 'furn', table: 'furn', longtable: 'furn', hearth: 'hearth', bed: 'bed', altar: 'altar', shelf: 'furn', anvil: 'anvil', rack: 'furn', trough: 'trough', stair: 'stair', throne: 'altar', dais: 'dais', rug: 'rug', bars: 'bars', chest: 'crate' }[kind] ?? 'furn';
       push(decorKind, rectD(bx));
+      const pk = { bed: 'lit', altar: 'autel', trough: 'bac', chest: 'coffre', table: 'table', longtable: 'table' }[kind];
+      if (pk) prop(pk, cx, cy, bx[2], bx[3]);
       // Sol de combat : ce qui bloque (comptoir, âtre, autel…), ce qui gêne (tables, lits, estrade), l'eau, et le reste.
       if (['counter', 'hearth', 'altar', 'shelf', 'anvil', 'rack', 'throne', 'bars'].includes(kind)) ground.o.push(...rectFlat(bx));
       else if (kind === 'trough') ground.water.push({ pts: [r1(bx[0]), r1(cy), r1(bx[0] + bx[2]), r1(cy)], hw: r1(bx[3] / 2) });

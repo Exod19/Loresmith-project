@@ -2,6 +2,8 @@
  * Page « Cartes » d'un univers : créer une carte vierge, importer une image, importer l'Atlas des profondeurs
  * (et le synchroniser avec les Archives), ouvrir une carte dans la visionneuse.
  */
+import BanquePanel from '../banque/BanquePanel';
+import { npcImage } from '../banque';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Hero } from './battle/CombatPanel';
 import { clearMapIntent, peekMapIntent } from './intent';
@@ -60,6 +62,12 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
   const [intent] = useState(peekMapIntent);
   useEffect(() => { clearMapIntent(); }, []);
   const [openId, setOpenId] = useState<string | null>(intent?.mapId ?? null);
+  const [bankOpen, setBankOpen] = useState(false);
+  /** Image de la Banque Loresmith attribuée à une fiche : un « asset » comme une image téléversée (rien n'est écrasé, la plus récente l'emporte). */
+  const assignImage = (targetType: 'library' | 'npc', targetId: string, src: string, name: string) => dispatch({
+    type: 'ADD_ASSET',
+    asset: { id: `banque-${uid()}`, name, category: targetType, targetType, targetId, dataUrl: src, source: 'banque', prompt: '', createdAt: Date.now(), universeId: universe?.id },
+  });
   const [dm, setDm] = useState(true);
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -168,7 +176,15 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
           atlas={sourceAtlas(open, feed?.atlas as AtlasData)}
           library={library}
           onCreateNpc={(n) => { dispatch({ type: 'ADD_NPC', n }); flash(`Fiche créée : ${n.name} (PNJ & créatures)`); }}
-          onCreateEntry={(entry) => { dispatch({ type: 'ADD_LIBRARY_ENTRY', entry }); flash(`Fiche créée : ${entry.title} (Bibliothèque)`); }}
+          onCreateEntry={(entry) => {
+            dispatch({ type: 'ADD_LIBRARY_ENTRY', entry });
+            // Un personnage né en jeu reçoit un portrait de la Banque Loresmith (le MJ le change à sa guise).
+            if (entry.archiveType === 'person') {
+              const src = npcImage({ id: entry.id, role: [entry.subtitle, entry.shortSummary].filter(Boolean).join(' '), placeText: String(entry.currentLocation ?? ''), vue: 'portrait', px: 512 });
+              if (src) assignImage('library', entry.id, src, `Banque Loresmith · ${entry.title}`);
+            }
+            flash(`Fiche créée : ${entry.title} (Bibliothèque)`);
+          }}
           onUpdateEntry={(id, patch) => { dispatch({ type: 'UPDATE_LIBRARY_ENTRY', id, patch }); flash('Fiche complétée (Bibliothèque)'); }}
           loreContext={(focus) => buildLoreContext({ universe, state: { libraryEntries: Object.fromEntries(library.map((e) => [e.id, e])) }, focus, budget: 5000 })}
           onChronicle={(m) => {
@@ -196,6 +212,17 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
     );
   }
 
+  if (bankOpen) {
+    const fiches = [
+      ...library.filter((e) => ['person', 'personnage', 'character', 'npc', 'pnj'].includes(String(e.archiveType ?? '').toLowerCase())).map((e) => ({ id: e.id, title: String(e.title ?? e.name ?? e.id), targetType: 'library' as const })),
+      ...bestiary.filter((n) => !n.isMonster).map((n) => ({ id: n.id, title: n.name, targetType: 'npc' as const })),
+    ].sort((a, b) => a.title.localeCompare(b.title, 'fr'));
+    return (
+      <BanquePanel onBack={() => setBankOpen(false)} fiches={fiches}
+        onAssign={(f, img, src) => { assignImage(f.targetType, f.id, src, `Banque Loresmith · ${img.nom}`); flash(`Image attribuée : ${f.title}`); }} />
+    );
+  }
+
   return (
     <div className="maps-page">
       <nav className="maps-crumbs"><span>{universe.name}</span> › <span>Cartes</span></nav>
@@ -209,6 +236,7 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
         <div className="maps-actions">
           {!hasWorld && <button className="maps-btn gold" onClick={newWorld} title="Une carte du monde générée : cités, routes, bâtiments ; les lieux du lore y apparaissent d’eux-mêmes">+ Carte du monde</button>}
           <button className="maps-btn gold" onClick={newBlank}>+ Carte vierge</button>
+          <button className="maps-btn" onClick={() => setBankOpen(true)} title="Portraits, jetons, éléments et textures dont Loresmith habille les cartes et les fiches">🖼 Banque Loresmith</button>
           <button className="maps-btn" disabled={busy} onClick={() => fileRef.current?.click()}>{busy ? 'Lecture…' : 'Importer une image'}</button>
           {isUnderdark && !hasAtlas && <button className="maps-btn" onClick={importAtlas}>Importer l’Atlas des profondeurs</button>}
           {hasAtlas && (

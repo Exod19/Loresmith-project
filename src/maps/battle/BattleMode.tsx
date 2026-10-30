@@ -6,6 +6,8 @@
  * Le lieu choisi donne la zone locale : ses passages (tracés réels de l'Atlas) et ses éléments y sont à leur position.
  * « Suivre » un passage ramène sur la carte de navigation, à sa destination, et y déplace le groupe.
  */
+import { npcBankImage } from '../../banque/place';
+import type { LoreEntry } from '../world/lore';
 import { terrainAt, type Relief } from '../world/terrain';
 import { boardTheme } from './theme';
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
@@ -157,9 +159,11 @@ function surfaceTheme(surface: NonNullable<AtlasMap['surface']>, win: { x0: numb
 }
 
 export default function BattleMode({
-  rec, battle, onBattle, context, atlas, plan, markers, onFollow, onLink, onMarker, onReveal, heroes = [], party, onSearchNote, bestiary = [], renderCombat, onLeave,
+  rec, battle, onBattle, context, atlas, plan, markers, onFollow, onLink, onMarker, onReveal, heroes = [], party, onSearchNote, bestiary = [], renderCombat, onLeave, library,
 }: {
   rec: MapRecord; battle: Battle; onBattle: (b: Battle) => void;
+  /** Fiches de la Bibliothèque : peuples de la cité, pour choisir des jetons cohérents dans la Banque Loresmith. */
+  library?: LoreEntry[];
   /** Lieu sélectionné : sa zone locale est placée sur la grille à l'ouverture ; une rencontre y place ses créatures. */
   context: (LocationHint & { id: string; groups?: EncounterGroup[] }) | null;
   atlas: AtlasData | undefined; plan: AtlasMap | undefined; markers: MapMarker[];
@@ -328,7 +332,9 @@ export default function BattleMode({
         const ref = bestiary.find((r) => r.id === f.entryId);
         tokens = [...tokens, {
           id, name: f.title, kind: 'other', x: best.x, y: best.y, size: 1, visible: !f.hiddenNpc || revealed.has(f.id),
-          npcId: ref?.id, hp: ref?.hp, maxHp: ref?.hp, ac: ref?.ac, image: ref?.token,
+          npcId: ref?.id, hp: ref?.hp, maxHp: ref?.hp, ac: ref?.ac,
+          // Sans jeton propre : un jeton de la Banque Loresmith, cohérent avec la cité (peuple, rôle).
+          image: ref?.token ?? f.image ?? npcBankImage(rec, plan.id, library, f),
         }];
       }
     }

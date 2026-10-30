@@ -1,0 +1,5274 @@
+{
+"version": 1,
+"images": [
+{
+"id": "accessoire-medieval-isole-vue-zenithale",
+"drive": "1_hsEfUsL-UzEH0m-7yzDznvMiRaKH_qf",
+"titre": "Accessoire médiéval isolé, vue zénithale (22).png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.445,
+"couleur": "#6d4540",
+"mips": [
+256,
+512
+],
+"nom": "Lit",
+"cat": "mobilier",
+"taille": [
+1.1,
+2.1
+],
+"milieux": [
+"interieur"
+],
+"usage": [
+"lit"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "amas-compact-de-six-rochers-gris",
+"drive": "1D8u1bVX1YYjcUbTdkLBygln9zXaLi8XO",
+"titre": "Amas compact de six rochers gris (2).png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.01,
+"couleur": "#5c564c",
+"mips": [
+256,
+512
+],
+"nom": "Amas de rochers",
+"cat": "rocher",
+"taille": [
+3,
+3
+],
+"milieux": [
+"montagne",
+"campagne",
+"foret"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "autel-basaltique-grave-a-coupe-votive",
+"drive": "1oFdzNfVxkdL1lG0YA-Hl1LE-SHSrN8ac",
+"titre": "Autel basaltique gravé à coupe votive (23).png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.57,
+"couleur": "#5c5146",
+"mips": [
+256,
+512
+],
+"nom": "Autel basaltique",
+"cat": "mobilier",
+"taille": [
+2,
+1.4
+],
+"milieux": [
+"interieur",
+"temple",
+"ruine"
+],
+"usage": [
+"autel"
+],
+"region": [
+"surface",
+"outreterre"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "auvent-en-lin-ocre-medieval",
+"drive": "1zHwoqnjOpU6SsfveX060uC8afc_y5ike",
+"titre": "Auvent en lin ocre médiéval-42.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.328,
+"couleur": "#a9824b",
+"mips": [
+256,
+512
+],
+"nom": "Auvent de toile",
+"cat": "marche",
+"taille": [
+4,
+3
+],
+"milieux": [
+"ville"
+],
+"usage": [
+"marche"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "bac-deau-medieval-en-pierre",
+"drive": "1UrRsuvhDIf4uRkQwEm6KYLYK9w-zPJ3I",
+"titre": "Bac d’eau médiéval en pierre-41.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.301,
+"couleur": "#6f6e54",
+"mips": [
+256,
+512
+],
+"nom": "Bac d’eau",
+"cat": "mobilier",
+"taille": [
+0.9,
+2.6
+],
+"milieux": [
+"ville",
+"campagne",
+"interieur"
+],
+"usage": [
+"ecurie",
+"forge"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "baril-de-chene-vu-du-dessus",
+"drive": "1pNJGo2-or072ut1YbfTbSk7Ewq-WbhCH",
+"titre": "Baril de chêne vu du dessus (10).png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.0,
+"couleur": "#796453",
+"mips": [
+256,
+512
+],
+"nom": "Tonneau",
+"cat": "mobilier",
+"taille": [
+0.75,
+0.75
+],
+"milieux": [
+"interieur",
+"ville"
+],
+"usage": [
+"tonneau"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "blue-green-alpine-juniper-shrub",
+"drive": "1beffAqQL60ryPCODP1WDfRL9r8K_p-e6",
+"titre": "Blue-green alpine juniper shrub-13.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.035,
+"couleur": "#484e39",
+"mips": [
+256,
+512
+],
+"nom": "Genévrier alpin",
+"cat": "arbuste",
+"taille": [
+2,
+2
+],
+"milieux": [
+"montagne",
+"toundra"
+],
+"climats": [
+"froid",
+"tempere"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "buisson-de-ronces-dense-et-noueux",
+"drive": "1XSwRYqoZAsby41Z_EhobkLcDI7gBHvFd",
+"titre": "Buisson de ronces dense et noueux (7).png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.998,
+"couleur": "#414025",
+"mips": [
+256,
+512
+],
+"nom": "Ronces",
+"cat": "arbuste",
+"taille": [
+2.5,
+2.5
+],
+"milieux": [
+"foret",
+"campagne",
+"ruine"
+],
+"climats": [
+"tempere"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "buches-fendues-empilees-et-liees",
+"drive": "1HEL168FnTJ8ZjuZgm1ORZ_QFnX6ePQAO",
+"titre": "Bûches fendues empilées et liées-40.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.451,
+"couleur": "#80644f",
+"mips": [
+256,
+512
+],
+"nom": "Bûches empilées",
+"cat": "mobilier",
+"taille": [
+1.6,
+1.1
+],
+"milieux": [
+"campagne",
+"ville",
+"interieur"
+],
+"usage": [
+"ferme"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "canopee-de-chene-en-vue-zenithale",
+"drive": "19_SBSCdtyW8p_FvgqUB6-xx4YsiWdTlh",
+"titre": "Canopée de chêne en vue zénithale-30.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.99,
+"couleur": "#535934",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Chêne",
+"cat": "arbre",
+"taille": [
+12,
+12
+],
+"milieux": [
+"foret",
+"campagne",
+"ville"
+],
+"climats": [
+"tempere"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "cime-de-chene-vue-du-dessus",
+"drive": "1QJHPEh2dHkOPTgZzAZKFUzQiqTxIcnyZ",
+"titre": "Cime de chêne vue du dessus (5).png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.007,
+"couleur": "#484b2d",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Chêne",
+"cat": "arbre",
+"taille": [
+12,
+12
+],
+"milieux": [
+"foret",
+"campagne",
+"ville"
+],
+"climats": [
+"tempere"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "cime-de-tilleul-vue-du-dessus",
+"drive": "1NP7vW_A3sxQv1biUi-w8IxYCKP-O34UY",
+"titre": "Cime de tilleul vue du dessus-32.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.994,
+"couleur": "#616b34",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Tilleul",
+"cat": "arbre",
+"taille": [
+10,
+10
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "coffre-en-chene-vieilli-vu-du-dessus",
+"drive": "1uj5ESSQQzVe3OFLGQh2p2e4M3cwRmSrm",
+"titre": "Coffre en chêne vieilli vu du dessus (27).png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.585,
+"couleur": "#755843",
+"mips": [
+256,
+512
+],
+"nom": "Coffre",
+"cat": "mobilier",
+"taille": [
+1.2,
+0.8
+],
+"milieux": [
+"interieur"
+],
+"usage": [
+"coffre"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "couronne-de-pin-vue-du-dessus",
+"drive": "1myXKAzJkucOasY_L3FQUOS8vzzEz9lAW",
+"titre": "Couronne de pin vue du dessus-34.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.967,
+"couleur": "#4b512f",
+"mips": [
+256,
+512
+],
+"nom": "Pin",
+"cat": "arbre",
+"taille": [
+7,
+7
+],
+"milieux": [
+"foret",
+"montagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "couronne-de-sapin-vue-zenithale",
+"drive": "18_qxn_eudbs1kZve6zthF4klDCfYTk0E",
+"titre": "Couronne de sapin, vue zénithale-35.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.994,
+"couleur": "#3f492e",
+"mips": [
+256,
+512
+],
+"nom": "Sapin",
+"cat": "arbre",
+"taille": [
+6,
+6
+],
+"milieux": [
+"foret",
+"montagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "couronne-derable-automnale-vue-du-dessus",
+"drive": "14C1DTH5ebbi9Vy2kKjN-j4kkDaaKDdUG",
+"titre": "Couronne d’érable automnale vue du dessus-33.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.009,
+"couleur": "#945526",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Érable d’automne",
+"cat": "arbre",
+"taille": [
+10,
+10
+],
+"milieux": [
+"foret",
+"ville",
+"campagne"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"automne"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "dome-de-gres-vue-zenithale",
+"drive": "1urQ5IyfEX3NCGC5Kmw9RO0Q8VgJs3hIc",
+"titre": "Dôme de grès, vue zénithale-26.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.001,
+"couleur": "#bda281",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Dôme de grès",
+"cat": "toit",
+"forme": "rond",
+"materiau": "gres",
+"taille": [
+10,
+10
+],
+"milieux": [
+"ville",
+"desert"
+],
+"climats": [
+"chaud",
+"aride",
+"tempere"
+],
+"usage": [
+"temple",
+"civique"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "fontaine-medievale-vue-du-ciel",
+"drive": "1p7Yqk2eEjdi0GzgnWARe866uXEoFK7mZ",
+"titre": "Fontaine médiévale vue du ciel-25.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.99,
+"couleur": "#7e7e68",
+"mips": [
+256,
+512
+],
+"nom": "Fontaine",
+"cat": "monument",
+"taille": [
+5.5,
+5.5
+],
+"milieux": [
+"ville"
+],
+"usage": [
+"place"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "fontaine-octogonale-noble-en-vue-zenithale",
+"drive": "1eplmijdmb3dfmZV-ggC8e6CoSc862sky",
+"titre": "Fontaine octogonale noble en vue zénithale-23.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.035,
+"couleur": "#757a6e",
+"mips": [
+256,
+512
+],
+"nom": "Fontaine octogonale",
+"cat": "monument",
+"taille": [
+7,
+7
+],
+"milieux": [
+"ville"
+],
+"usage": [
+"place"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "fractured-glacial-ice-block",
+"drive": "1O2S9lto94VAkdChdgV-kACAskhFSQZfv",
+"titre": "Fractured glacial ice block-10.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.035,
+"couleur": "#96aab9",
+"mips": [
+256,
+512
+],
+"nom": "Bloc de glace",
+"cat": "rocher",
+"taille": [
+2.6,
+2.6
+],
+"milieux": [
+"toundra",
+"montagne",
+"lac"
+],
+"climats": [
+"froid"
+],
+"saisons": [
+"hiver"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "frosted-tree-crown-from-above",
+"drive": "1Am_hACSS9oTDSpoZjCO470qKwkQ9CoAM",
+"titre": "Frosted tree crown from above-7.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.003,
+"couleur": "#807d80",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Arbre givré",
+"cat": "arbre",
+"taille": [
+9,
+9
+],
+"milieux": [
+"foret",
+"campagne",
+"ville"
+],
+"climats": [
+"froid",
+"tempere"
+],
+"saisons": [
+"hiver"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "gardien-de-bronze-en-vue-zenithale",
+"drive": "1Hron4LTm6viS2_5-2YOihmPRe2ZzaU-N",
+"titre": "Gardien de bronze en vue zénithale-29.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.471,
+"couleur": "#4b493e",
+"mips": [
+256,
+512
+],
+"nom": "Statue de bronze",
+"cat": "monument",
+"taille": [
+2.2,
+2.2
+],
+"milieux": [
+"ville",
+"ruine",
+"temple"
+],
+"usage": [
+"place"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "grange-medievale-au-toit-de-chaume",
+"drive": "1Ks-U73rmbJAsgnB-eXJ1JiIvUQXOWA-4",
+"titre": "Grange médiévale au toit de chaume-2.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.889,
+"couleur": "#5b4b3c",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Grange (chaume)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "chaume",
+"taille": [
+14,
+8
+],
+"milieux": [
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"usage": [
+"ferme"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "grappe-de-cinq-champignons-luminescents",
+"drive": "1U9NFjUy9h9hihsqXO6v1SAberuWNGTDk",
+"titre": "Grappe de cinq champignons luminescents (31).png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.026,
+"couleur": "#8a6c63",
+"mips": [
+256,
+512
+],
+"nom": "Champignons luminescents",
+"cat": "souterrain",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"caverne"
+],
+"region": [
+"outreterre"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "grappe-damethystes-fumees-naturelles",
+"drive": "1dW30LiHmzovc5Wpe-N1tL_cwk0itCNwu",
+"titre": "Grappe d’améthystes fumées naturelles (29).png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.003,
+"couleur": "#5d4946",
+"mips": [
+256,
+512
+],
+"nom": "Améthystes",
+"cat": "souterrain",
+"taille": [
+1.4,
+1.4
+],
+"milieux": [
+"caverne",
+"montagne"
+],
+"region": [
+"outreterre",
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "houppier-de-poirier-vue-zenithale",
+"drive": "1Rd9IFprRDhoOQP2WHjVyeyFiT5u_9mH4",
+"titre": "Houppier de poirier, vue zénithale-39.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.948,
+"couleur": "#5a602f",
+"mips": [
+256,
+512
+],
+"nom": "Poirier",
+"cat": "arbre",
+"taille": [
+6,
+6
+],
+"milieux": [
+"campagne",
+"ville"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"printemps",
+"ete",
+"automne"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "isolated-top-down-date-palm-crown",
+"drive": "1n3VFkPeRU0vJgX3aFJLTObGkTmyhWowF",
+"titre": "Isolated Top-Down Date Palm Crown-1.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.977,
+"couleur": "#5e583a",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Palmier dattier",
+"cat": "arbre",
+"taille": [
+8,
+8
+],
+"milieux": [
+"desert",
+"oasis",
+"ville",
+"cote"
+],
+"climats": [
+"chaud",
+"aride"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "jagged-obsidian-outcrop",
+"drive": "1V7-N5Nk7o46GZCYkkXlFxVPRGuZ7PpgO",
+"titre": "Jagged Obsidian Outcrop-23.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.004,
+"couleur": "#2a2725",
+"mips": [
+256,
+512
+],
+"nom": "Obsidienne",
+"cat": "rocher",
+"taille": [
+3,
+3
+],
+"milieux": [
+"volcan",
+"caverne"
+],
+"region": [
+"surface",
+"outreterre"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "lichen-covered-alpine-granite-boulder",
+"drive": "1EEny0Czr5w6xARemqMPhn5z5_sFpqsVj",
+"titre": "Lichen-Covered Alpine Granite Boulder-16.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.078,
+"couleur": "#706d59",
+"mips": [
+256,
+512
+],
+"nom": "Bloc alpin à lichens",
+"cat": "rocher",
+"taille": [
+2.6,
+2.6
+],
+"milieux": [
+"montagne",
+"toundra"
+],
+"climats": [
+"froid",
+"tempere"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "lit-medieval-a-couverture-bordeaux",
+"drive": "13mq3itELyif2cZRIU9l-gW9w3sc7tZN1",
+"titre": "Lit médiéval à couverture bordeaux (28).png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.578,
+"couleur": "#6e3f3c",
+"mips": [
+256,
+512
+],
+"nom": "Lit",
+"cat": "mobilier",
+"taille": [
+1.1,
+2.1
+],
+"milieux": [
+"interieur"
+],
+"usage": [
+"lit"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "manoir-en-u-au-toit-dardoise",
+"drive": "1MauEWmYopr6dPe9vtleUH1spsf9w5VfP",
+"titre": "Manoir en U au toit d’ardoise-13.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.537,
+"couleur": "#515256",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Manoir en U (ardoise)",
+"cat": "toit",
+"forme": "U",
+"materiau": "ardoise",
+"taille": [
+30,
+20
+],
+"milieux": [
+"ville"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"usage": [
+"noble"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "mossy-hollow-stump-with-twisted-roots",
+"drive": "1DKRxidbLqH0FcCGyhxRRled5INmDxlqq",
+"titre": "Mossy Hollow Stump With Twisted Roots-19.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.012,
+"couleur": "#5c4f34",
+"mips": [
+256,
+512
+],
+"nom": "Souche creuse",
+"cat": "bois",
+"taille": [
+2.2,
+2.2
+],
+"milieux": [
+"foret",
+"marais"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "obelisque-sur-monument-a-degres",
+"drive": "12qlMY20sU9wmtY2wWKr3YC2locIYbspj",
+"titre": "Obélisque sur monument à degrés-31.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.015,
+"couleur": "#7f7160",
+"mips": [
+256,
+512
+],
+"nom": "Obélisque",
+"cat": "monument",
+"taille": [
+7,
+7
+],
+"milieux": [
+"ville",
+"ruine"
+],
+"usage": [
+"place"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "overhead-marsh-reeds-with-cattails",
+"drive": "1NEtPDR0e28wDjzyrGoRVFwRZP4LZ5amd",
+"titre": "Overhead marsh reeds with cattails-12.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.9,
+"couleur": "#736b39",
+"mips": [
+256,
+512
+],
+"nom": "Roseaux",
+"cat": "plante-eau",
+"taille": [
+2,
+2
+],
+"milieux": [
+"marais",
+"riviere"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "overhead-snow-capped-granite-boulder",
+"drive": "16vPKKwB4TA08DItF5K9Nj8fNuO-U8Lqn",
+"titre": "Overhead snow-capped granite boulder-9.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.063,
+"couleur": "#aaafb8",
+"mips": [
+256,
+512
+],
+"nom": "Rocher enneigé",
+"cat": "rocher",
+"taille": [
+2.6,
+2.6
+],
+"milieux": [
+"montagne",
+"toundra"
+],
+"climats": [
+"froid"
+],
+"saisons": [
+"hiver"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "overhead-tangle-of-tropical-tree-roots",
+"drive": "1fYfvsBe4FURmZtTeWPrSLMRlkMm-OIv-",
+"titre": "Overhead tangle of tropical tree roots-14.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.99,
+"couleur": "#524430",
+"mips": [
+256,
+512
+],
+"nom": "Racines tropicales",
+"cat": "bois",
+"taille": [
+4,
+4
+],
+"milieux": [
+"jungle",
+"marais"
+],
+"climats": [
+"tropical",
+"chaud"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "overhead-willow-canopy",
+"drive": "1ib0_0ZOVG18ITHL9xgEUMki42PzY__Mc",
+"titre": "Overhead willow canopy-17.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.948,
+"couleur": "#646b47",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Saule",
+"cat": "arbre",
+"taille": [
+10,
+10
+],
+"milieux": [
+"marais",
+"riviere",
+"campagne"
+],
+"climats": [
+"tempere"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "petit-feu-de-camp-aux-braises-ardentes",
+"drive": "157PMBic3thIkg7NGx1sTfASoGHjUgx2R",
+"titre": "Petit feu de camp aux braises ardentes (21).png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.011,
+"couleur": "#74513c",
+"mips": [
+256,
+512
+],
+"nom": "Feu de camp",
+"cat": "feu",
+"taille": [
+1.6,
+1.6
+],
+"milieux": [
+"campagne",
+"foret",
+"caverne",
+"camp"
+],
+"region": [
+"surface",
+"outreterre"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "petit-pommier-vu-du-dessus",
+"drive": "1AflcYhQn6U7XOG2R_c7E9f8p_VMjUQXU",
+"titre": "Petit pommier vu du dessus-38.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.001,
+"couleur": "#4f5b2b",
+"mips": [
+256,
+512
+],
+"nom": "Pommier",
+"cat": "arbre",
+"taille": [
+5,
+5
+],
+"milieux": [
+"campagne",
+"ville"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"printemps",
+"ete",
+"automne"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "petite-charrette-medievale-vue-du-dessus",
+"drive": "1k-wDW5-ZHohQhGEmFsVtjGP_1wr1BgOZ",
+"titre": "Petite charrette médiévale vue du dessus-37.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.565,
+"couleur": "#725f4d",
+"mips": [
+256,
+512
+],
+"nom": "Charrette",
+"cat": "mobilier",
+"taille": [
+1.4,
+2.8
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"usage": [
+"marche",
+"ferme"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "pin-forestier-vu-du-dessus",
+"drive": "16v68S5FQ00fSqwL1PP34XYhp-mUdX9ct",
+"titre": "Pin forestier vu du dessus (4).png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.968,
+"couleur": "#393b24",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Pin sylvestre",
+"cat": "arbre",
+"taille": [
+8,
+8
+],
+"milieux": [
+"foret",
+"montagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "pont-medieval-en-pierre-vu-du-dessus",
+"drive": "1O8UaiYJNnOyQmZ3RXDAH6cgjCp2Yz5mp",
+"titre": "Pont médiéval en pierre vu du dessus-44.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.412,
+"couleur": "#787268",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Pont de pierre",
+"cat": "pont",
+"taille": [
+3.5,
+14
+],
+"milieux": [
+"ville",
+"campagne",
+"riviere"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "prop-medieval-isole-en-vue-zenithale",
+"drive": "1l-mRRFd9MhsQ6yeQBhznmQ2EKJLIRn-J",
+"titre": "Prop médiéval isolé en vue zénithale (20).png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.655,
+"couleur": "#604434",
+"mips": [
+256,
+512
+],
+"nom": "Coffre ferré",
+"cat": "mobilier",
+"taille": [
+1.4,
+0.95
+],
+"milieux": [
+"interieur"
+],
+"usage": [
+"coffre"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "puits-de-village-medieval-en-plan",
+"drive": "13xeZ0sswYq1sA1sKMdIDid_yNppaBvxR",
+"titre": "Puits de village médiéval en plan-28.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.0,
+"couleur": "#645946",
+"mips": [
+256,
+512
+],
+"nom": "Puits de village",
+"cat": "monument",
+"taille": [
+2.4,
+2.4
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"usage": [
+"place"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "puits-rustique-vu-du-dessus",
+"drive": "1IS9MoYLxmQH-HXT7JBYtsAbNjbfako1p",
+"titre": "Puits rustique vu du dessus-27.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.017,
+"couleur": "#665c4e",
+"mips": [
+256,
+512
+],
+"nom": "Puits rustique",
+"cat": "monument",
+"taille": [
+2.2,
+2.2
+],
+"milieux": [
+"campagne",
+"ville"
+],
+"usage": [
+"place"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "rocher-de-granit-fissure",
+"drive": "1kSNFm0xg3jlm3ysihJkicvgEqkpeYTLs",
+"titre": "Rocher de granit fissuré (1).png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.02,
+"couleur": "#645c4f",
+"mips": [
+256,
+512
+],
+"nom": "Rocher de granit",
+"cat": "rocher",
+"taille": [
+2.6,
+2.6
+],
+"milieux": [
+"montagne",
+"campagne",
+"foret"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "sarcophage-ancien-au-chevalier-sculpte",
+"drive": "1LNPIGu9CSYa_MEaozlNjvOwEQI-hx7nD",
+"titre": "Sarcophage ancien au chevalier sculpté (25).png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.511,
+"couleur": "#544a3d",
+"mips": [
+256,
+512
+],
+"nom": "Sarcophage",
+"cat": "mobilier",
+"taille": [
+1.1,
+2.4
+],
+"milieux": [
+"interieur",
+"crypte",
+"ruine"
+],
+"usage": [
+"tombeau"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "snow-dusted-fir-canopy-from-above",
+"drive": "1pNh88YQFCMCYt-Y6vsOndZu5mGQxZfbb",
+"titre": "Snow-dusted fir canopy from above-5.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.012,
+"couleur": "#6e706a",
+"mips": [
+256,
+512
+],
+"nom": "Sapin enneigé",
+"cat": "arbre",
+"taille": [
+6,
+6
+],
+"milieux": [
+"foret",
+"montagne"
+],
+"climats": [
+"froid"
+],
+"saisons": [
+"hiver"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "sommet-circulaire-dune-colonne-brisee",
+"drive": "19ofkI2mZDEadp4x6mUhKdOGSJIZbiT7i",
+"titre": "Sommet circulaire d’une colonne brisée (30).png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.01,
+"couleur": "#a39f98",
+"mips": [
+256,
+512
+],
+"nom": "Colonne brisée",
+"cat": "ruine",
+"taille": [
+1.2,
+1.2
+],
+"milieux": [
+"ruine",
+"temple",
+"interieur"
+],
+"usage": [
+"colonne"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "souche-de-colonne-antique-brisee",
+"drive": "1OoHNhJVTX4qcUBKOe0vTiR8oevjIrWK_",
+"titre": "Souche de colonne antique brisée (24).png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.883,
+"couleur": "#635648",
+"mips": [
+256,
+512
+],
+"nom": "Base de colonne",
+"cat": "ruine",
+"taille": [
+1.4,
+1.4
+],
+"milieux": [
+"ruine",
+"temple"
+],
+"usage": [
+"colonne"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "sparse-umbrella-acacia-canopy",
+"drive": "10GlVlCQSwO9TWQ4W2BmFhBmn8n8Nk8VB",
+"titre": "Sparse umbrella acacia canopy-4.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.03,
+"couleur": "#4b492d",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Acacia",
+"cat": "arbre",
+"taille": [
+12,
+12
+],
+"milieux": [
+"savane",
+"desert"
+],
+"climats": [
+"chaud",
+"aride"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "table-medievale-en-chene-vue-du-dessus",
+"drive": "1SkNcZCTdSNULMuEWkbwTl5ypaZTSlsdj",
+"titre": "Table médiévale en chêne vue du dessus (3).png",
+"type": "element",
+"vue": "zenith",
+"ratio": 2.03,
+"couleur": "#624734",
+"mips": [
+256,
+512
+],
+"nom": "Table de chêne",
+"cat": "mobilier",
+"taille": [
+2.4,
+1.2
+],
+"milieux": [
+"interieur"
+],
+"usage": [
+"table"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "tangled-olive-kelp-with-amber-air-bladders",
+"drive": "1OH9mjj8rbJTaQOKJSxs9zh2At7V0c3BI",
+"titre": "Tangled olive kelp with amber air bladders-20.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.116,
+"couleur": "#664817",
+"mips": [
+256,
+512
+],
+"nom": "Varech",
+"cat": "plante-eau",
+"taille": [
+2,
+2
+],
+"milieux": [
+"mer",
+"cote"
+],
+"region": [
+"mer",
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "toit-carre-de-cabane-medievale",
+"drive": "1-Qffz8Pn_qcN5k8Q0q8G47hK8noXDHVi",
+"titre": "Toit carré de cabane médiévale-4.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.004,
+"couleur": "#5d5348",
+"mips": [
+256,
+512
+],
+"nom": "Cabane (bardeaux)",
+"cat": "toit",
+"forme": "carre",
+"materiau": "bardeaux",
+"taille": [
+6,
+6
+],
+"milieux": [
+"campagne",
+"foret",
+"ville"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"usage": [
+"maison"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-conique-en-ardoise-vu-du-dessus",
+"drive": "1FPvcKoMA_JCABRVkDIPTD2StV_qvMK9z",
+"titre": "Toit conique en ardoise vu du dessus-20.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.002,
+"couleur": "#515357",
+"mips": [
+256,
+512
+],
+"nom": "Tour (ardoise)",
+"cat": "toit",
+"forme": "rond",
+"materiau": "ardoise",
+"taille": [
+7,
+7
+],
+"milieux": [
+"ville"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"usage": [
+"tour"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-cruciforme-en-cuivre-patine",
+"drive": "1Fz6fGnnvy0CszEdUBxEM5l-Ct5TkwUkz",
+"titre": "Toit cruciforme en cuivre patiné-24.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.995,
+"couleur": "#4b6252",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Temple cruciforme (cuivre)",
+"cat": "toit",
+"forme": "croix",
+"materiau": "cuivre",
+"taille": [
+18,
+18
+],
+"milieux": [
+"ville"
+],
+"usage": [
+"temple"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-de-chaume-medieval-vu-du-dessus",
+"drive": "1s4FHWdVjUjP97DGMUaPKiUDak4dmWJ2G",
+"titre": "Toit de chaume médiéval vu du dessus-3.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.643,
+"couleur": "#a17f53",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Chaumière",
+"cat": "toit",
+"forme": "rect",
+"materiau": "chaume",
+"taille": [
+6,
+11
+],
+"milieux": [
+"campagne",
+"ville"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"usage": [
+"maison",
+"ferme"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-de-ferme-medievale-en-chaume",
+"drive": "18-KfCo84_NN7BLRsKCMvI_AUvKi79n3_",
+"titre": "Toit de ferme médiévale en chaume-1.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 2.581,
+"couleur": "#76624e",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Longère (chaume)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "chaume",
+"taille": [
+13,
+5
+],
+"milieux": [
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"usage": [
+"ferme",
+"maison"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-dadobe-medieval-trappe-et-jarres",
+"drive": "1ByLu4Z8Dl1gtq-X6wh8po4_X5yvcxjC0",
+"titre": "Toit d’adobe médiéval, trappe et jarres-18.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.57,
+"couleur": "#b2906d",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison d’adobe",
+"cat": "toit",
+"forme": "rect",
+"materiau": "adobe",
+"taille": [
+9,
+7
+],
+"milieux": [
+"ville",
+"desert"
+],
+"climats": [
+"chaud",
+"aride"
+],
+"usage": [
+"maison",
+"atelier"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-dardoise-en-t-vue-aerienne",
+"drive": "1H-tvCNYLVkr2XFfRjVvtLDdUHTgvBATW",
+"titre": "Toit d’ardoise en T, vue aérienne-19.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.222,
+"couleur": "#4e5052",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Bâtisse en T (ardoise)",
+"cat": "toit",
+"forme": "T",
+"materiau": "ardoise",
+"taille": [
+14,
+14
+],
+"milieux": [
+"ville"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"usage": [
+"civique",
+"maison"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-datelier-medieval-en-l",
+"drive": "13yPDzoXxL7mGSzzS670djsNnBfjXCU1f",
+"titre": "Toit d’atelier médiéval en L-6.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.004,
+"couleur": "#3d3832",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Atelier en L (bardeaux)",
+"cat": "toit",
+"forme": "L",
+"materiau": "bardeaux",
+"taille": [
+12,
+12
+],
+"milieux": [
+"ville"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"usage": [
+"atelier"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-dauberge-en-t-ardoise-patinee",
+"drive": "1_1_X19YQ6k9tF9kgieMUMcWWt5ArGQZw",
+"titre": "Toit d’auberge en T, ardoise patinée-10.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.559,
+"couleur": "#4c4b4a",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Auberge en T (ardoise)",
+"cat": "toit",
+"forme": "T",
+"materiau": "ardoise",
+"taille": [
+20,
+13
+],
+"milieux": [
+"ville"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"usage": [
+"auberge",
+"civique"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-en-l-medieval-en-terre-cuite",
+"drive": "1hbZJGtTD1EewkleRt-FNWRVU-PioCRJO",
+"titre": "Toit en L médiéval en terre cuite-14.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.061,
+"couleur": "#965b3e",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison en L (terre cuite)",
+"cat": "toit",
+"forme": "L",
+"materiau": "terre-cuite",
+"taille": [
+12,
+12
+],
+"milieux": [
+"ville"
+],
+"climats": [
+"tempere",
+"chaud"
+],
+"usage": [
+"maison",
+"atelier"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-en-ardoise-vue-du-dessus",
+"drive": "1lmiXQmrqukUjuQRrrkTtp_uEhlWuofYP",
+"titre": "Toit en ardoise, vue du dessus-16.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.513,
+"couleur": "#494848",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison (ardoise)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "ardoise",
+"taille": [
+11,
+7
+],
+"milieux": [
+"ville"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"usage": [
+"maison",
+"civique"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-en-tourbe-medieval-vu-du-dessus",
+"drive": "1XZwGUD2L43cHdVcHLpg6HDT0V7UdUNAm",
+"titre": "Toit en tourbe médiéval vu du dessus-21.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.389,
+"couleur": "#51522f",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison de tourbe",
+"cat": "toit",
+"forme": "rect",
+"materiau": "tourbe",
+"taille": [
+10,
+6
+],
+"milieux": [
+"campagne",
+"toundra"
+],
+"climats": [
+"froid"
+],
+"usage": [
+"maison",
+"ferme"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-medieval-en-bardeaux-de-cedre",
+"drive": "14VJymTz6L05U4RTX8Ghrqy1Na1RrSoat",
+"titre": "Toit médiéval en bardeaux de cèdre-8.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.675,
+"couleur": "#4e453e",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison (bardeaux de cèdre)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "bardeaux",
+"taille": [
+7,
+11
+],
+"milieux": [
+"ville",
+"foret"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"usage": [
+"maison"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-medieval-en-pierre-avec-trappe",
+"drive": "1PJxcBL2t3RCykbDK3bNwpBynI-RffxaM",
+"titre": "Toit médiéval en pierre avec trappe-17.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.023,
+"couleur": "#a59887",
+"mips": [
+256,
+512
+],
+"nom": "Toit-terrasse de pierre",
+"cat": "toit",
+"forme": "carre",
+"materiau": "pierre",
+"taille": [
+8,
+8
+],
+"milieux": [
+"ville",
+"desert"
+],
+"climats": [
+"chaud",
+"aride",
+"tempere"
+],
+"usage": [
+"maison",
+"atelier"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-medieval-en-terre-cuite",
+"drive": "1t9sDSDbCERLQzU5pPNly4FqAirTiqjjS",
+"titre": "Toit médiéval en terre cuite-15.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.998,
+"couleur": "#865942",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison longue (terre cuite)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "terre-cuite",
+"taille": [
+11,
+5
+],
+"milieux": [
+"ville"
+],
+"climats": [
+"tempere",
+"chaud"
+],
+"usage": [
+"maison"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-medieval-en-tuiles-de-terre-cuite",
+"drive": "1QS4dcEDkO9j7ZF5e6e8-JKrYRUhlcnUx",
+"titre": "Toit médiéval en tuiles de terre cuite-12.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.953,
+"couleur": "#794b37",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison (tuiles)",
+"cat": "toit",
+"forme": "carre",
+"materiau": "terre-cuite",
+"taille": [
+10,
+10
+],
+"milieux": [
+"ville"
+],
+"climats": [
+"tempere",
+"chaud"
+],
+"usage": [
+"maison",
+"civique"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "toiture-medievale-en-u-vue-du-dessus",
+"drive": "1qP4arM24cHFZ0FNDk598g3rs4-INUd0l",
+"titre": "Toiture médiévale en U, vue du dessus-22.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.073,
+"couleur": "#4b4c4d",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Bâtisse en U (ardoise)",
+"cat": "toit",
+"forme": "U",
+"materiau": "ardoise",
+"taille": [
+16,
+16
+],
+"milieux": [
+"ville"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"usage": [
+"civique",
+"noble"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "top-down-basalt-column-cluster",
+"drive": "1rGKvcgZ_3uHZLw9ii1Dp9NBEzVs7Y167",
+"titre": "Top-Down Basalt Column Cluster-21.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.923,
+"couleur": "#484644",
+"mips": [
+256,
+512
+],
+"nom": "Orgues basaltiques",
+"cat": "rocher",
+"taille": [
+3,
+3
+],
+"milieux": [
+"volcan",
+"cote",
+"caverne"
+],
+"region": [
+"surface",
+"outreterre"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "top-down-leafless-tree-crown",
+"drive": "1xOpkaj9z49XvuunjzJPX2tHYtOwpYODk",
+"titre": "Top-Down Leafless Tree Crown-25.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.999,
+"couleur": "#52483e",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Arbre dénudé",
+"cat": "arbre",
+"taille": [
+9,
+9
+],
+"milieux": [
+"foret",
+"campagne",
+"ville"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [
+"hiver",
+"automne"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "top-down-trio-of-fern-rosettes",
+"drive": "1WKyxj9C4tDPKw6eem_Fe4OtVpAtigXj0",
+"titre": "Top-Down Trio of Fern Rosettes-8.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.018,
+"couleur": "#45552a",
+"mips": [
+256,
+512
+],
+"nom": "Fougères",
+"cat": "arbuste",
+"taille": [
+1.6,
+1.6
+],
+"milieux": [
+"foret",
+"jungle"
+],
+"climats": [
+"tempere",
+"tropical"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "top-down-lily-pad-cluster",
+"drive": "1haYO9gSvTftFw7k9aUIFlpSoTB4qczGV",
+"titre": "Top-down lily pad cluster-15.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.007,
+"couleur": "#6b7c25",
+"mips": [
+256,
+512
+],
+"nom": "Nénuphars",
+"cat": "plante-eau",
+"taille": [
+2,
+2
+],
+"milieux": [
+"marais",
+"riviere",
+"lac"
+],
+"climats": [
+"tempere",
+"tropical"
+],
+"saisons": [
+"printemps",
+"ete"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "top-down-terracotta-coral-colony",
+"drive": "1rE11o39ndT9d-cZdQl9CnedCUjFbMRp1",
+"titre": "Top-down terracotta coral colony-22.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.989,
+"couleur": "#9a5640",
+"mips": [
+256,
+512
+],
+"nom": "Corail",
+"cat": "plante-eau",
+"taille": [
+2,
+2
+],
+"milieux": [
+"mer"
+],
+"climats": [
+"chaud",
+"tropical"
+],
+"region": [
+"mer"
+],
+"saisons": []
+},
+{
+"id": "top-down-trio-of-barrel-cacti",
+"drive": "1qnhpb5jMFpq3v6rMidasSUZKD0Vy8ZLS",
+"titre": "Top-down trio of barrel cacti-2.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.969,
+"couleur": "#6d6342",
+"mips": [
+256,
+512
+],
+"nom": "Cactus",
+"cat": "arbuste",
+"taille": [
+1.3,
+1.3
+],
+"milieux": [
+"desert"
+],
+"climats": [
+"chaud",
+"aride"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "top-down-tropical-fan-palm-crown",
+"drive": "14pNzwOw1j9l9DOVj6NnGjPRC4jWHoOPk",
+"titre": "Top-down tropical fan palm crown-11.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.976,
+"couleur": "#40522b",
+"mips": [
+256,
+512
+],
+"nom": "Palmier éventail",
+"cat": "arbre",
+"taille": [
+5,
+5
+],
+"milieux": [
+"jungle",
+"cote",
+"ville"
+],
+"climats": [
+"chaud",
+"tropical"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "trio-de-stalagmites-calcaires-annelees",
+"drive": "1WWcSPy8_fB4zARaLtbx6f3vXrj2ixVRC",
+"titre": "Trio de stalagmites calcaires annelées (26).png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.978,
+"couleur": "#6f5d48",
+"mips": [
+256,
+512
+],
+"nom": "Stalagmites",
+"cat": "souterrain",
+"taille": [
+2.5,
+2.5
+],
+"milieux": [
+"caverne"
+],
+"region": [
+"outreterre"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "trio-de-stalagmites-calcaires-en-vue-zenithale",
+"drive": "17aXqSfG6ePa_MSguN22MnfSIJsnzWV3n",
+"titre": "Trio de stalagmites calcaires en vue zénithale (32).png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.012,
+"couleur": "#887761",
+"mips": [
+256,
+512
+],
+"nom": "Stalagmites",
+"cat": "souterrain",
+"taille": [
+2.5,
+2.5
+],
+"milieux": [
+"caverne"
+],
+"region": [
+"outreterre"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "trois-arbustes-fleuris-en-vue-zenithale",
+"drive": "1ZvcGXTO1xtA_NgqMbBbjfq2xmlSDeW_o",
+"titre": "Trois arbustes fleuris en vue zénithale-43.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.988,
+"couleur": "#606b3d",
+"mips": [
+256,
+512
+],
+"nom": "Arbustes fleuris",
+"cat": "arbuste",
+"taille": [
+2.5,
+2.5
+],
+"milieux": [
+"ville",
+"campagne",
+"jardin"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"printemps",
+"ete"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "tronc-de-chene-mort-ecorche",
+"drive": "1xVFPZAWjeK2xtu8muGISh-bUH8NksBVQ",
+"titre": "Tronc de chêne mort écorché (9).png",
+"type": "element",
+"vue": "zenith",
+"ratio": 2.134,
+"couleur": "#68533d",
+"mips": [
+256,
+512
+],
+"nom": "Tronc mort",
+"cat": "bois",
+"taille": [
+5,
+1.6
+],
+"milieux": [
+"foret",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "tropical-tree-canopy-from-above",
+"drive": "1cML-hec7RVRNa_bnAr6xY1uOObxvypET",
+"titre": "Tropical tree canopy from above-6.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.001,
+"couleur": "#364021",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Arbre tropical",
+"cat": "arbre",
+"taille": [
+14,
+14
+],
+"milieux": [
+"jungle"
+],
+"climats": [
+"tropical",
+"chaud"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "weathered-silver-driftwood-trunk",
+"drive": "1xpfrqsscV29fAjrE_WUjbM3nWHgx1XSw",
+"titre": "Weathered Silver Driftwood Trunk-18.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.055,
+"couleur": "#7d756f",
+"mips": [
+256,
+512
+],
+"nom": "Bois flotté",
+"cat": "bois",
+"taille": [
+4,
+2
+],
+"milieux": [
+"cote",
+"riviere"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "weathered-basalt-hex-tile-cluster",
+"drive": "1shtL60WgZWuM1BVkDb-i60IJzS1QiyzU",
+"titre": "Weathered basalt hex tile cluster-24.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.069,
+"couleur": "#4a4845",
+"mips": [
+256,
+512
+],
+"nom": "Dalles de basalte",
+"cat": "rocher",
+"taille": [
+2.6,
+2.6
+],
+"milieux": [
+"volcan",
+"cote",
+"caverne"
+],
+"region": [
+"surface",
+"outreterre"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "wind-eroded-sandstone-boulder",
+"drive": "1AdMyIILUlO53Zqu-9NwTEZ2AoF2jb6Rn",
+"titre": "Wind-Eroded Sandstone Boulder-3.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.07,
+"couleur": "#9b5837",
+"mips": [
+256,
+512
+],
+"nom": "Rocher de grès",
+"cat": "rocher",
+"taille": [
+3,
+3
+],
+"milieux": [
+"desert",
+"badlands"
+],
+"climats": [
+"chaud",
+"aride"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "etal-medieval-vu-du-ciel",
+"drive": "1cflsHj3zV40aaWbdcAgMQTyBiZAaGz5b",
+"titre": "Étal médiéval vu du ciel-36.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.305,
+"couleur": "#94685b",
+"mips": [
+256,
+512
+],
+"nom": "Étal de marché",
+"cat": "marche",
+"taille": [
+3,
+3
+],
+"milieux": [
+"ville"
+],
+"usage": [
+"marche"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "apple-merchant-in-ochre-headscarf",
+"drive": "12y3IJJ5yko73xajtRvu8Z7-zoBoWb7Ui",
+"titre": "Apple Merchant in Ochre Headscarf-1.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#422c1f",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Marchande de pommes",
+"peuple": "humain",
+"genre": "f",
+"roles": [
+"marchand",
+"marche",
+"villageois"
+],
+"paire": "top-down-dark-fantasy-apple-basket-token-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "auburn-haired-servant-with-wooden-bucket",
+"drive": "1nox0kLHoVBleIFH9ygMF8e99fpownNkU",
+"titre": "Auburn-Haired Servant with Wooden Bucket-18.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#393028",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Servante au seau",
+"peuple": "humain",
+"genre": "f",
+"roles": [
+"servante",
+"domestique",
+"serveur",
+"villageois"
+],
+"paire": "overhead-dark-fantasy-bucket-bearer-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "braided-girl-with-a-wooden-horse",
+"drive": "1JuE0LPDqW98mOFbb28eNuf64NOXcqmdS",
+"titre": "Braided girl with a wooden horse-4.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#29211b",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Fillette au cheval de bois",
+"peuple": "humain",
+"genre": "f",
+"roles": [
+"enfant"
+],
+"paire": "overhead-child-with-wooden-toy-horse-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "cheerful-halfling-tavern-server",
+"drive": "1sLMIpO1UycNFsHD1owBL5r2Qk5D8_uLX",
+"titre": "Cheerful Halfling Tavern Server-5.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#3c2d20",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Serveur halfelin",
+"peuple": "halfelin",
+"genre": "m",
+"roles": [
+"serveur",
+"tavernier",
+"aubergiste"
+],
+"paire": "overhead-dark-fantasy-map-token-with-tray-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "chiaroscuro-dwarf-laborer-portrait",
+"drive": "1vjGuMQigWqjF7n2oMoYu8O65SwR3Yqj_",
+"titre": "Chiaroscuro Dwarf Laborer Portrait-2.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#2c251e",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Manœuvre nain",
+"peuple": "nain",
+"genre": "m",
+"roles": [
+"ouvrier",
+"porteur",
+"mineur",
+"villageois"
+],
+"paire": "overhead-dark-fantasy-dwarf-token-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "city-watch-captain-portrait",
+"drive": "1TXl9SopucMKEmOg_F7Bylwf_vGZH0pmr",
+"titre": "City Watch Captain Portrait-3.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#2d231e",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Capitaine du guet",
+"peuple": "humain",
+"genre": "f",
+"roles": [
+"garde",
+"capitaine",
+"soldat",
+"officier"
+],
+"paire": "overhead-darksteel-officer-with-tower-badge-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "copper-skinned-elf-with-woven-satchel",
+"drive": "1U5-rDAt4XVQC27DDAZLxg3IBJcjM6TsL",
+"titre": "Copper-skinned elf with woven satchel-8.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#2c221a",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Elfe voyageuse",
+"peuple": "elfe",
+"genre": "f",
+"roles": [
+"voyageur",
+"marchand",
+"pelerin"
+],
+"paire": "loresmith-traveler-in-overhead-conversation-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "cross-legged-cloaked-figure-with-wooden-bowl-jeton",
+"drive": "1BxeT9B6vT4kbJrUc0aDJx8iWiqCk2fbH",
+"titre": "Cross-legged cloaked figure with wooden bowl-12.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 1.016,
+"couleur": "#5a4233",
+"mips": [
+256,
+512
+],
+"nom": "Mendiant",
+"peuple": "humain",
+"genre": "m",
+"roles": [
+"mendiant",
+"vagabond"
+],
+"paire": "weathered-beggar-with-empty-bowl",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "dark-fantasy-overhead-game-token-jeton",
+"drive": "13psqpvkMKPHBXJ7lJTVGJfRS_zC_QFBf",
+"titre": "Dark fantasy overhead game token-9.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 1.033,
+"couleur": "#5e4128",
+"mips": [
+256,
+512
+],
+"nom": "Marchand demi-orque",
+"peuple": "demi-orque",
+"genre": "m",
+"roles": [
+"marchand",
+"boutiquier",
+"negociant"
+],
+"paire": "loresmith-half-orc-merchant",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "elderly-gnome-scholar-with-open-book",
+"drive": "1kMsvMgEMtQi9O0pqsj5poTD0VeCqJJPc",
+"titre": "Elderly Gnome Scholar with Open Book-8.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#382a21",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Vieille érudite gnome",
+"peuple": "gnome",
+"genre": "f",
+"roles": [
+"erudit",
+"savant",
+"mage",
+"archiviste",
+"scribe"
+],
+"paire": "overhead-gnome-scholar-reading-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "elderly-halfling-villager-portrait",
+"drive": "1hqsPd4hPE7movYzbslkhDKRFq4PXuZQp",
+"titre": "Elderly Halfling Villager Portrait-3.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#362a1f",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Vieil halfelin",
+"peuple": "halfelin",
+"genre": "m",
+"roles": [
+"villageois",
+"ancien",
+"fermier"
+],
+"paire": "overhead-halfling-traveler-with-a-staff-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "elven-pickpocket-in-a-charcoal-hood",
+"drive": "1iNzVVHwpP0Rekhob1f6dzFUMkzdyfLKS",
+"titre": "Elven Pickpocket in a Charcoal Hood-17.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#221a15",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Pickpocket elfe",
+"peuple": "elfe",
+"genre": "m",
+"roles": [
+"voleur",
+"espion",
+"vagabond"
+],
+"paire": "overhead-sneaking-map-token-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "half-elf-healer-with-folded-linen",
+"drive": "1RSIWFN1F676FrcIbtmgue5XqSkXniFb_",
+"titre": "Half-Elf Healer with Folded Linen-14.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#3b3128",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Guérisseuse demi-elfe",
+"peuple": "demi-elfe",
+"genre": "f",
+"roles": [
+"soigneur",
+"guerisseur",
+"herboriste",
+"servante"
+],
+"paire": "overhead-dark-fantasy-medic-token-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "half-orc-dock-porter-with-wooden-crate",
+"drive": "1S-cgXGyeRycRsb_N1V04vMTPL_eOkVOx",
+"titre": "Half-orc dock porter with wooden crate-12.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#34261d",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Docker demi-orque",
+"peuple": "demi-orque",
+"genre": "m",
+"roles": [
+"porteur",
+"docker",
+"ouvrier",
+"marin"
+],
+"paire": "overhead-traveler-carrying-a-wooden-crate-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "kneeling-healer-with-unrolled-bandage-jeton",
+"drive": "1vYZoCA9mYUdtOL4yIde7mI9cVA64eXhK",
+"titre": "Kneeling healer with unrolled bandage-27.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.732,
+"couleur": "#6d5945",
+"mips": [
+256,
+512
+],
+"nom": "Guérisseuse agenouillée",
+"peuple": "demi-elfe",
+"genre": "f",
+"roles": [
+"soigneur",
+"guerisseur"
+],
+"pose": "agenouille",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "kneeling-prayer-adventurer-token-jeton",
+"drive": "1u51sy2Jto44kqkxPzNeyH-3Ey7GmwSRP",
+"titre": "Kneeling prayer adventurer token-28.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.695,
+"couleur": "#463228",
+"mips": [
+256,
+512
+],
+"nom": "Pèlerine en prière",
+"peuple": "nain",
+"genre": "f",
+"roles": [
+"pelerin",
+"fidele"
+],
+"pose": "agenouille",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "loresmith-half-orc-merchant",
+"drive": "1Qk5soCLcX7J6BLQ4aKJtfcOsy80KDzOH",
+"titre": "LoreSmith Half-Orc Merchant-5.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#3c2e20",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Marchand demi-orque",
+"peuple": "demi-orque",
+"genre": "m",
+"roles": [
+"marchand",
+"boutiquier",
+"negociant"
+],
+"paire": "dark-fantasy-overhead-game-token-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "loresmith-resting-with-a-bandaged-arm-jeton",
+"drive": "1PtcaY-lFNwy7OfSYB1BHucmppZwrUEN3",
+"titre": "LoreSmith resting with a bandaged arm-32.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.698,
+"couleur": "#523d30",
+"mips": [
+256,
+512
+],
+"nom": "Blessé au repos",
+"peuple": "nain",
+"genre": "m",
+"roles": [
+"blesse",
+"ouvrier"
+],
+"pose": "assis",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "loresmith-traveler-in-overhead-conversation-jeton",
+"drive": "1jcLCTCjTLHQ1T3b_zKqwOymlAhdkaC5G",
+"titre": "LoreSmith traveler in overhead conversation-26.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.576,
+"couleur": "#503b29",
+"mips": [
+256,
+512
+],
+"nom": "Elfe voyageuse",
+"peuple": "elfe",
+"genre": "f",
+"roles": [
+"voyageur",
+"marchand",
+"pelerin"
+],
+"paire": "copper-skinned-elf-with-woven-satchel",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-blacksmith-with-hammer-and-tongs-jeton",
+"drive": "1g4dxNWQ2jR8QLOwapx5p1mA1lm682ag4",
+"titre": "Overhead Blacksmith with Hammer and Tongs-10.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.892,
+"couleur": "#543f30",
+"mips": [
+256,
+512
+],
+"nom": "Forgeronne demi-orque",
+"peuple": "demi-orque",
+"genre": "f",
+"roles": [
+"forgeron",
+"armurier",
+"artisan"
+],
+"paire": "soot-marked-half-orc-blacksmith",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-child-with-wooden-toy-horse-jeton",
+"drive": "1YDtiUJ30pfwTV0M_YMll7ZMHl_VVJuvv",
+"titre": "Overhead child with wooden toy horse-15.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.603,
+"couleur": "#4a3a32",
+"mips": [
+256,
+512
+],
+"nom": "Fillette au cheval de bois",
+"peuple": "humain",
+"genre": "f",
+"roles": [
+"enfant"
+],
+"paire": "braided-girl-with-a-wooden-horse",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-dark-fantasy-bucket-bearer-jeton",
+"drive": "1Ow0-UT_-HgsDft6o6xWO4g6a_lo9vdy0",
+"titre": "Overhead dark fantasy bucket bearer-24.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.63,
+"couleur": "#735d4c",
+"mips": [
+256,
+512
+],
+"nom": "Servante au seau",
+"peuple": "humain",
+"genre": "f",
+"roles": [
+"servante",
+"domestique",
+"serveur",
+"villageois"
+],
+"paire": "auburn-haired-servant-with-wooden-bucket",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-dark-fantasy-dwarf-token-jeton",
+"drive": "1Q0fkEIc-88Pv-RXB_ppTZrXSgCcjnZuD",
+"titre": "Overhead dark fantasy dwarf token-9.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.685,
+"couleur": "#533f33",
+"mips": [
+256,
+512
+],
+"nom": "Manœuvre nain",
+"peuple": "nain",
+"genre": "m",
+"roles": [
+"ouvrier",
+"porteur",
+"mineur",
+"villageois"
+],
+"paire": "chiaroscuro-dwarf-laborer-portrait",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-dark-fantasy-game-token-jeton",
+"drive": "1goOlR9h8XKY99mLtvpcIS3z0zHkD9-TB",
+"titre": "Overhead dark fantasy game token-8.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.759,
+"couleur": "#8b7561",
+"mips": [
+256,
+512
+],
+"nom": "Prêtresse elfe",
+"peuple": "elfe",
+"genre": "f",
+"roles": [
+"pretre",
+"pretresse",
+"clerc",
+"oracle"
+],
+"paire": "silver-crowned-elven-priestess",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-dark-fantasy-map-token-with-tray-jeton",
+"drive": "1Tv_LLpuJCxqznOVAfAxAgtpBIdOOGYwH",
+"titre": "Overhead dark fantasy map token with tray-9.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.801,
+"couleur": "#694b34",
+"mips": [
+256,
+512
+],
+"nom": "Serveur halfelin",
+"peuple": "halfelin",
+"genre": "m",
+"roles": [
+"serveur",
+"tavernier",
+"aubergiste"
+],
+"paire": "cheerful-halfling-tavern-server",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-dark-fantasy-map-token-jeton",
+"drive": "1dzD5xKRibri42li5K8-O4cSEaREIl_mC",
+"titre": "Overhead dark fantasy map token-16.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.552,
+"couleur": "#4f3c2c",
+"mips": [
+256,
+512
+],
+"nom": "Elfe en robe verte",
+"peuple": "elfe",
+"genre": "f",
+"roles": [
+"voyageur",
+"villageois",
+"client"
+],
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-dark-fantasy-medic-token-jeton",
+"drive": "1kFSP-33CEYvPhAh4XxMJxo1jxEpMSqQM",
+"titre": "Overhead dark fantasy medic token-21.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.588,
+"couleur": "#6d5a48",
+"mips": [
+256,
+512
+],
+"nom": "Guérisseuse demi-elfe",
+"peuple": "demi-elfe",
+"genre": "f",
+"roles": [
+"soigneur",
+"guerisseur",
+"herboriste",
+"servante"
+],
+"paire": "half-elf-healer-with-folded-linen",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-dark-fantasy-sickle-token-jeton",
+"drive": "10i1alBDclXGAoiGPMdAGKSv5R_yRG5oq",
+"titre": "Overhead dark fantasy sickle token-7.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.585,
+"couleur": "#6a482f",
+"mips": [
+256,
+512
+],
+"nom": "Fermière à la faucille",
+"peuple": "humain",
+"genre": "f",
+"roles": [
+"fermier",
+"paysan",
+"villageois"
+],
+"paire": "weathered-farmer-with-a-sickle",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-dark-fantasy-traveler-token-jeton",
+"drive": "1sMgcBlP1l7nIh2qELWrar0f4SZv4ru7d",
+"titre": "Overhead dark-fantasy traveler token-19.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.596,
+"couleur": "#573f31",
+"mips": [
+256,
+512
+],
+"nom": "Voyageur tieffelin",
+"peuple": "tieffelin",
+"genre": "m",
+"roles": [
+"voyageur",
+"aventurier",
+"pelerin"
+],
+"paire": "weary-tiefling-traveler-portrait",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-darksteel-officer-with-tower-badge-jeton",
+"drive": "10ya8djF9z2r7Uj1meofTGRj38M-b6a1m",
+"titre": "Overhead darksteel officer with tower badge-6.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.879,
+"couleur": "#3b2b23",
+"mips": [
+256,
+512
+],
+"nom": "Capitaine du guet",
+"peuple": "humain",
+"genre": "f",
+"roles": [
+"garde",
+"capitaine",
+"soldat",
+"officier"
+],
+"paire": "city-watch-captain-portrait",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-dwarf-with-staff-and-backpack-jeton",
+"drive": "16cohRxm0G4JXAuihNXIjJh_8UUJMiAQq",
+"titre": "Overhead dwarf with staff and backpack-20.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.745,
+"couleur": "#483126",
+"mips": [
+256,
+512
+],
+"nom": "Pèlerine naine",
+"peuple": "nain",
+"genre": "f",
+"roles": [
+"pelerin",
+"voyageur",
+"fidele"
+],
+"paire": "weathered-dwarf-pilgrim-portrait",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-gnome-scholar-reading-jeton",
+"drive": "1_GTFVaMR4ZzM1HqwWPCAnSN9K6_oJLdY",
+"titre": "Overhead gnome scholar reading-11.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.738,
+"couleur": "#50392d",
+"mips": [
+256,
+512
+],
+"nom": "Vieille érudite gnome",
+"peuple": "gnome",
+"genre": "f",
+"roles": [
+"erudit",
+"savant",
+"mage",
+"archiviste",
+"scribe"
+],
+"paire": "elderly-gnome-scholar-with-open-book",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-gnome-token-with-wooden-tool-jeton",
+"drive": "17SRYuwvZWb3RaPt5Be9zKWr-rU8sEYEX",
+"titre": "Overhead gnome token with wooden tool-13.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.565,
+"couleur": "#674f3c",
+"mips": [
+256,
+512
+],
+"nom": "Apprenti gnome",
+"peuple": "gnome",
+"genre": "m",
+"roles": [
+"apprenti",
+"artisan",
+"bricoleur"
+],
+"paire": "young-gnome-apprentice-portrait",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-halfling-innkeeper-token-jeton",
+"drive": "1YcNL7q_h3RGm5JmRrvUYXMafvmLgydo_",
+"titre": "Overhead halfling innkeeper token-2.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.79,
+"couleur": "#5d4134",
+"mips": [
+256,
+512
+],
+"nom": "Aubergiste halfelin",
+"peuple": "halfelin",
+"genre": "m",
+"roles": [
+"aubergiste",
+"tavernier"
+],
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-halfling-traveler-with-a-staff-jeton",
+"drive": "1-TqVHBHo8aZFxoEdI3RUwVntqD3bg_s7",
+"titre": "Overhead halfling traveler with a staff-11.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.657,
+"couleur": "#71523f",
+"mips": [
+256,
+512
+],
+"nom": "Vieil halfelin",
+"peuple": "halfelin",
+"genre": "m",
+"roles": [
+"villageois",
+"ancien",
+"fermier"
+],
+"paire": "elderly-halfling-villager-portrait",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-red-haired-dwarf-tavern-keeper-jeton",
+"drive": "1HlgcAGuJwCrHUL8jSjT7QJTIoWyy45lr",
+"titre": "Overhead red-haired dwarf tavern keeper-1.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.899,
+"couleur": "#6b4128",
+"mips": [
+256,
+512
+],
+"nom": "Tavernière naine",
+"peuple": "nain",
+"genre": "f",
+"roles": [
+"tavernier",
+"aubergiste",
+"serveur"
+],
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-sneaking-map-token-jeton",
+"drive": "1XxcEy3-WVkwJq1MJHFJBHRTOgUQZ02Ls",
+"titre": "Overhead sneaking map token-22.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.768,
+"couleur": "#3d2d23",
+"mips": [
+256,
+512
+],
+"nom": "Pickpocket elfe",
+"peuple": "elfe",
+"genre": "m",
+"roles": [
+"voleur",
+"espion",
+"vagabond"
+],
+"paire": "elven-pickpocket-in-a-charcoal-hood",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-tiefling-noble-map-token-jeton",
+"drive": "1yUQoAohO11VhKcrfjrrynqFfPUddK3du",
+"titre": "Overhead tiefling noble map token-10.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.704,
+"couleur": "#3a2422",
+"mips": [
+256,
+512
+],
+"nom": "Noble tieffelin",
+"peuple": "tieffelin",
+"genre": "m",
+"roles": [
+"noble",
+"seigneur",
+"diplomate",
+"marchand"
+],
+"paire": "velvet-clad-tiefling-noble",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-traveler-carrying-a-wooden-crate-jeton",
+"drive": "1voDNWSuHBsdR0klzbVqHhVP8ghJV3Ufy",
+"titre": "Overhead traveler carrying a wooden crate-23.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.626,
+"couleur": "#694631",
+"mips": [
+256,
+512
+],
+"nom": "Docker demi-orque",
+"peuple": "demi-orque",
+"genre": "m",
+"roles": [
+"porteur",
+"docker",
+"ouvrier",
+"marin"
+],
+"paire": "half-orc-dock-porter-with-wooden-crate",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "running-adventurer-with-backpack-and-tail-jeton",
+"drive": "11XjRTFb7i8-np6ppwUJjeu98f-UApci4",
+"titre": "Running adventurer with backpack and tail-30.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.809,
+"couleur": "#543c2d",
+"mips": [
+256,
+512
+],
+"nom": "Tieffelin en course",
+"peuple": "tieffelin",
+"genre": "m",
+"roles": [
+"aventurier",
+"voyageur",
+"fuyard"
+],
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "seated-dark-fantasy-character-token-jeton",
+"drive": "1BgVyuii2HmnJrP0EKJbV_OHBTKYLEKRq",
+"titre": "Seated dark fantasy character token-25.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.587,
+"couleur": "#73523e",
+"mips": [
+256,
+512
+],
+"nom": "Vieil halfelin assis",
+"peuple": "halfelin",
+"genre": "m",
+"roles": [
+"villageois",
+"ancien",
+"client"
+],
+"pose": "assis",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "silver-crowned-elven-priestess",
+"drive": "1YSCcW97JqIUOD4ItnDCpXZtZQ0JOH7Ep",
+"titre": "Silver-Crowned Elven Priestess-4.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#4e4237",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Prêtresse elfe",
+"peuple": "elfe",
+"genre": "f",
+"roles": [
+"pretre",
+"pretresse",
+"clerc",
+"oracle"
+],
+"paire": "overhead-dark-fantasy-game-token-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "sleeping-dark-fantasy-wanderer-jeton",
+"drive": "1zqHeJU7CuN9PCJFx7D2gy_K0C7tftxbi",
+"titre": "Sleeping dark fantasy wanderer-29.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.946,
+"couleur": "#4f3b2e",
+"mips": [
+256,
+512
+],
+"nom": "Vagabond endormi",
+"peuple": "nain",
+"genre": "m",
+"roles": [
+"vagabond",
+"dormeur"
+],
+"pose": "couche",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "soot-marked-half-orc-blacksmith",
+"drive": "1Pb73QM3teFFo-XKCo-vMPCp6Tqu7YmDJ",
+"titre": "Soot-Marked Half-Orc Blacksmith-3.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#372c24",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Forgeronne demi-orque",
+"peuple": "demi-orque",
+"genre": "f",
+"roles": [
+"forgeron",
+"armurier",
+"artisan"
+],
+"paire": "overhead-blacksmith-with-hammer-and-tongs-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "top-down-dark-fantasy-apple-basket-token-jeton",
+"drive": "1gtY1RVjiOU-J24Dw50ui6Q4XNdIDMXu4",
+"titre": "Top-down dark fantasy apple basket token-4.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.615,
+"couleur": "#6d3f29",
+"mips": [
+256,
+512
+],
+"nom": "Marchande de pommes",
+"peuple": "humain",
+"genre": "f",
+"roles": [
+"marchand",
+"marche",
+"villageois"
+],
+"paire": "apple-merchant-in-ochre-headscarf",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "top-down-dark-fantasy-defender-jeton",
+"drive": "1re5SkfkaCIDNCe6WS3KV05LioeOn-gLb",
+"titre": "Top-down dark fantasy defender-31.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.669,
+"couleur": "#3e2c23",
+"mips": [
+256,
+512
+],
+"nom": "Défenseur",
+"peuple": "elfe",
+"genre": "m",
+"roles": [
+"voleur",
+"espion",
+"aventurier"
+],
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "top-down-shieldbearer-with-short-spear-jeton",
+"drive": "182bJGxGzl8atEj5ZOl2V8E_oq664bOV0",
+"titre": "Top-down shieldbearer with short spear-7.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.765,
+"couleur": "#4f3a2f",
+"mips": [
+256,
+512
+],
+"nom": "Garde nain",
+"peuple": "nain",
+"genre": "m",
+"roles": [
+"garde",
+"soldat",
+"sentinelle"
+],
+"paire": "weathered-dwarf-town-guard",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "velvet-clad-tiefling-noble",
+"drive": "1mhPUwSdQNqR0iaTDtbfuNO1EoG6-tGFU",
+"titre": "Velvet-clad tiefling noble-7.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#261d1a",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Noble tieffelin",
+"peuple": "tieffelin",
+"genre": "m",
+"roles": [
+"noble",
+"seigneur",
+"diplomate",
+"marchand"
+],
+"paire": "overhead-tiefling-noble-map-token-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "weary-tiefling-traveler-portrait",
+"drive": "1ufVL8a6CiqaNNYaUSMfjioeucRF1mDQl",
+"titre": "Weary Tiefling Traveler Portrait-10.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#342820",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Voyageur tieffelin",
+"peuple": "tieffelin",
+"genre": "m",
+"roles": [
+"voyageur",
+"aventurier",
+"pelerin"
+],
+"paire": "overhead-dark-fantasy-traveler-token-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "weathered-beggar-with-empty-bowl",
+"drive": "1hEGR9n1K8imYjZr05p8V3uSQhLW8ZvBC",
+"titre": "Weathered Beggar with Empty Bowl-6.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#352a22",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Mendiant",
+"peuple": "humain",
+"genre": "m",
+"roles": [
+"mendiant",
+"vagabond"
+],
+"paire": "cross-legged-cloaked-figure-with-wooden-bowl-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "weathered-dwarf-pilgrim-portrait",
+"drive": "1ieHN87WtX59vbeG2u3BvUGK8FBOL_wry",
+"titre": "Weathered Dwarf Pilgrim Portrait-6.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#2d211a",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Pèlerine naine",
+"peuple": "nain",
+"genre": "f",
+"roles": [
+"pelerin",
+"voyageur",
+"fidele"
+],
+"paire": "overhead-dwarf-with-staff-and-backpack-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "weathered-dwarf-town-guard",
+"drive": "1YntdizVqYebO5Sxv3jyAbPLSErc545kw",
+"titre": "Weathered Dwarf Town Guard-2.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#3c2f27",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Garde nain",
+"peuple": "nain",
+"genre": "m",
+"roles": [
+"garde",
+"soldat",
+"sentinelle"
+],
+"paire": "top-down-shieldbearer-with-short-spear-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "weathered-farmer-with-a-sickle",
+"drive": "1bXaquDylqWmiDQF6EZVNcT01VoPU_4SE",
+"titre": "Weathered Farmer with a Sickle-1.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#36271b",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Fermière à la faucille",
+"peuple": "humain",
+"genre": "f",
+"roles": [
+"fermier",
+"paysan",
+"villageois"
+],
+"paire": "overhead-dark-fantasy-sickle-token-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "young-gnome-apprentice-portrait",
+"drive": "1LWzCFFWjWM6saciEOopvp6AN-fhj6GaN",
+"titre": "Young Gnome Apprentice Portrait-5.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#392d24",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Apprenti gnome",
+"peuple": "gnome",
+"genre": "m",
+"roles": [
+"apprenti",
+"artisan",
+"bricoleur"
+],
+"paire": "overhead-gnome-token-with-wooden-tool-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "cendre-volcanique-et-pierre-ponce",
+"drive": "1Jydycnw5etY6jRY-mn9IkJeDTBmCPWnQ",
+"titre": "Cendre volcanique et pierre ponce-22.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#46413d",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Cendre volcanique",
+"cat": "cendre",
+"taille": 6,
+"milieux": [
+"volcan"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "croute-volcanique-fissuree-aux-lueurs-orangees",
+"drive": "1-TSMOTn0pcFCkA0n8LpHZuzk77CQzrjK",
+"titre": "Croûte volcanique fissurée aux lueurs orangées-21.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#3e302b",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Croûte de lave",
+"cat": "lave",
+"taille": 6,
+"milieux": [
+"volcan"
+],
+"region": [
+"surface",
+"outreterre"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "dalles-de-pierre-grise-usees",
+"drive": "1txFpXGib1PAust9k8x8TqMMmWKCFnbcE",
+"titre": "Dalles de pierre grise usées-17.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#787166",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Dalles de pierre",
+"cat": "dalles",
+"taille": 4,
+"milieux": [
+"interieur",
+"ville",
+"temple",
+"caverne"
+],
+"region": [
+"surface",
+"outreterre"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "eau-douce-turquoise-sable-fin-et-graviers",
+"drive": "1_YD4bxSB1NTopTycVJyXb7_DoYVl0QhG",
+"titre": "Eau douce turquoise, sable fin et graviers-19.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#6d876f",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Eau claire",
+"cat": "eau",
+"taille": 8,
+"milieux": [
+"riviere",
+"lac"
+],
+"climats": [
+"chaud",
+"tropical",
+"tempere"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "eau-sombre-aux-fines-ondulations",
+"drive": "1tC18LCJGYnSIpUCftRFntnFZxYza7qkZ",
+"titre": "Eau sombre aux fines ondulations-20.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#11393c",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Eau sombre",
+"cat": "eau",
+"taille": 8,
+"milieux": [
+"riviere",
+"lac",
+"mer",
+"marais"
+],
+"region": [
+"surface",
+"mer",
+"outreterre"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "flanc-montagneux-de-granite-fracture",
+"drive": "1f_nlz5PsvsQzOEqOA8ziwoAgVMZ7knLK",
+"titre": "Flanc montagneux de granite fracturé-33.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#6f6a62",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Granite fracturé",
+"cat": "roche",
+"taille": 8,
+"milieux": [
+"montagne"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "glace-lacustre-givree-et-fissuree",
+"drive": "1lZX3DMHCXza-geUpBx1UoNoexMbx0vRe",
+"titre": "Glace lacustre givrée et fissurée-11.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#92a1ae",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Glace",
+"cat": "glace",
+"taille": 8,
+"milieux": [
+"lac",
+"riviere"
+],
+"climats": [
+"froid"
+],
+"saisons": [
+"hiver"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "herbe-dense-de-prairie-naturelle",
+"drive": "1wwZvvf5oABy4rb9tir845H9vL7ZePvBZ",
+"titre": "Herbe dense de prairie naturelle-1.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#4f5726",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Prairie",
+"cat": "herbe",
+"taille": 4,
+"milieux": [
+"campagne",
+"ville"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"printemps",
+"ete"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "herbes-folles-dorees",
+"drive": "1cvskiyrwZe-V5rwmukKb53wBVCbAJK7B",
+"titre": "Herbes folles dorées-2.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#645c32",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Herbes folles dorées",
+"cat": "champ",
+"taille": 4,
+"milieux": [
+"campagne",
+"savane"
+],
+"climats": [
+"tempere",
+"chaud"
+],
+"saisons": [
+"ete",
+"automne"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "mousse-forestiere-enchantee-aux-petales-delicats",
+"drive": "1ejT_ys_7ZyZaDM4jqmxx-nLHauv7t12V",
+"titre": "Mousse forestière enchantée aux pétales délicats-24.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#46441a",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Mousse forestière",
+"cat": "mousse",
+"taille": 4,
+"milieux": [
+"foret"
+],
+"climats": [
+"tempere"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "neige-ivoire-fraiche-et-texturee",
+"drive": "1hWopPqf4VT79qmvtxM617T0_Z9_XKn3v",
+"titre": "Neige ivoire fraîche et texturée-9.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#cacfd8",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Neige fraîche",
+"cat": "neige",
+"taille": 6,
+"milieux": [
+"campagne",
+"ville",
+"montagne",
+"toundra"
+],
+"climats": [
+"froid",
+"tempere"
+],
+"saisons": [
+"hiver"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "paves-medievaux-uses-granit-gris",
+"drive": "1YclfITNFhEOoikIYki3WmzNHagVi3viW",
+"titre": "Pavés médiévaux usés, granit gris-16.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#807466",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Pavés",
+"cat": "paves",
+"taille": 4,
+"milieux": [
+"ville"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "planches-de-bois-brun-patine",
+"drive": "1ONbbAKZUEVzv7f1Flpl7-Xv_1dg-NWxl",
+"titre": "Planches de bois brun patiné-18.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#735a43",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Planches",
+"cat": "planches",
+"taille": 3,
+"milieux": [
+"interieur",
+"ponton"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "plateau-granitique-et-escarpement-rocheux",
+"drive": "1Ijhl5_BzGffpqMEWwiXdZXk-rON2E0sM",
+"titre": "Plateau granitique et escarpement rocheux-32.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#73706c",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Plateau rocheux",
+"cat": "roche",
+"taille": 8,
+"milieux": [
+"montagne"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "sol-brun-granuleux-sans-couture",
+"drive": "1tOnTR1N_V_Ag7SWaftjTeFimhGUoMZ33",
+"titre": "Sol brun granuleux sans couture-4.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#75583f",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Terre battue",
+"cat": "terre",
+"taille": 5,
+"milieux": [
+"ville",
+"campagne",
+"route"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "sol-rocheux-sombre-aux-veines-violettes",
+"drive": "1bQvO4zaorOQouiABDKbfuKqMloonmOeD",
+"titre": "Sol rocheux sombre aux veines violettes-23.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#463a42",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Roche sombre veinée",
+"cat": "roche",
+"taille": 6,
+"milieux": [
+"caverne"
+],
+"region": [
+"outreterre"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "sol-tropical-humide-aux-feuilles-decomposees",
+"drive": "1jhwp-uiPYIk0XA43TT4zxZUKGqsF2beb",
+"titre": "Sol tropical humide aux feuilles décomposées-6.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#5e432c",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Sol de jungle",
+"cat": "humus",
+"taille": 5,
+"milieux": [
+"jungle"
+],
+"climats": [
+"tropical",
+"chaud"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "sous-bois-de-feuilles-decomposees",
+"drive": "1ycLGbhOByz5g18NXBGwX4y5A_os6PWJ3",
+"titre": "Sous-bois de feuilles décomposées-3.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#54402e",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Sous-bois",
+"cat": "humus",
+"taille": 5,
+"milieux": [
+"foret"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"automne",
+"hiver",
+"printemps",
+"ete"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "tapis-de-ronces-enchevetrees",
+"drive": "1iRAazDauzhhYD8KeK69bZpMfh4XynLwZ",
+"titre": "Tapis de ronces enchevêtrées-15.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#493b2f",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Ronces",
+"cat": "ronces",
+"taille": 4,
+"milieux": [
+"foret",
+"ruine"
+],
+"climats": [
+"tempere"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "terre-cuite-craquelee-des-badlands",
+"drive": "1sQUNi8kOHdCF2VN5y-pSp9JjFh-Nm45W",
+"titre": "Terre cuite craquelée des badlands-10.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#a97452",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Terre craquelée",
+"cat": "terre",
+"taille": 6,
+"milieux": [
+"desert",
+"badlands"
+],
+"climats": [
+"chaud",
+"aride"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "texture-de-boue-humide-striee",
+"drive": "1oABMRPSdQDdaT8V6uXpYZz-jGSKv4h00",
+"titre": "Texture de boue humide striée-5.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#533c2c",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Boue",
+"cat": "boue",
+"taille": 5,
+"milieux": [
+"marais",
+"campagne",
+"route"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "texture-de-granite-alpin-fissure",
+"drive": "1eqFfAwF71hIbcC-rcg6-VYls-oAScpXv",
+"titre": "Texture de granite alpin fissuré-13.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#7f7b74",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Granite alpin",
+"cat": "roche",
+"taille": 6,
+"milieux": [
+"montagne"
+],
+"climats": [
+"froid",
+"tempere"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "texture-de-sable-ocre-ondule",
+"drive": "1CJEszyeaZxhVG6iWVom55ykL3T4Rcaeo",
+"titre": "Texture de sable ocre ondulé-8.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#c69259",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Sable ocre",
+"cat": "sable",
+"taille": 6,
+"milieux": [
+"desert",
+"cote"
+],
+"climats": [
+"chaud",
+"aride"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "toundra-gelee-gravier-sombre-et-lichens",
+"drive": "15d-cxsG4oe2H_bQa0jAU85UQLQVr5ZRP",
+"titre": "Toundra gelée, gravier sombre et lichens-12.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#544e45",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Toundra",
+"cat": "toundra",
+"taille": 6,
+"milieux": [
+"toundra",
+"montagne"
+],
+"climats": [
+"froid"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "tourbiere-sombre-aux-algues-et-roseaux",
+"drive": "1mLKfqovxwdSrA4ePlN1EORJ7yJWdSI3t",
+"titre": "Tourbière sombre aux algues et roseaux-7.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#423a27",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Tourbière",
+"cat": "boue",
+"taille": 6,
+"milieux": [
+"marais"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "eboulis-de-schiste-et-granite",
+"drive": "1RgOFVtCsfPEHp1t4CBdk28mTYb8PJVgR",
+"titre": "Éboulis de schiste et granite-14.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#6e6a65",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Éboulis",
+"cat": "eboulis",
+"taille": 5,
+"milieux": [
+"montagne"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+}
+]
+}
