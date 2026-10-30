@@ -32,7 +32,7 @@ import { onPlayerFollow, onPlayerFork, onPlayerPick, publishStage } from '../pre
 import { zoneOf, inZone, trailInZone } from './zone';
 import LiveEncounters, { type LiveBestiaryRef } from './LiveEncounters';
 import { buildRoutes, distancesTo, goalNodes, judgeTrail, nodeOf, verdictText, type TrailVerdict } from './route';
-import { interiorPlanId, isAtlasLike, useWorldSync, worldPlanId } from './world';
+import { interiorPlanId, isAtlasLike, moveCity, useWorldSync, worldPlanId } from './world';
 import WorldPanel from './world/WorldPanel';
 import ExplorePanel from './world/ExplorePanel';
 import { isHiddenNpc } from './world/interior';
@@ -107,6 +107,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [enc, setEnc] = useState<{ ctx: EncCtx; e: Encounter } | null>(null);
   const [placing, setPlacing] = useState<Draft | null>(null);
+  /** Cité que le MJ déplace : le prochain clic sur la carte du monde la pose. */
+  const [movingCity, setMovingCity] = useState<string | null>(null);
   /** Lieu que les joueurs doivent voir au centre de l'écran (demandé depuis la fiche). */
   const [focus, setFocus] = useState<{ kind: 'anchor' | 'point'; id: string; tick: number } | null>(null);
   /** Colonne de droite de la carte de navigation (MJ) : un onglet à la fois. */
@@ -944,7 +946,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               fog={dm ? null : playerPreview.fog}
               journey={overlay.travel && overlay.travel.planId === map.id ? { ...overlay.travel, label: 'Groupe' } : null}
               onAnchor={(a) => { if (dm && rec.kind === 'monde') followAnchor(a.id); }}
-              onPlace={dm && placing ? addMarker : undefined}
+              onPlace={dm && placing ? addMarker : dm && movingCity && rec.world && map.id === wid ? (x, y) => { onUpdate({ world: moveCity(rec.world!, movingCity, [x, y]), updatedAt: Date.now() }); setMovingCity(null); } : undefined}
               dataKey={`${rec.updatedAt}:${dm}`}
               onZoomLimit={onZoomLimit}
               exploring={exploring}
@@ -1037,6 +1039,11 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 onMarkPlace={(title, summary) => setPlacing({ kind: 'objet', title, summary })}
               />
             )}
+            {dm && movingCity && (
+              <p className="maps-hint maps-placing">
+                {map.id === wid ? 'Clique sur la carte du monde pour poser la cité.' : 'Reviens à la carte du monde pour poser la cité.'} <button className="maps-link" onClick={() => setMovingCity(null)}>Annuler</button>
+              </p>
+            )}
             {dm && placing && (
               <p className="maps-hint maps-placing">
                 Clique sur la carte pour placer « {placing.title} ». <button className="maps-link" onClick={() => setPlacing(null)}>Annuler</button>
@@ -1106,6 +1113,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
             )}
             {dm && side === 'monde' && rec.kind === 'monde' && rec.world && (
               <WorldPanel rec={rec} data={data} library={library ?? []} planId={map.id} revealed={overlay.revealed} onUpdate={onUpdate}
+                onMoveCity={(id) => { setMovingCity(id); setPlanId(wid); }}
                 onShow={(pid, fid) => { setPlanId(pid); setSelectedId(fid ?? null); if (fid) { setSide('lieu'); setFocus({ kind: 'point', id: fid, tick: Date.now() }); } }} />
             )}
             {dm && side === 'lieu' && feature && !markerId && !feature.trace && rec.kind === 'atlas' && (

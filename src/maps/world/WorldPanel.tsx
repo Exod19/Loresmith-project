@@ -7,8 +7,9 @@ import type { AtlasData } from '../atlas/types';
 import type { MapRecord } from '../mapStore';
 import { SLOT_TYPES, citySpecDefaults, type Binding, type CitySpec } from './generate';
 import { DISTRICT_LABEL, type LoreEntry } from './lore';
-import { cityFromEntry, cityPlanId, settlementEntries, withCity, worldPlanId, type World } from './index';
-import { CLIMATE_RANGES, climateOf, nearestEdge, temperatureAt } from './climate';
+import { cityFromEntry, cityPlanId, replaceCity, settlementEntries, travelFrom, unmetWants, withCity, withScale, worldPlanId, type World } from './index';
+import { CLIMATE_RANGES, nearestEdge } from './climate';
+import { PACE, SCALES, atDir, daysLabel, worldFrame } from './terrain';
 
 type Props = {
   rec: MapRecord;
@@ -20,7 +21,10 @@ type Props = {
   onUpdate: (patch: Partial<MapRecord>) => void;
   /** Montre un plan (cité ou monde), centré sur un lieu s'il est donné. */
   onShow: (planId: string, featureId?: string) => void;
+  /** Déplacer une cité : le prochain clic sur la carte du monde la pose. */
+  onMoveCity?: (cityId: string) => void;
 };
+const DIRS = ['nord', 'nord-est', 'est', 'sud-est', 'sud', 'sud-ouest', 'ouest', 'nord-ouest'];
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 const BLANK: CitySpec = { id: '', name: '', population: 1500, walls: true, castle: true, highTown: true, faubourgs: true, farms: true, river: false };
@@ -28,9 +32,12 @@ const TOGGLES: [keyof CitySpec, string][] = [['walls', 'Muraille'], ['castle', '
 const CLIMATE_LABEL = { froid: '❄ climat froid', tempere: '🌿 climat tempéré', chaud: '☀ climat chaud' } as const;
 const SEA_LABEL = { N: 'au nord', S: 'au sud', E: 'à l’est', O: 'à l’ouest' } as const;
 
-export default function WorldPanel({ rec, data, library, planId, revealed, onUpdate, onShow }: Props) {
+export default function WorldPanel({ rec, data, library, planId, revealed, onUpdate, onShow, onMoveCity }: Props) {
   const world = rec.world as World;
   const [draft, setDraft] = useState<CitySpec | null>(null);
+  const [situate, setSituate] = useState<{ id: string; n: number; unit: 'jours' | 'km'; dir: string; to: string } | null>(null);
+  const [from, setFrom] = useState<string>('');
+  const frame = worldFrame(world);
   const save = (next: World) => onUpdate({ world: next, updatedAt: Date.now() });
   const shown = new Set(revealed);
   const candidates = settlementEntries(world, library);
@@ -59,7 +66,9 @@ export default function WorldPanel({ rec, data, library, planId, revealed, onUpd
   const togglePort = (c: CitySpec) => save({ ...world, cities: world.cities.map((x) => (x.id === c.id ? { ...x, port: !x.port, seaDir: x.port ? undefined : (x.seaDir ?? nearestEdge(x.at ?? [0.5, 0.5])) } : x)) });
   const climate = world.climate ?? {};
   const setClimate = (patch: Partial<NonNullable<World['climate']>>) => save({ ...world, climate: { ...climate, ...patch } });
-  const climateAt = (c: CitySpec) => climateOf(temperatureAt(climate, c.at?.[1] ?? 0.5));
+  const climateAt = (c: CitySpec) => (data.maps.find((m) => m.id === cityPlanId(rec.id, c.id))?.surface?.climate ?? 'tempere') as keyof typeof CLIMATE_LABEL;
+  const fromId = world.cities.some((c) => c.id === from) ? from : (here?.id ?? world.defaultCityId ?? world.cities[0]?.id ?? '');
+  const trips = fromId ? travelFrom(world, data, fromId) : [];
   const setBinding = (b: Binding, patch: Partial<Binding>) => save({ ...world, bindings: { ...world.bindings, [b.entryId]: { ...b, ...patch } } });
 
   return (
@@ -69,6 +78,18 @@ export default function WorldPanel({ rec, data, library, planId, revealed, onUpd
       <p className="maps-sub">
         Une seule carte : zoome dans une cité pour y entrer, dézoome pour revenir au monde. Les lieux créés dans le lore prennent la place d’un bâtiment non découvert, avec leurs PNJ.
       </p>
+
+      <h5>Échelle</h5>
+      <label>Taille du monde
+        <select className="maps-btn" value={frame.legacy ? 'ancien' : frame.scale} onChange={(e) => {
+          const v = e.target.value as keyof typeof SCALES;
+          if (window.confirm('Changer l’échelle redessine le relief, les forêts, les rivières et les routes. Les cités gardent leur disposition et leur plan (rien n’y bouge). Continuer ?')) save(withScale(world, v));
+        }}>
+          {frame.legacy && <option value="ancien">Ancienne carte (~50 km, sans relief)</option>}
+          {Object.entries(SCALES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+        </select>
+      </label>
+      <p className="maps-sub">{frame.legacy ? 'Carte d’avant le relief. Choisis une échelle pour avoir montagnes, côtes et distances en jours.' : `${Math.round(frame.x1 - frame.x0)} × ${Math.round(frame.y1 - frame.y0)} km · tout est à taille réelle.`}</p>
 
       <h5>Climat</h5>
       <div className="maps-seg" role="group" aria-label="Hémisphère">
@@ -93,7 +114,36 @@ export default function WorldPanel({ rec, data, library, planId, revealed, onUpd
               <button className="linklike" onClick={() => onShow(cityPlanId(rec.id, c.id))}><b>{c.name}</b></button>
               <small> · {d.population.toLocaleString('fr-CA')} hab.{world.defaultCityId === c.id ? ' · cité par défaut du lore' : ''}</small>
               <div className="maps-sub">{TOGGLES.filter(([k]) => d[k as keyof typeof d]).map(([, l]) => (l === 'Port de mer' && c.seaDir ? `Port (mer ${SEA_LABEL[c.seaDir]})` : l)).join(' · ') || 'Hameau ouvert'} · {CLIMATE_LABEL[climateAt(c)]}</div>
+              {unmetWants(world, c).map((w) => <div key={w} className="world-warn">⚠ Distance non respectée : {w}.</div>)}
+              {!!c.near?.length && <div className="maps-sub">Voulue : {c.near.map((n) => n.label ?? `${n.km} km de ${n.to}`).join(' ; ')}</div>}
+              {situate?.id === c.id && (
+                <form className="world-form" onSubmit={(e) => {
+                  e.preventDefault();
+                  const to = world.cities.find((x) => x.id === situate.to);
+                  if (!to || !situate.n) return;
+                  const km = situate.unit === 'jours' ? situate.n * PACE.normal : situate.n;
+                  const label = `${situate.n} ${situate.unit === 'jours' ? 'jour(s) de marche' : 'km'}${situate.dir ? ` ${atDir(situate.dir)}` : ''} de ${to.name}`;
+                  const near = [...(c.near ?? []).filter((n) => !n.to.startsWith(to.name.toLowerCase())), { km, dir: situate.dir || undefined, to: to.name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''), label }];
+                  save(replaceCity({ ...world, cities: world.cities.map((x) => (x.id === c.id ? { ...x, near } : x)) }, c.id));
+                  setSituate(null);
+                }}>
+                  <div className="world-toggles">
+                    <input className="maps-btn" type="number" min={0.5} step={0.5} value={situate.n} onChange={(e) => setSituate({ ...situate, n: Number(e.target.value) })} style={{ width: 70 }} />
+                    <select className="maps-btn" value={situate.unit} onChange={(e) => setSituate({ ...situate, unit: e.target.value as 'jours' | 'km' })}><option value="jours">jours de marche</option><option value="km">km</option></select>
+                    <select className="maps-btn" value={situate.dir} onChange={(e) => setSituate({ ...situate, dir: e.target.value })}><option value="">toute direction</option>{DIRS.map((d) => <option key={d} value={d}>{atDir(d)}</option>)}</select>
+                    <select className="maps-btn" value={situate.to} onChange={(e) => setSituate({ ...situate, to: e.target.value })}>{world.cities.filter((x) => x.id !== c.id).map((x) => <option key={x.id} value={x.id}>de {x.name}</option>)}</select>
+                  </div>
+                  <div className="maps-actions">
+                    <button className="maps-btn gold" type="submit">Situer et replacer</button>
+                    <button className="maps-btn" type="button" onClick={() => setSituate(null)}>Annuler</button>
+                  </div>
+                </form>
+              )}
               <div className="maps-actions">
+                {!frame.legacy && world.cities.length > 1 && !situate && (
+                  <button className="maps-btn" onClick={() => setSituate({ id: c.id, n: 2, unit: 'jours', dir: '', to: world.cities.find((x) => x.id !== c.id)!.id })} title="Fixer une distance par rapport à une autre cité ; la cité est replacée en conséquence">📏 Situer</button>
+                )}
+                {onMoveCity && <button className="maps-btn" onClick={() => onMoveCity(c.id)} title="Clique ensuite sur la carte du monde. Le plan de la cité ne change pas.">📍 Déplacer</button>}
                 {c.entryId && (
                   <button className="maps-btn" disabled={locked} onClick={() => regenerate(c)}
                     title={locked ? 'Des lieux de cette cité sont déjà découverts : la régénérer les déplacerait.' : 'Relire la fiche et redessiner la cité (même graine)'}>⟳ Depuis la fiche</button>
@@ -108,6 +158,29 @@ export default function WorldPanel({ rec, data, library, planId, revealed, onUpd
           );
         })}
       </ul>
+
+      {world.cities.length > 1 && (
+        <>
+          <h5>Distances</h5>
+          <label>Depuis
+            <select className="maps-btn" value={fromId} onChange={(e) => setFrom(e.target.value)}>
+              {world.cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </label>
+          <ul className="world-cities">
+            {trips.map((t) => (
+              <li key={t.id}>
+                <b>{t.name}</b> <small>· {atDir(t.dir)}</small>
+                <div className="maps-sub">
+                  {Math.round(t.km)} km {t.road ? 'par la route' : 'à vol d’oiseau (pas de route)'} · {daysLabel(t.effort / PACE.normal)}
+                  {' '}<small>(lent {daysLabel(t.effort / PACE.lent).replace(' de marche', '')}, rapide {daysLabel(t.effort / PACE.rapide).replace(' de marche', '')})</small>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <p className="maps-sub">Rythmes de D&amp;D 5e : lent 29 km, normal 38 km, rapide 48 km par jour. Pentes, cols et forêts allongent le trajet.</p>
+        </>
+      )}
 
       <h5>Ajouter une cité</h5>
       {candidates.length > 0 && (

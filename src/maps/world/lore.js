@@ -71,6 +71,25 @@ export function parsePopulation(entry) {
 /** Tout le texte d'une fiche, normalisé. */
 const fullText = (e) => norm([e.title, e.subtitle, e.shortSummary, e.body, e.currentLocation, e.region, e.owner, txt(e.districts), txt(e.pointsOfInterest), txt(e.tags), txt(e.sections), e.campaignUse].map(txt).join(' '));
 
+const NUM = { un: 1, une: 1, deux: 2, trois: 3, quatre: 4, cinq: 5, six: 6, sept: 7, huit: 8, neuf: 9, dix: 10, demi: 0.5, douze: 12, quinze: 15, vingt: 20 };
+/** Km par unité de distance : jours (selon le moyen), heures de marche, lieues, milles. */
+const PER = (unit, mode) => (/^jour/.test(unit) ? (/cheval/.test(mode) ? 50 : /bateau|navigation|voile/.test(mode) ? 120 : 38) : /^heure/.test(unit) ? 4.8 : /^lieue/.test(unit) ? 4.4 : /^mille/.test(unit) ? 1.6 : 1);
+/**
+ * Distances voulues lues sur une fiche : « à deux jours de marche au nord de Brumeval », « à 80 km à l'est d'Arnfel ».
+ * `to` : le texte qui suit (le nom de la cité visée est reconnu au placement).
+ */
+export function nearFromText(t) {
+  const out = [];
+  const re = /\b(\d+(?:[.,]\d+)?|une?|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|douze|quinze|vingt|demi)[ -](jours?|journees?|km|kilometres?|lieues?|milles?|heures?)((?: de (?:marche|route|cheval|voyage|navigation|bateau|voile))?(?: a cheval| en bateau)?) (?:(?:au|a l|a la|vers le|vers l|plein) ?)?(nord-est|nord-ouest|sud-est|sud-ouest|nord|sud|est|ouest)? ?(?:de|du|des|d) ([a-z][a-z -]{1,40})/g;
+  for (const m of t.matchAll(re)) {
+    const n = NUM[m[1]] ?? Number(m[1].replace(',', '.'));
+    if (!n || n > 400) continue;
+    const km = Math.round(n * PER(m[2], m[3]) * 10) / 10;
+    out.push({ km, label: m[0].trim(), ...(m[4] ? { dir: m[4] } : {}), to: m[5].trim() });
+  }
+  return out.length ? out.slice(0, 4) : undefined;
+}
+
 /** Paramètres de cité tirés d'une fiche de lieu. Ce que la fiche ne dit pas prend les valeurs par défaut. */
 export function citySpecFromEntry(entry) {
   const t = fullText(entry);
@@ -88,6 +107,7 @@ export function citySpecFromEntry(entry) {
     river: yes(/\b(riviere|fleuve|pont de pierre|rive)\b/),
     // Cité portuaire : la mer s'étendra du côté du bord de carte le plus proche (voir withCity).
     port: yes(/\b(port|portuaire|quais?|docks?|havre|rade|sur la cote|ville cotiere|cotiere|bord de mer|littoral|maritime|baie|chantier naval|armateurs?)\b/, /\b(sans port|loin de la mer|pas de port)\b/),
+    near: nearFromText(t),
   };
 }
 

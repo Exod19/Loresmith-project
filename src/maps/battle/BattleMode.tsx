@@ -6,6 +6,7 @@
  * Le lieu choisi donne la zone locale : ses passages (tracés réels de l'Atlas) et ses éléments y sont à leur position.
  * « Suivre » un passage ramène sur la carte de navigation, à sa destination, et y déplace le groupe.
  */
+import { terrainAt, type Relief } from '../world/terrain';
 import { boardTheme } from './theme';
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import BattleBoard, { anchorOf, type BoardElement, type BoardLabel, type BoardRange, type BoardToken } from './BattleBoard';
@@ -71,6 +72,19 @@ export type CombatSlot = {
   /** Onglets propres à la carte (Lieu, Construire), rangés dans le pupitre à côté de ceux du combat. */
   side?: { tabs: { id: string; label: string; badge?: number }[]; active: string | null; onPick: (id: string | null) => void; render: (id: string) => ReactNode };
 };
+
+/** Thème du plateau d'un plan de surface : intérieur, neige, climat de la cité, ou terrain réel du monde à l'échelle. */
+function surfaceTheme(surface: NonNullable<AtlasMap['surface']>, win: { x0: number; y0: number; w: number; h: number }): 'interieur' | 'neige' | 'froid' | 'chaud' | true {
+  if (surface.theme === 'interieur') return 'interieur';
+  if ((surface.snow ?? 0) >= 0.1) return 'neige';
+  if (surface.relief) {
+    const r = surface.relief as unknown as Relief;
+    const [x0, y0, x1, y1] = r.bounds;
+    const t = terrainAt(r, x0 + (win.x0 + win.w / 2) * (x1 - x0), y0 + (win.y0 + win.h / 2) * (y1 - y0));
+    return t.biome === 'neige' ? 'neige' : t.T < 0.3 ? 'froid' : t.T > 0.7 ? 'chaud' : true;
+  }
+  return surface.climate === 'froid' || surface.climate === 'chaud' ? surface.climate : true;
+}
 
 export default function BattleMode({
   rec, battle, onBattle, context, atlas, plan, markers, onFollow, onLink, onMarker, onReveal, heroes = [], party, onSearchNote, bestiary = [], renderCombat, onLeave,
@@ -217,7 +231,7 @@ export default function BattleMode({
     }
     set({
       terrain: { source, seed, grid: local.base },
-      local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous, surface: plan.surface ? (plan.surface.theme === 'interieur' ? 'interieur' : (plan.surface.snow ?? 0) >= 0.1 ? 'neige' : plan.surface.climate === 'froid' || plan.surface.climate === 'chaud' ? plan.surface.climate : true) : undefined },
+      local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous, surface: plan.surface ? surfaceTheme(plan.surface, local.window) : undefined },
       tokens,
       encounterOf: groups?.length ? source : b.encounterOf,
       build: undefined,

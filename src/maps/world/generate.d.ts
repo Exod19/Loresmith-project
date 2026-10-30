@@ -18,6 +18,10 @@ export interface CitySpec {
   walls?: boolean; castle?: boolean; highTown?: boolean; faubourgs?: boolean; farms?: boolean; river?: boolean; village?: boolean;
   /** Cité portuaire : la mer s'étend du côté `seaDir` (bord de carte le plus proche, fixé à la création). */
   port?: boolean; seaDir?: 'N' | 'S' | 'E' | 'O';
+  /** Position en km (mondes à l'échelle, lot 12). */
+  km?: [number, number];
+  /** Distances voulues par rapport à d'autres cités (lues sur la fiche ou saisies) : km, direction, cité visée. */
+  near?: Near[];
   /** Fiche de lieu d'où vient la cité. */
   entryId?: string;
   at?: [number, number];
@@ -55,7 +59,12 @@ export interface Avatar {
   hidden?: { planId: string; at: [number, number] };
 }
 /** `canon` : lieux tirés au sort que le MJ a gardés tels quels (ils ne sont plus des brouillons). */
-export interface WorldSpec { seed: number; name: string; cities: CitySpec[]; bindings: Record<string, Binding>; interiors?: string[]; time?: Period; season?: Season; residents?: Record<string, Resident[]>; names?: Record<string, string>; canon?: string[]; avatar?: Avatar; climate?: WorldClimate }
+export interface WorldSpec { seed: number; name: string; cities: CitySpec[]; bindings: Record<string, Binding>; interiors?: string[]; time?: Period; season?: Season; residents?: Record<string, Resident[]>; names?: Record<string, string>; canon?: string[]; avatar?: Avatar; climate?: WorldClimate;
+  /** Mondes à l'échelle (lot 12) : version du terrain, échelle, bornes (km), latitudes du climat, mers. */
+  terrain?: 2; scale?: 'region' | 'royaume' | 'continent'; bounds?: [number, number, number, number]; lat?: [number, number]; seas?: Sea[] }
+
+export interface Near { km: number; dir?: string; to: string; label?: string }
+export interface Sea { id: string; name?: string; x: number; y: number; r: number; side?: string }
 
 /** Climat du monde : hémisphère (nord : froid en haut de la carte ; sud : l'inverse) et étendue des climats. */
 export interface WorldClimate { hemisphere?: 'nord' | 'sud'; range?: 'complet' | 'froid' | 'tempere' | 'chaud' }

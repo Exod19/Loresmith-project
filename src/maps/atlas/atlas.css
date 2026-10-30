@@ -683,3 +683,7 @@
 .talk-prop { font-size: 13px; padding: 6px 8px; border: 1px dashed rgba(240,200,103,.4); border-radius: 8px; }
 .talk-prop.is-ok { border-style: solid; border-color: #7fbf7f; }
 .talk-prop.is-non { opacity: .5; }
+/* Monde à l'échelle (lot 12) : relief en image, rivières d'un trait fin */
+.am-surface .am-relief { image-rendering: auto; }
+.am-surface .dc-stream { fill: none; stroke: #3f7a8e; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.am-surface.season-hiver .dc-stream { stroke: #8fb0bc; }

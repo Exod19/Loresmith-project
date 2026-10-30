@@ -78,6 +78,8 @@ export interface MapSurface {
   snow?: number;
   /** Eaux gelées : toutes, ou seulement les rivières. */
   frozen?: 'tout' | 'rivieres';
+  /** Relief continu d'un monde à l'échelle (lot 12) : voir world/terrain.js. */
+  relief?: Record<string, unknown>;
   ground: {
     b: number[]; f: number[]; t: number[];
     /** Obstacles intérieurs (comptoir, âtre, autel…) : rectangles comme `b`, infranchissables mais pas des murs. */
@@ -99,7 +101,7 @@ export interface MapDecor {
     | 'forest' | 'lake' | 'hill' | 'town'
     /* Climat et côtes (lot 9). */
     | 'biome-neige' | 'biome-taiga' | 'biome-steppe' | 'biome-desert' | 'dune' | 'pine' | 'forest-sparse' | 'mountain' | 'snowcap'
-    | 'shore' | 'shore-cold' | 'beach' | 'sea' | 'pier' | 'lake-ice'
+    | 'shore' | 'shore-cold' | 'beach' | 'sea' | 'pier' | 'lake-ice' | 'stream'
     /* Intérieurs. */
     | 'street' | 'floor' | 'floor-stone' | 'hatch' | 'pillar' | 'stool' | 'wall-in' | 'furn' | 'bed' | 'hearth' | 'altar' | 'anvil' | 'trough' | 'stair' | 'barrel' | 'crate' | 'bars' | 'rug' | 'dais' | 'stall';
   d: string;

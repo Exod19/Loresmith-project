@@ -43,6 +43,7 @@ export function rng(seed) {
 import { generateInterior } from './interior.js';
 import { EDGE_ANGLE, biomeOf, climateOf, smoothNoise, temperatureAt } from './climate.js';
 import { SNOW_LINE, snowOf } from './seasons.js';
+import { PACE, SCALES, cityKm, cityRadiusKm, daysLabel, landmarksOf, reliefOf, riversOf, routeOn, slopeAt, terrainAt, toAt, travelGrid, worldFrame } from './terrain.js';
 
 /* ——— Types de bâtiments ——— */
 
@@ -858,14 +859,17 @@ export function placeCity(world, cityId) {
 export function generateWorld(world, mapRecordId) {
   const seed = (world.seed ?? hashSeed(mapRecordId)) >>> 0;
   const rand = rng(hashSeed(`monde:${seed}`));
-  const W = WORLD_W, H = WORLD_H, S = WORLD_SCALE;
+  // Cadre : les anciens mondes gardent leur carte (1240 × 860 unités de 40 m) ; les autres ont leur échelle et leurs bornes en km.
+  const frame = worldFrame(world);
+  const W = frame.W, H = frame.H, S = frame.m;
   const wid = worldPlanId(mapRecordId);
   const name = world.name || 'Le Monde';
   const base = { canonStatus: 'creation', placementStatus: 'documented' };
   const features = [], geometries = [], anchors = [], connections = [], spaces = [], maps = [];
   const addPoint = (f, x, y, mapId = wid) => { features.push(f); geometries.push({ id: `g-${f.id}`, mapId, featureId: f.id, type: 'point', coordinates: [r5(x), r5(y)] }); };
 
-  const cities = (world.cities ?? []).map((c) => ({ ...citySpecDefaults(c), at: c.at ?? [0.5, 0.5] }));
+  const cities = (world.cities ?? []).map((c) => ({ ...citySpecDefaults(c), at: frame.legacy ? c.at ?? [0.5, 0.5] : toAt(frame, cityKm(frame, c)) }));
+  const cityKms = (world.cities ?? []).map((c) => cityKm(frame, c));
   const byCity = new Map();
   for (const b of Object.values(world.bindings ?? {})) {
     if (!b || !b.cityId || !b.slotId || b.excluded) continue;
@@ -881,248 +885,296 @@ export function generateWorld(world, mapRecordId) {
     return { c, g, pid };
   });
 
-  // Terrain du monde : forêts, rivières, lac, collines (loin des cités).
-  const decor = [];
-  const paths = {};
-  const push = (k, d) => { (paths[k] ??= []).push(d); };
-  const cityXY = cities.map((c) => [c.at[0] * W, c.at[1] * H]);
-  const farFromCities = (x, y, m) => cityXY.every(([cx, cy]) => Math.hypot(cx - x, cy - y) > m);
-
-  // Climat : température selon la latitude (hémisphère nord : froid en haut), un peu brouillée pour des limites naturelles.
-  const climate = world.climate ?? {};
-  const tNoise = smoothNoise(hashSeed(`climat:${seed}`), 150);
-  const tempAt = (x, y) => temperatureAt(climate, y / H, (tNoise(x, y) - 0.5) * 0.14);
-  // Saison (choisie par le MJ) : la neige descend l'hiver, les lacs du nord gèlent.
+  let tempAt;
   const season = world.season;
-  const snowLine = SNOW_LINE[season] ?? 0.17;
-  // Mer : seulement du côté des cités portuaires. Chaque côté qui porte un port devient une côte, qui passe au ras de
-  // ses ports et reste au large des autres cités.
-  const coasts = [];
-  for (const dir of ['N', 'S', 'E', 'O']) {
-    const ports = cities.filter((c) => c.port && c.seaDir === dir);
-    if (!ports.length) continue;
-    const horiz = dir === 'N' || dir === 'S', len = horiz ? W : H;
-    const local = (x, y) => (dir === 'N' ? [x, y] : dir === 'S' ? [x, H - y] : dir === 'O' ? [y, x] : [y, W - x]);
-    const world2 = (t, d) => (dir === 'N' ? [t, d] : dir === 'S' ? [t, H - d] : dir === 'O' ? [d, t] : [W - d, t]);
-    const cn = smoothNoise(hashSeed(`cote:${seed}:${dir}`), 90);
-    const sizeOf = (c) => Math.max(3, Math.sqrt(((c.population / (c.village ? 45 : 170)) * 10000) / Math.PI) / S);
-    const offset = (t) => {
-      let o = 18 + cn(t, 0) * 34;
-      for (const c of ports) { const [tc, dc] = local(c.at[0] * W, c.at[1] * H); o = Math.max(o, (dc - sizeOf(c) * 0.4) * Math.exp(-(((t - tc) / 150) ** 2)) + cn(t, 50) * 8); }
-      for (const c of cities) {
-        if (c.port && c.seaDir === dir) continue;
-        const [tc, dc] = local(c.at[0] * W, c.at[1] * H);
-        o = Math.min(o, Math.max(6, dc - sizeOf(c) - 30) + Math.abs(t - tc) * 0.9);
-      }
-      return o;
-    };
-    const pts = [];
-    for (let t = -20; t <= len + 20; t += 10) pts.push(world2(t, offset(t)));
-    pts.push(world2(len + 20, -40), world2(-20, -40));
-    coasts.push({ dir, pts, local, offset });
-  }
-  const inSeaW = (x, y, m = 0) => coasts.some((c) => { const [t, d] = c.local(x, y); return d < c.offset(t) + m; });
-  const forests = [];
-  const nF = 8 + Math.floor(rand() * 5);
-  for (let k = 0; k < nF * 4 && forests.length < nF; k++) {
-    const x = 40 + rand() * (W - 80), y = 40 + rand() * (H - 80), rx = 22 + rand() * 60, ry = rx * (0.55 + rand() * 0.5);
-    if (!farFromCities(x, y, Math.max(rx, ry) + 18)) continue;
-    if (forests.some((f) => Math.hypot(f.x - x, f.y - y) < f.r + Math.max(rx, ry))) continue;
-    const poly = blob(rand, x, y, rx, ry);
-    forests.push({ x, y, r: Math.max(rx, ry), poly, name: `${rand() < 0.5 ? 'Forêt' : 'Bois'} de ${placeName(rand)}` });
-  }
-  for (const f of forests) {
-    // Le biome décide de la forêt : conifères au froid, clairsemée dans la steppe, aucune au désert ni dans la mer.
-    // (Les tirages au sort restent les mêmes : le reste du monde ne bouge pas.)
-    f.biome = biomeOf(tempAt(f.x, f.y), 0.5);
-    f.skip = f.biome === 'desert' || inSeaW(f.x, f.y, 10);
-    if (!f.skip) push(f.biome === 'steppe' ? 'forest-sparse' : 'forest', rectPath(f.poly));
-    let n = 0;
-    for (let x = f.x - f.r; x < f.x + f.r; x += 7) for (let y = f.y - f.r; y < f.y + f.r; y += 7) {
-      const jx = x + (rand() - 0.5) * 5, jy = y + (rand() - 0.5) * 5;
-      const rr = 2 + rand() * 1.6;
-      if (f.skip || !insidePoly(jx, jy, f.poly) || (f.biome === 'steppe' && n++ % 3)) continue;
-      if (f.biome === 'neige' || f.biome === 'taiga') push('pine', `M${f1(jx)} ${f1(jy - rr * 1.3)}L${f1(jx + rr * 0.85)} ${f1(jy + rr * 0.8)}L${f1(jx - rr * 0.85)} ${f1(jy + rr * 0.8)}Z`);
-      else push('tree', circlePath(jx, jy, rr));
-    }
-  }
-  const rivers = [];
-  const nR = 1 + (rand() < 0.55 ? 1 : 0);
-  for (let k = 0; k < nR; k++) {
-    // Source sur un bord, embouchure sur le bord opposé, méandres aléatoires.
-    const vertical = rand() < 0.5;
-    let x = vertical ? 80 + rand() * (W - 160) : -10, y = vertical ? -10 : 80 + rand() * (H - 160);
-    let a = vertical ? Math.PI / 2 : 0;
-    const base0 = a;
-    const pts = [[x, y]];
-    for (let s = 0; s < 120; s++) {
-      a = base0 + clamp(angDiff(a + (rand() - 0.5) * 0.7, base0), -0.9, 0.9);
-      x += Math.cos(a) * 16; y += Math.sin(a) * 16;
-      pts.push([x, y]);
-      if (x < -20 || y < -20 || x > W + 20 || y > H + 20) break;
-    }
-    rivers.push({ pts, name: RIVERS[Math.floor(rand() * RIVERS.length)] });
-  }
-  for (const r of rivers) decor.push({ kind: 'river', d: linePath(r.pts), w: 3.4 });
-  if (rand() < 0.6) {
-    for (let k = 0; k < 20; k++) {
-      const x = 80 + rand() * (W - 160), y = 80 + rand() * (H - 160), rx = 14 + rand() * 26;
-      if (!farFromCities(x, y, rx + 25) || forests.some((f) => Math.hypot(f.x - x, f.y - y) < f.r + rx)) continue;
-      if (coasts.length && inSeaW(x, y, rx + 20)) continue;
-      const poly = blob(rand, x, y, rx, rx * 0.7, 22);
-      // Une grève autour du lac : sable au tempéré et au chaud, galets au froid.
-      decor.push({ kind: tempAt(x, y) < 0.3 ? 'shore-cold' : 'shore', d: rectPath(poly) });
-      push(season === 'hiver' && tempAt(x, y) < 0.45 ? 'lake-ice' : 'lake', rectPath(poly));
-      addPoint({ ...base, id: `${wid}:lac`, title: `Lac de ${placeName(rand)}`, category: 'eau', importance: 'local', minZoom: 0.9, area: true }, x / W, y / H);
-      rivers.push({ pts: poly.concat([poly[0]]), name: '', lake: true });
-      break;
-    }
-  }
-  for (let k = 0; k < 5; k++) {
-    const x = 60 + rand() * (W - 120), y = 60 + rand() * (H - 120);
-    if (!farFromCities(x, y, 45) || inSeaW(x, y, 20)) continue;
-    for (let j = 0; j < 7; j++) {
-      const hx2 = x + (rand() - 0.5) * 70, hy2 = y + (rand() - 0.5) * 40, w = 10 + rand() * 10;
-      push('hill', `M${f1(hx2 - w)} ${f1(hy2)}Q${f1(hx2)} ${f1(hy2 - w * 0.8)} ${f1(hx2 + w)} ${f1(hy2)}`);
-    }
-  }
-  // Biomes : une tache par case de 40 unités, colorée selon la température et l'humidité (près de l'eau).
-  const waters = rivers.flatMap((r) => r.pts.filter((_, k) => k % 3 === 0));
-  const BC = 40;
-  for (let gx = 0; gx * BC < W + BC; gx++) for (let gy = 0; gy * BC < H + BC; gy++) {
-    const h = rng(hashSeed(`biome:${seed}:${gx}:${gy}`));
-    const x = gx * BC + (h() - 0.5) * 16, y = gy * BC + (h() - 0.5) * 16;
-    if (inSeaW(x, y, -6)) continue;
-    const wet = waters.some(([wx, wy]) => Math.abs(wx - x) < 70 && Math.abs(wy - y) < 70) || inSeaW(x, y, 60) ? 1 : 0.3;
-    const T = tempAt(x, y);
-    let b = biomeOf(T, wet);
-    if (T < snowLine) b = 'neige';
-    else if (b === 'neige') b = 'taiga';
-    if (b === 'tempere') continue;
-    push(`biome-${b}`, circlePath(x, y, BC * (0.72 + h() * 0.25)));
-    if (b === 'desert' && h() < 0.55 && farFromCities(x, y, 30)) for (let j = 0; j < 3; j++) {
-      const dx = x + (h() - 0.5) * 30, dy = y + (h() - 0.5) * 24, w = 6 + h() * 8;
-      push('dune', `M${f1(dx - w)} ${f1(dy)}Q${f1(dx)} ${f1(dy - w * 0.55)} ${f1(dx + w)} ${f1(dy)}`);
-    }
-  }
-  // Montagnes : une ou deux chaînes, loin des cités et de la mer, enneigées au sommet dans le froid.
-  const rel = rng(hashSeed(`relief:${seed}`));
-  const ranges = [];
-  for (let k = 0, tries = 0; k < 1 + (rel() < 0.6 ? 1 : 0) && tries < 30; tries++) {
-    const x = 90 + rel() * (W - 180), y = 90 + rel() * (H - 180), a = rel() * Math.PI, len = 120 + rel() * 160;
-    const peaks = [];
-    for (let t = -len / 2; t <= len / 2; t += 13) {
-      const px = x + Math.cos(a) * t + (rel() - 0.5) * 14, py = y + Math.sin(a) * t + (rel() - 0.5) * 14;
-      if (farFromCities(px, py, 50) && !inSeaW(px, py, 15) && !forests.some((f) => !f.skip && insidePoly(px, py, f.poly))) peaks.push([px, py, 9 + rel() * 8]);
-    }
-    if (peaks.length < 5) continue;
-    ranges.push({ peaks, x, y }); k++;
-  }
-  ranges.forEach((r, i) => {
-    for (const [px, py, s2] of r.peaks) {
-      push('mountain', `M${f1(px - s2)} ${f1(py + s2 * 0.5)}L${f1(px)} ${f1(py - s2)}L${f1(px + s2)} ${f1(py + s2 * 0.5)}Z`);
-      if (tempAt(px, py) < (season === 'hiver' ? 0.75 : 0.45)) push('snowcap', `M${f1(px - s2 * 0.38)} ${f1(py - s2 * 0.43)}L${f1(px)} ${f1(py - s2)}L${f1(px + s2 * 0.38)} ${f1(py - s2 * 0.43)}Z`);
-    }
-    const nr = rng(hashSeed(`monts:${seed}:${i}`));
-    addPoint({ ...base, id: `${wid}:monts-${i}`, title: `Monts de ${placeName(nr)}`, category: 'vivant', importance: 'local', minZoom: 0.9, area: true }, clamp(r.x / W, 0.03, 0.97), clamp((r.y - 22) / H, 0.03, 0.97));
-  });
-  // Mer et côtes : la grève, puis l'eau.
-  for (const c of coasts) { const d = rectPath(c.pts); decor.push({ kind: 'beach', d, w: 7 }, { kind: 'sea', d }); }
-  coasts.forEach((c, i) => {
-    const t = (c.dir === 'N' || c.dir === 'S' ? W : H) * 0.5, d = Math.max(8, c.offset(t) * 0.45);
-    const [x, y] = c.dir === 'N' ? [t, d] : c.dir === 'S' ? [t, H - d] : c.dir === 'O' ? [d, t] : [W - d, t];
-    const nr = rng(hashSeed(`mer:${seed}:${c.dir}`));
-    addPoint({ ...base, id: `${wid}:mer-${i}`, title: `Mer de ${placeName(nr)}`, category: 'eau', importance: 'regional', minZoom: 0, area: true }, x / W, y / H);
-  });
-  forests.forEach((f, i) => !f.skip && addPoint({ ...base, id: `${wid}:foret-${i}`, title: f.name, category: 'vivant', importance: 'local', minZoom: 0.9, area: true }, f.x / W, f.y / H));
-  rivers.filter((r) => !r.lake).forEach((r, i) => {
-    const p = r.pts[Math.floor(r.pts.length * 0.4)];
-    if (p) addPoint({ ...base, id: `${wid}:riviere-${i}`, title: r.name.replace(/^./, (ch) => ch.toUpperCase()), category: 'eau', importance: 'local', minZoom: 0.9, area: true }, clamp(p[0] / W, 0.02, 0.98), clamp(p[1] / H, 0.02, 0.98));
-  });
-
-  // Cités sur le plan monde : un point (qui ouvre la cité) et sa silhouette.
-  for (const { c, g } of cityOut) {
-    const [x, y] = [c.at[0] * W, c.at[1] * H];
-    const rr = Math.max(3, g.stats.radius / S);
-    push('town', circlePath(x, y, rr));
-    addPoint({
-      ...base, id: `${wid}:cite-${c.id}`, title: c.name, category: 'cite', importance: 'landmark', minZoom: 0,
-      subtitle: `Cité · ${c.population.toLocaleString('fr-CA')} habitants`, opens: { kind: 'site', id: g.map.scope.id }, entryId: c.entryId,
-    }, c.at[0], c.at[1]);
-    // Chaque porte de la cité mène au monde : à l'entrée de la cité sur le plan monde (une seule ancre, sous son point).
-    const aid = `${wid}:entree-${c.id}`;
-    anchors.push({ id: aid, mapId: wid, at: [r5(c.at[0]), r5(c.at[1])], label: c.name });
-    for (const gt of g.gates) connections.push({ id: `cx-${c.id}-${gt.i}`, kind: 'naturel', fromAnchorId: gt.anchorId, toAnchorId: aid, direction: 'both', title: `${gt.name} de ${c.name}`, ...base });
-  }
-
-  // Routes entre cités : un arbre couvrant (les plus proches d'abord), plus un raccourci quand il est court.
-  const roads = [];
-  if (cities.length > 1) {
-    const inTree = new Set([0]);
-    while (inTree.size < cities.length) {
-      let best = null;
-      for (const i of inTree) for (let j = 0; j < cities.length; j++) {
-        if (inTree.has(j)) continue;
-        const d = Math.hypot(cityXY[i][0] - cityXY[j][0], cityXY[i][1] - cityXY[j][1]);
-        if (!best || d < best.d) best = { i, j, d };
-      }
-      inTree.add(best.j); roads.push([best.i, best.j]);
-    }
-    for (let i = 0; i < cities.length; i++) for (let j = i + 1; j < cities.length; j++) {
-      if (roads.some(([a, b]) => (a === i && b === j) || (a === j && b === i))) continue;
-      const d = Math.hypot(cityXY[i][0] - cityXY[j][0], cityXY[i][1] - cityXY[j][1]);
-      if (d < 330 && roads.filter(([a, b]) => a === i || b === i).length < 3) roads.push([i, j]);
-    }
-  }
-  const worldRoads = [];
-  const hamlets = [];
   const villages = [];
   const placesOut = [...cityOut];
-  for (const [i, j] of roads) {
-    const A = cityOut[i], B = cityOut[j];
-    const [a, b] = A.c.id < B.c.id ? [A, B] : [B, A];
-    const r = rng(hashSeed(`route:${seed}:${a.c.id}:${b.c.id}`));
-    // La route va d'une cité à l'autre (de l'entrée de l'une à l'entrée de l'autre).
-    const p0 = a.c.at, p1 = b.c.at;
-    const pts = [[p0[0] * W, p0[1] * H]];
-    const L = Math.hypot((p1[0] - p0[0]) * W, (p1[1] - p0[1]) * H);
-    const n = Math.max(2, Math.round(L / 45));
-    for (let k = 1; k < n; k++) {
-      const t = k / n, jit = Math.sin(t * Math.PI) * (r() - 0.5) * L * 0.12;
-      const x = (p0[0] + (p1[0] - p0[0]) * t) * W, y = (p0[1] + (p1[1] - p0[1]) * t) * H;
-      const nx = -(p1[1] - p0[1]) * H / L, ny = (p1[0] - p0[0]) * W / L;
-      pts.push([x + nx * jit, y + ny * jit]);
+  /** Trajets entre cités (km, effort) : pour les distances du panneau Monde. */
+  const routes = [];
+  if (frame.legacy) {
+    // Terrain du monde : forêts, rivières, lac, collines (loin des cités).
+    const decor = [];
+    const paths = {};
+    const push = (k, d) => { (paths[k] ??= []).push(d); };
+    const cityXY = cities.map((c) => [c.at[0] * W, c.at[1] * H]);
+    const farFromCities = (x, y, m) => cityXY.every(([cx, cy]) => Math.hypot(cx - x, cy - y) > m);
+
+    // Climat : température selon la latitude (hémisphère nord : froid en haut), un peu brouillée pour des limites naturelles.
+    const climate = world.climate ?? {};
+    const tNoise = smoothNoise(hashSeed(`climat:${seed}`), 150);
+    tempAt = (x, y) => temperatureAt(climate, y / H, (tNoise(x, y) - 0.5) * 0.14);
+    // Saison (choisie par le MJ) : la neige descend l'hiver, les lacs du nord gèlent.
+    const snowLine = SNOW_LINE[season] ?? 0.17;
+    // Mer : seulement du côté des cités portuaires. Chaque côté qui porte un port devient une côte, qui passe au ras de
+    // ses ports et reste au large des autres cités.
+    const coasts = [];
+    for (const dir of ['N', 'S', 'E', 'O']) {
+      const ports = cities.filter((c) => c.port && c.seaDir === dir);
+      if (!ports.length) continue;
+      const horiz = dir === 'N' || dir === 'S', len = horiz ? W : H;
+      const local = (x, y) => (dir === 'N' ? [x, y] : dir === 'S' ? [x, H - y] : dir === 'O' ? [y, x] : [y, W - x]);
+      const world2 = (t, d) => (dir === 'N' ? [t, d] : dir === 'S' ? [t, H - d] : dir === 'O' ? [d, t] : [W - d, t]);
+      const cn = smoothNoise(hashSeed(`cote:${seed}:${dir}`), 90);
+      const sizeOf = (c) => Math.max(3, Math.sqrt(((c.population / (c.village ? 45 : 170)) * 10000) / Math.PI) / S);
+      const offset = (t) => {
+        let o = 18 + cn(t, 0) * 34;
+        for (const c of ports) { const [tc, dc] = local(c.at[0] * W, c.at[1] * H); o = Math.max(o, (dc - sizeOf(c) * 0.4) * Math.exp(-(((t - tc) / 150) ** 2)) + cn(t, 50) * 8); }
+        for (const c of cities) {
+          if (c.port && c.seaDir === dir) continue;
+          const [tc, dc] = local(c.at[0] * W, c.at[1] * H);
+          o = Math.min(o, Math.max(6, dc - sizeOf(c) - 30) + Math.abs(t - tc) * 0.9);
+        }
+        return o;
+      };
+      const pts = [];
+      for (let t = -20; t <= len + 20; t += 10) pts.push(world2(t, offset(t)));
+      pts.push(world2(len + 20, -40), world2(-20, -40));
+      coasts.push({ dir, pts, local, offset });
     }
-    pts.push([p1[0] * W, p1[1] * H]);
-    const id = `${wid}:route-${a.c.id}-${b.c.id}`;
-    features.push({ ...base, id, title: `Route de ${a.c.name} à ${b.c.name}`, category: 'voie', importance: 'regional', minZoom: 0, trace: 'tunnel' });
-    geometries.push({ id: `g-${id}`, mapId: wid, featureId: id, type: 'polyline', coordinates: pts.map(([x, y]) => [r5(x / W), r5(y / H)]) });
-    worldRoads.push({ pts: pts.flatMap(([x, y]) => [r1(x), r1(y)]), hw: 0.2 });
-    // Un hameau à mi-chemin sur les routes assez longues : quelques toits et leurs champs.
-    if (L > 160) {
-      const p = along(pts, L * (0.4 + r() * 0.2));
-      const side = r() < 0.5 ? -1 : 1;
-      const hx2 = p.x - Math.sin(p.ang) * side * 5, hy2 = p.y + Math.cos(p.ang) * side * 5;
-      if (farFromCities(hx2, hy2, 40) && !forests.some((f) => !f.skip && insidePoly(hx2, hy2, f.poly)) && !inSeaW(hx2, hy2, 15)) {
-        for (let k = 0; k < 6; k++) push('roof', rectPath(corners({ x: hx2 + (r() - 0.5) * 6, y: hy2 + (r() - 0.5) * 5, w: 1.3 + r() * 0.6, d: 0.9, ang: p.ang + (r() - 0.5) * 0.5 })));
-        for (let k = 0; k < 5; k++) push('plot', rectPath(corners({ x: hx2 + (r() - 0.5) * 22, y: hy2 + (r() - 0.5) * 18, w: 5 + r() * 4, d: 2 + r() * 1.5, ang: p.ang + (r() - 0.5) * 0.8 })));
-        hamlets.push([r1(hx2), r1(hy2), 3]);
-        // Le hameau s'explore comme une cité : son plan est généré, sans muraille, avec ses fermes.
-        const hname = `Hameau de ${placeName(r)}`;
-        const hid = `hameau-${a.c.id}-${b.c.id}`;
-        const spec = citySpecDefaults({ id: hid, name: hname, population: 50 + Math.floor(r() * 170), village: true, walls: false, castle: false, highTown: false, faubourgs: false, farms: true, river: false, at: [r5(hx2 / W), r5(hy2 / H)] });
-        const hpid = cityPlanId(mapRecordId, hid);
-        const hg = cachedCity(spec, hpid, byCity.get(hid) ?? {});
-        maps.push(hg.map); features.push(...hg.features); geometries.push(...hg.geometries); anchors.push(...hg.anchors);
-        spaces.push({ id: hg.map.scope.id, kind: 'site', name: hname, levelId: 'monde', stratumIds: [], mapId: hpid });
-        villages.push(spec); placesOut.push({ c: spec, g: hg, pid: hpid });
-        addPoint({ ...base, id: `${id}:hameau`, title: hname, category: 'cite', importance: 'local', minZoom: 0.9, subtitle: `Hameau · ${spec.population} habitants`, opens: { kind: 'site', id: hg.map.scope.id } }, hx2 / W, hy2 / H);
-        const aid = `${wid}:entree-${hid}`;
-        anchors.push({ id: aid, mapId: wid, at: [r5(hx2 / W), r5(hy2 / H)], label: hname });
-        for (const gt of hg.gates) connections.push({ id: `cx-${hid}-${gt.i}`, kind: 'naturel', fromAnchorId: gt.anchorId, toAnchorId: aid, direction: 'both', title: `${gt.name} · ${hname}`, ...base });
+    const inSeaW = (x, y, m = 0) => coasts.some((c) => { const [t, d] = c.local(x, y); return d < c.offset(t) + m; });
+    const forests = [];
+    const nF = 8 + Math.floor(rand() * 5);
+    for (let k = 0; k < nF * 4 && forests.length < nF; k++) {
+      const x = 40 + rand() * (W - 80), y = 40 + rand() * (H - 80), rx = 22 + rand() * 60, ry = rx * (0.55 + rand() * 0.5);
+      if (!farFromCities(x, y, Math.max(rx, ry) + 18)) continue;
+      if (forests.some((f) => Math.hypot(f.x - x, f.y - y) < f.r + Math.max(rx, ry))) continue;
+      const poly = blob(rand, x, y, rx, ry);
+      forests.push({ x, y, r: Math.max(rx, ry), poly, name: `${rand() < 0.5 ? 'Forêt' : 'Bois'} de ${placeName(rand)}` });
+    }
+    for (const f of forests) {
+      // Le biome décide de la forêt : conifères au froid, clairsemée dans la steppe, aucune au désert ni dans la mer.
+      // (Les tirages au sort restent les mêmes : le reste du monde ne bouge pas.)
+      f.biome = biomeOf(tempAt(f.x, f.y), 0.5);
+      f.skip = f.biome === 'desert' || inSeaW(f.x, f.y, 10);
+      if (!f.skip) push(f.biome === 'steppe' ? 'forest-sparse' : 'forest', rectPath(f.poly));
+      let n = 0;
+      for (let x = f.x - f.r; x < f.x + f.r; x += 7) for (let y = f.y - f.r; y < f.y + f.r; y += 7) {
+        const jx = x + (rand() - 0.5) * 5, jy = y + (rand() - 0.5) * 5;
+        const rr = 2 + rand() * 1.6;
+        if (f.skip || !insidePoly(jx, jy, f.poly) || (f.biome === 'steppe' && n++ % 3)) continue;
+        if (f.biome === 'neige' || f.biome === 'taiga') push('pine', `M${f1(jx)} ${f1(jy - rr * 1.3)}L${f1(jx + rr * 0.85)} ${f1(jy + rr * 0.8)}L${f1(jx - rr * 0.85)} ${f1(jy + rr * 0.8)}Z`);
+        else push('tree', circlePath(jx, jy, rr));
       }
     }
+    const rivers = [];
+    const nR = 1 + (rand() < 0.55 ? 1 : 0);
+    for (let k = 0; k < nR; k++) {
+      // Source sur un bord, embouchure sur le bord opposé, méandres aléatoires.
+      const vertical = rand() < 0.5;
+      let x = vertical ? 80 + rand() * (W - 160) : -10, y = vertical ? -10 : 80 + rand() * (H - 160);
+      let a = vertical ? Math.PI / 2 : 0;
+      const base0 = a;
+      const pts = [[x, y]];
+      for (let s = 0; s < 120; s++) {
+        a = base0 + clamp(angDiff(a + (rand() - 0.5) * 0.7, base0), -0.9, 0.9);
+        x += Math.cos(a) * 16; y += Math.sin(a) * 16;
+        pts.push([x, y]);
+        if (x < -20 || y < -20 || x > W + 20 || y > H + 20) break;
+      }
+      rivers.push({ pts, name: RIVERS[Math.floor(rand() * RIVERS.length)] });
+    }
+    for (const r of rivers) decor.push({ kind: 'river', d: linePath(r.pts), w: 3.4 });
+    if (rand() < 0.6) {
+      for (let k = 0; k < 20; k++) {
+        const x = 80 + rand() * (W - 160), y = 80 + rand() * (H - 160), rx = 14 + rand() * 26;
+        if (!farFromCities(x, y, rx + 25) || forests.some((f) => Math.hypot(f.x - x, f.y - y) < f.r + rx)) continue;
+        if (coasts.length && inSeaW(x, y, rx + 20)) continue;
+        const poly = blob(rand, x, y, rx, rx * 0.7, 22);
+        // Une grève autour du lac : sable au tempéré et au chaud, galets au froid.
+        decor.push({ kind: tempAt(x, y) < 0.3 ? 'shore-cold' : 'shore', d: rectPath(poly) });
+        push(season === 'hiver' && tempAt(x, y) < 0.45 ? 'lake-ice' : 'lake', rectPath(poly));
+        addPoint({ ...base, id: `${wid}:lac`, title: `Lac de ${placeName(rand)}`, category: 'eau', importance: 'local', minZoom: 0.9, area: true }, x / W, y / H);
+        rivers.push({ pts: poly.concat([poly[0]]), name: '', lake: true });
+        break;
+      }
+    }
+    for (let k = 0; k < 5; k++) {
+      const x = 60 + rand() * (W - 120), y = 60 + rand() * (H - 120);
+      if (!farFromCities(x, y, 45) || inSeaW(x, y, 20)) continue;
+      for (let j = 0; j < 7; j++) {
+        const hx2 = x + (rand() - 0.5) * 70, hy2 = y + (rand() - 0.5) * 40, w = 10 + rand() * 10;
+        push('hill', `M${f1(hx2 - w)} ${f1(hy2)}Q${f1(hx2)} ${f1(hy2 - w * 0.8)} ${f1(hx2 + w)} ${f1(hy2)}`);
+      }
+    }
+    // Biomes : une tache par case de 40 unités, colorée selon la température et l'humidité (près de l'eau).
+    const waters = rivers.flatMap((r) => r.pts.filter((_, k) => k % 3 === 0));
+    const BC = 40;
+    for (let gx = 0; gx * BC < W + BC; gx++) for (let gy = 0; gy * BC < H + BC; gy++) {
+      const h = rng(hashSeed(`biome:${seed}:${gx}:${gy}`));
+      const x = gx * BC + (h() - 0.5) * 16, y = gy * BC + (h() - 0.5) * 16;
+      if (inSeaW(x, y, -6)) continue;
+      const wet = waters.some(([wx, wy]) => Math.abs(wx - x) < 70 && Math.abs(wy - y) < 70) || inSeaW(x, y, 60) ? 1 : 0.3;
+      const T = tempAt(x, y);
+      let b = biomeOf(T, wet);
+      if (T < snowLine) b = 'neige';
+      else if (b === 'neige') b = 'taiga';
+      if (b === 'tempere') continue;
+      push(`biome-${b}`, circlePath(x, y, BC * (0.72 + h() * 0.25)));
+      if (b === 'desert' && h() < 0.55 && farFromCities(x, y, 30)) for (let j = 0; j < 3; j++) {
+        const dx = x + (h() - 0.5) * 30, dy = y + (h() - 0.5) * 24, w = 6 + h() * 8;
+        push('dune', `M${f1(dx - w)} ${f1(dy)}Q${f1(dx)} ${f1(dy - w * 0.55)} ${f1(dx + w)} ${f1(dy)}`);
+      }
+    }
+    // Montagnes : une ou deux chaînes, loin des cités et de la mer, enneigées au sommet dans le froid.
+    const rel = rng(hashSeed(`relief:${seed}`));
+    const ranges = [];
+    for (let k = 0, tries = 0; k < 1 + (rel() < 0.6 ? 1 : 0) && tries < 30; tries++) {
+      const x = 90 + rel() * (W - 180), y = 90 + rel() * (H - 180), a = rel() * Math.PI, len = 120 + rel() * 160;
+      const peaks = [];
+      for (let t = -len / 2; t <= len / 2; t += 13) {
+        const px = x + Math.cos(a) * t + (rel() - 0.5) * 14, py = y + Math.sin(a) * t + (rel() - 0.5) * 14;
+        if (farFromCities(px, py, 50) && !inSeaW(px, py, 15) && !forests.some((f) => !f.skip && insidePoly(px, py, f.poly))) peaks.push([px, py, 9 + rel() * 8]);
+      }
+      if (peaks.length < 5) continue;
+      ranges.push({ peaks, x, y }); k++;
+    }
+    ranges.forEach((r, i) => {
+      for (const [px, py, s2] of r.peaks) {
+        push('mountain', `M${f1(px - s2)} ${f1(py + s2 * 0.5)}L${f1(px)} ${f1(py - s2)}L${f1(px + s2)} ${f1(py + s2 * 0.5)}Z`);
+        if (tempAt(px, py) < (season === 'hiver' ? 0.75 : 0.45)) push('snowcap', `M${f1(px - s2 * 0.38)} ${f1(py - s2 * 0.43)}L${f1(px)} ${f1(py - s2)}L${f1(px + s2 * 0.38)} ${f1(py - s2 * 0.43)}Z`);
+      }
+      const nr = rng(hashSeed(`monts:${seed}:${i}`));
+      addPoint({ ...base, id: `${wid}:monts-${i}`, title: `Monts de ${placeName(nr)}`, category: 'vivant', importance: 'local', minZoom: 0.9, area: true }, clamp(r.x / W, 0.03, 0.97), clamp((r.y - 22) / H, 0.03, 0.97));
+    });
+    // Mer et côtes : la grève, puis l'eau.
+    for (const c of coasts) { const d = rectPath(c.pts); decor.push({ kind: 'beach', d, w: 7 }, { kind: 'sea', d }); }
+    coasts.forEach((c, i) => {
+      const t = (c.dir === 'N' || c.dir === 'S' ? W : H) * 0.5, d = Math.max(8, c.offset(t) * 0.45);
+      const [x, y] = c.dir === 'N' ? [t, d] : c.dir === 'S' ? [t, H - d] : c.dir === 'O' ? [d, t] : [W - d, t];
+      const nr = rng(hashSeed(`mer:${seed}:${c.dir}`));
+      addPoint({ ...base, id: `${wid}:mer-${i}`, title: `Mer de ${placeName(nr)}`, category: 'eau', importance: 'regional', minZoom: 0, area: true }, x / W, y / H);
+    });
+    forests.forEach((f, i) => !f.skip && addPoint({ ...base, id: `${wid}:foret-${i}`, title: f.name, category: 'vivant', importance: 'local', minZoom: 0.9, area: true }, f.x / W, f.y / H));
+    rivers.filter((r) => !r.lake).forEach((r, i) => {
+      const p = r.pts[Math.floor(r.pts.length * 0.4)];
+      if (p) addPoint({ ...base, id: `${wid}:riviere-${i}`, title: r.name.replace(/^./, (ch) => ch.toUpperCase()), category: 'eau', importance: 'local', minZoom: 0.9, area: true }, clamp(p[0] / W, 0.02, 0.98), clamp(p[1] / H, 0.02, 0.98));
+    });
+
+    // Cités sur le plan monde : un point (qui ouvre la cité) et sa silhouette.
+    for (const { c, g } of cityOut) {
+      const [x, y] = [c.at[0] * W, c.at[1] * H];
+      const rr = Math.max(3, g.stats.radius / S);
+      push('town', circlePath(x, y, rr));
+      addPoint({
+        ...base, id: `${wid}:cite-${c.id}`, title: c.name, category: 'cite', importance: 'landmark', minZoom: 0,
+        subtitle: `Cité · ${c.population.toLocaleString('fr-CA')} habitants`, opens: { kind: 'site', id: g.map.scope.id }, entryId: c.entryId,
+      }, c.at[0], c.at[1]);
+      // Chaque porte de la cité mène au monde : à l'entrée de la cité sur le plan monde (une seule ancre, sous son point).
+      const aid = `${wid}:entree-${c.id}`;
+      anchors.push({ id: aid, mapId: wid, at: [r5(c.at[0]), r5(c.at[1])], label: c.name });
+      for (const gt of g.gates) connections.push({ id: `cx-${c.id}-${gt.i}`, kind: 'naturel', fromAnchorId: gt.anchorId, toAnchorId: aid, direction: 'both', title: `${gt.name} de ${c.name}`, ...base });
+    }
+
+    // Routes entre cités : un arbre couvrant (les plus proches d'abord), plus un raccourci quand il est court.
+    const roads = [];
+    if (cities.length > 1) {
+      const inTree = new Set([0]);
+      while (inTree.size < cities.length) {
+        let best = null;
+        for (const i of inTree) for (let j = 0; j < cities.length; j++) {
+          if (inTree.has(j)) continue;
+          const d = Math.hypot(cityXY[i][0] - cityXY[j][0], cityXY[i][1] - cityXY[j][1]);
+          if (!best || d < best.d) best = { i, j, d };
+        }
+        inTree.add(best.j); roads.push([best.i, best.j]);
+      }
+      for (let i = 0; i < cities.length; i++) for (let j = i + 1; j < cities.length; j++) {
+        if (roads.some(([a, b]) => (a === i && b === j) || (a === j && b === i))) continue;
+        const d = Math.hypot(cityXY[i][0] - cityXY[j][0], cityXY[i][1] - cityXY[j][1]);
+        if (d < 330 && roads.filter(([a, b]) => a === i || b === i).length < 3) roads.push([i, j]);
+      }
+    }
+    const worldRoads = [];
+    const hamlets = [];
+    for (const [i, j] of roads) {
+      const A = cityOut[i], B = cityOut[j];
+      const [a, b] = A.c.id < B.c.id ? [A, B] : [B, A];
+      const r = rng(hashSeed(`route:${seed}:${a.c.id}:${b.c.id}`));
+      // La route va d'une cité à l'autre (de l'entrée de l'une à l'entrée de l'autre).
+      const p0 = a.c.at, p1 = b.c.at;
+      const pts = [[p0[0] * W, p0[1] * H]];
+      const L = Math.hypot((p1[0] - p0[0]) * W, (p1[1] - p0[1]) * H);
+      const n = Math.max(2, Math.round(L / 45));
+      for (let k = 1; k < n; k++) {
+        const t = k / n, jit = Math.sin(t * Math.PI) * (r() - 0.5) * L * 0.12;
+        const x = (p0[0] + (p1[0] - p0[0]) * t) * W, y = (p0[1] + (p1[1] - p0[1]) * t) * H;
+        const nx = -(p1[1] - p0[1]) * H / L, ny = (p1[0] - p0[0]) * W / L;
+        pts.push([x + nx * jit, y + ny * jit]);
+      }
+      pts.push([p1[0] * W, p1[1] * H]);
+      const id = `${wid}:route-${a.c.id}-${b.c.id}`;
+      features.push({ ...base, id, title: `Route de ${a.c.name} à ${b.c.name}`, category: 'voie', importance: 'regional', minZoom: 0, trace: 'tunnel' });
+      geometries.push({ id: `g-${id}`, mapId: wid, featureId: id, type: 'polyline', coordinates: pts.map(([x, y]) => [r5(x / W), r5(y / H)]) });
+      worldRoads.push({ pts: pts.flatMap(([x, y]) => [r1(x), r1(y)]), hw: 0.2 });
+      // Un hameau à mi-chemin sur les routes assez longues : quelques toits et leurs champs.
+      if (L > 160) {
+        const p = along(pts, L * (0.4 + r() * 0.2));
+        const side = r() < 0.5 ? -1 : 1;
+        const hx2 = p.x - Math.sin(p.ang) * side * 5, hy2 = p.y + Math.cos(p.ang) * side * 5;
+        if (farFromCities(hx2, hy2, 40) && !forests.some((f) => !f.skip && insidePoly(hx2, hy2, f.poly)) && !inSeaW(hx2, hy2, 15)) {
+          for (let k = 0; k < 6; k++) push('roof', rectPath(corners({ x: hx2 + (r() - 0.5) * 6, y: hy2 + (r() - 0.5) * 5, w: 1.3 + r() * 0.6, d: 0.9, ang: p.ang + (r() - 0.5) * 0.5 })));
+          for (let k = 0; k < 5; k++) push('plot', rectPath(corners({ x: hx2 + (r() - 0.5) * 22, y: hy2 + (r() - 0.5) * 18, w: 5 + r() * 4, d: 2 + r() * 1.5, ang: p.ang + (r() - 0.5) * 0.8 })));
+          hamlets.push([r1(hx2), r1(hy2), 3]);
+          // Le hameau s'explore comme une cité : son plan est généré, sans muraille, avec ses fermes.
+          const hname = `Hameau de ${placeName(r)}`;
+          const hid = `hameau-${a.c.id}-${b.c.id}`;
+          const spec = citySpecDefaults({ id: hid, name: hname, population: 50 + Math.floor(r() * 170), village: true, walls: false, castle: false, highTown: false, faubourgs: false, farms: true, river: false, at: [r5(hx2 / W), r5(hy2 / H)] });
+          const hpid = cityPlanId(mapRecordId, hid);
+          const hg = cachedCity(spec, hpid, byCity.get(hid) ?? {});
+          maps.push(hg.map); features.push(...hg.features); geometries.push(...hg.geometries); anchors.push(...hg.anchors);
+          spaces.push({ id: hg.map.scope.id, kind: 'site', name: hname, levelId: 'monde', stratumIds: [], mapId: hpid });
+          villages.push(spec); placesOut.push({ c: spec, g: hg, pid: hpid });
+          addPoint({ ...base, id: `${id}:hameau`, title: hname, category: 'cite', importance: 'local', minZoom: 0.9, subtitle: `Hameau · ${spec.population} habitants`, opens: { kind: 'site', id: hg.map.scope.id } }, hx2 / W, hy2 / H);
+          const aid = `${wid}:entree-${hid}`;
+          anchors.push({ id: aid, mapId: wid, at: [r5(hx2 / W), r5(hy2 / H)], label: hname });
+          for (const gt of hg.gates) connections.push({ id: `cx-${hid}-${gt.i}`, kind: 'naturel', fromAnchorId: gt.anchorId, toAnchorId: aid, direction: 'both', title: `${gt.name} · ${hname}`, ...base });
+        }
+      }
+    }
+    // Champs autour des cités, à l'échelle du monde.
+    for (const { c, g } of cityOut) {
+      const r = rng(hashSeed(`champs:${seed}:${c.id}`));
+      const [x, y] = [c.at[0] * W, c.at[1] * H], rr = Math.max(3, g.stats.radius / S);
+      for (let k = 0; k < 16; k++) {
+        const a = r() * TAU, d = rr * (1.6 + r() * 2.2);
+        const px = x + Math.cos(a) * d, py = y + Math.sin(a) * d;
+        if (forests.some((f) => !f.skip && insidePoly(px, py, f.poly)) || inSeaW(px, py, 3) || tempAt(px, py) < 0.12) continue;
+        push('plot', rectPath(corners({ x: px, y: py, w: 3 + r() * 3, d: 1.2 + r(), ang: a + Math.PI / 2 })));
+      }
+    }
+
+    const ORDER = ['biome-taiga', 'biome-steppe', 'biome-desert', 'biome-neige', 'dune', 'plot', 'forest', 'forest-sparse', 'tree', 'pine', 'lake', 'hill', 'mountain', 'snowcap', 'town', 'roof'];
+    const out = (ks) => ks.filter((k) => paths[k]).map((k) => ({ kind: k, d: paths[k].join('') }));
+    // Ordre : biomes, champs, forêts, grèves, lacs, rivières, mer, puis le relief et les cités.
+    const worldDecor = [
+      ...out(ORDER.slice(0, 10)),
+      ...decor.filter((x) => x.kind === 'shore' || x.kind === 'shore-cold'),
+      ...out(['lake', 'lake-ice']),
+      ...decor.filter((x) => x.kind === 'river'),
+      ...decor.filter((x) => x.kind === 'beach' || x.kind === 'sea'),
+      ...out(ORDER.slice(11)),
+    ];
+    maps.unshift({
+      id: wid, title: name, scope: { kind: 'niveau', id: 'monde' }, width: W, height: H, defaultViewport: { x: 0.5, y: 0.5, zoom: 1 },
+      decor: worldDecor,
+      surface: {
+        scale: S, theme: 'monde',
+        ground: {
+          b: [], f: [], t: [], walls: [],
+          forests: forests.filter((f) => !f.skip).map((f) => f.poly.flatMap(([x, y]) => [r1(x), r1(y)])),
+          water: [
+            ...rivers.map((r) => ({ pts: r.pts.flatMap(([x, y]) => [r1(x), r1(y)]), hw: r.lake ? 0 : 0.8, closed: !!r.lake })),
+            ...coasts.map((c) => ({ pts: c.pts.flatMap(([x, y]) => [r1(x), r1(y)]), hw: 0, closed: true })),
+          ],
+          roads: worldRoads,
+          towns: [...cityOut.map(({ c, g }) => [r1(c.at[0] * W), r1(c.at[1] * H), r1(Math.max(3, g.stats.radius / S))]).flat(), ...hamlets.flat()],
+        },
+      },
+    });
+  } else {
+    tempAt = terrainV2({ world, frame, wid, seed, base, cities, cityKms, cityOut, byCity, mapRecordId, features, geometries, anchors, connections, spaces, maps, addPoint, villages, placesOut, routes });
   }
+
   // Intérieurs des bâtiments où le groupe est entré : un plan chacun, relié à la rue par sa porte.
   for (const slotId of world.interiors ?? []) {
     const city = placesOut.find(({ pid }) => slotId.startsWith(`${pid}:b`));
@@ -1137,47 +1189,6 @@ export function generateWorld(world, mapRecordId) {
     connections.push({ id: `cx-${slotId}`, kind: 'naturel', fromAnchorId: `${slotId}:porte`, toAnchorId: `${interiorPlanId(slotId)}:sortie`, direction: 'both', title: `Porte · ${it.space.name}`, ...base });
   }
 
-  // Champs autour des cités, à l'échelle du monde.
-  for (const { c, g } of cityOut) {
-    const r = rng(hashSeed(`champs:${seed}:${c.id}`));
-    const [x, y] = [c.at[0] * W, c.at[1] * H], rr = Math.max(3, g.stats.radius / S);
-    for (let k = 0; k < 16; k++) {
-      const a = r() * TAU, d = rr * (1.6 + r() * 2.2);
-      const px = x + Math.cos(a) * d, py = y + Math.sin(a) * d;
-      if (forests.some((f) => !f.skip && insidePoly(px, py, f.poly)) || inSeaW(px, py, 3) || tempAt(px, py) < 0.12) continue;
-      push('plot', rectPath(corners({ x: px, y: py, w: 3 + r() * 3, d: 1.2 + r(), ang: a + Math.PI / 2 })));
-    }
-  }
-
-  const ORDER = ['biome-taiga', 'biome-steppe', 'biome-desert', 'biome-neige', 'dune', 'plot', 'forest', 'forest-sparse', 'tree', 'pine', 'lake', 'hill', 'mountain', 'snowcap', 'town', 'roof'];
-  const out = (ks) => ks.filter((k) => paths[k]).map((k) => ({ kind: k, d: paths[k].join('') }));
-  // Ordre : biomes, champs, forêts, grèves, lacs, rivières, mer, puis le relief et les cités.
-  const worldDecor = [
-    ...out(ORDER.slice(0, 10)),
-    ...decor.filter((x) => x.kind === 'shore' || x.kind === 'shore-cold'),
-    ...out(['lake', 'lake-ice']),
-    ...decor.filter((x) => x.kind === 'river'),
-    ...decor.filter((x) => x.kind === 'beach' || x.kind === 'sea'),
-    ...out(ORDER.slice(11)),
-  ];
-  maps.unshift({
-    id: wid, title: name, scope: { kind: 'niveau', id: 'monde' }, width: W, height: H, defaultViewport: { x: 0.5, y: 0.5, zoom: 1 },
-    decor: worldDecor,
-    surface: {
-      scale: S, theme: 'monde',
-      ground: {
-        b: [], f: [], t: [], walls: [],
-        forests: forests.filter((f) => !f.skip).map((f) => f.poly.flatMap(([x, y]) => [r1(x), r1(y)])),
-        water: [
-          ...rivers.map((r) => ({ pts: r.pts.flatMap(([x, y]) => [r1(x), r1(y)]), hw: r.lake ? 0 : 0.8, closed: !!r.lake })),
-          ...coasts.map((c) => ({ pts: c.pts.flatMap(([x, y]) => [r1(x), r1(y)]), hw: 0, closed: true })),
-        ],
-        roads: worldRoads,
-        towns: [...cityOut.map(({ c, g }) => [r1(c.at[0] * W), r1(c.at[1] * H), r1(Math.max(3, g.stats.radius / S))]).flat(), ...hamlets.flat()],
-      },
-    },
-  });
-
   // Le personnage du MJ, caché dans le monde : un PNJ comme les autres, que les joueurs trouveront peut-être.
   const hid = world.avatar?.hidden;
   if (hid && maps.some((m) => m.id === hid.planId)) {
@@ -1188,7 +1199,7 @@ export function generateWorld(world, mapRecordId) {
   // que le MJ ne l'a ni défini, ni renommé, ni gardé (mode Exploration). Les cités, les rues et le lore sont canon.
   const canonSet = new Set(world.canon ?? []);
   const boundSlots = new Set(Object.values(world.bindings ?? {}).filter((b) => b && !b.excluded).map((b) => b.slotId));
-  const DRAFTABLE = /(:b\d+|:pnj-gen-\d+|:hameau|:foret-\d+|:riviere-\d+|:lac|:monts-\d+|:mer-\d+)$/;
+  const DRAFTABLE = /(:b\d+|:pnj-gen-\d+|:hameau(-\d+)?|:foret-[\w-]+|:riviere-[\w-]+|:lac(-[\w-]+)?|:monts-[\w-]+|:mer-[\w-]+)$/;
   for (let i = 0; i < features.length; i++) {
     const f = features[i];
     if (DRAFTABLE.test(f.id) && !f.fixed && !canonSet.has(f.id) && !world.names?.[f.id] && !boundSlots.has(f.id)) features[i] = { ...f, draft: true };
@@ -1219,6 +1230,8 @@ export function generateWorld(world, mapRecordId) {
   });
   return {
     version: 'monde-1',
+    /** Cadre (échelle, bornes en km) et trajets entre cités. */
+    frame, routes,
     /** Hameaux générés le long des routes (paramètres de cité) : le lore peut y poser des lieux. */
     villages,
     levels: [{ id: 'monde', order: 1, title: name, description: '', strataIds: [], survey: 'cartographie' }],
@@ -1288,6 +1301,11 @@ export function rasterGround(surface, W, H, win, cols, rows, seed = 0) {
   // Neige : des congères sur le sol à découvert (terrain difficile) ; glace : l'eau gelée se traverse (terrain difficile).
   const snow = surface.snow ?? 0, frozen = surface.frozen;
   const srand = rng((seed ^ 0x9e3779b9) >>> 0);
+  // Relief (monde à l'échelle) : la mer, la pente (rochers, éboulis), la neige et la forêt du lieu exact.
+  const rel = surface.relief;
+  const kmOf = (x, y) => [rel.bounds[0] + (x * rel.m) / 1000, rel.bounds[1] + (y * rel.m) / 1000];
+  const slope = rel ? slopeAt(rel, ...kmOf(x0 + (x1 - x0) / 2, y0 + (y1 - y0) / 2), Math.max(0.05, ((x1 - x0) * rel.m) / 1000)) : 0;
+  const rocky = clamp((slope - 0.1) * 2.5, 0, 0.5);
   const out = [];
   const doors = pairs(g.doors ?? []);
   // Taille d'une case en unités de plan : un mur plus fin qu'une case (cloison) en occupe quand même une, et un petit
@@ -1315,8 +1333,17 @@ export function rasterGround(surface, W, H, win, cols, rows, seed = 0) {
     const wetW = Wa.find((w) => (w.closed ? insidePoly(x, y, w.pts) : lineDist(x, y, w.pts) <= w.hw));
     const wet = !!wetW, ice = wet && (frozen === 'tout' || (frozen === 'rivieres' && !wetW.closed));
     const road = Ro.some((w) => lineDist(x, y, w.pts) <= w.hw);
-    if (wet) { out.push(road ? '=' : ice ? ':' : '~'); continue; }
+    const t = rel ? terrainAt(rel, ...kmOf(x, y)) : null;
+    if (wet || t?.sea) { out.push(road ? '=' : ice ? ':' : '~'); continue; }
     if (road) { out.push('.'); continue; }
+    if (t) {
+      const z = srand();
+      if (z < rocky * 0.4) { out.push('#'); continue; }
+      if (z < rocky) { out.push(':'); continue; }
+      if (t.biome === 'neige' && z < rocky + 0.3) { out.push(':'); continue; }
+      if (t.forest > 0 && z < rocky + t.forest * 0.22) { out.push('I'); continue; }
+      if (t.forest > 0 && z < rocky + t.forest * 0.55) { out.push(','); continue; }
+    }
     if (towns.some(([tx, ty, tr]) => Math.hypot(tx - x, ty - y) < tr)) { out.push(jitter < 0.55 ? '#' : '.'); continue; }
     if (T.some(([tx, ty, tr]) => Math.hypot(tx - x, ty - y) <= tr * 0.6)) { out.push('I'); continue; }
     if (T.some(([tx, ty, tr]) => Math.hypot(tx - x, ty - y) <= tr)) { out.push(','); continue; }
@@ -1327,3 +1354,160 @@ export function rasterGround(surface, W, H, win, cols, rows, seed = 0) {
   }
   return out.join('');
 }
+
+/* ——— Monde, version 2 : relief continu à taille réelle ——— */
+
+/**
+ * Terrain, cités, routes et hameaux d'un monde à l'échelle (lot 12). Ajoute le plan monde et les plans des hameaux au
+ * jeu de données ; renvoie la température en un point du plan (unités), pour le climat des cités.
+ */
+function terrainV2(o) {
+  const { world, frame, wid, seed, base, cities, cityKms, cityOut, byCity, mapRecordId, features, geometries, anchors, connections, spaces, maps, addPoint, villages, placesOut, routes } = o;
+  const W = frame.W, H = frame.H, S = frame.m;
+  const U = ([x, y]) => [((x - frame.x0) * 1000) / S, ((y - frame.y0) * 1000) / S];
+  const N = ([x, y]) => [r5((x - frame.x0) / (frame.x1 - frame.x0)), r5((y - frame.y0) / (frame.y1 - frame.y0))];
+  const inside = ([x, y]) => x > frame.x0 && x < frame.x1 && y > frame.y0 && y < frame.y1;
+  const relief = reliefOf(world, frame, cities.map((c, i) => ({ ...c, km: cityKms[i] })));
+  const nameRng = (k) => rng(hashSeed(`${seed}:${k}`));
+  const season = world.season;
+  const decor = [];
+  const paths = {};
+  const push = (k, d) => { (paths[k] ??= []).push(d); };
+
+  // Eaux : rivières (de la source à la mer) et lacs.
+  const { rivers, lakes } = riversOf(relief, blob);
+  for (const l of lakes) {
+    const T = terrainAt(relief, l.x, l.y).T;
+    const d = rectPath(l.poly.map(U));
+    decor.push({ kind: T < 0.3 ? 'shore-cold' : 'shore', d });
+    push(season === 'hiver' && T < 0.45 ? 'lake-ice' : 'lake', d);
+    if (inside([l.x, l.y])) addPoint({ ...base, id: `${wid}:lac-${l.id}`, title: `Lac de ${placeName(nameRng(`lac:${l.id}`))}`, category: 'eau', importance: 'local', minZoom: 0.9, area: true }, ...N([l.x, l.y]));
+  }
+  for (const r of rivers) {
+    decor.push({ kind: 'stream', d: linePath(r.pts.map(U)) });
+    const p = r.pts[Math.floor(r.pts.length * 0.4)];
+    if (inside(p)) {
+      const nm = RIVERS[Math.floor(nameRng(`riviere:${r.id}`)() * RIVERS.length)];
+      addPoint({ ...base, id: `${wid}:riviere-${r.id}`, title: nm.replace(/^./, (ch) => ch.toUpperCase()), category: 'eau', importance: 'local', minZoom: 0.9, area: true }, ...N(p));
+    }
+  }
+  // Forêts, montagnes, mers : leurs noms, au cœur de chacune.
+  for (const m of landmarksOf(relief)) {
+    if (m.kind === 'foret') addPoint({ ...base, id: `${wid}:foret-${m.id}`, title: `${m.biome === 'taiga' ? 'Forêt' : nameRng(`fb:${m.id}`)() < 0.5 ? 'Forêt' : 'Bois'} de ${placeName(nameRng(`foret:${m.id}`))}`, category: 'vivant', importance: 'local', minZoom: 0.9, area: true }, ...N([m.x, m.y]));
+    else addPoint({ ...base, id: `${wid}:monts-${m.id}`, title: `Monts de ${placeName(nameRng(`monts:${m.id}`))}`, subtitle: `Sommets vers ${(Math.round(m.e / 100) * 100).toLocaleString('fr-CA')} m`, category: 'vivant', importance: 'regional', minZoom: 0, area: true }, ...N([m.x, m.y]));
+  }
+  for (const sea of world.seas ?? []) {
+    // Le nom de la mer, au large de la côte la plus proche du centre du monde.
+    const cx = (frame.x0 + frame.x1) / 2, cy = (frame.y0 + frame.y1) / 2;
+    let at = null;
+    for (let t = 0; t <= 1; t += 0.02) {
+      const p = [cx + (sea.x - cx) * t, cy + (sea.y - cy) * t];
+      if (inside(p) && relief && elevationIsSea(relief, p)) { at = [cx + (sea.x - cx) * Math.min(1, t + 0.08), cy + (sea.y - cy) * Math.min(1, t + 0.08)]; break; }
+    }
+    if (!at || !inside(at)) continue;
+    addPoint({ ...base, id: `${wid}:mer-${sea.id}`, title: sea.name || `Mer de ${placeName(nameRng(`mer:${sea.id}`))}`, category: 'eau', importance: 'landmark', minZoom: 0, area: true }, ...N(at));
+  }
+
+  // Cités : leur vraie taille (une cité de 1 500 habitants fait un kilomètre ou deux), et un repère qui l'ouvre.
+  const townDots = [];
+  cityOut.forEach(({ c, g }, i) => {
+    const [x, y] = U(cityKms[i]);
+    const rr = Math.max(0.5, (cityRadiusKm(c) * 1000 * 0.55) / S);
+    push('town', circlePath(x, y, rr));
+    townDots.push(r1(x), r1(y), r1(rr));
+    addPoint({
+      ...base, id: `${wid}:cite-${c.id}`, title: c.name, category: 'cite', importance: 'landmark', minZoom: 0,
+      subtitle: `Cité · ${c.population.toLocaleString('fr-CA')} habitants`, opens: { kind: 'site', id: g.map.scope.id }, entryId: c.entryId,
+    }, c.at[0], c.at[1]);
+    const aid = `${wid}:entree-${c.id}`;
+    anchors.push({ id: aid, mapId: wid, at: [r5(c.at[0]), r5(c.at[1])], label: c.name });
+    for (const gt of g.gates) connections.push({ id: `cx-${c.id}-${gt.i}`, kind: 'naturel', fromAnchorId: gt.anchorId, toAnchorId: aid, direction: 'both', title: `${gt.name} de ${c.name}`, ...base });
+  });
+
+  // Routes : un arbre couvrant entre les cités (plus quelques raccourcis), tracé par les vallées et les cols.
+  const grid = cities.length > 1 ? travelGrid(relief, lakes.map((l) => l.poly)) : null;
+  const pairs = [];
+  const dist = (i, j) => Math.hypot(cityKms[i][0] - cityKms[j][0], cityKms[i][1] - cityKms[j][1]);
+  if (cities.length > 1) {
+    const inTree = new Set([0]);
+    while (inTree.size < cities.length) {
+      let best = null;
+      for (const i of inTree) for (let j = 0; j < cities.length; j++) if (!inTree.has(j) && (!best || dist(i, j) < best.d)) best = { i, j, d: dist(i, j) };
+      inTree.add(best.j); pairs.push([best.i, best.j]);
+    }
+    const span = SCALES[frame.scale].w;
+    for (let i = 0; i < cities.length; i++) for (let j = i + 1; j < cities.length; j++) {
+      if (pairs.some(([a, b]) => (a === i && b === j) || (a === j && b === i))) continue;
+      if (dist(i, j) < span * 0.3 && pairs.filter(([a, b]) => a === i || b === i).length < 3) pairs.push([i, j]);
+    }
+  }
+  const worldRoads = [];
+  const hamletDots = [];
+  const hamThr = Math.max(6, SCALES[frame.scale].w * 0.06);
+  for (const [i0, j0] of pairs) {
+    const [i, j] = cities[i0].id < cities[j0].id ? [i0, j0] : [j0, i0];
+    const A = cityOut[i], B = cityOut[j];
+    const route = routeOn(grid, cityKms[i], cityKms[j]);
+    if (!route) continue;
+    const id = `${wid}:route-${A.c.id}-${B.c.id}`;
+    const days = route.effort / PACE.normal;
+    routes.push({ a: A.c.id, b: B.c.id, km: route.km, effort: route.effort });
+    features.push({ ...base, id, title: `Route de ${A.c.name} à ${B.c.name}`, subtitle: `${Math.round(route.km)} km · ${daysLabel(days)}`, category: 'voie', importance: 'regional', minZoom: 0, trace: 'tunnel' });
+    geometries.push({ id: `g-${id}`, mapId: wid, featureId: id, type: 'polyline', coordinates: route.pts.map(N) });
+    worldRoads.push({ pts: route.pts.flatMap((p) => U(p).map(r1)), hw: Math.max(0.05, 6 / S) });
+    // Hameaux : à mi-chemin d'une longue route ; deux sur une très longue route (relais, auberges de grand chemin).
+    const n = route.km >= hamThr * 3 ? 2 : route.km >= hamThr ? 1 : 0;
+    const ptsU = route.pts.map(U);
+    const Lu = polyLen(ptsU);
+    for (let k = 0; k < n; k++) {
+      const r = rng(hashSeed(`route:${seed}:${A.c.id}:${B.c.id}:${k}`));
+      const p = along(ptsU, Lu * (n === 1 ? 0.4 + r() * 0.2 : (k + 1) / 3 + (r() - 0.5) * 0.08));
+      const side = r() < 0.5 ? -1 : 1;
+      const off = 0.3 / (S / 400);
+      const hu = [p.x - Math.sin(p.ang) * side * off, p.y + Math.cos(p.ang) * side * off];
+      const hk = [frame.x0 + (hu[0] * S) / 1000, frame.y0 + (hu[1] * S) / 1000];
+      const t = terrainAt(relief, hk[0], hk[1]);
+      if (t.sea || t.e > 1500) continue;
+      const hname = `Hameau de ${placeName(r)}`;
+      const hid = `hameau-${A.c.id}-${B.c.id}${k ? `-${k + 1}` : ''}`;
+      const spec = citySpecDefaults({ id: hid, name: hname, population: 50 + Math.floor(r() * 170), village: true, walls: false, castle: false, highTown: false, faubourgs: false, farms: true, river: false, at: N(hk) });
+      const hpid = cityPlanId(mapRecordId, hid);
+      const hg = cachedCity(spec, hpid, byCity.get(hid) ?? {});
+      maps.push(hg.map); features.push(...hg.features); geometries.push(...hg.geometries); anchors.push(...hg.anchors);
+      spaces.push({ id: hg.map.scope.id, kind: 'site', name: hname, levelId: 'monde', stratumIds: [], mapId: hpid });
+      villages.push(spec); placesOut.push({ c: spec, g: hg, pid: hpid });
+      const hr = Math.max(0.3, (cityRadiusKm(spec) * 1000 * 0.5) / S);
+      push('town', circlePath(hu[0], hu[1], hr));
+      hamletDots.push(r1(hu[0]), r1(hu[1]), r1(hr));
+      addPoint({ ...base, id: `${id}:hameau${k ? `-${k + 1}` : ''}`, title: hname, category: 'cite', importance: 'local', minZoom: 0.9, subtitle: `Hameau · ${spec.population} habitants`, opens: { kind: 'site', id: hg.map.scope.id } }, ...N(hk));
+      const aid = `${wid}:entree-${hid}`;
+      anchors.push({ id: aid, mapId: wid, at: N(hk), label: hname });
+      for (const gt of hg.gates) connections.push({ id: `cx-${hid}-${gt.i}`, kind: 'naturel', fromAnchorId: gt.anchorId, toAnchorId: aid, direction: 'both', title: `${gt.name} · ${hname}`, ...base });
+    }
+  }
+
+  const out = (ks) => ks.filter((k) => paths[k]).map((k) => ({ kind: k, d: paths[k].join('') }));
+  maps.unshift({
+    id: wid, title: world.name || 'Le Monde', scope: { kind: 'niveau', id: 'monde' }, width: W, height: H, defaultViewport: { x: 0.5, y: 0.5, zoom: 1 },
+    decor: [
+      ...decor.filter((x) => x.kind === 'shore' || x.kind === 'shore-cold'),
+      ...out(['lake', 'lake-ice']),
+      ...decor.filter((x) => x.kind === 'stream'),
+      ...out(['town']),
+    ],
+    surface: {
+      scale: S, theme: 'monde', relief,
+      ground: {
+        b: [], f: [], t: [], walls: [],
+        water: [
+          ...rivers.map((r) => ({ pts: r.pts.flatMap((p) => U(p).map(r1)), hw: Math.max(0.03, 25 / S) })),
+          ...lakes.map((l) => ({ pts: l.poly.flatMap((p) => U(p).map(r1)), hw: 0, closed: true })),
+        ],
+        roads: worldRoads,
+        towns: [...townDots, ...hamletDots],
+      },
+    },
+  });
+  return (x, y) => terrainAt(relief, frame.x0 + (x * S) / 1000, frame.y0 + (y * S) / 1000).T;
+}
+const elevationIsSea = (relief, [x, y]) => terrainAt(relief, x, y).sea;

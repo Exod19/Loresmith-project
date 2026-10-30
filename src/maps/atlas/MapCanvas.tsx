@@ -4,6 +4,8 @@
  * anticollision des étiquettes, mini-carte, arrivée centrée sur une ancre.
  * Coordonnées normalisées 0–1 et viewBox fixe : un redimensionnement ne déplace jamais les points.
  */
+import { useReliefImage } from '../world/reliefImage';
+import type { Relief } from '../world/terrain';
 import { CityEmblem, paintedEmblem, peopleOf } from './emblems';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent } from 'react';
 import {
@@ -27,7 +29,7 @@ const FLOOR = '#1f2a29', WALL = '#030607', RIM = '#6b7a75';
 /** Plans de surface : largeur des rues en mètres selon le tracé, et décor peint sous les rues (le reste par-dessus). */
 const ROAD_M: Partial<Record<Trace, number>> = { tunnel: 7.2, galerie: 5.4, boyau: 3.4, etroit: 2.4 };
 const UNDER_ROADS = new Set(['plot', 'tree', 'river', 'forest', 'lake', 'square', 'court', 'hill', 'street', 'floor', 'floor-stone', 'rug', 'dais',
-  'biome-neige', 'biome-taiga', 'biome-steppe', 'biome-desert', 'dune', 'pine', 'forest-sparse', 'shore', 'shore-cold', 'beach', 'sea', 'pier', 'lake-ice']);
+  'biome-neige', 'biome-taiga', 'biome-steppe', 'biome-desert', 'dune', 'pine', 'forest-sparse', 'shore', 'shore-cold', 'beach', 'sea', 'pier', 'lake-ice', 'stream']);
 /** Vue mémorisée par carte : le retour retrouve position et échelle. */
 const saved = new Map<string, T>();
 /** Arrivées déjà appliquées (clé d'historique) : revenir en arrière ne recentre pas une seconde fois. */
@@ -496,6 +498,7 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   const detailEmpty = !map.surface && rz >= 4.2 && !geos.some((g) => features.get(g.featureId)!.importance === 'detail');
   /** Plan de surface : rues dessinées à leur largeur réelle (en mètres), sinon d'un trait fin à l'échelle du monde. */
   const surf = map.surface;
+  const reliefUrl = useReliefImage(surf?.relief as Relief | undefined, W, H);
   const roadW = (tr: Trace) => (surf ? (ROAD_M[tr] ?? 3) / surf.scale : 0);
   const decorUnder = surf && map.decor ? map.decor.filter((x) => UNDER_ROADS.has(x.kind)) : [];
   const decorOver = map.decor ? (surf ? map.decor.filter((x) => !UNDER_ROADS.has(x.kind)) : map.decor) : [];
@@ -519,6 +522,7 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
           {layers.ambiance && map.ambiance && <image href={map.ambiance} x={0} y={0} width={W} height={H} preserveAspectRatio="xMidYMid slice" className="am-ambiance" />}
           {surf ? (
             <>
+              {surf.relief && reliefUrl && <image href={reliefUrl} x={0} y={0} width={W} height={H} preserveAspectRatio="none" className="am-relief" />}
               {decorUnder.length > 0 && <g className="am-decor">{decorUnder.map(decorPath)}</g>}
               <g className="am-roads">
                 {surf.theme !== 'interieur' && shown.map((p) => {

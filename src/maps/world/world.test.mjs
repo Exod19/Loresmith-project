@@ -399,3 +399,61 @@ test('conversations : le prompt joue le PNJ dans son contexte, la réponse se li
   assert.match(c.summary, /Margot \(tenancière\) à La Chope Cassée, Brumeval, l’hiver, le soir/);
   assert.match(c.summary, /Le Vieux Moulin \(Lieu\)/);
 });
+
+test('monde à l’échelle : relief continu, tailles réelles, routes par les vallées, distances en jours', async () => {
+  const T = await import('./terrain.js');
+  const { nearFromText, norm } = await import('./lore.js');
+  // Le relief est défini partout : agrandir les bornes ne change rien à ce qui existe.
+  const rel = { seed: 42, m: 400, bounds: [-250, -175, 250, 175], lat: [-175, 175], climate: {}, season: null, seas: [], flats: [] };
+  const big = { ...rel, bounds: [-400, -175, 250, 300] };
+  assert.equal(T.elevationAt(rel, 12.3, -45.6), T.elevationAt(big, 12.3, -45.6));
+  // Des montagnes de plusieurs milliers de mètres, des plaines, et pas de mer sans port.
+  let max = 0, sea = 0;
+  for (let x = -250; x < 250; x += 10) for (let y = -175; y < 175; y += 10) { const e = T.elevationAt(rel, x, y); max = Math.max(max, e); if (e < 0) sea++; }
+  assert.ok(max > 2000, `sommet ${max}`);
+  assert.equal(sea, 0);
+  // Avec une mer, la côte est irrégulière : le long d'un parallèle, le rivage n'est pas une ligne droite.
+  const wet = { ...rel, seas: [{ x: 0, y: 330, r: 190 }] };
+  const shore = [];
+  for (let x = -200; x <= 200; x += 25) { let y = -175; while (y < 175 && T.elevationAt(wet, x, y) >= 0) y += 2; shore.push(y); }
+  assert.ok(Math.max(...shore) - Math.min(...shore) > 25, `côte ${shore}`);
+  // Une cité de 1 500 habitants fait environ un kilomètre de rayon (champs compris) : rien à voir avec une montagne.
+  assert.ok(T.cityRadiusKm({ population: 1500 }) < 1.5);
+  // Monde complet : cités en km, routes routées, hameaux, noms de forêts et de montagnes.
+  const world = { seed: 42, name: 'R', terrain: 2, scale: 'royaume', bindings: {}, cities: [
+    { id: 'a', name: 'Brumeval', population: 1500, km: [0, 0] }, { id: 'b', name: 'Givre', population: 800, km: [-120, -110] }, { id: 'c', name: 'Port', population: 3000, km: [150, 60] }] };
+  const d = generateWorld(world, 'r');
+  assert.equal(d.maps[0].width, 1250);
+  assert.ok(d.maps[0].surface.relief);
+  assert.equal(d.routes.length, 2);
+  for (const r of d.routes) assert.ok(r.km >= Math.hypot(...[0, 1].map((k) => world.cities.find((c) => c.id === r.a).km[k] - world.cities.find((c) => c.id === r.b).km[k])) * 0.99);
+  assert.ok(d.features.some((f) => /route-/.test(f.id) && /jours? de marche/.test(f.subtitle)));
+  assert.ok(d.features.some((f) => /:monts-/.test(f.id)));
+  assert.ok(d.features.some((f) => /:hameau/.test(f.id)));
+  // Combat sur la carte du monde : un plateau tiré du terrain réel.
+  const g = rasterGround(d.maps[0].surface, 1250, 875, { x0: 0.5, y0: 0.5, w: 0.001, h: 0.001 }, 20, 14);
+  assert.equal(g.length, 280);
+  // Les distances voulues se lisent sur une fiche.
+  const near = nearFromText(norm('À deux jours de marche au nord de Brumeval.'));
+  assert.deepEqual(near.map((n) => [n.km, n.dir, n.to]), [[76, 'nord', 'brumeval']]);
+  assert.equal(T.daysLabel(76 / 38), '2 jours de marche');
+});
+
+test('placement : distances voulues respectées, un port sur une côte', async () => {
+  const T = await import('./terrain.js');
+  const frame = T.worldFrame({ terrain: 2, scale: 'royaume', seed: 42 });
+  const others = [{ km: [0, 0], population: 1500 }];
+  const rel = T.reliefOf({ seed: 42 }, frame, others);
+  const p = T.placeOn(rel, frame, [[0, 0]], { id: 'n', population: 900 }, [{ km: [0, 0], dist: 76, dir: T.DIR_ANGLE.nord }], 42);
+  const d = Math.hypot(...p.km);
+  assert.ok(Math.abs(d - 76) < 76 * 0.3, `distance ${d}`);
+  assert.equal(T.dirName([0, 0], p.km).startsWith('nord'), true);
+  // Sans mer, pas de place pour un port ; avec une mer au-delà du bord, il va sur sa côte.
+  assert.equal(T.placeOn(rel, frame, [[0, 0]], { id: 'p', population: 2000, port: true }, [], 42), null);
+  const sea = T.seaBeyond(frame, [80, 150], '1');
+  const wet = T.reliefOf({ seed: 42, seas: [sea] }, frame, others);
+  const port = T.placeOn(wet, frame, [[0, 0]], { id: 'p', population: 2000, port: true }, [], 42);
+  assert.ok(port);
+  assert.ok(T.elevationAt(wet, ...port.km) > 0);
+  assert.ok(T.seaSideAt(wet, port.km, 1.5));
+});
