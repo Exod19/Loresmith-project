@@ -204,6 +204,20 @@ export function reachable(f: MoveField, budget = f.m.speed): number[] {
   return out;
 }
 
+/** Cases accessibles, et celles où l'on entre par un pas qui coûte plus (terrain difficile, nage, escalade, allié). */
+export function reachDetail(f: MoveField, budget = f.m.speed): { cells: number[]; costly: number[] } {
+  const cells: number[] = [], costly: number[] = [];
+  for (let c = 0; c < f.r.cols * f.r.rows; c++) {
+    const s0 = f.dist[c * 2], s1 = f.dist[c * 2 + 1];
+    const st = s1 < s0 ? c * 2 + 1 : c * 2;
+    if (Math.min(s0, s1) > budget + 0.4) continue;
+    cells.push(c);
+    const p = f.prev[st];
+    if (p >= 0 && f.dist[st] - f.dist[p] > 1.5) costly.push(c);
+  }
+  return { cells, costly };
+}
+
 export interface MovePlan {
   /** Un chemin existe. */
   possible: boolean;

@@ -22,6 +22,8 @@ export type BoardElement = PlayerElement & { cells?: number[]; ghost?: boolean; 
 /** `attack` : allonge au corps à corps (anneau plein). `ranged` : portée courte à distance (anneau en pointillés). */
 export type BoardRange = {
   id: string; x: number; y: number; size: number; move: number[]; attack: number; ranged: number; selected: boolean;
+  /** Cases accessibles où l'on entre en payant plus (terrain difficile, nage, escalade) : teinte ambrée. */
+  costly?: number[];
   /** Joueurs : portée de vue (Perception) et cases à portée de main pour fouiller (Investigation). */
   sight?: number; search?: number;
 };
@@ -286,6 +288,7 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
       {ranges.map((r) => (
         <g key={`range-${r.id}`} pointerEvents="none">
           {r.move.length > 0 && <path d={cellPath(r.move, cols)} fill="rgba(84,216,198,0.18)" opacity={r.selected ? 1 : 0.7} />}
+          {r.costly && r.costly.length > 0 && <path d={cellPath(r.costly, cols)} fill="rgba(240,170,60,0.26)" stroke="rgba(240,170,60,0.35)" strokeWidth={0.03} opacity={r.selected ? 1 : 0.7}><title>Accessible, mais plus coûteux (terrain difficile, nage, escalade)</title></path>}
           {r.attack > 0 && (
             <rect
               x={r.x - r.attack} y={r.y - r.attack} width={r.size + 2 * r.attack} height={r.size + 2 * r.attack}

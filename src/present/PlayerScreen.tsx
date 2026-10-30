@@ -8,7 +8,7 @@ import { setAtlasData } from '../maps/atlas/model';
 import type { AtlasData, AtlasFeature, FeatureCategory } from '../maps/atlas/types';
 import BattleBoard, { CATEGORY_ICON, type BoardRange } from '../maps/battle/BattleBoard';
 import { reachableCells } from '../maps/battle/ranges';
-import { moveField, moverOf, occupancy, planMove, reachable, type MovePlan } from '../maps/battle/movement';
+import { moveField, moverOf, occupancy, planMove, reachDetail, type MovePlan } from '../maps/battle/movement';
 import { trailProfile } from '../maps/atlas/trails';
 import { describe } from '../maps/atlas/lore';
 import { CALM_MS, type HaltAlert } from '../maps/atlas/omens';
@@ -302,16 +302,19 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
 
   // Héros dont on montre le déplacement et la portée : celui qu'on glisse, sinon celui dont c'est le tour, sinon la fiche ouverte.
   const activeHero = tokens.find((t) => t.kind === 'pc' && t.id === board.turn?.active);
-  const hero = tokens.find((t) => t.kind === 'pc' && t.id === drag?.id) ?? activeHero ?? tokens.find((t) => t.kind === 'pc' && t.id === openId);
-  const ranges: BoardRange[] = hero && (showMove || showReach || drag?.id === hero.id) ? [{
-    id: hero.id, x: hero.x, y: hero.y, size: hero.size, selected: true,
-    move: showMove || drag?.id === hero.id ? (() => {
-      const h = drag?.id === hero.id ? board.tokens.find((t) => t.id === hero.id)! : hero;
-      return board.rules ? reachable(moveField(board.rules, moverFor(h), from(h)), leftOf(h)) : reachableCells(board.terrain, board.cols, board.rows, h, hero.move ?? 6);
-    })() : [],
-    attack: showReach ? hero.reach?.melee ?? 1 : 0,
-    ranged: showReach ? hero.reach?.short ?? 0 : 0,
-  }] : [];
+  const hero = tokens.find((t) => t.id === drag?.id && drag?.moved) ?? activeHero ?? tokens.find((t) => t.kind === 'pc' && t.id === openId);
+  // Déplacement (cases accessibles, plus coûteuses en ambre) depuis la case de départ ; allonge et portée depuis la case
+  // visée pendant un glisser.
+  const detail = (h: PlayerToken) => (board.rules ? reachDetail(moveField(board.rules, moverFor(h), from(h)), leftOf(h)) : { cells: reachableCells(board.terrain, board.cols, board.rows, h, hero?.move ?? 6), costly: [] });
+  const draggingHero = !!hero && drag?.id === hero.id;
+  const startOf = hero ? (draggingHero ? board.tokens.find((t) => t.id === hero.id)! : hero) : null;
+  const moveDetail = hero && (showMove || draggingHero) ? detail(startOf!) : null;
+  const ranges: BoardRange[] = hero && (showMove || showReach || draggingHero) ? [{
+    id: hero.id, x: startOf!.x, y: startOf!.y, size: hero.size, selected: true,
+    move: moveDetail?.cells ?? [], costly: moveDetail?.costly,
+    attack: showReach && !draggingHero ? hero.reach?.melee ?? 1 : 0,
+    ranged: showReach && !draggingHero ? hero.reach?.short ?? 0 : 0,
+  }, ...(draggingHero ? [{ id: `${hero.id}-at`, x: hero.x, y: hero.y, size: hero.size, selected: true, move: [], attack: hero.reach?.melee ?? 1, ranged: hero.reach?.short ?? 0 }] : [])] : [];
 
   const centre = (id: string) => { const t = tokens.find((q) => q.id === id); return t && { x: t.x + t.size / 2, y: t.y + t.size / 2 }; };
   const a1 = board.aim && centre(board.aim.from), a2 = board.aim && centre(board.aim.to);

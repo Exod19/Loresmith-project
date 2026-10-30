@@ -32,7 +32,7 @@ import { describeLite } from '../atlas/lore';
 import { placeEncounter, type EncounterGroup } from './encounter';
 import { askAI, aiReady, parseJson } from '../../ai/client';
 import { baseGridOf, effectiveOf, fits, isDashing, moveLeft, overlaps, placeTokens as placeOnBoard, surfaceOf, usedMove, withMove } from './placement';
-import { moveField, moverOf, occupancy, planMove, reachable, type MovePlan } from './movement';
+import { moveField, moverOf, occupancy, planMove, reachDetail, type MovePlan } from './movement';
 import { socleOf, TERRAIN_DEF, TERRAINS, type TerrainId } from './surface';
 import { useSurfaceEditor } from './SurfaceEditor';
 import type { PathView } from './SurfaceLayers';
@@ -559,15 +559,24 @@ export default function BattleMode({
   const highlight = hoverId ? cellsOf(hoverId) : infoId ? cellsOf(infoId) : undefined;
 
   // Portées : déplacement (cases atteignables, terrain compté) et anneau d'attaque, pour chaque créature et chaque joueur.
-  const rangeOf = (t: BattleToken): BoardRange => ({
-    id: t.id, x: t.x, y: t.y, size: t.size,
-    move: reachable(moveField(rules, moverIn(bv, t), spot(t)), leftOf(b, t)),
-    attack: attackCells(statOf(t)), ranged: rangedCells(statOf(t)), selected: t.id === selectedId,
-    ...(t.kind === 'pc' ? { sight: sightOf(t), search: 1 } : {}),
-  });
-  // Pendant un glisser, la zone de déplacement du jeton s'affiche depuis sa case de départ.
+  /** Allonge et portée : l'arme en main d'un héros, sinon la fiche. */
+  const reachOf = (t: BattleToken) => ({ attack: t.reach?.melee || attackCells(statOf(t)), ranged: t.reach?.short ?? rangedCells(statOf(t)) });
+  const rangeOf = (t: BattleToken): BoardRange => {
+    const d = reachDetail(moveField(rules, moverIn(bv, t), spot(t)), leftOf(b, t));
+    return {
+      id: t.id, x: t.x, y: t.y, size: t.size, move: d.cells, costly: d.costly,
+      ...reachOf(t), selected: t.id === selectedId,
+      ...(t.kind === 'pc' ? { sight: sightOf(t), search: 1 } : {}),
+    };
+  };
+  // Pendant un glisser : les cases accessibles depuis la case de départ (plus coûteuses en ambre), et l'allonge et la
+  // portée d'attaque depuis la case visée.
   const dragged = drag?.moved ? b.tokens.find((t) => t.id === drag.id) : undefined;
-  const ranges: BoardRange[] = showRanges ? b.tokens.map(rangeOf) : dragged ? [{ ...rangeOf(dragged), attack: 0, ranged: 0 }] : [];
+  const dragRanges = (t: BattleToken): BoardRange[] => {
+    const at = { x: drag!.origin.x + drag!.cur.x - drag!.start.x, y: drag!.origin.y + drag!.cur.y - drag!.start.y };
+    return [{ ...rangeOf(t), attack: 0, ranged: 0, sight: undefined, search: undefined }, { id: `${t.id}-at`, ...at, size: t.size, move: [], ...reachOf(t), selected: true }];
+  };
+  const ranges: BoardRange[] = showRanges ? b.tokens.map(rangeOf) : dragged ? dragRanges(dragged) : [];
 
   const liveAt = (t: BattleToken) => (drag?.moved && drag.id === t.id
     ? { x: drag.origin.x + drag.cur.x - drag.start.x, y: drag.origin.y + drag.cur.y - drag.start.y }

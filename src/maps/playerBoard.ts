@@ -21,7 +21,7 @@ import { exitsOf } from './battle/trailRules';
 import type { BattleToken } from './mapStore';
 import { effectiveOf, moveLeft, surfaceOf } from './battle/placement';
 import { moverOf } from './battle/movement';
-import { speedCells } from './battle/ranges';
+import { attackCells, rangedCells, speedCells } from './battle/ranges';
 import { socleOf } from './battle/surface';
 
 /** Points découverts d'un plan, déduits de ce qui est révélé (lieux, repères) et du parcours du groupe. */
@@ -128,7 +128,11 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
         socle: socleOf(rules, { x, y, size, layer, socle }) ?? undefined,
         ...(kind === 'pc' ? { left: moveLeft(b, id, moverOf({ size, move, modes }, statId ? STATS[statId]?.speed : undefined, speedCells(statId ? STATS[statId] : undefined)).speed) } : {}),
         active: id === b.turn || undefined,
-        ...(kind === 'pc' ? { hp, maxHp, move, reach } : { state: woundState({ hp, maxHp }) }),
+        ...(kind === 'pc' ? { hp, maxHp, move, reach } : {
+          state: woundState({ hp, maxHp }),
+          // Allonge et portée de la créature : montrées quand on la glisse sur le plateau.
+          reach: { melee: attackCells(statId ? STATS[statId] : undefined), short: rangedCells(statId ? STATS[statId] : undefined), long: 0 },
+        }),
         info: { subtitle: (statId && STATS[statId]?.meta) || undefined, text: (statId && CREATURE_LORE[statId]) || KIND_LORE[kind], image: artOf?.(name, id) || portrait },
       };
     });
