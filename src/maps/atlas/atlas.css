@@ -589,3 +589,7 @@
 .am-surface .dc-bars { fill: #3a3a40; stroke: #8c8c96; stroke-width: 1; }
 .am-surface .dc-rug { fill: #7a3a32; stroke: #b08a4a; stroke-width: 1; }
 .am-surface .dc-dais { fill: #5e4a3a; stroke: #b08a4a; stroke-width: 1; }
+.am-surface .dc-floor-stone { fill: #4a4744; stroke: #23211f; stroke-width: 1; }
+.am-surface .dc-hatch { fill: #3a2a1c; stroke: #a08050; stroke-width: 1.2; }
+.am-surface .dc-pillar { fill: #6d6a66; stroke: #2a2826; stroke-width: 1; }
+.am-surface .dc-stair { fill: #7d6446; stroke: #3a2a1c; stroke-width: 1; stroke-dasharray: 2 3; }

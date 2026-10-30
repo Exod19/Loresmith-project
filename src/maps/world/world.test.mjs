@@ -156,3 +156,27 @@ test('un bâtiment a toujours le même intérieur, avec ses PNJ à leur place', 
   const front = lines[lines.length - 1];
   assert.match(front, /#+\.+#+/, `façade avec une porte : ${front}`);
 });
+
+test('une auberge a un étage et une cave, reliés par des escaliers au même endroit', async () => {
+  const { interiorPlanId } = await import('./generate.js');
+  const city = { ...CITY, at: [0.5, 0.5] };
+  const slots = citySlots(city, cityPlanId('rec', CITY.id));
+  const inn = slots.find((s) => s.type === 'auberge');
+  const hut = slots.filter((s) => s.type === 'maison').sort((a, b) => a.w * a.d - b.w * b.d)[0];
+  const world = { seed: 2, name: 'Monde', cities: [city], bindings: {}, interiors: [inn.id, hut.id] };
+  const d = generateWorld(world, 'rec');
+  const rdc = interiorPlanId(inn.id);
+  const plans = d.maps.filter((m) => m.id.startsWith(rdc)).map((m) => m.id);
+  assert.deepEqual(plans.sort(), [rdc, `${rdc}:cave`, `${rdc}:e1`].sort());
+  const anchor = (id) => d.anchors.find((a) => a.id === id);
+  for (const lv of ['e1', 'cave']) {
+    const c = d.connections.find((x) => x.toAnchorId === `${rdc}:${lv}:esc-rdc`);
+    assert.ok(c, `escalier vers ${lv}`);
+    assert.equal(c.kind, 'escalier');
+    assert.deepEqual(anchor(c.fromAnchorId).at, anchor(c.toAnchorId).at, 'même endroit sur les deux niveaux');
+  }
+  assert.ok(d.features.some((f) => f.id.startsWith(`${rdc}:e1:piece-`) && /Chambre/.test(f.title)), 'des chambres à l’étage');
+  assert.ok(d.features.some((f) => f.id === `${rdc}:cave:piece-0` && f.title === 'Cellier'));
+  // Une petite maison n'a qu'un niveau.
+  assert.equal(d.maps.filter((m) => m.id.startsWith(interiorPlanId(hut.id))).length, 1);
+});

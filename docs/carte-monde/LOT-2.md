@@ -1,4 +1,4 @@
-# Carte du monde : lot 2, intérieurs (statut : à valider)
+# Carte du monde : lot 2, intérieurs (statut : validé)
 
 ## Ce que fait le lot
 

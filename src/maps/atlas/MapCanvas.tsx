@@ -26,7 +26,7 @@ const PASS_W: Record<Trace, number> = { tunnel: 30, galerie: 19, boyau: 10, etro
 const FLOOR = '#1f2a29', WALL = '#030607', RIM = '#6b7a75';
 /** Plans de surface : largeur des rues en mètres selon le tracé, et décor peint sous les rues (le reste par-dessus). */
 const ROAD_M: Partial<Record<Trace, number>> = { tunnel: 7.2, galerie: 5.4, boyau: 3.4, etroit: 2.4 };
-const UNDER_ROADS = new Set(['plot', 'tree', 'river', 'forest', 'lake', 'square', 'court', 'hill', 'street', 'floor', 'rug', 'dais']);
+const UNDER_ROADS = new Set(['plot', 'tree', 'river', 'forest', 'lake', 'square', 'court', 'hill', 'street', 'floor', 'floor-stone', 'rug', 'dais']);
 /** Vue mémorisée par carte : le retour retrouve position et échelle. */
 const saved = new Map<string, T>();
 /** Arrivées déjà appliquées (clé d'historique) : revenir en arrière ne recentre pas une seconde fois. */

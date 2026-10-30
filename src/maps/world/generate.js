@@ -753,10 +753,11 @@ export function generateWorld(world, mapRecordId) {
     if (!city || !slot) continue;
     const bound = byCity.get(city.c.id)?.[slotId];
     const it = cachedInterior(slot, bound, city.g.map.scope.id);
-    maps.push(it.map); features.push(...it.features); geometries.push(...it.geometries); anchors.push(...it.anchors); spaces.push(it.space);
+    for (const lv of [it, ...it.levels]) { maps.push(lv.map); features.push(...lv.features); geometries.push(...lv.geometries); anchors.push(...lv.anchors); spaces.push(lv.space); }
+    connections.push(...it.connections);
     // Côté rue : une ancre sous le bâtiment (cachée sous son repère s'il en a un).
     anchors.push({ id: `${slotId}:porte`, mapId: city.pid, at: slot.at, label: it.space.name });
-    connections.push({ id: `cx-${slotId}`, kind: 'naturel', fromAnchorId: `${slotId}:porte`, toAnchorId: it.anchors[0].id, direction: 'both', title: `Porte · ${it.space.name}`, ...base });
+    connections.push({ id: `cx-${slotId}`, kind: 'naturel', fromAnchorId: `${slotId}:porte`, toAnchorId: `${interiorPlanId(slotId)}:sortie`, direction: 'both', title: `Porte · ${it.space.name}`, ...base });
   }
 
   // Terrain du monde : forêts, rivières, lac, collines (loin des cités).

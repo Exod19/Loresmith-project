@@ -189,6 +189,31 @@ export default function BattleMode({
         && !kept.some((t) => t.x < x + size && x < t.x + t.size && t.y < y + size && y < t.y + t.size);
       tokens = [...kept, ...placeEncounter(groups, b.cols, b.rows, free, seed)];
     }
+    // Dans un bâtiment : ses PNJ y sont, combat ou pas. Chacun est posé à sa place (comptoir, porte…), visible des joueurs
+    // s'ils l'ont déjà vu ; le MJ les déplace ensuite à sa guise. Un PNJ déjà sur le plateau n'est pas reposé.
+    if (plan.surface?.theme === 'interieur') {
+      const revealed = new Set(rec.overlay?.revealed ?? []);
+      const taken = (x: number, y: number) => tokens.some((t) => x >= t.x && x < t.x + t.size && y >= t.y && y < t.y + t.size);
+      for (const f of atlas.features.filter((x) => x.id.startsWith(`${plan.id}:pnj-`))) {
+        const id = `pnj-${f.entryId ?? f.id}`;
+        if (tokens.some((t) => t.id === id)) continue;
+        const g = atlas.geometries.find((x) => x.featureId === f.id && x.type === 'point');
+        const cell = g && cellIn(local.window, b.cols, b.rows, (g.coordinates as [number, number])[0], (g.coordinates as [number, number])[1]);
+        if (cell === undefined || !g) continue;
+        const cx = cell % b.cols, cy = Math.floor(cell / b.cols);
+        let best: { x: number; y: number } | null = null, bd = Infinity;
+        for (let y = 0; y < b.rows; y++) for (let x = 0; x < b.cols; x++) {
+          const d = Math.max(Math.abs(x - cx), Math.abs(y - cy));
+          if (d < bd && !blocksCell(ground, b.cols, x, y) && !taken(x, y)) { bd = d; best = { x, y }; }
+        }
+        if (!best || bd > 4) continue;
+        const ref = bestiary.find((r) => r.id === f.entryId);
+        tokens = [...tokens, {
+          id, name: f.title, kind: 'other', x: best.x, y: best.y, size: 1, visible: revealed.has(f.id),
+          npcId: ref?.id, hp: ref?.hp, maxHp: ref?.hp, ac: ref?.ac, image: ref?.token,
+        }];
+      }
+    }
     set({
       terrain: { source, seed, grid: local.base },
       local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous, surface: plan.surface ? (plan.surface.theme === 'interieur' ? 'interieur' : true) : undefined },

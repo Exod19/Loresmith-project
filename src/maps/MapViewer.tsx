@@ -4,7 +4,7 @@
  */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import MapCanvas, { type Layers, type MapMark } from './atlas/MapCanvas';
-import { CATEGORIES } from './atlas/model';
+import { CATEGORIES, connectionAt } from './atlas/model';
 import { describe as describeFeature, dmFeature } from './atlas/lore';
 import { rollEncounter, type EncCtx, type Encounter, type Zone } from './atlas/encounters';
 import { calmAlert, encounterAlert, suspenseAlert, type HaltAlert } from './atlas/omens';
@@ -644,14 +644,22 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   };
   /** Plan intérieur affiché : son bâtiment (emplacement) et la cité où il se trouve. */
   const interiorOf = (planId: string) => {
-    const sp = data.spaces.find((x) => x.mapId === planId && x.parentSpaceId);
-    if (!sp) return null;
-    const city = data.spaces.find((x) => x.id === sp.parentSpaceId);
-    return city?.mapId ? { slotId: planId.replace(/:int$/, ''), cityPlan: city.mapId } : null;
+    const mm = planId.match(/^(.*):int(?::(e1|cave))?$/);
+    if (!mm) return null;
+    const slotId = mm[1];
+    const cityPlan = slotId.replace(/:b\d+$/, '');
+    return { slotId, cityPlan, rdc: interiorPlanId(slotId), level: mm[2] ? (mm[2] === 'e1' ? 'etage' : 'cave') : 'rdc' };
   };
   const inside = rec.kind === 'monde' ? interiorOf(map.id) : null;
   /** Remonter d'un cran : de l'intérieur à la rue, de la cité au monde. */
   const goUp = () => {
+    // D'un étage ou de la cave : on revient au rez-de-chaussée, au pied de l'escalier.
+    if (inside && inside.level !== 'rdc') {
+      const anchor = data.anchors.find((a) => a.mapId === map.id && a.id.endsWith(':esc-rdc'));
+      if (anchor) { followAnchor(anchor.id); return; }
+      setPlanId(inside.rdc); setSelectedId(null); setPlacing(null);
+      return;
+    }
     if (inside) {
       const slotF = data.features.find((f) => f.id === inside.slotId);
       // Le groupe ressort avec la vue : il se retrouve devant le bâtiment, dans la rue.
@@ -690,6 +698,31 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     onUpdate({ world: { ...world, interiors }, ...(next !== overlay ? { overlay: next } : {}), updatedAt: Date.now() });
     setPlanId(ipid); setSelectedId(null); setPlacing(null);
   };
+  /**
+   * Prendre un passage entre deux plans (escalier, porte, sortie de ville) depuis la carte de navigation.
+   * Le groupe suit s'il se tient sur ce niveau d'un bâtiment, ou près de l'ancre ailleurs ; ce qu'il voit à l'arrivée
+   * (le palier, la pièce du bas) est révélé aux joueurs.
+   */
+  const followAnchor = (anchorId: string) => {
+    const c = connectionAt(anchorId);
+    if (!c || !c.canFollow) return;
+    const here = data.anchors.find((a) => a.id === anchorId);
+    const to = c.other;
+    const partyXY = party.at?.planId === map.id ? placeCoords(data, rec, party.at) : null;
+    const partyFollows = !!partyXY && !!here && (!!inside || Math.hypot(partyXY[0] - here.at[0], partyXY[1] - here.at[1]) < 0.03);
+    if (partyFollows) {
+      const seen = data.geometries
+        .filter((g) => g.mapId === to.mapId && !g.featureId.startsWith('mk-'))
+        .filter((g) => ((g.type === 'point' ? [g.coordinates] : g.coordinates) as [number, number][]).some(([x, y]) => Math.hypot(x - to.at[0], y - to.at[1]) < 0.04))
+        .map((g) => g.featureId);
+      const arrival = placeNear(data, to.mapId, to.at as [number, number], { radius: 0.09 }) ?? { id: to.id, kind: 'anchor' as const, title: to.label, planId: to.mapId };
+      let next = withPartyAt(overlay, arrival);
+      next = { ...next, revealed: [...new Set([...next.revealed, ...seen])] };
+      setOverlay(next);
+    }
+    setPlanId(to.mapId); setSelectedId(null); setPlacing(null);
+    setFocus({ kind: 'anchor', id: to.id, tick: Date.now() });
+  };
   /** Bâtiment de la cité sous un point du plan (0–1), d'après son empreinte. */
   const buildingAt = (at: [number, number]): string | null => {
     const b = map.surface?.theme === 'cite' ? map.surface.ground.b : null;
@@ -725,7 +758,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
           : <button className="maps-btn" onClick={onBack}>← Cartes</button>}
         <strong className="maps-title">{rec.title}</strong>
         {rec.kind === 'monde' && !battleOpen && map.id !== wid && (
-          <button className="maps-btn" onClick={goUp} title={inside ? 'Ressortir dans la rue (ou dézoomer au plus loin)' : 'Revenir à la carte du monde (ou dézoomer au plus loin)'} aria-label={inside ? 'Ressortir dans la rue' : 'Revenir à la carte du monde'}>↥</button>
+          <button className="maps-btn" onClick={goUp} title={inside ? (inside.level === 'rdc' ? 'Ressortir dans la rue (ou dézoomer au plus loin)' : 'Revenir au rez-de-chaussée (ou dézoomer au plus loin)') : 'Revenir à la carte du monde (ou dézoomer au plus loin)'} aria-label={inside ? (inside.level === 'rdc' ? 'Ressortir dans la rue' : 'Revenir au rez-de-chaussée') : 'Revenir à la carte du monde'}>↥</button>
         )}
         {atlasLike && !battleOpen && (
           <select className="maps-btn" value={planId} onChange={(e) => { setPlanId(e.target.value); setSelectedId(null); setPlacing(null); }}>
@@ -799,7 +832,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               marks={dm ? partyMarks : playerPreview.marks}
               fog={dm ? null : playerPreview.fog}
               journey={overlay.travel && overlay.travel.planId === map.id ? { ...overlay.travel, label: 'Groupe' } : null}
-              onAnchor={() => {}}
+              onAnchor={(a) => { if (dm && rec.kind === 'monde') followAnchor(a.id); }}
               onPlace={dm && placing ? addMarker : undefined}
               dataKey={`${rec.updatedAt}:${dm}`}
               onZoomLimit={onZoomLimit}
@@ -910,7 +943,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
             {(!dm || side === 'lieu') && feature && !markerId && (
               <FeaturePanel
                 f={feature} dm={dm} notes={point?.notes ?? ''}
-                defaultCtx={{ zone: point?.zone ?? 'sauvage', depth: point?.depth ?? 3, place: feature.title }}
+                defaultCtx={{ zone: point?.zone ?? (rec.kind === 'monde' ? 'cite' : 'sauvage'), depth: point?.depth ?? 3, place: feature.title }}
                 onClose={() => setSelectedId(null)}
                 onRoll={(ctx) => setEnc({ ctx, e: rollEncounter(ctx) })}
                 onBring={() => bringPlayers(feature.id)}
