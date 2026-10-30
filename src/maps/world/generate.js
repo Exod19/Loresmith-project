@@ -752,7 +752,7 @@ export function generateWorld(world, mapRecordId) {
     const slot = city?.g.slots.find((s) => s.id === slotId);
     if (!city || !slot) continue;
     const bound = byCity.get(city.c.id)?.[slotId];
-    const it = cachedInterior(slot, bound, city.g.map.scope.id);
+    const it = cachedInterior(slot, bound, city.g.map.scope.id, world.time ?? 'jour', world.residents?.[slotId] ?? []);
     for (const lv of [it, ...it.levels]) { maps.push(lv.map); features.push(...lv.features); geometries.push(...lv.geometries); anchors.push(...lv.anchors); spaces.push(lv.space); }
     connections.push(...it.connections);
     // Côté rue : une ancre sous le bâtiment (cachée sous son repère s'il en a un).
@@ -927,10 +927,13 @@ export function generateWorld(world, mapRecordId) {
     },
   });
 
+  // Lumière du moment : le soir et la nuit, les plans de surface s'assombrissent (sans toucher aux plans gardés en cache).
+  const light = world.time === 'nuit' || world.time === 'soir' ? world.time : null;
+  const shown = light ? maps.map((m) => (m.surface ? { ...m, surface: { ...m.surface, light } } : m)) : maps;
   return {
     version: 'monde-1',
     levels: [{ id: 'monde', order: 1, title: name, description: '', strataIds: [], survey: 'cartographie' }],
-    strata: [], spaces, maps, cavities: {}, features, geometries, anchors, connections,
+    strata: [], spaces, maps: shown, cavities: {}, features, geometries, anchors, connections,
   };
 }
 
@@ -949,11 +952,11 @@ function cachedCity(spec, planId, bindings) {
 /** Identifiant du plan intérieur d'un bâtiment. */
 export const interiorPlanId = (slotId) => `${slotId}:int`;
 const interiorCache = new Map();
-function cachedInterior(slot, bound, parentSiteId) {
-  const key = `${slot.id}|${JSON.stringify(bound ?? null)}`;
+function cachedInterior(slot, bound, parentSiteId, period, residents) {
+  const key = `${slot.id}|${period}|${JSON.stringify(bound ?? null)}|${JSON.stringify(residents)}`;
   let hit = interiorCache.get(key);
   if (!hit) {
-    hit = generateInterior({ slot, planId: interiorPlanId(slot.id), siteId: `${slot.id}:site`, parentSiteId, bound });
+    hit = generateInterior({ slot, planId: interiorPlanId(slot.id), siteId: `${slot.id}:site`, parentSiteId, bound, period, residents });
     interiorCache.set(key, hit);
     if (interiorCache.size > 60) interiorCache.delete(interiorCache.keys().next().value);
   }

@@ -68,6 +68,8 @@ export interface AtlasMap {
 export interface MapSurface {
   scale: number;
   theme: 'cite' | 'monde' | 'interieur';
+  /** Lumière du moment (carte du monde) : le soir et la nuit, le plan s'assombrit. */
+  light?: 'soir' | 'nuit';
   ground: {
     b: number[]; f: number[]; t: number[];
     /** Obstacles intérieurs (comptoir, âtre, autel…) : rectangles comme `b`, infranchissables mais pas des murs. */

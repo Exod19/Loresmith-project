@@ -35,6 +35,8 @@ import { buildRoutes, distancesTo, goalNodes, judgeTrail, nodeOf, verdictText, t
 import { interiorPlanId, isAtlasLike, useWorldSync, worldPlanId } from './world';
 import WorldPanel from './world/WorldPanel';
 import { isHiddenNpc } from './world/interior';
+import { normalizeEntity } from '../bestiary/entityGen';
+import type { Period } from './world/generate';
 import type { LoreEntry } from './world/lore';
 import './maps.css';
 
@@ -57,7 +59,7 @@ const FORK_LINES: ((side: string) => string)[] = [
   (c) => `Un écho différent, sur votre ${c} : la paroi s’ouvre sur un espace plus large. Vous allez voir, ou vous continuez ?`,
 ];
 
-export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false, onReturn, renderCombat, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [], artOf, library }: {
+export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false, onReturn, renderCombat, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [], artOf, library, onCreateNpc }: {
   rec: MapRecord; atlas: AtlasData; dm: boolean; onDm: (v: boolean) => void;
   /** Illustration d'une créature par son nom, pour l'écran joueur. */
   artOf?: (name: string, id: string) => string;
@@ -79,6 +81,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   bestiary?: BestiaryRef[];
   /** Fiches de la Bibliothèque de l'univers : la carte du monde y prend ses cités et ses lieux. */
   library?: LoreEntry[];
+  /** Crée une fiche de PNJ (PNJ & Créatures) : un occupant anonyme devient un PNJ du lore. */
+  onCreateNpc?: (npc: Record<string, unknown> & { id: string; name: string }) => void;
 }) {
   const data = activateMap(rec, dm, atlas);
   /** L'Atlas et la carte du monde : lieux à révéler, chemins, brouillard. */
@@ -724,6 +728,27 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     setPlanId(to.mapId); setSelectedId(null); setPlacing(null);
     setFocus({ kind: 'anchor', id: to.id, tick: Date.now() });
   };
+  /**
+   * Un occupant anonyme devient un PNJ du lore : sa fiche est créée (nom, rôle, description, lieu), et il reste à
+   * l'endroit exact où il se trouve, à toute heure.
+   */
+  const createResident = (f: AtlasFeature) => {
+    const ins = interiorOf(map.id);
+    const world = rec.world;
+    const g = data.geometries.find((x) => x.featureId === f.id && x.type === 'point');
+    if (!ins || !world || !g || !onCreateNpc) return;
+    const id = uid();
+    const place = data.features.find((x) => x.id === ins.slotId)?.title ?? map.title.split(' · ')[0];
+    const npc = {
+      ...normalizeEntity({ name: f.title, role: f.subtitle ?? '', shortDescription: f.summary ?? '', description: [f.summary, `Se trouve à ${place}.`].filter(Boolean).join(' ') }, 'npc'),
+      id, createdAt: Date.now(),
+    };
+    onCreateNpc(npc);
+    const list = [...(world.residents?.[ins.slotId] ?? []), { id, name: f.title, role: f.subtitle, desc: f.summary, level: ins.level as 'rdc' | 'etage' | 'cave', at: g.coordinates as [number, number] }];
+    onUpdate({ world: { ...world, residents: { ...(world.residents ?? {}), [ins.slotId]: list } }, updatedAt: Date.now() });
+    setSelectedId(`${map.id}:pnj-${id}`);
+    setSide('lieu');
+  };
   /** Bâtiment de la cité sous un point du plan (0–1), d'après son empreinte. */
   const buildingAt = (at: [number, number]): string | null => {
     const b = map.surface?.theme === 'cite' ? map.surface.ground.b : null;
@@ -758,6 +783,12 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
           ? <button className="maps-btn" onClick={() => setBattleOpen(false)}>← Carte de navigation</button>
           : <button className="maps-btn" onClick={onBack}>← Cartes</button>}
         <strong className="maps-title">{rec.title}</strong>
+        {rec.kind === 'monde' && rec.world && (
+          <select className="maps-btn" value={rec.world.time ?? 'jour'} aria-label="Moment de la journée" title="Moment de la journée : qui est dans les bâtiments, et la lumière"
+            onChange={(e) => onUpdate({ world: { ...rec.world!, time: e.target.value as Period }, updatedAt: Date.now() })}>
+            <option value="matin">🌅 Matin</option><option value="jour">☀ Jour</option><option value="soir">🌇 Soir</option><option value="nuit">🌙 Nuit</option>
+          </select>
+        )}
         {rec.kind === 'monde' && !battleOpen && map.id !== wid && (
           <button className="maps-btn" onClick={goUp} title={inside ? (inside.level === 'rdc' ? 'Ressortir dans la rue (ou dézoomer au plus loin)' : 'Revenir au rez-de-chaussée (ou dézoomer au plus loin)') : 'Revenir à la carte du monde (ou dézoomer au plus loin)'} aria-label={inside ? (inside.level === 'rdc' ? 'Ressortir dans la rue' : 'Revenir au rez-de-chaussée') : 'Revenir à la carte du monde'}>↥</button>
         )}
@@ -965,6 +996,11 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
             {dm && side === 'lieu' && rec.kind === 'monde' && feature && /:b\d+$/.test(feature.id) && map.surface?.theme === 'cite' && (
               <div className="maps-actions world-enter">
                 <button className="maps-btn gold" onClick={() => enterBuilding(feature.id)}>Entrer dans {feature.title}</button>
+              </div>
+            )}
+            {dm && side === 'lieu' && rec.kind === 'monde' && feature && /:pnj-gen-\d+$/.test(feature.id) && onCreateNpc && (
+              <div className="maps-actions world-enter">
+                <button className="maps-btn gold" onClick={() => createResident(feature)} title="Crée sa fiche dans PNJ & créatures ; il reste ici, à toute heure">Créer la fiche de {feature.title}</button>
               </div>
             )}
             {dm && side === 'lieu' && rec.kind === 'monde' && feature?.opens && (

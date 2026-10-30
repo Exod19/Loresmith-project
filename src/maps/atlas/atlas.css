@@ -593,3 +593,6 @@
 .am-surface .dc-hatch { fill: #3a2a1c; stroke: #a08050; stroke-width: 1.2; }
 .am-surface .dc-pillar { fill: #6d6a66; stroke: #2a2826; stroke-width: 1; }
 .am-surface .dc-stair { fill: #7d6446; stroke: #3a2a1c; stroke-width: 1; stroke-dasharray: 2 3; }
+/* Lumière du moment (carte du monde) */
+.am-surface.light-soir > svg { filter: sepia(.25) saturate(.9) brightness(.82) hue-rotate(-8deg); }
+.am-surface.light-nuit > svg { filter: saturate(.55) brightness(.5) hue-rotate(195deg) sepia(.2); }

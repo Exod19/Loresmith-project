@@ -500,7 +500,7 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   const fade = (from: number) => Math.min(1, Math.max(0, (rz - from) / 0.6));
 
   return (
-    <div className={`atlas-map${surf ? ` am-surface is-${surf.theme}` : ''}`}>
+    <div className={`atlas-map${surf ? ` am-surface is-${surf.theme}${surf.light ? ` light-${surf.light}` : ''}` : ''}`}>
       <svg ref={svg} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" role="application"
         aria-label={`${map.title} — glisser pour déplacer, molette ou pincement pour zoomer`}
         onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>

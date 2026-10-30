@@ -203,3 +203,25 @@ test('chaque niveau est peuplé selon la logique : voyageurs à l’étage, cell
   const b = JSON.stringify(generateWorld({ seed: 2, name: 'Monde', cities: [city], bindings: { gite: binding }, interiors: [inn.id] }, 'rec').features.filter((x) => x.id.includes(':pnj-gen-')));
   assert.equal(a, b, 'les occupants anonymes sont toujours les mêmes');
 });
+
+test('les occupants suivent le moment de la journée, et un résident reste à sa place', async () => {
+  const { interiorPlanId } = await import('./generate.js');
+  const city = { ...CITY, at: [0.5, 0.5] };
+  const slots = citySlots(city, cityPlanId('rec', CITY.id));
+  const tav = slots.find((s) => s.type === 'taverne'), shop = slots.find((s) => s.type === 'echoppe');
+  const crowd = (time, slotId, extra = {}) => generateWorld({ seed: 2, name: 'Monde', cities: [city], bindings: {}, interiors: [slotId], time, ...extra }, 'rec')
+    .features.filter((f) => f.id.startsWith(`${interiorPlanId(slotId)}:pnj-`));
+  assert.ok(crowd('soir', tav.id).length > crowd('matin', tav.id).length, 'la taverne est pleine le soir');
+  assert.ok(crowd('soir', tav.id).some((f) => /tavernier|tavernière/.test(f.subtitle)), 'un tavernier tient le comptoir');
+  assert.equal(JSON.stringify(crowd('soir', tav.id)), JSON.stringify(crowd('soir', tav.id)), 'même moment, mêmes occupants');
+  assert.equal(crowd('nuit', shop.id).filter((f) => f.id.startsWith(`${interiorPlanId(shop.id)}:pnj-`) && !f.id.includes(':e1:')).length, 0, 'échoppe fermée la nuit');
+  const at = [0.4, 0.5];
+  const residents = { [tav.id]: [{ id: 'gus', name: 'Gustave', role: 'buveur', level: 'rdc', at }] };
+  for (const time of ['matin', 'nuit']) {
+    const f = crowd(time, tav.id, { residents }).find((x) => x.id === `${interiorPlanId(tav.id)}:pnj-gus`);
+    assert.ok(f, `résident présent (${time})`);
+  }
+  const d = generateWorld({ seed: 2, name: 'Monde', cities: [city], bindings: {}, interiors: [tav.id], time: 'nuit', residents }, 'rec');
+  assert.deepEqual(d.geometries.find((g) => g.featureId === `${interiorPlanId(tav.id)}:pnj-gus`).coordinates, at);
+  assert.equal(d.maps.find((m) => m.id === interiorPlanId(tav.id)).surface.light, 'nuit');
+});

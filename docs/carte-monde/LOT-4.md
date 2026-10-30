@@ -1,4 +1,4 @@
-# Carte du monde : lot 4, occupants des bâtiments (statut : à valider)
+# Carte du monde : lot 4, occupants des bâtiments (statut : validé)
 
 ## Ce que fait le lot
 

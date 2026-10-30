@@ -206,21 +206,91 @@ const ROLE = {
   voyageur: ['voyageur', 'voyageuse'], marchand: ['marchand de passage', 'marchande de passage'], pelerin: ['pèlerin', 'pèlerine'],
   mercenaire: ['mercenaire', 'mercenaire'], colporteur: ['colporteur', 'colporteuse'], barde: ['barde itinérant', 'barde itinérante'],
   prisonnier: ['prisonnier', 'prisonnière'], captif: ['captif', 'captive'],
+  habitant: ['habitant', 'habitante'], maitre_maison: ['maître de maison', 'maîtresse de maison'], tavernier: ['tavernier', 'tavernière'],
+  serveur: ['serveur', 'serveuse'], buveur: ['buveur', 'buveuse'], joueur: ['joueur de dés', 'joueuse de dés'], musicien: ['musicien', 'musicienne'],
+  habitue: ['habitué', 'habituée'], client: ['client', 'cliente'], badaud: ['badaud', 'badaude'], forgeron: ['forgeron', 'forgeronne'],
+  apprenti: ['apprenti', 'apprentie'], pretre: ['prêtre', 'prêtresse'], acolyte: ['acolyte', 'acolyte'], fidele: ['fidèle', 'fidèle'],
+  mendiant: ['mendiant', 'mendiante'], maitre: ['maître de guilde', 'maîtresse de guilde'], membre: ['membre de la guilde', 'membre de la guilde'],
+  sergent: ['sergent', 'sergente'], soldat: ['soldat', 'soldate'], intendant: ['intendant', 'intendante'], courtisan: ['courtisan', 'courtisane'],
+  serviteur: ['serviteur', 'servante'], solliciteur: ['solliciteur', 'solliciteuse'], visiteur: ['visiteur', 'visiteuse'], fermier: ['fermier', 'fermière'],
+  palefrenier: ['palefrenier', 'palefrenière'], manutentionnaire: ['manutentionnaire', 'manutentionnaire'], veilleur: ['veilleur de nuit', 'veilleuse de nuit'],
+  artisan: ['artisan', 'artisane'],
 };
-const TRAVELLERS = [
-  ['voyageur', 'De passage pour la nuit ; repart à l’aube.'],
-  ['marchand', 'Garde sa bourse sous son oreiller.'],
-  ['pelerin', 'En route vers un sanctuaire lointain.'],
-  ['mercenaire', 'Cherche un contrat ; dort l’épée à portée de main.'],
-  ['colporteur', 'Sa balle de marchandises occupe la moitié de la chambre.'],
-  ['barde', 'Joue en bas le soir contre le gîte et le couvert.'],
-];
-const PRISONERS = [
-  ['prisonnier', 'Accusé de vol ; clame son innocence.'],
-  ['prisonnier', 'Une dette impayée a mené ici cette personne.'],
-  ['prisonnier', 'Cuve son vin en attendant le jour.'],
-  ['captif', 'Personne ne sait vraiment pourquoi on l’a enfermé ici.'],
-];
+const TRAVELLERS = ['voyageur', 'marchand', 'pelerin', 'mercenaire', 'colporteur', 'barde'];
+const PRISONERS = ['prisonnier', 'prisonnier', 'prisonnier', 'captif'];
+/** Une ligne de description par rôle (tirée au sort quand il y en a plusieurs). */
+const TEXT = {
+  voyageur: ['De passage pour la nuit ; repart à l’aube.', 'Attend une diligence qui a du retard.'],
+  marchand: ['Garde sa bourse sous son oreiller.', 'Vante sa marchandise à qui veut l’entendre.'],
+  pelerin: ['En route vers un sanctuaire lointain.'],
+  mercenaire: ['Cherche un contrat ; garde l’épée à portée de main.'],
+  colporteur: ['Sa balle de marchandises ne le quitte jamais.'],
+  barde: ['Joue le soir contre le gîte et le couvert.'],
+  prisonnier: ['Accusé de vol ; clame son innocence.', 'Une dette impayée l’a mené ici.', 'Cuve son vin en attendant le jour.'],
+  captif: ['Personne ne sait vraiment pourquoi on l’a enfermé ici.'],
+  geolier: ['Garde les clés des cellules à sa ceinture.'],
+  garde: ['Surveille l’entrée, la main sur la garde de son arme.'],
+  chambellan: ['Tient l’agenda du seigneur et sait tout ce qui se dit au château.'],
+  domestique: ['Fait le ménage ; a l’oreille de toute la maisonnée.'],
+  commis: ['Recopie les registres à la chandelle.'],
+  scribe: ['Compte et recompte les recettes.'],
+  enfant: ['Observe les inconnus avec curiosité.'],
+  habitant: ['Vaque à ses occupations.', 'Prépare le repas.'],
+  maitre_maison: ['Le maître des lieux.'],
+  tavernier: ['Essuie les chopes derrière le comptoir.'],
+  serveur: ['Slalome entre les tables, un plateau à la main.'],
+  buveur: ['Noie ses soucis dans la bière.', 'A déjà trop bu.', 'Raconte la même histoire pour la troisième fois.'],
+  joueur: ['Joue aux dés et triche un peu.', 'Mise plus qu’il ne peut perdre.'],
+  musicien: ['Gratte un luth désaccordé.'],
+  habitue: ['Toujours à la même table, toujours la même boisson.'],
+  client: ['Hésite devant la marchandise.', 'Marchande âprement.'],
+  badaud: ['Regarde sans acheter.'],
+  forgeron: ['Martèle le fer rouge.'],
+  apprenti: ['Actionne le soufflet en sueur.', 'Range les outils sous l’œil du maître.'],
+  pretre: ['Prépare l’office.'],
+  acolyte: ['Allume les cierges.'],
+  fidele: ['Prie à voix basse.', 'Dépose une offrande.'],
+  mendiant: ['Tend la main à la sortie de l’office.'],
+  maitre: ['Reçoit les membres de la guilde.'],
+  membre: ['Discute affaires à voix basse.', 'Attend son tour pour présenter une requête.'],
+  sergent: ['Aboie des ordres.'],
+  soldat: ['Astique son équipement.', 'Joue aux cartes entre deux tours de garde.'],
+  intendant: ['Veille à l’ordre de la maison.'],
+  courtisan: ['Guette la faveur du seigneur.', 'Colporte les dernières rumeurs de la cour.'],
+  serviteur: ['Apporte les plats.'],
+  solliciteur: ['Attend une audience depuis l’aube.'],
+  visiteur: ['En visite chez les maîtres de maison.'],
+  fermier: ['Rentre des champs, les bottes crottées.'],
+  palefrenier: ['Bouchonne un cheval.'],
+  manutentionnaire: ['Déplace des caisses en jurant.'],
+  veilleur: ['Fait sa ronde, lanterne à la main.'],
+  artisan: ['Travaille à son établi.'],
+};
+const pickText = (rand, key) => { const t = TEXT[key]; return t ? t[Math.floor(rand() * t.length)] : undefined; };
+
+/**
+ * Qui est là, selon le bâtiment et le moment de la journée. `closed` : moments où le bâtiment est fermé (personne au
+ * rez-de-chaussée, sauf `nightStaff` et ceux qui y dorment) ; `staff` : [rôle, place], seulement s'il manque au lore ;
+ * `crowd` : clientèle (zone du gabarit, rôles, nombre par moment) ; `nightZone` / `nightN` : où et combien dorment au
+ * rez-de-chaussée la nuit.
+ */
+const SCHEDULE = {
+  taverne: { staff: [['tavernier', 'counter'], ['serveur', 'main']], crowd: { zone: [0.08, 0.58, 0.86, 0.92], roles: ['buveur', 'buveur', 'joueur', 'musicien', 'habitue', 'marchand', 'mercenaire'], n: { matin: [0, 1], jour: [1, 3], soir: [4, 8], nuit: [1, 3] } } },
+  auberge: { staff: [['tavernier', 'counter'], ['serveur', 'main']], crowd: { zone: [0.08, 0.6, 0.86, 0.92], roles: ['buveur', 'voyageur', 'joueur', 'musicien', 'marchand'], n: { matin: [1, 3], jour: [1, 2], soir: [3, 6], nuit: [0, 1] } } },
+  echoppe: { closed: ['nuit'], staff: [['marchand', 'counter']], crowd: { zone: [0.15, 0.66, 0.85, 0.9], roles: ['client', 'client', 'badaud'], n: { matin: [0, 1], jour: [1, 3], soir: [0, 1] } } },
+  forge: { closed: ['nuit'], staff: [['forgeron', 'anvil'], ['apprenti', 'hearth']], crowd: { zone: [0.5, 0.76, 0.9, 0.92], roles: ['client'], n: { matin: [0, 1], jour: [0, 2], soir: [0, 1] } } },
+  temple: { staff: [['pretre', 'altar'], ['acolyte', 'back']], crowd: { zone: [0.1, 0.3, 0.9, 0.86], roles: ['fidele', 'fidele', 'fidele', 'pelerin', 'mendiant'], n: { matin: [3, 7], jour: [1, 3], soir: [2, 5], nuit: [0, 1] } } },
+  guilde: { closed: ['nuit'], staff: [['maitre', 'study'], ['garde', 'door']], crowd: { zone: [0.15, 0.55, 0.85, 0.85], roles: ['membre', 'membre', 'marchand'], n: { matin: [1, 2], jour: [2, 5], soir: [1, 3] } } },
+  caserne: { staff: [['sergent', 'main'], ['garde', 'door']], crowd: { zone: [0.08, 0.56, 0.66, 0.92], roles: ['soldat'], n: { matin: [2, 4], jour: [1, 3], soir: [2, 5], nuit: [0, 0] } }, nightZone: [0.06, 0.08, 0.64, 0.42], nightN: [3, 6] },
+  chateau: { staff: [['garde', 'door'], ['garde', 'door'], ['intendant', 'main']], crowd: { zone: [0.15, 0.55, 0.85, 0.92], roles: ['courtisan', 'serviteur', 'solliciteur'], n: { matin: [1, 3], jour: [3, 6], soir: [2, 5], nuit: [0, 0] } } },
+  manoir: { staff: [['domestique', 'kitchen']], crowd: { zone: [0.36, 0.62, 0.64, 0.95], roles: ['visiteur'], n: { matin: [0, 0], jour: [0, 1], soir: [0, 2], nuit: [0, 0] } } },
+  maison: { crowd: { zone: [0.15, 0.56, 0.85, 0.92], roles: ['habitant', 'habitant', 'enfant'], n: { matin: [1, 2], jour: [0, 1], soir: [1, 3], nuit: [0, 0] } }, nightZone: [0.06, 0.06, 0.94, 0.4], nightN: [1, 3] },
+  ferme: { crowd: { zone: [0.06, 0.62, 0.5, 0.95], roles: ['fermier', 'habitant'], n: { matin: [1, 2], jour: [0, 1], soir: [1, 3], nuit: [0, 0] } }, nightZone: [0.05, 0.05, 0.4, 0.26], nightN: [1, 3] },
+  ecurie: { closed: ['nuit'], staff: [['palefrenier', 'main']] },
+  entrepot: { closed: ['nuit'], staff: [['manutentionnaire', 'main']], nightStaff: [['veilleur', 'door']], crowd: { zone: [0.2, 0.44, 0.8, 0.54], roles: ['manutentionnaire', 'marchand'], n: { matin: [0, 2], jour: [1, 3], soir: [0, 1] } } },
+  atelier: { closed: ['nuit'], staff: [['artisan', 'main'], ['apprenti', 'back']] },
+};
+
 const shuffle = (rand, arr) => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
 /** Identifiants des niveaux d'un bâtiment : rez-de-chaussée, étage, cave. */
@@ -238,7 +308,7 @@ export function levelsOf(slot, type) {
  * Tous les niveaux partagent les mêmes dimensions et la même orientation : les escaliers tombent au même endroit.
  * `slot` : emplacement de la cité (dimensions et façade) ; `bound` : lieu du lore posé dessus.
  */
-export function generateInterior({ slot, planId, siteId, parentSiteId, bound }) {
+export function generateInterior({ slot, planId, siteId, parentSiteId, bound, period = 'jour', residents = [] }) {
   const type = bound?.type ?? slot.type;
   const tpl0 = TPL[type] ?? TPL.maison;
   const rand = rng(hashSeed(`interieur:${slot.id}`));
@@ -443,21 +513,43 @@ export function generateInterior({ slot, planId, siteId, parentSiteId, bound }) 
   }
 
   // ——— Occupants ———
-  // PNJ du lore : chacun à sa place selon son rôle, au niveau qui lui convient (un voyageur dort à l'étage, un prisonnier
-  // croupit au cachot) ; les autres au rez-de-chaussée. Puis, à l'étage et à la cave, des occupants anonymes là où c'est
-  // logique (voyageurs dans les chambres d'une auberge, prisonniers et geôlier aux cachots). Un cellier, une crypte ou
-  // une réserve restent vides.
-  const orng = rng(hashSeed(`occupants:${slot.id}`));
+  // 1. Les résidents : occupants dont le MJ a créé la fiche, à l'endroit exact où il l'a créée, à toute heure.
+  // 2. Les PNJ du lore : chacun à sa place selon son rôle, au niveau qui lui convient (un voyageur dort à l'étage, un
+  //    prisonnier croupit au cachot). La nuit, dans un bâtiment fermé, ceux du comptoir ou de l'enclume montent dormir
+  //    s'il y a un étage.
+  // 3. Des occupants anonymes selon le bâtiment et le moment de la journée : personnel (s'il manque au lore), clientèle,
+  //    fidèles, soldats, famille ; voyageurs dans les chambres, prisonniers aux cachots. Un cellier, une crypte ou une
+  //    réserve restent vides. Même bâtiment, même moment : mêmes occupants.
+  const sched = SCHEDULE[type] ?? SCHEDULE.maison;
+  const closed = (sched.closed ?? []).includes(period);
+  const orng = rng(hashSeed(`occupants:${slot.id}:${period}`));
   const roomPoint = (r, jitter = 0) => Nn((r[1] + r[3]) / 2 + jitter * (r[3] - r[1]) * 0.2, (r[2] + r[4]) / 2);
+  const inZone = ([u0, v0, u1, v1]) => Nn(u0 + orng() * (u1 - u0), v0 + orng() * (v1 - v0));
+  const level = { rdc, etage: up, cave: down };
   const occupied = new Set();
   const used = new Map();
+  const taken = new Set((residents ?? []).map((r) => norm(r.name)));
+  for (const r of residents ?? []) {
+    const lvl = level[r.level] ?? rdc;
+    lvl.addPoint({ id: `${lvl.pre}pnj-${r.id}`, title: r.name, subtitle: r.role || undefined, summary: r.desc || undefined, entryId: r.id, category: 'institution', importance: 'regional', minZoom: 0 }, r.at);
+  }
+  const sleepRoom = () => (upRooms ?? []).filter((r) => r[0] !== 'Palier').find((r) => !occupied.has(`etage:${r[0]}`));
   for (const npc of bound?.npcs ?? []) {
+    if (taken.has(norm(npc.name))) continue;
     const role = norm(`${npc.role ?? ''} ${npc.desc ?? ''}`);
     const feat = {
       id: `pnj-${npc.id}`, title: npc.name, category: 'institution', importance: 'regional', minZoom: 0,
       subtitle: npc.role || undefined, summary: npc.desc || undefined, entryId: npc.id, ...(isHiddenNpc(npc) ? { hiddenNpc: true } : {}),
     };
     const where = NPC_LEVEL.find(([re, lv]) => re.test(role) && (lv === 'etage' ? up : down));
+    let spot = ROLE_SPOT.find(([re]) => re.test(role))?.[1] ?? 'main';
+    // Nuit, bâtiment fermé : le personnel dort à l'étage.
+    const sleeps = closed && up && !where && ['counter', 'anvil', 'study', 'kitchen', 'main', 'hearth'].includes(spot) ? sleepRoom() : null;
+    if (sleeps) {
+      occupied.add(`etage:${sleeps[0]}`);
+      up.addPoint({ ...feat, id: `${up.pre}${feat.id}`, summary: ['Dort.', npc.desc].filter(Boolean).join(' ') }, roomPoint(sleeps, 0.3));
+      continue;
+    }
     if (where) {
       const [, lv, place] = where;
       const lvl = lv === 'etage' ? up : down, rooms = (lv === 'etage' ? upRooms : caveRooms) ?? [];
@@ -469,42 +561,72 @@ export function generateInterior({ slot, planId, siteId, parentSiteId, bound }) 
         continue;
       }
     }
-    let spot = ROLE_SPOT.find(([re]) => re.test(role))?.[1] ?? 'main';
     if (!tpl0.spots[spot]) spot = spot === 'anvil' ? 'hearth' : 'main';
     if (!tpl0.spots[spot]) spot = 'main';
     const n = used.get(spot) ?? 0; used.set(spot, n + 1);
     const [u, v] = tpl0.spots[spot];
     rdc.addPoint({ ...feat, id: `${rdc.pre}${feat.id}` }, Nn(Math.min(0.95, Math.max(0.05, u + (n % 2 ? -1 : 1) * Math.ceil(n / 2) * (1.2 / iw))), v));
   }
-  const names = shuffle(orng, NAMES);
+  const names = shuffle(rng(hashSeed(`noms:${slot.id}`)), NAMES).filter(([nm]) => !taken.has(norm(nm)));
   let gen = 0;
-  const addOccupant = (lvl, room, roleKey, summary, jitter = 0) => {
+  const addAt = (lvl, at, roleKey, summary) => {
     const [name, fem] = names[gen % names.length];
     const role = (ROLE[roleKey] ?? [roleKey, roleKey])[fem];
-    lvl.addPoint({ id: `${lvl.pre}pnj-gen-${gen++}`, title: name, subtitle: role, summary, category: 'institution', importance: 'regional', minZoom: 0 }, roomPoint(room, jitter));
+    const text = summary ?? pickText(orng, roleKey);
+    lvl.addPoint({ id: `${lvl.pre}pnj-gen-${gen++}`, title: name, subtitle: role, summary: text, category: 'institution', importance: 'regional', minZoom: 0 }, at);
   };
+  const addOccupant = (lvl, room, roleKey, summary, jitter = 0) => addAt(lvl, roomPoint(room, jitter), roleKey, summary);
+  const between = ([a, b]) => a + Math.floor(orng() * (b - a + 1));
+
+  // Rez-de-chaussée : personnel qui manque au lore, puis la clientèle du moment.
+  if (!closed || sched.nightStaff) {
+    const staff = closed ? sched.nightStaff : (period === 'nuit' ? (sched.staff ?? []).slice(0, 1) : sched.staff ?? []);
+    for (const [roleKey, sp] of staff ?? []) {
+      const key = tpl0.spots[sp] ? sp : 'main';
+      if ((used.get(key) ?? 0) > 0 && key !== 'door') continue;
+      used.set(key, (used.get(key) ?? 0) + 1);
+      const [u, v] = tpl0.spots[key];
+      addAt(rdc, Nn(Math.min(0.95, Math.max(0.05, u + ((used.get(key) - 1) % 2 ? -1 : 1) * Math.ceil((used.get(key) - 1) / 2) * (1.2 / iw))), v), roleKey);
+    }
+  }
+  const crowd = sched.crowd;
+  if (crowd && !closed) {
+    const night = period === 'nuit' && sched.nightZone;
+    const n = night ? between(sched.nightN ?? [0, 0]) : between(crowd.n[period] ?? [0, 0]);
+    for (let i = 0; i < n; i++) addAt(rdc, inZone(night ? sched.nightZone : crowd.zone), crowd.roles[Math.floor(orng() * crowd.roles.length)], night ? 'Dort.' : undefined);
+  } else if (closed && sched.nightZone && sched.nightN) {
+    for (let i = 0, n = between(sched.nightN); i < n; i++) addAt(rdc, inZone(sched.nightZone), crowd?.roles[0] ?? 'habitant', 'Dort.');
+  }
+
+  // Étage, selon l'heure : on dort la nuit et au petit matin, on sort le jour.
+  const AT_HOME = { nuit: 0.75, matin: 0.55, soir: 0.4, jour: 0.2 }[period];
   if (up && upRooms) {
     const rooms = upRooms.filter((r) => r[0] !== 'Palier' && !occupied.has(`etage:${r[0]}`));
+    const asleep = period === 'nuit' ? 'Dort.' : undefined;
     if (L.etage === 'chambres') {
-      for (const r of rooms) if (orng() < 0.45) { const [role, txt] = TRAVELLERS[Math.floor(orng() * TRAVELLERS.length)]; addOccupant(up, r, role, txt, 0.3); }
+      for (const r of rooms) if (orng() < AT_HOME) { const roleKey = TRAVELLERS[Math.floor(orng() * TRAVELLERS.length)]; addOccupant(up, r, roleKey, asleep && `Dort. ${pickText(orng, roleKey)}`, 0.3); }
     } else if (L.etage === 'appartements') {
       if (type === 'chateau') {
         const palier = upRooms.find((r) => r[0] === 'Palier');
         if (palier) addOccupant(up, palier, 'garde', 'Garde l’accès aux appartements ; ne laisse passer personne sans ordre.');
-        if (rooms[0]) addOccupant(up, rooms[0], 'chambellan', 'Tient l’agenda du seigneur et sait tout ce qui se dit au château.');
-      } else if (rooms.length) addOccupant(up, rooms[Math.floor(orng() * rooms.length)], 'domestique', 'Fait le ménage ; a l’oreille de toute la maisonnée.');
+        if (rooms[0] && period !== 'nuit') addOccupant(up, rooms[0], 'chambellan');
+      } else if (rooms.length && (period === 'jour' || period === 'matin')) addOccupant(up, rooms[Math.floor(orng() * rooms.length)], 'domestique');
+      else if (rooms.length && period === 'nuit') addOccupant(up, rooms[0], 'maitre_maison', 'Dort.');
     } else if (L.etage === 'bureaux') {
-      if (rooms[0]) addOccupant(up, rooms[0], 'commis', 'Recopie les registres à la chandelle.');
-      if (rooms[1] && orng() < 0.5) addOccupant(up, rooms[1], 'scribe', 'Compte et recompte les recettes de la guilde.');
-    } else if (L.etage === 'logis' && rooms.length && orng() < 0.5) {
-      addOccupant(up, rooms[0], 'enfant', 'Habite à l’étage avec la famille.');
+      if (period !== 'nuit' && rooms[0]) addOccupant(up, rooms[0], 'commis');
+      if (period === 'jour' && rooms[1] && orng() < 0.6) addOccupant(up, rooms[1], 'scribe');
+    } else if (L.etage === 'logis') {
+      const family = period === 'nuit' ? between([1, 3]) : orng() < AT_HOME ? 1 : 0;
+      for (let i = 0; i < Math.min(family, rooms.length); i++) addOccupant(up, rooms[i], i ? 'enfant' : 'habitant', asleep);
     }
   }
   if (down && caveRooms && L.cave === 'cachots') {
     const guard = caveRooms.find((r) => /garde/.test(r[0]));
-    if (guard && !occupied.has(`cave:${guard[0]}`)) addOccupant(down, guard, 'geolier', 'Garde les clés des cellules à sa ceinture.');
+    if (guard && !occupied.has(`cave:${guard[0]}`)) addOccupant(down, guard, 'geolier');
+    // Les prisonniers ne changent pas avec l'heure : un tirage propre au bâtiment.
+    const prng = rng(hashSeed(`prisonniers:${slot.id}`));
     for (const r of caveRooms.filter((x) => /^Cellule/.test(x[0]) && !occupied.has(`cave:${x[0]}`))) {
-      if (orng() < 0.4) { const [role, txt] = PRISONERS[Math.floor(orng() * PRISONERS.length)]; addOccupant(down, r, role, txt); }
+      if (prng() < 0.4) addOccupant(down, r, PRISONERS[Math.floor(prng() * PRISONERS.length)]);
     }
   }
 
