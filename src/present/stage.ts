@@ -19,7 +19,9 @@ export type PlayerToken = { id: string; name: string; kind: 'pc' | 'monster' | '
   /** Déplacement restant pendant ce tour, en cases (héros). */
   left?: number;
   /** Élévation sous le jeton, en pieds (plateau, corniche). */
-  elev?: number };
+  elev?: number;
+  /** État visible d'un coup d'œil : mort, à l'agonie, stabilisé, neutralisé (et par quoi) ; couché s'il est à terre. */
+  vital?: 'mort' | 'agonie' | 'stable' | 'neutralise'; down?: boolean; cause?: string };
 
 /** Dégâts (amount < 0) ou soins reçus par un jeton, écrits en grand au-dessus de lui. */
 export type BoardHit = { id: string; to: string; amount: number; at: number };

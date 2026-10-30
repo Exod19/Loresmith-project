@@ -99,6 +99,8 @@ function FogLayer({ cols, rows, fog }: { cols: number; rows: number; fog: NonNul
 }
 
 const KIND_FILL: Record<PlayerToken['kind'], string> = { pc: '#54d8c6', monster: '#c0492f', other: '#c9a24a' };
+/** Pictogramme de ce qui neutralise une créature (mêmes signes que la Table de guerre). */
+const CAUSE_ICON: Record<string, string> = { Inconscient: '☾', Paralysé: '❄', Pétrifié: '▣', Étourdi: '✷', Neutralisé: '⊘' };
 
 /**
  * Images détourées (fond transparent) : vérifiées une fois par image, aux quatre coins. Une figurine détourée n'est pas
@@ -549,11 +551,18 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
         );
       })}
 
-      {tokens.map((t) => {
+      {/* Les morts d'abord : les vivants restent au-dessus, lisibles d'un coup d'œil. */}
+      {[...tokens].sort((a, c) => Number(c.vital === 'mort') - Number(a.vital === 'mort')).map((t) => {
         const r = t.size * 0.42;
         const cx = t.x + t.size / 2, cy = t.y + t.size / 2;
+        const dead = t.vital === 'mort' || t.out;
         return (
-          <g key={t.id} className="battle-token" opacity={t.hidden ? 0.4 : 1} onClick={interactive && onToken ? (e) => { e.stopPropagation(); onToken(t.id); } : onElement ? pick(t.id) : undefined}>
+          <g key={t.id} className={`battle-token ${t.vital ? `v-${t.vital}` : dead ? 'v-mort' : ''} ${t.down ? 'is-down' : ''}`} opacity={(t.hidden ? 0.4 : 1) * (dead ? 0.85 : 1)} onClick={interactive && onToken ? (e) => { e.stopPropagation(); onToken(t.id); } : onElement ? pick(t.id) : undefined}>
+            {/* Un soin ou un dégât : une onde verte ou rouge autour du jeton, à chaque fois. */}
+            {shownHits.filter((h) => h.to === t.id).map((h) => (
+              <circle key={`pulse-${h.id}`} className={`battle-pulse ${h.amount > 0 ? 'heal' : 'dmg'}`} cx={cx} cy={cy} r={r + 0.04} fill="none" pointerEvents="none" />
+            ))}
+            <g transform={t.down ? `rotate(-90 ${cx} ${cy})` : undefined}>
             {/* Socle : couche à part, sous l'image, dans l'empreinte du jeton (il ne change ni sa taille ni les règles). */}
             {t.socle && TERRAIN_DEF[t.socle as TerrainId] && (
               <g className={`battle-socle socle-${t.socle}`} pointerEvents="none">
@@ -593,12 +602,40 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
                 <text x={cx} y={cy + r * 0.35} textAnchor="middle" fontSize={r * 1.1} pointerEvents="none">{t.icon ?? '◆'}</text>
               </>
             )}
-            <text x={cx} y={cy - r - 0.08} textAnchor="middle" fontSize={0.22} fill="#ecd289" fontFamily="Cinzel, serif" pointerEvents="none" stroke="#0b0906" strokeWidth={0.04} paintOrder="stroke">
+            </g>
+            {/* État : anneau et badge. Mort : sombre ; à l'agonie : battement rouge ; stabilisé : croix verte ; neutralisé : violet. */}
+            {dead && (
+              <g pointerEvents="none">
+                <circle cx={cx} cy={cy} r={r} fill="rgba(10,4,3,.35)" stroke="#3a0f0a" strokeWidth={0.08} />
+                <circle cx={cx} cy={cy + r * 0.82} r={0.17} fill="#140707" stroke="#8a2a1c" strokeWidth={0.03} />
+                <text x={cx} y={cy + r * 0.82 + 0.07} textAnchor="middle" fontSize={0.2}>☠</text>
+              </g>
+            )}
+            {t.vital === 'agonie' && <circle className="battle-dying-ring" cx={cx} cy={cy} r={r + 0.02} fill="none" stroke="#ff3b2f" strokeWidth={0.07} pointerEvents="none" />}
+            {t.vital === 'stable' && (
+              <g pointerEvents="none">
+                <circle cx={cx} cy={cy} r={r} fill="none" stroke="#5fae5a" strokeWidth={0.05} />
+                <circle cx={cx} cy={cy + r * 0.82} r={0.15} fill="#13240f" stroke="#5fae5a" strokeWidth={0.03} />
+                <text x={cx} y={cy + r * 0.82 + 0.065} textAnchor="middle" fontSize={0.18} fill="#9fe08f" fontWeight={700}>✚</text>
+              </g>
+            )}
+            {t.vital === 'neutralise' && (
+              <g pointerEvents="none">
+                <circle cx={cx} cy={cy} r={r + 0.02} fill="rgba(70,60,140,.18)" stroke="#9c7bd6" strokeWidth={0.06} strokeDasharray="0.12 0.08" />
+                <circle cx={cx} cy={cy + r * 0.82} r={0.16} fill="#1f1636" stroke="#9c7bd6" strokeWidth={0.03} />
+                <text x={cx} y={cy + r * 0.82 + 0.07} textAnchor="middle" fontSize={0.19} fill="#d9c8ff">{CAUSE_ICON[t.cause ?? ''] ?? '⊘'}</text>
+                <title>{t.cause ?? 'Neutralisé'}</title>
+              </g>
+            )}
+            {t.down && !dead && t.vital !== 'agonie' && t.vital !== 'stable' && t.vital !== 'neutralise' && (
+              <g pointerEvents="none"><title>À terre</title>
+                <circle cx={cx + r * 0.8} cy={cy + r * 0.72} r={0.14} fill="#2a1d0e" stroke="#c9a24a" strokeWidth={0.03} />
+                <text x={cx + r * 0.8} y={cy + r * 0.72 + 0.06} textAnchor="middle" fontSize={0.16} fill="#ecd289">⤓</text>
+              </g>
+            )}
+            <text x={cx} y={cy - r - 0.08} textAnchor="middle" fontSize={0.22} fill={dead ? '#8a7d66' : '#ecd289'} fontFamily="Cinzel, serif" pointerEvents="none" stroke="#0b0906" strokeWidth={0.04} paintOrder="stroke" textDecoration={dead ? 'line-through' : undefined}>
               {t.name}
             </text>
-            {t.out && (
-              <path d={`M${cx - r * 0.7} ${cy - r * 0.7}L${cx + r * 0.7} ${cy + r * 0.7}M${cx + r * 0.7} ${cy - r * 0.7}L${cx - r * 0.7} ${cy + r * 0.7}`} stroke="#c0492f" strokeWidth={0.1} strokeLinecap="round" pointerEvents="none" />
-            )}
             {t.conditions?.length ? (
               <g className="battle-token-conds">
                 <title>{t.conditions.join(' · ')}</title>

@@ -15347,10 +15347,13 @@ function useBattleSync({ state, dispatch, party, npcs, battle, setBattle, combat
       const sameConds = condKey(t.conditions) === condKey(x.conditions);
       const hero = x.isPC ? heroReachOf(x) : null;
       const sameHero = !hero || (t.move === hero.move && JSON.stringify(t.reach) === JSON.stringify(hero.reach));
-      const same = t.hp === Number(x.hp) && t.maxHp === Number(x.maxHp) && t.ac === Number(ac) && t.name === x.name && t.init === init && sameConds && sameHero;
+      // Héros à 0 PV : à l'agonie, stabilisé ou mort selon ses jets contre la mort (le jeton change d'apparence).
+      const ds = x.deathSaves || {};
+      const dying = x.isPC && Number(x.hp) <= 0 ? (ds.f >= 3 ? 'mort' : ds.s >= 3 ? 'stable' : 'agonie') : undefined;
+      const same = t.hp === Number(x.hp) && t.maxHp === Number(x.maxHp) && t.ac === Number(ac) && t.name === x.name && t.init === init && sameConds && sameHero && t.dying === dying;
       if (t.hp !== undefined && Number(x.hp) !== t.hp) hits.push({ id: uid(), to: t.id, amount: Number(x.hp) - t.hp, at: now });
       return same ? t : {
-        ...t, hp: Number(x.hp), maxHp: Number(x.maxHp), ac: Number(ac), name: x.name, init,
+        ...t, hp: Number(x.hp), maxHp: Number(x.maxHp), ac: Number(ac), name: x.name, init, dying,
         ...(sameConds ? {} : { conditions: [...(x.conditions || [])] }),
         ...(hero ? { move: hero.move, reach: hero.reach } : {}),
       };

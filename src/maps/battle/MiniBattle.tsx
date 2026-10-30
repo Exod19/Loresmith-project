@@ -9,7 +9,7 @@ import type { Battle } from '../mapStore';
 import { baseGridOf, fits, surfaceOf } from './placement';
 import { socleOf } from './surface';
 import { tokenImage } from './vignettes';
-import { isOut } from './combat';
+import { isOut, vitalOf } from './combat';
 import { moveAlerts, type Note } from './tactics';
 
 export default function MiniBattle({ battle, onBattle, selectedId, onSelect }: {
@@ -73,6 +73,7 @@ export default function MiniBattle({ battle, onBattle, selectedId, onSelect }: {
       id: t.id, name: t.name, kind: t.kind, x: at.x, y: at.y, size: t.size, icon: t.icon, image: tokenImage(t),
       selected: t.id === selectedId, hidden: !t.visible, active: t.id === b.turn, hp: t.hp, maxHp: t.maxHp, out: isOut(t), conditions: t.conditions,
       socle: socleOf(rules, t) ?? undefined,
+      ...vitalOf(t),
     };
   });
   const selected = b.tokens.find((t) => t.id === selectedId);

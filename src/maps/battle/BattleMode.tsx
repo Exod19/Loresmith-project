@@ -24,7 +24,7 @@ import type { BestiaryRef } from '../CampaignGuide';
 import PlacePanel, { type ExitItem, type SearchItem, type SecretItem } from './PlacePanel';
 import { DEFAULT_BRUSH, PROP_BY_KEY, PROP_LABEL, propUrl, shapeCells, type Brush } from './build';
 import { passageDifficulty, searchFor, type SearchEntry } from './search';
-import { advanceBattle, isOut, passiveOfToken, sightOf, statOf } from './combat';
+import { advanceBattle, isOut, passiveOfToken, sightOf, statOf, vitalOf } from './combat';
 import { moveAlerts, type Note } from './tactics';
 import { partyVision } from './fog';
 import { exitAt, exitsOf } from './trailRules';
@@ -794,6 +794,7 @@ export default function BattleMode({
       // Socle : terrain sous la position validée (pas pendant le glisser, pour éviter les clignotements).
       socle: socleOf(rules, t) ?? undefined,
       elev: elevAt(rules, t) || undefined,
+      ...vitalOf(t),
     };
   });
 
