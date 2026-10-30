@@ -191,7 +191,7 @@ function blob(rand, cx, cy, rx, ry, n = 28) {
 
 /** Valeurs par défaut d'une cité (fiche incomplète, ou cité créée à la main). */
 export function citySpecDefaults(spec) {
-  const population = clamp(Math.round(Number(spec.population) || 1500), 150, 25000);
+  const population = clamp(Math.round(Number(spec.population) || 1500), 40, 25000);
   return {
     id: String(spec.id), name: spec.name || 'Cité sans nom', seed: (spec.seed ?? hashSeed(`cite:${spec.id}`)) >>> 0, population,
     people: spec.people || 'humains',
@@ -201,6 +201,8 @@ export function citySpecDefaults(spec) {
     faubourgs: spec.faubourgs ?? population >= 500,
     farms: spec.farms ?? true,
     river: spec.river ?? false,
+    /** Village ou hameau : une chapelle, une taverne, une forge, des fermes ; ni guilde, ni caserne, ni entrepôt. */
+    village: spec.village ?? population < 400,
     entryId: spec.entryId, at: spec.at,
   };
 }
@@ -246,7 +248,9 @@ export function generateCity(rawSpec, planId, bindings = {}) {
   const inCastle = (x, y, m = 0) => !!C && Math.hypot(x - C.x, y - C.y) < C.r + m;
   const inHigh = (x, y) => spec.highTown && (() => { const p = polar(x, y); return Math.abs(angDiff(p.a, thC)) < 0.95 && p.r > R * 0.6 && p.r < wallR(p.a); })() && !inCastle(x, y, 3);
 
-  // Place du marché.
+  // Place du marché (ou du village).
+  const vrand = rng((spec.seed ^ 0x5bd1e995) >>> 0);
+  const orngVillage = () => vrand();
   const mk = { x: (rand() - 0.5) * R * 0.16, y: (rand() - 0.5) * R * 0.16, a: clamp(R * 0.12, 12, 44), ang: rand() * Math.PI };
   mk.b = mk.a * 0.7;
   const market = { x: mk.x, y: mk.y, w: mk.a * 2, d: mk.b * 2, ang: mk.ang };
@@ -262,7 +266,7 @@ export function generateCity(rawSpec, planId, bindings = {}) {
     const r = spec.walls ? wallR(a) : R * 0.95;
     const dir = dirName(a);
     const n = (usedDir.get(dir) ?? 0) + 1; usedDir.set(dir, n);
-    const name = n === 1 ? `Porte ${OF_DIR[dir]}` : `Porte ${['', '', 'Neuve', 'Basse', 'Vieille'][n]} ${OF_DIR[dir]}`;
+    const name = !spec.walls ? `Entrée ${OF_DIR[dir]}${n > 1 ? ` ${n}` : ''}` : n === 1 ? `Porte ${OF_DIR[dir]}` : `Porte ${['', '', 'Neuve', 'Basse', 'Vieille'][n]} ${OF_DIR[dir]}`;
     return { i, a: ((a % TAU) + TAU) % TAU, x: Math.cos(a) * r, y: Math.sin(a) * r, dir, name };
   });
 
@@ -538,6 +542,17 @@ export function generateCity(rawSpec, planId, bindings = {}) {
   };
   const nearGate = (b) => Math.min(...gates.map((g) => dist(b, g.x, g.y)));
   const intraSlot = (s) => ['ville', 'marche'].includes(s.b.district);
+  if (spec.village) {
+    // Village : une chapelle près de la place, une taverne, une forge ; une auberge et une échoppe s'il est assez grand.
+    take('temple', 1, (b) => Math.abs(dist(b, mk.x, mk.y) - (mk.a + 15)) - b.w * b.d * 0.05);
+    for (const sl of slots) if (sl.type === 'temple' && !sl.label) sl.label = 'Chapelle';
+    take('taverne', 1, (b) => dist(b, mk.x, mk.y), (s) => s.b.district !== 'ferme');
+    if (pop >= 150) take('auberge', 1, nearGate, (s) => s.b.district !== 'ferme');
+    if (pop >= 80) take('forge', 1, nearGate, (s) => s.b.district !== 'ferme');
+    if (pop >= 120) take('echoppe', 1, (b) => dist(b, mk.x, mk.y), (s) => s.b.district !== 'ferme');
+    // Les maisons du village sont pour moitié des fermes.
+    for (const sl of slots) if (!sl.type && orngVillage() < 0.45) sl.type = 'ferme';
+  } else {
   take('temple', 1 + (pop > 2500 ? 1 : 0) + (pop > 8000 ? 1 : 0), (b) => Math.abs(dist(b, mk.x, mk.y) - (mk.a + 35)) - b.w * b.d * 0.05, intraSlot);
   take('guilde', 1 + (pop > 3000 ? 1 : 0), (b) => dist(b, mk.x, mk.y), (s) => s.b.district === 'marche' || intraSlot(s));
   take('caserne', Math.max(1, Math.round(nG * 0.6)), nearGate, intraSlot);
@@ -548,6 +563,7 @@ export function generateCity(rawSpec, planId, bindings = {}) {
   take('entrepot', Math.max(1, Math.round(pop / 800)), nearGate, (s) => s.b.district !== 'haute' && s.b.district !== 'ferme');
   take('echoppe', Math.max(3, Math.round(pop / 45)), (b) => dist(b, mk.x, mk.y), (s) => s.b.district === 'marche' || s.b.district === 'ville');
   take('atelier', Math.round(slots.filter((s) => s.b.district === 'faubourg').length * 0.3), () => 0, (s) => s.b.district === 'faubourg');
+  }
   for (const s of slots) if (!s.type) s.type = s.b.district === 'haute' ? 'manoir' : s.b.district === 'ferme' ? 'ferme' : 'maison';
 
   // ——— Lieux de l'Atlas ———
@@ -576,8 +592,8 @@ export function generateCity(rawSpec, planId, bindings = {}) {
     }, b.x, b.y);
   }
   // Repères de la ville : marché, portes, quartiers.
-  addPoint({ ...base, id: `${pre}marche`, title: 'Place du marché', category: 'institution', importance: 'regional', minZoom: 0, summary: 'Étals, puits et crieurs : le cœur de la ville.' }, mk.x, mk.y);
-  for (const g of gates) addPoint({ ...base, id: `${pre}porte-${g.i}`, title: g.name, category: 'garde', importance: 'regional', minZoom: 0, subtitle: spec.walls ? 'Porte de l’enceinte' : 'Entrée de la ville' }, g.x, g.y);
+  addPoint({ ...base, id: `${pre}marche`, title: spec.village ? 'Place du village' : 'Place du marché', category: 'institution', importance: 'regional', minZoom: 0, summary: spec.village ? 'Le puits, un vieil orme et le banc des anciens.' : 'Étals, puits et crieurs : le cœur de la ville.' }, mk.x, mk.y);
+  for (const g of gates) addPoint({ ...base, id: `${pre}porte-${g.i}`, title: g.name, category: 'garde', importance: 'regional', minZoom: 0, subtitle: spec.walls ? 'Porte de l’enceinte' : spec.village ? 'Entrée du village' : 'Entrée de la ville' }, g.x, g.y);
   const area = (id, title, x, y, importance = 'regional', category = 'cite') => addPoint({ ...base, id: `${pre}${id}`, title, category, importance, minZoom: importance === 'landmark' ? 0 : 0.9, area: true }, x, y);
   if (C) { const far = inPlan(C.x + Math.cos(thC) * C.r * 1.6, C.y + Math.sin(thC) * C.r * 1.6, 30) ? 1.6 : -0.2; area('q-chateau', `Château de ${spec.name}`, C.x + Math.cos(thC) * C.r * far, C.y + Math.sin(thC) * C.r * far, 'regional'); }
   if (spec.highTown) area('q-haute', 'Haute-ville', Math.cos(thC + 0.55) * R * 0.74, Math.sin(thC + 0.55) * R * 0.74);
@@ -746,20 +762,6 @@ export function generateWorld(world, mapRecordId) {
     return { c, g, pid };
   });
 
-  // Intérieurs des bâtiments où le groupe est entré : un plan chacun, relié à la rue par sa porte.
-  for (const slotId of world.interiors ?? []) {
-    const city = cityOut.find(({ pid }) => slotId.startsWith(`${pid}:b`));
-    const slot = city?.g.slots.find((s) => s.id === slotId);
-    if (!city || !slot) continue;
-    const bound = byCity.get(city.c.id)?.[slotId];
-    const it = cachedInterior(slot, bound, city.g.map.scope.id, world.time ?? 'jour', world.residents?.[slotId] ?? []);
-    for (const lv of [it, ...it.levels]) { maps.push(lv.map); features.push(...lv.features); geometries.push(...lv.geometries); anchors.push(...lv.anchors); spaces.push(lv.space); }
-    connections.push(...it.connections);
-    // Côté rue : une ancre sous le bâtiment (cachée sous son repère s'il en a un).
-    anchors.push({ id: `${slotId}:porte`, mapId: city.pid, at: slot.at, label: it.space.name });
-    connections.push({ id: `cx-${slotId}`, kind: 'naturel', fromAnchorId: `${slotId}:porte`, toAnchorId: `${interiorPlanId(slotId)}:sortie`, direction: 'both', title: `Porte · ${it.space.name}`, ...base });
-  }
-
   // Terrain du monde : forêts, rivières, lac, collines (loin des cités).
   const decor = [];
   const paths = {};
@@ -861,6 +863,8 @@ export function generateWorld(world, mapRecordId) {
   }
   const worldRoads = [];
   const hamlets = [];
+  const villages = [];
+  const placesOut = [...cityOut];
   for (const [i, j] of roads) {
     const A = cityOut[i], B = cityOut[j];
     const [a, b] = A.c.id < B.c.id ? [A, B] : [B, A];
@@ -890,10 +894,36 @@ export function generateWorld(world, mapRecordId) {
         for (let k = 0; k < 6; k++) push('roof', rectPath(corners({ x: hx2 + (r() - 0.5) * 6, y: hy2 + (r() - 0.5) * 5, w: 1.3 + r() * 0.6, d: 0.9, ang: p.ang + (r() - 0.5) * 0.5 })));
         for (let k = 0; k < 5; k++) push('plot', rectPath(corners({ x: hx2 + (r() - 0.5) * 22, y: hy2 + (r() - 0.5) * 18, w: 5 + r() * 4, d: 2 + r() * 1.5, ang: p.ang + (r() - 0.5) * 0.8 })));
         hamlets.push([r1(hx2), r1(hy2), 3]);
-        addPoint({ ...base, id: `${id}:hameau`, title: `Hameau de ${placeName(r)}`, category: 'cite', importance: 'local', minZoom: 0.9, subtitle: 'Hameau' }, hx2 / W, hy2 / H);
+        // Le hameau s'explore comme une cité : son plan est généré, sans muraille, avec ses fermes.
+        const hname = `Hameau de ${placeName(r)}`;
+        const hid = `hameau-${a.c.id}-${b.c.id}`;
+        const spec = citySpecDefaults({ id: hid, name: hname, population: 50 + Math.floor(r() * 170), village: true, walls: false, castle: false, highTown: false, faubourgs: false, farms: true, river: false, at: [r5(hx2 / W), r5(hy2 / H)] });
+        const hpid = cityPlanId(mapRecordId, hid);
+        const hg = cachedCity(spec, hpid, byCity.get(hid) ?? {});
+        maps.push(hg.map); features.push(...hg.features); geometries.push(...hg.geometries); anchors.push(...hg.anchors);
+        spaces.push({ id: hg.map.scope.id, kind: 'site', name: hname, levelId: 'monde', stratumIds: [], mapId: hpid });
+        villages.push(spec); placesOut.push({ c: spec, g: hg, pid: hpid });
+        addPoint({ ...base, id: `${id}:hameau`, title: hname, category: 'cite', importance: 'local', minZoom: 0.9, subtitle: `Hameau · ${spec.population} habitants`, opens: { kind: 'site', id: hg.map.scope.id } }, hx2 / W, hy2 / H);
+        const aid = `${wid}:entree-${hid}`;
+        anchors.push({ id: aid, mapId: wid, at: [r5(hx2 / W), r5(hy2 / H)], label: hname });
+        for (const gt of hg.gates) connections.push({ id: `cx-${hid}-${gt.i}`, kind: 'naturel', fromAnchorId: gt.anchorId, toAnchorId: aid, direction: 'both', title: `${gt.name} · ${hname}`, ...base });
       }
     }
   }
+  // Intérieurs des bâtiments où le groupe est entré : un plan chacun, relié à la rue par sa porte.
+  for (const slotId of world.interiors ?? []) {
+    const city = placesOut.find(({ pid }) => slotId.startsWith(`${pid}:b`));
+    const slot = city?.g.slots.find((s) => s.id === slotId);
+    if (!city || !slot) continue;
+    const bound = byCity.get(city.c.id)?.[slotId];
+    const it = cachedInterior(slot, bound, city.g.map.scope.id, world.time ?? 'jour', world.residents?.[slotId] ?? []);
+    for (const lv of [it, ...it.levels]) { maps.push(lv.map); features.push(...lv.features); geometries.push(...lv.geometries); anchors.push(...lv.anchors); spaces.push(lv.space); }
+    connections.push(...it.connections);
+    // Côté rue : une ancre sous le bâtiment (cachée sous son repère s'il en a un).
+    anchors.push({ id: `${slotId}:porte`, mapId: city.pid, at: slot.at, label: it.space.name });
+    connections.push({ id: `cx-${slotId}`, kind: 'naturel', fromAnchorId: `${slotId}:porte`, toAnchorId: `${interiorPlanId(slotId)}:sortie`, direction: 'both', title: `Porte · ${it.space.name}`, ...base });
+  }
+
   // Champs autour des cités, à l'échelle du monde.
   for (const { c, g } of cityOut) {
     const r = rng(hashSeed(`champs:${seed}:${c.id}`));
@@ -932,6 +962,8 @@ export function generateWorld(world, mapRecordId) {
   const shown = light ? maps.map((m) => (m.surface ? { ...m, surface: { ...m.surface, light } } : m)) : maps;
   return {
     version: 'monde-1',
+    /** Hameaux générés le long des routes (paramètres de cité) : le lore peut y poser des lieux. */
+    villages,
     levels: [{ id: 'monde', order: 1, title: name, description: '', strataIds: [], survey: 'cartographie' }],
     strata: [], spaces, maps: shown, cavities: {}, features, geometries, anchors, connections,
   };

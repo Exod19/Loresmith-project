@@ -15,7 +15,7 @@ export const SLOT_TYPES: Record<SlotType, { label: string; category: FeatureCate
 /** Paramètres d'une cité, lus sur sa fiche ou saisis par le MJ. `at` : position sur le plan monde (0–1). */
 export interface CitySpec {
   id: string; name: string; seed?: number; population?: number; people?: string;
-  walls?: boolean; castle?: boolean; highTown?: boolean; faubourgs?: boolean; farms?: boolean; river?: boolean;
+  walls?: boolean; castle?: boolean; highTown?: boolean; faubourgs?: boolean; farms?: boolean; river?: boolean; village?: boolean;
   /** Fiche de lieu d'où vient la cité. */
   entryId?: string;
   at?: [number, number];
@@ -50,7 +50,7 @@ export type Surface = MapSurface;
 export type Ground = MapSurface['ground'];
 
 export interface CityResult {
-  spec: Required<Pick<CitySpec, 'id' | 'name' | 'seed' | 'population' | 'people' | 'walls' | 'castle' | 'highTown' | 'faubourgs' | 'farms' | 'river'>> & CitySpec;
+  spec: Required<Pick<CitySpec, 'id' | 'name' | 'seed' | 'population' | 'people' | 'walls' | 'castle' | 'highTown' | 'faubourgs' | 'farms' | 'river' | 'village'>> & CitySpec;
   map: AtlasMap; features: AtlasFeature[]; geometries: AtlasGeometry[]; anchors: AtlasAnchor[]; slots: Slot[];
   gates: { i: number; a: number; dir: string; name: string; anchorId: string }[];
   stats: { radius: number; buildings: number; intra: number; fields: number; trees: number; streets: number };
@@ -63,7 +63,7 @@ export function generateCity(spec: CitySpec, planId: string, bindings?: Record<s
 export function worldPlanId(mapRecordId: string): string;
 export function cityPlanId(mapRecordId: string, cityId: string): string;
 export function placeCity(world: Pick<WorldSpec, 'seed' | 'cities'>, cityId: string): [number, number];
-export function generateWorld(world: WorldSpec, mapRecordId: string): AtlasData;
+export function generateWorld(world: WorldSpec, mapRecordId: string): AtlasData & { villages?: CitySpec[] };
 export function citySlots(spec: CitySpec, planId: string): Slot[];
 export function interiorPlanId(slotId: string): string;
 export function rasterGround(surface: Surface, W: number, H: number, win: { x0: number; y0: number; w: number; h: number }, cols: number, rows: number, seed?: number): string;

@@ -1,4 +1,4 @@
-# Carte du monde : lot 5, vie des bâtiments et moment de la journée (statut : à valider)
+# Carte du monde : lot 5, vie des bâtiments et moment de la journée (statut : validé)
 
 ## Ce que fait le lot
 

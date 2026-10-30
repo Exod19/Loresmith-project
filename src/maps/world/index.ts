@@ -73,8 +73,10 @@ export function useWorldSync(rec: MapRecord, library: LoreEntry[] | undefined, p
   useEffect(() => {
     if (rec.kind !== 'monde' || !rec.world || !library) return;
     const places = library.filter((e) => e.archiveType === 'place');
+    // Les hameaux de la carte accueillent aussi les lieux du lore qui les nomment.
+    const villages = (worldAtlas(rec) as AtlasData & { villages?: CitySpec[] }).villages ?? [];
     const { bindings, changed } = syncBindings({
-      world: rec.world, mapRecordId: rec.id, places, people: [...(people ?? []), ...library.filter((e) => e.archiveType === 'person')],
+      world: { ...rec.world, cities: [...rec.world.cities, ...villages] }, mapRecordId: rec.id, places, people: [...(people ?? []), ...library.filter((e) => e.archiveType === 'person')],
       revealed: new Set(rec.overlay?.revealed ?? []),
     });
     if (changed) update.current({ world: { ...rec.world, bindings }, updatedAt: Date.now() });

@@ -225,3 +225,30 @@ test('les occupants suivent le moment de la journée, et un résident reste à s
   assert.deepEqual(d.geometries.find((g) => g.featureId === `${interiorPlanId(tav.id)}:pnj-gus`).coordinates, at);
   assert.equal(d.maps.find((m) => m.id === interiorPlanId(tav.id)).surface.light, 'nuit');
 });
+
+test('un hameau sur la route s’explore comme une cité : chapelle, taverne, fermes, pas de muraille', async () => {
+  const { interiorPlanId } = await import('./generate.js');
+  const world = { seed: 5, name: 'Monde', bindings: {}, cities: [{ ...CITY, at: [0.15, 0.2] }, { id: 'rocfort', name: 'Rocfort', population: 3000, at: [0.85, 0.8] }] };
+  const d = generateWorld(world, 'rec');
+  assert.ok(d.villages.length >= 1, 'au moins un hameau');
+  const v = d.villages[0];
+  const pid = cityPlanId('rec', v.id);
+  const plan = d.maps.find((m) => m.id === pid);
+  assert.ok(plan, 'le hameau a son plan');
+  assert.ok(!plan.decor.some((x) => x.kind === 'wall'), 'pas de muraille');
+  assert.ok(d.features.some((f) => f.opens?.id === plan.scope.id), 'le point du hameau ouvre son plan');
+  const slots = citySlots(v, pid);
+  const types = new Set(slots.map((s) => s.type));
+  for (const t of ['temple', 'taverne', 'ferme', 'maison']) assert.ok(types.has(t), `type ${t}`);
+  for (const t of ['guilde', 'caserne', 'entrepot', 'chateau']) assert.ok(!types.has(t), `pas de ${t}`);
+  assert.equal(slots.find((s) => s.type === 'temple').label, 'Chapelle');
+  // Ses bâtiments s'ouvrent comme ceux d'une cité.
+  const tav = slots.find((s) => s.type === 'taverne');
+  const d2 = generateWorld({ ...world, interiors: [tav.id] }, 'rec');
+  assert.ok(d2.maps.some((m) => m.id === interiorPlanId(tav.id)));
+  // Le lore peut y poser un lieu : la fiche nomme le hameau.
+  const { syncBindings } = await import('./lore.js');
+  const r = syncBindings({ world: { ...world, cities: [...world.cities, ...d.villages] }, mapRecordId: 'rec',
+    places: [{ id: 'moulin', archiveType: 'place', title: 'Le Moulin du Vieux Gaston', shortSummary: `Atelier de meunier, à ${v.name}.`, currentLocation: v.name }] });
+  assert.equal(r.bindings.moulin?.cityId, v.id);
+});
