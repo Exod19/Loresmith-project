@@ -101,6 +101,20 @@ export function initiativeOrder(tokens: BattleToken[]): BattleToken[] {
 /** Un combattant est hors de combat à 0 PV (les joueurs restent dans l'ordre : jets contre la mort). */
 export const isOut = (t: BattleToken) => t.kind !== 'pc' && t.hp !== undefined && t.hp <= 0;
 
+/** États 5e qui laissent une créature neutralisée (ni action ni réaction). */
+const NEUTRALISE = ['Inconscient', 'Paralysé', 'Pétrifié', 'Étourdi', 'Neutralisé'];
+/** Apparence d'un jeton selon son état : vivant, à l'agonie, stabilisé, mort, neutralisé ; couché s'il est à terre. */
+export type Vital = 'mort' | 'agonie' | 'stable' | 'neutralise';
+export function vitalOf(t: Pick<BattleToken, 'kind' | 'hp' | 'conditions' | 'dying'>): { vital?: Vital; down: boolean; cause?: string } {
+  const conds = t.conditions ?? [];
+  let vital: Vital | undefined;
+  if (t.kind !== 'pc' && t.hp !== undefined && t.hp <= 0) vital = 'mort';
+  else if (t.kind === 'pc' && t.hp !== undefined && t.hp <= 0) vital = t.dying ?? 'agonie';
+  const cause = conds.find((c) => NEUTRALISE.includes(c));
+  if (!vital && cause) vital = 'neutralise';
+  return { vital, down: !!vital && vital !== 'neutralise' || conds.includes('À terre') || conds.includes('Inconscient'), cause };
+}
+
 /** Tour suivant : saute les créatures hors de combat. Revenir au premier fait passer au round suivant. */
 export function nextTurn(b: Battle): Pick<Battle, 'turn' | 'round'> {
   const order = initiativeOrder(b.tokens).filter((t) => t.init !== undefined && !isOut(t));

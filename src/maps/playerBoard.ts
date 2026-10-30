@@ -15,7 +15,7 @@ import { describeLite } from './atlas/lore';
 import { CALM_MS } from './atlas/omens';
 import { STATS } from './atlas/statblocks';
 import type { PlayerBoard, PlayerElement, PlayerToken, PlayerTurn } from '../present/stage';
-import { initiativeOrder } from './battle/combat';
+import { initiativeOrder, vitalOf } from './battle/combat';
 import { inSight, partyVision } from './battle/fog';
 import { visionShapes, memoryShapes } from './zone';
 import { exitsOf } from './battle/trailRules';
@@ -123,11 +123,12 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
   const rules = surfaceOf(view);
   const tokens: PlayerToken[] = b.tokens
     .filter((t) => t.visible)
-    .map(({ id, name, kind, x, y, size, icon, image, statId, hp, maxHp, move, reach, layer, socle, modes }) => {
+    .map(({ id, name, kind, x, y, size, icon, image, statId, hp, maxHp, move, reach, layer, socle, modes, conditions, dying }) => {
       const portrait = tokenImage({ kind, statId, image });
       return {
         id, name, kind, x, y, size, icon, image: portrait, statId, layer, modes, speed: (statId && STATS[statId]?.speed) || undefined,
         socle: socleOf(rules, { x, y, size, layer, socle }) ?? undefined,
+        ...vitalOf({ kind, hp, conditions, dying }),
         elev: Math.max(0, ...Array.from({ length: size * size }, (_, k) => rules.cells[(y + Math.floor(k / size)) * b.cols + x + (k % size)]?.elev ?? 0)) || undefined,
         ...(kind === 'pc' ? { left: moveLeft(b, id, moverOf({ size, move, modes }, statId ? STATS[statId]?.speed : undefined, speedCells(statId ? STATS[statId] : undefined)).speed) } : {}),
         active: id === b.turn || undefined,

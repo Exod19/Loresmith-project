@@ -182,6 +182,8 @@ export interface BattleToken {
   unplaced?: boolean;
   /** Sur le tablier d'un pont (et non dans l'eau en dessous). */
   layer?: 'pont';
+  /** Héros à 0 PV : à l'agonie (jets contre la mort), stabilisé, ou mort (repris du module Combat). */
+  dying?: 'agonie' | 'stable' | 'mort';
   /** Socle sous le jeton : automatique (terrain occupé), aucun, ou choisi. Purement visuel. */
   socle?: SocleMode;
   /** Modes de déplacement accordés par le MJ (sort, objet), en plus de ceux de la fiche. */
