@@ -11,6 +11,7 @@
 import { SLOT_TYPES, hashSeed, rng } from './generate.js';
 
 const W = 1240, H = 1000;
+const TAU2 = Math.PI * 2;
 const r1 = (v) => Math.round(v * 10) / 10;
 const r5 = (v) => Math.round(v * 1e5) / 1e5;
 const f1 = (v) => (Math.round(v * 10) / 10).toString();
@@ -362,7 +363,37 @@ export function generateInterior({ slot, planId, siteId, parentSiteId, bound, pe
     for (const [kind, u0, v0, u1, v1, label] of items) {
       const bx = box(u0, v0, u1, v1);
       const [cx, cy] = [bx[0] + bx[2] / 2, bx[1] + bx[3] / 2];
-      if (kind === 'tables' || kind === 'benches' || kind === 'beds' || kind === 'stalls' || kind === 'pillars' || kind === 'tombs') {
+      if (kind === 'tables') {
+        // Tables d'une salle commune : posées au gré des clients, pas au cordeau. Rondes ou longues, un peu tournées,
+        // avec leurs tabourets ; jamais collées entre elles ni sur un escalier.
+        const placed = [];
+        const want = Math.max(2, Math.round((bx[2] * bx[3]) / (m(2.6) * m(2.6))));
+        for (let tries = 0; placed.length < want && tries < want * 25; tries++) {
+          const round = rand() < 0.45;
+          const tw = m(round ? 1.1 : 1.6 + rand() * 0.8), th = m(round ? 1.1 : 0.85);
+          const x = bx[0] + tw / 2 + rand() * Math.max(0, bx[2] - tw), y = bx[1] + th / 2 + rand() * Math.max(0, bx[3] - th);
+          const ang = round ? 0 : (rand() - 0.5) * 0.7;
+          if (placed.some((q) => Math.hypot(q.x - x, q.y - y) < m(2.3))) continue;
+          if (stairs.some(([, [su, sv]]) => { const [sx, sy] = P(su, sv); return Math.hypot(sx - x, sy - y) < m(2); })) continue;
+          placed.push({ x, y });
+          if (round) push('furn', circleD(x, y, tw / 2));
+          else {
+            const c = Math.cos(ang), sn = Math.sin(ang), hw = tw / 2, hh = th / 2;
+            const pts = [[-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]].map(([u, v]) => [x + u * c - v * sn, y + u * sn + v * c]);
+            push('furn', `M${pts.map(([px, py]) => `${f1(px)} ${f1(py)}`).join('L')}Z`);
+          }
+          ground.f.push(r1(x), r1(y), r1(tw), r1(th), Math.round(ang * 1000) / 1000);
+          // Tabourets autour.
+          const seats = round ? 3 + Math.floor(rand() * 2) : 4;
+          for (let k = 0; k < seats; k++) {
+            const a2 = (TAU2 * k) / seats + rand() * 0.5 + ang, rr = (round ? tw / 2 : tw / 2.4) + m(0.45);
+            push('stool', circleD(x + Math.cos(a2) * rr, y + Math.sin(a2) * rr * (round ? 1 : 0.75), m(0.22)));
+          }
+        }
+        if (label) named.push([label, cx, cy]);
+        continue;
+      }
+      if (kind === 'benches' || kind === 'beds' || kind === 'stalls' || kind === 'pillars' || kind === 'tombs') {
         // Une rangée d'éléments réguliers, au mètre près, dans la zone.
         const size = { tables: [1.8, 0.9], benches: [3.2, 0.5], beds: [0.9, 1.9], stalls: [2.4, 2.8], pillars: [0.7, 0.7], tombs: [1, 2.2] }[kind];
         const gap = { tables: [1.4, 1.3], benches: [1, 0.9], beds: [0.6, 0.8], stalls: [0.2, 0.3], pillars: [3.3, 3.3], tombs: [1.2, 1.2] }[kind];
@@ -418,7 +449,7 @@ export function generateInterior({ slot, planId, siteId, parentSiteId, bound, pe
     }, Nn((u0 + u1) / 2, v0 + (v1 - v0) * (i === 0 && lv === 'rdc' ? 0.25 : 0.5))));
     named.forEach(([label, x, y], i) => addPoint({ id: `${pre}objet-${i}`, title: label, category: 'indetermine', importance: 'detail', minZoom: 1.3 }, [r5(x / W), r5(y / H)]));
 
-    const ORDER = ['floor', 'floor-stone', 'rug', 'dais', 'stall', 'furn', 'bed', 'hearth', 'altar', 'anvil', 'trough', 'stair', 'hatch', 'barrel', 'crate', 'bars', 'pillar'];
+    const ORDER = ['floor', 'floor-stone', 'rug', 'dais', 'stall', 'stool', 'furn', 'bed', 'hearth', 'altar', 'anvil', 'trough', 'stair', 'hatch', 'barrel', 'crate', 'bars', 'pillar'];
     const decor = [
       ...ORDER.filter((k) => paths[k]).map((k) => ({ kind: k, d: paths[k].join('') })),
       { kind: 'wall-in', d: paths.walls.join(''), w: r1(m(0.45)) },
@@ -477,8 +508,14 @@ export function generateInterior({ slot, planId, siteId, parentSiteId, bound, pe
         const bedV0 = side === 'back' ? back : back - 1.9 / id, bedV1 = bedV0 + 1.9 / id;
         if (L.etage === 'bureaux') items.push(['table', u0 + 0.2 / k, (a + b) / 2 - 0.5 / id, u1 - 0.2 / k, (a + b) / 2 + 0.5 / id], ['shelf', u0 + 0.05 / k, side === 'back' ? a + 0.02 : b - 0.06, u1 - 0.05 / k, side === 'back' ? a + 0.06 : b - 0.02]);
         else {
-          items.push(['bed', u0 + 0.12 / k, Math.max(a + 0.02, bedV0), u0 + 0.12 / k + 1 / iw, Math.min(b - 0.02, bedV1)]);
-          items.push(['chest', u1 - 0.12 / k - 0.8 / iw, Math.max(a + 0.02, bedV0), u1 - 0.12 / k, Math.max(a + 0.02, bedV0) + 0.6 / id]);
+          // Chaque chambre est meublée à sa façon : lit à gauche ou à droite, coffre au pied du lit ou contre le mur.
+          const left = rand() < 0.5, margin = (0.08 + rand() * 0.08) / k;
+          const bu0 = left ? u0 + margin : u1 - margin - 1 / iw;
+          items.push(['bed', bu0, Math.max(a + 0.02, bedV0), bu0 + 1 / iw, Math.min(b - 0.02, bedV1)]);
+          const cu0 = left ? u1 - margin - 0.8 / iw : u0 + margin;
+          const cv0 = rand() < 0.5 ? Math.max(a + 0.02, bedV0) : Math.min(b - 0.02, bedV1) - 0.6 / id;
+          items.push(['chest', cu0, cv0, cu0 + 0.8 / iw, cv0 + 0.6 / id]);
+          if (rand() < 0.5) items.push(['table', (u0 + u1) / 2 - 0.4 / iw, (a + b) / 2 - 0.3 / id, (u0 + u1) / 2 + 0.4 / iw, (a + b) / 2 + 0.3 / id]);
         }
       }
     }

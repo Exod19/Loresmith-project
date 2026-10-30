@@ -57,7 +57,8 @@ export default function WorldPanel({ rec, data, library, planId, revealed, onUpd
 
   return (
     <div className="maps-panel-sec world-panel">
-      <h4>🏰 {world.name}</h4>
+      <h4>🏰 {world.name} <button className="maps-btn" title="Renommer le monde" aria-label="Renommer le monde"
+        onClick={() => { const n = window.prompt('Nom du monde ?', world.name)?.trim(); if (n) onUpdate({ world: { ...world, name: n }, title: `Monde · ${n}`, updatedAt: Date.now() }); }}>✎</button></h4>
       <p className="maps-sub">
         Une seule carte : zoome dans une cité pour y entrer, dézoome pour revenir au monde. Les lieux créés dans le lore prennent la place d’un bâtiment non découvert, avec leurs PNJ.
       </p>
@@ -79,6 +80,7 @@ export default function WorldPanel({ rec, data, library, planId, revealed, onUpd
                     title={locked ? 'Des lieux de cette cité sont déjà découverts : la régénérer les déplacerait.' : 'Relire la fiche et redessiner la cité (même graine)'}>⟳ Depuis la fiche</button>
                 )}
                 {world.defaultCityId !== c.id && <button className="maps-btn" onClick={() => save({ ...world, defaultCityId: c.id })} title="Les lieux du lore qui ne nomment aucune cité iront ici">Par défaut</button>}
+                <button className="maps-btn" onClick={() => { const n = window.prompt('Nom de la cité ?', c.name)?.trim(); if (n) save({ ...world, cities: world.cities.map((x) => (x.id === c.id ? { ...x, name: n } : x)) }); }}>✎ Renommer</button>
                 <button className="maps-btn" onClick={() => removeCity(c)}>Retirer</button>
               </div>
             </li>

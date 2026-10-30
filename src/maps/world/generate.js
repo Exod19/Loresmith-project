@@ -217,7 +217,8 @@ export function generateCity(rawSpec, planId, bindings = {}) {
   const rand = rng(spec.seed);
   const pop = spec.population;
   // Superficie intra-muros : environ 170 habitants à l'hectare.
-  const R = Math.sqrt(((pop / 170) * 10000) / Math.PI);
+  // Un village est lâche : environ 45 habitants à l'hectare, avec jardins et potagers entre les maisons.
+  const R = Math.sqrt(((pop / (spec.village ? 45 : 170)) * 10000) / Math.PI);
   const ext = R * (spec.farms ? 2.45 : spec.faubourgs ? 1.9 : 1.5);
   const W = CITY_W, H = CITY_H;
   /** Mètres par unité de plan. */
@@ -251,7 +252,7 @@ export function generateCity(rawSpec, planId, bindings = {}) {
   // Place du marché (ou du village).
   const vrand = rng((spec.seed ^ 0x5bd1e995) >>> 0);
   const orngVillage = () => vrand();
-  const mk = { x: (rand() - 0.5) * R * 0.16, y: (rand() - 0.5) * R * 0.16, a: clamp(R * 0.12, 12, 44), ang: rand() * Math.PI };
+  const mk = { x: (rand() - 0.5) * R * 0.16, y: (rand() - 0.5) * R * 0.16, a: spec.village ? clamp(R * 0.08, 6, 10) : clamp(R * 0.12, 12, 44), ang: rand() * Math.PI };
   mk.b = mk.a * 0.7;
   const market = { x: mk.x, y: mk.y, w: mk.a * 2, d: mk.b * 2, ang: mk.ang };
   const inMarket = (x, y, m = 0) => inRect(x, y, { ...market, w: market.w + 2 * m, d: market.d + 2 * m });
@@ -278,9 +279,25 @@ export function generateCity(rawSpec, planId, bindings = {}) {
   let sn = 0, ln = 0;
   const addStreet = (kind, name, pts) => { if (pts.length >= 2 && polyLen(pts) > 4) streets.push({ id: `${pre}rue-${streets.length}`, kind, name, pts, hw: HW[kind] }); };
   const ringR = R * 0.58;
-  const ringAt = (a) => [Math.cos(a) * ringR, Math.sin(a) * ringR];
+  // La ceinture n'est pas un cercle : elle suit le terrain, s'élargit et se resserre.
+  const rph = [rand() * TAU, rand() * TAU];
+  const ringAt = (a) => { const rr = ringR * (1 + 0.08 * Math.sin(2 * a + rph[0]) + 0.05 * Math.sin(5 * a + rph[1])); return [Math.cos(a) * rr, Math.sin(a) * rr]; };
   const rondeAt = (a) => { const r = wallR(a) - 9; return [Math.cos(a) * r, Math.sin(a) * r]; };
   const marketEdge = (tx, ty) => { const a = Math.atan2(ty - mk.y, tx - mk.x); return [mk.x + Math.cos(a) * mk.b * 0.95, mk.y + Math.sin(a) * mk.b * 0.95]; };
+  /** Tracé sinueux de `a` à `b` : des points intermédiaires déviés en douceur (deux ondulations superposées). */
+  const meander = (a, b, k) => {
+    const l = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const n = Math.max(2, Math.round(l / 18));
+    const nx = -(b[1] - a[1]) / (l || 1), ny = (b[0] - a[0]) / (l || 1);
+    const p1 = rand() * TAU, p2 = rand() * TAU, a1 = (rand() - 0.5) * k * l, a2 = (rand() - 0.5) * k * l * 0.4;
+    const out = [a];
+    for (let i = 1; i < n; i++) {
+      const t = i / n, j = Math.sin(t * Math.PI) * (a1 * Math.sin(t * Math.PI + p1 * 0.2) + a2 * Math.sin(t * TAU * 1.5 + p2));
+      out.push([a[0] + (b[0] - a[0]) * t + nx * j, a[1] + (b[1] - a[1]) * t + ny * j]);
+    }
+    out.push(b);
+    return out;
+  };
   const wiggle = (a, b, k) => { const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, l = Math.hypot(b[0] - a[0], b[1] - a[1]); const j = (rand() - 0.5) * l * k; const nx = -(b[1] - a[1]) / (l || 1), ny = (b[0] - a[0]) / (l || 1); return [mx + nx * j, my + ny * j]; };
 
   // Angles où la ceinture est coupée en tronçons (grand-rues, montée, ruelles) : les rues s'y rejoignent.
@@ -300,19 +317,36 @@ export function generateCity(rawSpec, planId, bindings = {}) {
   const allCuts = [...cuts, ...laneAngles].sort((a, b) => a - b);
 
   gates.forEach((g, i) => {
+    if (spec.village) {
+      // Village : la route traverse, de la place à l'entrée, en serpentant.
+      const M = marketEdge(g.x, g.y);
+      addStreet('main', i === 0 ? 'Grand-Rue' : `Chemin ${OF_DIR[g.dir]}`, meander(M, [g.x, g.y], 0.18));
+      return;
+    }
     const P = ringAt(g.a), M = marketEdge(P[0], P[1]);
-    addStreet('main', i === 0 ? 'Grand-Rue' : `Rue de la ${g.name}`, [M, wiggle(M, P, 0.12), P]);
-    addStreet('main', i === 0 ? 'Grand-Rue' : `Rue de la ${g.name}`, [P, wiggle(P, [g.x, g.y], 0.1), [g.x, g.y]]);
+    addStreet('main', i === 0 ? 'Grand-Rue' : `Rue de la ${g.name}`, meander(M, P, 0.14));
+    addStreet('main', i === 0 ? 'Grand-Rue' : `Rue de la ${g.name}`, meander(P, [g.x, g.y], 0.1));
   });
+  if (spec.village) {
+    // Quelques chemins partent de la place ou de la grand-rue vers les fermes, au hasard du terrain.
+    const n = 2 + Math.floor(rand() * 3);
+    for (let k = 0; k < n; k++) {
+      let a = rand() * TAU;
+      for (let tries = 0; tries < 8 && gates.some((g) => Math.abs(angDiff(g.a, a)) < 0.6); tries++) a = rand() * TAU;
+      const from = rand() < 0.5 ? marketEdge(Math.cos(a) * R, Math.sin(a) * R) : (() => { const s0 = streets[Math.floor(rand() * streets.length)]; const p0 = along(s0.pts, polyLen(s0.pts) * (0.3 + rand() * 0.4)); return [p0.x, p0.y]; })();
+      const to = [Math.cos(a) * R * (0.75 + rand() * 0.45), Math.sin(a) * R * (0.75 + rand() * 0.45)];
+      addStreet('lane', `Chemin ${laneNames[ln++ % laneNames.length].replace(/^(du|de la|des|de l’|aux) /, (m) => m)}`, meander(from, to, 0.25));
+    }
+  }
   if (C) {
     const P = ringAt(thC), M = marketEdge(P[0], P[1]);
     const toC = Math.atan2(-C.y, -C.x);
     const G = [C.x + Math.cos(toC) * C.r, C.y + Math.sin(toC) * C.r];
-    addStreet('approach', 'Montée du Château', [M, wiggle(M, P, 0.1), P]);
+    addStreet('approach', 'Montée du Château', meander(M, P, 0.1));
     addStreet('approach', 'Montée du Château', [P, G]);
   }
-  // Ceinture : un tronçon entre deux coupures, nommé comme une rue.
-  for (let i = 0; i < allCuts.length; i++) {
+  // Ceinture : un tronçon entre deux coupures, nommé comme une rue (pas de ceinture dans un village).
+  for (let i = 0; i < (spec.village ? 0 : allCuts.length); i++) {
     const a0 = allCuts[i], a1 = i === allCuts.length - 1 ? allCuts[0] + TAU : allCuts[i + 1];
     if (a1 - a0 < 0.02) continue;
     const pts = [];
@@ -322,13 +356,13 @@ export function generateCity(rawSpec, planId, bindings = {}) {
     addStreet('ring', `Rue ${streetNames[sn++ % streetNames.length]}`, pts);
   }
   // Ruelles : de la ceinture vers le cœur et vers le rempart.
-  for (const a of laneAngles) {
+  for (const a of spec.village ? [] : laneAngles) {
     const P = ringAt(a);
     const name = `Ruelle ${laneNames[ln++ % laneNames.length]}`;
     const inner = [Math.cos(a) * R * 0.27 + mk.x * 0.3, Math.sin(a) * R * 0.27 + mk.y * 0.3];
-    if (!inMarket(inner[0], inner[1], 4)) addStreet('lane', name, [P, wiggle(P, inner, 0.2), inner]);
+    if (!inMarket(inner[0], inner[1], 4)) addStreet('lane', name, meander(P, inner, 0.3));
     const outer = spec.walls ? rondeAt(a) : [Math.cos(a) * R * 0.88, Math.sin(a) * R * 0.88];
-    if (!inCastle(outer[0], outer[1], 4)) addStreet('lane', name, [P, wiggle(P, outer, 0.15), outer]);
+    if (!inCastle(outer[0], outer[1], 4)) addStreet('lane', name, meander(P, outer, 0.25));
   }
   // Chemin de ronde : longe le rempart, de porte en ruelle.
   if (spec.walls) {
@@ -419,19 +453,24 @@ export function generateCity(rawSpec, planId, bindings = {}) {
         const high = dist === 'haute';
         const front = high ? 13 + rand() * 7 : zone === 'faubourg' ? 7 + rand() * 5 : 6.5 + rand() * 4.5;
         const depth = high ? 12 + rand() * 6 : zone === 'faubourg' ? 7 + rand() * 5 : 8.5 + rand() * 6;
-        const gap = high ? 3 + rand() * 3 : zone === 'faubourg' ? 2 + rand() * 6 : 0.4 + rand() * 0.8;
+        const loose = spec.village || zone === 'faubourg';
+        const gap = high ? 3 + rand() * 3 : loose ? 2 + rand() * 7 : 0.4 + rand() * 0.8;
+        // Un jardin, une cour, un terrain vague : la rangée s'interrompt de temps en temps.
+        if (!high && rand() < (loose ? 0.12 : 0.05)) { t += 4 + rand() * 6; continue; }
         const p = along(s.pts, t + front / 2);
-        const off = s.hw + 0.7 + depth / 2;
+        // Chaque maison a été bâtie à son heure : un retrait et un angle un peu différents de sa voisine.
+        const off = s.hw + 0.7 + depth / 2 + (loose ? rand() * 3.5 : rand() * 0.6);
+        const tilt = (rand() - 0.5) * (loose ? 0.42 : high ? 0.06 : 0.1);
         // La porte donne sur la rue : à l'opposé du décalage qui a éloigné le bâtiment de la rue.
         const face = Math.atan2(-Math.cos(p.ang) * side, Math.sin(p.ang) * side);
-        const b = { x: p.x - Math.sin(p.ang) * side * off, y: p.y + Math.cos(p.ang) * side * off, w: front, d: depth, ang: p.ang, district: dist, face };
+        const b = { x: p.x - Math.sin(p.ang) * side * off, y: p.y + Math.cos(p.ang) * side * off, w: front, d: depth, ang: p.ang + tilt, district: dist, face: face + tilt };
         if (accept(b, zone, s.id)) {
           add(b);
           if (zone === 'intra') intraCount++;
           // Seconde rangée (arrière-cour) dans la basse-ville dense.
           if (opts.back && !high && zone === 'intra' && rand() < 0.65 && intraCount < cap) {
             const d2 = 7 + rand() * 5, off2 = off + depth / 2 + 1.2 + d2 / 2;
-            const b2 = { x: p.x - Math.sin(p.ang) * side * off2, y: p.y + Math.cos(p.ang) * side * off2, w: front * (0.8 + rand() * 0.3), d: d2, ang: p.ang, district: districtOf(b.x, b.y), face };
+            const b2 = { x: p.x - Math.sin(p.ang) * side * off2, y: p.y + Math.cos(p.ang) * side * off2, w: front * (0.7 + rand() * 0.4), d: d2, ang: p.ang + tilt + (rand() - 0.5) * 0.12, district: districtOf(b.x, b.y), face };
             if (accept(b2, zone, s.id)) { add(b2); intraCount++; }
           }
           t += front + gap;
@@ -453,7 +492,7 @@ export function generateCity(rawSpec, planId, bindings = {}) {
   }
 
   const order = ['main', 'approach', 'ring', 'lane', 'ronde'];
-  for (const kind of order) for (const s of streets.filter((x) => x.kind === kind)) rowAlong(s, 'intra', { back: kind !== 'ronde' });
+  for (const kind of order) for (const s of streets.filter((x) => x.kind === kind)) rowAlong(s, 'intra', { back: kind !== 'ronde' && !spec.village });
   if (spec.faubourgs) {
     let fb = 0;
     for (const s of streets.filter((x) => x.kind === 'road')) {
@@ -622,7 +661,11 @@ export function generateCity(rawSpec, planId, bindings = {}) {
   const decor = [];
   const paths = {};
   const push = (k, d) => { (paths[k] ??= []).push(d); };
-  for (const f of fields) push('plot', rectPath(corners(f).map(([x, y]) => U(x, y))));
+  // Champs : des parcelles aux bords un peu de travers, comme on les a défrichées.
+  for (const f of fields) {
+    const fr = rng(hashSeed(`champ:${f.x.toFixed(1)}:${f.y.toFixed(1)}`));
+    push('plot', rectPath(corners(f).map(([x, y]) => U(x + (fr() - 0.5) * f.d * 0.25, y + (fr() - 0.5) * f.d * 0.25))));
+  }
   for (const [x, y, rr] of trees) push('tree', circlePath(...U(x, y), rr / scale));
   if (river) decor.push({ kind: 'river', d: linePath(river.pts.map(([x, y]) => U(x, y))), w: r1((river.hw * 2) / scale) });
   push('square', rectPath(corners(market).map(([x, y]) => U(x, y))));
@@ -957,6 +1000,19 @@ export function generateWorld(world, mapRecordId) {
     },
   });
 
+  // Noms choisis par le MJ : ils remplacent les noms tirés au sort (ou ceux des fiches), partout où le lieu apparaît.
+  const names = world.names ?? {};
+  if (Object.keys(names).length) {
+    for (let i = 0; i < features.length; i++) if (names[features[i].id]) features[i] = { ...features[i], title: names[features[i].id] };
+    const bySite = new Map(features.filter((f) => f.opens && names[f.id]).map((f) => [f.opens.id, names[f.id]]));
+    for (let i = 0; i < maps.length; i++) {
+      const m = maps[i];
+      const site = bySite.get(m.scope.id);
+      const slot = m.id.match(/^(.*:b\d+):int(?::(e1|cave))?$/);
+      if (site) maps[i] = { ...m, title: site };
+      else if (slot && names[slot[1]]) maps[i] = { ...m, title: `${names[slot[1]]} · ${slot[2] === 'e1' ? 'étage' : slot[2] === 'cave' ? 'cave' : 'intérieur'}` };
+    }
+  }
   // Lumière du moment : le soir et la nuit, les plans de surface s'assombrissent (sans toucher aux plans gardés en cache).
   const light = world.time === 'nuit' || world.time === 'soir' ? world.time : null;
   const shown = light ? maps.map((m) => (m.surface ? { ...m, surface: { ...m.surface, light } } : m)) : maps;

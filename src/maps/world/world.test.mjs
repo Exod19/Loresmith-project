@@ -252,3 +252,15 @@ test('un hameau sur la route s’explore comme une cité : chapelle, taverne, fe
     places: [{ id: 'moulin', archiveType: 'place', title: 'Le Moulin du Vieux Gaston', shortSummary: `Atelier de meunier, à ${v.name}.`, currentLocation: v.name }] });
   assert.equal(r.bindings.moulin?.cityId, v.id);
 });
+
+test('un nom choisi par le MJ remplace le nom tiré au sort, partout', async () => {
+  const { interiorPlanId } = await import('./generate.js');
+  const city = { ...CITY, at: [0.5, 0.5] };
+  const pid = cityPlanId('rec', CITY.id);
+  const slots = citySlots(city, pid);
+  const tav = slots.find((s) => s.type === 'taverne');
+  const d = generateWorld({ seed: 1, name: 'M', cities: [city], bindings: {}, interiors: [tav.id], names: { [tav.id]: 'Le Sanglier Borgne', [`${pid}:marche`]: 'Place aux Herbes' } }, 'rec');
+  assert.equal(d.features.find((f) => f.id === tav.id).title, 'Le Sanglier Borgne');
+  assert.equal(d.features.find((f) => f.id === `${pid}:marche`).title, 'Place aux Herbes');
+  assert.equal(d.maps.find((m) => m.id === interiorPlanId(tav.id)).title, 'Le Sanglier Borgne · intérieur');
+});

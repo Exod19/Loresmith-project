@@ -596,3 +596,4 @@
 /* Lumière du moment (carte du monde) */
 .am-surface.light-soir > svg { filter: sepia(.25) saturate(.9) brightness(.82) hue-rotate(-8deg); }
 .am-surface.light-nuit > svg { filter: saturate(.55) brightness(.5) hue-rotate(195deg) sepia(.2); }
+.am-surface .dc-stool { fill: #6e5032; stroke: #33241a; stroke-width: .8; }

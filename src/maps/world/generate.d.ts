@@ -40,7 +40,8 @@ export interface Binding {
 export type Period = 'matin' | 'jour' | 'soir' | 'nuit';
 /** Occupant dont le MJ a créé la fiche : il reste à cet endroit (niveau, coordonnées 0–1), à toute heure. */
 export interface Resident { id: string; name: string; role?: string; desc?: string; level: 'rdc' | 'etage' | 'cave'; at: [number, number] }
-export interface WorldSpec { seed: number; name: string; cities: CitySpec[]; bindings: Record<string, Binding>; interiors?: string[]; time?: Period; residents?: Record<string, Resident[]> }
+/** `names` : noms choisis par le MJ, par identifiant de lieu (rues, bâtiments, hameaux, forêts, pièces…). */
+export interface WorldSpec { seed: number; name: string; cities: CitySpec[]; bindings: Record<string, Binding>; interiors?: string[]; time?: Period; residents?: Record<string, Resident[]>; names?: Record<string, string> }
 
 /** Emplacement : position (0–1 et mètres), empreinte (mètres), orientation et façade (où donne la porte). */
 export interface Slot { id: string; type: SlotType; label?: string; district: District; at: [number, number]; x: number; y: number; w: number; d: number; ang: number; face: number }

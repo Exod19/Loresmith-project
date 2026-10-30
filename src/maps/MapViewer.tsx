@@ -749,6 +749,28 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     setSelectedId(`${map.id}:pnj-${id}`);
     setSide('lieu');
   };
+  /**
+   * Renommer n'importe quel lieu de la carte du monde : une cité change de nom partout (sa fiche n'est pas touchée) ;
+   * le reste (rue, bâtiment, hameau, forêt, pièce, PNJ anonyme) garde son nom choisi par-dessus le nom tiré au sort.
+   */
+  const renameFeature = (f: AtlasFeature) => {
+    const world = rec.world;
+    if (!world) return;
+    const next = window.prompt('Nouveau nom ?', f.title)?.trim();
+    if (!next || next === f.title) return;
+    const city = f.id.startsWith(`${wid}:cite-`) ? world.cities.find((c) => f.id === `${wid}:cite-${c.id}`) : undefined;
+    const nextWorld = city
+      ? { ...world, cities: world.cities.map((c) => (c === city ? { ...c, name: next } : c)) }
+      : { ...world, names: { ...(world.names ?? {}), [f.id]: next } };
+    onUpdate({ world: nextWorld, updatedAt: Date.now() });
+  };
+  const resetName = (f: AtlasFeature) => {
+    const world = rec.world;
+    if (!world?.names?.[f.id]) return;
+    const names = { ...world.names };
+    delete names[f.id];
+    onUpdate({ world: { ...world, names }, updatedAt: Date.now() });
+  };
   /** Bâtiment de la cité sous un point du plan (0–1), d'après son empreinte. */
   const buildingAt = (at: [number, number]): string | null => {
     const b = map.surface?.theme === 'cite' ? map.surface.ground.b : null;
@@ -996,6 +1018,12 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
             {dm && side === 'lieu' && rec.kind === 'monde' && feature && /:b\d+$/.test(feature.id) && map.surface?.theme === 'cite' && (
               <div className="maps-actions world-enter">
                 <button className="maps-btn gold" onClick={() => enterBuilding(feature.id)}>Entrer dans {feature.title}</button>
+              </div>
+            )}
+            {dm && side === 'lieu' && rec.kind === 'monde' && feature && (
+              <div className="maps-actions world-enter">
+                <button className="maps-btn" onClick={() => renameFeature(feature)} title="Donner un autre nom à ce lieu, partout sur la carte">✎ Renommer</button>
+                {rec.world?.names?.[feature.id] && <button className="maps-btn" onClick={() => resetName(feature)} title="Revenir au nom d'origine">↺ Nom d’origine</button>}
               </div>
             )}
             {dm && side === 'lieu' && rec.kind === 'monde' && feature && /:pnj-gen-\d+$/.test(feature.id) && onCreateNpc && (

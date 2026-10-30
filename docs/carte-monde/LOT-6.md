@@ -1,4 +1,4 @@
-# Carte du monde : lot 6, villages et hameaux explorables (statut : à valider)
+# Carte du monde : lot 6, villages et hameaux explorables (statut : validé)
 
 ## Ce que fait le lot
 
