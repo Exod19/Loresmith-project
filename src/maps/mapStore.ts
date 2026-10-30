@@ -66,6 +66,8 @@ export interface MapMarker {
   knowledge?: KnowledgeHint[];
   /** Fiche des Archives à laquelle le repère est lié. Un lieu disparu après synchronisation le signale sans être effacé. */
   archiveId?: string;
+  /** Fiche de la bibliothèque de l'univers (carte des lieux découverts). Distinct de `archiveId`, qui vise l'Atlas. */
+  entryId?: string;
 }
 
 /** Où mène un passage : une ancre de l'Atlas, ou un élément interactif de cet univers. */
@@ -196,6 +198,8 @@ export interface BattleBuild {
 }
 
 export interface MapRecord {
+  /** Carte des lieux découverts, tenue à jour par les comptes rendus de séance (cf. placeMap.js). */
+  placeMap?: boolean;
   id: string;
   universeId: string;
   kind: 'atlas' | 'custom';

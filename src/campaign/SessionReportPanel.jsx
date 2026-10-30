@@ -11,6 +11,7 @@ import {
   parseIdeas,
 } from './sessionReport';
 import { matchEntities, planChanges } from './canonLink';
+import { addPlaces, emptyPlaceMap, placeMapId, wantsPlaceMap } from '../maps/placeMap';
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
@@ -18,7 +19,7 @@ const uid = () => Math.random().toString(36).slice(2, 10);
  * Compte rendu de séance : le MJ colle ses notes, l'IA propose les éléments d'univers nouveaux,
  * le MJ coche ce qu'il garde. Rien n'est créé sans validation.
  */
-export default function SessionReportPanel({ universe, campaign, library, ask, aiReady, dispatch, flash }) {
+export default function SessionReportPanel({ universe, campaign, library, maps = {}, ask, aiReady, dispatch, flash }) {
   const sessions = campaign.sessions || [];
   const [sessionId, setSessionId] = useState(sessions[0]?.id || '');
   const [notes, setNotes] = useState('');
@@ -83,6 +84,18 @@ export default function SessionReportPanel({ universe, campaign, library, ask, a
     if (hasImpact) {
       dispatch({ type: 'UPDATE_UNIVERSE', id: universe.id, patch: { memoryLog: [memory(uid()), ...(universe.memoryLog || [])].slice(0, 80) } });
     }
+    // Les lieux touchés par la séance apparaissent sur la carte des lieux découverts de l'univers.
+    let placesAdded = 0;
+    if (wantsPlaceMap(universe)) {
+      const touched = [
+        ...plan.newEntries,
+        ...plan.mergedIds.map((id) => library.find((e) => e.id === id)).filter(Boolean),
+      ].filter((e) => e.archiveType === 'place');
+      const current = maps[placeMapId(universe.id)];
+      const res = addPlaces(current || emptyPlaceMap(universe.id, now), touched, { edges: plan.edges, now });
+      placesAdded = res.added;
+      if (res.added) dispatch(current ? { type: 'UPDATE_MAP', id: current.id, patch: { overlay: res.map.overlay, updatedAt: now } } : { type: 'ADD_MAP', map: res.map });
+    }
     setIdeas(null);
     setDraft(null);
     setNotes('');
@@ -90,6 +103,7 @@ export default function SessionReportPanel({ universe, campaign, library, ask, a
       plan.newEntries.length && `${plan.newEntries.length} fiche(s) créée(s)`,
       plan.mergedIds.length && `${plan.mergedIds.length} fiche(s) enrichie(s)`,
       plan.edges.length && `${plan.edges.length} lien(s) tissé(s)`,
+      placesAdded && `${placesAdded} lieu(x) ajouté(s) à la carte`,
       hasImpact && 'mémoire de l’univers mise à jour',
     ].filter(Boolean);
     flash(parts.length ? `Compte rendu enregistré : ${parts.join(', ')}.` : 'Compte rendu enregistré.');

@@ -7625,6 +7625,7 @@ function CampaignCard({
             universe={universe}
             campaign={camp}
             library={Object.values(state.libraryEntries || {}).filter((e) => e.universeId === universe.id)}
+            maps={state.maps || {}}
             ask={(o) => callAI(ai, o)}
             aiReady={!!ai.apiKey}
             dispatch={dispatch}

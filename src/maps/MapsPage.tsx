@@ -221,7 +221,7 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
               {g.docs.map((m) => (
                 <article key={m.id} className="maps-card">
                   <h3>{m.title}</h3>
-                  <p className="maps-sub">{m.kind === 'atlas' ? 'Atlas' : `${m.points?.length ?? 0} repère(s)`} · modifiée {new Date(m.updatedAt).toLocaleDateString('fr-CA')}</p>
+                  <p className="maps-sub">{m.kind === 'atlas' ? 'Atlas' : `${(m.points?.length ?? 0) + (m.overlay?.markers?.length ?? 0)} repère(s)`} · modifiée {new Date(m.updatedAt).toLocaleDateString('fr-CA')}</p>
                   {m.description && <p>{m.description}</p>}
                   <div className="maps-actions">
                     <button className="maps-btn gold" onClick={() => setOpenId(m.id)}>Ouvrir</button>

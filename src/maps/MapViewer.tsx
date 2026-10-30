@@ -73,6 +73,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [enc, setEnc] = useState<{ ctx: EncCtx; e: Encounter } | null>(null);
   const [placing, setPlacing] = useState<Draft | null>(null);
+  /** Repère en cours de déplacement : le prochain clic sur la carte devient sa nouvelle position. */
+  const [moving, setMoving] = useState<string | null>(null);
   /** Lieu que les joueurs doivent voir au centre de l'écran (demandé depuis la fiche). */
   const [focus, setFocus] = useState<{ kind: 'anchor' | 'point'; id: string; tick: number } | null>(null);
   /** Colonne de droite de la carte de navigation (MJ) : un onglet à la fois. */
@@ -509,6 +511,11 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   };
 
   function addMarker(x: number, y: number) {
+    if (moving) {
+      updateMarker(moving, { x: Math.min(1, Math.max(0, x)), y: Math.min(1, Math.max(0, y)) });
+      setMoving(null);
+      return;
+    }
     if (!placing) return;
     createMarker(placing, x, y, map.id);
   }
@@ -617,7 +624,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               fog={dm ? null : playerPreview.fog}
               journey={overlay.travel && overlay.travel.planId === map.id ? { ...overlay.travel, label: 'Groupe' } : null}
               onAnchor={() => {}}
-              onPlace={dm && placing ? addMarker : undefined}
+              onPlace={dm && (placing || moving) ? addMarker : undefined}
               dataKey={rec.updatedAt}
               focus={focus ? { kind: 'point', id: focus.id } : null}
               focusKey={focus ? String(focus.tick) : undefined}
@@ -694,6 +701,11 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 onMarkPlace={(title, summary) => setPlacing({ kind: 'objet', title, summary })}
               />
             )}
+            {dm && moving && (
+              <p className="maps-hint maps-placing">
+                Clique sur la carte pour déplacer le repère. <button className="maps-link" onClick={() => setMoving(null)}>Annuler</button>
+              </p>
+            )}
             {dm && placing && (
               <p className="maps-hint maps-placing">
                 Clique sur la carte pour placer « {placing.title} ». <button className="maps-link" onClick={() => setPlacing(null)}>Annuler</button>
@@ -704,6 +716,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               <MarkerEditor
                 m={selectedMarker}
                 onChange={(patch) => updateMarker(selectedMarker.id, patch)}
+                onMove={() => { setPlacing(null); setMoving(selectedMarker.id); }}
                 onRemove={() => { if (window.confirm(`Supprimer « ${selectedMarker.title} » ?`)) removeMarker(selectedMarker.id); }}
                 onClose={() => setSelectedId(null)}
               />
@@ -1014,8 +1027,8 @@ function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onT
   );
 }
 
-function MarkerEditor({ m, onChange, onRemove, onClose }: {
-  m: MapMarker; onChange: (patch: Partial<MapMarker>) => void; onRemove: () => void; onClose: () => void;
+function MarkerEditor({ m, onChange, onMove, onRemove, onClose }: {
+  m: MapMarker; onChange: (patch: Partial<MapMarker>) => void; onMove: () => void; onRemove: () => void; onClose: () => void;
 }) {
   return (
     <div className="maps-card">
@@ -1040,6 +1053,7 @@ function MarkerEditor({ m, onChange, onRemove, onClose }: {
           })}
         </Block>
       )}
+      <button className="maps-btn" onClick={onMove}>Déplacer sur la carte</button>
       <button className="maps-btn" onClick={onRemove}>Supprimer le repère</button>
     </div>
   );
