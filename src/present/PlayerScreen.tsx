@@ -320,6 +320,8 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
   const centre = (id: string) => { const t = tokens.find((q) => q.id === id); return t && { x: t.x + t.size / 2, y: t.y + t.size / 2 }; };
   const a1 = board.aim && centre(board.aim.from), a2 = board.aim && centre(board.aim.to);
   const aim = a1 && a2 ? { x1: a1.x, y1: a1.y, x2: a2.x, y2: a2.y, tone: board.aim!.tone } : undefined;
+  /** Portrait d'un combattant dans l'annonce d'attaque (son illustration, sinon son jeton). */
+  const duelPic = (id: string) => { const t = board.tokens.find((q) => q.id === id); const src = t?.info?.image || t?.image; return src ? <img className="present-verdict-pic" src={src} alt="" /> : null; };
   const fromName = board.aim && board.tokens.find((t) => t.id === board.aim!.from)?.name;
   const toName = board.aim && board.tokens.find((t) => t.id === board.aim!.to)?.name;
   const reach = hero?.reach;
@@ -362,7 +364,7 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
             // Dégâts appliqués : ils prennent la place du « Touché ».
             <div key={`${board.aim.at}-dmg-${board.aim.damage}`} className={`present-verdict present-damage v-${board.aim.verdict}`} role="status" aria-live="assertive">
               <span className="present-verdict-dmg">−{board.aim.damage}<small>dégâts{board.aim.verdict === 'crit' ? ' · critique' : ''}</small></span>
-              <p className="present-verdict-who">{fromName} → {toName}{board.aim.weapon ? ` · ${board.aim.weapon}` : ''}</p>
+              <p className="present-verdict-who">{duelPic(board.aim.from)}{fromName} → {duelPic(board.aim.to)}{toName}{board.aim.weapon ? ` · ${board.aim.weapon}` : ''}</p>
               {board.aim.line && <p className={`present-verdict-line narration-told imp-${board.aim.importance ?? 'minor'}`}>{board.aim.line}</p>}
             </div>
           ) : (
@@ -371,7 +373,7 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
                 <b>{VERDICT_LABEL[board.aim.verdict]}</b>
                 {board.aim.roll !== undefined && <span className="present-verdict-roll">{board.aim.roll}</span>}
               </div>
-              <p className="present-verdict-who">{fromName} → {toName}{board.aim.weapon ? ` · ${board.aim.weapon}` : ''}</p>
+              <p className="present-verdict-who">{duelPic(board.aim.from)}{fromName} → {duelPic(board.aim.to)}{toName}{board.aim.weapon ? ` · ${board.aim.weapon}` : ''}</p>
               {board.aim.line && <p className={`present-verdict-line narration-told imp-${board.aim.importance ?? 'minor'}`}>{board.aim.line}</p>}
             </div>
           )

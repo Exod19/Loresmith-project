@@ -17,7 +17,7 @@ import {
   DEFAULT_BATTLE, type Battle, type BattleBuild, type BattleToken, type MapMarker, type MapRecord, type PartyTrack, type PassageLink, type SearchNote,
 } from '../mapStore';
 import { blocksCell, effectiveGrid, generateTerrain, seedOf, TERRAIN, type LocationHint, type TerrainKind } from './terrain';
-import { buildLocalMap, cellIn } from './local';
+import { buildLocalMap, cellIn, trimPassages } from './local';
 import { attackCells, rangedCells, speedCells } from './ranges';
 import { tokenImage } from './vignettes';
 import BuildPanel from './BuildPanel';
@@ -40,7 +40,7 @@ import { hazardsOf, moveField, moverOf, occupancy, planMove, reachDetail, type M
 import { roll } from '../atlas/encounters';
 import { OPENABLE, socleOf, TERRAIN_DEF, TERRAINS, type SurfaceRules, type TerrainId } from './surface';
 import { useSurfaceEditor } from './SurfaceEditor';
-import { AOE_SHAPES, aoeName, aoeView, type AoeShape } from './aoe';
+import { AOE_PRESETS, AOE_SHAPES, aoeName, aoeView, DAMAGE_TYPES, SAVE_LABEL, type AoeEffect, type AoeShape, type BattleAoe, type SaveAbility } from './aoe';
 import type { PathView } from './SurfaceLayers';
 import './battle.css';
 
@@ -140,7 +140,7 @@ export type CombatSlot = {
   selectedId: string | null;
   onSelect: (id: string | null) => void;
   /** 'encounter' : le pupitre de combat, à droite du plateau ; 'attack' : le panneau de l'attaque en cours. */
-  area: 'encounter' | 'card' | 'attack';
+  area: 'encounter' | 'card' | 'attack' | 'aoe';
   /** Onglets propres à la carte (Lieu, Construire), rangés dans le pupitre à côté de ceux du combat. */
   side?: { tabs: { id: string; label: string; badge?: number }[]; active: string | null; onPick: (id: string | null) => void; render: (id: string) => ReactNode };
 };
@@ -200,7 +200,7 @@ export default function BattleMode({
   /** Déplacement libre du MJ : ignore les règles de terrain (déplacement exceptionnel). */
   const [freeMove, setFreeMove] = useState(false);
   /** Zone d'effet : réglages, outil de pose actif, origine choisie et point visé. */
-  const [aoeSetup, setAoeSetup] = useState<{ shape: AoeShape; size: number; label: string }>({ shape: 'sphere', size: 20, label: '' });
+  const [aoeSetup, setAoeSetup] = useState<{ shape: AoeShape; size: number; label: string; effect?: AoeEffect }>({ shape: 'sphere', size: 20, label: '' });
   const [aoeTool, setAoeTool] = useState(false);
   const [aoeOrigin, setAoeOrigin] = useState<[number, number] | null>(null);
   const [aoeAim, setAoeAim] = useState<[number, number] | null>(null);
@@ -340,7 +340,7 @@ export default function BattleMode({
     }
     set({
       terrain: { source, seed, grid: local.base },
-      local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous, surface: plan.surface ? surfaceTheme(plan.surface, local.window) : undefined },
+      local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous, surface: plan.surface ? surfaceTheme(plan.surface, local.window) : undefined, trimmed: !plan.surface },
       tokens,
       encounterOf: groups?.length ? source : b.encounterOf,
       build: undefined,
@@ -349,6 +349,13 @@ export default function BattleMode({
     setHistory([]);
     if (groups?.length && !renderCombat) setTab('combat');
   };
+
+  // Plateaux ouverts avant ce nettoyage : on retire une fois les galeries intérieures (souterrain seulement).
+  useEffect(() => {
+    if (!b.local || b.local.trimmed || b.local.surface || !b.terrain) return;
+    set({ local: { ...b.local, elements: trimPassages(b.terrain.grid, b.local.elements, b.cols, b.rows), trimmed: true } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [b.local?.source]);
 
   useEffect(() => {
     if (!context) return;
@@ -371,8 +378,15 @@ export default function BattleMode({
   };
   /** Pose d'une zone d'effet ; elle reste sur le plateau jusqu'à ce que le MJ la retire. */
   const placeAoe = (o: [number, number], dir: number) => {
-    set({ aoes: [...(b.aoes ?? []), { id: uid(), shape: aoeSetup.shape, size: aoeSetup.size, x: o[0], y: o[1], dir, label: aoeSetup.label.trim() || undefined }] });
+    const a: BattleAoe = { id: uid(), shape: aoeSetup.shape, size: aoeSetup.size, x: o[0], y: o[1], dir, label: aoeSetup.label.trim() || undefined, effect: aoeSetup.effect };
+    // Avec des dégâts : la fenêtre de résolution s'ouvre aussitôt pour les créatures touchées.
+    set({ aoes: [...(b.aoes ?? []), a], ...(a.effect ? { aoeHit: { aoeId: a.id, targets: aoeTargets(a), at: Date.now() } } : {}) });
     setAoeTool(false); setAoeOrigin(null);
+  };
+  /** Créatures dans la zone (une case de leur empreinte suffit), moins le camp épargné. */
+  const aoeTargets = (a: BattleAoe) => {
+    const cells = aoeView(a, rules, b.feetPerCell).cells;
+    return b.tokens.filter((t) => !t.unplaced && touches(cells, t, b.cols) && !(a.effect?.spare && t.kind === a.effect.spare)).map((t) => t.id);
   };
   /** Point du plateau sous le pointeur, en cases (continu). */
   const pointAt = (clientX: number, clientY: number): [number, number] | null => {
@@ -440,6 +454,14 @@ export default function BattleMode({
         setAiming(null);
         return;
       }
+      // Un jeton sélectionné : un clic sur une autre case l'y déplace (le trajet suivait déjà le pointeur).
+      if (c && !t && selected && !selected.unplaced) {
+        e.preventDefault();
+        commitMove(selected, c.x, c.y, freeMove || e.altKey);
+        justDropped.current = true;
+        setTimeout(() => { justDropped.current = false; }, 0);
+        return;
+      }
       if (!c || !t) return;
       e.preventDefault();
       setDrag({ id: t.id, origin: { x: t.x, y: t.y }, start: c, cur: c, moved: false, wasSelected: selectedId === t.id });
@@ -481,24 +503,7 @@ export default function BattleMode({
       const t = b.tokens.find((q) => q.id === drag.id);
       if (t && drag.moved) {
         const x = drag.origin.x + drag.cur.x - drag.start.x, y = drag.origin.y + drag.cur.y - drag.start.y;
-        // Même calcul que l'aperçu. Un trajet impossible est refusé, sauf déplacement libre du MJ (bouton ou Alt).
-        const plan = t.unplaced ? null : planMove(rules, moverIn(bv, t), spot(t), { x, y }, leftOf(b, t));
-        const free = freeMove || ev.altKey;
-        const placeable = plan?.possible ? !overlaps(bv, t.id, t.size, x, y) : fits(bv, t.id, t.size, x, y) || (free && !overlaps(bv, t.id, t.size, x, y));
-        if (plan && !plan.possible && !free) {
-          setLastMove({ name: t.name, notes: [{ tone: 'alert', label: 'Déplacement impossible', why: `${plan.reason ?? 'Aucun passage'} (${plan.dest}). Alt + glisser, ou « Déplacement libre », pour passer outre.` }] });
-        } else if (placeable) {
-          const danger = t.unplaced ? { notes: [], hurt: [] } : dangersOf(rules, t, moverIn(bv, t), plan, { x, y }, free);
-          const notes = [...danger.notes, ...(plan ? terrainNotes(plan) : []), ...moveAlerts(bv, t.id, { x, y })];
-          const exit = exitAt(bv, { x, y, size: t.size });
-          setLastMove(notes.length || exit ? { name: t.name, notes, hurt: danger.hurt, exit: exit && { id: t.id, label: exit.label, passage: exit.id } } : null);
-          // Sur une sortie : sa fiche s'ouvre (praticabilité, test à faire, destination).
-          if (exit) setInfoId(exit.id);
-          const layer = plan?.possible ? (plan.layer === 'pont' ? 'pont' as const : undefined) : rules.cells[y * b.cols + x]?.deck ? 'pont' as const : undefined;
-          const patch = t.unplaced ? { x, y, unplaced: undefined, visible: true, layer } : { x, y, layer };
-          // Le trajet compte dans le déplacement du tour (pas un placement ni un déplacement libre du MJ).
-          set({ tokens: b.tokens.map((q) => (q.id === t.id ? { ...q, ...patch } : q)), ...(plan?.possible && !free ? { moved: withMove(b, t.id, { cost: plan.cost }) } : {}) });
-        }
+        commitMove(t, x, y, freeMove || ev.altKey);
         justDropped.current = true;
         setTimeout(() => { justDropped.current = false; }, 0);
       } else if (drag.wasSelected) {
@@ -511,6 +516,33 @@ export default function BattleMode({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [drag]);
 
+
+  /**
+   * Déplacer un jeton (glisser ou clic) : même calcul que l'aperçu. Un trajet impossible est refusé, sauf déplacement
+   * libre du MJ (bouton ou Alt). Dangers, alertes, sortie et déplacement du tour suivent.
+   */
+  function commitMove(t: BattleToken, x: number, y: number, free: boolean) {
+    const plan = t.unplaced ? null : planMove(rules, moverIn(bv, t), spot(t), { x, y }, leftOf(b, t));
+    const placeable = plan?.possible ? !overlaps(bv, t.id, t.size, x, y) : fits(bv, t.id, t.size, x, y) || (free && !overlaps(bv, t.id, t.size, x, y));
+    if (plan && !plan.possible && !free) {
+      setLastMove({ name: t.name, notes: [{ tone: 'alert', label: 'Déplacement impossible', why: `${plan.reason ?? 'Aucun passage'} (${plan.dest}). Alt + clic ou glisser, ou « Déplacement libre », pour passer outre.` }] });
+      return;
+    }
+    if (!placeable) {
+      setLastMove({ name: t.name, notes: [{ tone: 'alert', label: 'Case occupée', why: 'Une autre créature occupe déjà cette place.' }] });
+      return;
+    }
+    const danger = t.unplaced ? { notes: [], hurt: [] } : dangersOf(rules, t, moverIn(bv, t), plan, { x, y }, free);
+    const notes = [...danger.notes, ...(plan ? terrainNotes(plan) : []), ...moveAlerts(bv, t.id, { x, y })];
+    const exit = exitAt(bv, { x, y, size: t.size });
+    setLastMove(notes.length || exit ? { name: t.name, notes, hurt: danger.hurt, exit: exit && { id: t.id, label: exit.label, passage: exit.id } } : null);
+    // Sur une sortie : sa fiche s'ouvre (praticabilité, test à faire, destination).
+    if (exit) setInfoId(exit.id);
+    const layer = plan?.possible ? (plan.layer === 'pont' ? 'pont' as const : undefined) : rules.cells[y * b.cols + x]?.deck ? 'pont' as const : undefined;
+    const patch = t.unplaced ? { x, y, unplaced: undefined, visible: true, layer } : { x, y, layer };
+    // Le trajet compte dans le déplacement du tour (pas un placement ni un déplacement libre du MJ).
+    set({ tokens: b.tokens.map((q) => (q.id === t.id ? { ...q, ...patch } : q)), ...(plan?.possible && !free ? { moved: withMove(b, t.id, { cost: plan.cost }) } : {}) });
+  }
 
   // Le tracé se termine au relâchement, même hors du plateau.
   useEffect(() => {
@@ -621,7 +653,8 @@ export default function BattleMode({
   const exitList = passages.filter((p) => {
     const link = linkOf(p.id);
     if (p.secret || !link) return false;
-    if (!(rec.overlay?.passageLinks?.[p.id] || link.kind === 'anchor' || onEdge(p.cells))) return false;
+    // Sous terre, seules les sorties au bord du plateau comptent (les galeries intérieures sont sur la navigation).
+    if (b.local && !b.local.surface ? !onEdge(p.cells) : !(rec.overlay?.passageLinks?.[p.id] || link.kind === 'anchor' || onEdge(p.cells))) return false;
     if (seenDest.has(link.id)) return false;
     seenDest.add(link.id);
     return true;
@@ -691,7 +724,8 @@ export default function BattleMode({
   const labels: BoardLabel[] = [
     ...search.flatMap((s) => { const c = cellsOf(s.id)[0]; return c === undefined ? [] : [{ cell: c, text: s.label, tone: 'search' as const, noticed: !!s.seenBy && !s.shown }]; }),
     ...secrets.flatMap((s) => { const c = cellsOf(s.id); return c.length ? [{ cell: anchorOf(c, b.cols), text: s.label, tone: 'secret' as const, noticed: !!s.seenBy && !s.found }] : []; }),
-    ...exits.flatMap((e) => { const c = cellsOf(e.id); return c.length ? [{ cell: anchorOf(c, b.cols), text: e.label, tone: e.toward ? 'dest' as const : 'exit' as const }] : []; }),
+    // Sous terre, chaque sortie est au bord et sa flèche porte déjà son code (E1 · vers…) : pas d'étiquette en double.
+    ...(b.local && !b.local.surface ? [] : exits.flatMap((e) => { const c = cellsOf(e.id); return c.length ? [{ cell: anchorOf(c, b.cols), text: e.label, tone: e.toward ? 'dest' as const : 'exit' as const }] : []; })),
   ];
   const highlight = hoverId ? cellsOf(hoverId) : infoId ? cellsOf(infoId) : undefined;
 
@@ -771,7 +805,9 @@ export default function BattleMode({
 
   const readout = selected && hover && !building ? feetBetween(selected, { ...hover, size: 1 }, b.feetPerCell) : null;
   // Trajet prévu : pendant un glisser (vers la case visée), ou au survol quand un jeton est sélectionné.
-  const moving = dragged && drag ? dragged : !building && selected && hover && !aiming && !selected.unplaced ? selected : null;
+  // Survoler une autre créature, c'est la viser, pas s'y rendre : pas de trajet.
+  const onCreature = !!hover && b.tokens.some((q) => q.id !== selected?.id && !q.unplaced && hover.x >= q.x && hover.x < q.x + q.size && hover.y >= q.y && hover.y < q.y + q.size);
+  const moving = dragged && drag ? dragged : !building && selected && hover && !aiming && !aoeTool && !onCreature && !selected.unplaced ? selected : null;
   const target = dragged && drag ? liveAt(dragged) : hover;
   const movePlan: MovePlan | null = moving && target && (target.x !== moving.x || target.y !== moving.y)
     ? planMove(rules, moverIn(bv, moving), spot(moving), target, leftOf(b, moving))
@@ -987,6 +1023,43 @@ export default function BattleMode({
 
   const combatKey = `${rec.id}:${b.local?.source ?? b.terrain?.source ?? 'plateau'}`;
 
+  /** Alertes du dernier déplacement (ou du glisser en cours). */
+  const alertsNode = (() => {
+              const live = dragged && drag ? moveAlerts(bv, dragged.id, { x: drag.origin.x + drag.cur.x - drag.start.x, y: drag.origin.y + drag.cur.y - drag.start.y }) : null;
+              const shown = live ? { name: dragged!.name, notes: live } : drag ? null : lastMove;
+              const exit = !live && lastMove?.exit && lastMove.exit.passage !== infoId ? lastMove.exit : null;
+              if (!shown || (!shown.notes.length && !exit)) return null;
+              return (
+                <div className={`battle-move-alerts ${live ? 'live' : ''}`} role="status">
+                  {shown.notes.map((n, i) => (
+                    <div key={i} className={`battle-move-alert tone-${n.tone}`}>
+                      <b>{n.label}</b><span>{n.why}</span>
+                    </div>
+                  ))}
+                  {exit && (
+                    <div className="battle-move-alert tone-chance">
+                      <b>🚪 {shown!.name} est sur la sortie {exit.label}</b>
+                      <span><button className="maps-btn gold battle-exit-btn" onClick={() => leaveBy(exit)}>Quitter la carte{linkOf(exit.passage) ? ` → ${linkOf(exit.passage)!.label.split(' · ')[0]}` : ''}</button></span>
+                    </div>
+                  )}
+                  {!live && lastMove?.hurt?.map((h, i) => (
+                    <span key={`h${i}`}><button className="maps-btn gold battle-exit-btn" onClick={() => {
+                      applyHurt(h);
+                      setLastMove((m) => (m ? { ...m, hurt: m.hurt?.filter((_, k) => k !== i) } : m));
+                    }}>Appliquer {h.amount} dégâts à {b.tokens.find((q) => q.id === h.to)?.name ?? '…'}</button></span>
+                  ))}
+                  {!live && lastMove?.force && (
+                    <span><button className="maps-btn gold battle-exit-btn" onClick={() => {
+                      const f = lastMove.force!;
+                      patchToken(f.id, { x: f.x, y: f.y, layer: f.layer });
+                      setLastMove(null);
+                    }}>Accepter quand même (MJ)</button></span>
+                  )}
+                  {!live && <button className="present-info-close" onClick={() => setLastMove(null)} aria-label="Fermer">×</button>}
+                </div>
+              );
+            })();
+
   return (
     <>
     <div className="maps-body battle-body">
@@ -1008,6 +1081,15 @@ export default function BattleMode({
             <details className="battle-menu battle-aoe-menu">
               <summary className={`maps-btn ${aoeTool ? 'gold' : ''}`}>✸ Zone d’effet ▾</summary>
               <div className="battle-menu-pop">
+                <label className="surface-field">Modèle
+                  <select value="" onChange={(e) => {
+                    const pr = AOE_PRESETS.find((x) => x.label === e.target.value);
+                    if (pr) setAoeSetup({ shape: pr.shape, size: pr.size, label: pr.label, effect: { ...pr.effect, save: pr.effect.save && { ...pr.effect.save } } });
+                  }}>
+                    <option value="">Choisir un sort ou un souffle…</option>
+                    {AOE_PRESETS.map((x) => <option key={x.label} value={x.label}>{x.label} · {x.effect.dice} {DAMAGE_TYPES.find((d) => d.id === x.effect.type)?.label.toLowerCase()}</option>)}
+                  </select>
+                </label>
                 <div className="build-seg">
                   {AOE_SHAPES.map((x) => (
                     <button key={x.shape} className={aoeSetup.shape === x.shape ? 'on' : ''} title={x.hint}
@@ -1022,6 +1104,43 @@ export default function BattleMode({
                 <label className="surface-field">Nom (facultatif)
                   <input value={aoeSetup.label} placeholder="Boule de feu" onChange={(e) => setAoeSetup({ ...aoeSetup, label: e.target.value })} />
                 </label>
+                <label className="build-check">
+                  <input type="checkbox" checked={!!aoeSetup.effect} onChange={(e) => setAoeSetup({ ...aoeSetup, effect: e.target.checked ? { dice: '8d6', type: 'feu', save: { ability: 'dex', dc: 15, half: true } } : undefined })} />
+                  Inflige des dégâts
+                </label>
+                {aoeSetup.effect && (() => {
+                  const fx = aoeSetup.effect;
+                  const setFx = (patch: Partial<AoeEffect>) => setAoeSetup({ ...aoeSetup, effect: { ...fx, ...patch } });
+                  return (
+                    <div className="battle-aoe-fx">
+                      <label className="surface-field">Dés <input value={fx.dice} onChange={(e) => setFx({ dice: e.target.value.replace(/\s/g, '') })} placeholder="8d6" /></label>
+                      <label className="surface-field">Nature
+                        <select value={fx.type} onChange={(e) => setFx({ type: e.target.value })}>
+                          {DAMAGE_TYPES.map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
+                        </select>
+                      </label>
+                      <label className="surface-field">Sauvegarde
+                        <select value={fx.save?.ability ?? ''} onChange={(e) => setFx({ save: e.target.value ? { ability: e.target.value as SaveAbility, dc: fx.save?.dc ?? 15, half: fx.save?.half ?? true } : undefined })}>
+                          <option value="">Aucune (touche d’office)</option>
+                          {(Object.keys(SAVE_LABEL) as SaveAbility[]).map((k) => <option key={k} value={k}>{SAVE_LABEL[k]}</option>)}
+                        </select>
+                      </label>
+                      {fx.save && (
+                        <>
+                          <label className="surface-field">DD <input type="number" min={5} max={30} value={fx.save.dc} onChange={(e) => setFx({ save: { ...fx.save!, dc: Number(e.target.value) || 10 } })} /></label>
+                          <label className="build-check"><input type="checkbox" checked={fx.save.half} onChange={(e) => setFx({ save: { ...fx.save!, half: e.target.checked } })} /> Moitié des dégâts si réussie</label>
+                        </>
+                      )}
+                      <label className="surface-field">Qui est touché
+                        <select value={fx.spare ?? ''} onChange={(e) => setFx({ spare: (e.target.value || undefined) as AoeEffect['spare'] })}>
+                          <option value="">Toutes les créatures (alliés compris)</option>
+                          <option value="pc">Épargner les héros</option>
+                          <option value="monster">Épargner les créatures</option>
+                        </select>
+                      </label>
+                    </div>
+                  );
+                })()}
                 <button className="maps-btn gold" onClick={(e) => { setAoeTool(true); setAoeOrigin(null); (e.currentTarget.closest('details') as HTMLDetailsElement | null)?.removeAttribute('open'); }}>Placer sur le plateau</button>
               </div>
             </details>
@@ -1095,11 +1214,13 @@ export default function BattleMode({
               const hit = view ? b.tokens.filter((t) => !t.unplaced && touches(view.cells, t, b.cols)).map((t) => t.name) : [];
               return (
                 <span key={a.id} className="battle-chip battle-aoe-chip">
-                  ✸ <b>{aoeName(a)}</b> · {hit.length ? `touche : ${hit.join(', ')}` : 'personne'}
-                  <button className="maps-link" onClick={() => set({ aoes: (b.aoes ?? []).filter((q) => q.id !== a.id) })} aria-label="Retirer la zone">✕</button>
+                  ✸ <b>{aoeName(a)}</b>{a.effect ? ` · ${a.effect.dice} ${DAMAGE_TYPES.find((d) => d.id === a.effect!.type)?.label.toLowerCase() ?? a.effect.type}` : ''} · {hit.length ? `touche : ${hit.join(', ')}` : 'personne'}
+                  {a.effect && <button className="maps-btn" title="Lancer les dégâts sur les créatures dans la zone (de nouveau, au tour suivant par exemple)" onClick={() => set({ aoeHit: { aoeId: a.id, targets: aoeTargets(a), at: Date.now() } })}>⚡ Résoudre</button>}
+                  <button className="maps-btn" onClick={() => set({ aoes: (b.aoes ?? []).filter((q) => q.id !== a.id), ...(b.aoeHit?.aoeId === a.id ? { aoeHit: undefined } : {}) })}>✕ Retirer</button>
                 </span>
               );
             })}
+            {(b.aoes ?? []).length > 1 && <button className="battle-chip" onClick={() => set({ aoes: [], aoeHit: undefined })}>✕ Tout retirer</button>}
           </div>
         )}
         {(b.walls ?? []).some((w) => OPENABLE.has(w.kind)) && !building && (
@@ -1156,45 +1277,11 @@ export default function BattleMode({
               theme={boardTheme(b.local?.surface)}
               ground={b.ground} surface={editor.view} overlay={building && editor.overlay ? { rules, focus: editor.focus } : undefined}
               path={pathView} surfaceSelected={editor.selectedId} draft={editor.draft}
-              onCell={onBoardCell} onElement={building || aoeTool || aiming ? undefined : (id) => { if (boardElements.some((e) => e.id === id)) setInfoId(id); }} onHover={(x, y) => setHover({ x, y })}
+              onCell={onBoardCell} onElement={building || aoeTool || aiming || (selected && !selected.unplaced) ? undefined : (id) => { if (boardElements.some((e) => e.id === id)) setInfoId(id); }} onHover={(x, y) => setHover({ x, y })}
               preview={stroke && brush.tool === 'terrain' ? stroke.cells : undefined}
               labels={labels} highlight={highlight} fog={fogLayer} exits={dmExits} aim={aimLine} hits={b.hits} aoes={aoeViews}
             />
-            {(() => {
-              const live = dragged && drag ? moveAlerts(bv, dragged.id, { x: drag.origin.x + drag.cur.x - drag.start.x, y: drag.origin.y + drag.cur.y - drag.start.y }) : null;
-              const shown = live ? { name: dragged!.name, notes: live } : drag ? null : lastMove;
-              const exit = !live && lastMove?.exit && lastMove.exit.passage !== infoId ? lastMove.exit : null;
-              if (!shown || (!shown.notes.length && !exit)) return null;
-              return (
-                <div className={`battle-move-alerts ${live ? 'live' : ''}`} role="status">
-                  {shown.notes.map((n, i) => (
-                    <div key={i} className={`battle-move-alert tone-${n.tone}`}>
-                      <b>{n.label}</b><span>{n.why}</span>
-                    </div>
-                  ))}
-                  {exit && (
-                    <div className="battle-move-alert tone-chance">
-                      <b>🚪 {shown!.name} est sur la sortie {exit.label}</b>
-                      <span><button className="maps-btn gold battle-exit-btn" onClick={() => leaveBy(exit)}>Quitter la carte{linkOf(exit.passage) ? ` → ${linkOf(exit.passage)!.label.split(' · ')[0]}` : ''}</button></span>
-                    </div>
-                  )}
-                  {!live && lastMove?.hurt?.map((h, i) => (
-                    <span key={`h${i}`}><button className="maps-btn gold battle-exit-btn" onClick={() => {
-                      applyHurt(h);
-                      setLastMove((m) => (m ? { ...m, hurt: m.hurt?.filter((_, k) => k !== i) } : m));
-                    }}>Appliquer {h.amount} dégâts à {b.tokens.find((q) => q.id === h.to)?.name ?? '…'}</button></span>
-                  ))}
-                  {!live && lastMove?.force && (
-                    <span><button className="maps-btn gold battle-exit-btn" onClick={() => {
-                      const f = lastMove.force!;
-                      patchToken(f.id, { x: f.x, y: f.y, layer: f.layer });
-                      setLastMove(null);
-                    }}>Accepter quand même (MJ)</button></span>
-                  )}
-                  {!live && <button className="present-info-close" onClick={() => setLastMove(null)} aria-label="Fermer">×</button>}
-                </div>
-              );
-            })()}
+            {!renderCombat && alertsNode}
             {(movePlan || readout) && (
               <div className={`battle-readout ${movePlan && !movePlan.possible ? 'is-blocked' : movePlan && !movePlan.ok ? 'is-over' : ''}`}>
                 {movePlan ? (
@@ -1216,14 +1303,21 @@ export default function BattleMode({
               <small>Caché aux joueurs tant qu’il n’est pas posé.</small>
             </div>
           )}
-          {renderCombat && (fiche || (b.aim && !building)) && (
+          {/* Une seule colonne à gauche : l'attaque en cours, la fiche ouverte, puis les alertes du déplacement. */}
+          {renderCombat && (fiche || ((b.aim || b.aoeHit) && !building) || alertsNode) && (
             <div className="battle-overlays">
               {b.aim && !building && (
                 <div className="battle-token-card battle-attack-card">
                   {renderCombat({ battle: b, setBattle: onBattle, place: placeTitle, combatKey, selectedId, onSelect: setSelectedId, area: 'attack' })}
                 </div>
               )}
+              {b.aoeHit && !building && (
+                <div className="battle-token-card battle-attack-card">
+                  {renderCombat({ battle: b, setBattle: onBattle, place: placeTitle, combatKey, selectedId, onSelect: setSelectedId, area: 'aoe' })}
+                </div>
+              )}
               {fiche}
+              {alertsNode}
             </div>
           )}
         </div>
@@ -1231,7 +1325,7 @@ export default function BattleMode({
           {aoeTool ? `✸ Zone d'effet : ${aoeSetup.shape === 'sphere' ? 'clique le centre' : aoeOrigin ? 'clique la direction' : 'clique l’origine (le lanceur, ou un bord de case)'} — Échap pour annuler.`
             : aiming ? `🎯 ${b.tokens.find((t) => t.id === aiming)?.name ?? ''} attaque : clique la cible (Échap pour annuler).`
             : building ? 'Construction : peins le terrain ou glisse des objets sur le plateau.'
-            : selected ? `${selected.name} sélectionné : glisse-le pour le déplacer, clique à côté ou Échap pour le désélectionner.`
+            : selected ? `${selected.name} sélectionné : clique une case (ou glisse-le) pour le déplacer · clique-le de nouveau ou Échap pour le désélectionner.`
               : 'Glisse un jeton pour le déplacer · clique un élément pour sa fiche · survole une ligne du panneau pour la repérer.'}
         </p>
       </div>

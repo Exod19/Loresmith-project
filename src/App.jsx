@@ -86,6 +86,7 @@ import { removeUniverse, canDeleteUniverse } from './universe/deleteUniverse';
 import './combat/wartable.css';
 import { entityFromSrd, generateEntities, normalizeEntity, xpForCr } from './bestiary/entityGen';
 import CreaturePicker from './bestiary/CreaturePicker';
+import AoePanel from './combat/AoePanel';
 import UnderdarkImport from './bestiary/UnderdarkImport';
 import { underdarkIdOf } from './bestiary/underdark.js';
 import { buildCatalog, siblingsOf } from './bestiary/catalog.js';
@@ -5424,7 +5425,9 @@ export default function App() {
                 artOf={(name, id) => combatantArtOf(state, (state.combat?.combatants || []).find((c) => c.id === id), faunaFeed) || creatureArtOf(state, name, faunaFeed)}
                 renderCombat={(slot) => slot.area === 'attack'
                   ? <AttackPanel key={slot.battle.aim?.at} state={state} dispatch={dispatch} battle={slot.battle} setBattle={slot.setBattle} />
-                  : <MapEncounter {...{ state, dispatch, party, npcs, flash }} {...slot} />}
+                  : slot.area === 'aoe'
+                    ? <AoePanel key={slot.battle.aoeHit?.at} state={state} battle={slot.battle} setBattle={slot.setBattle} />
+                    : <MapEncounter {...{ state, dispatch, party, npcs, flash }} {...slot} />}
               />
             ) : view === 'present' ? (
               <StageControl {...{ universe, state, flash }} />
@@ -13583,14 +13586,30 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
   }
 
   // Dégâts venus du plateau (lave, ronces, chute) : appliqués un par un, avec PV temporaires et concentration.
+  // Toute la file d'un coup (une zone d'effet touche plusieurs créatures) : une seule mise à jour, une ligne de journal.
   const pendingDamage = embedded?.battle?.damage;
   useEffect(() => {
-    const next = pendingDamage?.[0];
-    if (!next) return;
-    if (combatants.some((x) => x.id === next.to)) adjustHp(next.to, -Math.abs(next.amount));
-    embedded.setBattle({ ...embedded.battle, damage: pendingDamage.slice(1) });
+    if (!pendingDamage?.length) return;
+    const lines = [];
+    let list = combatants;
+    for (const d of pendingDamage) {
+      const t = list.find((x) => x.id === d.to);
+      if (!t) continue;
+      const max = Number(t.maxHp) || 0;
+      let temp = Number(t.tempHp) || 0;
+      const absorbed = Math.min(temp, Math.abs(d.amount));
+      temp -= absorbed;
+      const hp = Math.max(0, (Number(t.hp) || 0) - (Math.abs(d.amount) - absorbed));
+      let line = `${t.name} : ${Math.abs(d.amount)} dégâts (${d.why}) → ${hp}/${max} PV`;
+      if ((t.conditions || []).includes('Concentration')) line += ` · JS de Concentration DD ${Math.max(10, Math.floor(Math.abs(d.amount) / 2))}`;
+      if (hp === 0 && Number(t.hp) > 0) line += t.isPC ? ' · à 0 PV' : ' · hors de combat';
+      lines.push(line);
+      list = list.map((x) => (x.id === t.id ? { ...x, hp, tempHp: temp, ...(hp > 0 && x.deathSaves ? { deathSaves: { s: 0, f: 0 } } : {}) } : x));
+    }
+    if (lines.length) setC({ combatants: list }, lines.join(' · '), { tone: 'hit' });
+    embedded.setBattle({ ...embedded.battle, damage: undefined });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingDamage?.[0]?.id]);
+  }, [pendingDamage?.map((d) => d.id).join(',')]);
 
   function applyHp(id, sign) {
     const v = parseInt(dmg[id], 10);
@@ -15713,7 +15732,17 @@ function AttackPanel({ state, dispatch, battle, setBattle }) {
   return (
     <div className="attack-panel">
       <div className="attack-head">
-        <b>🎯 {A.name} → {T.name}</b>
+        <div className="attack-duel">
+          {[A, T].map((x, i) => {
+            const pic = combatantPictureOf(state, x) || (i === 0 ? tA.image : tT.image);
+            return (
+              <span key={x.id} className={`attack-duel-who ${x.isPC ? 'is-pc' : 'is-foe'}`}>
+                {pic ? <img src={pic} alt="" /> : <i aria-hidden="true">{x.isPC ? '🛡' : '👹'}</i>}
+                <b>{x.name}</b>
+              </span>
+            );
+          }).reduce((acc, el, i) => (i ? [...acc, <span key="arrow" className="attack-duel-arrow" aria-hidden="true">🎯</span>, el] : [el]), [])}
+        </div>
         <button type="button" className="token-sheet-close" onClick={close} aria-label="Terminer l’attaque">✕</button>
       </div>
       <label className="attack-target">

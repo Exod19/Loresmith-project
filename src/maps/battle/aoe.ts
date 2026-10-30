@@ -14,6 +14,8 @@ export interface BattleAoe {
   /** Origine, en cases (continu) ; direction en degrés (0 = vers la droite). */
   x: number; y: number; dir: number;
   label?: string;
+  /** Dégâts de la zone (facultatif) : résolus à la pose, pour chaque créature touchée. */
+  effect?: AoeEffect;
 }
 
 export const AOE_SHAPES: { shape: AoeShape; label: string; sizes: number[]; hint: string }[] = [
@@ -99,4 +101,78 @@ export const aoeName = (a: BattleAoe) => `${a.label ? `${a.label} · ` : ''}${AO
 /** Vue d'une zone (dessin, chez le MJ comme chez les joueurs). */
 export function aoeView(a: BattleAoe, r: SurfaceRules, feetPerCell = 5, draft = false) {
   return { id: a.id, label: aoeName(a), outline: aoeOutline(a, feetPerCell), cells: aoeCells(a, r, feetPerCell), at: [a.x, a.y] as [number, number], draft };
+}
+
+/* ——— Effet d'une zone : dégâts, sauvegarde, camp épargné ——— */
+
+export type SaveAbility = 'for' | 'dex' | 'con' | 'int' | 'sag' | 'cha';
+export interface AoeEffect {
+  /** Dés de dégâts (« 8d6 »), un seul jet pour toute la zone (règle 5e). */
+  dice: string;
+  /** Nature des dégâts (cf. DAMAGE_TYPES). */
+  type: string;
+  /** Jet de sauvegarde : caractéristique, DD, moitié des dégâts en cas de réussite (sinon aucun). */
+  save?: { ability: SaveAbility; dc: number; half: boolean };
+  /** Camp épargné (sort sculpté, souffle orienté) ; par défaut la zone touche tout le monde, alliés compris. */
+  spare?: 'pc' | 'monster';
+}
+
+/** Les 13 natures de dégâts de D&D 5e, avec le radical cherché dans les résistances des fiches. */
+export const DAMAGE_TYPES: { id: string; label: string; stem: string }[] = [
+  { id: 'acide', label: 'Acide', stem: 'acid' },
+  { id: 'contondant', label: 'Contondant', stem: 'contond' },
+  { id: 'feu', label: 'Feu', stem: 'feu' },
+  { id: 'foudre', label: 'Foudre', stem: 'foudre' },
+  { id: 'force', label: 'Force', stem: 'force' },
+  { id: 'froid', label: 'Froid', stem: 'froid' },
+  { id: 'necrotique', label: 'Nécrotique', stem: 'necrot' },
+  { id: 'perforant', label: 'Perforant', stem: 'perfor' },
+  { id: 'poison', label: 'Poison', stem: 'poison' },
+  { id: 'psychique', label: 'Psychique', stem: 'psych' },
+  { id: 'radiant', label: 'Radiant', stem: 'radiant' },
+  { id: 'tonnerre', label: 'Tonnerre', stem: 'tonnerre' },
+  { id: 'tranchant', label: 'Tranchant', stem: 'tranch' },
+];
+export const SAVE_LABEL: Record<SaveAbility, string> = { for: 'Force', dex: 'Dextérité', con: 'Constitution', int: 'Intelligence', sag: 'Sagesse', cha: 'Charisme' };
+
+/** Sorts et souffles classiques (SRD 5.1) : forme, taille et effet. Le DD reste à régler selon le lanceur. */
+export const AOE_PRESETS: { label: string; shape: AoeShape; size: number; effect: AoeEffect }[] = [
+  { label: 'Boule de feu', shape: 'sphere', size: 20, effect: { dice: '8d6', type: 'feu', save: { ability: 'dex', dc: 15, half: true } } },
+  { label: 'Mains brûlantes', shape: 'cone', size: 15, effect: { dice: '3d6', type: 'feu', save: { ability: 'dex', dc: 13, half: true } } },
+  { label: 'Éclair', shape: 'ligne', size: 100, effect: { dice: '8d6', type: 'foudre', save: { ability: 'dex', dc: 15, half: true } } },
+  { label: 'Cône de froid', shape: 'cone', size: 60, effect: { dice: '8d8', type: 'froid', save: { ability: 'con', dc: 17, half: true } } },
+  { label: 'Vague tonnante', shape: 'cube', size: 15, effect: { dice: '2d8', type: 'tonnerre', save: { ability: 'con', dc: 13, half: true } } },
+  { label: 'Fracassement', shape: 'sphere', size: 10, effect: { dice: '3d8', type: 'tonnerre', save: { ability: 'con', dc: 14, half: true } } },
+  { label: 'Colonne de flamme', shape: 'sphere', size: 10, effect: { dice: '8d6', type: 'feu', save: { ability: 'dex', dc: 16, half: true } } },
+  { label: 'Cercle de mort', shape: 'sphere', size: 60, effect: { dice: '8d6', type: 'necrotique', save: { ability: 'con', dc: 17, half: true } } },
+  { label: 'Souffle de jeune dragon rouge', shape: 'cone', size: 30, effect: { dice: '16d6', type: 'feu', save: { ability: 'dex', dc: 17, half: true } } },
+  { label: 'Souffle de jeune dragon blanc', shape: 'cone', size: 30, effect: { dice: '10d8', type: 'froid', save: { ability: 'con', dc: 15, half: true } } },
+  { label: 'Souffle de jeune dragon noir', shape: 'ligne', size: 30, effect: { dice: '11d8', type: 'acide', save: { ability: 'dex', dc: 14, half: true } } },
+  { label: 'Spores (champignon violet)', shape: 'sphere', size: 10, effect: { dice: '2d6', type: 'poison', save: { ability: 'con', dc: 12, half: true } } },
+];
+
+const fold = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+
+/**
+ * Multiplicateur de dégâts selon la fiche : immunité 0, résistance ½, vulnérabilité ×2. Un sort est magique : une
+ * résistance « aux attaques non magiques » ne s'applique pas.
+ */
+export function damageFactor(type: string, sheet: { resist?: string; immune?: string; vuln?: string }) {
+  const stem = DAMAGE_TYPES.find((d) => d.id === type)?.stem ?? fold(type);
+  const has = (text?: string) => !!text && fold(text).split(/[;\n]/).some((seg) => seg.includes(stem) && !/non magi/.test(seg));
+  return has(sheet.immune) ? 0 : has(sheet.resist) ? 0.5 : has(sheet.vuln) ? 2 : 1;
+}
+
+/** Bonus de sauvegarde : celui écrit sur la fiche (« Dex +5 »), sinon le modificateur de la caractéristique. */
+export function saveBonus(ability: SaveAbility, sheet: { saves?: string; score?: number }) {
+  const keys: Record<SaveAbility, RegExp> = { for: /\b(for|str)\w*\.?\s*([+-]\d+)/, dex: /\bdex\w*\.?\s*([+-]\d+)/, con: /\bcon\w*\.?\s*([+-]\d+)/, int: /\bint\w*\.?\s*([+-]\d+)/, sag: /\b(sag|wis)\w*\.?\s*([+-]\d+)/, cha: /\bcha\w*\.?\s*([+-]\d+)/ };
+  const m = keys[ability].exec(fold(sheet.saves ?? ''));
+  if (m) return { bonus: Number(m[m.length - 1]), proficient: true };
+  return { bonus: Math.floor(((sheet.score ?? 10) - 10) / 2), proficient: false };
+}
+
+/** Dégâts subis par une créature : sauvegarde réussie (moitié ou rien), puis résistance. */
+export function aoeDamage(raw: number, effect: AoeEffect, saved: boolean | null, factor: number) {
+  const base = effect.save && saved ? (effect.save.half ? Math.floor(raw / 2) : 0) : raw;
+  return Math.floor(base * factor);
 }

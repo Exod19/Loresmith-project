@@ -191,7 +191,38 @@ export function buildLocalMap(p: {
     .map((e) => (e.kind === 'passage' ? { ...e, auto: autoLink(atlas, plan, e.id, places) } : e))
     .filter((e) => e.kind !== 'passage' || !e.secret || e.auto)
     .slice(0, MAX_ELEMENTS);
-  return { window: win, base, elements: kept };
+  // Sous terre, les galeries restent sur la carte de navigation ; en surface, les tracés sont des rues : on les garde.
+  return { window: win, base, elements: plan.surface ? kept : trimPassages(base, kept, cols, rows) };
+}
+
+const BLOCKING = new Set(['#', 'I']);
+
+/**
+ * Plateau lisible : les galeries de l'Atlas restent sur la carte de navigation. On ne garde que :
+ * - les sorties au bord du plateau, réduites au tronçon qui relie le bord à la caverne ;
+ * - les passages secrets qui traversent un obstacle (roche, pilier).
+ * Les autres passages (boyaux, tunnels intérieurs) ne sont pas creusés dans le plateau.
+ */
+export function trimPassages(base: string, elements: LocalElement[], cols: number, rows: number): LocalElement[] {
+  // Un lieu-couloir (tout le plateau est de la roche) : son passage est le plateau, on le garde tel quel.
+  if (!base.includes('.')) return elements;
+  const onEdge = (c: number) => { const x = c % cols, y = Math.floor(c / cols); return x === 0 || y === 0 || x === cols - 1 || y === rows - 1; };
+  const blocked = (c: number) => BLOCKING.has(base[c]);
+  return elements.flatMap((e) => {
+    if (e.kind !== 'passage' || !e.cells?.length) return [e];
+    if (e.secret) return e.cells.some(blocked) ? [e] : [];
+    // Depuis chaque bout posé sur le bord : les cases jusqu'à la première case libre de la caverne.
+    const cells = e.cells;
+    const stub = (list: number[]) => {
+      const out: number[] = [];
+      for (const c of list) { out.push(c); if (!blocked(c) && !onEdge(c)) break; }
+      return out;
+    };
+    const keep = new Set<number>();
+    if (onEdge(cells[0])) for (const c of stub(cells)) keep.add(c);
+    if (onEdge(cells[cells.length - 1])) for (const c of stub([...cells].reverse())) keep.add(c);
+    return keep.size ? [{ ...e, cells: cells.filter((c) => keep.has(c)) }] : [];
+  });
 }
 
 /** Destination d'un tracé : une de ses extrémités tombe sur une ancre reliée à une ancre d'un autre plan. */

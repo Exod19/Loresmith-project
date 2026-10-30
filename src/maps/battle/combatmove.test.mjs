@@ -11,7 +11,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const dir = mkdtempSync(join(tmpdir(), 'combatmove-'));
 const out = join(dir, 'bundle.mjs');
 await build({
-  stdin: { contents: "export * from './surface'; export * from './movement'; export * from './placement'; export * from './aoe'; export { coverAgainst } from './tactics';", resolveDir: here, loader: 'ts' },
+  stdin: { contents: "export * from './surface'; export * from './movement'; export * from './placement'; export * from './aoe'; export { trimPassages } from './local'; export { coverAgainst } from './tactics';", resolveDir: here, loader: 'ts' },
   bundle: true, format: 'esm', platform: 'neutral', outfile: out, logLevel: 'silent', define: { 'import.meta.env': '{"BASE_URL":"/"}' },
 });
 const S = await import(pathToFileURL(out).href);
@@ -83,4 +83,33 @@ test('zones d’effet : formes 5e, arrêtées par un mur', () => {
   const line = { id: 'l', shape: 'ligne', size: 40, x: 1, y: 4.5, dir: 0 };
   const hit = S.aoeCells(line, walled);
   assert.ok(hit.includes(4 * W + 5) && !hit.includes(4 * W + 7), 'la ligne s’arrête au mur');
+});
+
+test('plateau souterrain : galeries intérieures retirées, sorties au bord réduites, secrets à travers la roche gardés', () => {
+  // Plateau 6 × 3 : une caverne au centre (colonnes 2 et 3), de la roche autour.
+  const base = '##..##' + '##..##' + '##..##';
+  const cols = 6, rows = 3;
+  const exit = { id: 'e', kind: 'passage', secret: false, title: 'Sortie', category: 'voie', cells: [6, 7, 8, 9] };
+  const inner = { id: 'i', kind: 'passage', secret: false, title: 'Boyau', category: 'voie', cells: [8, 9] };
+  const secretRock = { id: 's', kind: 'passage', secret: true, title: 'Conduit', category: 'voie', cells: [9, 10, 11] };
+  const secretOpen = { id: 'o', kind: 'passage', secret: true, title: 'Faux', category: 'voie', cells: [2, 3] };
+  const out = S.trimPassages(base, [exit, inner, secretRock, secretOpen], cols, rows);
+  assert.deepEqual(out.map((e) => e.id), ['e', 's']);
+  assert.deepEqual(out[0].cells, [6, 7, 8], 'la sortie s’arrête à la première case de la caverne');
+  // Lieu-couloir : tout est roche, le passage est gardé entier.
+  assert.equal(S.trimPassages('#'.repeat(18), [inner], cols, rows).length, 1);
+});
+
+test('dégâts de zone : sauvegarde de la fiche, moitié si réussie, résistances (pas celles « non magiques »)', () => {
+  assert.equal(S.damageFactor('feu', { resist: 'feu' }), 0.5);
+  assert.equal(S.damageFactor('feu', { immune: 'poison; feu' }), 0);
+  assert.equal(S.damageFactor('froid', { vuln: 'froid' }), 2);
+  assert.equal(S.damageFactor('contondant', { resist: 'contondants, perforants et tranchants d’attaques non magiques' }), 1);
+  assert.deepEqual(S.saveBonus('dex', { saves: 'Dex +5, Con +4', score: 10 }), { bonus: 5, proficient: true });
+  assert.deepEqual(S.saveBonus('sag', { saves: '', score: 14 }), { bonus: 2, proficient: false });
+  const fire = { dice: '8d6', type: 'feu', save: { ability: 'dex', dc: 15, half: true } };
+  assert.equal(S.aoeDamage(28, fire, false, 1), 28);
+  assert.equal(S.aoeDamage(28, fire, true, 1), 14);
+  assert.equal(S.aoeDamage(28, fire, true, 0.5), 7);
+  assert.equal(S.aoeDamage(28, { ...fire, save: { ...fire.save, half: false } }, true, 1), 0);
 });
