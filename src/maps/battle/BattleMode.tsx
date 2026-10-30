@@ -190,7 +190,7 @@ export default function BattleMode({
       tokens = [...kept, ...placeEncounter(groups, b.cols, b.rows, free, seed)];
     }
     // Dans un bâtiment : ses PNJ y sont, combat ou pas. Chacun est posé à sa place (comptoir, porte…), visible des joueurs
-    // s'ils l'ont déjà vu ; le MJ les déplace ensuite à sa guise. Un PNJ déjà sur le plateau n'est pas reposé.
+    // sauf s'il est expressément caché ; le MJ les déplace ensuite à sa guise. Un PNJ déjà sur le plateau n'est pas reposé.
     if (plan.surface?.theme === 'interieur') {
       const revealed = new Set(rec.overlay?.revealed ?? []);
       const taken = (x: number, y: number) => tokens.some((t) => x >= t.x && x < t.x + t.size && y >= t.y && y < t.y + t.size);
@@ -209,7 +209,7 @@ export default function BattleMode({
         if (!best || bd > 4) continue;
         const ref = bestiary.find((r) => r.id === f.entryId);
         tokens = [...tokens, {
-          id, name: f.title, kind: 'other', x: best.x, y: best.y, size: 1, visible: revealed.has(f.id),
+          id, name: f.title, kind: 'other', x: best.x, y: best.y, size: 1, visible: !f.hiddenNpc || revealed.has(f.id),
           npcId: ref?.id, hp: ref?.hp, maxHp: ref?.hp, ac: ref?.ac, image: ref?.token,
         }];
       }

@@ -1,4 +1,4 @@
-# Carte du monde : lot 3, étages, caves et PNJ en combat (statut : à valider)
+# Carte du monde : lot 3, étages, caves et PNJ en combat (statut : validé)
 
 ## Ce que fait le lot
 

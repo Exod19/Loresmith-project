@@ -5,3 +5,4 @@ import type { Binding, Slot } from './generate';
 export function generateInterior(p: { slot: Slot; planId: string; siteId: string; parentSiteId: string; bound?: Binding }): {
   map: AtlasMap; features: AtlasFeature[]; geometries: AtlasGeometry[]; anchors: AtlasAnchor[]; space: AtlasSpace; entryId: string;
 };
+export function isHiddenNpc(npc: { role?: string; desc?: string }): boolean;

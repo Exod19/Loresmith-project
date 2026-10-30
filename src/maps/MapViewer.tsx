@@ -34,6 +34,7 @@ import LiveEncounters, { type LiveBestiaryRef } from './LiveEncounters';
 import { buildRoutes, distancesTo, goalNodes, judgeTrail, nodeOf, verdictText, type TrailVerdict } from './route';
 import { interiorPlanId, isAtlasLike, useWorldSync, worldPlanId } from './world';
 import WorldPanel from './world/WorldPanel';
+import { isHiddenNpc } from './world/interior';
 import type { LoreEntry } from './world/lore';
 import './maps.css';
 
@@ -690,7 +691,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     let next = overlay;
     if (partyIn) {
       const bound = Object.values(world.bindings ?? {}).find((b) => b.slotId === slotId && !b.excluded);
-      const seen = [`${ipid}:entree`, `${ipid}:piece-0`, ...(bound?.npcs ?? []).map((n) => `${ipid}:pnj-${n.id}`)];
+      const seen = [`${ipid}:entree`, `${ipid}:piece-0`, ...(bound?.npcs ?? []).filter((n) => !isHiddenNpc(n)).map((n) => `${ipid}:pnj-${n.id}`)];
       next = withPartyAt(next, { id: `${ipid}:entree`, kind: 'feature', title: 'Entrée', planId: ipid });
       next = { ...next, revealed: [...new Set([...next.revealed, slotId, ...seen])] };
     }

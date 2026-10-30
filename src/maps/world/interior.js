@@ -184,6 +184,45 @@ function openingsOf(walls) {
   return out;
 }
 
+/** Où vont les PNJ du lore selon leur rôle, quand le bâtiment a ce niveau : [motif, niveau, place]. */
+const NPC_LEVEL = [
+  [/prisonni|captif|captive|detenu|otage|enchaine|condamne/, 'cave', 'cell'],
+  [/geolier|tourmenteur|bourreau|guichetier/, 'cave', 'guard'],
+  [/fossoyeur|gardien de la crypte|gardienne de la crypte|necromancien|embaumeu/, 'cave', 'main'],
+  [/caviste|sommelier|commis de cave/, 'cave', 'main'],
+  [/voyageu|pensionnaire|locataire|client de passage|dort a l etage|colporteu|pelerin/, 'etage', 'room'],
+  [/epouse|epoux|femme d|mari d|fille d|fils d|enfant|famille|servante|domestique|valet|chambriere|dame de compagnie|chambellan/, 'etage', 'room'],
+];
+/** Un PNJ expressément caché (embusqué, dissimulé…) n'apparaît pas aux joueurs tant que le MJ ne le révèle pas. */
+export const isHiddenNpc = (npc) => /\b(cache|cachee|caches|dissimule|dissimulee|embusque|embusquee|tapi|tapie|invisible|incognito|en secret|clandestin|clandestine)\b/.test(norm(`${npc.role ?? ''} ${npc.desc ?? ''}`));
+/** Prénoms des occupants anonymes, avec leur genre (pour accorder le rôle : geôlier ou geôlière). */
+const NAMES = [['Aldric', 0], ['Bérénice', 1], ['Gaspard', 0], ['Isaure', 1], ['Thibaut', 0], ['Mahaut', 1], ['Enguerrand', 0], ['Ysolde', 1],
+  ['Perrin', 0], ['Clémence', 1], ['Godefroy', 0], ['Aliénor', 1], ['Renaud', 0], ['Ermengarde', 1], ['Baudouin', 0], ['Sibylle', 1],
+  ['Anselme', 0], ['Héloïse', 1], ['Garin', 0], ['Ombeline', 1], ['Hugues', 0], ['Aveline', 1], ['Lothaire', 0], ['Guenièvre', 1]];
+/** Rôles au masculin et au féminin. */
+const ROLE = {
+  garde: ['garde', 'garde'], chambellan: ['chambellan', 'chambellane'], domestique: ['domestique', 'domestique'], commis: ['commis', 'commise'],
+  scribe: ['scribe', 'scribe'], enfant: ['fils du propriétaire', 'fille du propriétaire'], geolier: ['geôlier', 'geôlière'],
+  voyageur: ['voyageur', 'voyageuse'], marchand: ['marchand de passage', 'marchande de passage'], pelerin: ['pèlerin', 'pèlerine'],
+  mercenaire: ['mercenaire', 'mercenaire'], colporteur: ['colporteur', 'colporteuse'], barde: ['barde itinérant', 'barde itinérante'],
+  prisonnier: ['prisonnier', 'prisonnière'], captif: ['captif', 'captive'],
+};
+const TRAVELLERS = [
+  ['voyageur', 'De passage pour la nuit ; repart à l’aube.'],
+  ['marchand', 'Garde sa bourse sous son oreiller.'],
+  ['pelerin', 'En route vers un sanctuaire lointain.'],
+  ['mercenaire', 'Cherche un contrat ; dort l’épée à portée de main.'],
+  ['colporteur', 'Sa balle de marchandises occupe la moitié de la chambre.'],
+  ['barde', 'Joue en bas le soir contre le gîte et le couvert.'],
+];
+const PRISONERS = [
+  ['prisonnier', 'Accusé de vol ; clame son innocence.'],
+  ['prisonnier', 'Une dette impayée a mené ici cette personne.'],
+  ['prisonnier', 'Cuve son vin en attendant le jour.'],
+  ['captif', 'Personne ne sait vraiment pourquoi on l’a enfermé ici.'],
+];
+const shuffle = (rand, arr) => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
 /** Identifiants des niveaux d'un bâtiment : rez-de-chaussée, étage, cave. */
 export const levelPlanId = (rdcPlanId, level) => (level === 'rdc' ? rdcPlanId : `${rdcPlanId}:${level === 'etage' ? 'e1' : 'cave'}`);
 
@@ -339,22 +378,8 @@ export function generateInterior({ slot, planId, siteId, parentSiteId, bound }) 
   rdc.geometries.push({ id: `g-${rdc.pre}porte`, mapId: planId, featureId: `${rdc.pre}porte`, type: 'polyline', coordinates: [entry, exit] });
   rdc.anchors.unshift({ id: `${rdc.pre}sortie`, mapId: planId, at: exit, label: 'Sortie · rue' });
 
-  // PNJ du lieu, chacun à sa place.
-  const used = new Map();
-  for (const npc of bound?.npcs ?? []) {
-    const role = norm(`${npc.role ?? ''} ${npc.desc ?? ''}`);
-    let spot = ROLE_SPOT.find(([re]) => re.test(role))?.[1] ?? 'main';
-    if (!tpl0.spots[spot]) spot = spot === 'anvil' ? 'hearth' : 'main';
-    if (!tpl0.spots[spot]) spot = 'main';
-    const n = used.get(spot) ?? 0; used.set(spot, n + 1);
-    const [u, v] = tpl0.spots[spot];
-    rdc.addPoint({
-      id: `${rdc.pre}pnj-${npc.id}`, title: npc.name, category: 'institution', importance: 'regional', minZoom: 0,
-      subtitle: npc.role || undefined, summary: npc.desc || undefined, entryId: npc.id,
-    }, Nn(Math.min(0.95, Math.max(0.05, u + (n % 2 ? -1 : 1) * Math.ceil(n / 2) * (1.2 / iw))), v));
-  }
-
   const out = [rdc];
+  let upRooms = null, caveRooms = null, up = null, down = null;
   // ——— Étage : un couloir qui passe par l'escalier, et des pièces de part et d'autre ———
   if (ids.etage) {
     const [su, sv] = L.up;
@@ -387,7 +412,8 @@ export function generateInterior({ slot, planId, siteId, parentSiteId, bound }) 
         }
       }
     }
-    const up = drawLevel({ lv: 'etage', rooms, walls, items, door: null, stairs: [['rdc', L.up, 'Escalier · vers le rez-de-chaussée', false, false]], frontV: 0.5 });
+    upRooms = rooms;
+    up = drawLevel({ lv: 'etage', rooms, walls, items, door: null, stairs: [['rdc', L.up, 'Escalier · vers le rez-de-chaussée', false, false]], frontV: 0.5 });
     // À l'étage, la descente est un escalier (pas une trappe) : on retouche le dessin.
     up.map.decor = up.map.decor.map((d) => (d.kind === 'hatch' ? { ...d, kind: 'stair' } : d));
     out.push(up);
@@ -411,8 +437,75 @@ export function generateInterior({ slot, planId, siteId, parentSiteId, bound }) 
       items.push(kind === 'reserve' ? ['crates', 0.04, 0.04, 0.96, 0.16, 'Caisses'] : ['barrels', 0.04, 0.04, 0.96, 0.14, 'Tonneaux']);
       items.push(['crates', 0.02, 0.2, 0.1, 0.9, kind === 'reserve' ? 'Coffres' : 'Provisions']);
     }
-    const down = drawLevel({ lv: 'cave', rooms, walls, items, door: null, stairs: [['rdc', L.down, 'Escalier · vers le rez-de-chaussée', true, false]], frontV: 0.5 });
+    caveRooms = rooms;
+    down = drawLevel({ lv: 'cave', rooms, walls, items, door: null, stairs: [['rdc', L.down, 'Escalier · vers le rez-de-chaussée', true, false]], frontV: 0.5 });
     out.push(down);
+  }
+
+  // ——— Occupants ———
+  // PNJ du lore : chacun à sa place selon son rôle, au niveau qui lui convient (un voyageur dort à l'étage, un prisonnier
+  // croupit au cachot) ; les autres au rez-de-chaussée. Puis, à l'étage et à la cave, des occupants anonymes là où c'est
+  // logique (voyageurs dans les chambres d'une auberge, prisonniers et geôlier aux cachots). Un cellier, une crypte ou
+  // une réserve restent vides.
+  const orng = rng(hashSeed(`occupants:${slot.id}`));
+  const roomPoint = (r, jitter = 0) => Nn((r[1] + r[3]) / 2 + jitter * (r[3] - r[1]) * 0.2, (r[2] + r[4]) / 2);
+  const occupied = new Set();
+  const used = new Map();
+  for (const npc of bound?.npcs ?? []) {
+    const role = norm(`${npc.role ?? ''} ${npc.desc ?? ''}`);
+    const feat = {
+      id: `pnj-${npc.id}`, title: npc.name, category: 'institution', importance: 'regional', minZoom: 0,
+      subtitle: npc.role || undefined, summary: npc.desc || undefined, entryId: npc.id, ...(isHiddenNpc(npc) ? { hiddenNpc: true } : {}),
+    };
+    const where = NPC_LEVEL.find(([re, lv]) => re.test(role) && (lv === 'etage' ? up : down));
+    if (where) {
+      const [, lv, place] = where;
+      const lvl = lv === 'etage' ? up : down, rooms = (lv === 'etage' ? upRooms : caveRooms) ?? [];
+      const pool = place === 'cell' ? rooms.filter((r) => /^Cellule/.test(r[0])) : place === 'guard' ? rooms.filter((r) => /garde/.test(r[0])) : lv === 'etage' ? rooms.filter((r) => r[0] !== 'Palier') : rooms;
+      const room = pool.find((r) => !occupied.has(`${lv}:${r[0]}`)) ?? pool[0] ?? rooms[0];
+      if (room) {
+        occupied.add(`${lv}:${room[0]}`);
+        lvl.addPoint({ ...feat, id: `${lvl.pre}${feat.id}` }, roomPoint(room, occupied.size % 2 ? 0.3 : -0.3));
+        continue;
+      }
+    }
+    let spot = ROLE_SPOT.find(([re]) => re.test(role))?.[1] ?? 'main';
+    if (!tpl0.spots[spot]) spot = spot === 'anvil' ? 'hearth' : 'main';
+    if (!tpl0.spots[spot]) spot = 'main';
+    const n = used.get(spot) ?? 0; used.set(spot, n + 1);
+    const [u, v] = tpl0.spots[spot];
+    rdc.addPoint({ ...feat, id: `${rdc.pre}${feat.id}` }, Nn(Math.min(0.95, Math.max(0.05, u + (n % 2 ? -1 : 1) * Math.ceil(n / 2) * (1.2 / iw))), v));
+  }
+  const names = shuffle(orng, NAMES);
+  let gen = 0;
+  const addOccupant = (lvl, room, roleKey, summary, jitter = 0) => {
+    const [name, fem] = names[gen % names.length];
+    const role = (ROLE[roleKey] ?? [roleKey, roleKey])[fem];
+    lvl.addPoint({ id: `${lvl.pre}pnj-gen-${gen++}`, title: name, subtitle: role, summary, category: 'institution', importance: 'regional', minZoom: 0 }, roomPoint(room, jitter));
+  };
+  if (up && upRooms) {
+    const rooms = upRooms.filter((r) => r[0] !== 'Palier' && !occupied.has(`etage:${r[0]}`));
+    if (L.etage === 'chambres') {
+      for (const r of rooms) if (orng() < 0.45) { const [role, txt] = TRAVELLERS[Math.floor(orng() * TRAVELLERS.length)]; addOccupant(up, r, role, txt, 0.3); }
+    } else if (L.etage === 'appartements') {
+      if (type === 'chateau') {
+        const palier = upRooms.find((r) => r[0] === 'Palier');
+        if (palier) addOccupant(up, palier, 'garde', 'Garde l’accès aux appartements ; ne laisse passer personne sans ordre.');
+        if (rooms[0]) addOccupant(up, rooms[0], 'chambellan', 'Tient l’agenda du seigneur et sait tout ce qui se dit au château.');
+      } else if (rooms.length) addOccupant(up, rooms[Math.floor(orng() * rooms.length)], 'domestique', 'Fait le ménage ; a l’oreille de toute la maisonnée.');
+    } else if (L.etage === 'bureaux') {
+      if (rooms[0]) addOccupant(up, rooms[0], 'commis', 'Recopie les registres à la chandelle.');
+      if (rooms[1] && orng() < 0.5) addOccupant(up, rooms[1], 'scribe', 'Compte et recompte les recettes de la guilde.');
+    } else if (L.etage === 'logis' && rooms.length && orng() < 0.5) {
+      addOccupant(up, rooms[0], 'enfant', 'Habite à l’étage avec la famille.');
+    }
+  }
+  if (down && caveRooms && L.cave === 'cachots') {
+    const guard = caveRooms.find((r) => /garde/.test(r[0]));
+    if (guard && !occupied.has(`cave:${guard[0]}`)) addOccupant(down, guard, 'geolier', 'Garde les clés des cellules à sa ceinture.');
+    for (const r of caveRooms.filter((x) => /^Cellule/.test(x[0]) && !occupied.has(`cave:${x[0]}`))) {
+      if (orng() < 0.4) { const [role, txt] = PRISONERS[Math.floor(orng() * PRISONERS.length)]; addOccupant(down, r, role, txt); }
+    }
   }
 
   const connections = [];

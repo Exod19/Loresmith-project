@@ -180,3 +180,26 @@ test('une auberge a un étage et une cave, reliés par des escaliers au même en
   // Une petite maison n'a qu'un niveau.
   assert.equal(d.maps.filter((m) => m.id.startsWith(interiorPlanId(hut.id))).length, 1);
 });
+
+test('chaque niveau est peuplé selon la logique : voyageurs à l’étage, cellier vide, PNJ cachés signalés', async () => {
+  const { interiorPlanId } = await import('./generate.js');
+  const city = { ...CITY, at: [0.5, 0.5] };
+  const slots = citySlots(city, cityPlanId('rec', CITY.id));
+  const inn = slots.find((s) => s.type === 'auberge');
+  const binding = { entryId: 'gite', cityId: CITY.id, slotId: inn.id, type: 'auberge', title: 'Le Gîte', hint: 'auberge|', npcs: [
+    { id: 'rose', name: 'Rose', role: 'aubergiste' },
+    { id: 'eli', name: 'Éli', role: 'voyageur', desc: 'Dort à l’étage depuis trois nuits.' },
+    { id: 'ombre', name: 'L’Ombre', role: 'espion', desc: 'Embusqué dans la salle commune.' },
+  ] };
+  const d = generateWorld({ seed: 2, name: 'Monde', cities: [city], bindings: { gite: binding }, interiors: [inn.id] }, 'rec');
+  const rdc = interiorPlanId(inn.id);
+  const f = (id) => d.features.find((x) => x.id === id);
+  assert.ok(f(`${rdc}:pnj-rose`), 'l’aubergiste au rez-de-chaussée');
+  assert.ok(f(`${rdc}:e1:pnj-eli`), 'le voyageur à l’étage');
+  assert.equal(f(`${rdc}:pnj-ombre`).hiddenNpc, true, 'l’espion embusqué est caché');
+  assert.ok(!f(`${rdc}:pnj-rose`).hiddenNpc);
+  assert.ok(!d.features.some((x) => x.id.startsWith(`${rdc}:cave:pnj-`)), 'le cellier est vide');
+  const a = JSON.stringify(d.features.filter((x) => x.id.includes(':pnj-gen-')));
+  const b = JSON.stringify(generateWorld({ seed: 2, name: 'Monde', cities: [city], bindings: { gite: binding }, interiors: [inn.id] }, 'rec').features.filter((x) => x.id.includes(':pnj-gen-')));
+  assert.equal(a, b, 'les occupants anonymes sont toujours les mêmes');
+});
