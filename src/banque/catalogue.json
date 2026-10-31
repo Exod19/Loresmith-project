@@ -2878,6 +2878,40 @@
 ]
 },
 {
+"id": "braided-auburn-dwarf-guildmaster",
+"drive": "1RESVEYPH1xAqN8t6RGmD4BA93q4wOK1s",
+"titre": "Braided Auburn Dwarf Guildmaster-2.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#37221b",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maître de guilde nain",
+"peuple": "nain",
+"genre": "m",
+"roles": [
+"guilde",
+"marchand",
+"notable",
+"maitre"
+],
+"paire": "overhead-stout-dwarf-battlemap-token-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
 "id": "braided-girl-with-a-wooden-horse",
 "drive": "1JuE0LPDqW98mOFbb28eNuf64NOXcqmdS",
 "titre": "Braided girl with a wooden horse-4.png",
@@ -2897,6 +2931,39 @@
 "enfant"
 ],
 "paire": "overhead-child-with-wooden-toy-horse-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "calm-freckled-city-guard-portrait",
+"drive": "1YtMaBLw2UHf-h4BBN__HwHuElqMcRJJt",
+"titre": "Calm Freckled City Guard Portrait-1.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#3d2c1e",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Garde de la ville",
+"peuple": "humain",
+"genre": "f",
+"roles": [
+"garde",
+"soldat",
+"sentinelle"
+],
+"paire": "top-down-armored-warrior-with-wooden-shield-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -3010,6 +3077,40 @@
 ]
 },
 {
+"id": "copper-braided-dwarf-explorer-portrait",
+"drive": "1Mg9p8BSYCCtUG1VCk38Kt6HD7fWKt2Qt",
+"titre": "Copper-braided dwarf explorer portrait-2.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#3f2c21",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Exploratrice naine",
+"peuple": "nain",
+"genre": "f",
+"roles": [
+"explorateur",
+"voyageur",
+"aventurier",
+"guide"
+],
+"paire": "top-down-dwarf-explorer-with-staff-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
 "id": "copper-skinned-elf-with-woven-satchel",
 "drive": "1U5-rDAt4XVQC27DDAZLxg3IBJcjM6TsL",
 "titre": "Copper-skinned elf with woven satchel-8.png",
@@ -3106,6 +3207,166 @@
 ]
 },
 {
+"id": "dwarven-girl-with-woven-basket",
+"drive": "1wc_8CoErnMSwSz1gh0Pch7nKF5XvpFia",
+"titre": "Dwarven Girl with Woven Basket-1.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#392b1e",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Fillette naine au panier",
+"peuple": "nain",
+"genre": "f",
+"roles": [
+"enfant"
+],
+"paire": "overhead-dwarf-girl-with-basket-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "dwarven-potter-with-clay-bowl",
+"drive": "1h6jrb1-qMrAwo_AaT5pARq6SysGAwvzq",
+"titre": "Dwarven Potter with Clay Bowl-2.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#43342b",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Potière naine",
+"peuple": "nain",
+"genre": "f",
+"roles": [
+"potier",
+"artisan"
+],
+"paire": "overhead-dwarf-artisan-with-clay-bowl-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "dwarven-cook-with-ladle",
+"drive": "1M0nRYCGXaDdwKF6i45y3iO8GoLEkRP3_",
+"titre": "Dwarven cook with ladle-1.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#453325",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Cuisinier nain",
+"peuple": "nain",
+"genre": "m",
+"roles": [
+"cuisinier",
+"aubergiste",
+"tavernier",
+"serveur"
+],
+"paire": "overhead-dwarf-with-saucepan-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "elder-dwarf-with-book-and-ochre-stole-jeton",
+"drive": "1tArCK4uSS2JcKLjx9qXy-hkUw8BS79s0",
+"titre": "Elder dwarf with book and ochre stole-4.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 1.161,
+"couleur": "#a78566",
+"mips": [
+256,
+512
+],
+"nom": "Prêtre nain",
+"peuple": "nain",
+"genre": "m",
+"roles": [
+"pretre",
+"clerc"
+],
+"paire": "silver-bearded-dwarf-priest",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "elderly-gnome-cobbler-with-leather-shoe",
+"drive": "1Ebri-IDBc85Z5PRAlrjqWgROYhIbjx12",
+"titre": "Elderly Gnome Cobbler with Leather Shoe-3.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#4d392c",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Vieux cordonnier gnome",
+"peuple": "gnome",
+"genre": "m",
+"roles": [
+"cordonnier",
+"artisan"
+],
+"paire": "overhead-gnome-shoemaker-with-unfinished-shoe-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
 "id": "elderly-gnome-scholar-with-open-book",
 "drive": "1kMsvMgEMtQi9O0pqsj5poTD0VeCqJJPc",
 "titre": "Elderly Gnome Scholar with Open Book-8.png",
@@ -3174,6 +3435,40 @@
 ]
 },
 {
+"id": "elven-archivist-with-worn-leather-books",
+"drive": "1fqygXcXwdUpC6Qt1pha6ND468WM21S1u",
+"titre": "Elven Archivist with Worn Leather Books-3.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#2e261c",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Archiviste elfe",
+"peuple": "elfe",
+"genre": "m",
+"roles": [
+"erudit",
+"archiviste",
+"scribe",
+"bibliothecaire"
+],
+"paire": "moss-robed-elf-archivist-with-books-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
 "id": "elven-pickpocket-in-a-charcoal-hood",
 "drive": "1iNzVVHwpP0Rekhob1f6dzFUMkzdyfLKS",
 "titre": "Elven Pickpocket in a Charcoal Hood-17.png",
@@ -3195,6 +3490,301 @@
 "vagabond"
 ],
 "paire": "overhead-sneaking-map-token-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "freckled-dwarf-baker-with-a-fresh-loaf",
+"drive": "1FaQy44SQ5ta5kiO6IYZqAxsUACSrm7Q3",
+"titre": "Freckled Dwarf Baker with a Fresh Loaf-1.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#513827",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Boulangère naine",
+"peuple": "nain",
+"genre": "f",
+"roles": [
+"boulanger",
+"marchand",
+"cuisinier"
+],
+"paire": "overhead-dwarf-baker-with-a-loaf-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "freckled-medieval-boy-with-cloth-ball",
+"drive": "1nTeFVwbvfhwcyVBbHeqCx6sEzNRW9B3M",
+"titre": "Freckled Medieval Boy with Cloth Ball-2.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#3e2f21",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Garçon à la balle",
+"peuple": "humain",
+"genre": "m",
+"roles": [
+"enfant"
+],
+"paire": "overhead-medieval-boy-with-cloth-ball-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "friendly-tiefling-townsman-with-shopping-sack",
+"drive": "1nwu8QHd7gdgRVAYL6RHrdRTqAklyiiOP",
+"titre": "Friendly tiefling townsman with shopping sack-5.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#372b21",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Bourgeois tieffelin",
+"peuple": "tieffelin",
+"genre": "m",
+"roles": [
+"villageois",
+"client",
+"marchand"
+],
+"paire": "overhead-tiefling-merchant-with-market-sack-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "ginger-halfling-farmer-with-carrots",
+"drive": "1BPJ1cop3z7uVcSsE_5Vl1Z-GHPYP6gq2",
+"titre": "Ginger Halfling Farmer with Carrots-1.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#3b2d1f",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Fermier halfelin",
+"peuple": "halfelin",
+"genre": "m",
+"roles": [
+"fermier",
+"paysan",
+"marchand"
+],
+"paire": "overhead-halfling-with-straw-hat-and-carrots-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "ginger-dwarf-cartographer-battle-token-jeton",
+"drive": "1GqxZ40mbm7yPyOM2gyjHy8GiyjGfFTc_",
+"titre": "Ginger dwarf cartographer battle token-5.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.92,
+"couleur": "#604233",
+"mips": [
+256,
+512
+],
+"nom": "Cartographe nain",
+"peuple": "nain",
+"genre": "m",
+"roles": [
+"cartographe",
+"erudit",
+"explorateur"
+],
+"paire": "thoughtful-dwarf-cartographer-with-map",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "gray-haired-officiant-with-wooden-box",
+"drive": "1LQ9vjGviKGuiBF9rQei754VH6ah38aOY",
+"titre": "Gray-Haired Officiant with Wooden Box-3.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#2b221d",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Officiant funéraire",
+"peuple": "humain",
+"genre": "m",
+"roles": [
+"pretre",
+"officiant",
+"fossoyeur",
+"croque-mort"
+],
+"paire": "overhead-funerary-officiant-with-wooden-box-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "half-elf-cloth-merchant-map-token-jeton",
+"drive": "1Z_5n19Vh4eDFw3Hfb0bAcxZgLD65d8fY",
+"titre": "Half-Elf Cloth Merchant Map Token-9.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.524,
+"couleur": "#5b3429",
+"mips": [
+256,
+512
+],
+"nom": "Drapière demi-elfe",
+"peuple": "demi-elfe",
+"genre": "f",
+"roles": [
+"marchand",
+"drapier",
+"boutiquier"
+],
+"paire": "half-elf-cloth-merchant-portrait",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "half-elf-cloth-merchant-portrait",
+"drive": "1SB6doBYP5A7ExjtSqBAMoaU9jNtfS8sI",
+"titre": "Half-Elf Cloth Merchant Portrait-3.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#35241c",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Drapière demi-elfe",
+"peuple": "demi-elfe",
+"genre": "f",
+"roles": [
+"marchand",
+"drapier",
+"boutiquier"
+],
+"paire": "half-elf-cloth-merchant-map-token-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "half-elf-diplomat-with-a-sealed-scroll",
+"drive": "1K4dq0kGa67fU8-94z3uJXVJ9ft0lbjtt",
+"titre": "Half-Elf Diplomat with a Sealed Scroll-3.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#302922",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Diplomate demi-elfe",
+"peuple": "demi-elfe",
+"genre": "f",
+"roles": [
+"diplomate",
+"noble",
+"messager",
+"conseiller"
+],
+"paire": "half-elf-loresmith-with-sealed-scroll-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -3241,6 +3831,139 @@
 ]
 },
 {
+"id": "half-elf-loresmith-with-sealed-scroll-jeton",
+"drive": "11M8ttf9FgSIGWBvYCBhVF8xrsKmWzw2T",
+"titre": "Half-Elf LoreSmith with Sealed Scroll-6.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.672,
+"couleur": "#55483a",
+"mips": [
+256,
+512
+],
+"nom": "Diplomate demi-elfe",
+"peuple": "demi-elfe",
+"genre": "f",
+"roles": [
+"diplomate",
+"noble",
+"messager",
+"conseiller"
+],
+"paire": "half-elf-diplomat-with-a-sealed-scroll",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "half-orc-smuggler-with-cloth-parcel",
+"drive": "1PJci0EmUJOiVLz30m2XhrsT3w3pur5Gy",
+"titre": "Half-Orc Smuggler with Cloth Parcel-1.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#34271e",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Contrebandier demi-orque",
+"peuple": "demi-orque",
+"genre": "m",
+"roles": [
+"contrebandier",
+"voleur",
+"docker",
+"porteur"
+],
+"paire": "overhead-half-orc-battlemap-token-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "half-orc-tailor-with-slate-fabric",
+"drive": "1q4DNzTYaod1w-1zq43S-QiM5xXPlJs2X",
+"titre": "Half-Orc Tailor with Slate Fabric-5.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#3f3027",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Tailleuse demi-orque",
+"peuple": "demi-orque",
+"genre": "f",
+"roles": [
+"tailleur",
+"couturier",
+"artisan"
+],
+"paire": "half-orc-tailor-map-token-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "half-elf-girl-with-book-satchel",
+"drive": "1aAk7AvnwHKQYighzBEMNfDBIIk6ZJ03Y",
+"titre": "Half-elf Girl with Book Satchel-3.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#2b231f",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Jeune fille demi-elfe",
+"peuple": "demi-elfe",
+"genre": "f",
+"roles": [
+"enfant",
+"apprenti",
+"eleve"
+],
+"paire": "overhead-half-elf-with-satchel-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
 "id": "half-orc-dock-porter-with-wooden-crate",
 "drive": "1S-cgXGyeRycRsb_N1V04vMTPL_eOkVOx",
 "titre": "Half-orc dock porter with wooden crate-12.png",
@@ -3263,6 +3986,101 @@
 "marin"
 ],
 "paire": "overhead-traveler-carrying-a-wooden-crate-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "half-orc-tailor-map-token-jeton",
+"drive": "1m3XTbLhFNR7ZDHMTmZKvjYF7yZGJB2pd",
+"titre": "Half-orc tailor map token-8.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.668,
+"couleur": "#614437",
+"mips": [
+256,
+512
+],
+"nom": "Tailleuse demi-orque",
+"peuple": "demi-orque",
+"genre": "f",
+"roles": [
+"tailleur",
+"couturier",
+"artisan"
+],
+"paire": "half-orc-tailor-with-slate-fabric",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "halfling-healer-with-bandage-roll-jeton",
+"drive": "19s5ycKPcS4QVqlVWW5E5Aztf00Jk4AXq",
+"titre": "Halfling healer with bandage roll-5.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 1.148,
+"couleur": "#887058",
+"mips": [
+256,
+512
+],
+"nom": "Guérisseuse halfeline",
+"peuple": "halfelin",
+"genre": "f",
+"roles": [
+"soigneur",
+"guerisseur"
+],
+"paire": "halfling-healer-with-linen-bandage",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "halfling-healer-with-linen-bandage",
+"drive": "1Ez-TIW8S64mm2cs9r9bSN8RXpHE5iUDv",
+"titre": "Halfling healer with linen bandage-1.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#4f3d2f",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Guérisseuse halfeline",
+"peuple": "halfelin",
+"genre": "f",
+"roles": [
+"soigneur",
+"guerisseur"
+],
+"paire": "halfling-healer-with-bandage-roll-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -3433,6 +4251,106 @@
 ]
 },
 {
+"id": "medieval-carpenter-holding-a-hand-plane",
+"drive": "1TBgZv0GkAqLynfyMKy6QDJ3esxN4PmfA",
+"titre": "Medieval Carpenter Holding a Hand Plane-1.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#3e2d1f",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Charpentier",
+"peuple": "humain",
+"genre": "m",
+"roles": [
+"charpentier",
+"menuisier",
+"artisan",
+"ouvrier"
+],
+"paire": "overhead-medieval-carpenter-with-wooden-plane-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "mischievous-halfling-merchant-with-brass-candles",
+"drive": "1RrBrZE0BBL9sO9UQ627BQH0d5RwG4Ost",
+"titre": "Mischievous Halfling Merchant with Brass Candlestick-7.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#433323",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Marchand halfelin",
+"peuple": "halfelin",
+"genre": "m",
+"roles": [
+"marchand",
+"colporteur",
+"boutiquier"
+],
+"paire": "overhead-halfling-with-brass-candlestick-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "moss-robed-elf-archivist-with-books-jeton",
+"drive": "13atgcLaRwQRsbWCNUlo-7FqQRK9u4vki",
+"titre": "Moss-robed elf archivist with books-6.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.929,
+"couleur": "#443728",
+"mips": [
+256,
+512
+],
+"nom": "Archiviste elfe",
+"peuple": "elfe",
+"genre": "m",
+"roles": [
+"erudit",
+"archiviste",
+"scribe",
+"bibliothecaire"
+],
+"paire": "elven-archivist-with-worn-leather-books",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
 "id": "overhead-blacksmith-with-hammer-and-tongs-jeton",
 "drive": "1g4dxNWQ2jR8QLOwapx5p1mA1lm682ag4",
 "titre": "Overhead Blacksmith with Hammer and Tongs-10.png",
@@ -3465,6 +4383,136 @@
 ]
 },
 {
+"id": "overhead-half-elf-with-satchel-jeton",
+"drive": "1ElUy1So0yaYKRNoTooXsV9uSMAbS3Gnf",
+"titre": "Overhead Half-Elf with Satchel-7.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.47,
+"couleur": "#43322b",
+"mips": [
+256,
+512
+],
+"nom": "Jeune fille demi-elfe",
+"peuple": "demi-elfe",
+"genre": "f",
+"roles": [
+"enfant",
+"apprenti",
+"eleve"
+],
+"paire": "half-elf-girl-with-book-satchel",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-halfling-bard-with-lute-jeton",
+"drive": "1KMraYf2KRC0IqI8XldPomctH-Q5G9v8W",
+"titre": "Overhead Halfling Bard with Lute-6.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.976,
+"couleur": "#6e513e",
+"mips": [
+256,
+512
+],
+"nom": "Barde halfelin",
+"peuple": "halfelin",
+"genre": "m",
+"roles": [
+"barde",
+"musicien",
+"menestrel",
+"voyageur"
+],
+"paire": "traveling-halfling-bard-with-lute",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-loresmith-ledger-keeper-jeton",
+"drive": "1X8mLOWHSMz2E3u_1QqLnW6UwPblFkrer",
+"titre": "Overhead LoreSmith ledger keeper-4.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.449,
+"couleur": "#362a24",
+"mips": [
+256,
+512
+],
+"nom": "Intendante",
+"peuple": "humain",
+"genre": "f",
+"roles": [
+"intendant",
+"domestique",
+"scribe"
+],
+"paire": "the-household-stewards-ledger",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-medieval-carpenter-with-wooden-plane-jeton",
+"drive": "1kdw5jhaKxeWydppQrtXDai8J4pVDmbTD",
+"titre": "Overhead Medieval Carpenter With Wooden Plane-4.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.526,
+"couleur": "#69472f",
+"mips": [
+256,
+512
+],
+"nom": "Charpentier",
+"peuple": "humain",
+"genre": "m",
+"roles": [
+"charpentier",
+"menuisier",
+"artisan",
+"ouvrier"
+],
+"paire": "medieval-carpenter-holding-a-hand-plane",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
 "id": "overhead-child-with-wooden-toy-horse-jeton",
 "drive": "1YDtiUJ30pfwTV0M_YMll7ZMHl_VVJuvv",
 "titre": "Overhead child with wooden toy horse-15.png",
@@ -3483,6 +4531,38 @@
 "enfant"
 ],
 "paire": "braided-girl-with-a-wooden-horse",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-courier-with-dispatch-satchel-jeton",
+"drive": "1ZXT_PSwsM7wPX7hq3opBd4KYUSZz6bq8",
+"titre": "Overhead courier with dispatch satchel-5.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.799,
+"couleur": "#513124",
+"mips": [
+256,
+512
+],
+"nom": "Messagère",
+"peuple": "humain",
+"genre": "f",
+"roles": [
+"messager",
+"coursier",
+"voyageur"
+],
+"paire": "rust-cloaked-courier-with-a-dispatch-satchel",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -3787,6 +4867,164 @@
 ]
 },
 {
+"id": "overhead-dwarf-artisan-with-clay-bowl-jeton",
+"drive": "17E_kKY-gXz8XhwAMPyY_MKItC4XGix41",
+"titre": "Overhead dwarf artisan with clay bowl-6.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.608,
+"couleur": "#74503f",
+"mips": [
+256,
+512
+],
+"nom": "Potière naine",
+"peuple": "nain",
+"genre": "f",
+"roles": [
+"potier",
+"artisan"
+],
+"paire": "dwarven-potter-with-clay-bowl",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-dwarf-baker-with-a-loaf-jeton",
+"drive": "1uGq2BsXs8TiN2qORQ_iU36mAuBvnV-5y",
+"titre": "Overhead dwarf baker with a loaf-5.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.66,
+"couleur": "#834f37",
+"mips": [
+256,
+512
+],
+"nom": "Boulangère naine",
+"peuple": "nain",
+"genre": "f",
+"roles": [
+"boulanger",
+"marchand",
+"cuisinier"
+],
+"paire": "freckled-dwarf-baker-with-a-fresh-loaf",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-dwarf-girl-with-basket-jeton",
+"drive": "10KPy2B4jftQitXc8ocdoAMaPWZVdrQl0",
+"titre": "Overhead dwarf girl with basket-6.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.518,
+"couleur": "#58432f",
+"mips": [
+256,
+512
+],
+"nom": "Fillette naine au panier",
+"peuple": "nain",
+"genre": "f",
+"roles": [
+"enfant"
+],
+"paire": "dwarven-girl-with-woven-basket",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-dwarf-holding-folded-laundry-jeton",
+"drive": "1UypU_KSDJ8EXPzn0KlVT_DYkZOr6pZFY",
+"titre": "Overhead dwarf holding folded laundry-7.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.704,
+"couleur": "#7c5a48",
+"mips": [
+256,
+512
+],
+"nom": "Lavandière naine",
+"peuple": "nain",
+"genre": "f",
+"roles": [
+"lavandiere",
+"servante",
+"domestique"
+],
+"paire": "portrait-of-a-dwarf-laundress",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-dwarf-with-saucepan-jeton",
+"drive": "1qjORYm4WM56Ir8JRcr4SWXk9y6VtqxqJ",
+"titre": "Overhead dwarf with saucepan-3.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.747,
+"couleur": "#72513a",
+"mips": [
+256,
+512
+],
+"nom": "Cuisinier nain",
+"peuple": "nain",
+"genre": "m",
+"roles": [
+"cuisinier",
+"aubergiste",
+"tavernier",
+"serveur"
+],
+"paire": "dwarven-cook-with-ladle",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
 "id": "overhead-dwarf-with-staff-and-backpack-jeton",
 "drive": "16cohRxm0G4JXAuihNXIjJh_8UUJMiAQq",
 "titre": "Overhead dwarf with staff and backpack-20.png",
@@ -3807,6 +5045,134 @@
 "fidele"
 ],
 "paire": "weathered-dwarf-pilgrim-portrait",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-elderly-fisherman-token-jeton",
+"drive": "1NJHj3Zzf1O2Sly4TnEUIktF1lo2p4--9",
+"titre": "Overhead elderly fisherman token-8.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.677,
+"couleur": "#54402f",
+"mips": [
+256,
+512
+],
+"nom": "Pêcheur",
+"peuple": "humain",
+"genre": "m",
+"roles": [
+"pecheur",
+"marin"
+],
+"paire": "weathered-fisherman-with-coiled-net",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-elven-caravan-merchant-token-jeton",
+"drive": "12VZCXLoQCJazl3Ha5b_jbP6R1SW1I5zy",
+"titre": "Overhead elven caravan merchant token-8.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.83,
+"couleur": "#634a37",
+"mips": [
+256,
+512
+],
+"nom": "Caravanier elfe",
+"peuple": "elfe",
+"genre": "m",
+"roles": [
+"marchand",
+"caravanier",
+"voyageur"
+],
+"paire": "weathered-elf-caravan-trader",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-fantasy-adventurer-with-burgundy-scarf-jeton",
+"drive": "1hIUm8Y0W4uC7Vv1pt1aXt-uNnIGCtYl5",
+"titre": "Overhead fantasy adventurer with burgundy scarf-4.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.725,
+"couleur": "#493527",
+"mips": [
+256,
+512
+],
+"nom": "Informatrice",
+"peuple": "humain",
+"genre": "f",
+"roles": [
+"espion",
+"informateur",
+"voleur"
+],
+"paire": "weathered-medieval-informant-portrait",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-funerary-officiant-with-wooden-box-jeton",
+"drive": "1q_44n-hqqh_dVLkfeZxGrDx7C4Ljs5Pz",
+"titre": "Overhead funerary officiant with wooden box-6.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 1.142,
+"couleur": "#473a34",
+"mips": [
+256,
+512
+],
+"nom": "Officiant funéraire",
+"peuple": "humain",
+"genre": "m",
+"roles": [
+"pretre",
+"officiant",
+"fossoyeur",
+"croque-mort"
+],
+"paire": "gray-haired-officiant-with-wooden-box",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -3853,6 +5219,37 @@
 ]
 },
 {
+"id": "overhead-gnome-shoemaker-with-unfinished-shoe-jeton",
+"drive": "1MxVN72Ikn6EASzQ-fh71eHQGSZcmJBq_",
+"titre": "Overhead gnome shoemaker with unfinished shoe-7.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.682,
+"couleur": "#7b5644",
+"mips": [
+256,
+512
+],
+"nom": "Vieux cordonnier gnome",
+"peuple": "gnome",
+"genre": "m",
+"roles": [
+"cordonnier",
+"artisan"
+],
+"paire": "elderly-gnome-cobbler-with-leather-shoe",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
 "id": "overhead-gnome-token-with-wooden-tool-jeton",
 "drive": "17SRYuwvZWb3RaPt5Be9zKWr-rU8sEYEX",
 "titre": "Overhead gnome token with wooden tool-13.png",
@@ -3873,6 +5270,72 @@
 "bricoleur"
 ],
 "paire": "young-gnome-apprentice-portrait",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-half-elf-laborer-battle-token-jeton",
+"drive": "1Xzw1Ui1Hnuo9n2LhXmiCjOCarR0j_5hB",
+"titre": "Overhead half-elf laborer battle token-9.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.529,
+"couleur": "#5b463a",
+"mips": [
+256,
+512
+],
+"nom": "Ouvrière demi-elfe",
+"peuple": "demi-elfe",
+"genre": "f",
+"roles": [
+"ouvrier",
+"porteur",
+"docker",
+"villageois"
+],
+"paire": "weathered-half-elf-laborer",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-half-orc-battlemap-token-jeton",
+"drive": "1xVkBShVRubRlagMqgfYGpFuA3xTs-yQy",
+"titre": "Overhead half-orc battlemap token-6.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.926,
+"couleur": "#5b3c2c",
+"mips": [
+256,
+512
+],
+"nom": "Contrebandier demi-orque",
+"peuple": "demi-orque",
+"genre": "m",
+"roles": [
+"contrebandier",
+"voleur",
+"docker",
+"porteur"
+],
+"paire": "half-orc-smuggler-with-cloth-parcel",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -3947,6 +5410,131 @@
 ]
 },
 {
+"id": "overhead-halfling-with-brass-candlestick-jeton",
+"drive": "1M97cgP7JqP_l_xm8fHSScCtEWmraPk3i",
+"titre": "Overhead halfling with brass candlestick-11.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.742,
+"couleur": "#78573c",
+"mips": [
+256,
+512
+],
+"nom": "Marchand halfelin",
+"peuple": "halfelin",
+"genre": "m",
+"roles": [
+"marchand",
+"colporteur",
+"boutiquier"
+],
+"paire": "mischievous-halfling-merchant-with-brass-candles",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-halfling-with-straw-hat-and-carrots-jeton",
+"drive": "1Nq_7qSDSSQoi-t62qztDKZ28n1ssbw5D",
+"titre": "Overhead halfling with straw hat and carrots-6.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.844,
+"couleur": "#6f4f30",
+"mips": [
+256,
+512
+],
+"nom": "Fermier halfelin",
+"peuple": "halfelin",
+"genre": "m",
+"roles": [
+"fermier",
+"paysan",
+"marchand"
+],
+"paire": "ginger-halfling-farmer-with-carrots",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-medieval-boy-with-cloth-ball-jeton",
+"drive": "123ol-oWCy9fC_QnzFhygq_HniMRLpnH5",
+"titre": "Overhead medieval boy with cloth ball-5.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.518,
+"couleur": "#734f33",
+"mips": [
+256,
+512
+],
+"nom": "Garçon à la balle",
+"peuple": "humain",
+"genre": "m",
+"roles": [
+"enfant"
+],
+"paire": "freckled-medieval-boy-with-cloth-ball",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-medieval-fishmonger-token-jeton",
+"drive": "1gz9bxD1CUaRAhGeNbGkolpnCsxrZjZLA",
+"titre": "Overhead medieval fishmonger token-6.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.554,
+"couleur": "#4b3428",
+"mips": [
+256,
+512
+],
+"nom": "Poissonnier",
+"peuple": "humain",
+"genre": "m",
+"roles": [
+"poissonnier",
+"marchand"
+],
+"paire": "weathered-fishmonger-with-a-silver-moustache",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
 "id": "overhead-red-haired-dwarf-tavern-keeper-jeton",
 "drive": "1HlgcAGuJwCrHUL8jSjT7QJTIoWyy45lr",
 "titre": "Overhead red-haired dwarf tavern keeper-1.png",
@@ -3966,6 +5554,40 @@
 "aubergiste",
 "serveur"
 ],
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-silver-haired-archer-token-jeton",
+"drive": "13K_cuWuqhgHVnwP5Dc9LYG68EZnh7hHf",
+"titre": "Overhead silver-haired archer token-6.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 1.224,
+"couleur": "#504136",
+"mips": [
+256,
+512
+],
+"nom": "Sentinelle elfe",
+"peuple": "elfe",
+"genre": "f",
+"roles": [
+"garde",
+"eclaireur",
+"chasseur",
+"archer",
+"sentinelle"
+],
+"paire": "silver-braided-elven-sentinel",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -3998,6 +5620,133 @@
 "vagabond"
 ],
 "paire": "elven-pickpocket-in-a-charcoal-hood",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-stout-dwarf-battlemap-token-jeton",
+"drive": "1bkDdFfwMqC08Lob8P6nKgjRp4cnN9zV4",
+"titre": "Overhead stout dwarf battlemap token-5.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 1.038,
+"couleur": "#5a2b21",
+"mips": [
+256,
+512
+],
+"nom": "Maître de guilde nain",
+"peuple": "nain",
+"genre": "m",
+"roles": [
+"guilde",
+"marchand",
+"notable",
+"maitre"
+],
+"paire": "braided-auburn-dwarf-guildmaster",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-tiefling-boy-map-token-jeton",
+"drive": "1E3RkblKEtPB7FoxqGHR0Xh9ua3QoZdpA",
+"titre": "Overhead tiefling boy map token-8.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.554,
+"couleur": "#5e4236",
+"mips": [
+256,
+512
+],
+"nom": "Garçon tieffelin",
+"peuple": "tieffelin",
+"genre": "m",
+"roles": [
+"enfant"
+],
+"paire": "shy-tiefling-boy-medieval-town",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-tiefling-lorekeeper-with-leather-book-jeton",
+"drive": "1_XP0LCaXn2nz3xiI1nczfiK0JxmNnzqR",
+"titre": "Overhead tiefling lorekeeper with leather book-12.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.557,
+"couleur": "#493d3b",
+"mips": [
+256,
+512
+],
+"nom": "Libraire tieffeline",
+"peuple": "tieffelin",
+"genre": "f",
+"roles": [
+"libraire",
+"marchand",
+"erudit"
+],
+"paire": "silver-horned-tiefling-bookseller",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "overhead-tiefling-merchant-with-market-sack-jeton",
+"drive": "1JWMRh3YKNOUImhOsCoQPwfMLxMYBpXNG",
+"titre": "Overhead tiefling merchant with market sack-10.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.82,
+"couleur": "#58402e",
+"mips": [
+256,
+512
+],
+"nom": "Bourgeois tieffelin",
+"peuple": "tieffelin",
+"genre": "m",
+"roles": [
+"villageois",
+"client",
+"marchand"
+],
+"paire": "friendly-tiefling-townsman-with-shopping-sack",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -4076,6 +5825,105 @@
 ]
 },
 {
+"id": "plum-gowned-loresmith-with-ledger-and-quill-jeton",
+"drive": "1poc8spYHC5_a3S2n4gjQuYZ12h9SniOI",
+"titre": "Plum-gowned LoreSmith with ledger and quill-4.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.858,
+"couleur": "#442927",
+"mips": [
+256,
+512
+],
+"nom": "Commise aux écritures",
+"peuple": "humain",
+"genre": "f",
+"roles": [
+"scribe",
+"commis",
+"comptable"
+],
+"paire": "the-ledger-keeping-clerk",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "portrait-of-a-dwarf-laundress",
+"drive": "1GXRHrpWfb2OkqlFaW6M_p6_rMnxGXhjU",
+"titre": "Portrait of a Dwarf Laundress-2.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#49392f",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Lavandière naine",
+"peuple": "nain",
+"genre": "f",
+"roles": [
+"lavandiere",
+"servante",
+"domestique"
+],
+"paire": "overhead-dwarf-holding-folded-laundry-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "resilient-gnome-ragpicker-portrait",
+"drive": "1q09SnIgg_7GRhy0QhxeKc7T31CRQbcad",
+"titre": "Resilient Gnome Ragpicker Portrait-3.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#413024",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Chiffonnière gnome",
+"peuple": "gnome",
+"genre": "f",
+"roles": [
+"chiffonnier",
+"mendiant",
+"vagabond",
+"couturier"
+],
+"paire": "top-down-gnome-seamstress-token-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
 "id": "running-adventurer-with-backpack-and-tail-jeton",
 "drive": "11XjRTFb7i8-np6ppwUJjeu98f-UApci4",
 "titre": "Running adventurer with backpack and tail-30.png",
@@ -4095,6 +5943,39 @@
 "voyageur",
 "fuyard"
 ],
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "rust-cloaked-courier-with-a-dispatch-satchel",
+"drive": "19KFdnrDLjiJyYJ1ovfIAhrGQmqv5VY89",
+"titre": "Rust-Cloaked Courier with a Dispatch Satchel-1.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#34251c",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Messagère",
+"peuple": "humain",
+"genre": "f",
+"roles": [
+"messager",
+"coursier",
+"voyageur"
+],
+"paire": "overhead-courier-with-dispatch-satchel-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -4139,6 +6020,69 @@
 ]
 },
 {
+"id": "shy-tiefling-boy-medieval-town",
+"drive": "1w2v-8tDrUNv9aNcBEzqKsxEcjJJW08zy",
+"titre": "Shy Tiefling Boy, Medieval Town-4.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#42322a",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Garçon tieffelin",
+"peuple": "tieffelin",
+"genre": "m",
+"roles": [
+"enfant"
+],
+"paire": "overhead-tiefling-boy-map-token-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "silver-bearded-dwarf-priest",
+"drive": "1nUnFxt6VgJZEbx5L8RiAxDKbl4gCEgll",
+"titre": "Silver-Bearded Dwarf Priest-2.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#675340",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Prêtre nain",
+"peuple": "nain",
+"genre": "m",
+"roles": [
+"pretre",
+"clerc"
+],
+"paire": "elder-dwarf-with-book-and-ochre-stole-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
 "id": "silver-crowned-elven-priestess",
 "drive": "1YSCcW97JqIUOD4ItnDCpXZtZQ0JOH7Ep",
 "titre": "Silver-Crowned Elven Priestess-4.png",
@@ -4161,6 +6105,204 @@
 "oracle"
 ],
 "paire": "overhead-dark-fantasy-game-token-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "silver-curled-noblewoman-in-midnight-velvet-jeton",
+"drive": "1gSlCo_SotdpKOTIJEXmmOaOIn1d-FyE8",
+"titre": "Silver-Curled Noblewoman in Midnight Velvet-4.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.705,
+"couleur": "#392e2e",
+"mips": [
+256,
+512
+],
+"nom": "Noble dame",
+"peuple": "humain",
+"genre": "f",
+"roles": [
+"noble",
+"dame",
+"seigneur"
+],
+"paire": "silver-haired-noblewoman-in-midnight-velvet",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "silver-horned-tiefling-bookseller",
+"drive": "1TmZE86iqr-NAk733a8aZ2gKdytaBxRmX",
+"titre": "Silver-Horned Tiefling Bookseller-8.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#3b312d",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Libraire tieffeline",
+"peuple": "tieffelin",
+"genre": "f",
+"roles": [
+"libraire",
+"marchand",
+"erudit"
+],
+"paire": "overhead-tiefling-lorekeeper-with-leather-book-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "silver-braided-elven-sentinel",
+"drive": "1hVewPlDeJpmo3YbofYPajnYQmvo71Oba",
+"titre": "Silver-braided elven sentinel-2.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#2e241c",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Sentinelle elfe",
+"peuple": "elfe",
+"genre": "f",
+"roles": [
+"garde",
+"eclaireur",
+"chasseur",
+"archer",
+"sentinelle"
+],
+"paire": "overhead-silver-haired-archer-token-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "silver-braided-gnome-herbalist-token-jeton",
+"drive": "19QRmnGoAHZklJu9aZ-JcKADCav6UeGZ3",
+"titre": "Silver-braided gnome herbalist token-10.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.559,
+"couleur": "#6a4e3b",
+"mips": [
+256,
+512
+],
+"nom": "Herboriste gnome",
+"peuple": "gnome",
+"genre": "f",
+"roles": [
+"herboriste",
+"soigneur",
+"guerisseur"
+],
+"paire": "silver-braided-gnome-herbalist",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "silver-braided-gnome-herbalist",
+"drive": "1jA3w5SypRkrpc1dVVEULct8sXjhqkMzC",
+"titre": "Silver-braided gnome herbalist-4.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#3c2f26",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Herboriste gnome",
+"peuple": "gnome",
+"genre": "f",
+"roles": [
+"herboriste",
+"soigneur",
+"guerisseur"
+],
+"paire": "silver-braided-gnome-herbalist-token-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "silver-haired-noblewoman-in-midnight-velvet",
+"drive": "1gT5-fdFefqKycQkHtwbCkX6BrrXeQ--T",
+"titre": "Silver-haired noblewoman in midnight velvet-1.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#28211d",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Noble dame",
+"peuple": "humain",
+"genre": "f",
+"roles": [
+"noble",
+"dame",
+"seigneur"
+],
+"paire": "silver-curled-noblewoman-in-midnight-velvet-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -4237,6 +6379,202 @@
 ]
 },
 {
+"id": "stern-half-orc-watchman-portrait",
+"drive": "1gY8OuIMfDhxmOjdU_a6pMXCGY9qzO4ID",
+"titre": "Stern Half-Orc Watchman Portrait-3.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#32251d",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Garde demi-orque",
+"peuple": "demi-orque",
+"genre": "m",
+"roles": [
+"garde",
+"soldat",
+"sentinelle"
+],
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "the-household-stewards-ledger",
+"drive": "1DVkVes7IyGElV5nno6j1bvge3WT8TyO5",
+"titre": "The Household Steward’s Ledger-2.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#30261e",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Intendante",
+"peuple": "humain",
+"genre": "f",
+"roles": [
+"intendant",
+"domestique",
+"scribe"
+],
+"paire": "overhead-loresmith-ledger-keeper-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "the-ledger-keeping-clerk",
+"drive": "1ss4Gf_gKIrtRsH0GsWgGg0gk1zi2BdzC",
+"titre": "The Ledger-Keeping Clerk-1.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#332520",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Commise aux écritures",
+"peuple": "humain",
+"genre": "f",
+"roles": [
+"scribe",
+"commis",
+"comptable"
+],
+"paire": "plum-gowned-loresmith-with-ledger-and-quill-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "thoughtful-dwarf-cartographer-with-map",
+"drive": "1IPvYVwcbyHZ_cSQS3k54p_BNqHJSAmvn",
+"titre": "Thoughtful Dwarf Cartographer with Map-2.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#3c2e26",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Cartographe nain",
+"peuple": "nain",
+"genre": "m",
+"roles": [
+"cartographe",
+"erudit",
+"explorateur"
+],
+"paire": "ginger-dwarf-cartographer-battle-token-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "top-down-dwarf-explorer-with-staff-jeton",
+"drive": "1dRrGhbqryVXrX5mYrRcgmh_eds5x1WBT",
+"titre": "Top-Down Dwarf Explorer With Staff-7.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.826,
+"couleur": "#66422a",
+"mips": [
+256,
+512
+],
+"nom": "Exploratrice naine",
+"peuple": "nain",
+"genre": "f",
+"roles": [
+"explorateur",
+"voyageur",
+"aventurier",
+"guide"
+],
+"paire": "copper-braided-dwarf-explorer-portrait",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "top-down-armored-warrior-with-wooden-shield-jeton",
+"drive": "1D3-nye7Byu20_SD1_QSkDDcB8Nbi53ql",
+"titre": "Top-down armored warrior with wooden shield-7.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 1.373,
+"couleur": "#664b33",
+"mips": [
+256,
+512
+],
+"nom": "Garde de la ville",
+"peuple": "humain",
+"genre": "f",
+"roles": [
+"garde",
+"soldat",
+"sentinelle"
+],
+"paire": "calm-freckled-city-guard-portrait",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
 "id": "top-down-dark-fantasy-apple-basket-token-jeton",
 "drive": "1gtY1RVjiOU-J24Dw50ui6Q4XNdIDMXu4",
 "titre": "Top-down dark fantasy apple basket token-4.png",
@@ -4300,6 +6638,39 @@
 ]
 },
 {
+"id": "top-down-gnome-seamstress-token-jeton",
+"drive": "1YjQwg8yOPoCKdPZFNvfxtZzEmEkxGptm",
+"titre": "Top-down gnome seamstress token-5.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 0.848,
+"couleur": "#77553e",
+"mips": [
+256,
+512
+],
+"nom": "Chiffonnière gnome",
+"peuple": "gnome",
+"genre": "f",
+"roles": [
+"chiffonnier",
+"mendiant",
+"vagabond",
+"couturier"
+],
+"paire": "resilient-gnome-ragpicker-portrait",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
 "id": "top-down-shieldbearer-with-short-spear-jeton",
 "drive": "182bJGxGzl8atEj5ZOl2V8E_oq664bOV0",
 "titre": "Top-down shieldbearer with short spear-7.png",
@@ -4320,6 +6691,40 @@
 "sentinelle"
 ],
 "paire": "weathered-dwarf-town-guard",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "traveling-halfling-bard-with-lute",
+"drive": "1hcxG8meR-b_CzzTT4N3UkC1y4XWkdV5x",
+"titre": "Traveling halfling bard with lute-3.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#443327",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Barde halfelin",
+"peuple": "halfelin",
+"genre": "m",
+"roles": [
+"barde",
+"musicien",
+"menestrel",
+"voyageur"
+],
+"paire": "overhead-halfling-bard-with-lute-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -4497,6 +6902,39 @@
 ]
 },
 {
+"id": "weathered-elf-caravan-trader",
+"drive": "1k0nn7VY697iVt3as2_su1c8VAXQ9MdAO",
+"titre": "Weathered Elf Caravan Trader-4.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#3c2f25",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Caravanier elfe",
+"peuple": "elfe",
+"genre": "m",
+"roles": [
+"marchand",
+"caravanier",
+"voyageur"
+],
+"paire": "overhead-elven-caravan-merchant-token-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
 "id": "weathered-farmer-with-a-sickle",
 "drive": "1bXaquDylqWmiDQF6EZVNcT01VoPU_4SE",
 "titre": "Weathered Farmer with a Sickle-1.png",
@@ -4530,6 +6968,137 @@
 ]
 },
 {
+"id": "weathered-fisherman-with-coiled-net",
+"drive": "1y1SrvueqsAkqIyk4VStSj1BHkVxKse52",
+"titre": "Weathered Fisherman with Coiled Net-3.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#342b21",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Pêcheur",
+"peuple": "humain",
+"genre": "m",
+"roles": [
+"pecheur",
+"marin"
+],
+"paire": "overhead-elderly-fisherman-token-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "weathered-fishmonger-with-a-silver-moustache",
+"drive": "1AM4WI2H6RjK0dmTBR1vra5dTMjosomSC",
+"titre": "Weathered Fishmonger with a Silver Moustache-2.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#2f241c",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Poissonnier",
+"peuple": "humain",
+"genre": "m",
+"roles": [
+"poissonnier",
+"marchand"
+],
+"paire": "overhead-medieval-fishmonger-token-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "weathered-half-elf-laborer",
+"drive": "1benyEHsTt7WKm2ikcVraahvWaEKhbiD7",
+"titre": "Weathered Half-Elf Laborer-4.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#352b24",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Ouvrière demi-elfe",
+"peuple": "demi-elfe",
+"genre": "f",
+"roles": [
+"ouvrier",
+"porteur",
+"docker",
+"villageois"
+],
+"paire": "overhead-half-elf-laborer-battle-token-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "weathered-medieval-informant-portrait",
+"drive": "1yYxwMbs6FqV-DcXGuYCdDxqiWUcgLgH4",
+"titre": "Weathered Medieval Informant Portrait-2.png",
+"type": "personnage",
+"vue": "portrait",
+"ratio": 1.0,
+"couleur": "#2a2119",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Informatrice",
+"peuple": "humain",
+"genre": "f",
+"roles": [
+"espion",
+"informateur",
+"voleur"
+],
+"paire": "overhead-fantasy-adventurer-with-burgundy-scarf-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
 "id": "young-gnome-apprentice-portrait",
 "drive": "1LWzCFFWjWM6saciEOopvp6AN-fhj6GaN",
 "titre": "Young Gnome Apprentice Portrait-5.png",
@@ -4551,6 +7120,37 @@
 "bricoleur"
 ],
 "paire": "overhead-gnome-token-with-wooden-tool-jeton",
+"milieux": [],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+],
+"taille": [
+0.9,
+0.9
+]
+},
+{
+"id": "zenith-view-of-a-leather-clad-token-jeton",
+"drive": "13okBAGa_MRDQ27wqsMWlDLopZ4nTQNiB",
+"titre": "Zenith View of a Leather-Clad Token-8.png",
+"type": "personnage",
+"vue": "jeton",
+"ratio": 1.866,
+"couleur": "#4e3428",
+"mips": [
+256,
+512
+],
+"nom": "Aventurier en cuir",
+"peuple": "humain",
+"genre": "m",
+"roles": [
+"aventurier",
+"voleur",
+"voyageur"
+],
 "milieux": [],
 "climats": [],
 "saisons": [],
