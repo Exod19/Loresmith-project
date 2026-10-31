@@ -707,3 +707,6 @@
 .am-ghost { fill-opacity: .18; stroke-width: 1.6; }
 .am-ghost.above { fill: #6a4f9a; stroke: #b39be0; stroke-dasharray: 6 5; }
 .am-ghost.below { fill: #1f5a5e; stroke: #6fc4c2; }
+
+/* Terrain naturel des cités : les rues font partie du terrain ; leur tracé reste là, invisible, pour la sélection. */
+.am-roads.is-terrain .am-road path { stroke: transparent !important; }

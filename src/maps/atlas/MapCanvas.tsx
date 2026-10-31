@@ -5,6 +5,7 @@
  * Coordonnées normalisées 0–1 et viewBox fixe : un redimensionnement ne déplace jamais les points.
  */
 import { useReliefDetail, useReliefImage } from '../world/reliefImage';
+import NaturalTerrain, { naturalTerrainOn } from './NaturalTerrain';
 import BankLayer, { BANK_COVERS, bankActive, GroundPatterns, useGroundTextures } from '../../banque/BankLayer';
 import type { Relief } from '../world/terrain';
 import { CityEmblem, paintedEmblem, peopleOf } from './emblems';
@@ -541,6 +542,8 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   const decorOver = map.decor ? (surf ? map.decor.filter((x) => !UNDER_ROADS.has(x.kind)) : map.decor) : [];
   // Banque Loresmith (cités et intérieurs) : sols en texture, arbres, toits et mobilier à leur taille réelle.
   const bankOn = !!surf && surf.theme !== 'monde';
+  // Plans de cité : terrain naturel (herbe, terre, chemins fondus) à la place du fond uni et du tracé des rues.
+  const naturalOn = naturalTerrainOn(map);
   const pxPerUnit = t.k / px;
   const bankView = { x: -t.tx / t.k, y: -t.ty / t.k, w: W / t.k, h: H / t.k };
   const groundTex = useGroundTextures(map, bankOn ? pxPerUnit : 0);
@@ -575,9 +578,10 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
             <>
               {surf.relief && reliefUrl && <image href={reliefUrl} x={0} y={0} width={W} height={H} preserveAspectRatio="none" className="am-relief" />}
               {reliefDetail && <image href={reliefDetail.url} x={reliefDetail.x} y={reliefDetail.y} width={reliefDetail.w} height={reliefDetail.h} preserveAspectRatio="none" className="am-relief" />}
+              {naturalOn && <NaturalTerrain map={map} pxPerUnit={pxPerUnit} view={bankView} />}
               {decorUnder.length > 0 && <g className="am-decor">{decorUnder.map(decorPath)}</g>}
               {bankOn && <BankLayer map={map} layer="arbres" pxPerUnit={pxPerUnit} view={bankView} />}
-              <g className="am-roads">
+              <g className={`am-roads${naturalOn ? ' is-terrain' : ''}`}>
                 {surf.theme !== 'interieur' && shown.map((p) => {
                   const w = roadW(p.tr);
                   // À l'échelle du monde, une route serait plus fine qu'un pixel : trait d'épaisseur fixe à l'écran.
