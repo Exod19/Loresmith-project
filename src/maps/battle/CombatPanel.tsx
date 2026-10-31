@@ -2,6 +2,7 @@
  * Combat, dans le panneau de la carte de combat : initiative, tour courant, PV, états, attaques à lancer,
  * journal des jets, et conseils tactiques (calculés sur le plateau, ou demandés à l'IA).
  */
+import { revealIn } from '../../shell/reveal';
 import { useEffect, useRef, useState } from 'react';
 import { STATS } from '../atlas/statblocks';
 import type { Battle, BattleToken } from '../mapStore';
@@ -91,7 +92,7 @@ export default function CombatPanel({ b, grid, place, selectedId, onSelect, set,
 
   // La ligne du combattant actif reste visible dans la liste.
   useEffect(() => {
-    listRef.current?.querySelector('.is-turn')?.scrollIntoView({ block: 'nearest' });
+    revealIn(listRef.current?.querySelector('.is-turn'));
   }, [b.turn]);
 
   function changeHp(t: BattleToken, delta: number) {

@@ -555,7 +555,9 @@
 @keyframes turn-pulse{0%,100%{stroke-opacity:1;stroke-width:.07}50%{stroke-opacity:.45;stroke-width:.16}}
 @media (prefers-reduced-motion:reduce){.present-turn-now,.present-battle .battle-turn-ring{animation:none}}
 /* Sorties au bord du plateau (écran joueur) */
-.battle-exit path{stroke:#e9cf86;filter:drop-shadow(0 0 .06px #000);animation:exit-glow 2.4s ease-in-out infinite}
+/* Sans filtre : l'animation repeint ces tracés à chaque image, une ombre portée par tracé coûtait cher. */
+.battle-exit path{stroke:#e9cf86;animation:exit-glow 2.4s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.battle-exit path{animation:none}}
 .battle-exit text{fill:#f3e3b4;paint-order:stroke;stroke:#0b0805;stroke-width:.08px;font-family:'Cinzel',serif;letter-spacing:.01em}
 .battle-exit:not(.known) path{stroke:#a8925f}
 .battle-exit:not(.known) text{fill:#b9a57a}

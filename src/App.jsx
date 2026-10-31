@@ -87,6 +87,7 @@ import './combat/wartable.css';
 import { entityFromSrd, generateEntities, normalizeEntity, xpForCr } from './bestiary/entityGen';
 import CreaturePicker from './bestiary/CreaturePicker';
 import { heroSaveProfs, heroSaves } from './combat/saves';
+import { revealIn } from './shell/reveal';
 import AoePanel from './combat/AoePanel';
 import UnderdarkImport from './bestiary/UnderdarkImport';
 import { underdarkIdOf } from './bestiary/underdark.js';
@@ -14786,7 +14787,7 @@ function WarInitiative({ sorted, activeId, selectedId, round, art, boardTokens, 
   const stripRef = useRef(null);
   useEffect(() => {
     const el = stripRef.current?.querySelector('[data-active="1"]');
-    el?.scrollIntoView?.({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+    revealIn(el, true);
   }, [activeId]);
   return (
     <section className="wt-init" aria-label="Fil d’initiative">
@@ -16110,8 +16111,17 @@ function profileOfCombatant(c, token) {
 }
 
 /** Situation tactique de chaque jeton du plateau (abri, avantages, menaces), avec le profil de son combattant. */
+let tacticsMemo = null;
+/** Notes tactiques de chaque jeton ; recalculées seulement si le terrain, les jetons ou les combattants changent. */
 function battleTactics(battle, combatants) {
   const grid = effectiveOf(battle);
+  const tokens = JSON.stringify(battle.tokens);
+  if (tacticsMemo && tacticsMemo.grid === grid && tacticsMemo.tokens === tokens && tacticsMemo.combatants === combatants && tacticsMemo.cols === battle.cols && tacticsMemo.walls === battle.walls && tacticsMemo.objects === battle.objects) return tacticsMemo.out;
+  const out = battleTacticsOf(battle, grid, combatants);
+  tacticsMemo = { grid, tokens, combatants, cols: battle.cols, walls: battle.walls, objects: battle.objects, out };
+  return out;
+}
+function battleTacticsOf(battle, grid, combatants) {
   const byId = new Map((combatants || []).map((c) => [c.id, c]));
   const profileOf = (t) => profileOfCombatant(byId.get(t.id), t);
   return Object.fromEntries(battle.tokens.map((t) => [t.id, tacticalNotes(battle, grid, t.id, profileOf)]));

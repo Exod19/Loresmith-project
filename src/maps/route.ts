@@ -15,10 +15,9 @@ const JOIN_R = 0.04;
 const polyLen = (pts: Pt[]) => pts.slice(1).reduce((s, p, i) => s + Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]), 0);
 
 /** Le lieu (ou l'ancre) au bout d'un tracé ; à défaut, un carrefour anonyme, partagé par les tracés qui s'y rejoignent. */
-function nodeAt(data: AtlasData, planId: string, p: Pt, places: RouteGraph['places']): string {
+function nodeAt(data: AtlasData, planId: string, p: Pt, places: RouteGraph['places'], ctx: { anchors: AtlasData['anchors']; pointOf: Map<string, Pt> }): string {
   const place = placeNear(data, planId, p, { radius: JOIN_R });
-  const anchor = data.anchors
-    .filter((a) => a.mapId === planId)
+  const anchor = ctx.anchors
     .map((a) => ({ a, d: Math.hypot(a.at[0] - p[0], a.at[1] - p[1]) }))
     .filter((x) => x.d <= JOIN_R)
     .sort((x, y) => x.d - y.d)[0];
@@ -27,8 +26,7 @@ function nodeAt(data: AtlasData, planId: string, p: Pt, places: RouteGraph['plac
     return anchor.a.id;
   }
   if (place) {
-    const g = data.geometries.find((x) => x.featureId === place.id && x.mapId === planId && x.type === 'point');
-    places.set(place.id, { ...place, at: (g?.coordinates as Pt) ?? p });
+    places.set(place.id, { ...place, at: ctx.pointOf.get(place.id) ?? p });
     return place.id;
   }
   // Carrefour : on arrondit pour que deux tracés qui se touchent partagent le même nœud.
@@ -43,13 +41,17 @@ export function buildRoutes(data: AtlasData, planId: string): RouteGraph {
   const edges: RouteEdge[] = [];
   const ends = new Map<string, [string, string]>();
   const byId = new Map(data.features.map((f) => [f.id, f]));
+  // Préparés une fois pour tout le plan (des milliers de bouts de tracés à rattacher).
+  const pointOf = new Map<string, Pt>();
+  for (const g of data.geometries) if (g.mapId === planId && g.type === 'point' && !pointOf.has(g.featureId)) pointOf.set(g.featureId, g.coordinates as Pt);
+  const ctx = { anchors: data.anchors.filter((a) => a.mapId === planId), pointOf };
   for (const g of data.geometries) {
     if (g.mapId !== planId || g.type !== 'polyline') continue;
     const f = byId.get(g.featureId);
     if (!f?.trace) continue;
     const pts = g.coordinates as Pt[];
     if (pts.length < 2) continue;
-    const a = nodeAt(data, planId, pts[0], places), b = nodeAt(data, planId, pts[pts.length - 1], places);
+    const a = nodeAt(data, planId, pts[0], places, ctx), b = nodeAt(data, planId, pts[pts.length - 1], places, ctx);
     if (a === b) continue;
     edges.push({ a, b, trailId: f.id, len: polyLen(pts), secret: f.trace === 'secret' });
     ends.set(f.id, [a, b]);

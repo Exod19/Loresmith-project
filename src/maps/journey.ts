@@ -84,7 +84,20 @@ export function hoursLabel(h: number, inDays = false) {
 
 /* ——— Cavernes traversées : seuls leurs lieux (et ceux posés sur le tracé) sont des étapes ——— */
 
+/** Boîte englobante d'un contour (minX, minY, maxX, maxY), calculée une fois : rejette vite les points lointains. */
+const boxes = new WeakMap<Pt[], [number, number, number, number]>();
+function boxOf(poly: Pt[]) {
+  let b = boxes.get(poly);
+  if (!b) {
+    b = [Infinity, Infinity, -Infinity, -Infinity];
+    for (const [x, y] of poly) { if (x < b[0]) b[0] = x; if (y < b[1]) b[1] = y; if (x > b[2]) b[2] = x; if (y > b[3]) b[3] = y; }
+    boxes.set(poly, b);
+  }
+  return b;
+}
 const inside = (p: Pt, poly: Pt[]) => {
+  const b = boxOf(poly);
+  if (p[0] < b[0] || p[0] > b[2] || p[1] < b[1] || p[1] > b[3]) return false;
   let c = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
     const [xi, yi] = poly[i], [xj, yj] = poly[j];
@@ -103,7 +116,11 @@ function cavesOf(data: AtlasData, planId: string): Pt[][] {
 }
 /** Le tracé passe-t-il à l'intérieur de cette caverne ? (échantillonné le long des segments) */
 function crosses(pts: Pt[], poly: Pt[]) {
+  const b = boxOf(poly);
   for (let i = 0; i < pts.length - 1; i++) {
+    // Segment entièrement hors de la boîte de la caverne : rien à échantillonner.
+    const [x0, y0] = pts[i], [x1, y1] = pts[i + 1];
+    if (Math.max(x0, x1) < b[0] || Math.min(x0, x1) > b[2] || Math.max(y0, y1) < b[1] || Math.min(y0, y1) > b[3]) continue;
     const n = Math.max(2, Math.ceil(dist(pts[i], pts[i + 1]) / 0.003));
     for (let k = 0; k <= n; k++) if (inside([pts[i][0] + ((pts[i + 1][0] - pts[i][0]) * k) / n, pts[i][1] + ((pts[i + 1][1] - pts[i][1]) * k) / n], poly)) return true;
   }

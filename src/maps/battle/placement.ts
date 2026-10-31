@@ -8,10 +8,17 @@ import { applyBuild } from './build';
 import { compatGrid, compileSurface, type SurfaceRules } from './surface';
 
 /** Grille de base dessinée : terrain généré, passages creusés (secrets fermés tant qu'ils ne sont pas découverts), retouches. */
+let baseMemo: { key: unknown[]; grid: string | undefined } | null = null;
+
 export function baseGridOf(b: Battle): string | undefined {
   if (!b.terrain) return undefined;
+  // Appelée pour chaque case testée (placement, trajets, couverts) : on ne recalcule que si la scène a changé.
+  const key = [b.terrain, b.local, b.build];
+  if (baseMemo && baseMemo.key.every((k, i) => k === key[i])) return baseMemo.grid;
   const local = b.local;
-  return applyBuild(effectiveGrid(b.terrain.grid, local?.elements ?? [], local?.discovered ?? [], (local?.elements ?? []).map((e) => e.id)), b.build);
+  const grid = applyBuild(effectiveGrid(b.terrain.grid, local?.elements ?? [], local?.discovered ?? [], (local?.elements ?? []).map((e) => e.id)), b.build);
+  baseMemo = { key, grid };
+  return grid;
 }
 
 /** Classification des cases (fond, zones, éléments, murs, corrections du MJ) : la source des règles de déplacement. */
