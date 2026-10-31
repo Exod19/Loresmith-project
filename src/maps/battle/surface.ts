@@ -467,7 +467,17 @@ export function originOf(c: CellInfo, zones: TerrainZone[] = []): string {
  * Grille d'un caractère par case, au sens des anciennes règles : `#` bloque et cache, `X` bloque sans cacher, `:` difficile,
  * `.` praticable. Les modules qui ne connaissent que cette grille respectent ainsi zones, éléments et corrections.
  */
-export function compatGrid(r: SurfaceRules, objects: BattleObject[] = []): string {
+const compatCache = new WeakMap<SurfaceRules, { objects: BattleObject[] | undefined; grid: string }>();
+
+export function compatGrid(r: SurfaceRules, objects?: BattleObject[]): string {
+  const hit = compatCache.get(r);
+  if (hit && hit.objects === objects) return hit.grid;
+  const grid = compatGridOf(r, objects ?? []);
+  compatCache.set(r, { objects, grid });
+  return grid;
+}
+
+function compatGridOf(r: SurfaceRules, objects: BattleObject[]): string {
   const opaque = new Set(objects.filter((o) => OBJECT_DEF[o.kind]?.opaque).map((o) => o.id));
   return r.cells.map((c) => {
     const cat = categoryOf(c);

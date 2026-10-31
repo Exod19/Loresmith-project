@@ -165,8 +165,28 @@ function step(r: SurfaceRules, m: Mover, x: number, y: number, la: Layer, dx: nu
 
 export interface MoveField { r: SurfaceRules; m: Mover; dist: Float64Array; prev: Int32Array; tags: string[][] }
 
+/**
+ * Champs déjà calculés, par terrain compilé : la carte de combat redemande les mêmes à chaque rendu (portées de
+ * toutes les créatures, trajet survolé). La clé décrit tout ce qui change le résultat : départ, créature, voisins.
+ */
+const fieldCache = new WeakMap<SurfaceRules, Map<string, MoveField>>();
+const FIELD_CACHE_MAX = 64;
+
 /** Coût minimal depuis une case vers toutes les autres (sol et pont), jusqu'à `limit` cases. */
 export function moveField(r: SurfaceRules, m: Mover, from: Spot, limit = Infinity): MoveField {
+  const occ = m.occ ? [...m.occ].map(([i, k]) => `${i}${k[0]}`).sort().join(',') : '';
+  const key = `${from.x},${from.y},${from.layer ?? 'sol'}|${m.size},${m.speed},${m.swim ? 1 : 0}${m.climb ? 1 : 0}${m.fly ? 1 : 0}|${limit}|${occ}`;
+  let byKey = fieldCache.get(r);
+  if (!byKey) { byKey = new Map(); fieldCache.set(r, byKey); }
+  const hit = byKey.get(key);
+  if (hit) return hit;
+  const f = computeMoveField(r, m, from, limit);
+  if (byKey.size >= FIELD_CACHE_MAX) byKey.delete(byKey.keys().next().value!);
+  byKey.set(key, f);
+  return f;
+}
+
+function computeMoveField(r: SurfaceRules, m: Mover, from: Spot, limit: number): MoveField {
   const n = r.cols * r.rows * 2;
   const dist = new Float64Array(n).fill(Infinity), prev = new Int32Array(n).fill(-1);
   const tags: string[][] = new Array(n);

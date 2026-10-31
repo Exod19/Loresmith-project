@@ -1278,7 +1278,7 @@ export default function BattleMode({
               theme={boardTheme(b.local?.surface)}
               ground={b.ground} surface={editor.view} overlay={building && editor.overlay ? { rules, focus: editor.focus } : undefined}
               path={pathView} surfaceSelected={editor.selectedId} draft={editor.draft}
-              onCell={onBoardCell} onElement={building || aoeTool || aiming || (selected && !selected.unplaced) ? undefined : (id) => { if (boardElements.some((e) => e.id === id)) setInfoId(id); }} onHover={(x, y) => setHover({ x, y })}
+              onCell={onBoardCell} onElement={building || aoeTool || aiming || (selected && !selected.unplaced) ? undefined : (id) => { if (boardElements.some((e) => e.id === id)) setInfoId(id); }} onHover={(x, y) => setHover((h) => (h && h.x === x && h.y === y ? h : { x, y }))}
               preview={stroke && brush.tool === 'terrain' ? stroke.cells : undefined}
               labels={labels} highlight={highlight} fog={fogLayer} exits={dmExits} aim={aimLine} hits={b.hits} aoes={aoeViews}
             />
