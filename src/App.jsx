@@ -86,6 +86,7 @@ import { removeUniverse, canDeleteUniverse } from './universe/deleteUniverse';
 import './combat/wartable.css';
 import { entityFromSrd, generateEntities, normalizeEntity, xpForCr } from './bestiary/entityGen';
 import CreaturePicker from './bestiary/CreaturePicker';
+import { heroSaveProfs, heroSaves } from './combat/saves';
 import AoePanel from './combat/AoePanel';
 import UnderdarkImport from './bestiary/UnderdarkImport';
 import { underdarkIdOf } from './bestiary/underdark.js';
@@ -12187,11 +12188,16 @@ function CharCard({ c, state, dispatch, flash }) {
         </p>
       )}
 
-      {open && <CharacterSheetModal c={c} onClose={() => setOpen(false)} />}
+      {open && <CharacterSheetModal c={c} dispatch={dispatch} onClose={() => setOpen(false)} />}
     </div>
   );
 }
-function CharacterSheetModal({ c, onClose }) {
+function CharacterSheetModal({ c, dispatch, onClose }) {
+  const saves = heroSaves(c);
+  const toggleSave = (id) => {
+    const profs = heroSaveProfs(c);
+    dispatch({ type: 'UPDATE_CHARACTER', id: c.id, patch: { saveProfs: profs.includes(id) ? profs.filter((x) => x !== id) : [...profs, id] } });
+  };
   return (
     <Modal title={`Fiche — ${c.name}`} onClose={onClose} wide>
       <div className="grid cols-2">
@@ -12239,6 +12245,23 @@ function CharacterSheetModal({ c, onClose }) {
             <b>CHA :</b> {c.cha || '—'}
           </p>
         </div>
+      </div>
+
+      <div className="panel hero-saves" style={{ marginTop: 14 }}>
+        <div className="eyebrow" style={{ marginTop: 0 }}>
+          Jets de sauvegarde
+        </div>
+        <div className="hero-saves-row">
+          {saves.map((sv) => (
+            <label key={sv.id} className={sv.proficient ? 'on' : ''} title={sv.proficient ? 'Maîtrisée : bonus de maîtrise ajouté' : 'Non maîtrisée'}>
+              <input type="checkbox" checked={sv.proficient} onChange={() => toggleSave(sv.id)} />
+              {sv.label} <b>{sv.bonus >= 0 ? '+' : ''}{sv.bonus}</b>
+            </label>
+          ))}
+        </div>
+        <p className="muted" style={{ fontSize: 12, margin: '6px 0 0' }}>
+          {Array.isArray(c.saveProfs) ? 'Maîtrises choisies sur cette fiche.' : `Maîtrises de la classe${c.cls ? ` (${c.cls})` : ''} ; coche ou décoche pour corriger.`} Utilisées pour les zones d’effet.
+        </p>
       </div>
 
       <div className="panel" style={{ marginTop: 14 }}>
