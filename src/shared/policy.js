@@ -93,3 +93,14 @@ export function assertCan(actor, action, resource) {
     throw err;
   }
 }
+
+/**
+ * Banque Loresmith : retouches des étiquettes communes à toute l'application (pas rattachées à un univers).
+ * Tout compte connecté les lit ; seul un administrateur de l'application (`actor.admin`) les change. Les images qu'un
+ * MJ ajoute lui-même sont des images de son univers (type `asset`) : elles suivent les règles de l'univers.
+ */
+export function canBanque(actor, action) {
+  if (!actor?.id) return false;
+  if (action === 'read') return true;
+  return action === 'update' && actor.admin === true;
+}

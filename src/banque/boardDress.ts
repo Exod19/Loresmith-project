@@ -6,7 +6,7 @@
  * toit couvre son bâtiment, un arbre sa couronne. Le dessin vectoriel déjà peint reste dessous : si une image manque,
  * le plateau reste lisible.
  */
-import { bankImages, bankSrc, hash, pickElement, pickTexture, type BankImage } from './index';
+import { bankImages, bankSrc, fitRoof, hash, maskFromParts, pickElement, pickTexture, type BankImage } from './index';
 
 const CELL_M = 1.5;
 const cache = new Map<string, Promise<HTMLImageElement | null>>();
@@ -41,10 +41,11 @@ async function fillCells(ctx: CanvasRenderingContext2D, C: number, cols: number,
 }
 
 /** Dessine une image centrée en (x, y), de w × h pixels, tournée de `a` radians. */
-function put(ctx: CanvasRenderingContext2D, im: HTMLImageElement, x: number, y: number, w: number, h: number, a: number) {
+function put(ctx: CanvasRenderingContext2D, im: HTMLImageElement, x: number, y: number, w: number, h: number, a: number, flip = false) {
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(a);
+  if (flip) ctx.scale(-1, 1);
   ctx.drawImage(im, -w / 2, -h / 2, w, h);
   ctx.restore();
 }
@@ -105,10 +106,15 @@ export async function dressBoard(canvas: HTMLCanvasElement, cols: number, rows: 
   const ctxPick = { climat, saison, region: 'surface' };
   const tex = (cats: string[], seed: string) => pickTexture(images, { cats, ...ctxPick, seed });
   const steps: (() => Promise<void>)[] = [];
+  // Sol sous un objet dessiné : la case est repeinte avant l'image, pour qu'aucun tracé vectoriel ne reste dessous.
+  let under: BankImage | null = null;
+  const at = (x: number, y: number) => (x < 0 || y < 0 || x >= cols || y >= rows ? '#' : terrain[y * cols + x]);
   if (mode === 'interieur') {
-    // Plancher au-dedans, pavés au-dehors (ce qu'on atteint depuis le bord sans franchir de mur ni d'embrasure), murs de pierre.
+    // Plancher au-dedans, pavés au-dehors (ce qu'on atteint depuis le bord sans franchir de mur ni d'embrasure), murs de
+    // pierre. Les meubles peints (comptoir, tables, lits) restent visibles : le plancher ne passe pas dessus.
     const out = outsideOf(terrain, cols, rows);
-    steps.push(() => fillCells(ctx, C, cols, terrain, (k, i) => k !== '#' && k !== '~' && !out.has(i), tex(['planches'], 'sol'), 0.92));
+    under = tex(['planches'], 'sol');
+    steps.push(() => fillCells(ctx, C, cols, terrain, (k, i) => (k === '.' || k === ':') && !out.has(i), under, 0.92));
     steps.push(() => fillCells(ctx, C, cols, terrain, (k, i) => k !== '#' && out.has(i), tex(['paves'], 'rue'), 0.9));
     steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === '#', tex(['dalles'], 'mur'), 0.75));
   } else {
@@ -117,30 +123,47 @@ export async function dressBoard(canvas: HTMLCanvasElement, cols: number, rows: 
     // Une place sans bâtiment dans le cadre (ni champ, ni bosquet) compte comme la ville.
     const urban = (count('#') / terrain.length > 0.08 || (count(',') === 0 && count('I') < terrain.length * 0.02)) && count(',') / terrain.length < 0.1;
     const sol = mode === 'neige' ? ['neige'] : mode === 'chaud' ? ['sable', 'terre'] : urban ? ['paves', 'terre'] : mode === 'froid' ? ['toundra', 'terre'] : ['terre'];
-    steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === '.' || k === 'I', tex(sol, 'sol'), 0.9));
+    under = tex(sol, 'sol');
+    steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === '.', under, 0.9));
     steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === ',', tex(mode === 'neige' ? ['neige'] : ['champ', 'herbe'], 'champ'), 0.95));
-    steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === '~', tex(mode === 'neige' ? ['glace', 'eau'] : mode === 'chaud' ? ['eau'] : ['eau'], 'eau'), 0.9));
+    steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === '~', tex(mode === 'neige' ? ['glace', 'eau'] : ['eau'], 'eau'), 0.9));
     steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === '=', tex(['planches'], 'pont'), 1));
     steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === ':', tex(mode === 'neige' ? ['neige'] : ['eboulis'], 'eboulis'), 0.9));
   }
   for (const s of steps) { if (!alive()) return; await s(); }
   if (!alive()) return;
+  const clear = async (cells: Set<number>) => fillCells(ctx, C, cols, terrain, (_k, i) => cells.has(i), under, 1);
 
   if (mode !== 'interieur') {
-    // Toits : un bâtiment presque rectangulaire reçoit un toit à sa taille, tourné selon son grand côté.
+    // Toits : chaque bâtiment (rectangle, L, T, U…) reçoit le toit qui épouse sa forme, dans la bonne orientation.
     for (const g of groups(terrain, cols, rows, '#')) {
       const wC = g.x1 - g.x0 + 1, hC = g.y1 - g.y0 + 1;
-      if (g.n < wC * hC * 0.8 || wC * hC < 4) continue;
+      if (wC * hC < 4) continue;
+      const parts: number[][] = [];
+      for (let y = g.y0; y <= g.y1; y++) for (let x = g.x0; x <= g.x1; x++) if (at(x, y) === '#') parts.push([(x - g.x0) / wC, (y - g.y0) / hC, (x - g.x0 + 1) / wC, (y - g.y0 + 1) / hC]);
       const seed = `toit:${g.x0}:${g.y0}`;
-      const wM = wC * CELL_M, hM = hC * CELL_M, ratio = Math.max(wM, hM) / Math.min(wM, hM);
-      const img = pickElement(images, { cat: 'toit', climat, region: 'surface', formes: ['rect', 'carre'], forme: ratio > 1.5 ? 'rect' : 'carre', ratio, usage: 'maison', seed });
-      if (!img) continue;
-      const r = Array.isArray(img.taille) ? img.taille[0] / img.taille[1] : img.ratio;
-      const swap = (r >= 1) !== (wC >= hC);
-      const [w, h] = [wC * C, hC * C];
-      const im = await load(bankSrc(img, Math.max(w, h)));
+      const fit = fitRoof(images, { mask: maskFromParts(parts), w: wC, h: hC, climat, usage: wC * hC * 2.25 > 260 ? 'civique' : 'maison', seed, min: 0.8 });
+      if (!fit) continue;
+      const im = await load(bankSrc(fit.img, Math.max(wC, hC) * C));
       if (!alive()) return;
-      if (im) put(ctx, im, (g.x0 + wC / 2) * C, (g.y0 + hC / 2) * C, swap ? h : w, swap ? w : h, (swap ? Math.PI / 2 : 0) + (hash(seed) % 2 ? Math.PI : 0));
+      if (!im) continue;
+      await clear(new Set(parts.map(([u, v]) => Math.round(g.y0 + v * hC) * cols + Math.round(g.x0 + u * wC))));
+      put(ctx, im, (g.x0 + wC / 2) * C, (g.y0 + hC / 2) * C, fit.iw * C, fit.ih * C, (fit.rot * Math.PI) / 2, fit.flip);
+    }
+    // Fontaine : une petite pièce d'eau ronde ou carrée, en ville, est la fontaine de la place.
+    for (const g of groups(terrain, cols, rows, '~')) {
+      const wC = g.x1 - g.x0 + 1, hC = g.y1 - g.y0 + 1;
+      if (wC > 6 || hC > 6 || Math.abs(wC - hC) > 1 || g.n < 4) continue;
+      const img = pickElement(images.filter((im) => im.usage?.includes('place') && /fontaine/i.test(im.nom)), { cat: 'monument', seed: `fontaine:${g.x0}:${g.y0}` });
+      if (!img) continue;
+      const side = Math.max(wC, hC) * C * 1.05;
+      const im = await load(bankSrc(img, side));
+      if (!alive()) return;
+      if (!im) continue;
+      const cells = new Set<number>();
+      for (let y = g.y0; y <= g.y1; y++) for (let x = g.x0; x <= g.x1; x++) if (at(x, y) === '~') cells.add(y * cols + x);
+      await clear(cells);
+      put(ctx, im, (g.x0 + wC / 2) * C, (g.y0 + hC / 2) * C, side, side, ((hash(`f${g.x0}`) % 4) * Math.PI) / 2);
     }
     // Arbres : une couronne par case boisée, débordant un peu sur les voisines, chacune tournée à sa façon.
     for (let i = 0; i < terrain.length; i++) {
@@ -152,11 +175,12 @@ export async function dressBoard(canvas: HTMLCanvasElement, cols: number, rows: 
       const px = Math.max(C * 1.3, Math.min(C * 2.4, (m / CELL_M) * C * 0.5));
       const im = await load(bankSrc(img, px));
       if (!alive()) return;
-      if (im) put(ctx, im, (i % cols + 0.5) * C, (Math.floor(i / cols) + 0.5) * C, px, px, ((hash(seed) % 360) * Math.PI) / 180);
+      if (!im) continue;
+      await clear(new Set([i]));
+      put(ctx, im, (i % cols + 0.5) * C, (Math.floor(i / cols) + 0.5) * C, px, px, ((hash(seed) % 360) * Math.PI) / 180);
     }
   } else {
-    // Intérieur : un obstacle isolé devient un tonneau ou un coffre.
-    const at = (x: number, y: number) => (x < 0 || y < 0 || x >= cols || y >= rows ? '#' : terrain[y * cols + x]);
+    // Intérieur : un obstacle isolé devient un tonneau ou un coffre (sa case est repeinte en plancher dessous).
     for (let i = 0; i < terrain.length; i++) {
       if (terrain[i] !== 'I') continue;
       const x = i % cols, y = Math.floor(i / cols);
@@ -169,7 +193,9 @@ export async function dressBoard(canvas: HTMLCanvasElement, cols: number, rows: 
       const [w, h] = [(t[0] / CELL_M) * C * k, (t[1] / CELL_M) * C * k];
       const im = await load(bankSrc(img, Math.max(w, h)));
       if (!alive()) return;
-      if (im) put(ctx, im, (x + 0.5) * C, (y + 0.5) * C, w, h, ((hash(`a${i}`) % 4) * Math.PI) / 2 + (usage === 'tonneau' ? (hash(`b${i}`) % 90) * 0.0175 : 0));
+      if (!im) continue;
+      await clear(new Set([i]));
+      put(ctx, im, (x + 0.5) * C, (y + 0.5) * C, w, h, ((hash(`a${i}`) % 4) * Math.PI) / 2 + (usage === 'tonneau' ? (hash(`b${i}`) % 90) * 0.0175 : 0));
     }
   }
 }

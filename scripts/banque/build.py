@@ -306,6 +306,10 @@ def main():
                 out.save(dest, 'WEBP', quality=82 if s < 1024 else 80, method=4)
             mips.append(s)
         e = dict(id=slug, drive=x['id'], titre=x['title'], type=kind, vue=vue, ratio=round(w0 / h0, 3), couleur=avg_color(im), mips=mips, **meta)
+        if meta.get('cat') == 'toit' and has_alpha:
+            # Silhouette du toit (8 × 8 cases, ligne par ligne) : pour le poser sur une emprise en L, en T, en U…
+            a = im.getchannel('A').resize((8, 8), Image.BOX)
+            e['masque'] = ''.join('1' if a.getpixel((i, j)) > 110 else '0' for j in range(8) for i in range(8))
         e.setdefault('milieux', [])
         e.setdefault('climats', [])
         e.setdefault('saisons', [])

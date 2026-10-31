@@ -115,3 +115,12 @@ test('assertCan : 401 sans compte, 403 sans droit', () => {
   assert.throws(() => assertCan(reader, 'delete', npc), (e) => e.status === 403);
   assert.doesNotThrow(() => assertCan(owner, 'delete', npc));
 });
+
+test('Banque Loresmith : tous lisent, seul l’administrateur de l’application change', async () => {
+  const { canBanque } = await import('./policy.js');
+  assert.equal(canBanque({ id: 'u' }, 'read'), true);
+  assert.equal(canBanque({ id: 'u' }, 'update'), false);
+  assert.equal(canBanque({ id: 'u', admin: 'oui' }, 'update'), false);
+  assert.equal(canBanque({ id: 'a', admin: true }, 'update'), true);
+  assert.equal(canBanque(null, 'read'), false);
+});

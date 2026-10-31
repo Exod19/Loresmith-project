@@ -93,6 +93,8 @@ export interface MapSurface {
     towns?: number[];
     /** Mobilier des intérieurs, dessiné avec la Banque Loresmith : [nature, x, y, largeur, profondeur, angle]. */
     p?: [string, number, number, number, number, number][];
+    /** Bâtiments entiers (corps et ailes) : [x, y, largeur, profondeur, angle, puis u0, v0, u1, v1 de chaque partie]. */
+    bx?: number[][];
   };
 }
 
@@ -105,7 +107,7 @@ export interface MapDecor {
     | 'biome-neige' | 'biome-taiga' | 'biome-steppe' | 'biome-desert' | 'dune' | 'pine' | 'forest-sparse' | 'mountain' | 'snowcap'
     | 'shore' | 'shore-cold' | 'beach' | 'sea' | 'pier' | 'lake-ice' | 'stream'
     /* Intérieurs. */
-    | 'street' | 'floor' | 'floor-stone' | 'hatch' | 'pillar' | 'stool' | 'wall-in' | 'furn' | 'bed' | 'hearth' | 'altar' | 'anvil' | 'trough' | 'stair' | 'barrel' | 'crate' | 'bars' | 'rug' | 'dais' | 'stall';
+    | 'street' | 'floor' | 'floor-stone' | 'hatch' | 'pillar' | 'stool' | 'wall-in' | 'furn' | 'table' | 'chest' | 'tomb' | 'throne' | 'bed' | 'hearth' | 'altar' | 'anvil' | 'trough' | 'stair' | 'barrel' | 'crate' | 'bars' | 'rug' | 'dais' | 'stall';
   d: string;
   /** Épaisseur du trait en unités de plan (rempart, rivière) : elle suit le zoom, contrairement aux traits fins. */
   w?: number;

@@ -383,7 +383,7 @@ export function generateInterior({ slot, planId, siteId, parentSiteId, bound, pe
           else {
             const c = Math.cos(ang), sn = Math.sin(ang), hw = tw / 2, hh = th / 2;
             const pts = [[-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]].map(([u, v]) => [x + u * c - v * sn, y + u * sn + v * c]);
-            push('furn', `M${pts.map(([px, py]) => `${f1(px)} ${f1(py)}`).join('L')}Z`);
+            push('table', `M${pts.map(([px, py]) => `${f1(px)} ${f1(py)}`).join('L')}Z`);
           }
           ground.f.push(r1(x), r1(y), r1(tw), r1(th), Math.round(ang * 1000) / 1000);
           prop(round ? 'table-ronde' : 'table', x, y, tw, th, ang);
@@ -409,7 +409,7 @@ export function generateInterior({ slot, planId, siteId, parentSiteId, bound, pe
           const r = [x0 + i * (ww + m(gap[0])), y0 + j * (hh + m(gap[1])), ww, hh];
           // Rien sur un escalier.
           if (stairs.some(([, [su, sv]]) => { const [sx, sy] = P(su, sv); return Math.abs(sx - (r[0] + r[2] / 2)) < m(1.6) && Math.abs(sy - (r[1] + r[3] / 2)) < m(1.8); })) continue;
-          push({ beds: 'bed', stalls: 'stall', pillars: 'pillar', tombs: 'altar' }[kind] ?? 'furn', rectD(r));
+          push({ beds: 'bed', stalls: 'stall', pillars: 'pillar', tombs: 'tomb' }[kind] ?? 'furn', rectD(r));
           (kind === 'pillars' || kind === 'tombs' ? ground.o : ground.f).push(...rectFlat(r));
           const pk = { beds: 'lit', tombs: 'sarcophage', pillars: 'colonne' }[kind];
           if (pk) prop(pk, r[0] + r[2] / 2, r[1] + r[3] / 2, r[2], r[3]);
@@ -426,7 +426,7 @@ export function generateInterior({ slot, planId, siteId, parentSiteId, bound, pe
         if (label) named.push([label, cx, cy]);
         continue;
       }
-      const decorKind = { counter: 'furn', table: 'furn', longtable: 'furn', hearth: 'hearth', bed: 'bed', altar: 'altar', shelf: 'furn', anvil: 'anvil', rack: 'furn', trough: 'trough', stair: 'stair', throne: 'altar', dais: 'dais', rug: 'rug', bars: 'bars', chest: 'crate' }[kind] ?? 'furn';
+      const decorKind = { counter: 'furn', table: 'table', longtable: 'table', hearth: 'hearth', bed: 'bed', altar: 'altar', shelf: 'furn', anvil: 'anvil', rack: 'furn', trough: 'trough', stair: 'stair', throne: 'throne', dais: 'dais', rug: 'rug', bars: 'bars', chest: 'chest' }[kind] ?? 'furn';
       push(decorKind, rectD(bx));
       const pk = { bed: 'lit', altar: 'autel', trough: 'bac', chest: 'coffre', table: 'table', longtable: 'table' }[kind];
       if (pk) prop(pk, cx, cy, bx[2], bx[3]);
@@ -457,7 +457,7 @@ export function generateInterior({ slot, planId, siteId, parentSiteId, bound, pe
     }, Nn((u0 + u1) / 2, v0 + (v1 - v0) * (i === 0 && lv === 'rdc' ? 0.25 : 0.5))));
     named.forEach(([label, x, y], i) => addPoint({ id: `${pre}objet-${i}`, title: label, category: 'indetermine', importance: 'detail', minZoom: 1.3 }, [r5(x / W), r5(y / H)]));
 
-    const ORDER = ['floor', 'floor-stone', 'rug', 'dais', 'stall', 'stool', 'furn', 'bed', 'hearth', 'altar', 'anvil', 'trough', 'stair', 'hatch', 'barrel', 'crate', 'bars', 'pillar'];
+    const ORDER = ['floor', 'floor-stone', 'rug', 'dais', 'stall', 'stool', 'furn', 'table', 'bed', 'hearth', 'altar', 'throne', 'tomb', 'anvil', 'trough', 'stair', 'hatch', 'barrel', 'crate', 'chest', 'bars', 'pillar'];
     const decor = [
       ...ORDER.filter((k) => paths[k]).map((k) => ({ kind: k, d: paths[k].join('') })),
       { kind: 'wall-in', d: paths.walls.join(''), w: r1(m(0.45)) },

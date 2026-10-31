@@ -36,8 +36,20 @@ Les règles lisent le titre, en français ou en anglais. Un titre clair suffit s
 Pour un nouveau peuple (drow, duergar, svirfnebelin…), nomme-le dans le titre. Sans jeton de ce peuple dans la banque,
 l'Outreterre reste sans image plutôt que d'y mettre un humain.
 
-## Retouches du MJ
+## Retouches et images des MJ
 
-Dans **Cartes → 🖼 Banque Loresmith**, tu peux corriger les étiquettes d'une image ou l'exclure des choix automatiques.
-Ces retouches sont gardées dans ce navigateur. Pour les rendre permanentes pour tous, demande à Claude de les reporter
-dans le script.
+- **Images communes** (le catalogue de l'application) : seul un administrateur change leurs étiquettes ou en exclut
+  une. Il le fait dans **Cartes → 🖼 Banque Loresmith**, et ses retouches valent pour tous.
+  - Elles sont gardées sur le serveur (`/api/banque/retouches`, espace KV).
+  - Une synchronisation de la banque ne les écrase pas.
+- **Administrateurs** : la variable `ADMIN_EMAILS` du projet Pages (adresses séparées par des virgules). Sans cette
+  variable, c'est le compte du propriétaire (`server/src/admins.js`).
+- **Images d'un MJ** : n'importe quel MJ ajoute ses images à la banque de son univers, ou de sa campagne en cours, et
+  les étiquette.
+  - Ce sont des images de l'univers (`assets`, catégorie `banque`). Elles suivent ses droits : un contributeur ne change
+    que les siennes.
+  - Loresmith y puise comme dans le catalogue commun.
+
+Les toits reçoivent aussi une silhouette (`masque`, 8 × 8 cases), calculée par le script. Pour un nouveau toit en L,
+en T, en U ou en croix, ajoute une règle avec la bonne `forme`. Loresmith le pose ensuite tout seul, dans la bonne
+orientation, sur les bâtiments qui ont cette forme.
