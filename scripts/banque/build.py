@@ -125,8 +125,12 @@ TEXTURES = [
     (r'cendre volcanique', dict(nom='Cendre volcanique', cat='cendre', taille=6, milieux=['volcan'])),
     (r'cro.te volcanique', dict(nom='Croûte de lave', cat='lave', taille=6, milieux=['volcan'], region=['surface', 'outreterre'])),
     (r'dalles de pierre', dict(nom='Dalles de pierre', cat='dalles', taille=4, milieux=['interieur', 'ville', 'temple', 'caverne'], region=['surface', 'outreterre'])),
-    (r'eau douce turquoise', dict(nom='Eau claire', cat='eau', taille=8, milieux=['riviere', 'lac'], climats=[C, TR, T])),
-    (r'eau sombre', dict(nom='Eau sombre', cat='eau', taille=8, milieux=['riviere', 'lac', 'mer', 'marais'], region=['surface', 'mer', 'outreterre'])),
+    # Eaux : `usage` dit la profondeur (peu-profonde près des berges, profonde au milieu) et l'aspect (boueuse, claire).
+    (r'eau de rivi.re boueuse', dict(nom='Eau boueuse', cat='eau', taille=10, usage=['peu-profonde', 'boueuse'], raccorder=True, milieux=['riviere', 'marais', 'lac'], climats=[T, F])),
+    (r'eau profonde vert sombre', dict(nom='Eau profonde', cat='eau', taille=12, usage=['profonde'], milieux=['riviere', 'lac', 'mer'], region=['surface', 'mer'], raccorder=True)),
+    (r'eau claire turquoise peu profonde', dict(nom='Eau claire peu profonde', cat='eau', taille=8, usage=['peu-profonde', 'claire'], raccorder=True, milieux=['mer', 'lac', 'riviere'], climats=[T, C, TR])),
+    (r'eau douce turquoise', dict(nom='Eau claire', cat='eau', taille=8, usage=['peu-profonde', 'claire'], milieux=['riviere', 'lac'], climats=[C, TR, T])),
+    (r'eau sombre', dict(nom='Eau sombre', cat='eau', taille=8, usage=['profonde'], milieux=['riviere', 'lac', 'mer', 'marais'], region=['surface', 'mer', 'outreterre'])),
     (r'flanc montagneux', dict(nom='Granite fracturé', cat='roche', taille=8, milieux=['montagne'])),
     (r'glace lacustre', dict(nom='Glace', cat='glace', taille=8, milieux=['lac', 'riviere'], climats=[F], saisons=['hiver'])),
     (r'herbe dense', dict(nom='Prairie', cat='herbe', taille=4, milieux=['campagne', 'ville'], climats=[T], saisons=['printemps', 'ete'])),
@@ -313,6 +317,20 @@ def guess(folder, title):
     return dict(nom=nom, cat='divers', taille=[2, 2], milieux=[], devine=True)
 
 
+def seamless(im):
+    """Texture raccordable sur ses quatre bords : mélange avec sa copie décalée d'une demi-tuile, le poids de l'original
+    s'annulant près des bords (là où la copie décalée est continue d'un bord à l'autre)."""
+    import numpy as np
+    a = np.asarray(im.convert('RGB')).astype(np.float32)
+    h, w = a.shape[:2]
+    r = np.roll(np.roll(a, h // 2, axis=0), w // 2, axis=1)
+    wx = np.clip(np.minimum(np.arange(w), w - 1 - np.arange(w)) / (w * 0.25), 0, 1)
+    wy = np.clip(np.minimum(np.arange(h), h - 1 - np.arange(h)) / (h * 0.25), 0, 1)
+    k = (np.minimum.outer(wy, wx))[..., None]
+    k = k * k * (3 - 2 * k)
+    return Image.fromarray(np.clip(a * k + r * (1 - k), 0, 255).astype(np.uint8))
+
+
 def avg_color(im):
     rgba = im.convert('RGBA').resize((16, 16), Image.LANCZOS)
     px = [p for p in (rgba.get_flattened_data() if hasattr(rgba, 'get_flattened_data') else rgba.getdata()) if p[3] > 128] or [(128, 128, 128, 255)]
@@ -362,6 +380,8 @@ def main():
             if bbox:
                 im = im.crop(bbox)
         im = im.convert('RGBA' if has_alpha else 'RGB')
+        if meta.pop('raccorder', False):
+            im = seamless(im)
         slug = ascii_slug(x['title'])
         if vue == 'jeton':
             slug += '-jeton'

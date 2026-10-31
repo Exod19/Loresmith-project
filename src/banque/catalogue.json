@@ -7243,6 +7243,75 @@
 "saisons": []
 },
 {
+"id": "eau-claire-turquoise-peu-profonde",
+"drive": "local-eau-claire",
+"titre": "Eau claire turquoise peu profonde.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#6c8c7d",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Eau claire peu profonde",
+"cat": "eau",
+"taille": 8,
+"usage": [
+"peu-profonde",
+"claire"
+],
+"milieux": [
+"mer",
+"lac",
+"riviere"
+],
+"climats": [
+"tempere",
+"chaud",
+"tropical"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "eau-de-riviere-boueuse-peu-profonde",
+"drive": "local-eau-boueuse",
+"titre": "Eau de rivière boueuse peu profonde.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#6c6347",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Eau boueuse",
+"cat": "eau",
+"taille": 10,
+"usage": [
+"peu-profonde",
+"boueuse"
+],
+"milieux": [
+"riviere",
+"marais",
+"lac"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
 "id": "eau-douce-turquoise-sable-fin-et-graviers",
 "drive": "1_YD4bxSB1NTopTycVJyXb7_DoYVl0QhG",
 "titre": "Eau douce turquoise, sable fin et graviers-19.png",
@@ -7258,6 +7327,10 @@
 "nom": "Eau claire",
 "cat": "eau",
 "taille": 8,
+"usage": [
+"peu-profonde",
+"claire"
+],
 "milieux": [
 "riviere",
 "lac"
@@ -7271,6 +7344,37 @@
 "region": [
 "surface"
 ]
+},
+{
+"id": "eau-profonde-vert-sombre",
+"drive": "local-eau-profonde",
+"titre": "Eau profonde vert sombre.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#1d3935",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Eau profonde",
+"cat": "eau",
+"taille": 12,
+"usage": [
+"profonde"
+],
+"milieux": [
+"riviere",
+"lac",
+"mer"
+],
+"region": [
+"surface",
+"mer"
+],
+"climats": [],
+"saisons": []
 },
 {
 "id": "eau-sombre-aux-fines-ondulations",
@@ -7288,6 +7392,9 @@
 "nom": "Eau sombre",
 "cat": "eau",
 "taille": 8,
+"usage": [
+"profonde"
+],
 "milieux": [
 "riviere",
 "lac",

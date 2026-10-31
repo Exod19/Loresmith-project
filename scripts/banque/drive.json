@@ -1474,5 +1474,26 @@
 "title": "Overhead Half-Elf with Satchel-7.png",
 "folder": "people",
 "size": 1024303
+},
+{
+"id": "local-eau-boueuse",
+"title": "Eau de rivière boueuse peu profonde.png",
+"folder": "textures",
+"size": 0,
+"source": "pièce jointe 2026-10-31"
+},
+{
+"id": "local-eau-profonde",
+"title": "Eau profonde vert sombre.png",
+"folder": "textures",
+"size": 0,
+"source": "pièce jointe 2026-10-31"
+},
+{
+"id": "local-eau-claire",
+"title": "Eau claire turquoise peu profonde.png",
+"folder": "textures",
+"size": 0,
+"source": "pièce jointe 2026-10-31"
 }
 ]

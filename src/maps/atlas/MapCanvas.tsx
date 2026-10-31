@@ -6,6 +6,7 @@
  */
 import { useReliefDetail, useReliefImage } from '../world/reliefImage';
 import NaturalTerrain, { naturalTerrainOn } from './NaturalTerrain';
+import WaterLayer, { setWaterMotion, useWaterMotion, WATER_COVERS, waterLayerOn } from './WaterLayer';
 import BankLayer, { BANK_COVERS, bankActive, GroundPatterns, useGroundTextures } from '../../banque/BankLayer';
 import type { Relief } from '../world/terrain';
 import { CityEmblem, paintedEmblem, peopleOf } from './emblems';
@@ -544,6 +545,9 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   const bankOn = !!surf && surf.theme !== 'monde';
   // Plans de cité : terrain naturel (herbe, terre, chemins fondus) à la place du fond uni et du tracé des rues.
   const naturalOn = naturalTerrainOn(map);
+  // Rivières, lacs et mer en matières de la banque (cités) : leurs tracés vectoriels s'effacent.
+  const waterOn = waterLayerOn(map);
+  const waterMotion = useWaterMotion();
   const pxPerUnit = t.k / px;
   const bankView = { x: -t.tx / t.k, y: -t.ty / t.k, w: W / t.k, h: H / t.k };
   const groundTex = useGroundTextures(map, bankOn ? pxPerUnit : 0);
@@ -552,7 +556,7 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   const bankHide = bankOn && bankActive(map, pxPerUnit)
     ? new Set([...BANK_COVERS[surf!.theme]].filter((k) => surf!.ground.p?.length || !['fountain', ...BANK_COVERS.interieur].includes(k))) : undefined;
   const decorPath = (x: NonNullable<AtlasMap['decor']>[number], i: number) => {
-    if (bankHide?.has(x.kind)) return null;
+    if (bankHide?.has(x.kind) || (waterOn && WATER_COVERS.has(x.kind))) return null;
     const tex = groundTex[x.kind];
     return <path key={i} d={x.d} className={`dc-${x.kind}${x.w ? ' dc-w' : ''}`} style={x.w || tex ? { ...(x.w ? { strokeWidth: x.w } : {}), ...(tex ? { fill: `url(#${tex.id})` } : {}) } : undefined} />;
   };
@@ -579,6 +583,7 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
               {surf.relief && reliefUrl && <image href={reliefUrl} x={0} y={0} width={W} height={H} preserveAspectRatio="none" className="am-relief" />}
               {reliefDetail && <image href={reliefDetail.url} x={reliefDetail.x} y={reliefDetail.y} width={reliefDetail.w} height={reliefDetail.h} preserveAspectRatio="none" className="am-relief" />}
               {naturalOn && <NaturalTerrain map={map} pxPerUnit={pxPerUnit} view={bankView} />}
+              {waterOn && <WaterLayer map={map} pxPerUnit={pxPerUnit} animate={waterMotion} />}
               {decorUnder.length > 0 && <g className="am-decor">{decorUnder.map(decorPath)}</g>}
               {bankOn && <BankLayer map={map} layer="arbres" pxPerUnit={pxPerUnit} view={bankView} />}
               <g className={`am-roads${naturalOn ? ' is-terrain' : ''}`}>
@@ -732,6 +737,10 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
         <button onClick={() => zoomBy(1.35)} aria-label="Zoom avant">+</button>
         <button onClick={() => zoomBy(1 / 1.35)} aria-label="Zoom arrière">−</button>
         <button onClick={() => setT(home())} aria-label="Recentrer" title="Recentrer">⌖</button>
+        {waterOn && (
+          <button onClick={() => setWaterMotion(!waterMotion)} aria-pressed={waterMotion}
+            aria-label={waterMotion ? 'Eau animée : passer en mode statique' : 'Eau statique : animer l’eau'} title={waterMotion ? 'Eau animée (cliquer pour figer)' : 'Eau statique (cliquer pour animer)'}>{waterMotion ? '🌊' : '≡'}</button>
+        )}
       </div>
       <div className="atlas-density">Échelle : <b>{densityOf(rz).label}</b> · ×{rz.toFixed(1)}</div>
       {surf?.relief && <ReliefLegend />}

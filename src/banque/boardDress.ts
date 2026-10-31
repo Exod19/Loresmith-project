@@ -72,6 +72,28 @@ function groups(terrain: string, cols: number, rows: number, kind: string) {
   return out;
 }
 
+/**
+ * Profondeur de l'eau en cases : 1 au bord, 2 ensuite, 3 et plus au large (distance à la terre) ; -1 pour une case de
+ * terre qui touche l'eau (la berge) ; 0 ailleurs.
+ */
+export function waterDepth(terrain: string, cols: number, rows: number) {
+  const out = new Int16Array(terrain.length);
+  const queue: number[] = [];
+  const nb = (i: number) => { const x = i % cols, y = Math.floor(i / cols); return [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dy]) => [x + dx, y + dy]).filter(([a, b]) => a >= 0 && b >= 0 && a < cols && b < rows).map(([a, b]) => b * cols + a); };
+  for (let i = 0; i < terrain.length; i++) {
+    if (terrain[i] !== '~') continue;
+    if (nb(i).some((j) => terrain[j] !== '~')) { out[i] = 1; queue.push(i); }
+  }
+  for (let q = 0; q < queue.length; q++) {
+    const i = queue[q];
+    for (const j of nb(i)) if (terrain[j] === '~' && !out[j]) { out[j] = out[i] + 1; queue.push(j); }
+  }
+  for (let i = 0; i < terrain.length; i++) if (terrain[i] !== '~' && nb(i).some((j) => terrain[j] === '~')) out[i] = -1;
+  // Eau sans rivage dans le cadre (le large) : profonde partout.
+  for (let i = 0; i < terrain.length; i++) if (terrain[i] === '~' && !out[i]) out[i] = 9;
+  return out;
+}
+
 /** Cases du dehors d'un intérieur : même règle que le plateau peint (BattleBoard, paintInterior). */
 function outsideOf(terrain: string, cols: number, rows: number) {
   const at = (x: number, y: number) => (x < 0 || y < 0 || x >= cols || y >= rows ? '#' : terrain[y * cols + x]);
@@ -126,7 +148,23 @@ export async function dressBoard(canvas: HTMLCanvasElement, cols: number, rows: 
     under = tex(sol, 'sol');
     steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === '.', under, 0.9));
     steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === ',', tex(mode === 'neige' ? ['neige'] : ['champ', 'herbe'], 'champ'), 0.95));
-    steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === '~', tex(mode === 'neige' ? ['glace', 'eau'] : ['eau'], 'eau'), 0.9));
+    // Eau : peu profonde près des berges, profonde au large (distance en cases à la terre) ; berges de terre mouillée.
+    if (mode === 'neige') steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === '~', tex(['glace', 'eau'], 'eau'), 0.9));
+    else {
+      const depth = waterDepth(terrain, cols, rows);
+      const byUsage = (u: string, seed: string) => pickTexture(images.filter((i) => i.usage?.includes(u)), { cats: ['eau'], ...ctxPick, seed });
+      const shallow = byUsage(mode === 'chaud' ? 'claire' : 'boueuse', 'eau-s') ?? byUsage('peu-profonde', 'eau-s') ?? tex(['eau'], 'eau');
+      const deep = byUsage('profonde', 'eau-p');
+      steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === '~', shallow, 0.95));
+      steps.push(() => fillCells(ctx, C, cols, terrain, (k, i) => k === '~' && depth[i] === 2, deep, 0.45));
+      steps.push(() => fillCells(ctx, C, cols, terrain, (k, i) => k === '~' && depth[i] >= 3, deep, 0.9));
+      steps.push(async () => {
+        ctx.save();
+        ctx.fillStyle = mode === 'chaud' ? 'rgba(196,173,124,.35)' : mode === 'froid' ? 'rgba(111,106,94,.35)' : 'rgba(80,66,44,.32)';
+        for (let i = 0; i < terrain.length; i++) if ((terrain[i] === '.' || terrain[i] === ',') && depth[i] === -1) ctx.fillRect((i % cols) * C, Math.floor(i / cols) * C, C, C);
+        ctx.restore();
+      });
+    }
     steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === '=', tex(['planches'], 'pont'), 1));
     steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === ':', tex(mode === 'neige' ? ['neige'] : ['eboulis'], 'eboulis'), 0.9));
   }
