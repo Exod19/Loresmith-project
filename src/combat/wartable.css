@@ -604,3 +604,8 @@
 }
 .battle-place-hint{display:block}
 .battle-place-hint small{display:block}
+
+/* Fiche de héros : maîtrises des jets de sauvegarde. */
+.hero-saves-row{display:flex;flex-wrap:wrap;gap:6px}
+.hero-saves-row label{display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:6px;border:1px solid rgba(201,162,74,.25);font-size:13px;cursor:pointer}
+.hero-saves-row label.on{border-color:#ecd289;background:rgba(236,210,137,.1);color:#f0e2bb}

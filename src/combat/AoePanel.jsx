@@ -6,6 +6,7 @@
 import { useMemo, useState } from 'react';
 import { STATS } from '../maps/atlas/statblocks';
 import { roll } from '../maps/atlas/encounters';
+import { heroSavesText } from './saves';
 import { aoeDamage, aoeName, damageFactor, DAMAGE_TYPES, SAVE_LABEL, saveBonus } from '../maps/battle/aoe';
 
 const SCORE_KEY = { for: 'str', dex: 'dex', con: 'con', int: 'int', sag: 'wis', cha: 'cha' };
@@ -16,9 +17,10 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 function sheetOf(state, c, t) {
   const st = t?.statId ? STATS[t.statId] : null;
   const npc = c?.sourceId && !String(c.sourceId).startsWith('srd:') ? state.npcs?.[c.sourceId] : null;
+  const hero = c?.isPC ? state.characters?.[c.sourceId] ?? (t?.heroId ? state.characters?.[t.heroId] : null) : t?.heroId ? state.characters?.[t.heroId] : null;
   const text = (...xs) => xs.filter(Boolean).map(String).join('; ');
   return {
-    saves: text(c?.saves, st?.saves),
+    saves: text(hero && heroSavesText(hero), c?.saves, st?.saves),
     resist: text(st?.resist, npc?.resistances, c?.resistances),
     immune: text(st?.immune, npc?.immunities, c?.immunities),
     vuln: text(st?.vuln, npc?.vulnerabilities, c?.vulnerabilities),
