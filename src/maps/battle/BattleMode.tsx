@@ -115,7 +115,8 @@ export default function BattleMode({
   const [drag, setDrag] = useState<{ id: string; origin: { x: number; y: number }; start: { x: number; y: number }; cur: { x: number; y: number }; moved: boolean; wasSelected: boolean } | null>(null);
   /** Vrai juste après un déplacement : le clic qui suit le relâchement ne doit pas désélectionner. */
   const justDropped = useRef(false);
-  const [zoom, setZoom] = useState(1);
+  // Sur téléphone, le plateau s'ouvre zoomé (des cases assez grandes pour le doigt) et défile au glisser.
+  const [zoom, setZoom] = useState(() => (typeof window !== 'undefined' && window.innerWidth <= 760 ? 2 : 1));
   /** Élément dont la fiche est ouverte sur le plateau. */
   const [infoId, setInfoId] = useState<string | null>(null);
   // Une seule fiche ouverte à la fois : celle d'un jeton ou celle d'un élément du lieu.
@@ -252,6 +253,57 @@ export default function BattleMode({
     }
     if (added.length) set({ tokens: [...b.tokens, ...added] });
   };
+  /**
+   * Faire défiler le plateau zoomé en le glissant (doigt ou souris) depuis une case sans jeton : le défilement natif
+   * est coupé sur le plateau pour pouvoir y saisir les jetons.
+   */
+  // Plateau zoomé à l'ouverture (téléphone) : on le centre sur les héros, ou sur les jetons, plutôt que sur le coin.
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap || zoom === 1) return;
+    const focus = b.tokens.filter((t) => t.kind === 'pc');
+    const list = focus.length ? focus : b.tokens;
+    if (!list.length) return;
+    const cx = list.reduce((sum, t) => sum + t.x + t.size / 2, 0) / list.length / b.cols;
+    const cy = list.reduce((sum, t) => sum + t.y + t.size / 2, 0) / list.length / b.rows;
+    // (après la mise en page du plateau : sa hauteur dépend de l'image et de la grille)
+    const id = setTimeout(() => {
+      for (let el: HTMLElement | null = wrap; el; el = el.parentElement) {
+        const st = getComputedStyle(el);
+        if (/(auto|scroll)/.test(st.overflowX) && el.scrollWidth > el.clientWidth + 1) el.scrollLeft = cx * wrap.scrollWidth - el.clientWidth / 2;
+        if (/(auto|scroll)/.test(st.overflowY) && el.scrollHeight > el.clientHeight + 1) { el.scrollTop = cy * wrap.scrollHeight - el.clientHeight / 2; break; }
+      }
+    }, 300);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const panned = useRef(false);
+  const startPan = (e: ReactPointerEvent) => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    const scroller = (axis: 'x' | 'y') => {
+      for (let el: HTMLElement | null = wrap; el; el = el.parentElement) {
+        const st = getComputedStyle(el);
+        const ov = axis === 'x' ? st.overflowX : st.overflowY;
+        const more = axis === 'x' ? el.scrollWidth > el.clientWidth + 1 : el.scrollHeight > el.clientHeight + 1;
+        if (more && (ov === 'auto' || ov === 'scroll')) return el;
+      }
+      return null;
+    };
+    const ex = scroller('x'), ey = scroller('y');
+    if (!ex && !ey) return;
+    const x0 = e.clientX, y0 = e.clientY, sl = ex?.scrollLeft ?? 0, sTop = ey?.scrollTop ?? 0;
+    panned.current = false;
+    const move = (ev: PointerEvent) => {
+      if (Math.abs(ev.clientX - x0) + Math.abs(ev.clientY - y0) > 6) panned.current = true;
+      if (ex) ex.scrollLeft = sl - (ev.clientX - x0);
+      if (ey) ey.scrollTop = sTop - (ev.clientY - y0);
+    };
+    const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up); };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', up);
+  };
   const onBoardDown = (e: ReactPointerEvent) => {
     if (e.button !== 0) return;
     if (!building) {
@@ -264,7 +316,7 @@ export default function BattleMode({
         setAiming(null);
         return;
       }
-      if (!c || !t) return;
+      if (!c || !t) { startPan(e); return; }
       e.preventDefault();
       setDrag({ id: t.id, origin: { x: t.x, y: t.y }, start: c, cur: c, moved: false, wasSelected: selectedId === t.id });
       setSelectedId(t.id);
@@ -828,6 +880,8 @@ export default function BattleMode({
             ref={wrapRef} className={`battle-board-wrap ${building ? 'building' : ''} ${zoom !== 1 ? 'zoomed' : ''} ${drag ? 'dragging' : ''}`}
             style={{ width: `${zoom * 100}%` }}
             onPointerDown={onBoardDown} onPointerMove={onBoardMove}
+            // Après un glisser de défilement, le clic qui suit ne doit pas viser une case.
+            onClickCapture={(e) => { if (panned.current) { panned.current = false; e.stopPropagation(); e.preventDefault(); } }}
             onDragOver={(e) => { if (building || e.dataTransfer.types.includes(CREATURE_DRAG)) e.preventDefault(); }}
             onDrop={(e) => {
               const creature = e.dataTransfer.getData(CREATURE_DRAG);

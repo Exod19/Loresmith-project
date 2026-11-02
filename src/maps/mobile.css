@@ -1,0 +1,85 @@
+/*
+ * Module Cartes sur téléphone (moins de 760 px de large) : tout se lit en une colonne.
+ * - Carte de navigation : la carte en haut (la moitié de l'écran, ou tout l'écran au besoin), le panneau à onglets
+ *   dessous, qui défile seul. La barre d'outils tient sur une ligne qui défile de côté.
+ * - Carte de combat : le plateau en haut (zoomé, il défile au doigt), puis le fil d'initiative et le pupitre ouvert,
+ *   onglets à l'horizontale. Rien n'est plus fixé par-dessus le plateau.
+ * Les sélecteurs commencent par `html body` pour l'emporter sur les règles de bureau (wartable.css, maps.css).
+ */
+.maps-mobile-only { display: none; }
+
+@media (max-width: 760px) {
+  html body { --mob-bar: 0px; }
+  html body .maps-mobile-only { display: inline-flex; }
+
+  /* ——— Barre d'outils : une seule ligne, qui défile de côté ——— */
+  html body .maps-viewer > .maps-toolbar { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; gap: 6px; padding: 6px 4px; }
+  html body .maps-viewer > .maps-toolbar::-webkit-scrollbar { display: none; }
+  html body .maps-viewer > .maps-toolbar > * { flex: none; }
+  html body .maps-viewer > .maps-toolbar .maps-spacer { display: none; }
+  html body .maps-viewer > .maps-toolbar .maps-title { max-width: 42vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  html body .maps-viewer > .maps-toolbar .maps-btn { padding: 6px 10px; }
+  html body .maps-viewer > .maps-toolbar select.maps-btn { max-width: 150px; }
+  html body .maps-pv .maps-btn { font-size: .78rem; padding: 6px 9px; }
+
+  /* ——— Page : pleine largeur, sans marges perdues ——— */
+  html body .maps-page:has(.maps-viewer) { max-width: none; padding: 0; }
+  html body .ls-root .wrap.lsx-content:has(.maps-viewer) { padding: 6px 6px calc(var(--mob-bar) + 12px); max-width: none; }
+
+  /* ——— Carte de navigation : carte en haut, panneau dessous ——— */
+  html body .maps-viewer:not(.has-encounter) {
+    display: flex; flex-direction: column; min-height: 0;
+    height: calc(100dvh - var(--lsx-top-h, 64px) - var(--mob-bar) - 18px);
+  }
+  html body .maps-viewer:not(.has-encounter) > .maps-body { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+  html body .maps-viewer:not(.has-encounter) .maps-canvas { flex: 0 0 50%; height: auto; min-height: 0; border-bottom: 1px solid #2e373a; }
+  html body .maps-viewer:not(.has-encounter) .maps-side { flex: 1; min-height: 0; overflow-y: auto; border-left: 0; border-top: 0; -webkit-overflow-scrolling: touch; }
+  html body .maps-viewer.map-full:not(.has-encounter) .maps-canvas { flex: 1 1 auto; }
+  html body .maps-viewer.map-full:not(.has-encounter) .maps-side { flex: 0 0 auto; max-height: 46px; overflow: hidden; }
+  html body .maps-tabs button { padding: 10px 4px; font-size: .85rem; }
+  html body .maps-viewer .maps-footer { display: none; }
+  /* Bouton « agrandir la carte », en haut à droite de la carte. */
+  html body .maps-mapsize {
+    position: absolute; top: 8px; right: 8px; z-index: 6; align-items: center; justify-content: center;
+    width: 40px; height: 40px; border-radius: 50%; border: 1px solid #6d5a36; background: rgba(12,10,7,.88); color: #ecd289; font-size: 18px;
+  }
+
+  /* ——— Carte de combat : plateau en haut, pupitre dessous ——— */
+  html body .maps-viewer.has-encounter { height: auto; overflow: visible; display: block; }
+  html body .maps-viewer.has-encounter .battle-body { display: flex; flex-direction: column; gap: 8px; height: auto; position: static; }
+  html body .maps-viewer.has-encounter .battle-canvas { margin: 0; height: auto; display: flex; flex-direction: column; gap: 6px; }
+  html body .maps-viewer .battle-bar { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px; }
+  html body .maps-viewer .battle-tools { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; gap: 6px; justify-content: flex-start; max-width: 100%; }
+  html body .maps-viewer .battle-tools > * { flex: none; }
+  html body .maps-viewer .battle-hint { display: none; }
+  html body .maps-viewer.has-encounter .battle-stage { height: 58dvh; min-height: 300px; overflow: auto; display: block; border-radius: 8px; border: 1px solid #3e3320; overscroll-behavior: contain; }
+  html body .maps-viewer.has-encounter .battle-board-wrap { max-height: none; overflow: visible; min-width: 100%; }
+  html body .maps-viewer.has-encounter .battle-board-wrap:not(.zoomed) .battle-board { height: auto; width: 100%; max-height: none; }
+  html body .maps-viewer .battle-board { max-height: none; }
+  /* Fiches posées sur le plateau : sous le plateau, en pleine largeur. */
+  html body .maps-viewer .battle-overlays { position: static; width: auto; max-height: none; margin-top: 6px; }
+
+  /* Pupitre : toujours ouvert, onglets en ligne qui défilent de côté. */
+  html body .maps-viewer.has-encounter .battle-side { position: static; width: auto; height: auto; max-height: none; overflow: visible; padding: 0; border: 0; }
+  html body .battle-side > .wt[data-inmap="1"][data-open] { height: auto; box-shadow: none; }
+  html body .battle-side > .wt[data-inmap="1"][data-open] :is(.wt-desk-head, .wt-desk-body, .wt-desk-foot) { display: block; }
+  html body .battle-side > .wt[data-inmap="1"][data-open] .wt-desk-head { display: none; }
+  html body .battle-side > .wt[data-inmap="1"][data-open] .wt-tabs { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; height: auto; padding: 0; gap: 0; scrollbar-width: none; position: sticky; top: var(--lsx-top-h, 64px); z-index: 3; background: #120e09; border-bottom: 1px solid #3e3320; }
+  html body .battle-side > .wt[data-inmap="1"][data-open] .wt-tabs button { writing-mode: horizontal-tb; transform: none; flex: none; padding: 11px 12px; font-size: 13px; letter-spacing: .04em; }
+  html body .battle-side > .wt[data-inmap="1"][data-open] .wt-tabs small { margin: 0 0 0 4px; }
+  html body .battle-side > .wt[data-inmap="1"][data-open] .wt-desk-foot { position: static; }
+  html body .battle-side > .wt[data-inmap="1"][data-open] .wt-stack { display: flex; flex-direction: column; }
+
+  /* Fil d'initiative : dans la page, juste sous le plateau (plus par-dessus). */
+  html body .wt[data-inmap="1"] .wt-init { position: static; left: auto; right: auto; bottom: auto; border-radius: 10px; border-bottom: 1px solid var(--wt-edge); box-shadow: none; margin-bottom: 8px; }
+  html body .ls-root .wrap.lsx-content:has(.wt[data-inmap="1"]) { padding-bottom: calc(var(--mob-bar) + 16px); }
+  html body .wt-init-card { width: 132px; }
+  html body .wt-btn.big { min-height: 52px; }
+
+  /* Carte de la Table de jeu */
+  html body .table-map-canvas { height: 55dvh; min-height: 300px; }
+}
+
+@media (max-width: 640px) {
+  html body { --mob-bar: 64px; }
+}

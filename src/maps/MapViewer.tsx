@@ -33,6 +33,7 @@ import { zoneOf, inZone, trailInZone } from './zone';
 import LiveEncounters, { type LiveBestiaryRef } from './LiveEncounters';
 import { buildRoutes, distancesTo, goalNodes, judgeTrail, nodeOf, verdictText, type TrailVerdict } from './route';
 import './maps.css';
+import './mobile.css';
 
 const LAYERS: Layers = { points: true, etiquettes: true, galeries: true, connexions: true, ambiance: true };
 const ZONES: { v: Zone; l: string }[] = [{ v: 'sauvage', l: 'Sauvage' }, { v: 'transit', l: 'Transit' }, { v: 'cite', l: 'Cité' }];
@@ -81,6 +82,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   const [battleOpen, setBattleOpen] = useState(startInBattle);
   const [projecting, setProjecting] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  /** Sur téléphone : la carte occupe tout l'écran (le panneau se replie à ses onglets) ou la moitié. */
+  const [mapFull, setMapFull] = useState(false);
   const [enc, setEnc] = useState<{ ctx: EncCtx; e: Encounter } | null>(null);
   const [placing, setPlacing] = useState<Draft | null>(null);
   /** Lieu que les joueurs doivent voir au centre de l'écran (demandé depuis la fiche). */
@@ -612,7 +615,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   };
 
   return (
-    <div className={`atlas-page maps-viewer ${battleOpen && renderCombat ? 'has-encounter' : ''}`}>
+    <div className={`atlas-page maps-viewer ${battleOpen && renderCombat ? 'has-encounter' : ''} ${mapFull ? 'map-full' : ''}`}>
       <div className="maps-toolbar">
         {onReturn && <button className="maps-btn gold" onClick={onReturn} title="Revenir à la Table de jeu, là où tu l’avais laissée">← Table de jeu</button>}
         {battleOpen
@@ -687,7 +690,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               layers={LAYERS}
               hidden={new Set<FeatureCategory>()}
               selectedId={selectedId}
-              onSelect={(f: AtlasFeature) => { setSelectedId(f.id); setEnc(null); }}
+              onSelect={(f: AtlasFeature) => { setSelectedId(f.id); setEnc(null); setMapFull(false); }}
               marks={dm ? partyMarks : playerPreview.marks}
               fog={dm ? null : playerPreview.fog}
               journey={overlay.travel && overlay.travel.planId === map.id ? { ...overlay.travel, label: 'Groupe' } : null}
@@ -698,6 +701,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               focusKey={focus ? String(focus.tick) : undefined}
               dm={dm}
             />
+            <button type="button" className="maps-mobile-only maps-mapsize" onClick={() => setMapFull(!mapFull)}
+              aria-label={mapFull ? 'Réduire la carte' : 'Agrandir la carte'} title={mapFull ? 'Réduire la carte' : 'Agrandir la carte'}>{mapFull ? '⤡' : '⤢'}</button>
           </div>
 
           <aside className="maps-panel maps-side">
