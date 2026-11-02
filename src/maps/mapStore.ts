@@ -86,7 +86,7 @@ export interface MapOverlay {
   /** Densité des lieux sauvages de l'Underdark (lot 29) : rares, normaux (par défaut) ou nombreux. */
   wildDensity?: 'rare' | 'normale' | 'riche';
   /** Carte de navigation chez les joueurs : brouillard de guerre, jeton du groupe, héros séparés. */
-  playerView?: { fog?: boolean; party?: boolean; heroes?: boolean };
+  playerView?: { fog?: boolean; party?: boolean; heroes?: boolean; linked?: boolean };
   /** Brouillard : points déjà découverts par plan (chemins parcourus, lieux traversés), qui restent visibles mais sombres. */
   explored?: Record<string, [number, number][]>;
   /** Dernier trajet du groupe le long d'un chemin, pour l'animer (MJ et joueurs). */

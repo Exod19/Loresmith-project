@@ -36,7 +36,7 @@ import { journeyMs } from './atlas/MapCanvas';
 import { detectLabel, noticedPassively, passiveOf, trailProfile } from './atlas/trails';
 import Interactables from './Interactables';
 import CampaignGuide, { type BestiaryRef, type GuideCampaign, type GuidePlace } from './CampaignGuide';
-import { onPlayerFollow, onPlayerFork, onPlayerGoto, onPlayerPick, publishStage } from '../present/stage';
+import { onPlayerFollow, onPlayerFork, onPlayerGoto, onPlayerPick, onPlayerView, publishStage, publishView } from '../present/stage';
 import { zoneOf, inZone, trailInZone } from './zone';
 import LiveEncounters, { type LiveBestiaryRef } from './LiveEncounters';
 import { buildRoutes, distancesTo, goalNodes, judgeTrail, nodeOf, verdictText, type TrailVerdict } from './route';
@@ -122,6 +122,9 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   const [battleOpen, setBattleOpen] = useState(startInBattle);
   /** Lieux sauvages (carte du monde) : brouillons de la fenêtre affichée, assez rapprochée, pour le MJ seulement. */
   const [wildBox, setWildBox] = useState<[number, number, number, number] | null>(null);
+  /** Vue liée : dernier cadrage du MJ, et cadrage reçu d'un écran joueur. */
+  const lastBox = useRef<[number, number, number, number] | null>(null);
+  const [remoteView, setRemoteView] = useState<{ box: [number, number, number, number]; key: number } | null>(null);
   const wildOn = rec.kind === 'monde' && dm && !battleOpen && planId === worldPlanId(rec.id);
   // Underdark (lot 28) : les brouillons du plan affiché, le long de ses galeries.
   const deepOn = rec.kind === 'atlas' && dm && !battleOpen;
@@ -718,6 +721,15 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     setCross({ picking: false, to, at, path: from ? crossPath(rec, from, at) : null, by });
   };
   // Les joueurs proposent une destination hors route depuis leur écran : le MJ voit le chemin et décide.
+  // Vue liée : un écran joueur recadre, la carte du MJ suit ; à l'activation, les joueurs reprennent le cadrage du MJ.
+  const planRef = useRef(planId); planRef.current = planId;
+  useEffect(() => onPlayerView((pid, box) => { if (pid === planRef.current) setRemoteView({ box, key: Date.now() }); }), []);
+  useEffect(() => {
+    if (!pv.linked || !projecting) return;
+    // Un instant plus tard : l'écran joueur a reçu la carte avant son cadrage.
+    const id = setTimeout(() => { if (lastBox.current) publishView(planRef.current, lastBox.current); }, 900);
+    return () => clearTimeout(id);
+  }, [pv.linked, projecting, planId]);
   const gotoRef = useRef<(at: [number, number], featureId?: string) => void>(() => {});
   gotoRef.current = (at, featureId) => {
     if (rec.kind !== 'monde' || !partyAt || party.at?.planId !== worldPlanId(rec.id)) return;
@@ -1081,7 +1093,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
             <span>Vue joueurs</span>
             {([['fog', '🌫 Brouillard', 'Brouillard de guerre : les joueurs ne voient que les lieux explorés ou révélés'],
               ['party', '👥 Groupe', 'Montrer le jeton du groupe aux joueurs'],
-              ['heroes', '🧭 Séparés', 'Montrer aux joueurs les héros partis seuls']] as const).map(([k, label, title]) => (
+              ['heroes', '🧭 Séparés', 'Montrer aux joueurs les héros partis seuls'],
+              ['linked', '🔗 Vue liée', 'Zoom et cadrage liés : ce que le MJ cadre, les joueurs le voient, et inversement']] as const).map(([k, label, title]) => (
               <button key={k} className={`maps-btn ${pv[k] ? 'gold on-soft' : ''}`} aria-pressed={!!pv[k]} title={title}
                 onClick={() => setOverlay({ ...overlay, playerView: { ...pv, [k]: !pv[k] } })}>{label}</button>
             ))}
@@ -1151,7 +1164,13 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 : dm && (placing || moving) ? addMarker : dm && movingCity && rec.world && map.id === wid ? (x, y) => { onUpdate({ world: moveCity(rec.world!, movingCity, [x, y]), updatedAt: Date.now() }); setMovingCity(null); } : undefined}
               onMovePin={dm ? (fid: string, x: number, y: number) => { if (fid.startsWith('mk-')) updateMarker(fid.slice(3), { x, y }); } : undefined}
               dataKey={`${rec.updatedAt}:${dm}:${drafts?.key ?? ''}:${drafts?.features.length ?? 0}`}
-              onView={wildOn ? setWildBox : undefined}
+              onView={(box, remote) => {
+                if (wildOn) setWildBox(box);
+                lastBox.current = box;
+                // Vue liée : le cadrage du MJ suit chez les joueurs (pas celui qu'on vient de recevoir d'eux).
+                if (pv.linked && projecting && !remote) publishView(map.id, box);
+              }}
+              syncView={pv.linked && dm ? remoteView : null}
               ghosts={dm && neighbours && ghostOn ? { above: neighbours.above, below: neighbours.below, opacity: ghostOpacity } : undefined}
               onZoomLimit={onZoomLimit}
               exploring={exploring}
