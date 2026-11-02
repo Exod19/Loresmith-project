@@ -127,7 +127,12 @@ export function journeyMs(points: [number, number][], W: number, H: number) {
   return Math.min(24000, Math.max(8000, (total / W) * 48000));
 }
 
-export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, onMovePin, dataKey, dm, marks = [], fog, journey, onZoomLimit, exploring, ghosts, onView, preview }: {
+/** Diamètre réel d'un jeton de personnage sur un plan (mètres), et taille minimale à l'écran pour le montrer. */
+const TOKEN_M = 1.1, TOKEN_MIN_PX = 14;
+/** Orientation stable d'un jeton (degrés), tirée de son identifiant : les PNJ ne regardent pas tous au nord. */
+const angleOf = (id: string) => { let h = 2166136261; for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619); return (h >>> 0) % 360; };
+
+export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, onMovePin, dataKey, dm, marks = [], fog, journey, onZoomLimit, exploring, ghosts, onView, preview, tokenOf }: {
   map: AtlasMap; layers: Layers; hidden: Set<FeatureCategory>;
   /** Mode MJ : révèle les passages secrets. Hors MJ, la carte est une carte de lore. */
   dm: boolean;
@@ -158,6 +163,11 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   onView?: (box: [number, number, number, number]) => void;
   /** Trajet proposé, avant le départ (hors route, carte du monde) : tracé en pointillés. */
   preview?: [number, number][] | null;
+  /**
+   * Jeton vu de dessus d'un lieu (PNJ posé sur un plan de surface ou d'intérieur) : dessiné à sa taille réelle, orienté,
+   * sans socle, à la place du marqueur dès qu'il est assez grand à l'écran.
+   */
+  tokenOf?: (f: AtlasFeature) => string | undefined;
 }) {
   // Le groupe en chemin : position courante le long du tracé, image par image.
   const [walker, setWalker] = useState<[number, number] | null>(null);
@@ -668,17 +678,25 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
             const f = features.get(g.featureId)!; const [x0, y0] = g.coordinates as [number, number]; const cat = CATEGORIES[f.category];
             const dragged = pinDrag && pinDrag.id === f.id; const x = dragged ? pinDrag.x : x0; const y = dragged ? pinDrag.y : y0;
             const isFocus = focus?.kind === 'point' && focus.id === f.id; const R = PIN_R[f.importance];
+            // Jeton du PNJ : son diamètre réel (TOKEN_M) en pixels d'écran ; trop petit, le marqueur reste.
+            const tok = surf && (f.token ?? tokenOf?.(f));
+            const tokPx = tok ? (TOKEN_M / surf.scale) * pxPerUnit : 0;
+            const asToken = !!tok && tokPx >= TOKEN_MIN_PX;
             return (
-              <g key={g.id} className={`am-pin imp-${f.importance} ${selectedId === f.id ? 'is-sel' : ''} ${isFocus ? 'is-focus' : ''} ${f.draft ? 'is-draft' : ''} ${f.wild ? 'is-wild' : ''}`} style={{ '--c': cat.color } as React.CSSProperties}
+              <g key={g.id} className={`am-pin imp-${f.importance}${asToken ? ' is-token' : ''} ${selectedId === f.id ? 'is-sel' : ''} ${isFocus ? 'is-focus' : ''} ${f.draft ? 'is-draft' : ''} ${f.wild ? 'is-wild' : ''}`} style={{ '--c': cat.color } as React.CSSProperties}
                 transform={`translate(${x * W} ${y * H}) scale(${s})`} tabIndex={0} role="button" aria-label={`${f.title} — ${f.category === 'cite' && f.people ? peopleOf(f.people)!.label : cat.label}`}
                 onPointerDown={pinDown(f.id)} onPointerMove={pinMove} onPointerUp={pinUp} onPointerCancel={pinUp}
                 onClick={tap(() => onSelect(f))} onKeyDown={(e) => e.key === 'Enter' && onSelect(f)}>
                 {f.importance === 'detail' && <circle r="12" className="hit" />}
-                {f.category === 'cite' && f.people ? <CityEmblem people={f.people} R={R * 1.25} id={f.id} variant={f.emblem} /> : <>
+                {asToken ? <>
+                  <circle r={Math.max(12, tokPx / 2)} className="hit" />
+                  <circle r={tokPx / 2 + 2} className="tok-ring" />
+                  <image href={tok as string} x={-tokPx / 2} y={-tokPx / 2} width={tokPx} height={tokPx} transform={`rotate(${angleOf(f.id)})`} preserveAspectRatio="xMidYMid meet" />
+                </> : f.category === 'cite' && f.people ? <CityEmblem people={f.people} R={R * 1.25} id={f.id} variant={f.emblem} /> : <>
                   <circle r={R} className="disc" />
                   {f.importance !== 'detail' && <><circle r={R * 0.7} className="glow" /><text y={R * 0.33} textAnchor="middle" className="glyph" style={{ fontSize: R * 0.92 }}>{cat.glyph}</text></>}
                 </>}
-                {labelled.has(g.id) && (() => { const lx = f.category === 'cite' && paintedEmblem(f.people) ? R * 2.2 + 6 : R + 7; return <><text x={lx} y="4" className="lbl">{f.title}</text>{f.subtitle && <text x={lx} y="19" className="sub">{f.subtitle}</text>}</>; })()}
+                {labelled.has(g.id) && (() => { const lx = asToken ? tokPx / 2 + 6 : f.category === 'cite' && paintedEmblem(f.people) ? R * 2.2 + 6 : R + 7; return <><text x={lx} y="4" className="lbl">{f.title}</text>{f.subtitle && <text x={lx} y="19" className="sub">{f.subtitle}</text>}</>; })()}
               </g>
             );
           })}

@@ -6,6 +6,7 @@
  * toit couvre son bâtiment, un arbre sa couronne. Le dessin vectoriel déjà peint reste dessous : si une image manque,
  * le plateau reste lisible.
  */
+import { isUrban, outsideOf, waterDepth } from '../maps/battle/groundCells';
 import { bankImages, bankSrc, fitRoof, hash, maskFromParts, pickElement, pickTexture, type BankImage } from './index';
 
 const CELL_M = 1.5;
@@ -73,49 +74,6 @@ function groups(terrain: string, cols: number, rows: number, kind: string) {
 }
 
 /**
- * Profondeur de l'eau en cases : 1 au bord, 2 ensuite, 3 et plus au large (distance à la terre) ; -1 pour une case de
- * terre qui touche l'eau (la berge) ; 0 ailleurs.
- */
-export function waterDepth(terrain: string, cols: number, rows: number) {
-  const out = new Int16Array(terrain.length);
-  const queue: number[] = [];
-  const nb = (i: number) => { const x = i % cols, y = Math.floor(i / cols); return [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dy]) => [x + dx, y + dy]).filter(([a, b]) => a >= 0 && b >= 0 && a < cols && b < rows).map(([a, b]) => b * cols + a); };
-  for (let i = 0; i < terrain.length; i++) {
-    if (terrain[i] !== '~') continue;
-    if (nb(i).some((j) => terrain[j] !== '~')) { out[i] = 1; queue.push(i); }
-  }
-  for (let q = 0; q < queue.length; q++) {
-    const i = queue[q];
-    for (const j of nb(i)) if (terrain[j] === '~' && !out[j]) { out[j] = out[i] + 1; queue.push(j); }
-  }
-  for (let i = 0; i < terrain.length; i++) if (terrain[i] !== '~' && nb(i).some((j) => terrain[j] === '~')) out[i] = -1;
-  // Eau sans rivage dans le cadre (le large) : profonde partout.
-  for (let i = 0; i < terrain.length; i++) if (terrain[i] === '~' && !out[i]) out[i] = 9;
-  return out;
-}
-
-/** Cases du dehors d'un intérieur : même règle que le plateau peint (BattleBoard, paintInterior). */
-function outsideOf(terrain: string, cols: number, rows: number) {
-  const at = (x: number, y: number) => (x < 0 || y < 0 || x >= cols || y >= rows ? '#' : terrain[y * cols + x]);
-  const doorway = (x: number, y: number) => (at(x - 1, y) === '#' && at(x + 1, y) === '#') || (at(x, y - 1) === '#' && at(x, y + 1) === '#');
-  const out = new Set<number>();
-  const queue: number[] = [];
-  for (let i = 0; i < terrain.length; i++) {
-    const x = i % cols, y = Math.floor(i / cols);
-    if ((x === 0 || y === 0 || x === cols - 1 || y === rows - 1) && terrain[i] !== '#') { out.add(i); queue.push(i); }
-  }
-  while (queue.length) {
-    const i = queue.pop()!, x = i % cols, y = Math.floor(i / cols);
-    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      const nx = x + dx, ny = y + dy, j = ny * cols + nx;
-      if (nx < 0 || ny < 0 || nx >= cols || ny >= rows || out.has(j) || terrain[j] === '#' || doorway(nx, ny)) continue;
-      out.add(j); queue.push(j);
-    }
-  }
-  return out;
-}
-
-/**
  * Habille un plateau de surface (`climate`) ou d'intérieur. `alive()` : faux si un autre dessin a commencé entre-temps
  * (on abandonne alors sans rien peindre de travers).
  */
@@ -145,9 +103,7 @@ export async function dressBoard(canvas: HTMLCanvasElement, cols: number, rows: 
     steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === '#', tex(['dalles'], 'mur'), 0.75));
   } else {
     // En ville (beaucoup de bâti, peu de champs), le sol libre est pavé ; à la campagne, c'est de la terre.
-    const count = (k: string) => terrain.split(k).length - 1;
-    // Une place sans bâtiment dans le cadre (ni champ, ni bosquet) compte comme la ville.
-    const urban = !nature && (count('#') / terrain.length > 0.08 || (count(',') === 0 && count('I') < terrain.length * 0.02)) && count(',') / terrain.length < 0.1;
+    const urban = isUrban(terrain, nature);
     const sol = mode === 'neige' ? ['neige'] : mode === 'chaud' ? ['sable', 'terre'] : urban ? ['paves', 'terre'] : mode === 'froid' ? ['toundra', 'terre'] : nature ? ['herbe', 'terre'] : ['terre'];
     under = tex(sol, 'sol');
     steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === '.', under, 0.9));

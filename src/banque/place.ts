@@ -5,7 +5,7 @@
 import type { MapRecord } from '../maps/mapStore';
 import type { World } from '../maps/world/index';
 import type { LoreEntry } from '../maps/world/lore';
-import { npcImage, peoplesOf, type Peoples } from './index';
+import { npcImage, peoplesOf, topOf, type Peoples } from './index';
 
 const text = (v: unknown): string => (typeof v === 'string' ? v : Array.isArray(v) ? v.map(text).join(' ') : v && typeof v === 'object' ? Object.values(v as object).map(text).join(' ') : '');
 const entryText = (e: LoreEntry | undefined) => (e ? text([e.title, e.subtitle, e.shortSummary, e.body, e.sections]).slice(0, 6000) : '');
@@ -29,4 +29,14 @@ export function npcBankImage(rec: MapRecord, planId: string, library: LoreEntry[
   const peoples = placePeoples(rec, planId, library);
   if (!peoples) return undefined;
   return npcImage({ id: npc.id, role: npc.subtitle, peoples, vue, px });
+}
+
+/**
+ * Jeton vu de dessus d'un PNJ posé sur un plan (`<plan>:pnj-…`), le même que sur la carte de combat : son jeton propre
+ * (fiche du bestiaire), l'image de sa fiche ramenée à son jeton jumeau, ou un jeton de la banque cohérent avec le lieu.
+ */
+export function npcToken(rec: MapRecord, planId: string, library: LoreEntry[] | undefined, bestiary: { id: string; token?: string }[], f: { id: string; entryId?: string; subtitle?: string; image?: string }, px = 256) {
+  if (!f.id.startsWith(`${planId}:pnj-`)) return undefined;
+  const ref = bestiary.find((r) => r.id === f.entryId);
+  return ref?.token ?? topOf(f.image, px) ?? npcBankImage(rec, planId, library, f, 'jeton', px);
 }

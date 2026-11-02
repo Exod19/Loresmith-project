@@ -112,7 +112,11 @@ export function bankSrc(img: BankImage, px = 256): string {
 export const bankById = (id: string | undefined | null) => (id ? images.find((i) => i.id === id) ?? null : null);
 
 /** Une adresse d'image vient-elle de la banque ? (jetons : on les dessine entiers et orientés, sans médaillon). */
-export const isBankSrc = (src: string | undefined) => !!src && ((src.includes('/banque/personnages/') && src.endsWith('.webp')) || own.some((i) => i.vue === 'jeton' && i.src === src));
+export const isBankSrc = (src: string | undefined) => {
+  const img = bankImageOf(src);
+  // Image du catalogue retirée depuis (jeton enregistré dans un ancien combat) : on la dessine comme un jeton.
+  return img ? img.vue === 'jeton' : !!src && src.includes('/banque/personnages/') && src.endsWith('.webp');
+};
 
 /**
  * Image d'un PNJ (portrait ou jeton), cohérente avec le lieu : `role` (sous-titre du PNJ), `place` (fiche de la cité ou
@@ -123,6 +127,37 @@ export function npcImage({ id, role, placeText, people, region = 'surface', vue 
 }): string | undefined {
   const pe = peoples ?? peoplesOf({ text: placeText, people, region });
   const genre = /\b(elle|femme|fille|dame|soeur|mere|tavern(i|e)ere|servante|pretresse|marchande)\b/.test((role ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')) ? 'f' as const : undefined;
-  const img = pickPerson(images, { vue, role, peoples: pe, seed: id, genre });
+  // Le portrait et le jeton d'un même PNJ montrent la même personne : on tire le jeton, puis on prend son portrait jumeau.
+  const token = pickPerson(images, { vue: 'jeton', role, peoples: pe, seed: id, genre });
+  const twin = vue === 'portrait' ? bankById(token?.paire) : null;
+  const img = vue === 'jeton' ? token : twin && !twin.exclu ? twin : pickPerson(images, { vue, role, peoples: pe, seed: id, genre });
   return img ? bankSrc(img, px) : undefined;
+}
+
+/** Image de la banque derrière une adresse (catalogue : `/banque/personnages/<id>-<taille>.webp` ; ajout du MJ : sa source). */
+export function bankImageOf(src: string | undefined): BankImage | null {
+  if (!src) return null;
+  const m = /\/banque\/personnages\/(.+)-\d+\.webp$/.exec(src);
+  return m ? bankById(m[1]) : own.find((i) => i.src === src) ?? null;
+}
+
+/**
+ * Image de face d'un jeton (fiche, carte d'information) : le portrait jumeau d'un jeton de la banque, ou l'image
+ * elle-même si c'est déjà un portrait. undefined : ce n'est pas une image de la banque, ou elle n'a pas de portrait.
+ */
+export function faceOf(src: string | undefined, px = 512): string | undefined {
+  const img = bankImageOf(src);
+  if (!img) return undefined;
+  if (img.vue === 'portrait') return src;
+  const twin = bankById(img.paire);
+  return twin && twin.vue === 'portrait' ? bankSrc(twin, px) : undefined;
+}
+
+/** Jeton vu de dessus d'une image de la banque : le jeton jumeau d'un portrait, ou l'image si c'est déjà un jeton. */
+export function topOf(src: string | undefined, px = 128): string | undefined {
+  const img = bankImageOf(src);
+  if (!img) return src;
+  if (img.vue === 'jeton') return src;
+  const twin = bankById(img.paire);
+  return twin && twin.vue === 'jeton' ? bankSrc(twin, px) : src;
 }

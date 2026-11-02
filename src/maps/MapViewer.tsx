@@ -49,6 +49,7 @@ import TalkPanel from './world/TalkPanel';
 import { canSpeak } from './world/speech';
 import { isHiddenNpc } from './world/interior';
 import { normalizeEntity } from '../bestiary/entityGen';
+import { npcToken } from '../banque/place';
 import type { Period, Season } from './world/generate';
 import { SEASONS } from './world/seasons';
 import type { LoreEntry } from './world/lore';
@@ -299,6 +300,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   /** Le personnage du MJ sur le plan affiché (mode Exploration). */
   const av = rec.world?.avatar;
   const avatarMarks: MapMark[] = exploring && av?.at && av.at.planId === map.id ? [{ id: 'mj', x: av.at.at[0], y: av.at.at[1], label: `🎭 ${av.name || 'MJ'}`, tone: 'dm' }] : [];
+  /** Jetons des PNJ posés sur le plan : les mêmes que sur la carte de combat, sans socle. */
+  const npcTokenOf = (f: AtlasFeature) => npcToken(rec, map.id, library, bestiary, f);
   /** Aperçu « Joueurs » : mêmes jetons et même brouillard que sur l'écran joueur. */
   const playerPreview = useMemo(() => {
     if (dm) return { marks: [] as MapMark[], fog: null };
@@ -385,13 +388,15 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   );
 
   // Fonction changée à chaque rendu : lue par référence pour ne pas relancer la projection.
+  const tokenRef = useRef(npcTokenOf);
+  tokenRef.current = npcTokenOf;
   const artRef = useRef(artOf);
   artRef.current = artOf;
 
   // Projection : toute modification de la carte, du repérage ou du combat part vers l'écran joueur.
   useEffect(() => {
     if (!projecting) return;
-    publishStage({ kind: 'board', board: battleOpen ? battleBoard(rec, (name, id) => artRef.current?.(name, id) ?? '') : mapBoard(rec, atlas, map.id, focus ?? undefined) });
+    publishStage({ kind: 'board', board: battleOpen ? battleBoard(rec, (name, id) => artRef.current?.(name, id) ?? '') : mapBoard(rec, atlas, map.id, focus ?? undefined, (f) => tokenRef.current(f)) });
   }, [projecting, battleOpen, rec, atlas, map.id, focus]);
 
   /** Amène la vue joueurs sur ce lieu : le révèle si besoin, centre la carte chez eux, et démarre la projection. */
@@ -1158,6 +1163,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               focus={focus ? { kind: 'point', id: focus.id } : null}
               focusKey={focus ? String(focus.tick) : undefined}
               dm={dm}
+              tokenOf={npcTokenOf}
             />
             <button type="button" className="maps-mobile-only maps-mapsize" onClick={() => setMapFull(!mapFull)}
               aria-label={mapFull ? 'Réduire la carte' : 'Agrandir la carte'} title={mapFull ? 'Réduire la carte' : 'Agrandir la carte'}>{mapFull ? '⤡' : '⤢'}</button>

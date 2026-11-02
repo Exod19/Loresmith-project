@@ -7,6 +7,7 @@
  * « Suivre » un passage ramène sur la carte de navigation, à sa destination, et y déplace le groupe.
  */
 import { npcBankImage } from '../../banque/place';
+import { topOf } from '../../banque';
 import type { LoreEntry } from '../world/lore';
 import { terrainAt, type Relief } from '../world/terrain';
 import { boardTheme } from './theme';
@@ -35,7 +36,7 @@ import { detectLabel, trailProfile } from '../atlas/trails';
 import { describeLite } from '../atlas/lore';
 import { placeEncounter, type EncounterGroup } from './encounter';
 import { askAI, aiReady, parseJson } from '../../ai/client';
-import { baseGridOf, effectiveOf, fits, isDashing, moveLeft, overlaps, placeTokens as placeOnBoard, surfaceOf, usedMove, withMove } from './placement';
+import { baseGridOf, effectiveOf, fits, isDashing, moveLeft, overlaps, paintedOf, placeTokens as placeOnBoard, surfaceOf, usedMove, withMove } from './placement';
 import { hazardsOf, moveField, moverOf, occupancy, planMove, reachDetail, type MovePlan, type Mover } from './movement';
 import { roll } from '../atlas/encounters';
 import { OPENABLE, socleOf, TERRAIN_DEF, TERRAINS, type BattleObject, type ObjectKind, type SurfaceRules, type TerrainId } from './surface';
@@ -289,6 +290,7 @@ export default function BattleMode({
   const grid = effectiveOf(bv);
   /** Classification des cases (règles) et grille de base (dessin). */
   const rules = surfaceOf(bv);
+  const painted = paintedOf(bv);
   const baseGrid = baseGridOf(bv);
   // Zones d'effet posées, et celle qu'on est en train de placer.
   const aoeViews = [
@@ -349,7 +351,7 @@ export default function BattleMode({
           id, name: f.title, kind: 'other', x: best.x, y: best.y, size: 1, visible: !f.hiddenNpc || revealed.has(f.id),
           npcId: ref?.id, hp: ref?.hp, maxHp: ref?.hp, ac: ref?.ac,
           // Sans jeton propre : un jeton de la Banque Loresmith, cohérent avec la cité (peuple, rôle).
-          image: ref?.token ?? f.image ?? npcBankImage(rec, plan.id, library, f),
+          image: ref?.token ?? topOf(f.image) ?? npcBankImage(rec, plan.id, library, f),
         }];
       }
     }
@@ -875,7 +877,7 @@ export default function BattleMode({
       id: t.id, name: t.name, kind: t.kind, x: at.x, y: at.y, size: t.size, icon: t.icon, image: tokenImage(t),
       selected: t.id === selectedId, hidden: !t.visible, active: t.id === b.turn, hp: t.hp, maxHp: t.maxHp, out: isOut(t), conditions: t.conditions,
       // Socle : terrain sous la position validée (pas pendant le glisser, pour éviter les clignotements).
-      socle: socleOf(rules, t) ?? undefined,
+      socle: socleOf(rules, t, painted) ?? undefined,
       elev: elevAt(rules, t) || undefined,
       ...vitalOf(t),
     };
@@ -1253,7 +1255,7 @@ export default function BattleMode({
 
         {selected && !building && !selected.unplaced && (() => {
           const m = moverFor(selected);
-          const auto = socleOf(rules, { ...selected, socle: undefined });
+          const auto = socleOf(rules, { ...selected, socle: undefined }, painted);
           const value = selected.socle?.mode === 'manuel' ? selected.socle.t : selected.socle?.mode ?? 'auto';
           const toggle = (k: 'nage' | 'vol' | 'escalade', on: boolean) => patchToken(selected.id, { modes: { ...selected.modes, [k]: on } });
           return (

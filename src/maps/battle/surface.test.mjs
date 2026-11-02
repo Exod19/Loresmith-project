@@ -12,7 +12,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const dir = mkdtempSync(join(tmpdir(), 'surface-'));
 const out = join(dir, 'bundle.mjs');
 await build({
-  stdin: { contents: "export * from './surface'; export * from './movement';", resolveDir: here, loader: 'ts' },
+  stdin: { contents: "export * from './surface'; export * from './movement'; export * from './groundCells';", resolveDir: here, loader: 'ts' },
   bundle: true, format: 'esm', platform: 'neutral', outfile: out, logLevel: 'silent',
 });
 const S = await import(pathToFileURL(out).href);
@@ -136,4 +136,37 @@ test('9. le socle suit le terrain sous le jeton, sans effet sur les règles', ()
   assert.equal(S.socleOf(r, { x: 1, y: 1, size: 1, socle: { mode: 'manuel', t: 'neige' } }), 'neige');
   const after = rules(input);
   assert.equal(JSON.stringify(after.cells), JSON.stringify(r.cells));
+});
+
+test('10. sur un plateau de surface généré, le socle montre le sol peint (pavés, champ, eau, pont, plancher)', () => {
+  // 10 × 8 : une rue en ville (bâti dense), un champ, une rivière de quatre cases de large, un pont.
+  const grid = [
+    '##..##..##',
+    '##..##..##',
+    '..........',
+    '~~~~=~~~~~',
+    '~~~~=~~~~~',
+    '~~~~=~~~~~',
+    '~~~~=~~~~~',
+    '....,,,...',
+  ].join('');
+  const r = S.compileSurface({ cols: W, rows: H, base: grid });
+  const painted = S.groundCells(grid, W, H, 'surface');
+  assert.equal(S.socleOf(r, { x: 2, y: 2, size: 1 }), 'sol', 'sans le sol peint : sol de caverne (ancien comportement)');
+  assert.equal(S.socleOf(r, { x: 2, y: 2, size: 1 }, painted), 'route');
+  assert.equal(S.socleOf(r, { x: 5, y: 7, size: 1 }, painted), 'herbes_hautes');
+  assert.equal(S.socleOf(r, { x: 0, y: 3, size: 1 }, painted), 'eau_peu_profonde');
+  assert.equal(S.socleOf(r, { x: 1, y: 4, size: 1 }, painted), 'eau_profonde');
+  assert.equal(S.socleOf(r, { x: 4, y: 4, size: 1 }, painted), 'pont');
+  assert.equal(S.groundCells(grid, W, H, 'surface-neige')[2 * W + 2], 'neige');
+  assert.equal(S.groundCells(grid, W, H, 'surface-chaud')[2 * W + 2], 'sable');
+  // Le choix du MJ l'emporte toujours.
+  assert.equal(S.socleOf(r, { x: 2, y: 2, size: 1, socle: { mode: 'manuel', t: 'boue' } }, painted), 'boue');
+  // Intérieur : plancher dedans, pavés dehors.
+  const inside = ['..........', '.########.', '.#......#.', '.#......#.', '.#......#.', '.#......#.', '.########.', '..........'].join('');
+  const p2 = S.groundCells(inside, W, H, 'interieur');
+  assert.equal(p2[3 * W + 4], 'plancher');
+  assert.equal(p2[0], 'route');
+  // En caverne : rien, le terrain des règles décide.
+  assert.equal(S.groundCells(grid, W, H, undefined), undefined);
 });

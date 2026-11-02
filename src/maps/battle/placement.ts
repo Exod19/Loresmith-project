@@ -5,7 +5,9 @@
 import type { Battle, BattleToken } from '../mapStore';
 import { blocksCell, effectiveGrid } from './terrain';
 import { applyBuild } from './build';
-import { compatGrid, compileSurface, type SurfaceRules } from './surface';
+import { compatGrid, compileSurface, type SurfaceRules, type TerrainId } from './surface';
+import { groundCells } from './groundCells';
+import { boardTheme } from './theme';
 
 /** Grille de base dessinée : terrain généré, passages creusés (secrets fermés tant qu'ils ne sont pas découverts), retouches. */
 let baseMemo: { key: unknown[]; grid: string | undefined } | null = null;
@@ -24,6 +26,15 @@ export function baseGridOf(b: Battle): string | undefined {
 /** Classification des cases (fond, zones, éléments, murs, corrections du MJ) : la source des règles de déplacement. */
 export function surfaceOf(b: Battle): SurfaceRules {
   return compileSurface({ cols: b.cols, rows: b.rows, base: baseGridOf(b), ground: b.ground, zones: b.zones, objects: b.objects, walls: b.walls, fixes: b.cellFix });
+}
+
+/**
+ * Sol peint sous chaque case (plans de surface et intérieurs générés) : le socle des jetons le reprend. Rien si le MJ a
+ * choisi un sol pour tout le plateau, ni en caverne.
+ */
+export function paintedOf(b: Battle): (TerrainId | undefined)[] | undefined {
+  if (b.ground) return undefined;
+  return groundCells(baseGridOf(b), b.cols, b.rows, boardTheme(b.local?.surface, b.local?.nature));
 }
 
 const hasSurface = (b: Battle) => !!(b.zones?.length || b.objects?.length || b.walls?.length || (b.cellFix && Object.keys(b.cellFix).length) || b.ground);

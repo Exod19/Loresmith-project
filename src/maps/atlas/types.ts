@@ -144,6 +144,8 @@ export interface AtlasFeature {
   wild?: { key: string; kind: string; teneur: 'ambiance' | 'scene' | 'quete'; danger: string; text: string; scene?: string; hook?: string; notes?: string; where?: string; biome?: string; e?: number };
   /** PNJ expressément caché (carte du monde) : pas révélé d'office, jeton caché en combat. */
   hiddenNpc?: boolean;
+  /** Jeton vu de dessus d'un PNJ (écran des joueurs) : calculé à l'envoi, jamais enregistré. */
+  token?: string;
   demo?: boolean;
 }
 

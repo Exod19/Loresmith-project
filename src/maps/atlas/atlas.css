@@ -248,6 +248,10 @@
 .am-pin.imp-detail .lbl { font: italic 11px var(--font-ui); fill: #aeb6b1; }
 .am-pin.imp-detail .disc { fill: var(--c); stroke: #0c1417; stroke-width: 1.5; }
 .am-pin .hit { fill: transparent; }
+/* Jeton d'un PNJ sur un plan (sans socle) : une ombre portée, un liseré doré quand il est choisi. */
+.am-pin.is-token image { filter: drop-shadow(0 1px 2px #000a); }
+.am-pin .tok-ring { fill: none; stroke: transparent; stroke-width: 2; }
+.am-pin.is-token:hover .tok-ring, .am-pin.is-token.is-sel .tok-ring, .am-pin.is-token.is-focus .tok-ring { stroke: #f0d6aa; }
 .am-pin.imp-local .disc { stroke-width: 1.5; }
 .am-gallery.imp-detail, .am-gallery.imp-local { animation: am-in .4s ease-out; }
 @media (prefers-reduced-motion: reduce) { .am-pin, .am-area-label, .am-gallery { animation: none; } }
