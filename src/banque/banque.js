@@ -143,7 +143,8 @@ export function pickPerson(images, { vue = 'portrait', role = '', peoples = peop
     if (forced) w = p === forced ? 6 : 0;
     else w = peoples.main.includes(p) ? 6 : (peoples.others ?? []).includes(p) ? 1 : 0;
     if (!w) continue;
-    const hit = roles.length && (img.roles ?? []).some((r) => roles.includes(r));
+    // Rôle de l'image au féminin ou au pluriel (« taverniere ») : ramené à ses formes de base, comme celui demandé.
+    const hit = roles.length && (img.roles ?? []).some((r) => roles.includes(r) || roleKeys(r).some((k) => roles.includes(k)));
     if (roles.length) w *= hit ? 8 : 1;
     if (genre && img.genre && img.genre !== genre) continue;
     if (img.pose && img.pose !== pose) continue; // assis, agenouillé, couché : seulement quand la scène le demande

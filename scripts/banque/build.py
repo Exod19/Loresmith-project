@@ -238,7 +238,7 @@ PEOPLE = [
 # Jetons appariés à un portrait : on reprend peuple et rôles du portrait.
 # Jetons pris vraiment à la verticale (on voit le dessus de la tête, pas le visage) : `angle: zenith`. Les autres sont
 # inclinés d'environ 15° (visage et pieds visibles) ; sur un plan vu de haut, la banque préfère les premiers.
-ZENITH = ['elder dwarf with book', 'halfling healer with bandage', 'funerary officiant', 'silver-haired archer',
+ZENITH = ['-zenith-jeton', 'elder dwarf with book', 'halfling healer with bandage', 'funerary officiant', 'silver-haired archer',
           'armored warrior with wooden shield', 'zenith view of a leather-clad']
 
 TOKEN_ALIASES = {
@@ -322,6 +322,54 @@ def guess(folder, title):
     return dict(nom=nom, cat='divers', taille=[2, 2], milieux=[], devine=True)
 
 
+# Noms normalisés des nouvelles images (consignes données à ChatGPT, doc « Échelle des images ») :
+#   jeton    : <peuple>-<f|m>-<rôle>[-description][-couche|-assis|-agenouille]-zenith-jeton
+#   portrait : le même nom, « portrait » au lieu de « zenith-jeton » (paire reconnue d'office)
+#   mobilier : <objet>-<matériau>-<largeur>x<profondeur> ; toit : toit-<forme>-<matériau>-<l>x<p> ;
+#   arbre    : <espèce>-<saison>-<diamètre> ; texture : texture-<matière>-<taille>m
+PEUPLE_MOTS = {'humain': 'humain', 'humaine': 'humain', 'elfe': 'elfe', 'demi-elfe': 'demi-elfe', 'nain': 'nain', 'naine': 'nain',
+               'halfelin': 'halfelin', 'halfeline': 'halfelin', 'gnome': 'gnome', 'demi-orque': 'demi-orque', 'tieffelin': 'tieffelin',
+               'tieffeline': 'tieffelin', 'drow': 'drow', 'duergar': 'duergar', 'svirfnebelin': 'svirfnebelin'}
+SAISONS = {'printemps', 'ete', 'automne', 'hiver'}
+
+
+def structured(folder, title):
+    """Étiquettes lues dans un nom normalisé ; None si le nom ne suit pas le modèle."""
+    stem = unicodedata.normalize('NFKD', title).encode('ascii', 'ignore').decode().lower().strip()
+    stem = re.sub(r'\.(png|jpe?g|webp)$', '', stem)
+    stem = re.sub(r'\s*\(\d+\)$', '', stem)  # « (2) » ajouté par le Drive à un doublon
+    stem = re.sub(r'[\s_]+', '-', stem)
+    if folder == 'people':
+        m = re.match(r'^(demi-elfe|demi-orque|[a-z]+)-([fm])-([a-z]+)(.*?)-(zenith-jeton|portrait)$', stem)
+        if not m or m.group(1) not in PEUPLE_MOTS:
+            return None
+        rest = m.group(4)
+        pose = next((p for p in ('couche', 'assis', 'agenouille') if f'-{p}' in rest), None)
+        meta = dict(nom=title.rsplit('.', 1)[0], peuple=PEUPLE_MOTS[m.group(1)], genre=m.group(2), roles=[m.group(3)],
+                    paire=stem[: m.start(5) - 1], cadre_fixe=m.group(5) == 'zenith-jeton')
+        if m.group(3) == 'enfant':
+            meta['roles'] = ['enfant']
+        if pose:
+            meta['pose'] = pose
+        return meta
+    if folder == 'textures':
+        m = re.match(r'^texture-(.+)-(\d+(?:\.\d+)?)m$', stem)
+        return dict(nom=m.group(1).replace('-', ' '), cat='sol', taille=float(m.group(2)), milieux=[], raccorder=True) if m else None
+    m = re.match(r'^toit-([a-z]+)-([a-z-]+)-(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)$', stem)
+    if m:
+        return dict(nom=f'Toit en {m.group(1).upper() if len(m.group(1)) == 1 else m.group(1)} ({m.group(2)})', cat='toit', forme=m.group(1).upper() if len(m.group(1)) == 1 else m.group(1),
+                    usage=['maison'], taille=[float(m.group(3)), float(m.group(4))], milieux=[])
+    m = re.match(r'^(.+)-(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)$', stem)
+    if m:
+        obj = m.group(1).split('-')[0]
+        return dict(nom=m.group(1).replace('-', ' '), cat='mobilier', usage=[obj], taille=[float(m.group(2)), float(m.group(3))], milieux=[])
+    m = re.match(r'^([a-z-]+?)-(printemps|ete|automne|hiver)-(\d+(?:\.\d+)?)$', stem)
+    if m:
+        d = float(m.group(3))
+        return dict(nom=m.group(1).replace('-', ' '), cat='arbre' if d >= 4 else 'arbuste', taille=[d, d], saisons=[m.group(2)], milieux=[])
+    return None
+
+
 def seamless(im):
     """Texture raccordable sur ses quatre bords : mélange avec sa copie décalée d'une demi-tuile, le poids de l'original
     s'annulant près des bords (là où la copie décalée est continue d'un bord à l'autre)."""
@@ -364,11 +412,11 @@ def main():
         has_alpha = im.mode in ('RGBA', 'LA') and im.getchannel('A').getextrema()[0] < 250
         folder = x['folder']
         if folder == 'textures':
-            kind, vue, meta = 'texture', 'tuile', match(TEXTURES, x['title'])
+            kind, vue, meta = 'texture', 'tuile', match(TEXTURES, x['title']) or structured(folder, x['title'])
         elif folder == 'people':
             kind = 'personnage'
             vue = 'jeton' if has_alpha else 'portrait'
-            meta = match(PEOPLE, x['title'])
+            meta = structured(folder, x['title']) or match(PEOPLE, x['title'])
             if meta is None:
                 t = norm(x['title'])
                 alias = next((v for k, v in TOKEN_ALIASES.items() if k in t), None)
@@ -377,7 +425,7 @@ def main():
                 if meta:
                     meta.pop('pose', None)
         else:
-            kind, vue, meta = 'element', 'zenith', match(ELEMENTS, x['title'])
+            kind, vue, meta = 'element', 'zenith', match(ELEMENTS, x['title']) or structured(folder, x['title'])
         meta = meta or guess(folder, x['title'])
         if vue == 'jeton':
             meta['angle'] = 'zenith' if any(z in norm(x['title']) for z in ZENITH) else 'incline'
@@ -385,7 +433,11 @@ def main():
         if has_alpha:
             bbox = im.getchannel('A').point(lambda a: 255 if a > 24 else 0).getbbox()
             if bbox:
+                # Jeton à cadre fixe (largeur du cadre = 1,5 m) : sa longueur réelle se lit avant le recadrage.
+                if meta.pop('cadre_fixe', False):
+                    meta['longueur'] = round(max(bbox[2] - bbox[0], bbox[3] - bbox[1]) * 1.5 / im.size[0], 2)
                 im = im.crop(bbox)
+        meta.pop('cadre_fixe', None)
         im = im.convert('RGBA' if has_alpha else 'RGB')
         if meta.pop('raccorder', False):
             im = seamless(im)

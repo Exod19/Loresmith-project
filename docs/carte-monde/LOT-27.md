@@ -49,3 +49,20 @@ génération d'après qui s'y trouve et le moment :
 - `sight.test.mjs` : murs, porte, PNJ caché, rien derrière un mur.
 - `fouille.test.mjs` : DD selon la foule, les gardes et l'heure ; répartition des trouvailles ; une pièce générée
   plus facile à fouiller la nuit que le soir.
+
+## Noms normalisés des nouvelles images
+
+- `scripts/banque/build.py` (`structured`) lit les étiquettes dans les noms de fichiers. Les modèles suivent le
+  document « Loresmith — Échelle des images » remis à ChatGPT :
+
+  | Image | Modèle de nom |
+  |---|---|
+  | Jeton | `peuple-genre-rôle-…-zenith-jeton` |
+  | Portrait jumeau | même nom, avec `portrait` |
+  | Mobilier | `objet-matériau-LxP` |
+  | Toit | `toit-forme-matériau-LxP` |
+  | Arbre | `espèce-saison-diamètre` |
+  | Texture | `texture-matière-Nm` |
+
+- Un jeton à cadre fixe (1 024 px = 1,5 m) reçoit sa longueur réelle, mesurée avant le recadrage.
+- Un rôle d'image au féminin (« taverniere ») correspond au rôle demandé (`pickPerson`).
