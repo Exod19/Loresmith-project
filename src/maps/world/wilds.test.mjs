@@ -71,3 +71,17 @@ test('les descriptions varient : un même type a de nombreux textes différents'
   const [kind, texts] = [...byKind.entries()].sort((a, b) => b[1].length - a[1].length)[0];
   assert.ok(new Set(texts).size >= Math.min(12, texts.length / 3), `${kind} : ${new Set(texts).size} textes pour ${texts.length} lieux`);
 });
+
+test('le plan d’un lieu enregistré est toujours le même, en pleine nature, avec ses points d’intérêt', async () => {
+  const { generateWildPlan } = await import('./wildPlan.js');
+  const w = { key: '3_1_0', km: [30, 12], kind: 'grotte-geant', cat: 'grotte', title: 'Grotte du géant borgne', teneur: 'scene', danger: 'dangereux', text: 'x', biome: 'tempere', e: 950, forest: 0.4 };
+  const a = generateWildPlan(w, 'p', 42);
+  assert.equal(JSON.stringify(a), JSON.stringify(generateWildPlan(w, 'p', 42)));
+  assert.equal(a.map.surface.nature, true);
+  assert.ok(a.map.surface.ground.walls.length >= 1, 'paroi de la grotte');
+  assert.ok(a.features.length >= 2 && a.features.every((f) => f.summary));
+  for (const g of a.geometries) assert.ok(g.coordinates.every((v) => v >= 0 && v <= 1));
+  const desert = generateWildPlan({ ...w, kind: 'oasis', biome: 'desert', e: 200, forest: 0 }, 'q', 42);
+  assert.ok(desert.map.surface.ground.water.length >= 1, 'une mare');
+  assert.equal(desert.map.surface.climate, 'chaud');
+});

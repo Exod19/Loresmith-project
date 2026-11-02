@@ -10,7 +10,7 @@ import { DANGER_LABEL, TENEURS, WILD_KINDS, type Danger, type Teneur } from './w
 
 const BIOME: Record<string, string> = { neige: 'terres enneigées', taiga: 'taïga', tempere: 'terres tempérées', steppe: 'steppe', desert: 'désert' };
 
-export default function WildPanel({ feature, record, draft, revealed, onSave, onReveal }: {
+export default function WildPanel({ feature, record, draft, revealed, onSave, onReveal, onEncounter }: {
   feature: AtlasFeature;
   /** L'enregistrement tel qu'il serait gardé (brouillon) ou tel qu'il est (lieu enregistré). */
   record: WildRecord;
@@ -20,6 +20,8 @@ export default function WildPanel({ feature, record, draft, revealed, onSave, on
   onSave: (r: WildRecord) => void;
   /** Montre le lieu aux joueurs (il est gardé du même coup), ou le leur cache. */
   onReveal: (r: WildRecord) => void;
+  /** Tire la rencontre du lieu (selon son type) : `force` = rencontre imposée par le MJ. */
+  onEncounter?: (force: boolean) => void;
 }) {
   const w = feature.wild!;
   const [edit, setEdit] = useState<WildRecord | null>(null);
@@ -85,6 +87,8 @@ export default function WildPanel({ feature, record, draft, revealed, onSave, on
         <button className={`maps-btn ${revealed ? 'gold' : ''}`} onClick={() => onReveal(record)} title={revealed ? 'Le cacher de nouveau aux joueurs' : 'Les joueurs le découvrent : il apparaît sur leur carte (et il est gardé)'}>
           {revealed ? '🙈 Cacher aux joueurs' : '👁 Montrer aux joueurs'}
         </button>
+        {onEncounter && <button className="maps-btn" onClick={() => onEncounter(false)} title="Jet de rencontre propre à ce lieu (le hasard décide)">🎲 Rencontre ?</button>}
+        {onEncounter && <button className="maps-btn" onClick={() => onEncounter(true)} title="Ce qu'on croise ici : rencontre tirée parmi celles qui conviennent au lieu">⚔ Rencontre du lieu</button>}
         {draft && <button className="maps-btn" onClick={() => onSave({ ...record, excluded: true })} title="Ce lieu n'existera pas : il disparaît, même en brouillon">✕ Écarter</button>}
       </div>
     </div>

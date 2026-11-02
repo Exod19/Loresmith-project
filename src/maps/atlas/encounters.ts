@@ -7,7 +7,9 @@ import { SURFACE } from './surfaceEncounters';
 
 export type Zone = 'sauvage' | 'transit' | 'cite';
 /** `surface` : carte du monde (rencontres de la surface, surfaceEncounters.ts) ; sinon l'Underdark. */
-export type EncCtx = { zone: Zone; depth: number; place: string; assassins?: boolean; surface?: boolean };
+export type EncCtx = { zone: Zone; depth: number; place: string; assassins?: boolean; surface?: boolean;
+  /** Rencontres permises (titres) : celles d'un lieu sauvage précis. */
+  titles?: string[] };
 type Group = { stat: string; dice: string; role?: string; label?: string };
 export type Entry = {
   kind: 'Créature' | 'Convoi' | 'Travailleurs' | 'Voyageurs' | 'Patrouille' | 'Signe';
@@ -155,7 +157,7 @@ export function rollEncounter(ctx: EncCtx, force = false): Encounter {
   const check = force ? 'Rencontre imposée par le MJ' : `1d20 = ${d20} (rencontre sur ${threshold} ou plus)`;
   if (!happens) return { d20, check, happens };
   // La surface et l'Underdark ne se mêlent jamais.
-  const pool = ctx.surface ? SURFACE.filter((e) => e.zones.includes(ctx.zone)) : POOL.filter((e) => e.zones.includes(ctx.zone) && (e.min ?? 1) <= ctx.depth && ctx.depth <= (e.max ?? 9) && (!e.assassins || ctx.assassins));
+  const pool = ctx.titles?.length ? SURFACE.filter((e) => ctx.titles!.includes(e.title)) : ctx.surface ? SURFACE.filter((e) => e.zones.includes(ctx.zone)) : POOL.filter((e) => e.zones.includes(ctx.zone) && (e.min ?? 1) <= ctx.depth && ctx.depth <= (e.max ?? 9) && (!e.assassins || ctx.assassins));
   const sum = pool.reduce((a, e) => a + (e.weight ?? 1), 0); let r = Math.random() * sum; let entry = pool[0];
   for (const e of pool) { r -= e.weight ?? 1; if (r <= 0) { entry = e; break; } }
   const r2 = roll('2d6'); const att = entry.kind === 'Signe' ? undefined

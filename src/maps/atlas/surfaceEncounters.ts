@@ -5,6 +5,19 @@
  */
 import type { Entry } from './encounters';
 
+/**
+ * Rencontres propres à un type de lieu sauvage (world/wilds.js) : ce qu'on y croise vraiment. Les lieux d'ambiance
+ * paisibles (source, belvédère…) tirent dans la nature en général.
+ */
+export const SITE_ENCOUNTERS: Record<string, string[]> = {
+  'grotte-geant': ['Ogre des collines'], taniere: ['Meute de loups', 'Ours brun'], 'camp-bandits': ['Brigands de grand chemin'],
+  tumulus: ['Morts sans repos'], 'champ-bataille': ['Morts sans repos'], 'ferme-ruine': ['Morts sans repos', 'Bande de gobelins'],
+  mine: ['Bande de gobelins', 'Araignées des bois'], cabane: ['Cultistes à l’œuvre', 'Chasseurs'], druides: ['Cultistes à l’œuvre', 'Meute de loups'],
+  'tour-guet': ['Bande de gobelins', 'Raid orque'], nomades: ['Marchands en route'], trappeurs: ['Chasseurs', 'Meute de loups'],
+  'ruines-ensablees': ['Gnolls affamés'], marais: ['Morts sans repos', 'Araignées des bois'], 'arbre-coeur': ['Araignées des bois', 'Ours brun'],
+  clairiere: ['Ours brun', 'Chasseurs'], menhirs: ['Cultistes à l’œuvre'], ermitage: ['Pèlerins'], 'nid-wyverne': ['Ogre des collines', 'Meute de loups'],
+};
+
 export const SURFACE: Entry[] = [
   /* ——— Sur la route ——— */
   { kind: 'Convoi', title: 'Marchands en route', zones: ['transit', 'cite'], weight: 3, peaceful: true,

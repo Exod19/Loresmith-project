@@ -78,6 +78,8 @@ export interface MapSurface {
   snow?: number;
   /** Eaux gelées : toutes, ou seulement les rivières. */
   frozen?: 'tout' | 'rivieres';
+  /** Pleine nature (plan d'un lieu sauvage) : le plateau de combat ne prend jamais l'allure d'une rue. */
+  nature?: boolean;
   /** Relief continu d'un monde à l'échelle (lot 12) : voir world/terrain.js. */
   relief?: Record<string, unknown>;
   ground: {
@@ -107,6 +109,8 @@ export interface MapDecor {
     | 'biome-neige' | 'biome-taiga' | 'biome-steppe' | 'biome-desert' | 'dune' | 'pine' | 'forest-sparse' | 'mountain' | 'snowcap'
     | 'shore' | 'shore-cold' | 'beach' | 'sea' | 'pier' | 'lake-ice' | 'stream'
     /* Intérieurs. */
+    /* Lieux sauvages (lot 26). */
+    | 'cliff'
     | 'street' | 'floor' | 'floor-stone' | 'hatch' | 'pillar' | 'stool' | 'wall-in' | 'furn' | 'table' | 'chest' | 'tomb' | 'throne' | 'bed' | 'hearth' | 'altar' | 'anvil' | 'trough' | 'stair' | 'barrel' | 'crate' | 'bars' | 'rug' | 'dais' | 'stall';
   d: string;
   /** Épaisseur du trait en unités de plan (rempart, rivière) : elle suit le zoom, contrairement aux traits fins. */

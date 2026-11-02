@@ -97,7 +97,7 @@ function Scene({ stage, rev }: { stage: Stage; rev: number }) {
   }
   if (stage.kind === 'board') {
     return stage.board.mode === 'map'
-      ? <PlayerMap board={stage.board} rev={rev} onFollow={(featureId, dir) => sendToHost?.({ type: 'follow', featureId, dir })} onPick={(featureId) => sendToHost?.({ type: 'pick', featureId })} onFork={(key, choice) => sendToHost?.({ type: 'fork', key, choice })} />
+      ? <PlayerMap board={stage.board} rev={rev} onFollow={(featureId, dir) => sendToHost?.({ type: 'follow', featureId, dir })} onPick={(featureId) => sendToHost?.({ type: 'pick', featureId })} onFork={(key, choice) => sendToHost?.({ type: 'fork', key, choice })} onGoto={(at, featureId) => sendToHost?.({ type: 'goto', at, featureId })} />
       : <PlayerBattle board={stage.board} onAim={(from, to) => sendToHost?.({ type: 'aim', from, to })} onMove={(id, x, y) => sendToHost?.({ type: 'move', id, x, y })} />;
   }
   return (
@@ -107,14 +107,20 @@ function Scene({ stage, rev }: { stage: Stage; rev: number }) {
   );
 }
 
-function PlayerMap({ board, rev, onFollow, onPick, onFork }: { board: Extract<PlayerBoard, { mode: 'map' }>; rev: number; onFollow?: (featureId: string, dir?: 'a' | 'b') => void; onPick?: (featureId: string) => void; onFork?: (key: string, choice: 'out' | 'on') => void }) {
+function PlayerMap({ board, rev, onFollow, onPick, onFork, onGoto }: { board: Extract<PlayerBoard, { mode: 'map' }>; rev: number; onFollow?: (featureId: string, dir?: 'a' | 'b') => void; onPick?: (featureId: string) => void; onFork?: (key: string, choice: 'out' | 'on') => void; onGoto?: (at: [number, number], featureId?: string) => void }) {
   setAtlasData(board.data as AtlasData);
   // Un lieu ou un chemin touché : sa fiche ; un chemin peut être suivi (le MJ valide, ou fait passer l'épreuve).
   const [picked, setPicked] = useState<AtlasFeature | null>(null);
   const [asked, setAsked] = useState<string | null>(null);
   useEffect(() => { setAsked(null); }, [board.travel?.key]);
   const map = board.data.maps.find((m) => m.id === board.planId) ?? board.data.maps[0];
+  // Carte du monde : proposer au MJ d'aller quelque part hors route (un lieu touché, ou un point de la carte).
+  const [spot, setSpot] = useState<[number, number] | null>(null);
+  const [proposed, setProposed] = useState<string | null>(null);
+  useEffect(() => { setProposed(null); }, [board.travel?.key]);
   if (!map) return <p className="present-wait">Carte vide.</p>;
+  const world = map.surface?.theme === 'monde' && !!onGoto && !!board.here;
+  const pointOf = (id: string) => board.data.geometries.find((g) => g.featureId === id && g.type === 'point')?.coordinates as [number, number] | undefined;
   return (
     <div className="maps-canvas present-map">
       <MapCanvas
@@ -123,7 +129,18 @@ function PlayerMap({ board, rev, onFollow, onPick, onFork }: { board: Extract<Pl
         focus={board.focus ? { kind: board.focus.kind, id: board.focus.id } : null}
         focusKey={board.focus ? String(board.focus.tick) : undefined}
         marks={board.marks} fog={board.fog} journey={board.travel}
+        onPlace={world ? (x, y) => { setPicked(null); setSpot([x, y]); } : undefined}
       />
+      {world && spot && !picked && (
+        <aside className="present-map-card" role="dialog" aria-label="Aller ici">
+          <button className="present-info-close" onClick={() => setSpot(null)} aria-label="Fermer">×</button>
+          <span className="present-info-kind">Hors route</span>
+          <h3>Aller par là ?</h3>
+          {proposed === 'spot'
+            ? <p className="present-aim-wait">Le MJ regarde le chemin et décide…</p>
+            : <div className="present-path-go"><button className="present-aim-btn" onClick={() => { onGoto!(spot); setProposed('spot'); }}>🧭 Proposer au MJ d’aller ici</button></div>}
+        </aside>
+      )}
       {picked && (
         <aside className="present-map-card" role="dialog" aria-label={picked.title}>
           <button className="present-info-close" onClick={() => setPicked(null)} aria-label="Fermer">×</button>
@@ -144,6 +161,11 @@ function PlayerMap({ board, rev, onFollow, onPick, onFork }: { board: Extract<Pl
               </>
             );
           })()}
+          {world && !picked.trace && pointOf(picked.id) && (
+            proposed === picked.id
+              ? <p className="present-aim-wait">Le MJ regarde le chemin et décide…</p>
+              : <div className="present-path-go"><button className="present-aim-btn" onClick={() => { onGoto!(pointOf(picked.id)!, picked.id); setProposed(picked.id); }}>🧭 Proposer d’y aller</button></div>
+          )}
           {picked.trace && onFollow && (
             asked === picked.id
               ? <p className="present-aim-wait">Le MJ décide si le groupe s’y engage…</p>

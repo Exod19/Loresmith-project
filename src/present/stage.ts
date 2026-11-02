@@ -82,9 +82,10 @@ export type Stage =
 
 /** `aim` : depuis l'écran joueur, un héros déclare qu'il attaque une cible (le MJ résout). */
 /** `move` : depuis l'écran joueur, un jeton est glissé sur une autre case (le MJ valide). */
+/** `goto` : sur la carte du monde, les joueurs proposent d'aller quelque part hors route (le MJ voit le chemin et confirme). */
 /** `fork` : à une bifurcation en chemin, les joueurs choisissent de sortir vers le passage ou de continuer. */
 /** `follow` : depuis la carte de navigation des joueurs, le groupe demande à suivre un chemin (le MJ valide ou fait l'épreuve). */
-export type StageMessage = { type: 'hello' } | { type: 'stage'; stage: Stage; at?: number } | { type: 'aim'; from: string; to: string } | { type: 'move'; id: string; x: number; y: number } | { type: 'follow'; featureId: string; dir?: 'a' | 'b' } | { type: 'pick'; featureId: string } | { type: 'fork'; key: string; choice: 'out' | 'on' };
+export type StageMessage = { type: 'hello' } | { type: 'stage'; stage: Stage; at?: number } | { type: 'aim'; from: string; to: string } | { type: 'move'; id: string; x: number; y: number } | { type: 'follow'; featureId: string; dir?: 'a' | 'b' } | { type: 'pick'; featureId: string } | { type: 'fork'; key: string; choice: 'out' | 'on' } | { type: 'goto'; at: [number, number]; featureId?: string };
 
 const CHANNEL = 'loresmith:stage:v1';
 
@@ -114,6 +115,7 @@ const moveListeners = new Set<(id: string, x: number, y: number) => void>();
 const followListeners = new Set<(featureId: string, dir?: 'a' | 'b') => void>();
 const pickListeners = new Set<(featureId: string) => void>();
 const forkListeners = new Set<(key: string, choice: 'out' | 'on') => void>();
+const gotoListeners = new Set<(at: [number, number], featureId?: string) => void>();
 
 /** À appeler une fois dans la console MJ : répond aux écrans joueurs qui se connectent. */
 export function hostStage() {
@@ -123,6 +125,7 @@ export function hostStage() {
     if (e.data?.type === 'aim') { const { from, to } = e.data; aimListeners.forEach((f) => f(from, to)); return; }
     if (e.data?.type === 'move') { const { id, x, y } = e.data; moveListeners.forEach((f) => f(id, x, y)); return; }
     if (e.data?.type === 'follow') { const { featureId, dir } = e.data; followListeners.forEach((f) => f(featureId, dir)); return; }
+    if (e.data?.type === 'goto') { const { at, featureId } = e.data; gotoListeners.forEach((f) => f(at, featureId)); return; }
     if (e.data?.type === 'fork') { const { key, choice } = e.data; forkListeners.forEach((f) => f(key, choice)); return; }
     if (e.data?.type === 'pick') { const { featureId } = e.data; pickListeners.forEach((f) => f(featureId)); return; }
     if (e.data?.type === 'stage') { if ((e.data.at ?? 0) > currentAt) superseded = true; return; }
@@ -184,4 +187,11 @@ export function onPlayerFork(listener: (key: string, choice: 'out' | 'on') => vo
   hostStage();
   forkListeners.add(listener);
   return () => { forkListeners.delete(listener); };
+}
+
+/** Préviens quand les joueurs proposent une destination hors route (carte du monde). */
+export function onPlayerGoto(listener: (at: [number, number], featureId?: string) => void) {
+  hostStage();
+  gotoListeners.add(listener);
+  return () => { gotoListeners.delete(listener); };
 }

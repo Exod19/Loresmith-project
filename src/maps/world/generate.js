@@ -41,6 +41,7 @@ export function rng(seed) {
 }
 
 import { generateInterior } from './interior.js';
+import { generateWildPlan, wildPlanId } from './wildPlan.js';
 import { EDGE_ANGLE, biomeOf, climateOf, smoothNoise, temperatureAt } from './climate.js';
 import { SNOW_LINE, snowOf } from './seasons.js';
 import { PACE, SCALES, TRAVEL, cityKm, nearestWater, cityRadiusKm, daysLabel, landmarksOf, reliefOf, riversOf, routeOn, slopeAt, terrainAt, toAt, travelGrid, worldFrame } from './terrain.js';
@@ -1487,7 +1488,12 @@ function terrainV2(o) {
   // Lieux sauvages enregistrés (gardés, définis ou découverts) : ils font partie du monde, comme les hameaux.
   for (const w of Object.values(world.wilds ?? {})) {
     if (!w || w.excluded || !inside(w.km)) continue;
-    addPoint({ ...base, ...wildFeatureOf(w, wid) }, ...N(w.km));
+    // Son plan (lot 26) : on y entre comme dans un hameau, au zoom le plus fort ou par « Entrer ».
+    const pid = wildPlanId(wid, w.key);
+    const wp = generateWildPlan(w, pid, seed);
+    maps.push(wp.map); features.push(...wp.features); geometries.push(...wp.geometries);
+    spaces.push({ id: wp.map.scope.id, kind: 'site', name: w.title, levelId: 'monde', stratumIds: [], mapId: pid });
+    addPoint({ ...base, ...wildFeatureOf(w, wid), opens: { kind: 'site', id: wp.map.scope.id } }, ...N(w.km));
   }
   for (const sea of world.seas ?? []) {
     // Le nom de la mer, au large de la côte la plus proche du centre du monde.

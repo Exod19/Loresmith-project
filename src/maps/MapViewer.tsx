@@ -8,6 +8,7 @@ import { CATEGORIES, connectionAt } from './atlas/model';
 import { describe as describeFeature, dmFeature } from './atlas/lore';
 import { SURFACE_CATEGORY, describeSurface } from './world/surfaceLore';
 import { rollEncounter, type EncCtx, type Encounter, type Zone } from './atlas/encounters';
+import { SITE_ENCOUNTERS } from './atlas/surfaceEncounters';
 import { calmAlert, encounterAlert, suspenseAlert, type HaltAlert } from './atlas/omens';
 import { STATS, SRD_CREDIT, mod, type Stat } from './atlas/statblocks';
 import type { AtlasData, AtlasFeature, FeatureCategory } from './atlas/types';
@@ -31,7 +32,7 @@ import { journeyMs } from './atlas/MapCanvas';
 import { detectLabel, noticedPassively, passiveOf, trailProfile } from './atlas/trails';
 import Interactables from './Interactables';
 import CampaignGuide, { type BestiaryRef, type GuideCampaign, type GuidePlace } from './CampaignGuide';
-import { onPlayerFollow, onPlayerFork, onPlayerPick, publishStage } from '../present/stage';
+import { onPlayerFollow, onPlayerFork, onPlayerGoto, onPlayerPick, publishStage } from '../present/stage';
 import { zoneOf, inZone, trailInZone } from './zone';
 import LiveEncounters, { type LiveBestiaryRef } from './LiveEncounters';
 import { buildRoutes, distancesTo, goalNodes, judgeTrail, nodeOf, verdictText, type TrailVerdict } from './route';
@@ -139,7 +140,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   /** Mode Exploration (carte du monde) : le personnage du MJ arpente le monde et le définit. */
   const [exploring, setExploring] = useState(false);
   /** Marche hors route (carte du monde) : choix de la destination, puis trajet proposé avant le départ. */
-  const [cross, setCross] = useState<{ picking: boolean; to?: PartyPlace; at?: [number, number]; path?: CrossPath | null } | null>(null);
+  const [cross, setCross] = useState<{ picking: boolean; to?: PartyPlace; at?: [number, number]; path?: CrossPath | null; by?: 'joueurs' } | null>(null);
   const [side, setSide] = useState<'lieu' | 'groupe' | 'campagne' | 'reperes' | 'monde' | 'explore'>(rec.kind === 'monde' && !(rec.world?.cities.length) ? 'monde' : 'lieu');
   useEffect(() => { if (selectedId) setSide((cur) => (cur === 'explore' ? cur : 'lieu')); }, [selectedId]);
 
@@ -699,10 +700,22 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     setOverlay({ ...overlay, explored: { ...(overlay.explored ?? {}), [map.id]: keep } });
   };
   /* ——— Hors route (carte du monde) : destination, trajet proposé, départ ——— */
-  const pickCross = (to: PartyPlace, at: [number, number]) => {
+  const pickCross = (to: PartyPlace, at: [number, number], by?: 'joueurs') => {
     const from = partyAt;
-    setCross({ picking: false, to, at, path: from ? crossPath(rec, from, at) : null });
+    setCross({ picking: false, to, at, path: from ? crossPath(rec, from, at) : null, by });
   };
+  // Les joueurs proposent une destination hors route depuis leur écran : le MJ voit le chemin et décide.
+  const gotoRef = useRef<(at: [number, number], featureId?: string) => void>(() => {});
+  gotoRef.current = (at, featureId) => {
+    if (rec.kind !== 'monde' || !partyAt || party.at?.planId !== worldPlanId(rec.id)) return;
+    if (party.halt || party.fork) { setAskNote('Les joueurs proposent une destination hors route, mais le groupe est arrêté en chemin : décide d’abord de la suite.'); return; }
+    const f = featureId ? data.features.find((x) => x.id === featureId) : undefined;
+    const to: PartyPlace = f ? { id: f.id, kind: 'feature', title: f.title, planId: worldPlanId(rec.id) } : { id: `spot:${at[0].toFixed(4)},${at[1].toFixed(4)}`, kind: 'spot', title: wildernessLabel(rec, at), planId: worldPlanId(rec.id), at };
+    if (planId !== worldPlanId(rec.id)) setPlanId(worldPlanId(rec.id));
+    pickCross(to, at, 'joueurs');
+    setSide('groupe');
+  };
+  useEffect(() => onPlayerGoto((at, featureId) => gotoRef.current(at, featureId)), []);
   const startCross = () => {
     if (!cross?.to || !cross.at || !cross.path) return;
     if (party.halt || party.fork) { setAskNote('Le groupe est arrêté en chemin : décide d’abord de la suite.'); return; }
@@ -712,7 +725,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     if (draft) saveWild(draft);
     const p = cross.path;
     go({ f: { id: OFFROAD, title: 'à travers la campagne' }, leg: { dir: 'b', to: cross.to, points: p.pts, hours: p.hours, toward: '', cross: { to: cross.to, at: cross.at } } },
-      `Le groupe quitte les routes vers ${cross.to.title} (${p.km} km à travers la campagne).`);
+      `Le groupe quitte les routes vers ${cross.to.title} (${p.km} km à travers la campagne)${cross.by === 'joueurs' ? ', à la demande des joueurs' : ''}.`);
     setCross(null);
   };
 
@@ -1295,7 +1308,12 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
             {dm && side === 'lieu' && rec.kind === 'monde' && feature?.wild && wildRecordFor(feature) && (
               <WildPanel key={feature.id} feature={feature} record={wildRecordFor(feature)!} draft={!!feature.draft}
                 revealed={overlay.revealed.includes(feature.id)}
-                onSave={(r) => saveWild(r)} onReveal={(r) => saveWild(r, !overlay.revealed.includes(feature.id))} />
+                onSave={(r) => saveWild(r)} onReveal={(r) => saveWild(r, !overlay.revealed.includes(feature.id))}
+                onEncounter={(force) => {
+                  const titles = SITE_ENCOUNTERS[feature.wild!.kind];
+                  const ctx: EncCtx = { zone: 'sauvage', depth: 1, place: feature.title, surface: true, titles };
+                  setEnc({ ctx, e: rollEncounter(ctx, force) });
+                }} />
             )}
             {dm && side === 'lieu' && rec.kind === 'monde' && feature && !feature.wild && (
               <div className="maps-actions world-enter">
@@ -1386,6 +1404,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 )}
                 {cross && !cross.picking && cross.to && (
                   <>
+                    {cross.by === 'joueurs' && <p className="trail-asked">👀 Les joueurs proposent d’aller ici : confirme ou refuse.</p>}
                     <p className="maps-sub">Vers <b>{cross.to.title}</b></p>
                     {cross.path ? (
                       <>
@@ -1395,9 +1414,9 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                             .filter(Boolean).join(' · ') || 'Terrain dégagé'}
                         </p>
                         <div className="maps-actions">
-                          <button className="maps-btn gold" onClick={startCross}>Partir</button>
-                          <button className="maps-btn" onClick={() => setCross({ picking: true })}>Autre destination</button>
-                          <button className="maps-btn" onClick={() => setCross(null)}>Annuler</button>
+                          <button className="maps-btn gold" onClick={startCross}>{cross.by === 'joueurs' ? 'Accepter : partir' : 'Partir'}</button>
+                          {cross.by !== 'joueurs' && <button className="maps-btn" onClick={() => setCross({ picking: true })}>Autre destination</button>}
+                          <button className="maps-btn" onClick={() => setCross(null)}>{cross.by === 'joueurs' ? 'Refuser' : 'Annuler'}</button>
                         </div>
                       </>
                     ) : (

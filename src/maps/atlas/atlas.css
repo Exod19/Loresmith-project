@@ -716,3 +716,4 @@
 .am-pin.is-wild.is-draft .lbl { font-style: italic; }
 .am-pin.is-wild.is-draft.is-sel, .am-pin.is-wild.is-draft:hover { opacity: 1; }
 .am-preview { stroke: #ecd289; opacity: .95; filter: drop-shadow(0 0 3px rgba(0,0,0,.9)); }
+.am-surface .dc-cliff { fill: #6b655a; stroke: #2e2a24; stroke-width: 3; filter: drop-shadow(0 6px 6px rgba(0,0,0,.55)); }

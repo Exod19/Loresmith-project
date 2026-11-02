@@ -207,9 +207,10 @@ async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: numbe
   paintGen.set(canvas, gen);
   const alive = () => paintGen.get(canvas) === gen;
   if (theme?.startsWith('surface')) {
-    const climate = theme === 'surface-froid' ? 'froid' : theme === 'surface-chaud' ? 'chaud' : theme === 'surface-neige' ? 'neige' : 'tempere';
-    paintSurface(ctx, cols, rows, terrain, climate);
-    await dressBoard(canvas, cols, rows, terrain, climate, CELL_PX, alive);
+    const climate = theme.includes('froid') ? 'froid' : theme.includes('chaud') ? 'chaud' : theme.includes('neige') ? 'neige' : 'tempere';
+    const nature = theme.endsWith('-nature');
+    paintSurface(ctx, cols, rows, terrain, climate, nature);
+    await dressBoard(canvas, cols, rows, terrain, climate, CELL_PX, alive, nature);
     return;
   }
   if (theme === 'interieur') { paintInterior(ctx, cols, rows, terrain); await dressBoard(canvas, cols, rows, terrain, 'interieur', CELL_PX, alive); return; }
@@ -257,9 +258,10 @@ const SURFACE_PALETTE = {
   chaud: { ground: '#8a7650', field: '#8a7a42', furrow: 'rgba(180,160,90,.55)', roof: '#d2b07a', roofHi: '#e0c290', roofEdge: '#6d5634', water: '#1f6a78', tree: '#4e6a2c', treeHi: '#6c8a3a' },
 };
 
-function paintSurface(ctx: CanvasRenderingContext2D, cols: number, rows: number, terrain: string | undefined, climate: keyof typeof SURFACE_PALETTE = 'tempere') {
+function paintSurface(ctx: CanvasRenderingContext2D, cols: number, rows: number, terrain: string | undefined, climate: keyof typeof SURFACE_PALETTE = 'tempere', nature = false) {
   const C = CELL_PX;
-  const P = SURFACE_PALETTE[climate];
+  // Pleine nature : une paroi (case bloquée) est de la roche, pas un toit.
+  const P = nature ? { ...SURFACE_PALETTE[climate], roof: '#5d5a52', roofHi: '#6e6a60', roofEdge: '#2b2924' } : SURFACE_PALETTE[climate];
   ctx.fillStyle = P.ground;
   ctx.fillRect(0, 0, cols * C, rows * C);
   if (!terrain) return;

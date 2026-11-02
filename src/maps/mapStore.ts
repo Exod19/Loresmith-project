@@ -209,7 +209,9 @@ export interface Battle {
     /** Plateau tiré d'un plan de surface (cité, monde) : rues et bâtiments plutôt que roche ; `interieur` : dans un bâtiment. */
     surface?: boolean | 'interieur' | 'froid' | 'chaud' | 'neige';
     /** Galeries intérieures retirées : seules restent les sorties au bord et les passages secrets à travers la roche. */
-    trimmed?: boolean };
+    trimmed?: boolean;
+    /** Plan d'un lieu sauvage (pleine nature) : sol d'herbe et de terre, paroi de roche, jamais de pavés ni de toits. */
+    nature?: boolean };
   /** Identifiant de la rencontre dont les créatures sont déjà placées sur le plateau. */
   encounterOf?: string;
   /** Construction manuelle : surcharges du terrain généré et objets déposés (cf. battle/build.ts). */
