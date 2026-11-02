@@ -183,9 +183,9 @@ function loadUrl(url: string): Promise<HTMLImageElement> {
 
 /** Angle d'un jeton de la banque : face au jeton du camp d'en face le plus proche (le groupe face aux monstres, et
  *  inversement) ; à défaut, vers le centre du plateau occupé. */
-function facing(t: PlayerToken, all: PlayerToken[]) {
-  const foe = (o: PlayerToken) => o.id !== t.id && !o.out && (t.kind === 'pc' ? o.kind !== 'pc' : o.kind === 'pc');
-  let best: PlayerToken | null = null, bd = Infinity;
+function facing(t: BoardToken, all: BoardToken[]) {
+  const foe = (o: BoardToken) => o.id !== t.id && !o.out && (t.kind === 'pc' ? o.kind !== 'pc' : o.kind === 'pc');
+  let best: BoardToken | null = null, bd = Infinity;
   for (const o of all) if (foe(o)) { const d = Math.hypot(o.x - t.x, o.y - t.y); if (d < bd) { bd = d; best = o; } }
   if (!best) {
     const others = all.filter((o) => o.id !== t.id);

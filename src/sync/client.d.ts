@@ -1,0 +1,28 @@
+/** Types du client de synchronisation (client.js) : les réponses du serveur restent à vérifier par l'appelant. */
+type Reply = Promise<unknown>;
+export function apiUrl(): string;
+export function setApiUrl(url: string): void;
+export function serverReachable(): Promise<boolean>;
+export function currentAccount(): Reply;
+export function signIn(email: string, password: string): Reply;
+export function signUp(name: string, email: string, password: string): Reply;
+export function signOut(): Reply;
+export function syncOnce(state: unknown, userId: string, opts?: { confirmDeletes?: boolean }): Reply;
+export function resolveOne(conflict: unknown, choice: unknown): Reply;
+export function forgetDeletions(keys: string[]): Reply;
+export function listMembers(universeId: string): Reply;
+export function invite(universeId: string, email: string, role: string): Reply;
+export function revokeInvitation(universeId: string, id: string): Reply;
+export function setMemberRole(universeId: string, userId: string, role: string): Reply;
+export function removeMember(universeId: string, userId: string): Reply;
+export function campaignMembers(campaignId: string): Reply;
+export function addCoGm(campaignId: string, userId: string): Reply;
+export function removeCoGm(campaignId: string, userId: string): Reply;
+export function invitationInfo(token: string): Reply;
+export function acceptInvitation(token: string): Reply;
+export function acceptTerms(version: string): Reply;
+export function exportAccount(): Reply;
+export function deleteAccount(confirm: string): Reply;
+export function forgetSync(): Promise<void>;
+export function bankRetouches(): Reply;
+export function putBankRetouche(id: string, patch: unknown): Reply;
