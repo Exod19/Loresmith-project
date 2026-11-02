@@ -11,7 +11,7 @@ export interface WildSite {
   biome: string; e: number; road: number; forest: number;
   near?: { name: string; km: number; dir: string };
 }
-export interface WildContext { seed: number; relief: Relief; cities: { name: string; km: [number, number]; r: number }[]; roads?: [number, number][][] }
+export interface WildContext { seed: number; relief: Relief; cities: { name: string; km: [number, number]; r: number }[]; roads?: [number, number][][]; lakes?: [number, number][][] }
 
 export const WILD_CELL: number;
 export const TENEURS: Record<Teneur, string>;

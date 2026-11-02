@@ -35,7 +35,7 @@ import { onPlayerFollow, onPlayerFork, onPlayerPick, publishStage } from '../pre
 import { zoneOf, inZone, trailInZone } from './zone';
 import LiveEncounters, { type LiveBestiaryRef } from './LiveEncounters';
 import { buildRoutes, distancesTo, goalNodes, judgeTrail, nodeOf, verdictText, type TrailVerdict } from './route';
-import { cutWalk, interiorPlanId, isAtlasLike, moveCity, useWorldSync, walkKm, wildAlong, wildDrafts, wildRecordOf, worldPlanId, type WildSighting } from './world';
+import { crossPath, cutWalk, interiorPlanId, isAtlasLike, moveCity, useWorldSync, walkKm, wildAlong, wildDrafts, wildRecordOf, wildernessLabel, worldPlanId, type CrossPath, type WildSighting } from './world';
 import WildPanel from './world/WildPanel';
 import type { WildRecord } from './world/generate';
 import WorldPanel from './world/WorldPanel';
@@ -52,6 +52,8 @@ import './mobile.css';
 
 const LAYERS: Layers = { points: true, etiquettes: true, galeries: true, connexions: true, ambiance: true };
 const ZONES: { v: Zone; l: string }[] = [{ v: 'sauvage', l: 'Sauvage' }, { v: 'transit', l: 'Transit' }, { v: 'cite', l: 'Cité' }];
+/** Pseudo-chemin de la marche hors route (carte du monde) : jamais révélé, jamais cherché parmi les tracés. */
+const OFFROAD = 'hors-route';
 const SURFACE_ZONE: Record<Zone, string> = { sauvage: 'Nature', transit: 'Sur la route', cite: 'Aux abords d’une cité' };
 const KIND_LABEL: Record<MarkerKind, string> = { rencontre: 'Rencontre', passage: 'Passage secret', objet: 'Objet', repere: 'Repère' };
 const KIND_ICON: Record<MarkerKind, string> = { rencontre: '⚔', passage: '🗝', objet: '◆', repere: '◆' };
@@ -136,6 +138,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   /** Colonne de droite de la carte de navigation (MJ) : un onglet à la fois. */
   /** Mode Exploration (carte du monde) : le personnage du MJ arpente le monde et le définit. */
   const [exploring, setExploring] = useState(false);
+  /** Marche hors route (carte du monde) : choix de la destination, puis trajet proposé avant le départ. */
+  const [cross, setCross] = useState<{ picking: boolean; to?: PartyPlace; at?: [number, number]; path?: CrossPath | null } | null>(null);
   const [side, setSide] = useState<'lieu' | 'groupe' | 'campagne' | 'reperes' | 'monde' | 'explore'>(rec.kind === 'monde' && !(rec.world?.cities.length) ? 'monde' : 'lieu');
   useEffect(() => { if (selectedId) setSide((cur) => (cur === 'explore' ? cur : 'lieu')); }, [selectedId]);
 
@@ -426,7 +430,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     let next = withPartyAt(overlay, to);
     const dest = placeCoords(data, rec, to);
     const reveal = new Set(next.revealed);
-    if (opts.trailId) reveal.add(opts.trailId);
+    if (opts.trailId && opts.trailId !== OFFROAD) reveal.add(opts.trailId);
     if (to.kind === 'feature') reveal.add(to.id);
     const points = opts.points ?? [];
     if (dest && atlasLike) {
@@ -488,9 +492,10 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
       if (spot) {
         const place: PartyPlace = { id: spot.id, kind: 'feature', title: spot.record.title, planId: map.id };
         leg = { ...leg, points: cutWalk(rec, leg.points, spot.s), hours: leg.hours * (spot.s / Math.max(0.01, total)), to: place, aside: { place, at: spot.at, side: spot.side } };
+        const onward = leg.cross ? 'votre chemin' : 'la route';
         wildFork = forkOf(e.f, leg, spot.known
-          ? { known: true, line: `Sur votre ${spot.side}, vous reconnaissez ${spot.record.title}. Vous y allez, ou vous continuez la route ?`, out: `Aller à ${spot.record.title}`, on: 'Continuer la route', wild: spot.record }
-          : { known: false, line: `${spot.line.replace('{c}', spot.side)} Vous allez voir, ou vous continuez la route ?`, out: 'Aller voir', on: 'Continuer la route', wild: spot.record });
+          ? { known: true, line: `Sur votre ${spot.side}, vous reconnaissez ${spot.record.title}. Vous y allez, ou vous continuez ${onward} ?`, out: `Aller à ${spot.record.title}`, on: `Continuer ${onward}`, wild: spot.record, cross: leg.cross }
+          : { known: false, line: `${spot.line.replace('{c}', spot.side)} Vous allez voir, ou vous continuez ${onward} ?`, out: 'Aller voir', on: `Continuer ${onward}`, wild: spot.record, cross: leg.cross });
       }
     }
     const fork = wildFork ?? (leg.aside ? forkOf(e.f, leg) : undefined);
@@ -504,7 +509,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
       const first = subpath(leg.points, 0, frac * L);
       const rest = subpath(leg.points, frac * L, L);
       const point = first[first.length - 1];
-      let next: MapOverlay = { ...overlay, revealed: overlay.revealed.includes(e.f.id) ? overlay.revealed : [...overlay.revealed, e.f.id] };
+      let next: MapOverlay = { ...overlay, revealed: e.f.id === OFFROAD || overlay.revealed.includes(e.f.id) ? overlay.revealed : [...overlay.revealed, e.f.id] };
       next = withExplored(next, map.id, first.filter((_, i) => i % 2 === 0));
       next = { ...next, travel: { key: `${Date.now()}`, planId: map.id, points: first, at: Date.now(), hold: true } };
       next = { ...next, party: { ...party, walked: nextCheck, fork: undefined, halt: {
@@ -538,7 +543,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   };
   /** Le groupe glisse jusqu'à la bifurcation et s'y arrête, sur le chemin : la question monte chez les joueurs. */
   const stopAtFork = (fork: PartyFork, points: [number, number][], opts: { note?: string; walked?: number; nextCheck?: number; alert?: HaltAlert } = {}) => {
-    let next: MapOverlay = { ...overlay, revealed: overlay.revealed.includes(fork.trailId) ? overlay.revealed : [...overlay.revealed, fork.trailId] };
+    let next: MapOverlay = { ...overlay, revealed: fork.trailId === OFFROAD || overlay.revealed.includes(fork.trailId) ? overlay.revealed : [...overlay.revealed, fork.trailId] };
     next = withExplored(next, fork.planId, [...points.filter((_, i) => i % 2 === 0), fork.point]);
     if (points.length > 1) next = { ...next, travel: { key: `${Date.now()}`, planId: fork.planId, points, at: Date.now(), hold: true } };
     const p = next.party ?? { trail: [] };
@@ -559,6 +564,24 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     const k = party.fork;
     if (!k || (key && key !== k.key)) return;
     const why = by ? ' (choix des joueurs)' : '';
+    if (k.trailId === OFFROAD) {
+      // Hors route : aller voir le lieu aperçu, reprendre le chemin vers la destination, ou rebrousser chemin.
+      const off = { id: OFFROAD, title: 'à travers la campagne' };
+      if (choice === 'out') {
+        const points: [number, number][] = [k.point, k.placeAt];
+        const leg: Leg = { dir: k.dir, to: k.place, points, hours: hoursOn(map, points), toward: '', spur: true };
+        const place = data.features.find((x) => x.id === k.place.id);
+        const hazard = place ? placeHazard(place) : null;
+        if (hazard) { setTrial({ trailId: OFFROAD, trail: `passage vers ${k.place.title}`, to: k.place, hazard, by, leg, aside: true }); setSide('lieu'); return; }
+        go({ f: off, leg }, `Le groupe quitte son chemin vers ${k.place.title}${why}.`);
+        return;
+      }
+      const target = choice === 'back' ? (k.from ? { to: k.from, at: placeCoords(data, rec, k.from) } : null) : k.cross ? { to: k.cross.to, at: k.cross.at } : null;
+      const path = target?.at ? crossPath(rec, k.point, target.at) : null;
+      if (!target?.at || !path) { setAskNote('Impossible de reprendre ce chemin d’ici : choisis une destination hors route dans l’onglet Groupe.'); return; }
+      go({ f: off, leg: { dir: k.dir, to: target.to, points: path.pts, hours: path.hours, toward: '', cross: { to: target.to, at: target.at } } }, choice === 'back' ? `Le groupe rebrousse chemin${why}.` : undefined);
+      return;
+    }
     const f = data.features.find((x) => x.id === k.trailId);
     if (!f) return;
     if (choice === 'out') {
@@ -616,7 +639,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     const h = party.halt;
     if (!h) return;
     // Carte du monde : rencontres de la surface, sur la route ; Atlas : celles de l'Underdark.
-    const ctx: EncCtx = rec.kind === 'monde' ? { zone: 'transit', depth: 1, place: h.trail, surface: true } : { zone: 'sauvage', depth: 3, place: h.trail };
+    const ctx: EncCtx = rec.kind === 'monde' ? { zone: h.trailId === OFFROAD ? 'sauvage' : 'transit', depth: 1, place: h.trail, surface: true } : { zone: 'sauvage', depth: 3, place: h.trail };
     const e = rollEncounter(ctx, !roll);
     setEnc({ ctx, e });
     setOverlay({ ...overlay, alert: alertFor(e), party: { ...party, halt: { ...h, encounter: true } } });
@@ -675,6 +698,24 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     const keep = around ? exploredOf(overlay, map.id).filter(([x, y]) => !around.some(([a, b]) => Math.hypot(x - a, y - b) < 0.03)) : [];
     setOverlay({ ...overlay, explored: { ...(overlay.explored ?? {}), [map.id]: keep } });
   };
+  /* ——— Hors route (carte du monde) : destination, trajet proposé, départ ——— */
+  const pickCross = (to: PartyPlace, at: [number, number]) => {
+    const from = partyAt;
+    setCross({ picking: false, to, at, path: from ? crossPath(rec, from, at) : null });
+  };
+  const startCross = () => {
+    if (!cross?.to || !cross.at || !cross.path) return;
+    if (party.halt || party.fork) { setAskNote('Le groupe est arrêté en chemin : décide d’abord de la suite.'); return; }
+    // Une destination encore en brouillon (lieu sauvage) est gardée : le groupe s'y rendra pour de vrai.
+    const target = data.features.find((x) => x.id === cross.to!.id);
+    const draft = target?.draft ? wildRecordFor(target) : null;
+    if (draft) saveWild(draft);
+    const p = cross.path;
+    go({ f: { id: OFFROAD, title: 'à travers la campagne' }, leg: { dir: 'b', to: cross.to, points: p.pts, hours: p.hours, toward: '', cross: { to: cross.to, at: cross.at } } },
+      `Le groupe quitte les routes vers ${cross.to.title} (${p.km} km à travers la campagne).`);
+    setCross(null);
+  };
+
   /* ——— Lieux sauvages (carte du monde) : garder, définir, écarter, montrer aux joueurs ——— */
   const wildPrefix = `${worldPlanId(rec.id)}:wild-`;
   /** L'enregistrement d'un lieu sauvage : celui du monde s'il est enregistré, sinon le brouillon tel qu'il serait gardé. */
@@ -1060,12 +1101,18 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               layers={LAYERS}
               hidden={new Set<FeatureCategory>()}
               selectedId={selectedId}
-              onSelect={(f: AtlasFeature) => { setSelectedId(f.id); setEnc(null); setMapFull(false); }}
+              onSelect={(f: AtlasFeature) => {
+                // Hors route : un lieu touché devient la destination.
+                if (cross?.picking) { const at = pointsOf(f.id)[0]; if (at && !f.trace) { pickCross({ id: f.id, kind: 'feature', title: f.title, planId: map.id }, at); return; } }
+                setSelectedId(f.id); setEnc(null); setMapFull(false);
+              }}
+              preview={cross?.path?.pts}
               marks={dm ? [...partyMarks, ...avatarMarks] : playerPreview.marks}
               fog={dm ? null : playerPreview.fog}
               journey={overlay.travel && overlay.travel.planId === map.id ? { ...overlay.travel, label: 'Groupe' } : null}
               onAnchor={(a) => { if (dm && rec.kind === 'monde') followAnchor(a.id); }}
-              onPlace={dm && (placing || moving) ? addMarker : dm && movingCity && rec.world && map.id === wid ? (x, y) => { onUpdate({ world: moveCity(rec.world!, movingCity, [x, y]), updatedAt: Date.now() }); setMovingCity(null); } : undefined}
+              onPlace={dm && cross?.picking ? (x, y) => pickCross({ id: `spot:${x.toFixed(4)},${y.toFixed(4)}`, kind: 'spot', title: wildernessLabel(rec, [x, y]), planId: map.id, at: [x, y] }, [x, y])
+                : dm && (placing || moving) ? addMarker : dm && movingCity && rec.world && map.id === wid ? (x, y) => { onUpdate({ world: moveCity(rec.world!, movingCity, [x, y]), updatedAt: Date.now() }); setMovingCity(null); } : undefined}
               onMovePin={dm ? (fid: string, x: number, y: number) => { if (fid.startsWith('mk-')) updateMarker(fid.slice(3), { x, y }); } : undefined}
               dataKey={`${rec.updatedAt}:${dm}:${drafts?.key ?? ''}:${drafts?.features.length ?? 0}`}
               onView={wildOn ? setWildBox : undefined}
@@ -1152,7 +1199,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 {trial.by === 'joueurs' && <p className="maps-sub">Les joueurs veulent {trial.aside ? `rejoindre ${trial.to.title}` : 'suivre ce chemin'} : faites l’épreuve.</p>}
                 <TrialPanel
                   trail={trial.trail} to={trial.to.title} hazard={trial.hazard} heroes={heroes}
-                  onPass={(summary) => go({ f: { id: trial.trailId, title: trial.trail }, leg: trial.leg }, summary)}
+                  onPass={(summary) => go({ f: { id: trial.trailId, title: trial.trailId === OFFROAD ? 'à travers la campagne' : trial.trail }, leg: trial.leg }, summary)}
                   onCancel={() => setTrial(null)}
                 />
               </div>
@@ -1318,6 +1365,48 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                       </li>
                     ))}
                   </ul>
+                )}
+              </div>
+            )}
+
+            {dm && side === 'groupe' && rec.kind === 'monde' && party.at && partyAt && map.id === worldPlanId(rec.id) && !party.halt && !party.fork && (
+              <div className="maps-card cross-card">
+                <h3>🧭 Hors route</h3>
+                {!cross && (
+                  <>
+                    <p className="maps-sub">Quitter les routes : à travers champs, forêts et collines. Le chemin suit les vallées et les cols ; tu le vois avant de partir.</p>
+                    <button className="maps-btn gold" onClick={() => setCross({ picking: true })}>Choisir une destination</button>
+                  </>
+                )}
+                {cross?.picking && (
+                  <>
+                    <p className="maps-hint">Touche un lieu, ou n’importe quel point de la carte.</p>
+                    <button className="maps-btn" onClick={() => setCross(null)}>Annuler</button>
+                  </>
+                )}
+                {cross && !cross.picking && cross.to && (
+                  <>
+                    <p className="maps-sub">Vers <b>{cross.to.title}</b></p>
+                    {cross.path ? (
+                      <>
+                        <p className="cross-sum">{cross.path.km} km à travers la campagne · ≈ {hoursLabel(cross.path.hours, true)} de marche</p>
+                        <p className="maps-sub">
+                          {[cross.path.forest ? `${cross.path.forest} % en forêt` : '', cross.path.mountain ? `${cross.path.mountain} % en montagne (jusqu’à ${Math.round(cross.path.maxE / 100) * 100} m)` : '', cross.path.snow ? `${cross.path.snow} % dans la neige` : '']
+                            .filter(Boolean).join(' · ') || 'Terrain dégagé'}
+                        </p>
+                        <div className="maps-actions">
+                          <button className="maps-btn gold" onClick={startCross}>Partir</button>
+                          <button className="maps-btn" onClick={() => setCross({ picking: true })}>Autre destination</button>
+                          <button className="maps-btn" onClick={() => setCross(null)}>Annuler</button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <p className="maps-sub">Pas de chemin à pied jusque-là (mer, lac ou autre rive).</p>
+                        <div className="maps-actions"><button className="maps-btn" onClick={() => setCross({ picking: true })}>Autre destination</button><button className="maps-btn" onClick={() => setCross(null)}>Annuler</button></div>
+                      </>
+                    )}
+                  </>
                 )}
               </div>
             )}

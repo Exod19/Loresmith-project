@@ -195,7 +195,9 @@ export type Aside = { place: PartyPlace; at: Pt; side: 'gauche' | 'droite' };
  */
 export type Leg = { dir: 'a' | 'b'; to: PartyPlace | null; points: Pt[]; hours: number; toward: string; aside?: Aside;
   /** Court chemin hors de la route vers un lieu vu en passant (pas de nouvelle découverte en route). */
-  spur?: boolean };
+  spur?: boolean;
+  /** Marche hors route (carte du monde) : la destination finale, pour reprendre après une halte ou une bifurcation. */
+  cross?: { to: PartyPlace; at: Pt } };
 
 /**
  * Les étapes d'un chemin depuis le groupe : vers chacun de ses deux bouts, la prochaine caverne ou le prochain lieu

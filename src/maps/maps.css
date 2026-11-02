@@ -299,3 +299,5 @@
 .wild-block.is-hook { border-color: #6b5aa0; background: rgba(156,123,214,.08); }
 .wild-edit label { display: flex; flex-direction: column; gap: 3px; font-size: .8rem; color: #a9aaa5; }
 .wild-edit .wild-row { display: flex; gap: 8px; } .wild-edit .wild-row label { flex: 1; }
+/* Marche hors route (carte du monde) */
+.cross-card .cross-sum { margin: 4px 0; color: #ecd289; font-weight: 600; }

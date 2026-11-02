@@ -1430,6 +1430,9 @@ export function rasterGround(surface, W, H, win, cols, rows, seed = 0) {
   return out.join('');
 }
 
+/** Lacs d'un monde à l'échelle (polygones en km), les mêmes que ceux du dessin. */
+export function worldLakes(relief) { return riversOf(relief, blob).lakes.map((l) => l.poly); }
+
 /** Lieu sauvage (brouillon tiré au sort ou enregistré) en lieu de la carte du monde. */
 export function wildFeatureOf(w, wid) {
   return {

@@ -127,7 +127,7 @@ export function journeyMs(points: [number, number][], W: number, H: number) {
   return Math.min(24000, Math.max(8000, (total / W) * 48000));
 }
 
-export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, onMovePin, dataKey, dm, marks = [], fog, journey, onZoomLimit, exploring, ghosts, onView }: {
+export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, onMovePin, dataKey, dm, marks = [], fog, journey, onZoomLimit, exploring, ghosts, onView, preview }: {
   map: AtlasMap; layers: Layers; hidden: Set<FeatureCategory>;
   /** Mode MJ : révèle les passages secrets. Hors MJ, la carte est une carte de lore. */
   dm: boolean;
@@ -156,6 +156,8 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   exploring?: boolean;
   /** Fenêtre affichée (0–1 du plan), signalée après chaque déplacement ou zoom (lieux sauvages de la carte du monde). */
   onView?: (box: [number, number, number, number]) => void;
+  /** Trajet proposé, avant le départ (hors route, carte du monde) : tracé en pointillés. */
+  preview?: [number, number][] | null;
 }) {
   // Le groupe en chemin : position courante le long du tracé, image par image.
   const [walker, setWalker] = useState<[number, number] | null>(null);
@@ -717,6 +719,10 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
               <rect x={-W} y={-H} width={W * 3} height={H * 3} fill="#030404" opacity={0.985} mask="url(#am-fog-dark)" />
               <rect x={-W} y={-H} width={W * 3} height={H * 3} fill="#04060a" opacity={fog.see ? 0.8 : 0.55} mask="url(#am-fog-dim)" />
             </g>
+          )}
+          {preview && preview.length > 1 && (
+            <path className="am-preview" d={`M${preview.map(([x, y]) => `${(x * W).toFixed(1)} ${(y * H).toFixed(1)}`).join('L')}`}
+              fill="none" strokeWidth={3 * s} strokeDasharray={`${9 * s} ${6 * s}`} strokeLinecap="round" pointerEvents="none" />
           )}
           {walker && (
             <g className="am-mark am-mark-party am-walker" transform={`translate(${walker[0] * W} ${walker[1] * H}) scale(${s})`} pointerEvents="none">

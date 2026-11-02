@@ -140,6 +140,8 @@ export interface PartyFork {
   from?: PartyPlace;
   /** Lieu sauvage aperçu depuis la route (carte du monde) : il est enregistré dès qu'on l'aperçoit. */
   wild?: WildRecord;
+  /** Marche hors route : la destination finale (continuer reprend le chemin vers elle). */
+  cross?: { to: PartyPlace; at: [number, number] };
 }
 
 /** Ce que le MJ sait d'un élément à fouiller : comment le trouver, ce qu'on y trouve, et ce que ça fait. */

@@ -189,6 +189,11 @@ const segDist = (x, y, a, b) => {
   const t = q ? Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / q)) : 0;
   return Math.hypot(x - a[0] - t * dx, y - a[1] - t * dy);
 };
+const insidePoly = (x, y, p) => {
+  let ins = false;
+  for (let a = 0, b = p.length - 1; a < p.length; b = a++) { const [xa, ya] = p[a], [xb, yb] = p[b]; if ((ya > y) !== (yb > y) && x < ((xb - xa) * (y - ya)) / (yb - ya) + xa) ins = !ins; }
+  return ins;
+};
 const pick = (r, list) => list[Math.floor(r() * list.length) % list.length];
 
 /** Identifiant stable d'un lieu : sa case et son rang dans la case. */
@@ -196,7 +201,7 @@ export const wildKey = (i, j, k) => `${i}_${j}_${k}`;
 
 /**
  * Contexte : `seed` (graine du monde), `relief` (terrain.js), `cities` [{ name, km, r }] (r : rayon en km) et
- * `roads` (polylignes en km). Renvoie les lieux des cases qui touchent la fenêtre `[x0, y0, x1, y1]` (km), sauf ceux
+ * `roads` (polylignes en km), `lakes` (polygones en km, évités). Renvoie les lieux des cases qui touchent la fenêtre `[x0, y0, x1, y1]` (km), sauf ceux
  * dont la clé est dans `skip` (déjà enregistrés : gardés, définis ou écartés).
  */
 export function wildSitesIn(ctx, box, skip = new Set()) {
@@ -226,7 +231,7 @@ export function cellSites(ctx, i, j, skip = new Set()) {
       // Pas dans une cité ni sur son terroir proche.
       if (ctx.cities.some((c) => Math.hypot(c.km[0] - x, c.km[1] - y) < c.r * 1.6 + 1)) continue;
       const t = terrainAt(ctx.relief, x, y);
-      if (t.sea) continue;
+      if (t.sea || (ctx.lakes ?? []).some((poly) => insidePoly(x, y, poly))) continue;
       spot = { x, y, t };
       break;
     }
