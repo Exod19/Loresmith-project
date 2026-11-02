@@ -51,6 +51,8 @@ export type PlayerBoard =
     travel?: { key: string; points: [number, number][]; at: number; label?: string; hold?: boolean };
     /** Annonce de halte : suspense, fausse alerte ou rencontre (avec son image). */
     alert?: HaltAlert;
+    /** Vue liée : le zoom et le cadrage suivent d'un écran à l'autre (messages `view`). */
+    linked?: boolean;
     /** Bifurcation en chemin : un passage à côté du sentier, à prendre ou non (les joueurs répondent depuis leur écran). */
     fork?: { key: string; line: string; out: string; on: string };
     /** Conversation en cours (personnage du MJ ou groupe, et un PNJ ou une créature). */
@@ -82,10 +84,12 @@ export type Stage =
 
 /** `aim` : depuis l'écran joueur, un héros déclare qu'il attaque une cible (le MJ résout). */
 /** `move` : depuis l'écran joueur, un jeton est glissé sur une autre case (le MJ valide). */
+/** `view` : vue liée (carte de navigation) : la fenêtre affichée (0–1 du plan) d'un écran, que l'autre reprend. */
 /** `goto` : sur la carte du monde, les joueurs proposent d'aller quelque part hors route (le MJ voit le chemin et confirme). */
 /** `fork` : à une bifurcation en chemin, les joueurs choisissent de sortir vers le passage ou de continuer. */
 /** `follow` : depuis la carte de navigation des joueurs, le groupe demande à suivre un chemin (le MJ valide ou fait l'épreuve). */
-export type StageMessage = { type: 'hello' } | { type: 'stage'; stage: Stage; at?: number } | { type: 'aim'; from: string; to: string } | { type: 'move'; id: string; x: number; y: number } | { type: 'follow'; featureId: string; dir?: 'a' | 'b' } | { type: 'pick'; featureId: string } | { type: 'fork'; key: string; choice: 'out' | 'on' } | { type: 'goto'; at: [number, number]; featureId?: string };
+export type StageMessage = { type: 'hello' } | { type: 'stage'; stage: Stage; at?: number } | { type: 'aim'; from: string; to: string } | { type: 'move'; id: string; x: number; y: number } | { type: 'follow'; featureId: string; dir?: 'a' | 'b' } | { type: 'pick'; featureId: string } | { type: 'fork'; key: string; choice: 'out' | 'on' } | { type: 'goto'; at: [number, number]; featureId?: string }
+  | { type: 'view'; planId: string; box: [number, number, number, number]; from: 'mj' | 'joueurs' };
 
 const CHANNEL = 'loresmith:stage:v1';
 
@@ -116,6 +120,7 @@ const followListeners = new Set<(featureId: string, dir?: 'a' | 'b') => void>();
 const pickListeners = new Set<(featureId: string) => void>();
 const forkListeners = new Set<(key: string, choice: 'out' | 'on') => void>();
 const gotoListeners = new Set<(at: [number, number], featureId?: string) => void>();
+const viewListeners = new Set<(planId: string, box: [number, number, number, number]) => void>();
 
 /** À appeler une fois dans la console MJ : répond aux écrans joueurs qui se connectent. */
 export function hostStage() {
@@ -125,6 +130,7 @@ export function hostStage() {
     if (e.data?.type === 'aim') { const { from, to } = e.data; aimListeners.forEach((f) => f(from, to)); return; }
     if (e.data?.type === 'move') { const { id, x, y } = e.data; moveListeners.forEach((f) => f(id, x, y)); return; }
     if (e.data?.type === 'follow') { const { featureId, dir } = e.data; followListeners.forEach((f) => f(featureId, dir)); return; }
+    if (e.data?.type === 'view') { if (e.data.from === 'joueurs') { const { planId, box } = e.data; viewListeners.forEach((f) => f(planId, box)); } return; }
     if (e.data?.type === 'goto') { const { at, featureId } = e.data; gotoListeners.forEach((f) => f(at, featureId)); return; }
     if (e.data?.type === 'fork') { const { key, choice } = e.data; forkListeners.forEach((f) => f(key, choice)); return; }
     if (e.data?.type === 'pick') { const { featureId } = e.data; pickListeners.forEach((f) => f(featureId)); return; }
@@ -194,4 +200,17 @@ export function onPlayerGoto(listener: (at: [number, number], featureId?: string
   hostStage();
   gotoListeners.add(listener);
   return () => { gotoListeners.delete(listener); };
+}
+
+/** Vue liée : envoie aux écrans joueurs la fenêtre affichée par le MJ (0–1 du plan). */
+export function publishView(planId: string, box: [number, number, number, number]) {
+  hostStage();
+  host?.postMessage({ type: 'view', planId, box, from: 'mj' } satisfies StageMessage);
+}
+
+/** Vue liée : préviens quand un écran joueur change de cadrage. */
+export function onPlayerView(listener: (planId: string, box: [number, number, number, number]) => void) {
+  hostStage();
+  viewListeners.add(listener);
+  return () => { viewListeners.delete(listener); };
 }

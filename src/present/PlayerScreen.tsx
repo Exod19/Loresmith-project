@@ -38,6 +38,8 @@ const FADE_OUT_MS = 700;
 
 /** Lien vers la console MJ, pour les déclarations d'attaque faites depuis l'écran joueur. */
 let sendToHost: ((m: StageMessage) => void) | null = null;
+/** Vue liée : cadrages envoyés par le MJ, distribués à la carte affichée. */
+const viewListeners = new Set<(planId: string, box: [number, number, number, number]) => void>();
 
 export default function PlayerScreen() {
   const [layers, setLayers] = useState<Layer[]>([{ id: 0, key: 'blank', stage: { kind: 'blank' }, rev: 0, leaving: false }]);
@@ -47,6 +49,7 @@ export default function PlayerScreen() {
     // Deux onglets MJ ouverts : seule compte la scène publiée en dernier (l'autre onglet renverrait un état périmé).
     let lastAt = 0;
     const link = openStageChannel((m) => {
+      if (m.type === 'view' && m.from === 'mj') { viewListeners.forEach((f) => f(m.planId, m.box)); return; }
       if (m.type !== 'stage') return;
       if (m.at !== undefined) { if (m.at < lastAt) return; lastAt = m.at; }
       const key = stageKey(m.stage);
@@ -117,12 +120,22 @@ function PlayerMap({ board, rev, onFollow, onPick, onFork, onGoto }: { board: Ex
   // Carte du monde : proposer au MJ d'aller quelque part hors route (un lieu touché, ou un point de la carte).
   const [spot, setSpot] = useState<[number, number] | null>(null);
   const [proposed, setProposed] = useState<string | null>(null);
+  // Vue liée : le cadrage du MJ est repris ici, et le nôtre lui est renvoyé.
+  const [sync, setSync] = useState<{ box: [number, number, number, number]; key: number } | null>(null);
+  // Seul un geste des joueurs (glisser, molette, pincement) renvoie le cadrage : pas la vue par défaut à l'ouverture.
+  const touchedAt = useRef(0);
+  useEffect(() => {
+    if (!board.linked) return;
+    const f = (planId: string, box: [number, number, number, number]) => { if (planId === board.planId) setSync({ box, key: Date.now() }); };
+    viewListeners.add(f);
+    return () => { viewListeners.delete(f); };
+  }, [board.linked, board.planId]);
   useEffect(() => { setProposed(null); }, [board.travel?.key]);
   if (!map) return <p className="present-wait">Carte vide.</p>;
   const world = map.surface?.theme === 'monde' && !!onGoto && !!board.here;
   const pointOf = (id: string) => board.data.geometries.find((g) => g.featureId === id && g.type === 'point')?.coordinates as [number, number] | undefined;
   return (
-    <div className="maps-canvas present-map">
+    <div className="maps-canvas present-map" onPointerDown={() => { touchedAt.current = Date.now(); }} onPointerMove={(e) => { if (e.buttons) touchedAt.current = Date.now(); }} onWheel={() => { touchedAt.current = Date.now(); }}>
       <MapCanvas
         key={map.id} map={map} layers={LAYERS} hidden={HIDDEN} selectedId={picked?.id ?? null} onSelect={(f) => { setPicked((cur) => (cur?.id === f.id ? null : f)); if (f.trace && picked?.id !== f.id) onPick?.(f.id); }} onAnchor={() => {}} dm={false}
         dataKey={rev}
@@ -130,6 +143,8 @@ function PlayerMap({ board, rev, onFollow, onPick, onFork, onGoto }: { board: Ex
         focusKey={board.focus ? String(board.focus.tick) : undefined}
         marks={board.marks} fog={board.fog} journey={board.travel}
         onPlace={world ? (x, y) => { setPicked(null); setSpot([x, y]); } : undefined}
+        syncView={board.linked ? sync : null}
+        onView={board.linked ? (box, remote) => { if (!remote && Date.now() - touchedAt.current < 2500) sendToHost?.({ type: 'view', planId: board.planId, box, from: 'joueurs' }); } : undefined}
       />
       {world && spot && !picked && (
         <aside className="present-map-card" role="dialog" aria-label="Aller ici">

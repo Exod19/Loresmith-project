@@ -132,7 +132,7 @@ const TOKEN_M = 1.1, TOKEN_MIN_PX = 14;
 /** Orientation stable d'un jeton (degrés), tirée de son identifiant : les PNJ ne regardent pas tous au nord. */
 const angleOf = (id: string) => { let h = 2166136261; for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619); return (h >>> 0) % 360; };
 
-export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, onMovePin, dataKey, dm, marks = [], fog, journey, onZoomLimit, exploring, ghosts, onView, preview, tokenOf }: {
+export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, onMovePin, dataKey, dm, marks = [], fog, journey, onZoomLimit, exploring, ghosts, onView, preview, syncView, tokenOf }: {
   map: AtlasMap; layers: Layers; hidden: Set<FeatureCategory>;
   /** Mode MJ : révèle les passages secrets. Hors MJ, la carte est une carte de lore. */
   dm: boolean;
@@ -160,7 +160,9 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   /** Mode Exploration (carte du monde) : les lieux encore tirés au sort s'affichent en brouillon. */
   exploring?: boolean;
   /** Fenêtre affichée (0–1 du plan), signalée après chaque déplacement ou zoom (lieux sauvages de la carte du monde). */
-  onView?: (box: [number, number, number, number]) => void;
+  onView?: (box: [number, number, number, number], remote: boolean) => void;
+  /** Vue liée : une fenêtre (0–1) reçue de l'autre écran, à reprendre ; `key` change à chaque envoi. */
+  syncView?: { box: [number, number, number, number]; key: number } | null;
   /** Trajet proposé, avant le départ (hors route, carte du monde) : tracé en pointillés. */
   preview?: [number, number][] | null;
   /**
@@ -449,9 +451,22 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   // La fenêtre affichée, signalée un instant après le dernier geste.
   const viewRef = useRef(onView); viewRef.current = onView;
   const boxKey = view.w ? [bx0 / W, by0 / H, bx1 / W, by1 / H].map((v) => v.toFixed(3)).join(',') : '';
+  // Vue liée : une fenêtre venue de l'autre écran est reprise (même centre, même largeur de plan) ; le cadrage qui en
+  // résulte n'est pas renvoyé (`remote`), pour éviter le ping-pong entre les écrans.
+  const remoteAt = useRef(0);
+  useEffect(() => {
+    if (!syncView || !view.w) return;
+    const [a0, b0, a1, b1] = syncView.box;
+    // La fenêtre signalée compte une marge de 60 px d'écran de chaque côté (voir bx0…bx1) : largeur = (vue + 120 px) / k.
+    const k = clampK((view.w * px + 120 * px) / Math.max(1e-6, (a1 - a0) * W));
+    remoteAt.current = Date.now();
+    fresh.current = false;
+    setT(fit(map, (a0 + a1) / 2, (b0 + b1) / 2, k));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [syncView?.key]);
   useEffect(() => {
     if (!boxKey || !viewRef.current) return;
-    const id = setTimeout(() => viewRef.current?.(boxKey.split(',').map(Number) as [number, number, number, number]), 250);
+    const id = setTimeout(() => viewRef.current?.(boxKey.split(',').map(Number) as [number, number, number, number], Date.now() - remoteAt.current < 900), 250);
     return () => clearTimeout(id);
   }, [boxKey]);
   const onScreen = (b: number[]) => b[2] >= bx0 && b[0] <= bx1 && b[3] >= by0 && b[1] <= by1;
