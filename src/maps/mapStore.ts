@@ -83,6 +83,8 @@ export interface MapOverlay {
   revealed: string[];
   /** Lieux sauvages de l'Underdark enregistrés (gardés, définis, aperçus ou écartés), par clé (atlas/deepWilds.js). */
   wilds?: Record<string, WildRecord>;
+  /** Densité des lieux sauvages de l'Underdark (lot 29) : rares, normaux (par défaut) ou nombreux. */
+  wildDensity?: 'rare' | 'normale' | 'riche';
   /** Carte de navigation chez les joueurs : brouillard de guerre, jeton du groupe, héros séparés. */
   playerView?: { fog?: boolean; party?: boolean; heroes?: boolean };
   /** Brouillard : points déjà découverts par plan (chemins parcourus, lieux traversés), qui restent visibles mais sombres. */

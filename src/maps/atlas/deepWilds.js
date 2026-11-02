@@ -14,7 +14,8 @@
  */
 const TENEUR_P = [0.55, 0.85];
 const SLOT = 0.12; // longueur de galerie par tirage (≈ 2 h de marche)
-const CHANCE = 0.3;
+/** Chance qu'un tronçon de galerie porte un lieu, selon la densité (rares, normaux, nombreux). */
+const CHANCE = { rare: 0.18, normale: 0.3, riche: 0.5 };
 
 function hash(text) { let h = 2166136261; for (const c of String(text)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
 function rng(seed) {
@@ -139,7 +140,8 @@ const insidePoly = (p, poly) => {
  * Lieux d'un plan : `trails` [{ id, trace, pts }], `caves` (contours, 0–1), `points` (lieux existants, 0–1), `water`
  * (tracés de ruisseau). Les galeries secrètes et les crevasses n'en ont pas. `skip` : clés déjà enregistrées.
  */
-export function deepSitesOn({ planId, trails, caves = [], points = [] }, skip = new Set()) {
+export function deepSitesOn({ planId, trails, caves = [], points = [], density = 'normale' }, skip = new Set()) {
+  const chance = CHANCE[density] ?? CHANCE.normale;
   const out = [];
   for (const tr of trails) {
     if (!tr.pts || tr.pts.length < 2 || tr.trace === 'secret' || tr.trace === 'crevasse') continue;
@@ -150,7 +152,7 @@ export function deepSitesOn({ planId, trails, caves = [], points = [] }, skip = 
     const span = Math.min(SLOT, len);
     for (let k = 0; k < slots; k++) {
       const roll = [r(), r(), r(), r(), r(), r(), r(), r(), r(), r(), r(), r()];
-      if (roll[0] > CHANCE) continue;
+      if (roll[0] > chance) continue;
       const key = `${tr.id}~${k}`;
       if (skip.has(key)) continue;
       // Point du tracé, puis un pas de côté (une niche, une faille latérale).

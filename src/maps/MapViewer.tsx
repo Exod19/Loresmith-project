@@ -125,9 +125,9 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   const wildOn = rec.kind === 'monde' && dm && !battleOpen && planId === worldPlanId(rec.id);
   // Underdark (lot 28) : les brouillons du plan affiché, le long de ses galeries.
   const deepOn = rec.kind === 'atlas' && dm && !battleOpen;
-  const drafts = useMemo(() => (wildOn ? wildDrafts(rec, atlas, wildBox) : deepOn && atlas ? deepDrafts(atlas, planId, rec.overlay?.wilds) : null),
+  const drafts = useMemo(() => (wildOn ? wildDrafts(rec, atlas, wildBox) : deepOn && atlas ? deepDrafts(atlas, planId, rec.overlay?.wilds, rec.overlay?.wildDensity) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [wildOn, deepOn, planId, rec.world, rec.overlay?.wilds, atlas, wildBox?.join(',')]);
+    [wildOn, deepOn, planId, rec.world, rec.overlay?.wilds, rec.overlay?.wildDensity, atlas, wildBox?.join(',')]);
   const atlasX = useMemo(() => (drafts?.features.length ? { ...atlas, features: [...atlas.features, ...drafts.features], geometries: [...atlas.geometries, ...drafts.geometries] } : atlas), [atlas, drafts]);
   const data = activateMap(rec, dm, atlasX, drafts ? `${drafts.key}:${drafts.features.length}` : '');
   const [projecting, setProjecting] = useState(false);
@@ -494,7 +494,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
       const near = surface ? 0.3 : 0.004, end = surface ? 0.05 : 0.002;
       const missed: string[] = [];
       let spot: WildSighting | DeepSighting | null = null;
-      const seen = surface ? wildAlong(rec, data, leg.points, overlay.revealed) : deepAlong(data, map.id, leg.points, overlay.wilds, overlay.revealed);
+      const seen = surface ? wildAlong(rec, data, leg.points, overlay.revealed) : deepAlong(data, map.id, leg.points, overlay.wilds, overlay.revealed, overlay.wildDensity);
       for (const w of seen) {
         if (w.s < near || w.s > total - end) continue; // le lieu qu'on vient de quitter, ou celui où l'on arrive
         if (w.dc && !w.known && best.pp < w.dc) { missed.push(`${w.record.title} (Perception DD ${w.dc})`); continue; }
@@ -1491,6 +1491,20 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 onSelect={(f) => { setSelectedId(f.id); setEnc(null); }}
                 onRevealNoticed={() => setOverlay({ ...overlay, revealed: [...new Set([...overlay.revealed, ...trails.filter((t) => t.noticed).map((t) => t.f.id)])] })}
               />
+            )}
+
+            {dm && side === 'groupe' && rec.kind === 'atlas' && (
+              <div className="maps-card">
+                <h3>Lieux sauvages</h3>
+                <label className="maps-sub">Densité dans les galeries{' '}
+                  <select className="maps-btn" value={overlay.wildDensity ?? 'normale'} onChange={(e) => setOverlay({ ...overlay, wildDensity: e.target.value as NonNullable<MapOverlay['wildDensity']> })}>
+                    <option value="rare">Rares (≈ un toutes les 11 h de marche)</option>
+                    <option value="normale">Normaux (≈ un toutes les 6 à 7 h)</option>
+                    <option value="riche">Nombreux (≈ un toutes les 4 h)</option>
+                  </select>
+                </label>
+                <p className="maps-sub">Lac noir, toile géante, autel de Lolth… le long des galeries, vus de près par le MJ et découverts à la torche par les joueurs. Les lieux déjà gardés ou découverts ne changent pas.</p>
+              </div>
             )}
 
             {dm && side === 'groupe' && atlasLike && (

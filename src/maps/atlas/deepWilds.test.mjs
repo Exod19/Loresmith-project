@@ -32,3 +32,9 @@ test('vu depuis la galerie : portée de torche, DD pour un lieu caché', () => {
   assert.match(svirf.line, /\{c\}/);
   assert.ok(deepSightOf({ key: 'x', kind: 'champignonniere' }).reach > svirf.reach);
 });
+
+test('densité réglable dans les galeries : rares < normaux < nombreux', () => {
+  const n = (density) => deepSitesOn({ ...plan, density }).length;
+  assert.ok(n('rare') < n('normale') && n('normale') < n('riche'), `${n('rare')} < ${n('normale')} < ${n('riche')}`);
+  assert.equal(n('normale'), n(undefined));
+});

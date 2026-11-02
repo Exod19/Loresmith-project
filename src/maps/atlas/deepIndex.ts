@@ -35,35 +35,37 @@ export function withDeepWilds(atlas: AtlasData, wilds: Record<string, WildRecord
 
 const planCache = new Map<string, DeepSite[]>();
 /** Tous les lieux tirés au sort d'un plan (gardés en mémoire : le plan ne change pas). */
-function sitesOf(atlas: AtlasData, planId: string): DeepSite[] {
-  let s = planCache.get(planId);
+type Density = 'rare' | 'normale' | 'riche';
+function sitesOf(atlas: AtlasData, planId: string, density: Density = 'normale'): DeepSite[] {
+  const ck = `${planId}|${density}`;
+  let s = planCache.get(ck);
   if (!s) {
     const byId = new Map(atlas.features.map((f) => [f.id, f]));
     const onPlan = atlas.geometries.filter((g) => g.mapId === planId && !g.featureId.includes(':wild-') && !g.featureId.startsWith('mk-'));
     const trails = onPlan.filter((g) => g.type === 'polyline').map((g) => ({ id: g.featureId, trace: byId.get(g.featureId)?.trace, pts: g.coordinates as [number, number][] }));
     const caves = (atlas.cavities[planId] ?? []).map((c) => cavityPoints(c, 1, 1, 0, 32));
     const points = onPlan.filter((g) => g.type === 'point').map((g) => g.coordinates as [number, number]);
-    s = deepSitesOn({ planId, trails, caves, points });
-    planCache.set(planId, s);
+    s = deepSitesOn({ planId, trails, caves, points, density });
+    planCache.set(ck, s);
     if (planCache.size > 8) planCache.delete(planCache.keys().next().value!);
   }
   return s;
 }
 
 /** Brouillons d'un plan de l'Atlas (MJ seulement), hors des lieux déjà enregistrés. */
-export function deepDrafts(atlas: AtlasData, planId: string, wilds: Record<string, WildRecord> = {}) {
-  const sites = sitesOf(atlas, planId).filter((s) => !wilds[s.key]);
+export function deepDrafts(atlas: AtlasData, planId: string, wilds: Record<string, WildRecord> = {}, density?: Density) {
+  const sites = sitesOf(atlas, planId, density).filter((s) => !wilds[s.key]);
   const out = sites.map((s) => featureOf(deepRecordOf(s), true));
-  return { key: `deep:${planId}:${sites.length}`, sites, features: out.map((x) => x.f), geometries: out.map((x) => x.g) };
+  return { key: `deep:${planId}:${density ?? 'normale'}:${sites.length}`, sites, features: out.map((x) => x.f), geometries: out.map((x) => x.g) };
 }
 
 /** Un lieu aperçu depuis la galerie : où (le long du trajet, en unités de plan), de quel côté, et s'il faut le chercher. */
 export type DeepSighting = { record: WildRecord; id: string; s: number; d: number; at: [number, number]; side: 'gauche' | 'droite'; known: boolean; dc?: number; line: string };
 
 /** Lieux sauvages visibles le long d'un trajet d'un plan de l'Atlas (`pts` en 0–1), dans l'ordre de la marche. */
-export function deepAlong(atlas: AtlasData, planId: string, pts: [number, number][], wilds: Record<string, WildRecord> = {}, revealed: string[] = []): DeepSighting[] {
+export function deepAlong(atlas: AtlasData, planId: string, pts: [number, number][], wilds: Record<string, WildRecord> = {}, revealed: string[] = [], density?: Density): DeepSighting[] {
   if (pts.length < 2) return [];
-  const drafts = sitesOf(atlas, planId).filter((s) => !wilds[s.key]).map(deepRecordOf);
+  const drafts = sitesOf(atlas, planId, density).filter((s) => !wilds[s.key]).map(deepRecordOf);
   const kept = Object.values(wilds).filter((w) => w && !w.excluded && w.planId === planId && w.at);
   const total = lengthOf(pts);
   const out: DeepSighting[] = [];

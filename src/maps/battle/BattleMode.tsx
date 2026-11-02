@@ -38,7 +38,7 @@ import { askAI, aiReady, parseJson } from '../../ai/client';
 import { baseGridOf, effectiveOf, fits, isDashing, moveLeft, overlaps, placeTokens as placeOnBoard, surfaceOf, usedMove, withMove } from './placement';
 import { hazardsOf, moveField, moverOf, occupancy, planMove, reachDetail, type MovePlan, type Mover } from './movement';
 import { roll } from '../atlas/encounters';
-import { OPENABLE, socleOf, TERRAIN_DEF, TERRAINS, type SurfaceRules, type TerrainId } from './surface';
+import { OPENABLE, socleOf, TERRAIN_DEF, TERRAINS, type BattleObject, type ObjectKind, type SurfaceRules, type TerrainId } from './surface';
 import { useSurfaceEditor } from './SurfaceEditor';
 import { AOE_PRESETS, AOE_SHAPES, aoeName, aoeView, DAMAGE_TYPES, SAVE_LABEL, type AoeEffect, type AoeShape, type BattleAoe, type SaveAbility } from './aoe';
 import type { PathView } from './SurfaceLayers';
@@ -146,6 +146,20 @@ export type CombatSlot = {
 };
 
 /** Thème du plateau d'un plan de surface : intérieur, neige, climat de la cité, ou terrain réel du monde à l'échelle. */
+/** Objets d'un plan de lieu sauvage (world/wildPlan.js) dans la fenêtre du plateau, en objets de combat. */
+const PROP_OBJECT: Record<string, ObjectKind> = { tonneau: 'tonneau', coffre: 'caisses', colonne: 'rocher', autel: 'gros_rocher', sarcophage: 'gros_rocher', fontaine: 'pierres' };
+function wildObjects(plan: AtlasMap, win: { x0: number; y0: number; w: number; h: number }, cols: number, rows: number): BattleObject[] {
+  const out: BattleObject[] = [];
+  for (const [k, px, py] of plan.surface?.ground.p ?? []) {
+    const kind = PROP_OBJECT[k];
+    if (!kind) continue;
+    const x = ((px / plan.width - win.x0) / win.w) * cols, y = ((py / plan.height - win.y0) / win.h) * rows;
+    if (x < 0 || y < 0 || x >= cols || y >= rows) continue;
+    out.push({ id: `wp-${k}-${Math.round(px)}-${Math.round(py)}`, kind, x: Math.round(x * 2) / 2, y: Math.round(y * 2) / 2 });
+  }
+  return out;
+}
+
 function surfaceTheme(surface: NonNullable<AtlasMap['surface']>, win: { x0: number; y0: number; w: number; h: number }): 'interieur' | 'neige' | 'froid' | 'chaud' | true {
   if (surface.theme === 'interieur') return 'interieur';
   if ((surface.snow ?? 0) >= 0.1) return 'neige';
@@ -345,6 +359,8 @@ export default function BattleMode({
       tokens,
       encounterOf: groups?.length ? source : b.encounterOf,
       build: undefined,
+      // Plan d'un lieu sauvage : ses objets (coffre, tonneau, autel, colonnes…) sont posés sur le plateau.
+      ...(plan.surface?.nature ? { objects: wildObjects(plan, local.window, b.cols, b.rows) } : {}),
       ...(groups?.length ? { turn: undefined, round: 1, log: [] } : {}),
     });
     setHistory([]);
