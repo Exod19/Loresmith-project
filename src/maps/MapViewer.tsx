@@ -391,6 +391,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   );
 
   // Fonction changée à chaque rendu : lue par référence pour ne pas relancer la projection.
+  /** Image de la fiche d'un PNJ posé sur le plan (jeton `pnj-…` du combat) : celle de son lieu sur la carte. */
+  const ficheImageOf = (id: string) => (id.startsWith('pnj-') ? data.features.find((f) => f.id.includes(':pnj-') && `pnj-${f.entryId ?? f.id}` === id)?.image : undefined);
   const tokenRef = useRef(npcTokenOf);
   tokenRef.current = npcTokenOf;
   const artRef = useRef(artOf);
@@ -399,7 +401,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   // Projection : toute modification de la carte, du repérage ou du combat part vers l'écran joueur.
   useEffect(() => {
     if (!projecting) return;
-    publishStage({ kind: 'board', board: battleOpen ? battleBoard(rec, (name, id) => artRef.current?.(name, id) ?? '') : mapBoard(rec, atlas, map.id, focus ?? undefined, (f) => tokenRef.current(f)) });
+    publishStage({ kind: 'board', board: battleOpen ? battleBoard(rec, (name, id) => artRef.current?.(name, id) || ficheImageOf(id) || '') : mapBoard(rec, atlas, map.id, focus ?? undefined, (f) => tokenRef.current(f)) });
   }, [projecting, battleOpen, rec, atlas, map.id, focus]);
 
   /** Amène la vue joueurs sur ce lieu : le révèle si besoin, centre la carte chez eux, et démarre la projection. */

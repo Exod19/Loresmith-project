@@ -142,15 +142,27 @@ export function bankImageOf(src: string | undefined): BankImage | null {
 }
 
 /**
- * Image de face d'un jeton (fiche, carte d'information) : le portrait jumeau d'un jeton de la banque, ou l'image
- * elle-même si c'est déjà un portrait. undefined : ce n'est pas une image de la banque, ou elle n'a pas de portrait.
+ * Un jeton peut-il tourner sur lui-même ? Oui s'il est pris à la verticale ; un jeton incliné (visage visible) reste
+ * droit, sinon sa perspective penche de travers sur un plan vu de haut.
+ */
+export const turnsFreely = (src: string | undefined) => bankImageOf(src)?.angle !== 'incline';
+
+/**
+ * Image de face d'un jeton (fiche, carte d'information) : le portrait jumeau d'un jeton de la banque, sinon un
+ * portrait de la banque qui lui ressemble (même peuple, même rôle, même genre, toujours le même pour ce jeton), ou
+ * l'image elle-même si c'est déjà un portrait. undefined : ce n'est pas une image de la banque.
  */
 export function faceOf(src: string | undefined, px = 512): string | undefined {
   const img = bankImageOf(src);
   if (!img) return undefined;
   if (img.vue === 'portrait') return src;
   const twin = bankById(img.paire);
-  return twin && twin.vue === 'portrait' ? bankSrc(twin, px) : undefined;
+  if (twin && twin.vue === 'portrait' && !twin.exclu) return bankSrc(twin, px);
+  // Même genre obligatoire (une tavernière ne prend pas le visage d'un cuisinier) ; le peuple, puis le rôle, ensuite.
+  const pool = img.genre ? images.filter((i) => !i.genre || i.genre === img.genre) : images;
+  const like = pickPerson(pool, { vue: 'portrait', peuple: img.peuple, role: (img.roles ?? []).join(' '), genre: img.genre, seed: img.id, peoples: peoplesOf({}) })
+    ?? pickPerson(pool, { vue: 'portrait', role: (img.roles ?? []).join(' '), genre: img.genre, seed: img.id, peoples: { main: [...new Set(pool.map((i) => i.peuple).filter(Boolean))] as string[], others: [], banned: [] } });
+  return like ? bankSrc(like, px) : undefined;
 }
 
 /** Jeton vu de dessus d'une image de la banque : le jeton jumeau d'un portrait, ou l'image si c'est déjà un jeton. */

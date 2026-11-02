@@ -9,6 +9,8 @@ export interface BankImage {
   taille?: number[] | number;
   milieux: string[]; climats: string[]; saisons: string[]; region: string[];
   peuple?: string; genre?: 'f' | 'm'; roles?: string[]; paire?: string | null; pose?: string;
+  /** Jetons : `zenith` pris à la verticale (dessus de la tête), `incline` vu à environ 15° (visage visible). */
+  angle?: 'zenith' | 'incline';
   devine?: boolean; exclu?: boolean;
   /** Toits : silhouette 8 × 8 (lignes de 0 et de 1). */
   masque?: string;

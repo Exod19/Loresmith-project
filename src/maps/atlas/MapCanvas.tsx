@@ -7,6 +7,7 @@
 import { useReliefDetail, useReliefImage } from '../world/reliefImage';
 import NaturalTerrain, { naturalTerrainOn } from './NaturalTerrain';
 import WaterLayer, { setWaterMotion, useWaterMotion, WATER_COVERS, waterLayerOn } from './WaterLayer';
+import { turnsFreely } from '../../banque';
 import BankLayer, { BANK_COVERS, bankActive, GroundPatterns, useGroundTextures } from '../../banque/BankLayer';
 import type { Relief } from '../world/terrain';
 import { CityEmblem, paintedEmblem, peopleOf } from './emblems';
@@ -706,7 +707,7 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
                 {asToken ? <>
                   <circle r={Math.max(12, tokPx / 2)} className="hit" />
                   <circle r={tokPx / 2 + 2} className="tok-ring" />
-                  <image href={tok as string} x={-tokPx / 2} y={-tokPx / 2} width={tokPx} height={tokPx} transform={`rotate(${angleOf(f.id)})`} preserveAspectRatio="xMidYMid meet" />
+                  <image href={tok as string} x={-tokPx / 2} y={-tokPx / 2} width={tokPx} height={tokPx} transform={turnsFreely(tok as string) ? `rotate(${angleOf(f.id)})` : undefined} preserveAspectRatio="xMidYMid meet" />
                 </> : f.category === 'cite' && f.people ? <CityEmblem people={f.people} R={R * 1.25} id={f.id} variant={f.emblem} /> : <>
                   <circle r={R} className="disc" />
                   {f.importance !== 'detail' && <><circle r={R * 0.7} className="glow" /><text y={R * 0.33} textAnchor="middle" className="glyph" style={{ fontSize: R * 0.92 }}>{cat.glyph}</text></>}

@@ -147,7 +147,15 @@ export function pickPerson(images, { vue = 'portrait', role = '', peoples = peop
   // Sinon, une figure ordinaire (villageois, voyageur, client) : jamais un marchand de pommes pour jouer un garde.
   const hits = cands.filter((c) => c.hit);
   const plain = roles.length ? cands.filter((c) => (c.img.roles ?? []).some((r) => GENERIQUES.has(r))) : cands;
-  return weighted(hits.length ? hits : plain, `${seed}|${vue}`);
+  const pool = hits.length ? hits : plain;
+  // Jetons : ceux pris vraiment à la verticale (`angle: zenith`) vont mieux sur un plan vu de haut. Pour un rôle
+  // reconnu, ils passent seuls quand il y en a ; sinon, ils sont nettement favorisés.
+  if (vue === 'jeton') {
+    const top = pool.filter((c) => c.img.angle === 'zenith');
+    if (hits.length && top.length) return weighted(top, `${seed}|${vue}`);
+    for (const c of top) c.w *= 4;
+  }
+  return weighted(pool, `${seed}|${vue}`);
 }
 
 /** Climat de l'application ('froid' | 'tempere' | 'chaud') → climats acceptés dans la banque. */

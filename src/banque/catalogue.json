@@ -3172,7 +3172,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "dark-fantasy-overhead-game-token-jeton",
@@ -3204,7 +3205,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "dwarven-girl-with-woven-basket",
@@ -3332,7 +3334,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "zenith"
 },
 {
 "id": "elderly-gnome-cobbler-with-leather-shoe",
@@ -3661,7 +3664,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "gray-haired-officiant-with-wooden-box",
@@ -3727,7 +3731,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "half-elf-cloth-merchant-portrait",
@@ -3861,7 +3866,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "half-orc-smuggler-with-cloth-parcel",
@@ -4027,7 +4033,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "halfling-healer-with-bandage-roll-jeton",
@@ -4058,7 +4065,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "zenith"
 },
 {
 "id": "halfling-healer-with-linen-bandage",
@@ -4121,7 +4129,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "kneeling-prayer-adventurer-token-jeton",
@@ -4152,7 +4161,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "loresmith-half-orc-merchant",
@@ -4216,7 +4226,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "loresmith-traveler-in-overhead-conversation-jeton",
@@ -4248,7 +4259,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "medieval-carpenter-holding-a-hand-plane",
@@ -4348,7 +4360,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-blacksmith-with-hammer-and-tongs-jeton",
@@ -4380,7 +4393,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-half-elf-with-satchel-jeton",
@@ -4412,7 +4426,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-halfling-bard-with-lute-jeton",
@@ -4445,7 +4460,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-loresmith-ledger-keeper-jeton",
@@ -4477,7 +4493,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-medieval-carpenter-with-wooden-plane-jeton",
@@ -4510,7 +4527,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-child-with-wooden-toy-horse-jeton",
@@ -4540,7 +4558,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-courier-with-dispatch-satchel-jeton",
@@ -4572,7 +4591,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-dark-fantasy-bucket-bearer-jeton",
@@ -4605,7 +4625,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-dark-fantasy-dwarf-token-jeton",
@@ -4638,7 +4659,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-dark-fantasy-game-token-jeton",
@@ -4671,7 +4693,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-dark-fantasy-map-token-with-tray-jeton",
@@ -4703,7 +4726,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-dark-fantasy-map-token-jeton",
@@ -4734,7 +4758,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-dark-fantasy-medic-token-jeton",
@@ -4767,7 +4792,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-dark-fantasy-sickle-token-jeton",
@@ -4799,7 +4825,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-dark-fantasy-traveler-token-jeton",
@@ -4831,7 +4858,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-darksteel-officer-with-tower-badge-jeton",
@@ -4864,7 +4892,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-dwarf-artisan-with-clay-bowl-jeton",
@@ -4895,7 +4924,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-dwarf-baker-with-a-loaf-jeton",
@@ -4927,7 +4957,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-dwarf-girl-with-basket-jeton",
@@ -4957,7 +4988,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-dwarf-holding-folded-laundry-jeton",
@@ -4989,7 +5021,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-dwarf-with-saucepan-jeton",
@@ -5022,7 +5055,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-dwarf-with-staff-and-backpack-jeton",
@@ -5054,7 +5088,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-elderly-fisherman-token-jeton",
@@ -5085,7 +5120,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-elven-caravan-merchant-token-jeton",
@@ -5117,7 +5153,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-fantasy-adventurer-with-burgundy-scarf-jeton",
@@ -5149,7 +5186,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-funerary-officiant-with-wooden-box-jeton",
@@ -5182,7 +5220,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "zenith"
 },
 {
 "id": "overhead-gnome-scholar-reading-jeton",
@@ -5216,7 +5255,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-gnome-shoemaker-with-unfinished-shoe-jeton",
@@ -5247,7 +5287,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-gnome-token-with-wooden-tool-jeton",
@@ -5279,7 +5320,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-half-elf-laborer-battle-token-jeton",
@@ -5312,7 +5354,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-half-orc-battlemap-token-jeton",
@@ -5345,7 +5388,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-halfling-innkeeper-token-jeton",
@@ -5375,7 +5419,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-halfling-traveler-with-a-staff-jeton",
@@ -5407,7 +5452,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-halfling-with-brass-candlestick-jeton",
@@ -5439,7 +5485,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-halfling-with-straw-hat-and-carrots-jeton",
@@ -5471,7 +5518,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-medieval-boy-with-cloth-ball-jeton",
@@ -5501,7 +5549,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-medieval-fishmonger-token-jeton",
@@ -5532,7 +5581,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-red-haired-dwarf-tavern-keeper-jeton",
@@ -5563,7 +5613,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-silver-haired-archer-token-jeton",
@@ -5597,7 +5648,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "zenith"
 },
 {
 "id": "overhead-sneaking-map-token-jeton",
@@ -5629,7 +5681,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-stout-dwarf-battlemap-token-jeton",
@@ -5662,7 +5715,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-tiefling-boy-map-token-jeton",
@@ -5692,7 +5746,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-tiefling-lorekeeper-with-leather-book-jeton",
@@ -5724,7 +5779,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-tiefling-merchant-with-market-sack-jeton",
@@ -5756,7 +5812,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-tiefling-noble-map-token-jeton",
@@ -5789,7 +5846,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "overhead-traveler-carrying-a-wooden-crate-jeton",
@@ -5822,7 +5880,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "plum-gowned-loresmith-with-ledger-and-quill-jeton",
@@ -5854,7 +5913,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "portrait-of-a-dwarf-laundress",
@@ -5952,7 +6012,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "rust-cloaked-courier-with-a-dispatch-satchel",
@@ -6017,7 +6078,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "shy-tiefling-boy-medieval-town",
@@ -6146,7 +6208,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "silver-horned-tiefling-bookseller",
@@ -6246,7 +6309,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "silver-braided-gnome-herbalist",
@@ -6343,7 +6407,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "soot-marked-half-orc-blacksmith",
@@ -6540,7 +6605,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "top-down-armored-warrior-with-wooden-shield-jeton",
@@ -6572,7 +6638,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "zenith"
 },
 {
 "id": "top-down-dark-fantasy-apple-basket-token-jeton",
@@ -6604,7 +6671,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "top-down-dark-fantasy-defender-jeton",
@@ -6635,7 +6703,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "top-down-gnome-seamstress-token-jeton",
@@ -6668,7 +6737,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "top-down-shieldbearer-with-short-spear-jeton",
@@ -6700,7 +6770,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline"
 },
 {
 "id": "traveling-halfling-bard-with-lute",
@@ -7160,7 +7231,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "zenith"
 },
 {
 "id": "cendre-volcanique-et-pierre-ponce",

@@ -127,3 +127,15 @@ test('Toit en L, en T ou en U : le bon toit, dans la bonne orientation', async (
   assert.equal(fitRoof(cat, { mask: U, w: 20, h: 16, climat: 'tempere', seed: 'u' })?.img.forme, 'U');
   assert.equal(turnedMask('1000000000000000000000000000000000000000000000000000000000000000', 1, false)[7], '1', 'un quart de tour horaire envoie le coin haut-gauche en haut-droite');
 });
+
+test('Jetons : un jeton pris à la verticale passe avant un jeton incliné du même rôle', () => {
+  const list = [
+    P('garde-incline', 'humain', ['garde'], 'jeton', { angle: 'incline' }),
+    P('garde-zenith', 'humain', ['garde'], 'jeton', { angle: 'zenith' }),
+    P('tav-incline', 'humain', ['tavernier'], 'jeton', { angle: 'incline' }),
+  ];
+  const pe = peoplesOf({ people: 'humains' });
+  for (let i = 0; i < 30; i++) assert.equal(pickPerson(list, { vue: 'jeton', role: 'garde', peoples: pe, seed: `z${i}` })?.id, 'garde-zenith');
+  // Le rôle reste prioritaire : un tavernier incliné plutôt qu'un garde vu de haut.
+  assert.equal(pickPerson(list, { vue: 'jeton', role: 'tavernier', peoples: pe, seed: 'z' })?.id, 'tav-incline');
+});

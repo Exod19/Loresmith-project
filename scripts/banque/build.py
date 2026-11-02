@@ -236,6 +236,11 @@ PEOPLE = [
 ]
 
 # Jetons appariés à un portrait : on reprend peuple et rôles du portrait.
+# Jetons pris vraiment à la verticale (on voit le dessus de la tête, pas le visage) : `angle: zenith`. Les autres sont
+# inclinés d'environ 15° (visage et pieds visibles) ; sur un plan vu de haut, la banque préfère les premiers.
+ZENITH = ['elder dwarf with book', 'halfling healer with bandage', 'funerary officiant', 'silver-haired archer',
+          'armored warrior with wooden shield', 'zenith view of a leather-clad']
+
 TOKEN_ALIASES = {
     'apple basket token': 'apple merchant', 'bucket bearer': 'auburn-haired servant', 'child with wooden toy': 'braided girl',
     'token with tray': 'cheerful halfling tavern', 'dark fantasy dwarf token': 'chiaroscuro dwarf laborer', 'darksteel officer': 'city watch captain',
@@ -374,6 +379,8 @@ def main():
         else:
             kind, vue, meta = 'element', 'zenith', match(ELEMENTS, x['title'])
         meta = meta or guess(folder, x['title'])
+        if vue == 'jeton':
+            meta['angle'] = 'zenith' if any(z in norm(x['title']) for z in ZENITH) else 'incline'
         # Recadrage sur la partie visible (éléments et jetons) : la taille réelle vaut pour ce qui est dessiné.
         if has_alpha:
             bbox = im.getchannel('A').point(lambda a: 255 if a > 24 else 0).getbbox()
