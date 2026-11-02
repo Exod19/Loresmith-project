@@ -8,7 +8,7 @@ export type Danger = 'calme' | 'incertain' | 'dangereux' | 'perilleux';
 export interface WildSite {
   key: string; km: [number, number]; kind: string; label: string; cat: FeatureCategory; title: string;
   teneur: Teneur; danger: Danger; text: string; scene?: string; hook?: string;
-  biome: string; e: number; road: number;
+  biome: string; e: number; road: number; forest: number;
   near?: { name: string; km: number; dir: string };
 }
 export interface WildContext { seed: number; relief: Relief; cities: { name: string; km: [number, number]; r: number }[]; roads?: [number, number][][] }
@@ -23,3 +23,5 @@ export function wildSitesIn(ctx: WildContext, box: [number, number, number, numb
 export function cellSites(ctx: WildContext, i: number, j: number, skip?: Set<string>): WildSite[];
 export function whereLabel(s: Pick<WildSite, 'near'>): string;
 export function kindLabel(id: string): string;
+/** Ce qu'on voit d'un lieu depuis la route : distance (km), DD de Perception passive s'il est caché, phrase ({c} : côté). */
+export function sightOf(site: { key: string; kind: string; biome?: string; e?: number }, forest?: number): { km: number; dc?: number; line: string };

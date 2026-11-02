@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import MapCanvas, { type Layers, type MapMark } from './atlas/MapCanvas';
 import { CATEGORIES, connectionAt } from './atlas/model';
 import { describe as describeFeature, dmFeature } from './atlas/lore';
+import { SURFACE_CATEGORY, describeSurface } from './world/surfaceLore';
 import { rollEncounter, type EncCtx, type Encounter, type Zone } from './atlas/encounters';
 import { calmAlert, encounterAlert, suspenseAlert, type HaltAlert } from './atlas/omens';
 import { STATS, SRD_CREDIT, mod, type Stat } from './atlas/statblocks';
@@ -34,7 +35,7 @@ import { onPlayerFollow, onPlayerFork, onPlayerPick, publishStage } from '../pre
 import { zoneOf, inZone, trailInZone } from './zone';
 import LiveEncounters, { type LiveBestiaryRef } from './LiveEncounters';
 import { buildRoutes, distancesTo, goalNodes, judgeTrail, nodeOf, verdictText, type TrailVerdict } from './route';
-import { interiorPlanId, isAtlasLike, moveCity, useWorldSync, wildDrafts, wildRecordOf, worldPlanId } from './world';
+import { cutWalk, interiorPlanId, isAtlasLike, moveCity, useWorldSync, walkKm, wildAlong, wildDrafts, wildRecordOf, worldPlanId, type WildSighting } from './world';
 import WildPanel from './world/WildPanel';
 import type { WildRecord } from './world/generate';
 import WorldPanel from './world/WorldPanel';
@@ -51,6 +52,7 @@ import './mobile.css';
 
 const LAYERS: Layers = { points: true, etiquettes: true, galeries: true, connexions: true, ambiance: true };
 const ZONES: { v: Zone; l: string }[] = [{ v: 'sauvage', l: 'Sauvage' }, { v: 'transit', l: 'Transit' }, { v: 'cite', l: 'Cité' }];
+const SURFACE_ZONE: Record<Zone, string> = { sauvage: 'Nature', transit: 'Sur la route', cite: 'Aux abords d’une cité' };
 const KIND_LABEL: Record<MarkerKind, string> = { rencontre: 'Rencontre', passage: 'Passage secret', objet: 'Objet', repere: 'Repère' };
 const KIND_ICON: Record<MarkerKind, string> = { rencontre: '⚔', passage: '🗝', objet: '◆', repere: '◆' };
 const DEFAULT_TITLE: Record<MarkerKind, string> = { rencontre: 'Rencontre', passage: 'Passage secret', objet: 'Objet', repere: 'Repère' };
@@ -160,7 +162,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   const hintMarker = selectedMarker ?? partyMarker;
   /** Lieu courant (lieu de l'Atlas, point perso ou repère) : c'est lui qui donne le terrain de la carte de combat. */
   const locationHint = hintFeature
-    ? { id: hintFeature.id, title: hintFeature.title, category: hintFeature.category, trace: hintFeature.trace, text: [hintFeature.subtitle, describeFeature(hintFeature)].filter(Boolean).join(' ') }
+    ? { id: hintFeature.id, title: hintFeature.title, category: hintFeature.category, trace: hintFeature.trace, text: [hintFeature.subtitle, (rec.kind === 'monde' ? describeSurface(hintFeature) : describeFeature(hintFeature))].filter(Boolean).join(' ') }
     : hintMarker
       ? { id: `mk-${hintMarker.id}`, title: hintMarker.title, category: hintMarker.kind === 'rencontre' ? 'danger' : 'indetermine', trace: hintMarker.kind === 'passage' ? 'secret' : undefined, text: hintMarker.summary, groups: hintMarker.groups }
       : null;
@@ -467,9 +469,33 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   /** Heures entre deux jets de rencontre : 1 à 2 h sous terre ou en ville ; une ou deux fois par jour sur la carte du monde. */
   const checkEvery = () => (map.surface?.theme === 'monde' ? 4 + Math.random() * 4 : 1 + Math.random());
   const go = (e: { f: { id: string; title: string }; leg: Leg }, note?: string) => {
-    const leg = e.leg;
+    let leg = e.leg;
     if (!leg.to) return;
-    const fork = leg.aside ? forkOf(e.f, leg) : undefined;
+    // Carte du monde : un lieu sauvage aperçu depuis la route arrête le groupe, vis-à-vis. Un lieu caché ne se voit que
+    // si la Perception passive du groupe atteint son DD ; sinon le journal du MJ note qu'il est passé à côté.
+    let wildFork: PartyFork | undefined;
+    if (rec.kind === 'monde' && map.id === worldPlanId(rec.id) && !leg.spur) {
+      const total = walkKm(rec, leg.points);
+      const missed: string[] = [];
+      let spot: WildSighting | null = null;
+      for (const w of wildAlong(rec, data, leg.points, overlay.revealed)) {
+        if (w.s < 0.3 || w.s > total - 0.05) continue; // le lieu qu'on vient de quitter, ou celui où l'on arrive
+        if (w.dc && !w.known && best.pp < w.dc) { missed.push(`${w.record.title} (Perception DD ${w.dc})`); continue; }
+        spot = w;
+        break;
+      }
+      if (missed.length) note = [note, `En chemin, passé sans le voir près de : ${missed.join(', ')}.`].filter(Boolean).join(' ');
+      if (spot) {
+        const place: PartyPlace = { id: spot.id, kind: 'feature', title: spot.record.title, planId: map.id };
+        leg = { ...leg, points: cutWalk(rec, leg.points, spot.s), hours: leg.hours * (spot.s / Math.max(0.01, total)), to: place, aside: { place, at: spot.at, side: spot.side } };
+        wildFork = forkOf(e.f, leg, spot.known
+          ? { known: true, line: `Sur votre ${spot.side}, vous reconnaissez ${spot.record.title}. Vous y allez, ou vous continuez la route ?`, out: `Aller à ${spot.record.title}`, on: 'Continuer la route', wild: spot.record }
+          : { known: false, line: `${spot.line.replace('{c}', spot.side)} Vous allez voir, ou vous continuez la route ?`, out: 'Aller voir', on: 'Continuer la route', wild: spot.record });
+      }
+    }
+    const fork = wildFork ?? (leg.aside ? forkOf(e.f, leg) : undefined);
+    const to = leg.to;
+    if (!to) return;
     const walked = party.walked ?? 0;
     const nextCheck = party.nextCheck ?? checkEvery();
     if (walked + leg.hours >= nextCheck && leg.hours > 0.2) {
@@ -482,7 +508,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
       next = withExplored(next, map.id, first.filter((_, i) => i % 2 === 0));
       next = { ...next, travel: { key: `${Date.now()}`, planId: map.id, points: first, at: Date.now(), hold: true } };
       next = { ...next, party: { ...party, walked: nextCheck, fork: undefined, halt: {
-        trailId: e.f.id, trail: e.f.title, planId: map.id, point, rest, back: [...first].reverse(), to: leg.to, from: party.at,
+        trailId: e.f.id, trail: e.f.title, planId: map.id, point, rest, back: [...first].reverse(), to, from: party.at,
         hours: walked + frac * leg.hours, restHours: leg.hours * (1 - frac), fork, prevFork: party.fork,
       } } };
       if (note) next = { ...next, party: { ...next.party!, log: [{ t: Date.now(), text: note }, ...(next.party?.log ?? [])].slice(0, 12) } };
@@ -492,10 +518,10 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
       return;
     }
     if (fork) { stopAtFork(fork, leg.points, { note, walked: walked + leg.hours, nextCheck }); return; }
-    travelTo(leg.to, { points: leg.points, trailId: e.f.id, note, walked: walked + leg.hours, nextCheck });
+    travelTo(to, { points: leg.points, trailId: e.f.id, note, walked: walked + leg.hours, nextCheck });
   };
   /** Bifurcation vis-à-vis d'un lieu à côté du chemin : ce que lisent les joueurs, selon qu'ils le connaissent ou non. */
-  const forkOf = (f: { id: string; title: string }, leg: Leg): PartyFork | undefined => {
+  const forkOf = (f: { id: string; title: string }, leg: Leg, over?: Partial<PartyFork>): PartyFork | undefined => {
     const a = leg.aside;
     if (!a) return undefined;
     const known = rec.kind !== 'atlas' || overlay.revealed.includes(a.place.id);
@@ -507,6 +533,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
       key: `${Date.now()}`, trailId: f.id, trail: f.title, planId: map.id, dir: leg.dir,
       point: leg.points[leg.points.length - 1], place: a.place, placeAt: a.at, side: a.side, known, line,
       out: known ? `Sortir vers ${a.place.title}` : 'Emprunter le passage', on: 'Continuer sur le sentier', from: party.at,
+      ...over,
     };
   };
   /** Le groupe glisse jusqu'à la bifurcation et s'y arrête, sur le chemin : la question monte chez les joueurs. */
@@ -520,7 +547,10 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
       walked: opts.walked ?? p.walked, nextCheck: opts.nextCheck ?? p.nextCheck,
       log: opts.note ? [{ t: Date.now(), text: opts.note }, ...(p.log ?? [])].slice(0, 12) : p.log,
     } };
-    setOverlay(next);
+    // Un lieu sauvage aperçu est enregistré : il ne bougera plus (les joueurs ne le voient qu'en y allant).
+    const w = fork.wild;
+    if (w && rec.world && !rec.world.wilds?.[w.key]) onUpdate({ overlay: next, world: { ...rec.world, wilds: { ...(rec.world.wilds ?? {}), [w.key]: w } }, updatedAt: Date.now() });
+    else setOverlay(next);
     setTrial(null);
     setAskNote(null);
   };
@@ -534,7 +564,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     if (choice === 'out') {
       // Le court passage jusqu'au lieu : son épreuve s'il est dangereux, puis la marche (et sa halte de rencontre).
       const points: [number, number][] = [k.point, k.placeAt];
-      const leg: Leg = { dir: k.dir, to: k.place, points, hours: hoursOn(map, points, f.trace), toward: '' };
+      const leg: Leg = { dir: k.dir, to: k.place, points, hours: hoursOn(map, points, f.trace), toward: '', spur: true };
       const place = data.features.find((x) => x.id === k.place.id);
       const hazard = place ? placeHazard(place) : null;
       if (hazard) { setTrial({ trailId: f.id, trail: `passage vers ${k.place.title}`, to: k.place, hazard, by, leg, aside: true }); setSide('lieu'); return; }
@@ -585,7 +615,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   const haltEncounter = (roll: boolean) => {
     const h = party.halt;
     if (!h) return;
-    const ctx: EncCtx = { zone: 'sauvage', depth: 3, place: h.trail };
+    // Carte du monde : rencontres de la surface, sur la route ; Atlas : celles de l'Underdark.
+    const ctx: EncCtx = rec.kind === 'monde' ? { zone: 'transit', depth: 1, place: h.trail, surface: true } : { zone: 'sauvage', depth: 3, place: h.trail };
     const e = rollEncounter(ctx, !roll);
     setEnc({ ctx, e });
     setOverlay({ ...overlay, alert: alertFor(e), party: { ...party, halt: { ...h, encounter: true } } });
@@ -1184,7 +1215,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               <FeaturePanel
                 f={feature} dm={dm} notes={point?.notes ?? ''}
                 depthLine={strates ? depthOfFeature(feature.id) : undefined}
-                defaultCtx={{ zone: point?.zone ?? (rec.kind === 'monde' ? 'cite' : 'sauvage'), depth: point?.depth ?? 3, place: feature.title }}
+                defaultCtx={{ zone: point?.zone ?? (rec.kind === 'monde' ? (feature.wild || feature.area ? 'sauvage' : feature.trace ? 'transit' : 'cite') : 'sauvage'), depth: point?.depth ?? 3, place: feature.title }}
+                surface={rec.kind === 'monde'}
                 onClose={() => setSelectedId(null)}
                 onRoll={(ctx) => setEnc({ ctx, e: rollEncounter(ctx) })}
                 onBring={() => bringPlayers(feature.id)}
@@ -1437,8 +1469,10 @@ function PartyBar({ party, inBattle, onShow, onBattle, onClearDest, onRejoin }: 
   );
 }
 
-function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring, partyHere, partyDest, onPartyHere, onPartyDest, passive = 10, follow, onForget, depthLine }: {
+function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring, partyHere, partyDest, onPartyHere, onPartyDest, passive = 10, follow, onForget, depthLine, surface }: {
   f: AtlasFeature; dm: boolean; notes: string; defaultCtx: EncCtx; onClose: () => void; onRoll: (ctx: EncCtx) => void;
+  /** Carte du monde (surface) : descriptions, libellés et rencontres de la surface, jamais ceux de l'Underdark. */
+  surface?: boolean;
   /** Atlas en strates : palier et profondeur de la grotte où se trouve le lieu. */
   depthLine?: string;
   revealed?: boolean; onToggleReveal?: () => void; onBring?: () => void;
@@ -1454,12 +1488,13 @@ function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onT
 }) {
   const [zone, setZone] = useState<Zone>(defaultCtx.zone);
   const [depth, setDepth] = useState(defaultCtx.depth);
-  const guide = dm ? dmFeature(f) : null;
-  const text = describeFeature(f);
+  // À la surface, pas de conseils d'Underdark pour une zone (forêt, lac…), une route ou un lieu sauvage (sa fiche suit).
+  const guide = dm && !(surface && (f.area || f.trace || f.wild)) ? dmFeature(f) : null;
+  const text = surface ? describeSurface(f) : describeFeature(f);
   return (
     <div className="maps-card">
       <div className="maps-card-head">
-        <span>{CATEGORIES[f.category].glyph} {CATEGORIES[f.category].label}</span>
+        <span>{CATEGORIES[f.category].glyph} {(surface && SURFACE_CATEGORY[f.category]) || CATEGORIES[f.category].label}</span>
         <button className="maps-btn" onClick={onClose} aria-label="Fermer">×</button>
       </div>
       <h3>{f.title}</h3>
@@ -1541,13 +1576,15 @@ function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onT
         <div className="maps-enc-ctrl">
           <label>Zone
             <select className="maps-btn" value={zone} onChange={(e) => setZone(e.target.value as Zone)}>
-              {ZONES.map((z) => <option key={z.v} value={z.v}>{z.l}</option>)}
+              {ZONES.map((z) => <option key={z.v} value={z.v}>{surface ? SURFACE_ZONE[z.v] : z.l}</option>)}
             </select>
           </label>
-          <label>Profondeur
-            <input className="maps-btn" type="number" min={1} max={9} value={depth} onChange={(e) => setDepth(Math.max(1, Math.min(9, +e.target.value || 1)))} />
-          </label>
-          <button className="maps-btn gold" onClick={() => onRoll({ zone, depth, place: f.title })}>⚄ Rencontre ici (1d20)</button>
+          {!surface && (
+            <label>Profondeur
+              <input className="maps-btn" type="number" min={1} max={9} value={depth} onChange={(e) => setDepth(Math.max(1, Math.min(9, +e.target.value || 1)))} />
+            </label>
+          )}
+          <button className="maps-btn gold" onClick={() => onRoll({ zone, depth, place: f.title, surface })}>⚄ Rencontre ici (1d20)</button>
         </div>
       )}
     </div>

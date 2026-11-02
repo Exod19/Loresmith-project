@@ -71,7 +71,7 @@ export interface WorldSpec { seed: number; name: string; cities: CitySpec[]; bin
 export interface WildRecord {
   key: string; km: [number, number]; kind: string; cat: FeatureCategory; title: string;
   teneur: 'ambiance' | 'scene' | 'quete'; danger: string; text: string; scene?: string; hook?: string; notes?: string;
-  where?: string; biome?: string; e?: number; excluded?: boolean;
+  where?: string; biome?: string; e?: number; forest?: number; excluded?: boolean;
 }
 
 export interface Near { km: number; dir?: string; to: string; label?: string }

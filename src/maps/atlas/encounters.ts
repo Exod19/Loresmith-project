@@ -3,8 +3,11 @@
  * Chaque rencontre précise l'effectif (dés lancés), l'attitude, ce que veulent les rencontrés, une accroche,
  * et renvoie aux fiches de statistiques complètes (statblocks.ts).
  */
+import { SURFACE } from './surfaceEncounters';
+
 export type Zone = 'sauvage' | 'transit' | 'cite';
-export type EncCtx = { zone: Zone; depth: number; place: string; assassins?: boolean };
+/** `surface` : carte du monde (rencontres de la surface, surfaceEncounters.ts) ; sinon l'Underdark. */
+export type EncCtx = { zone: Zone; depth: number; place: string; assassins?: boolean; surface?: boolean };
 type Group = { stat: string; dice: string; role?: string; label?: string };
 export type Entry = {
   kind: 'Créature' | 'Convoi' | 'Travailleurs' | 'Voyageurs' | 'Patrouille' | 'Signe';
@@ -147,11 +150,12 @@ let POOL: Entry[] = E;
 export function setBestiary(list: Entry[]) { POOL = [...E, ...list]; }
 
 export function rollEncounter(ctx: EncCtx, force = false): Encounter {
-  const threshold = ctx.zone === 'cite' ? 14 : ctx.depth >= 4 || ctx.zone === 'transit' ? 13 : 15;
+  const threshold = ctx.surface ? (ctx.zone === 'sauvage' ? 14 : 15) : ctx.zone === 'cite' ? 14 : ctx.depth >= 4 || ctx.zone === 'transit' ? 13 : 15;
   const d20 = rnd(20); const happens = force || d20 >= threshold;
   const check = force ? 'Rencontre imposée par le MJ' : `1d20 = ${d20} (rencontre sur ${threshold} ou plus)`;
   if (!happens) return { d20, check, happens };
-  const pool = POOL.filter((e) => e.zones.includes(ctx.zone) && (e.min ?? 1) <= ctx.depth && ctx.depth <= (e.max ?? 9) && (!e.assassins || ctx.assassins));
+  // La surface et l'Underdark ne se mêlent jamais.
+  const pool = ctx.surface ? SURFACE.filter((e) => e.zones.includes(ctx.zone)) : POOL.filter((e) => e.zones.includes(ctx.zone) && (e.min ?? 1) <= ctx.depth && ctx.depth <= (e.max ?? 9) && (!e.assassins || ctx.assassins));
   const sum = pool.reduce((a, e) => a + (e.weight ?? 1), 0); let r = Math.random() * sum; let entry = pool[0];
   for (const e of pool) { r -= e.weight ?? 1; if (r <= 0) { entry = e; break; } }
   const r2 = roll('2d6'); const att = entry.kind === 'Signe' ? undefined

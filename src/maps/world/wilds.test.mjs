@@ -52,3 +52,22 @@ test('un lieu enregistré est écarté du tirage, sans déplacer les autres lieu
   assert.equal(JSON.stringify(rest[0]), JSON.stringify(second));
   assert.match(whereLabel(second), /^à \d+ km (au|à l’) .+ de (Brumeval|Arnfel)$/);
 });
+
+test('vu depuis la route : plus loin en terrain dégagé, 1,5 km au plus en forêt, et un DD pour les lieux cachés', async () => {
+  const { sightOf } = await import('./wilds.js');
+  const fees = sightOf({ key: '1_2_0', kind: 'cercle-fees', biome: 'tempere', e: 200 }, 0.9);
+  assert.equal(fees.dc, 15);
+  assert.ok(fees.km <= 1.5);
+  assert.match(fees.line, /\{c\}/);
+  const tour = sightOf({ key: '1_2_0', kind: 'tour-guet', biome: 'tempere', e: 200 }, 0);
+  assert.ok(tour.km > 4 && !tour.dc);
+  assert.ok(sightOf({ key: 'x', kind: 'tour-guet', biome: 'tempere', e: 200 }, 0.8).km <= 1.5, 'la forêt cache même une tour');
+});
+
+test('les descriptions varient : un même type a de nombreux textes différents', () => {
+  const sites = wildSitesIn(ctx, [frame.x0, frame.y0, frame.x1, frame.y1]);
+  const byKind = new Map();
+  for (const s of sites) byKind.set(s.kind, [...(byKind.get(s.kind) ?? []), s.text]);
+  const [kind, texts] = [...byKind.entries()].sort((a, b) => b[1].length - a[1].length)[0];
+  assert.ok(new Set(texts).size >= Math.min(12, texts.length / 3), `${kind} : ${new Set(texts).size} textes pour ${texts.length} lieux`);
+});

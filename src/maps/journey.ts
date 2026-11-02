@@ -193,7 +193,9 @@ export type Aside = { place: PartyPlace; at: Pt; side: 'gauche' | 'droite' };
  * Une direction possible sur un chemin depuis le groupe : jusqu'à la prochaine étape (ou au bout). Si l'étape est un
  * lieu à côté du chemin, le trajet s'arrête sur le tracé, vis-à-vis (`aside`) : les joueurs choisissent d'y aller ou non.
  */
-export type Leg = { dir: 'a' | 'b'; to: PartyPlace | null; points: Pt[]; hours: number; toward: string; aside?: Aside };
+export type Leg = { dir: 'a' | 'b'; to: PartyPlace | null; points: Pt[]; hours: number; toward: string; aside?: Aside;
+  /** Court chemin hors de la route vers un lieu vu en passant (pas de nouvelle découverte en route). */
+  spur?: boolean };
 
 /**
  * Les étapes d'un chemin depuis le groupe : vers chacun de ses deux bouts, la prochaine caverne ou le prochain lieu
@@ -221,7 +223,8 @@ export function legsOf(data: AtlasData, planId: string, g: AtlasGeometry, from: 
     if (c) { stopAt(c.f, c.p); named.add(poly); }
   }
   for (const q of data.geometries) {
-    if (q.mapId !== planId || q.type !== 'point' || q.featureId === exclude || q.featureId.startsWith('mk-')) continue;
+    // Les lieux sauvages de la carte du monde ont leur propre règle (vus selon le terrain, world/index.ts : wildAlong).
+    if (q.mapId !== planId || q.type !== 'point' || q.featureId === exclude || q.featureId.startsWith('mk-') || q.featureId.includes(':wild-')) continue;
     const f = byId.get(q.featureId);
     // Un simple détail (piton, éboulis, racine…) se voit en passant : ce n'est pas une étape.
     if (!f || f.trace || f.area || f.importance === 'detail') continue;

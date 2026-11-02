@@ -171,6 +171,19 @@ const KIND = Object.fromEntries(KINDS.map((k) => [k.id, k]));
 /** Compléments de nom communs à tous les lieux. */
 const NAMES = ['des Brumes', 'du Corbeau', 'de l’Aube', 'des Murmures', 'du Vieux Roi', 'des Échos', 'du Silence', 'des Cendres', 'de la Veuve', 'aux Ronces', 'du Héron', 'des Saules', 'du Sanglier', 'de l’Ermite', 'des Larmes', 'de la Lune', 'des Chardons', 'du Givre'];
 
+/**
+ * Touches d'ambiance ajoutées au texte du type, pour que deux lieux du même type ne se lisent pas pareil : selon le
+ * biome, ou selon les sens (bruit, odeur, lumière). Avec deux textes par type, on obtient des dizaines de variantes.
+ */
+const TOUCH = {
+  tempere: ['Des papillons blancs dansent au-dessus des herbes hautes.', 'Une odeur de terre mouillée et de feuilles monte du sol.', 'Le chant d’un merle se tait à votre approche.', 'Les ronces y ont gagné du terrain, chargées de mûres.', 'Une brume légère s’attarde dans les creux.', 'Un vieux sentier, presque effacé, y mène depuis la route.'],
+  taiga: ['L’air sent la résine et la neige proche.', 'Les aiguilles de pin étouffent chaque pas.', 'Un geai crie quelque part, puis plus rien.', 'Des traces d’élan marquent la boue gelée.', 'Le vent fait gémir les grands conifères.', 'La lumière tombe en rais pâles entre les troncs.'],
+  steppe: ['Le vent couche les herbes sèches jusqu’à l’horizon.', 'Un faucon tourne très haut, immobile dans le ciel.', 'La terre craquelée sonne creux sous les sabots.', 'L’odeur de l’armoise est partout.', 'Le ciel immense écrase tout le reste.', 'Des os de bétail blanchissent au soleil non loin.'],
+  desert: ['Le sable chante quand le vent se lève.', 'La chaleur fait trembler l’horizon.', 'Un scorpion file se cacher sous une pierre.', 'La nuit, le froid y tombe d’un coup.', 'Des traces de chameaux s’effacent déjà sous le sable.', 'Le silence y est si total qu’on entend son propre cœur.'],
+  neige: ['La neige crisse et étouffe tous les sons.', 'Le froid mord les doigts à travers les gants.', 'Une lumière bleutée baigne les congères.', 'Des stalactites de glace pendent aux rochers.', 'Le souffle des voyageurs fait de petits nuages blancs.', 'Des traces de loup traversent la neige fraîche.'],
+  sens: ['Il y règne un calme étrange, presque recueilli.', 'Un corbeau observe les voyageurs sans bouger.', 'Le vent y porte comme un murmure, sans qu’on sache d’où.', 'Une odeur de fumée flotte, sans feu visible.', 'Les bêtes de somme rechignent à avancer.', 'Le soleil y semble plus doux qu’ailleurs.', 'Quelqu’un est passé récemment : une branche cassée, une empreinte.', 'L’endroit donne envie de s’y reposer… un peu trop.', 'On jurerait être observé.', 'Le temps semble s’y écouler plus lentement.', 'Des fleurs sauvages y poussent hors de saison.', 'Un écho renvoie les voix avec un temps de retard.'],
+};
+
 const segDist = (x, y, a, b) => {
   const dx = b[0] - a[0], dy = b[1] - a[1], q = dx * dx + dy * dy;
   const t = q ? Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / q)) : 0;
@@ -205,7 +218,7 @@ export function cellSites(ctx, i, j, skip = new Set()) {
     const key = wildKey(i, j, k);
     // On tire toujours les mêmes nombres, même pour un lieu ignoré : les autres lieux de la case ne bougent pas.
     const tries = Array.from({ length: 4 }, () => [(i + 0.08 + r() * 0.84) * WILD_CELL, (j + 0.08 + r() * 0.84) * WILD_CELL]);
-    const roll = [r(), r(), r(), r(), r(), r(), r()];
+    const roll = [r(), r(), r(), r(), r(), r(), r(), r(), r()];
     if (skip.has(key)) continue;
     let spot = null;
     for (const [x, y] of tries) {
@@ -235,15 +248,64 @@ export function cellSites(ctx, i, j, skip = new Set()) {
     out.push({
       key, km: [Math.round(x * 1000) / 1000, Math.round(y * 1000) / 1000], kind: kind.id, label: kind.label, cat: kind.cat,
       title: `${kind.label} ${name}`, teneur, danger: DANGERS[Math.min(3, lvl)],
-      text: pick(() => roll[4], kind.amb),
+      text: [pick(() => roll[4], kind.amb), roll[7] < 0.75 ? pick(() => roll[8], roll[7] < 0.45 ? TOUCH[t.biome] ?? TOUCH.sens : TOUCH.sens) : ''].filter(Boolean).join(' '),
       scene: teneur === 'scene' ? pick(() => roll[5], kind.scene) : undefined,
       hook: teneur === 'quete' ? pick(() => roll[6], kind.quete) : undefined,
-      biome: t.biome, e: Math.round(t.e),
+      biome: t.biome, e: Math.round(t.e), forest: Math.round(t.forest * 100) / 100,
       near: near ? { name: near.c.name, km: Math.round(near.d), dir: dirName(near.c.km, [x, y]) } : undefined,
       road: Math.round(road * 10) / 10,
     });
   }
   return out;
+}
+
+/* ——— Découverte en voyage (lot 24) ——— */
+
+/**
+ * Ce qu'on voit d'un lieu depuis la route : à quelle distance (km), s'il faut le chercher (DD de Perception passive),
+ * et la phrase qui l'annonce aux joueurs ({c} : gauche ou droite). Sans `see`, la distance dépend du terrain.
+ */
+const SIGHT = {
+  'grotte-geant': { see: 3, glimpse: ['Sur votre {c}, une bouche de pierre immense s’ouvre dans la montagne, des marches grossières y montent.', 'Sur votre {c}, de la fumée s’échappe d’une fente de la paroi, très haut.'] },
+  'nid-wyverne': { see: 6, glimpse: ['Sur votre {c}, une grande ombre ailée tourne autour d’un pic.', 'Un cri strident tombe des hauteurs, sur votre {c}.'] },
+  mine: { dc: 12, glimpse: ['Sur votre {c}, des rails rouillés disparaissent dans une galerie étayée.', 'Un tas de déblais gris, sur votre {c}, trahit une ancienne mine.'] },
+  ermitage: { dc: 12, glimpse: ['Une clochette tinte, quelque part sur la pente à votre {c}.', 'Sur votre {c}, un mince filet de fumée monte d’une cabane accrochée à la montagne.'] },
+  belvedere: { see: 5, glimpse: ['Sur votre {c}, un sentier grimpe vers un promontoire qui doit dominer toute la région.'] },
+  cascade: { see: 2.5, glimpse: ['Un grondement d’eau monte sur votre {c}.', 'Sur votre {c}, un voile d’embruns brille entre les rochers.'] },
+  'cercle-fees': { dc: 15, see: 1, glimpse: ['Sur votre {c}, une musique ténue, presque imaginée, flotte entre les arbres.', 'Des lucioles dansent en plein jour, sur votre {c}, au-dessus d’une petite clairière.'] },
+  'arbre-coeur': { see: 2, glimpse: ['Sur votre {c}, un arbre colossal dépasse toute la forêt.'] },
+  druides: { dc: 14, glimpse: ['Sur votre {c}, des rubans et des bois de cerf pendent aux branches, le long d’un sentier.'] },
+  'camp-bandits': { dc: 13, see: 2, glimpse: ['Une odeur de feu de bois et de viande grillée vient des fourrés, sur votre {c}.', 'Sur votre {c}, un reflet de métal, puis plus rien : quelqu’un guette.'] },
+  cabane: { see: 1.5, glimpse: ['Sur votre {c}, une cheminée fume entre les arbres.', 'Un sentier tracé par des pas réguliers s’enfonce dans le bois, sur votre {c}.'] },
+  clairiere: { see: 1, glimpse: ['Sur votre {c}, la forêt s’ouvre sur une clairière baignée de lumière.'] },
+  taniere: { dc: 13, glimpse: ['Sur votre {c}, des griffures profondes marquent les troncs ; une odeur de fauve flotte.'] },
+  tumulus: { glimpse: ['Sur votre {c}, un tertre trop régulier pour être naturel domine la plaine.'] },
+  menhirs: { see: 4, glimpse: ['Sur votre {c}, des pierres dressées se découpent sur le ciel.'] },
+  'ferme-ruine': { see: 3, glimpse: ['Sur votre {c}, les murs noircis d’une ferme se dressent au milieu des champs en friche.'] },
+  'champ-bataille': { glimpse: ['Sur votre {c}, des lances rouillées émergent des herbes hautes.'] },
+  'tour-guet': { see: 6, glimpse: ['Sur votre {c}, une tour à demi écroulée veille sur la route.'] },
+  source: { dc: 11, see: 1.5, glimpse: ['Un bruit d’eau claire monte d’un bosquet de saules, sur votre {c}.'] },
+  nomades: { see: 5, glimpse: ['Sur votre {c}, des tentes rouges et des chevaux au piquet, au loin.', 'Des traces de nombreux sabots partent vers votre {c}.'] },
+  oasis: { see: 6, glimpse: ['Sur votre {c}, une tache de verdure et quelques palmiers brillent au-dessus des dunes.'] },
+  'ruines-ensablees': { see: 4, glimpse: ['Sur votre {c}, des colonnes brisées émergent du sable.'] },
+  cairn: { see: 3, glimpse: ['Sur votre {c}, un grand cairn marque un chemin dans la blancheur.'] },
+  trappeurs: { see: 2, glimpse: ['Sur votre {c}, des peaux tendues sur des cadres sèchent devant une cabane.'] },
+  marais: { see: 3, glimpse: ['Sur votre {c}, la terre devient spongieuse et une brume traîne sur des eaux noires.'] },
+};
+/** Distance de vue selon le terrain du lieu : loin en plaine et au désert, près en forêt et au marais. */
+const sightKm = (s) => (s.biome === 'desert' || s.biome === 'steppe' ? 6 : s.e > 900 ? 5 : s.biome === 'neige' ? 5 : 4.5);
+
+/**
+ * Ce que le groupe perçoit d'un lieu depuis la route : distance de vue (km), DD de Perception passive s'il faut le
+ * chercher, et la phrase d'annonce. En forêt, la vue tombe à ~1 km, quel que soit le lieu.
+ */
+export function sightOf(site, forest = 0) {
+  const k = SIGHT[site.kind] ?? {};
+  const base = k.see ?? sightKm(site);
+  const km = forest > 0.5 ? Math.min(base, 1.5) : base;
+  const lines = k.glimpse ?? ['Sur votre {c}, quelque chose attire le regard, à l’écart de la route.'];
+  let h = 0; for (const ch of site.key) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return { km, dc: k.dc, line: lines[h % lines.length] };
 }
 
 /** « à 23 km au nord-est de Brumeval » */

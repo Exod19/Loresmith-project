@@ -12,6 +12,7 @@ import { setAtlasData } from './atlas/model';
 import { IMAGE_MAX, fitWithin } from '../store/imageRefs';
 import type { LocalElement } from './battle/local';
 import type { HaltAlert } from './atlas/omens';
+import type { WildRecord } from './world/generate';
 import type { BattleObject, BattleWall, CellFix, SocleMode, TerrainId, TerrainZone } from './battle/surface';
 import type { BattleAoe } from './battle/aoe';
 import type { AtlasData, AtlasFeature, AtlasGeometry, AtlasMap, FeatureCategory, Importance } from './atlas/types';
@@ -137,6 +138,8 @@ export interface PartyFork {
   /** Annonce aux joueurs, et libellés des deux choix. */
   line: string; out: string; on: string;
   from?: PartyPlace;
+  /** Lieu sauvage aperçu depuis la route (carte du monde) : il est enregistré dès qu'on l'aperçoit. */
+  wild?: WildRecord;
 }
 
 /** Ce que le MJ sait d'un élément à fouiller : comment le trouver, ce qu'on y trouve, et ce que ça fait. */

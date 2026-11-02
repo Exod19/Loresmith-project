@@ -11,6 +11,7 @@ import { reachableCells } from '../maps/battle/ranges';
 import { moveField, moverOf, occupancy, planMove, reachDetail, type MovePlan } from '../maps/battle/movement';
 import { trailProfile } from '../maps/atlas/trails';
 import { describe } from '../maps/atlas/lore';
+import { describeSurface } from '../maps/world/surfaceLore';
 import { CALM_MS, type HaltAlert } from '../maps/atlas/omens';
 import { lengthOf, project, subpath, towardOf } from '../maps/journey';
 import { CATEGORY_IMG, vignette } from '../maps/battle/vignettes';
@@ -129,7 +130,7 @@ function PlayerMap({ board, rev, onFollow, onPick, onFork }: { board: Extract<Pl
           <span className="present-info-kind">{picked.trace ? TRACE_FR[picked.trace] ?? 'Chemin' : 'Lieu'}</span>
           <h3>{picked.title}</h3>
           {picked.subtitle && <p>{picked.subtitle}</p>}
-          {(() => { const d = describe(picked); return d ? <p className="present-map-lore">{d}</p> : null; })()}
+          {(() => { const d = map.surface ? describeSurface(picked) : describe(picked); return d ? <p className="present-map-lore">{d}</p> : null; })()}
           {picked.trace && (() => {
             const danger = trailProfile(picked).danger;
             const dir = directionOf(board, picked.id);

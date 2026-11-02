@@ -5,7 +5,8 @@
  */
 import { useEffect, useRef } from 'react';
 import { cityPlanId, citySpecDefaults, generateWorld, hashSeed, interiorPlanId, landNameOf, placeCity, seaNameOf, wildFeatureOf, worldPlanId, type CitySpec, type Sea, type WildRecord, type WorldSpec } from './generate';
-import { whereLabel, wildSitesIn, type WildSite } from './wilds';
+import { sightOf, whereLabel, wildSitesIn, type WildSite } from './wilds';
+import { lengthOf, project, subpath } from '../journey';
 import { nearestEdge } from './climate';
 import { DIR_ANGLE, PACE, atDir, SCALES, cityKm, cityRadiusKm, dirName, elevationAt, placeOn, reliefOf, seaBeyond, seaSideAt, toAt, toKm, worldFrame } from './terrain';
 import { norm } from './lore';
@@ -380,7 +381,7 @@ function worldRelief(world: World) {
 /** Enregistrement d'un lieu sauvage (pour le garder, le définir, l'écarter ou le montrer aux joueurs). */
 export const wildRecordOf = (s: WildSite): WildRecord => ({
   key: s.key, km: s.km, kind: s.kind, cat: s.cat, title: s.title, teneur: s.teneur, danger: s.danger,
-  text: s.text, scene: s.scene, hook: s.hook, where: whereLabel(s) || undefined, biome: s.biome, e: s.e,
+  text: s.text, scene: s.scene, hook: s.hook, where: whereLabel(s) || undefined, biome: s.biome, e: s.e, forest: s.forest,
 });
 
 /**
@@ -407,3 +408,50 @@ export function wildDrafts(rec: MapRecord, data: AtlasData, box: [number, number
   const geometries = sites.map((s) => ({ id: `g-${wid}:wild-${s.key}`, mapId: wid, featureId: `${wid}:wild-${s.key}`, type: 'point' as const, coordinates: toAt(frame, s.km) }));
   return { key: win.join(','), sites, features, geometries };
 }
+
+/** Un lieu sauvage aperçu depuis la route : où (km le long du trajet), de quel côté, et s'il faut le chercher. */
+export type WildSighting = { record: WildRecord; id: string; s: number; d: number; at: [number, number]; side: 'gauche' | 'droite'; known: boolean; dc?: number; line: string };
+
+/**
+ * Lieux sauvages visibles le long d'un trajet du plan monde (`pts` en 0–1) : brouillons et lieux enregistrés (sauf
+ * écartés), à portée de vue selon le terrain. Triés dans l'ordre de la marche. `s` et `d` en km.
+ */
+export function wildAlong(rec: MapRecord, data: AtlasData, pts: [number, number][], revealed: string[] = []): WildSighting[] {
+  const world = rec.world;
+  if (!world || pts.length < 2) return [];
+  const { frame, relief } = worldRelief(world);
+  if (frame.legacy) return [];
+  const wid = worldPlanId(rec.id);
+  const km = pts.map((p) => toKm(frame, p));
+  const pad = 7;
+  const box: [number, number, number, number] = [
+    Math.min(...km.map((p) => p[0])) - pad, Math.min(...km.map((p) => p[1])) - pad, Math.max(...km.map((p) => p[0])) + pad, Math.max(...km.map((p) => p[1])) + pad,
+  ];
+  const kept = world.wilds ?? {};
+  const roads = data.geometries.filter((g) => g.mapId === wid && g.type === 'polyline' && /:route-/.test(g.featureId)).map((g) => (g.coordinates as [number, number][]).map((p) => toKm(frame, p)));
+  const cities = world.cities.map((c) => ({ name: c.name, km: cityKm(frame, c), r: cityRadiusKm(citySpecDefaults(c)) }));
+  const drafts = wildSitesIn({ seed: world.seed, relief, cities, roads }, box, new Set(Object.keys(kept))).map(wildRecordOf);
+  const records = [...drafts, ...Object.values(kept).filter((w) => w && !w.excluded && w.km[0] >= box[0] && w.km[0] <= box[2] && w.km[1] >= box[1] && w.km[1] <= box[3])];
+  const out: WildSighting[] = [];
+  for (const r of records) {
+    const pr = project(km, r.km);
+    const sight = sightOf(r, r.forest ?? 0);
+    if (pr.d > sight.km) continue;
+    // Côté, dans le sens de la marche (y vers le bas : produit vectoriel positif = à droite).
+    const ahead = subpath(km, pr.s, Math.min(lengthOf(km), pr.s + 0.5));
+    const b = ahead[ahead.length - 1], a = ahead[0];
+    const cross = (b[0] - a[0]) * (r.km[1] - pr.at[1]) - (b[1] - a[1]) * (r.km[0] - pr.at[0]);
+    const id = `${wid}:wild-${r.key}`;
+    out.push({ record: r, id, s: pr.s, d: pr.d, at: toAt(frame, r.km), side: cross > 0 ? 'droite' : 'gauche', known: revealed.includes(id), dc: sight.dc, line: sight.line });
+  }
+  return out.sort((x, y) => x.s - y.s);
+}
+
+/** Le début d'un trajet du plan monde (0–1), jusqu'à `sKm` km de marche. */
+export function cutWalk(rec: MapRecord, pts: [number, number][], sKm: number): [number, number][] {
+  const frame = worldFrame(rec.world);
+  const km = pts.map((p) => toKm(frame, p));
+  return subpath(km, 0, sKm).map((p) => toAt(frame, p));
+}
+/** Longueur (km) d'un trajet du plan monde. */
+export const walkKm = (rec: MapRecord, pts: [number, number][]) => { const f = worldFrame(rec.world); return lengthOf(pts.map((p) => toKm(f, p))); };
