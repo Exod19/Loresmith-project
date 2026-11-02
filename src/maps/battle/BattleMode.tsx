@@ -25,7 +25,7 @@ import CombatPanel, { type Hero } from './CombatPanel';
 import type { BestiaryRef } from '../CampaignGuide';
 import PlacePanel, { type ExitItem, type SearchItem, type SecretItem } from './PlacePanel';
 import { DEFAULT_BRUSH, PROP_BY_KEY, PROP_LABEL, propUrl, shapeCells, type Brush } from './build';
-import { passageDifficulty, searchFor, type SearchEntry } from './search';
+import { passageDifficulty, poiEntry, searchFor, type SearchEntry } from './search';
 import { advanceBattle, isOut, passiveOfToken, sightOf, statOf, vitalOf } from './combat';
 import { moveAlerts, type Note } from './tactics';
 import { partyVision } from './fog';
@@ -729,7 +729,8 @@ export default function BattleMode({
   const notes = rec.overlay?.searchNotes ?? {};
   const searchPoints = localElements
     .filter((e) => e.kind === 'point' && e.cell !== undefined)
-    .map((e) => ({ e, entry: searchFor(e.title, notes[e.id]) }))
+    // Point d'intérêt d'un lieu sauvage : sa fiche vient de son propre texte.
+    .map((e) => ({ e, entry: e.id.includes(':poi-') ? poiEntry(e.summary, notes[e.id]) : searchFor(e.title, notes[e.id]) }))
     .filter((x): x is { e: typeof x.e; entry: SearchEntry } => !!x.entry);
   const markerPoints = b.local?.window && plan
     ? markers.filter((m) => m.planId === plan.id && (m.kind === 'objet' || m.kind === 'repere')).flatMap((m) => {

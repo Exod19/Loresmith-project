@@ -65,7 +65,9 @@ export interface WorldSpec { seed: number; name: string; cities: CitySpec[]; bin
   /** Terres d'au-delà des mers (autres continents) : nom et point où l'écrire (km). */
   lands?: { id: string; name: string; side: string; x: number; y: number }[];
   /** Lieux sauvages enregistrés (gardés, définis, découverts ou écartés), par clé de case (wilds.js). */
-  wilds?: Record<string, WildRecord> }
+  wilds?: Record<string, WildRecord>;
+  /** Densité des lieux sauvages (lot 27) : rares, normaux (par défaut) ou nombreux. */
+  wildDensity?: 'rare' | 'normale' | 'riche' }
 
 /** Lieu sauvage enregistré : il ne bouge plus. `excluded` : écarté par le MJ (il n'apparaît plus, même en brouillon). */
 export interface WildRecord {

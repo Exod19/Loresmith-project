@@ -96,7 +96,7 @@ export function generateWildPlan(w, planId, seed = 1) {
       for (let i = 0; i < (kind === 'nomades' ? 5 : 3); i++) { const a = -Math.PI / 2 + (i - 1) * 0.9, d = M(14); box(cx + Math.cos(a) * d, cy + Math.sin(a) * d, kind === 'nomades' ? 5 : 3, kind === 'nomades' ? 5 : 2.5, a); }
       prop('tonneau', cx, cy + M(2), 1, 1); prop('coffre', cx + M(16), cy - M(10), 1.2, 0.7);
       break;
-    case 'cercle-fees': ring(14, 7, 0.9); break;
+    case 'cercle-fees': ring(16, 7, 1.1); decor.push({ kind: 'ring', d: `M${r1(cx - M(7))} ${r1(cy)}a${r1(M(7))} ${r1(M(7) * 0.85)} 0 1 0 ${r1(M(14))} 0a${r1(M(7))} ${r1(M(7) * 0.85)} 0 1 0 ${r1(-M(14))} 0` }); break;
     case 'menhirs': ring(12, 13, 1.4); prop('autel', cx, cy, 1.4, 1); break;
     case 'druides': ring(8, 10, 0.9); prop('autel', cx, cy, 1.6, 1); prop('fontaine', cx + M(6), cy + M(7), 1.2, 1.2); break;
     case 'cairn': prop('colonne', cx, cy, 2, 2); break;

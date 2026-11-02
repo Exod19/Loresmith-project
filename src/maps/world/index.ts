@@ -406,7 +406,7 @@ export function wildDrafts(rec: MapRecord, data: AtlasData, box: [number, number
     .filter((g) => g.mapId === wid && g.type === 'polyline' && /:route|route-/.test(g.featureId))
     .map((g) => (g.coordinates as [number, number][]).map((p) => toKm(frame, p)));
   const cities = world.cities.map((c) => ({ name: c.name, km: cityKm(frame, c), r: cityRadiusKm(citySpecDefaults(c)) }));
-  const sites = wildSitesIn({ seed: world.seed, relief, cities, roads, lakes }, win, new Set(Object.keys(world.wilds ?? {})));
+  const sites = wildSitesIn({ seed: world.seed, relief, cities, roads, lakes, density: world.wildDensity }, win, new Set(Object.keys(world.wilds ?? {})));
   const base = { canonStatus: 'creation' as const, placementStatus: 'documented' as const };
   const features = sites.map((s) => ({ ...base, ...wildFeatureOf(wildRecordOf(s), wid), draft: true, minZoom: 0, importance: 'detail' as const }));
   const geometries = sites.map((s) => ({ id: `g-${wid}:wild-${s.key}`, mapId: wid, featureId: `${wid}:wild-${s.key}`, type: 'point' as const, coordinates: toAt(frame, s.km) }));
@@ -434,7 +434,7 @@ export function wildAlong(rec: MapRecord, data: AtlasData, pts: [number, number]
   const kept = world.wilds ?? {};
   const roads = data.geometries.filter((g) => g.mapId === wid && g.type === 'polyline' && /:route-/.test(g.featureId)).map((g) => (g.coordinates as [number, number][]).map((p) => toKm(frame, p)));
   const cities = world.cities.map((c) => ({ name: c.name, km: cityKm(frame, c), r: cityRadiusKm(citySpecDefaults(c)) }));
-  const drafts = wildSitesIn({ seed: world.seed, relief, cities, roads, lakes }, box, new Set(Object.keys(kept))).map(wildRecordOf);
+  const drafts = wildSitesIn({ seed: world.seed, relief, cities, roads, lakes, density: world.wildDensity }, box, new Set(Object.keys(kept))).map(wildRecordOf);
   const records = [...drafts, ...Object.values(kept).filter((w) => w && !w.excluded && w.km[0] >= box[0] && w.km[0] <= box[2] && w.km[1] >= box[1] && w.km[1] <= box[3])];
   const out: WildSighting[] = [];
   for (const r of records) {

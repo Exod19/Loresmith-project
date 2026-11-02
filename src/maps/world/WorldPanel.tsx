@@ -7,6 +7,7 @@ import type { AtlasData } from '../atlas/types';
 import type { MapRecord } from '../mapStore';
 import { SLOT_TYPES, citySpecDefaults, type Binding, type CitySpec, type Sea } from './generate';
 import { DISTRICT_LABEL, norm, type LoreEntry } from './lore';
+import { DENSITY_LABEL } from './wilds';
 
 const entryText = (e: LoreEntry) => JSON.stringify([e.title, e.subtitle, e.shortSummary, e.body]);
 import { cityFromEntry, cityPlanId, crossSea, expandWorld, growSides, portChoices, portSea, replaceCity, seaName, settlementEntries, travelFrom, unmetWants, withCity, withScale, worldPatch, worldPlanId, type World } from './index';
@@ -165,6 +166,14 @@ export default function WorldPanel({ rec, data, library, planId, revealed, onUpd
         </select>
       </label>
       <p className="maps-sub">Neige vers le pôle, désert vers l’équateur, grèves au bord des lacs. La mer n’apparaît que du côté des cités portuaires.</p>
+
+      <h5>Lieux sauvages</h5>
+      <label>Densité
+        <select className="maps-btn" value={world.wildDensity ?? 'normale'} onChange={(e) => save({ ...world, wildDensity: e.target.value as NonNullable<World['wildDensity']> })}>
+          {Object.entries(DENSITY_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+        </select>
+      </label>
+      <p className="maps-sub">Grottes, cercles de fées, tumulus… tirés au sort dans la nature, vus de près par le MJ et découverts en chemin par les joueurs. Les lieux déjà gardés ou découverts ne changent pas.</p>
 
       <h5>Cités ({world.cities.length})</h5>
       {world.cities.length === 0 && <p className="maps-sub">Aucune cité. Ajoute-en une depuis une fiche de lieu, ou par ses paramètres.</p>}

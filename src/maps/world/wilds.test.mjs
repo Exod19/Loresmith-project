@@ -85,3 +85,10 @@ test('le plan d’un lieu enregistré est toujours le même, en pleine nature, a
   assert.ok(desert.map.surface.ground.water.length >= 1, 'une mare');
   assert.equal(desert.map.surface.climate, 'chaud');
 });
+
+test('densité réglable : rares < normaux < nombreux', () => {
+  const n = (density) => wildSitesIn({ ...ctx, density }, [frame.x0, frame.y0, frame.x1, frame.y1]).length;
+  const [rare, normale, riche] = [n('rare'), n('normale'), n('riche')];
+  assert.ok(rare < normale && normale < riche, `${rare} < ${normale} < ${riche}`);
+  assert.equal(normale, n(undefined), 'normale par défaut');
+});

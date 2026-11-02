@@ -11,7 +11,9 @@ export interface WildSite {
   biome: string; e: number; road: number; forest: number;
   near?: { name: string; km: number; dir: string };
 }
-export interface WildContext { seed: number; relief: Relief; cities: { name: string; km: [number, number]; r: number }[]; roads?: [number, number][][]; lakes?: [number, number][][] }
+export type WildDensity = 'rare' | 'normale' | 'riche';
+export const DENSITY_LABEL: Record<WildDensity, string>;
+export interface WildContext { density?: WildDensity; seed: number; relief: Relief; cities: { name: string; km: [number, number]; r: number }[]; roads?: [number, number][][]; lakes?: [number, number][][] }
 
 export const WILD_CELL: number;
 export const TENEURS: Record<Teneur, string>;

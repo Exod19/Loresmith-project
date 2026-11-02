@@ -15,6 +15,9 @@
 import { hashSeed, rng } from './generate.js';
 import { atDir, dirName, slopeAt, terrainAt } from './terrain.js';
 
+/** Densité des lieux sauvages : seuils du tirage (0 lieu sous le premier, 1 sous le second, 2 au-delà). */
+export const DENSITY = { rare: [0.65, 0.95], normale: [0.45, 0.9], riche: [0.2, 0.8] };
+export const DENSITY_LABEL = { rare: 'Rares (≈ un lieu aperçu tous les 2 ou 3 jours)', normale: 'Normaux (≈ un par jour de marche)', riche: 'Nombreux (≈ deux par jour)' };
 /** Côté d'une case (km). */
 export const WILD_CELL = 10;
 /** Teneurs : ambiance (rien de spécial), scène, accroche de quête secondaire. */
@@ -216,7 +219,9 @@ export function wildSitesIn(ctx, box, skip = new Set()) {
 export function cellSites(ctx, i, j, skip = new Set()) {
   const r = rng(hashSeed(`${ctx.seed}:wild:${i}:${j}`));
   const u = r();
-  const n = u < 0.45 ? 0 : u < 0.9 ? 1 : 2; // ≈ 0,65 lieu par case de 100 km² : densité « normale »
+  // Lieux par case de 100 km² : ≈ 0,4 (rares), 0,65 (normaux, par défaut) ou 1 (nombreux).
+  const [z0, z1] = DENSITY[ctx.density ?? 'normale'] ?? DENSITY.normale;
+  const n = u < z0 ? 0 : u < z1 ? 1 : 2;
   const [bx0, by0, bx1, by1] = ctx.relief.bounds;
   const out = [];
   for (let k = 0; k < n; k++) {

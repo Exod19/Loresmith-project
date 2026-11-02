@@ -140,6 +140,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   /** Mode Exploration (carte du monde) : le personnage du MJ arpente le monde et le définit. */
   const [exploring, setExploring] = useState(false);
   /** Marche hors route (carte du monde) : choix de la destination, puis trajet proposé avant le départ. */
+  /** Brouillon gardé pour y entrer : on entre dans son plan dès que le monde l'a généré. */
+  const [enterWild, setEnterWild] = useState<string | null>(null);
   const [cross, setCross] = useState<{ picking: boolean; to?: PartyPlace; at?: [number, number]; path?: CrossPath | null; by?: 'joueurs' } | null>(null);
   const [side, setSide] = useState<'lieu' | 'groupe' | 'campagne' | 'reperes' | 'monde' | 'explore'>(rec.kind === 'monde' && !(rec.world?.cities.length) ? 'monde' : 'lieu');
   useEffect(() => { if (selectedId) setSide((cur) => (cur === 'explore' ? cur : 'lieu')); }, [selectedId]);
@@ -818,6 +820,12 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   /** Carte du monde : entrer dans une cité (zoom au plus près, ou bouton), revenir au monde (dézoom au plus loin). */
   const wid = worldPlanId(rec.id);
   const cityOfPlan = rec.kind === 'monde' && map.scope.kind === 'site' ? data.features.find((f) => f.opens?.id === map.scope.id) : undefined;
+  useEffect(() => {
+    if (!enterWild) return;
+    const f = data.features.find((x) => x.id === enterWild && x.opens);
+    if (f?.opens) { setEnterWild(null); enterSite(f.opens.id); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, enterWild]);
   const enterSite = (siteId: string) => {
     const site = data.spaces.find((x) => x.id === siteId);
     if (!site?.mapId) return;
@@ -1309,6 +1317,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               <WildPanel key={feature.id} feature={feature} record={wildRecordFor(feature)!} draft={!!feature.draft}
                 revealed={overlay.revealed.includes(feature.id)}
                 onSave={(r) => saveWild(r)} onReveal={(r) => saveWild(r, !overlay.revealed.includes(feature.id))}
+                onEnter={(r) => { saveWild(r); setEnterWild(feature.id); }}
                 onEncounter={(force) => {
                   const titles = SITE_ENCOUNTERS[feature.wild!.kind];
                   const ctx: EncCtx = { zone: 'sauvage', depth: 1, place: feature.title, surface: true, titles };

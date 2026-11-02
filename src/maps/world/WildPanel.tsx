@@ -10,7 +10,7 @@ import { DANGER_LABEL, TENEURS, WILD_KINDS, type Danger, type Teneur } from './w
 
 const BIOME: Record<string, string> = { neige: 'terres enneigées', taiga: 'taïga', tempere: 'terres tempérées', steppe: 'steppe', desert: 'désert' };
 
-export default function WildPanel({ feature, record, draft, revealed, onSave, onReveal, onEncounter }: {
+export default function WildPanel({ feature, record, draft, revealed, onSave, onReveal, onEncounter, onEnter }: {
   feature: AtlasFeature;
   /** L'enregistrement tel qu'il serait gardé (brouillon) ou tel qu'il est (lieu enregistré). */
   record: WildRecord;
@@ -22,6 +22,8 @@ export default function WildPanel({ feature, record, draft, revealed, onSave, on
   onReveal: (r: WildRecord) => void;
   /** Tire la rencontre du lieu (selon son type) : `force` = rencontre imposée par le MJ. */
   onEncounter?: (force: boolean) => void;
+  /** Entrer dans le plan du lieu (un brouillon est gardé du même coup). */
+  onEnter?: (r: WildRecord) => void;
 }) {
   const w = feature.wild!;
   const [edit, setEdit] = useState<WildRecord | null>(null);
@@ -83,6 +85,7 @@ export default function WildPanel({ feature, record, draft, revealed, onSave, on
       {w.notes && <div className="wild-block"><b>Notes du MJ</b><p>{w.notes}</p></div>}
       <div className="maps-actions">
         {draft && <button className="maps-btn" onClick={() => onSave(record)} title="Garder ce lieu tel quel : il est enregistré et ne bougera plus">✓ Garder</button>}
+        {draft && onEnter && <button className="maps-btn gold" onClick={() => onEnter(record)} title="Le lieu est gardé, et l'on entre dans son plan">Entrer dans le lieu</button>}
         <button className="maps-btn" onClick={() => setEdit(record)} title="Changer son nom, sa teneur, ses textes, ajouter des notes">✦ {draft ? 'Définir' : 'Modifier'}</button>
         <button className={`maps-btn ${revealed ? 'gold' : ''}`} onClick={() => onReveal(record)} title={revealed ? 'Le cacher de nouveau aux joueurs' : 'Les joueurs le découvrent : il apparaît sur leur carte (et il est gardé)'}>
           {revealed ? '🙈 Cacher aux joueurs' : '👁 Montrer aux joueurs'}
