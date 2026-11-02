@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { peoplesOf, pickPerson, pickElement, pickTexture, mipFor, roleKeys, faceAngle, roofAngle, withOverrides, bankUrl, peupleKey } from './banque.js';
+import { peoplesOf, pickPerson, pickElement, pickTexture, mipFor, roleKeys, faceAngle, roofAngle, withOverrides, bankUrl, peupleKey, npcTraits, nameGenre, tokenScale } from './banque.js';
 
 const P = (id, peuple, roles, vue = 'portrait', extra = {}) => ({ id, type: 'personnage', vue, peuple, roles, mips: [256, 512, 1024], ...extra });
 const people = [
@@ -138,4 +138,37 @@ test('Jetons : un jeton pris à la verticale passe avant un jeton incliné du m�
   for (let i = 0; i < 30; i++) assert.equal(pickPerson(list, { vue: 'jeton', role: 'garde', peoples: pe, seed: `z${i}` })?.id, 'garde-zenith');
   // Le rôle reste prioritaire : un tavernier incliné plutôt qu'un garde vu de haut.
   assert.equal(pickPerson(list, { vue: 'jeton', role: 'tavernier', peoples: pe, seed: 'z' })?.id, 'tav-incline');
+});
+
+test('Genre et peuple d’un PNJ : fiche, rôle, prénom', () => {
+  for (const n of ['Mahaut', 'Isaure', 'Ombeline', 'Aveline', 'Ermengarde', 'Bérénice', 'Guenièvre', 'Ysolde']) assert.equal(nameGenre(n), 'f', n);
+  for (const n of ['Perrin', 'Baudouin', 'Anselme', 'Lothaire', 'Godefroy', 'Hugues', 'Aldric']) assert.equal(nameGenre(n), 'm', n);
+  assert.deepEqual(npcTraits({ name: 'Camille', role: 'tavernière' }), { genre: 'f' });
+  assert.deepEqual(npcTraits({ name: 'Lou', gender: 'male', race: 'Nain des collines' }), { genre: 'm', peuple: 'nain' });
+  assert.equal(npcTraits({ name: 'Brin', desc: 'Une halfeline rieuse.' }).peuple, 'halfelin');
+  assert.equal(npcTraits({ name: 'Sylas', desc: 'Un demi-elfe taciturne.' }).peuple, 'demi-elfe');
+  assert.equal(npcTraits({ name: 'Paul', desc: 'Un homme bourru.' }).peuple, undefined, '« homme » ne dit pas le peuple');
+});
+
+test('Genre strict et poses en contexte', () => {
+  const list = [
+    P('f-debout', 'humain', ['villageois'], 'jeton', { genre: 'f' }),
+    P('m-debout', 'humain', ['villageois'], 'jeton', { genre: 'm' }),
+    P('m-couche', 'humain', ['villageois'], 'jeton', { genre: 'm', pose: 'couche' }),
+  ];
+  const pe = peoplesOf({ people: 'humains' });
+  for (let i = 0; i < 30; i++) {
+    assert.equal(pickPerson(list, { vue: 'jeton', genre: 'f', peoples: pe, seed: `g${i}` })?.id, 'f-debout');
+    assert.equal(pickPerson(list, { vue: 'jeton', genre: 'm', peoples: pe, seed: `g${i}` })?.id, 'm-debout', 'jamais couché par terre sans raison');
+    assert.equal(pickPerson(list, { vue: 'jeton', genre: 'm', pose: 'couche', peoples: pe, seed: `g${i}` })?.id, 'm-couche');
+  }
+});
+
+test('Échelle des jetons : un halfelin, un nain, un enfant sont plus petits qu’un humain', () => {
+  const h = tokenScale({ type: 'personnage', peuple: 'humain' });
+  assert.equal(h, 1);
+  assert.ok(tokenScale({ type: 'personnage', peuple: 'halfelin' }) < tokenScale({ type: 'personnage', peuple: 'nain' }));
+  assert.ok(tokenScale({ type: 'personnage', peuple: 'nain' }) < h);
+  assert.ok(tokenScale({ type: 'personnage', peuple: 'humain', roles: ['enfant'] }) < h);
+  assert.ok(tokenScale({ type: 'personnage', peuple: 'humain', angle: 'zenith' }) < h);
 });

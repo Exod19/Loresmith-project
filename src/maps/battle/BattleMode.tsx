@@ -340,10 +340,18 @@ export default function BattleMode({
         const cell = g && cellIn(local.window, b.cols, b.rows, (g.coordinates as [number, number])[0], (g.coordinates as [number, number])[1]);
         if (cell === undefined || !g) continue;
         const cx = cell % b.cols, cy = Math.floor(cell / b.cols);
+        // Une case de sol libre : jamais sur une table, un lit, dans l'eau ou sur des gravats (cases gênantes ou
+        // difficiles), sauf pour qui dort : il reste dans son lit. À défaut de sol libre tout près, une case praticable.
+        const asleep = f.pose === 'couche';
         let best: { x: number; y: number } | null = null, bd = Infinity;
-        for (let y = 0; y < b.rows; y++) for (let x = 0; x < b.cols; x++) {
-          const d = Math.max(Math.abs(x - cx), Math.abs(y - cy));
-          if (d < bd && !blocksCell(ground, b.cols, x, y) && !taken(x, y)) { bd = d; best = { x, y }; }
+        for (const strict of [true, false]) {
+          for (let y = 0; y < b.rows; y++) for (let x = 0; x < b.cols; x++) {
+            const d = Math.max(Math.abs(x - cx), Math.abs(y - cy)) + (strict ? 0 : 0.5);
+            const k = ground[y * b.cols + x];
+            const ok = asleep && x === cx && y === cy ? !taken(x, y) : !blocksCell(ground, b.cols, x, y) && !taken(x, y) && (!strict || k === '.');
+            if (d < bd && ok) { bd = d; best = { x, y }; }
+          }
+          if (best && bd <= 2) break;
         }
         if (!best || bd > 4) continue;
         const ref = bestiary.find((r) => r.id === f.entryId);

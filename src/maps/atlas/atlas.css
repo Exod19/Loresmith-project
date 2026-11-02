@@ -251,6 +251,8 @@
 /* Jeton d'un PNJ sur un plan (sans socle) : une ombre portée, un liseré doré quand il est choisi. */
 .am-pin.is-token image { filter: drop-shadow(0 1px 2px #000a); }
 .am-pin .tok-ring { fill: none; stroke: transparent; stroke-width: 2; }
+/* Couverture d'un dormeur (jeton debout allongé dans son lit). */
+.am-pin .tok-blanket { fill: #7a5b45; stroke: #3b2a1f; stroke-width: 1; opacity: .96; }
 .am-pin.is-token:hover .tok-ring, .am-pin.is-token.is-sel .tok-ring, .am-pin.is-token.is-focus .tok-ring { stroke: #f0d6aa; }
 .am-pin.imp-local .disc { stroke-width: 1.5; }
 .am-gallery.imp-detail, .am-gallery.imp-local { animation: am-in .4s ease-out; }

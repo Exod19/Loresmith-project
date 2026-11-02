@@ -4,7 +4,7 @@
  */
 import type { BoardTheme } from './theme';
 import { dressBoard } from '../../banque/boardDress';
-import { faceAngle, isBankSrc, turnsFreely } from '../../banque';
+import { faceAngle, isBankSrc, tokenScaleOf, turnsFreely } from '../../banque';
 import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
 import type { AoeView, PlayerElement, PlayerToken } from '../../present/stage';
 import type { TerrainKind } from './terrain';
@@ -616,9 +616,12 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
                   </>
                 )}
                 <circle cx={cx} cy={cy} r={r - 0.035} fill="none" stroke={KIND_FILL[t.kind]} strokeOpacity={0.55} strokeWidth={0.03} />
-                <image href={t.image} x={cx - r * 1.12} y={cy - r * 1.12} width={2.24 * r} height={2.24 * r} preserveAspectRatio="xMidYMid meet" style={{ filter: 'drop-shadow(0 0.04px 0.05px rgba(0,0,0,.85))' }}
+                {/* Jeton de la banque : à l'échelle de son personnage (un halfelin est plus petit qu'un humain). */}
+                {(() => { const k = isBankSrc(t.image) ? tokenScaleOf(t.image) : 1; return (
+                <image href={t.image} x={cx - r * 1.12 * k} y={cy - r * 1.12 * k} width={2.24 * r * k} height={2.24 * r * k} preserveAspectRatio="xMidYMid meet" style={{ filter: 'drop-shadow(0 0.04px 0.05px rgba(0,0,0,.85))' }}
                   // Jeton de la Banque Loresmith : tourné vers son vis-à-vis le plus proche s'il est pris à la verticale ; incliné, il reste droit.
                   transform={isBankSrc(t.image) && turnsFreely(t.image) ? `rotate(${(facing(t, tokens) * 180) / Math.PI} ${cx} ${cy})` : undefined} />
+                ); })()}
                 <circle cx={cx} cy={cy} r={r} fill="none" stroke={t.selected ? '#ecd289' : '#0b0906'} strokeWidth={t.selected ? 0.12 : 0.05} strokeDasharray={t.hidden ? '0.12 0.08' : undefined} />
               </>
             ) : t.image ? (

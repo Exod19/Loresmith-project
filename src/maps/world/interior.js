@@ -10,6 +10,8 @@
  */
 import { crowdFactor, greets, homeBonus, seasonLine } from './seasons.js';
 import { SLOT_TYPES, hashSeed, rng } from './generate.js';
+import { settleOccupants } from './settle.js';
+import { npcTraits } from '../../banque/banque.js';
 
 const W = 1240, H = 1000;
 const TAU2 = Math.PI * 2;
@@ -585,6 +587,8 @@ export function generateInterior({ slot, planId, siteId, parentSiteId, bound, pe
     const feat = {
       id: `pnj-${npc.id}`, title: npc.name, category: 'institution', importance: 'regional', minZoom: 0,
       subtitle: npc.role || undefined, summary: npc.desc || undefined, entryId: npc.id, ...(isHiddenNpc(npc) ? { hiddenNpc: true } : {}),
+      // Genre et peuple écrits sur sa fiche (ou devinés de son rôle et de son prénom) : son image lui ressemblera.
+      ...npcTraits({ name: npc.name, role: npc.role, desc: npc.desc, gender: npc.gender, race: npc.race }),
     };
     const where = NPC_LEVEL.find(([re, lv]) => re.test(role) && (lv === 'etage' ? up : down));
     let spot = ROLE_SPOT.find(([re]) => re.test(role))?.[1] ?? 'main';
@@ -624,7 +628,7 @@ export function generateInterior({ slot, planId, siteId, parentSiteId, bound, pe
       const line = seasonLine(roleKey, season, climate, srng);
       if (line) text = `« ${line} » ${text ?? ''}`.trim();
     }
-    lvl.addPoint({ id: `${lvl.pre}pnj-gen-${gen++}`, title: name, subtitle: role, summary: text, category: 'institution', importance: 'regional', minZoom: 0 }, at);
+    lvl.addPoint({ id: `${lvl.pre}pnj-gen-${gen++}`, title: name, subtitle: role, summary: text, genre: fem ? 'f' : 'm', category: 'institution', importance: 'regional', minZoom: 0 }, at);
   };
   const addOccupant = (lvl, room, roleKey, summary, jitter = 0) => addAt(lvl, roomPoint(room, jitter), roleKey, summary);
   const between = ([a, b]) => a + Math.floor(orng() * (b - a + 1));
@@ -686,6 +690,10 @@ export function generateInterior({ slot, planId, siteId, parentSiteId, bound, pe
     if (!ids[lv]) continue;
     connections.push({ id: `cx-${ids[lv]}`, kind: 'escalier', fromAnchorId: stairAnchor('rdc', lv), toAnchorId: stairAnchor(lv, 'rdc'), direction: 'both', title: `${title2} · ${title}`, ...base });
   }
+  // Chacun à une place plausible : ni sur un meuble, ni l'un sur l'autre ; les dormeurs dans un lit. Les résidents
+  // créés par le MJ restent exactement où il les a mis.
+  const keep = new Set((residents ?? []).map((r) => `pnj-${r.id}`));
+  for (const lvl of out) settleOccupants(lvl, W, H, keep);
   const strip = ({ map, features, geometries, anchors, space }) => ({ map, features, geometries, anchors, space });
   return { ...strip(rdc), levels: out.slice(1).map(strip), connections, entryId: `${rdc.pre}entree` };
 }

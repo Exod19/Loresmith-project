@@ -4,7 +4,7 @@
  */
 import { useSyncExternalStore } from 'react';
 import catalogue from './catalogue.json';
-import { bankUrl, mipFor, peoplesOf, pickPerson, withOverrides, type BankImage, type Peoples } from './banque';
+import { bankUrl, mipFor, npcTraits, peoplesOf, pickPerson, tokenScale, withOverrides, type BankImage, type Peoples } from './banque';
 
 export * from './banque';
 
@@ -119,18 +119,40 @@ export const isBankSrc = (src: string | undefined) => {
 };
 
 /**
- * Image d'un PNJ (portrait ou jeton), cohérente avec le lieu : `role` (sous-titre du PNJ), `place` (fiche de la cité ou
- * du lieu, et son peuple), `region`. Renvoie l'adresse, ou undefined plutôt qu'un intrus.
+ * Image d'un PNJ (portrait ou jeton), cohérente avec le lieu et avec lui-même :
+ * - `role` (sous-titre), `name`, `desc`, `genre`, `peuple` : son genre (strict) et son peuple, d'après sa fiche ou son
+ *   prénom (npcTraits) ;
+ * - `placeText`, `people`, `region` ou `peoples` : les peuples du lieu, quand le sien n'est pas connu ;
+ * - `pose` : 'couche' pour un dormeur dans son lit ; sinon, jamais de personnage assis, agenouillé ou couché.
+ * Renvoie l'adresse, ou undefined plutôt qu'un intrus.
  */
-export function npcImage({ id, role, placeText, people, region = 'surface', vue = 'jeton', px = 128, peoples }: {
-  id: string; role?: string; placeText?: string; people?: string; region?: string; vue?: 'portrait' | 'jeton'; px?: number; peoples?: Peoples;
+export function npcImage({ id, role, name, desc, genre, peuple, pose, placeText, people, region = 'surface', vue = 'jeton', px = 128, peoples }: {
+  id: string; role?: string; name?: string; desc?: string; genre?: 'f' | 'm'; peuple?: string; pose?: string;
+  placeText?: string; people?: string; region?: string; vue?: 'portrait' | 'jeton'; px?: number; peoples?: Peoples;
 }): string | undefined {
   const pe = peoples ?? peoplesOf({ text: placeText, people, region });
-  const genre = /\b(elle|femme|fille|dame|soeur|mere|tavern(i|e)ere|servante|pretresse|marchande)\b/.test((role ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')) ? 'f' as const : undefined;
+  const traits = npcTraits({ name, role, desc });
+  const g = genre ?? traits.genre;
+  const own = peuple ?? traits.peuple;
+  // Son peuple d'abord (s'il n'est pas proscrit du lieu), puis ceux du lieu ; son rôle d'abord, puis n'importe quel rôle.
+  const tries: Parameters<typeof pickPerson>[1][] = [];
+  if (own && !(pe.banned ?? []).includes(own)) tries.push({ peuple: own, role }, { peuple: own });
+  tries.push({ role }, {});
+  const pick = (v: 'jeton' | 'portrait') => {
+    for (const t of tries) {
+      const got = pickPerson(images, { ...t, vue: v, peoples: pe, seed: id, genre: g, pose });
+      if (got) return got;
+    }
+    return null;
+  };
   // Le portrait et le jeton d'un même PNJ montrent la même personne : on tire le jeton, puis on prend son portrait jumeau.
-  const token = pickPerson(images, { vue: 'jeton', role, peoples: pe, seed: id, genre });
-  const twin = vue === 'portrait' ? bankById(token?.paire) : null;
-  const img = vue === 'jeton' ? token : twin && !twin.exclu ? twin : pickPerson(images, { vue, role, peoples: pe, seed: id, genre });
+  const token = pick('jeton');
+  if (vue === 'jeton') return token ? bankSrc(token, px) : undefined;
+  const twin = bankById(token?.paire);
+  if (twin && !twin.exclu) return bankSrc(twin, px);
+  const face = token ? faceOf(bankSrc(token, px), px) : undefined;
+  if (face) return face;
+  const img = pick('portrait');
   return img ? bankSrc(img, px) : undefined;
 }
 
@@ -145,6 +167,12 @@ export function bankImageOf(src: string | undefined): BankImage | null {
  * Un jeton peut-il tourner sur lui-même ? Oui s'il est pris à la verticale ; un jeton incliné (visage visible) reste
  * droit, sinon sa perspective penche de travers sur un plan vu de haut.
  */
+/** Échelle d'un jeton (1 : humain adulte debout) : tous les personnages sont dessinés à la même échelle. */
+export const tokenScaleOf = (src: string | undefined) => { const img = bankImageOf(src); return img ? tokenScale(img) : 1; };
+
+/** Pose dessinée sur l'image d'un jeton ('couche', 'assis', 'agenouille'), ou undefined : debout. */
+export const poseOf = (src: string | undefined) => bankImageOf(src)?.pose;
+
 export const turnsFreely = (src: string | undefined) => bankImageOf(src)?.angle !== 'incline';
 
 /**
