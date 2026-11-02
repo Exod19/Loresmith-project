@@ -1,0 +1,10 @@
+export type Biome = 'neige' | 'taiga' | 'tempere' | 'steppe' | 'desert';
+export type Climate = 'froid' | 'tempere' | 'chaud';
+export const CLIMATE_RANGES: Record<'complet' | 'froid' | 'tempere' | 'chaud', { label: string; t: [number, number] }>;
+export const BIOME_LABEL: Record<Biome, string>;
+export function temperatureAt(climate: { hemisphere?: 'nord' | 'sud'; range?: string } | undefined, y01: number, noise?: number): number;
+export function biomeOf(T: number, wet?: number): Biome;
+export function climateOf(T: number): Climate;
+export function nearestEdge(at: [number, number], W?: number, H?: number): 'N' | 'S' | 'E' | 'O';
+export const EDGE_ANGLE: Record<'N' | 'S' | 'E' | 'O', number>;
+export function smoothNoise(seed: number, step: number): (x: number, y: number) => number;

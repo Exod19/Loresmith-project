@@ -9,6 +9,7 @@ import type { MapMarker } from '../mapStore';
 import { generateTerrain, type LocationHint, type TerrainElement, type TerrainKind } from './terrain';
 import type { PassageLink } from '../mapStore';
 import { isSearchable } from './search';
+import { rasterGround } from '../world/generate';
 
 export type LocalElement = TerrainElement & {
   id: string;
@@ -84,8 +85,9 @@ export function buildLocalMap(p: {
       cy = pts.reduce((s, q) => s + q[1], 0) / pts.length;
     }
   }
-  // Fenêtre carrée en pixels de plan : une case a la même taille en largeur et en hauteur.
-  const w = 0.16;
+  // Fenêtre carrée en pixels de plan : une case a la même taille en largeur et en hauteur. Un plan de surface a une
+  // échelle connue : une case y fait 5 pieds (1,52 m) pour de vrai, et le plateau couvre la rue où se tient le groupe.
+  const w = plan.surface ? (cols * 1.524) / (plan.surface.scale * plan.width) : 0.16;
   const h = w * (plan.width / plan.height) * (rows / cols);
   const win = { x0: cx - w / 2, y0: cy - h / 2, w, h };
   const toCell = (x: number, y: number) => ({ x: Math.floor(((x - win.x0) / win.w) * cols), y: Math.floor(((y - win.y0) / win.h) * rows) });
@@ -155,10 +157,13 @@ export function buildLocalMap(p: {
   // Terrain : les cavités de la carte de navigation, sinon le terrain généré. Puis les obstacles nommés sur la carte.
   const cavs = atlas.cavities[plan.id] ?? [];
   // Un lieu de type couloir est presque entièrement de la roche : seuls ses passages sont praticables.
-  const corridor = ['boyau', 'etroit', 'galerie', 'tunnel', 'secret'].includes(p.hint.trace ?? '') || p.hint.category === 'voie';
-  let base = corridor
-    ? '#'.repeat(cols * rows)
-    : floorFromCavities(cols, rows, win, cavs) ?? generateTerrain(cols, rows, p.hint, p.seed);
+  // Plan de surface : rues, bâtiments, remparts, eaux et arbres réels ; toujours le même plateau au même endroit.
+  const corridor = !plan.surface && (['boyau', 'etroit', 'galerie', 'tunnel', 'secret'].includes(p.hint.trace ?? '') || p.hint.category === 'voie');
+  let base = plan.surface
+    ? rasterGround(plan.surface, plan.width, plan.height, win, cols, rows, Math.round(cx * 1e6) ^ Math.round(cy * 1e6))
+    : corridor
+      ? '#'.repeat(cols * rows)
+      : floorFromCavities(cols, rows, win, cavs) ?? generateTerrain(cols, rows, p.hint, p.seed);
   for (const g of onPlan) {
     if (g.type !== 'point') continue;
     const f = byId.get(g.featureId);
@@ -186,7 +191,38 @@ export function buildLocalMap(p: {
     .map((e) => (e.kind === 'passage' ? { ...e, auto: autoLink(atlas, plan, e.id, places) } : e))
     .filter((e) => e.kind !== 'passage' || !e.secret || e.auto)
     .slice(0, MAX_ELEMENTS);
-  return { window: win, base, elements: kept };
+  // Sous terre, les galeries restent sur la carte de navigation ; en surface, les tracés sont des rues : on les garde.
+  return { window: win, base, elements: plan.surface ? kept : trimPassages(base, kept, cols, rows) };
+}
+
+const BLOCKING = new Set(['#', 'I']);
+
+/**
+ * Plateau lisible : les galeries de l'Atlas restent sur la carte de navigation. On ne garde que :
+ * - les sorties au bord du plateau, réduites au tronçon qui relie le bord à la caverne ;
+ * - les passages secrets qui traversent un obstacle (roche, pilier).
+ * Les autres passages (boyaux, tunnels intérieurs) ne sont pas creusés dans le plateau.
+ */
+export function trimPassages(base: string, elements: LocalElement[], cols: number, rows: number): LocalElement[] {
+  // Un lieu-couloir (tout le plateau est de la roche) : son passage est le plateau, on le garde tel quel.
+  if (!base.includes('.')) return elements;
+  const onEdge = (c: number) => { const x = c % cols, y = Math.floor(c / cols); return x === 0 || y === 0 || x === cols - 1 || y === rows - 1; };
+  const blocked = (c: number) => BLOCKING.has(base[c]);
+  return elements.flatMap((e) => {
+    if (e.kind !== 'passage' || !e.cells?.length) return [e];
+    if (e.secret) return e.cells.some(blocked) ? [e] : [];
+    // Depuis chaque bout posé sur le bord : les cases jusqu'à la première case libre de la caverne.
+    const cells = e.cells;
+    const stub = (list: number[]) => {
+      const out: number[] = [];
+      for (const c of list) { out.push(c); if (!blocked(c) && !onEdge(c)) break; }
+      return out;
+    };
+    const keep = new Set<number>();
+    if (onEdge(cells[0])) for (const c of stub(cells)) keep.add(c);
+    if (onEdge(cells[cells.length - 1])) for (const c of stub([...cells].reverse())) keep.add(c);
+    return keep.size ? [{ ...e, cells: cells.filter((c) => keep.has(c)) }] : [];
+  });
 }
 
 /** Destination d'un tracé : une de ses extrémités tombe sur une ancre reliée à une ancre d'un autre plan. */

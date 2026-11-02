@@ -2,10 +2,15 @@
  * Plateau de combat sur grille (5 pieds par case). Sert à la console MJ (interactif) et à l'écran joueur (lecture seule).
  * Le terrain est dessiné avec de vraies textures (SVG), les lieux et créatures avec des icônes.
  */
-import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
-import type { PlayerElement, PlayerToken } from '../../present/stage';
+import type { BoardTheme } from './theme';
+import { dressBoard } from '../../banque/boardDress';
+import { faceAngle, isBankSrc } from '../../banque';
+import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
+import type { AoeView, PlayerElement, PlayerToken } from '../../present/stage';
 import type { TerrainKind } from './terrain';
 import { CATEGORY_IMG, vignette } from './vignettes';
+import { TERRAIN_DEF, texUrl, type SurfaceRules, type TerrainId } from './surface';
+import { ObjectsLayer, PathPreview, RulesOverlay, SURFACE_FILTERS, TexturePatterns, texId, texturesOf, WallsLayer, ZonesLayer, type PathView, type SurfaceView } from './SurfaceLayers';
 
 /** `active` : c'est son tour. `hp`/`maxHp` : barre de vie (MJ seulement). */
 export type BoardToken = PlayerToken & { selected?: boolean; hidden?: boolean; active?: boolean; hp?: number; maxHp?: number; out?: boolean; conditions?: string[] };
@@ -20,11 +25,15 @@ export type BoardElement = PlayerElement & { cells?: number[]; ghost?: boolean; 
 /** `attack` : allonge au corps à corps (anneau plein). `ranged` : portée courte à distance (anneau en pointillés). */
 export type BoardRange = {
   id: string; x: number; y: number; size: number; move: number[]; attack: number; ranged: number; selected: boolean;
+  /** Cases accessibles où l'on entre en payant plus (terrain difficile, nage, escalade) : teinte ambrée. */
+  costly?: number[];
   /** Joueurs : portée de vue (Perception) et cases à portée de main pour fouiller (Investigation). */
   sight?: number; search?: number;
 };
 
 type Props = {
+  /** `surface` : plateau tiré d'une carte du monde (rues, bâtiments, champs) plutôt que d'une caverne. */
+  theme?: BoardTheme;
   cols: number;
   rows: number;
   backdrop?: string;
@@ -54,6 +63,18 @@ type Props = {
   aim?: { x1: number; y1: number; x2: number; y2: number; tone?: 'hit' | 'miss' | 'crit' | 'info'; pending?: boolean; label?: string };
   /** Dégâts (amount < 0) et soins récents, écrits en grand au-dessus des jetons quelques secondes. */
   hits?: { id: string; to: string; amount: number; at: number }[];
+  /** Sol du fond (texture des cases de sol), zones aux contours naturels, éléments et murs. */
+  ground?: TerrainId;
+  surface?: SurfaceView;
+  /** Surcouche de vérification des règles (MJ, préparation). */
+  overlay?: { rules: SurfaceRules; focus?: number | null };
+  /** Trajet prévu pendant un déplacement. */
+  path?: PathView;
+  /** Élément ou mur sélectionné en construction, et tracé en cours (MJ). */
+  surfaceSelected?: string | null;
+  draft?: ReactNode;
+  /** Zones d'effet de sorts. */
+  aoes?: AoeView[];
 };
 
 /** Icône de chaque catégorie de lieu. */
@@ -80,10 +101,12 @@ function FogLayer({ cols, rows, fog }: { cols: number; rows: number; fog: NonNul
 }
 
 const KIND_FILL: Record<PlayerToken['kind'], string> = { pc: '#54d8c6', monster: '#c0492f', other: '#c9a24a' };
+/** Pictogramme de ce qui neutralise une créature (mêmes signes que la Table de guerre). */
+const CAUSE_ICON: Record<string, string> = { Inconscient: '☾', Paralysé: '❄', Pétrifié: '▣', Étourdi: '✷', Neutralisé: '⊘' };
 
 /**
- * Images détourées (fond transparent) : on le vérifie une fois par image, aux quatre coins. Une figurine détourée
- * reçoit un socle (disque teinté selon le camp) et déborde un peu du cercle, au lieu d'être découpée.
+ * Images détourées (fond transparent) : vérifiées une fois par image, aux quatre coins. Une figurine détourée n'est pas
+ * découpée en rond : elle se tient debout sur son socle et déborde un peu du cercle (sans sortir de sa case).
  */
 const cutoutCache = new Map<string, boolean>();
 function probeCutout(url: string): Promise<boolean> {
@@ -117,7 +140,7 @@ function useCutouts(urls: (string | undefined)[]) {
   });
   return (u?: string) => !!u && cutoutCache.get(u) === true;
 }
-/** Socle d'une figurine détourée, par camp : pierre sombre teintée. */
+/** Socle d'une figurine détourée sans socle de terrain : pierre sombre teintée selon le camp. */
 const BASE_TINT: Record<PlayerToken['kind'], [string, string]> = { pc: ['#2c4f4a', '#0f1c1a'], monster: ['#5a2a22', '#1c0d0a'], other: ['#4f4224', '#1a150b'] };
 
 /** Textures du terrain (public/images/combat-map/textures) : une image par case, posée sur la grille.
@@ -132,6 +155,7 @@ const TILE_BASE: Record<string, string> = {
 /** Taille d'une case dans le canevas de terrain (pixels). Le canevas est ensuite mis à l'échelle par le CSS. */
 const CELL_PX = 64;
 const imageCache = new Map<string, Promise<HTMLImageElement>>();
+const paintGen = new WeakMap<HTMLCanvasElement, number>();
 function loadTile(file: string): Promise<HTMLImageElement> {
   let p = imageCache.get(file);
   if (!p) {
@@ -146,19 +170,70 @@ function loadTile(file: string): Promise<HTMLImageElement> {
   return p;
 }
 
+/** Sol choisi par le MJ : une texture de 3 cases de côté, découpée case par case (pas de répétition visible). */
+const GROUND_SPAN = 3;
+function loadUrl(url: string): Promise<HTMLImageElement> {
+  let p = imageCache.get(url);
+  if (!p) {
+    p = new Promise((resolve, reject) => { const img = new Image(); img.onload = () => resolve(img); img.onerror = reject; img.src = url; });
+    imageCache.set(url, p);
+  }
+  return p;
+}
+
+/** Angle d'un jeton de la banque : face au jeton du camp d'en face le plus proche (le groupe face aux monstres, et
+ *  inversement) ; à défaut, vers le centre du plateau occupé. */
+function facing(t: PlayerToken, all: PlayerToken[]) {
+  const foe = (o: PlayerToken) => o.id !== t.id && !o.out && (t.kind === 'pc' ? o.kind !== 'pc' : o.kind === 'pc');
+  let best: PlayerToken | null = null, bd = Infinity;
+  for (const o of all) if (foe(o)) { const d = Math.hypot(o.x - t.x, o.y - t.y); if (d < bd) { bd = d; best = o; } }
+  if (!best) {
+    const others = all.filter((o) => o.id !== t.id);
+    if (!others.length) return 0;
+    const mx = others.reduce((s, o) => s + o.x, 0) / others.length, my = others.reduce((s, o) => s + o.y, 0) / others.length;
+    return faceAngle(mx - t.x, my - t.y);
+  }
+  return faceAngle(best.x + best.size / 2 - (t.x + t.size / 2), best.y + best.size / 2 - (t.y + t.size / 2));
+}
+
 /** Dessine le terrain case par case dans le canevas : une texture par type, avec la couleur de base dessous. */
-async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: number, terrain: string | undefined) {
+async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: number, terrain: string | undefined, ground?: TerrainId, theme?: BoardTheme) {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   canvas.width = cols * CELL_PX; canvas.height = rows * CELL_PX;
-  ctx.fillStyle = TILE_BASE.sol;
+  // Plans de la carte du monde (cité, campagne, intérieur) : peints sans texture, selon le climat et la saison.
+  // Chaque dessin a son numéro : l'habillage (Banque Loresmith), qui charge ses images, s'efface devant un dessin plus récent.
+  const gen = (paintGen.get(canvas) ?? 0) + 1;
+  paintGen.set(canvas, gen);
+  const alive = () => paintGen.get(canvas) === gen;
+  if (theme?.startsWith('surface')) {
+    const climate = theme === 'surface-froid' ? 'froid' : theme === 'surface-chaud' ? 'chaud' : theme === 'surface-neige' ? 'neige' : 'tempere';
+    paintSurface(ctx, cols, rows, terrain, climate);
+    await dressBoard(canvas, cols, rows, terrain, climate, CELL_PX, alive);
+    return;
+  }
+  if (theme === 'interieur') { paintInterior(ctx, cols, rows, terrain); await dressBoard(canvas, cols, rows, terrain, 'interieur', CELL_PX, alive); return; }
+  const g = ground && ground !== 'sol' ? TERRAIN_DEF[ground] : undefined;
+  ctx.fillStyle = g?.color ?? TILE_BASE.sol;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  if (!terrain) return;
+  const groundImg = g ? await loadUrl(texUrl(g.tex)).catch(() => null) : null;
+  const span = g?.tex.startsWith('terrains/') ? GROUND_SPAN : 1;
+  const paintGround = (x: number, y: number) => {
+    if (!groundImg) return false;
+    const w = groundImg.width / span, h = groundImg.height / span;
+    ctx.drawImage(groundImg, ((x / CELL_PX) % span) * w, ((y / CELL_PX) % span) * h, w, h, x, y, CELL_PX, CELL_PX);
+    return true;
+  };
+  if (!terrain) {
+    for (let i = 0; i < cols * rows; i++) paintGround((i % cols) * CELL_PX, Math.floor(i / cols) * CELL_PX);
+    return;
+  }
   const files = [...new Set([...Array.from(terrain).map((k) => TILE_FILE[k as TerrainKind] ?? 'sol'), 'stalagmite'])];
   const images = Object.fromEntries(await Promise.all(files.map(async (f) => [f, await loadTile(f).catch(() => null)])));
   Array.from(terrain).forEach((k, i) => {
     const file = TILE_FILE[k as TerrainKind] ?? 'sol';
     const x = (i % cols) * CELL_PX, y = Math.floor(i / cols) * CELL_PX;
+    if ((k === '.' || k === ',') && paintGround(x, y)) return;
     ctx.fillStyle = TILE_BASE[file] ?? TILE_BASE.sol;
     ctx.fillRect(x, y, CELL_PX, CELL_PX);
     const img = images[file];
@@ -170,8 +245,133 @@ async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: numbe
   });
 }
 
+/**
+ * Plateau de surface (cité, campagne), peint sans texture : sol de terre battue, bâtiments en toits (bordés là où ils
+ * touchent la rue), arbres, champs, eau et pont. Même grille que le terrain de caverne : seules les couleurs changent.
+ */
+/** Couleurs du plateau de surface selon le climat de la cité : sol, champs, toits, eau, arbres. */
+const SURFACE_PALETTE = {
+  tempere: { ground: '#5b5444', field: '#4b512f', furrow: 'rgba(120,130,70,.55)', roof: '#8a4f3c', roofHi: '#9c5d47', roofEdge: '#3b241c', water: '#2f5c69', tree: '#22381f', treeHi: '#2f4a2a' },
+  froid: { ground: '#6a6e68', field: '#5b6150', furrow: 'rgba(200,205,200,.45)', roof: '#4f4a4c', roofHi: '#625c5e', roofEdge: '#1e1b1c', water: '#2a4652', tree: '#1d3226', treeHi: '#2a4433' },
+  neige: { ground: '#cfd6da', field: '#c3cbcc', furrow: 'rgba(255,255,255,.55)', roof: '#6a6466', roofHi: '#eef2f4', roofEdge: '#2a2627', water: '#7fa3b3', tree: '#1d3226', treeHi: '#e6edf0' },
+  chaud: { ground: '#8a7650', field: '#8a7a42', furrow: 'rgba(180,160,90,.55)', roof: '#d2b07a', roofHi: '#e0c290', roofEdge: '#6d5634', water: '#1f6a78', tree: '#4e6a2c', treeHi: '#6c8a3a' },
+};
+
+function paintSurface(ctx: CanvasRenderingContext2D, cols: number, rows: number, terrain: string | undefined, climate: keyof typeof SURFACE_PALETTE = 'tempere') {
+  const C = CELL_PX;
+  const P = SURFACE_PALETTE[climate];
+  ctx.fillStyle = P.ground;
+  ctx.fillRect(0, 0, cols * C, rows * C);
+  if (!terrain) return;
+  const at = (x: number, y: number) => (x < 0 || y < 0 || x >= cols || y >= rows ? '' : terrain[y * cols + x]);
+  // Grain du sol : quelques pavés et cailloux, toujours au même endroit.
+  let z = 7;
+  const r = () => ((z = (1664525 * z + 1013904223) >>> 0) / 4294967296);
+  for (let i = 0; i < terrain.length; i++) {
+    const k = terrain[i], x = (i % cols) * C, y = Math.floor(i / cols) * C;
+    if (k === '~') { ctx.fillStyle = P.water; ctx.fillRect(x, y, C, C); ctx.strokeStyle = 'rgba(160,200,210,.25)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + 8, y + C * 0.35 + r() * 8); ctx.quadraticCurveTo(x + C / 2, y + C * 0.25, x + C - 8, y + C * 0.4); ctx.stroke(); continue; }
+    if (k === ',') {
+      ctx.fillStyle = P.field; ctx.fillRect(x, y, C, C);
+      ctx.strokeStyle = P.furrow; ctx.lineWidth = 2;
+      for (let s = 10; s < C; s += 14) { ctx.beginPath(); ctx.moveTo(x + 4, y + s); ctx.lineTo(x + C - 4, y + s + 3); ctx.stroke(); }
+      continue;
+    }
+    if (k === '.' || k === 'I') {
+      ctx.fillStyle = 'rgba(40,36,28,.35)';
+      for (let n = 0; n < 3; n++) ctx.fillRect(x + r() * (C - 6), y + r() * (C - 6), 3 + r() * 4, 2 + r() * 3);
+    }
+  }
+  for (let i = 0; i < terrain.length; i++) {
+    const k = terrain[i], cx = i % cols, cy = Math.floor(i / cols), x = cx * C, y = cy * C;
+    if (k === '#') {
+      ctx.fillStyle = P.roof; ctx.fillRect(x, y, C, C);
+      ctx.fillStyle = P.roofHi; ctx.fillRect(x + 4, y + 4, C - 8, (C - 8) / 2);
+      // Bord du bâtiment, côté rue : un mur d'ombre là où la case voisine n'est pas bâtie.
+      ctx.fillStyle = P.roofEdge;
+      if (at(cx, cy - 1) !== '#') ctx.fillRect(x, y, C, 5);
+      if (at(cx, cy + 1) !== '#') ctx.fillRect(x, y + C - 7, C, 7);
+      if (at(cx - 1, cy) !== '#') ctx.fillRect(x, y, 5, C);
+      if (at(cx + 1, cy) !== '#') ctx.fillRect(x + C - 5, y, 5, C);
+    } else if (k === '=') {
+      ctx.fillStyle = '#9b8a69'; ctx.fillRect(x, y, C, C);
+      ctx.strokeStyle = '#5e5340'; ctx.lineWidth = 2;
+      for (let s = 8; s < C; s += 12) { ctx.beginPath(); ctx.moveTo(x + s, y); ctx.lineTo(x + s, y + C); ctx.stroke(); }
+    } else if (k === 'I') {
+      ctx.fillStyle = P.tree; ctx.beginPath(); ctx.arc(x + C / 2, y + C / 2, C * 0.42, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = P.treeHi; ctx.beginPath(); ctx.arc(x + C * 0.42, y + C * 0.4, C * 0.22, 0, Math.PI * 2); ctx.fill();
+    } else if (k === 'X') {
+      ctx.fillStyle = '#060606'; ctx.fillRect(x, y, C, C);
+    } else if (k === ':' && climate === 'neige') {
+      // Congère ou glace : blanc bleuté, quelques ombres de vent.
+      ctx.fillStyle = '#eef3f6'; ctx.fillRect(x, y, C, C);
+      ctx.strokeStyle = 'rgba(120,150,175,.45)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x + 6, y + C * 0.6); ctx.quadraticCurveTo(x + C / 2, y + C * 0.4 + r() * 6, x + C - 6, y + C * 0.62); ctx.stroke();
+    } else if (k === ':') {
+      ctx.fillStyle = '#6a604c'; ctx.fillRect(x, y, C, C);
+    }
+  }
+}
+
+/** Plateau d'intérieur : dalles et planches, murs de pierre, gros meubles (comptoir, âtre) et meubles bas (tables, lits). */
+function paintInterior(ctx: CanvasRenderingContext2D, cols: number, rows: number, terrain: string | undefined) {
+  const C = CELL_PX;
+  ctx.fillStyle = '#6b5a44';
+  ctx.fillRect(0, 0, cols * C, rows * C);
+  if (!terrain) return;
+  const at = (x: number, y: number) => (x < 0 || y < 0 || x >= cols || y >= rows ? '#' : terrain[y * cols + x]);
+  // Dehors : ce qu'on atteint depuis le bord du plateau sans franchir de mur ni d'embrasure (une case libre entre
+  // deux murs qui se font face). Peint en pavés de rue ; le reste est le plancher du bâtiment.
+  const doorway = (x: number, y: number) => (at(x - 1, y) === '#' && at(x + 1, y) === '#') || (at(x, y - 1) === '#' && at(x, y + 1) === '#');
+  const outside = new Set<number>();
+  const queue: number[] = [];
+  for (let i = 0; i < terrain.length; i++) {
+    const x = i % cols, y = Math.floor(i / cols);
+    if ((x === 0 || y === 0 || x === cols - 1 || y === rows - 1) && terrain[i] !== '#') { outside.add(i); queue.push(i); }
+  }
+  while (queue.length) {
+    const i = queue.pop()!, x = i % cols, y = Math.floor(i / cols);
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy, j = ny * cols + nx;
+      if (nx < 0 || ny < 0 || nx >= cols || ny >= rows || outside.has(j) || terrain[j] === '#' || doorway(nx, ny)) continue;
+      outside.add(j); queue.push(j);
+    }
+  }
+  for (let i = 0; i < terrain.length; i++) {
+    const k = terrain[i], cx = i % cols, cy = Math.floor(i / cols), x = cx * C, y = cy * C;
+    if (outside.has(i) && k !== '#') {
+      ctx.fillStyle = '#5b5444'; ctx.fillRect(x, y, C, C);
+      ctx.fillStyle = 'rgba(40,36,28,.35)';
+      for (let n = 0; n < 3; n++) ctx.fillRect(x + ((i * 37 + n * 23) % (C - 8)), y + ((i * 17 + n * 41) % (C - 8)), 5, 3);
+      if (k === 'I') { ctx.fillStyle = '#5a3f26'; ctx.fillRect(x + 6, y + 6, C - 12, C - 12); }
+      continue;
+    }
+    if (k === '#') {
+      ctx.fillStyle = '#2d2823'; ctx.fillRect(x, y, C, C);
+      ctx.strokeStyle = 'rgba(120,110,95,.35)'; ctx.lineWidth = 2;
+      ctx.strokeRect(x + 3, y + 3, C / 2 - 4, C / 2 - 4); ctx.strokeRect(x + C / 2 + 1, y + C / 2 + 1, C / 2 - 4, C / 2 - 4);
+      continue;
+    }
+    // Sol : planches dans le sens de la longueur.
+    ctx.fillStyle = (cx + cy) % 2 ? '#6e5c45' : '#695742'; ctx.fillRect(x, y, C, C);
+    ctx.strokeStyle = 'rgba(40,30,20,.35)'; ctx.lineWidth = 1.5;
+    for (let s = 0; s < C; s += 16) { ctx.beginPath(); ctx.moveTo(x, y + s); ctx.lineTo(x + C, y + s); ctx.stroke(); }
+    if (k === 'I') {
+      ctx.fillStyle = '#5a3f26'; ctx.fillRect(x + 4, y + 4, C - 8, C - 8);
+      ctx.fillStyle = '#7a5835'; ctx.fillRect(x + 8, y + 8, C - 16, (C - 16) / 3);
+      if (at(cx + 1, cy) === 'I') ctx.fillRect(x + C - 6, y + 4, 6, C - 8);
+    } else if (k === ',') {
+      ctx.fillStyle = '#9a7a52'; ctx.fillRect(x + 6, y + 10, C - 12, C - 20);
+    } else if (k === '~') {
+      ctx.fillStyle = '#2f5c69'; ctx.fillRect(x + 6, y + 6, C - 12, C - 12);
+    }
+  }
+}
+
 const TEXTURES = (
   <defs>
+    <radialGradient id="socle-light" cx="40%" cy="30%" r="75%">
+      <stop offset="0" stopColor="#fff" stopOpacity="0.18" /><stop offset="0.7" stopColor="#000" stopOpacity="0" /><stop offset="1" stopColor="#000" stopOpacity="0.45" />
+    </radialGradient>
     <filter id="grain" x="0" y="0" width="100%" height="100%">
       <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" />
       <feColorMatrix type="saturate" values="0" />
@@ -245,7 +445,7 @@ function cellUnder(ev: ReactMouseEvent<SVGElement>, cols: number, rows: number) 
   return x >= 0 && y >= 0 && x < cols && y < rows ? { x, y } : undefined;
 }
 
-export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview, labels = [], highlight, fog, exits = [], aim, hits = [] }: Props) {
+export default function BattleBoard({ cols, rows, backdrop, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview, labels = [], highlight, fog, exits = [], aim, hits = [], ground, surface, overlay, path, surfaceSelected, draft, theme, aoes = [] }: Props) {
   const lines: string[] = [];
   for (let x = 0; x <= cols; x++) lines.push(`M${x} 0V${rows}`);
   for (let y = 0; y <= rows; y++) lines.push(`M0 ${y}H${cols}`);
@@ -258,8 +458,9 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
   for (const h of hits) if (!seen.current.has(h.id)) seen.current.set(h.id, now);
   const shownHits = hits.filter((h) => now - (seen.current.get(h.id) ?? now) <= 4000);
   useEffect(() => {
-    if (canvasRef.current) void paintTerrain(canvasRef.current, cols, rows, terrain);
-  }, [cols, rows, terrain]);
+    if (canvasRef.current) void paintTerrain(canvasRef.current, cols, rows, terrain, ground, theme);
+  }, [cols, rows, terrain, ground, theme]);
+  const textures = texturesOf(surface ?? {}, tokens.map((t) => t.socle as TerrainId | undefined));
 
   const pick = (id: string) => (ev: ReactMouseEvent<SVGElement>) => onElement?.(id, cellUnder(ev, cols, rows));
   const isCutout = useCutouts(tokens.map((t) => t.image));
@@ -269,7 +470,9 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
       <canvas ref={canvasRef} className="battle-terrain" aria-hidden="true" />
     <svg className="battle-board" viewBox={`0 0 ${cols} ${rows}`} preserveAspectRatio="xMidYMid meet" role="img" aria-label="Plateau de combat">
       {TEXTURES}
+      <defs>{SURFACE_FILTERS}<TexturePatterns ids={textures} /></defs>
       {backdrop && <image href={backdrop} x={0} y={0} width={cols} height={rows} preserveAspectRatio="xMidYMid slice" opacity={0.55} />}
+      {surface?.zones?.length ? <ZonesLayer zones={surface.zones} cols={cols} rows={rows} /> : null}
 
       <path d={lines.join('')} stroke="rgba(201,162,74,.22)" strokeWidth={0.03} fill="none" pointerEvents="none" />
 
@@ -284,6 +487,7 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
       {ranges.map((r) => (
         <g key={`range-${r.id}`} pointerEvents="none">
           {r.move.length > 0 && <path d={cellPath(r.move, cols)} fill="rgba(84,216,198,0.18)" opacity={r.selected ? 1 : 0.7} />}
+          {r.costly && r.costly.length > 0 && <path d={cellPath(r.costly, cols)} fill="rgba(240,170,60,0.26)" stroke="rgba(240,170,60,0.35)" strokeWidth={0.03} opacity={r.selected ? 1 : 0.7}><title>Accessible, mais plus coûteux (terrain difficile, nage, escalade)</title></path>}
           {r.attack > 0 && (
             <rect
               x={r.x - r.attack} y={r.y - r.attack} width={r.size + 2 * r.attack} height={r.size + 2 * r.attack}
@@ -309,6 +513,9 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
       ))}
 
       {preview && preview.length > 0 && <path d={cellPath(preview, cols)} fill="rgba(236,210,137,0.35)" stroke="#ecd289" strokeWidth={0.04} pointerEvents="none" />}
+
+      {surface?.objects?.length ? <ObjectsLayer objects={surface.objects} selectedId={surfaceSelected} /> : null}
+      {surface?.walls?.length ? <WallsLayer walls={surface.walls} selectedId={surfaceSelected} /> : null}
 
       {elements.map((e) => {
         if (e.kind === 'passage') {
@@ -338,7 +545,23 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
         );
       })}
 
+      {overlay && <RulesOverlay rules={overlay.rules} focus={overlay.focus} />}
+      {draft}
+
+      {aoes.map((a) => {
+        return (
+          <g key={a.id} className={`battle-aoe ${a.draft ? 'is-draft' : ''}`} pointerEvents="none">
+            <path d={cellPath(a.cells, cols)} fill="rgba(255,120,40,0.3)" />
+            <path d={a.outline} fill="rgba(255,150,70,0.08)" stroke="#ff9a4a" strokeWidth={0.07} strokeDasharray={a.draft ? '0.18 0.1' : undefined} />
+            <circle cx={a.at[0]} cy={a.at[1]} r={0.1} fill="#ff9a4a" stroke="#0b0906" strokeWidth={0.03} />
+            {a.label && <text x={a.at[0]} y={a.at[1] - 0.25} textAnchor="middle" fontSize={0.32} fill="#ffcf9a" stroke="#0b0906" strokeWidth={0.06} paintOrder="stroke" fontFamily="Cinzel, serif">{a.label}</text>}
+          </g>
+        );
+      })}
+
       {fog && <FogLayer cols={cols} rows={rows} fog={fog} />}
+
+      {path && <PathPreview path={path} />}
 
       {exits.map((e) => {
         const x = e.cell % cols, y = Math.floor(e.cell / cols), cx = x + 0.5, cy = y + 0.5;
@@ -355,20 +578,45 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
         );
       })}
 
-      {tokens.map((t) => {
+      {/* Les morts d'abord : les vivants restent au-dessus, lisibles d'un coup d'œil. */}
+      {[...tokens].sort((a, c) => Number(c.vital === 'mort') - Number(a.vital === 'mort')).map((t) => {
         const r = t.size * 0.42;
         const cx = t.x + t.size / 2, cy = t.y + t.size / 2;
+        const dead = t.vital === 'mort' || t.out;
         return (
-          <g key={t.id} className="battle-token" opacity={t.hidden ? 0.4 : 1} onClick={interactive && onToken ? (e) => { e.stopPropagation(); onToken(t.id); } : onElement ? pick(t.id) : undefined}>
-            {t.image && isCutout(t.image) ? (
+          <g key={t.id} className={`battle-token ${t.vital ? `v-${t.vital}` : dead ? 'v-mort' : ''} ${t.down ? 'is-down' : ''}`} opacity={(t.hidden ? 0.4 : 1) * (dead ? 0.85 : 1)} onClick={interactive && onToken ? (e) => { e.stopPropagation(); onToken(t.id); } : onElement ? pick(t.id) : undefined}>
+            {/* Un soin ou un dégât : une onde verte ou rouge autour du jeton, à chaque fois. */}
+            {shownHits.filter((h) => h.to === t.id).map((h) => (
+              <circle key={`pulse-${h.id}`} className={`battle-pulse ${h.amount > 0 ? 'heal' : 'dmg'}`} cx={cx} cy={cy} r={r + 0.04} fill="none" pointerEvents="none" />
+            ))}
+            <g transform={t.down ? `rotate(-90 ${cx} ${cy})` : undefined}>
+            {/* Socle : couche à part, sous l'image, dans l'empreinte du jeton (il ne change ni sa taille ni les règles). */}
+            {t.socle && TERRAIN_DEF[t.socle as TerrainId] && (
+              <g className={`battle-socle socle-${t.socle}`} pointerEvents="none">
+                <ellipse cx={cx + 0.04} cy={cy + 0.07} rx={r + 0.05} ry={r + 0.03} fill="#000" opacity={0.45} filter="url(#obj-shadow)" />
+                <circle cx={cx} cy={cy} r={r + 0.05} fill={`url(#${texId(t.socle)})`} />
+                <circle cx={cx} cy={cy} r={r + 0.05} fill="url(#socle-light)" />
+                <circle cx={cx} cy={cy} r={r + 0.05} fill="none" stroke="#1a140c" strokeWidth={0.035} />
+                {['eau_profonde', 'eau_peu_profonde', 'gue'].includes(t.socle) && <circle className="socle-ripple" cx={cx} cy={cy} r={r + 0.05} fill="none" stroke="#bfe9f0" strokeWidth={0.03} />}
+                {t.socle === 'lave' && <circle cx={cx} cy={cy} r={r + 0.07} fill="none" stroke="#ff7a2a" strokeWidth={0.05} opacity={0.75} />}
+              </g>
+            )}
+            {t.image && (isBankSrc(t.image) || isCutout(t.image)) ? (
               <>
-                <radialGradient id={`base-${t.id}`} cx="50%" cy="42%" r="60%">
-                  <stop offset="0%" stopColor={BASE_TINT[t.kind][0]} />
-                  <stop offset="100%" stopColor={BASE_TINT[t.kind][1]} />
-                </radialGradient>
-                <circle cx={cx} cy={cy} r={r} fill={`url(#base-${t.id})`} />
+                {/* Sans socle de terrain (réglé sur « aucun »), un socle de pierre teinté selon le camp. */}
+                {!t.socle && (
+                  <>
+                    <radialGradient id={`base-${t.id}`} cx="50%" cy="42%" r="60%">
+                      <stop offset="0%" stopColor={BASE_TINT[t.kind][0]} />
+                      <stop offset="100%" stopColor={BASE_TINT[t.kind][1]} />
+                    </radialGradient>
+                    <circle cx={cx} cy={cy} r={r} fill={`url(#base-${t.id})`} />
+                  </>
+                )}
                 <circle cx={cx} cy={cy} r={r - 0.035} fill="none" stroke={KIND_FILL[t.kind]} strokeOpacity={0.55} strokeWidth={0.03} />
-                <image href={t.image} x={cx - r * 1.12} y={cy - r * 1.12} width={2.24 * r} height={2.24 * r} preserveAspectRatio="xMidYMid meet" style={{ filter: 'drop-shadow(0 0.04px 0.05px rgba(0,0,0,.85))' }} />
+                <image href={t.image} x={cx - r * 1.12} y={cy - r * 1.12} width={2.24 * r} height={2.24 * r} preserveAspectRatio="xMidYMid meet" style={{ filter: 'drop-shadow(0 0.04px 0.05px rgba(0,0,0,.85))' }}
+                  // Jeton de la Banque Loresmith (vu du dessus) : tourné vers son vis-à-vis le plus proche.
+                  transform={isBankSrc(t.image) ? `rotate(${(facing(t, tokens) * 180) / Math.PI} ${cx} ${cy})` : undefined} />
                 <circle cx={cx} cy={cy} r={r} fill="none" stroke={t.selected ? '#ecd289' : '#0b0906'} strokeWidth={t.selected ? 0.12 : 0.05} strokeDasharray={t.hidden ? '0.12 0.08' : undefined} />
               </>
             ) : t.image ? (
@@ -383,17 +631,52 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
                 <text x={cx} y={cy + r * 0.35} textAnchor="middle" fontSize={r * 1.1} pointerEvents="none">{t.icon ?? '◆'}</text>
               </>
             )}
-            <text x={cx} y={cy - r - 0.08} textAnchor="middle" fontSize={0.22} fill="#ecd289" fontFamily="Cinzel, serif" pointerEvents="none" stroke="#0b0906" strokeWidth={0.04} paintOrder="stroke">
+            </g>
+            {/* État : anneau et badge. Mort : sombre ; à l'agonie : battement rouge ; stabilisé : croix verte ; neutralisé : violet. */}
+            {dead && (
+              <g pointerEvents="none">
+                <circle cx={cx} cy={cy} r={r} fill="rgba(10,4,3,.35)" stroke="#3a0f0a" strokeWidth={0.08} />
+                <circle cx={cx} cy={cy + r * 0.82} r={0.17} fill="#140707" stroke="#8a2a1c" strokeWidth={0.03} />
+                <text x={cx} y={cy + r * 0.82 + 0.07} textAnchor="middle" fontSize={0.2}>☠</text>
+              </g>
+            )}
+            {t.vital === 'agonie' && <circle className="battle-dying-ring" cx={cx} cy={cy} r={r + 0.02} fill="none" stroke="#ff3b2f" strokeWidth={0.07} pointerEvents="none" />}
+            {t.vital === 'stable' && (
+              <g pointerEvents="none">
+                <circle cx={cx} cy={cy} r={r} fill="none" stroke="#5fae5a" strokeWidth={0.05} />
+                <circle cx={cx} cy={cy + r * 0.82} r={0.15} fill="#13240f" stroke="#5fae5a" strokeWidth={0.03} />
+                <text x={cx} y={cy + r * 0.82 + 0.065} textAnchor="middle" fontSize={0.18} fill="#9fe08f" fontWeight={700}>✚</text>
+              </g>
+            )}
+            {t.vital === 'neutralise' && (
+              <g pointerEvents="none">
+                <circle cx={cx} cy={cy} r={r + 0.02} fill="rgba(70,60,140,.18)" stroke="#9c7bd6" strokeWidth={0.06} strokeDasharray="0.12 0.08" />
+                <circle cx={cx} cy={cy + r * 0.82} r={0.16} fill="#1f1636" stroke="#9c7bd6" strokeWidth={0.03} />
+                <text x={cx} y={cy + r * 0.82 + 0.07} textAnchor="middle" fontSize={0.19} fill="#d9c8ff">{CAUSE_ICON[t.cause ?? ''] ?? '⊘'}</text>
+                <title>{t.cause ?? 'Neutralisé'}</title>
+              </g>
+            )}
+            {t.down && !dead && t.vital !== 'agonie' && t.vital !== 'stable' && t.vital !== 'neutralise' && (
+              <g pointerEvents="none"><title>À terre</title>
+                <circle cx={cx + r * 0.8} cy={cy + r * 0.72} r={0.14} fill="#2a1d0e" stroke="#c9a24a" strokeWidth={0.03} />
+                <text x={cx + r * 0.8} y={cy + r * 0.72 + 0.06} textAnchor="middle" fontSize={0.16} fill="#ecd289">⤓</text>
+              </g>
+            )}
+            <text x={cx} y={cy - r - 0.08} textAnchor="middle" fontSize={0.22} fill={dead ? '#8a7d66' : '#ecd289'} fontFamily="Cinzel, serif" pointerEvents="none" stroke="#0b0906" strokeWidth={0.04} paintOrder="stroke" textDecoration={dead ? 'line-through' : undefined}>
               {t.name}
             </text>
-            {t.out && (
-              <path d={`M${cx - r * 0.7} ${cy - r * 0.7}L${cx + r * 0.7} ${cy + r * 0.7}M${cx + r * 0.7} ${cy - r * 0.7}L${cx - r * 0.7} ${cy + r * 0.7}`} stroke="#c0492f" strokeWidth={0.1} strokeLinecap="round" pointerEvents="none" />
-            )}
             {t.conditions?.length ? (
               <g className="battle-token-conds">
                 <title>{t.conditions.join(' · ')}</title>
                 <circle cx={cx + r * 0.78} cy={cy - r * 0.78} r={0.17} fill="#ad97d8" stroke="#0b0906" strokeWidth={0.04} />
                 <text x={cx + r * 0.78} y={cy - r * 0.78 + 0.075} textAnchor="middle" fontSize={0.2} fontWeight={700} fill="#1a1026" pointerEvents="none">{t.conditions.length}</text>
+              </g>
+            ) : null}
+            {t.elev ? (
+              <g className="battle-token-elev" pointerEvents="none">
+                <title>{`En hauteur : ${t.elev} pieds`}</title>
+                <rect x={cx - r - 0.06} y={cy + r - 0.26} width={0.5} height={0.24} rx={0.06} fill="#1d3a2a" stroke="#8fd19e" strokeWidth={0.025} />
+                <text x={cx - r + 0.19} y={cy + r - 0.08} textAnchor="middle" fontSize={0.17} fill="#c9f2d2" fontWeight={700}>▲{t.elev}</text>
               </g>
             ) : null}
             {t.active && <circle className="battle-turn-ring" cx={cx} cy={cy} r={r + 0.1} fill="none" stroke="#fff1c2" strokeWidth={0.07} pointerEvents="none" />}

@@ -77,9 +77,18 @@ import {
   toScene,
 } from './forge/campaignPipeline';
 import './forge/forge.css';
+import UniverseForge from './universe/UniverseForge';
+import { buildForgeResult } from './universe/forgeBrief';
+import { setLibraryIntent, takeLibraryIntent } from './library/intent';
+import SessionReportPanel from './campaign/SessionReportPanel';
+import DeleteUniverseDialog from './universe/DeleteUniverseDialog';
+import { removeUniverse, canDeleteUniverse } from './universe/deleteUniverse';
 import './combat/wartable.css';
 import { entityFromSrd, generateEntities, normalizeEntity, xpForCr } from './bestiary/entityGen';
 import CreaturePicker from './bestiary/CreaturePicker';
+import { heroSaveProfs, heroSaves } from './combat/saves';
+import { revealIn } from './shell/reveal';
+import AoePanel from './combat/AoePanel';
 import UnderdarkImport from './bestiary/UnderdarkImport';
 import { underdarkIdOf } from './bestiary/underdark.js';
 import { buildCatalog, siblingsOf } from './bestiary/catalog.js';
@@ -4811,12 +4820,8 @@ function reducer(s, a) {
           [a.id]: { ...s.universes[a.id], ...a.patch },
         },
       };
-    case 'DELETE_UNIVERSE': {
-      const un = { ...s.universes };
-      delete un[a.id];
-      const rest = Object.keys(un);
-      return { ...s, universes: un, activeUniverseId: rest[0] || null };
-    }
+    case 'DELETE_UNIVERSE':
+      return removeUniverse(s, a.id);
     case 'SET_UNIVERSE':
       return { ...s, activeUniverseId: a.id };
     case 'ADD_CHARACTER':
@@ -5090,6 +5095,7 @@ export default function App() {
   const [toast, setToast] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [sideOpen, setSideOpen] = useState(false);
+  const [forgeOpen, setForgeOpen] = useState(false);
   const [diceOpen, setDiceOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [saveState, setSaveState] = useState({ status: 'saved' });
@@ -5268,6 +5274,20 @@ export default function App() {
       <>
         <style>{STYLE}</style>
         <div className="ls-root lsx-root">
+          {forgeOpen && (
+            <UniverseForge
+              onClose={() => setForgeOpen(false)}
+              onForge={(brief, lore) => {
+                const r = buildForgeResult(brief, lore, { newId: uid, now: now() });
+                dispatch({ type: 'ADD_UNIVERSE', u: r.universe });
+                if (r.entry) dispatch({ type: 'ADD_LIBRARY_ENTRY', entry: r.entry });
+                if (r.map) dispatch({ type: 'ADD_MAP', map: r.map });
+                setForgeOpen(false);
+                goTo(r.nextView);
+                flash(r.entry ? 'Univers forgé : crée maintenant ta première campagne, le monde se découvrira en jouant.' : 'Univers forgé : tu peux affiner son canon dans la page Univers.');
+              }}
+            />
+          )}
           <Sidebar
             view={view}
             setView={goTo}
@@ -5276,6 +5296,7 @@ export default function App() {
             universe={universe}
             universeImage={universeImage}
             onSwitchUniverse={(id) => dispatch({ type: 'SET_UNIVERSE', id })}
+            onCreateUniverse={() => setForgeOpen(true)}
             onOpenSearch={() => setSearchOpen(true)}
             onOpenDice={() => setDiceOpen(true)}
             onSettings={() => setSettingsOpen(true)}
@@ -5402,11 +5423,13 @@ export default function App() {
             ) : view === 'archives' ? (
               <ArchivesPage universe={universe} dispatch={dispatch} flash={flash} />
             ) : view === 'maps' ? (
-              <MapsPage universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} heroes={party} campaigns={campaigns} bestiary={npcs} onReturnToTable={() => setView('scene')}
+              <MapsPage library={inU(state.libraryEntries || {})} bankAssets={inU(state.assets || {}).filter((a) => a.category === 'banque')} universe={universe} maps={state.maps || {}} dispatch={dispatch} flash={flash} onOpenEntry={(id) => { setLibraryIntent(id); goTo('library'); }} heroes={party} campaigns={campaigns} bestiary={npcs} onReturnToTable={() => setView('scene')}
                 artOf={(name, id) => combatantArtOf(state, (state.combat?.combatants || []).find((c) => c.id === id), faunaFeed) || creatureArtOf(state, name, faunaFeed)}
                 renderCombat={(slot) => slot.area === 'attack'
                   ? <AttackPanel key={slot.battle.aim?.at} state={state} dispatch={dispatch} battle={slot.battle} setBattle={slot.setBattle} />
-                  : <MapEncounter {...{ state, dispatch, party, npcs, flash }} {...slot} />}
+                  : slot.area === 'aoe'
+                    ? <AoePanel key={slot.battle.aoeHit?.at} state={state} battle={slot.battle} setBattle={slot.setBattle} />
+                    : <MapEncounter {...{ state, dispatch, party, npcs, flash }} {...slot} />}
               />
             ) : view === 'present' ? (
               <StageControl {...{ universe, state, flash }} />
@@ -5670,6 +5693,7 @@ function Dashboard({
   setExportOpen,
 }) {
   const { ai } = useContext(AIContext);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const library = Object.values(state.libraryEntries || {})
     .filter((e) => e.universeId === universe.id)
     .map((e) => ({ ...e, typeLabel: LIBRARY_TYPES[e.archiveType]?.singular || '' }));
@@ -5779,19 +5803,27 @@ function Dashboard({
           >
             ✦ Nouvel univers
           </button>
-          {Object.keys(state.universes).length > 1 && (
-            <button
-              className="btn ghost danger"
-              style={{ flex: 'none' }}
-              onClick={() => {
-                if (confirm('Supprimer cet univers et basculer vers un autre ?')) {
-                  dispatch({ type: 'DELETE_UNIVERSE', id: universe.id });
-                  flash('Univers supprimé');
-                }
+          <button
+            className="btn ghost danger"
+            style={{ flex: 'none' }}
+            disabled={!canDeleteUniverse(state, universe.id)}
+            title={canDeleteUniverse(state, universe.id) ? undefined : 'Crée un autre univers avant de supprimer celui-ci.'}
+            onClick={() => setDeleteOpen(true)}
+          >
+            Supprimer l’univers
+          </button>
+          {deleteOpen && (
+            <DeleteUniverseDialog
+              state={state}
+              universe={universe}
+              flash={flash}
+              onClose={() => setDeleteOpen(false)}
+              onConfirm={() => {
+                dispatch({ type: 'DELETE_UNIVERSE', id: universe.id });
+                setDeleteOpen(false);
+                flash('Univers supprimé');
               }}
-            >
-              Supprimer l’univers
-            </button>
+            />
           )}
         </div>
       </div>
@@ -7531,6 +7563,7 @@ function CampaignCard({
                     <div className="camp-session-head">
                       <h4>
                         Séance {s.sessionNumber} · {s.title}
+                        {s.played && <span className="tag" style={{ marginLeft: 8 }}>✓ jouée</span>}
                       </h4>
                       <button className="btn ghost sm" style={{ flex: 'none' }} disabled={!!writing} onClick={() => writeSessions([s.sessionNumber])}>
                         {writing === s.sessionNumber ? <Spin /> : s.detailed ? '↻ Réécrire' : '✎ Écrire cette séance'}
@@ -7601,6 +7634,16 @@ function CampaignCard({
           <CampaignArchiveSuggestions
             suggestions={camp.librarySuggestions || []}
             campaignId={camp.id}
+            dispatch={dispatch}
+            flash={flash}
+          />
+          <SessionReportPanel
+            universe={universe}
+            campaign={camp}
+            library={Object.values(state.libraryEntries || {}).filter((e) => e.universeId === universe.id)}
+            maps={state.maps || {}}
+            ask={(o) => callAI(ai, o)}
+            aiReady={!!ai.apiKey}
             dispatch={dispatch}
             flash={flash}
           />
@@ -10975,6 +11018,12 @@ Ne révèle pas les secrets du MJ aux paliers faciles. Reste fidèle à la fiche
     setSelectedId(id);
   }
 
+  // Arrivée depuis une autre page (ex. un repère de la carte) : on ouvre la fiche demandée.
+  useEffect(() => {
+    const id = takeLibraryIntent();
+    if (id) openEntry(id);
+  }, []);
+
   async function polishEntry(entry) {
     setBusy(true);
 
@@ -12140,11 +12189,16 @@ function CharCard({ c, state, dispatch, flash }) {
         </p>
       )}
 
-      {open && <CharacterSheetModal c={c} onClose={() => setOpen(false)} />}
+      {open && <CharacterSheetModal c={c} dispatch={dispatch} onClose={() => setOpen(false)} />}
     </div>
   );
 }
-function CharacterSheetModal({ c, onClose }) {
+function CharacterSheetModal({ c, dispatch, onClose }) {
+  const saves = heroSaves(c);
+  const toggleSave = (id) => {
+    const profs = heroSaveProfs(c);
+    dispatch({ type: 'UPDATE_CHARACTER', id: c.id, patch: { saveProfs: profs.includes(id) ? profs.filter((x) => x !== id) : [...profs, id] } });
+  };
   return (
     <Modal title={`Fiche — ${c.name}`} onClose={onClose} wide>
       <div className="grid cols-2">
@@ -12192,6 +12246,23 @@ function CharacterSheetModal({ c, onClose }) {
             <b>CHA :</b> {c.cha || '—'}
           </p>
         </div>
+      </div>
+
+      <div className="panel hero-saves" style={{ marginTop: 14 }}>
+        <div className="eyebrow" style={{ marginTop: 0 }}>
+          Jets de sauvegarde
+        </div>
+        <div className="hero-saves-row">
+          {saves.map((sv) => (
+            <label key={sv.id} className={sv.proficient ? 'on' : ''} title={sv.proficient ? 'Maîtrisée : bonus de maîtrise ajouté' : 'Non maîtrisée'}>
+              <input type="checkbox" checked={sv.proficient} onChange={() => toggleSave(sv.id)} />
+              {sv.label} <b>{sv.bonus >= 0 ? '+' : ''}{sv.bonus}</b>
+            </label>
+          ))}
+        </div>
+        <p className="muted" style={{ fontSize: 12, margin: '6px 0 0' }}>
+          {Array.isArray(c.saveProfs) ? 'Maîtrises choisies sur cette fiche.' : `Maîtrises de la classe${c.cls ? ` (${c.cls})` : ''} ; coche ou décoche pour corriger.`} Utilisées pour les zones d’effet.
+        </p>
       </div>
 
       <div className="panel" style={{ marginTop: 14 }}>
@@ -13439,6 +13510,19 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
     flash(`${combatant.name} ajouté au combat`);
   }
 
+  /** Plusieurs exemplaires d'une créature d'un coup (chacun garde ses PV, états et position). */
+  function addCombatants(source, count) {
+    let list = combatants;
+    const added = [];
+    for (let i = 0; i < Math.max(1, count); i++) {
+      const one = withFreshInstance(list, buildNpcCombatant(source), blockedCells);
+      added.push(one);
+      list = [...list, one];
+    }
+    setC({ combatants: list }, `${added.length > 1 ? `${added.length} × ` : ''}${source.name} rejoi${added.length > 1 ? 'gnent' : 'nt'} le combat`, { tone: 'join' });
+    flash(`${added.length > 1 ? `${added.length} × ` : ''}${source.name} ajouté${added.length > 1 ? 's' : ''} au combat`);
+  }
+
   function addWholeParty() {
     const present = new Set(combatants.filter((x) => x.isPC).map((x) => x.sourceId));
     const fresh = [];
@@ -13524,6 +13608,32 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
     update(id, patch, label, { tone: delta < 0 ? 'hit' : 'heal' });
     setHpPulse({ id, delta, key: uid() });
   }
+
+  // Dégâts venus du plateau (lave, ronces, chute) : appliqués un par un, avec PV temporaires et concentration.
+  // Toute la file d'un coup (une zone d'effet touche plusieurs créatures) : une seule mise à jour, une ligne de journal.
+  const pendingDamage = embedded?.battle?.damage;
+  useEffect(() => {
+    if (!pendingDamage?.length) return;
+    const lines = [];
+    let list = combatants;
+    for (const d of pendingDamage) {
+      const t = list.find((x) => x.id === d.to);
+      if (!t) continue;
+      const max = Number(t.maxHp) || 0;
+      let temp = Number(t.tempHp) || 0;
+      const absorbed = Math.min(temp, Math.abs(d.amount));
+      temp -= absorbed;
+      const hp = Math.max(0, (Number(t.hp) || 0) - (Math.abs(d.amount) - absorbed));
+      let line = `${t.name} : ${Math.abs(d.amount)} dégâts (${d.why}) → ${hp}/${max} PV`;
+      if ((t.conditions || []).includes('Concentration')) line += ` · JS de Concentration DD ${Math.max(10, Math.floor(Math.abs(d.amount) / 2))}`;
+      if (hp === 0 && Number(t.hp) > 0) line += t.isPC ? ' · à 0 PV' : ' · hors de combat';
+      lines.push(line);
+      list = list.map((x) => (x.id === t.id ? { ...x, hp, tempHp: temp, ...(hp > 0 && x.deathSaves ? { deathSaves: { s: 0, f: 0 } } : {}) } : x));
+    }
+    if (lines.length) setC({ combatants: list }, lines.join(' · '), { tone: 'hit' });
+    embedded.setBattle({ ...embedded.battle, damage: undefined });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingDamage?.map((d) => d.id).join(',')]);
 
   function applyHp(id, sign) {
     const v = parseInt(dmg[id], 10);
@@ -13823,7 +13933,7 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
 
     const ops = {
       update, remove, adjustHp, applyHp, setHpExact, setTempHp, toggleCondition, changeDeathSaves, rollAttack,
-      toggleEffect, changeEffectUses, changeActionUses, addCombatant, addWholeParty, addBlank, rollInitiative,
+      toggleEffect, changeEffectUses, changeActionUses, addCombatant, addCombatants, addWholeParty, addBlank, rollInitiative,
       refreshFromSheet: (t) => {
         const source = npcs.find((n) => n.id === t.sourceId);
         if (!source) {
@@ -14044,6 +14154,10 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
                   sorted={sorted}
                   party={party}
                   npcs={npcs}
+                  onBoard={!!boardBattle}
+                  rate={(n, count) => (pstate.levels.length
+                    ? { ...rateEncounter([...foes.map((x) => xpOfCombatant(x, boardTokens.get(x.id))), ...Array(count).fill(xpForCr(n.cr) || 0)], pstate), before: rating?.label ?? 'aucun ennemi' }
+                    : null)}
                   activeId={activeCombatant?.id}
                   selectedId={selectedCombatant?.id}
                   ops={ops}
@@ -14531,7 +14645,14 @@ function WarInspector({
 }
 
 /** Onglet Groupe : ajouter des combattants (héros, bestiaire, improvisé) et les voir tous, en compact. */
-function WarRoster({ sorted, party, npcs, activeId, selectedId, ops, onPick }) {
+/** Ce que porte la vignette glissée sur le plateau (cf. BattleMode : pose à l'endroit visé). */
+const creatureDragPayload = (n, count) => ({
+  stat: n.srdId || '', n: count, npcId: n.id, name: n.name, hp: Number(n.hp) || undefined, ac: Number(n.ac) || undefined,
+  size: Math.min(3, Math.max(1, Math.round(n.underdark?.gridFootprint?.recommendedTokenCells?.width ?? ({ G: 2, TG: 3, Gig: 4 }[n.size] || 1)))),
+  image: n.token || undefined,
+});
+
+function WarRoster({ sorted, party, npcs, activeId, selectedId, ops, onPick, rate, onBoard }) {
   return (
     <div className="wt-stack">
       <section className="wt-card">
@@ -14551,22 +14672,33 @@ function WarRoster({ sorted, party, npcs, activeId, selectedId, ops, onPick }) {
               <option key={p.id} value={p.id}>{p.name}</option>
             ))}
           </select>
-          <select
-            className="in"
-            value=""
-            aria-label="Ajouter depuis le bestiaire"
-            onChange={(e) => {
-              const m = npcs.find((x) => x.id === e.target.value);
-              if (m) ops.addCombatant(m, false);
-            }}
-          >
-            <option value="">+ Bestiaire…</option>
-            {npcs.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name} {m.isMonster || m.entityType === 'monster' ? '(monstre)' : '(PNJ)'}
-              </option>
-            ))}
-          </select>
+          {npcs.some((m) => !(m.isMonster || m.entityType === 'monster')) && (
+            <select
+              className="in"
+              value=""
+              aria-label="Ajouter un PNJ"
+              onChange={(e) => {
+                const m = npcs.find((x) => x.id === e.target.value);
+                if (m) ops.addCombatant(m, false);
+              }}
+            >
+              <option value="">+ PNJ…</option>
+              {npcs.filter((m) => !(m.isMonster || m.entityType === 'monster')).map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+            </select>
+          )}
+          {npcs.some((m) => m.isMonster || m.entityType === 'monster') && (
+            <details className="wt-picker" open>
+              <summary>👹 Ajouter des créatures</summary>
+              <CreaturePicker
+                npcs={npcs}
+                imageOf={(n) => n.token || ''}
+                rate={rate || (() => null)}
+                payloadOf={creatureDragPayload}
+                onAdd={(n, count) => ops.addCombatants(n, count)}
+              />
+              {onBoard && <p className="wt-note">Glisse une vignette sur le plateau pour poser la créature à cet endroit (cachée aux joueurs jusqu’à ce que tu la révèles).</p>}
+            </details>
+          )}
           <div className="wt-row">
             <button type="button" className="wt-btn" onClick={ops.addWholeParty} disabled={!party.length}>
               <Users size={14} aria-hidden="true" /> Tout le groupe
@@ -14655,7 +14787,7 @@ function WarInitiative({ sorted, activeId, selectedId, round, art, boardTokens, 
   const stripRef = useRef(null);
   useEffect(() => {
     const el = stripRef.current?.querySelector('[data-active="1"]');
-    el?.scrollIntoView?.({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+    revealIn(el, true);
   }, [activeId]);
   return (
     <section className="wt-init" aria-label="Fil d’initiative">
@@ -15239,10 +15371,13 @@ function useBattleSync({ state, dispatch, party, npcs, battle, setBattle, combat
       const sameConds = condKey(t.conditions) === condKey(x.conditions);
       const hero = x.isPC ? heroReachOf(x) : null;
       const sameHero = !hero || (t.move === hero.move && JSON.stringify(t.reach) === JSON.stringify(hero.reach));
-      const same = t.hp === Number(x.hp) && t.maxHp === Number(x.maxHp) && t.ac === Number(ac) && t.name === x.name && t.init === init && sameConds && sameHero;
+      // Héros à 0 PV : à l'agonie, stabilisé ou mort selon ses jets contre la mort (le jeton change d'apparence).
+      const ds = x.deathSaves || {};
+      const dying = x.isPC && Number(x.hp) <= 0 ? (ds.f >= 3 ? 'mort' : ds.s >= 3 ? 'stable' : 'agonie') : undefined;
+      const same = t.hp === Number(x.hp) && t.maxHp === Number(x.maxHp) && t.ac === Number(ac) && t.name === x.name && t.init === init && sameConds && sameHero && t.dying === dying;
       if (t.hp !== undefined && Number(x.hp) !== t.hp) hits.push({ id: uid(), to: t.id, amount: Number(x.hp) - t.hp, at: now });
       return same ? t : {
-        ...t, hp: Number(x.hp), maxHp: Number(x.maxHp), ac: Number(ac), name: x.name, init,
+        ...t, hp: Number(x.hp), maxHp: Number(x.maxHp), ac: Number(ac), name: x.name, init, dying,
         ...(sameConds ? {} : { conditions: [...(x.conditions || [])] }),
         ...(hero ? { move: hero.move, reach: hero.reach } : {}),
       };
@@ -15624,7 +15759,17 @@ function AttackPanel({ state, dispatch, battle, setBattle }) {
   return (
     <div className="attack-panel">
       <div className="attack-head">
-        <b>🎯 {A.name} → {T.name}</b>
+        <div className="attack-duel">
+          {[A, T].map((x, i) => {
+            const pic = combatantPictureOf(state, x) || (i === 0 ? tA.image : tT.image);
+            return (
+              <span key={x.id} className={`attack-duel-who ${x.isPC ? 'is-pc' : 'is-foe'}`}>
+                {pic ? <img src={pic} alt="" /> : <i aria-hidden="true">{x.isPC ? '🛡' : '👹'}</i>}
+                <b>{x.name}</b>
+              </span>
+            );
+          }).reduce((acc, el, i) => (i ? [...acc, <span key="arrow" className="attack-duel-arrow" aria-hidden="true">🎯</span>, el] : [el]), [])}
+        </div>
         <button type="button" className="token-sheet-close" onClick={close} aria-label="Terminer l’attaque">✕</button>
       </div>
       <label className="attack-target">
@@ -15966,8 +16111,17 @@ function profileOfCombatant(c, token) {
 }
 
 /** Situation tactique de chaque jeton du plateau (abri, avantages, menaces), avec le profil de son combattant. */
+let tacticsMemo = null;
+/** Notes tactiques de chaque jeton ; recalculées seulement si le terrain, les jetons ou les combattants changent. */
 function battleTactics(battle, combatants) {
   const grid = effectiveOf(battle);
+  const tokens = JSON.stringify(battle.tokens);
+  if (tacticsMemo && tacticsMemo.grid === grid && tacticsMemo.tokens === tokens && tacticsMemo.combatants === combatants && tacticsMemo.cols === battle.cols && tacticsMemo.walls === battle.walls && tacticsMemo.objects === battle.objects) return tacticsMemo.out;
+  const out = battleTacticsOf(battle, grid, combatants);
+  tacticsMemo = { grid, tokens, combatants, cols: battle.cols, walls: battle.walls, objects: battle.objects, out };
+  return out;
+}
+function battleTacticsOf(battle, grid, combatants) {
   const byId = new Map((combatants || []).map((c) => [c.id, c]));
   const profileOf = (t) => profileOfCombatant(byId.get(t.id), t);
   return Object.fromEntries(battle.tokens.map((t) => [t.id, tacticalNotes(battle, grid, t.id, profileOf)]));

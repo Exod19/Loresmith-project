@@ -29,6 +29,7 @@ const BASE: Record<string, { detect: Detect; level: DangerLevel; why: string }> 
   crevasse: { detect: { dc: 11, skill: 'Perception' }, level: 4, why: 'crevasse profonde aux arêtes coupantes' },
   ruisseau: { detect: { dc: 8, skill: 'Perception' }, level: 2, why: 'eau courante sur des berges glissantes' },
   secret: { detect: { dc: 15, skill: 'Investigation' }, level: 3, why: 'entrée dérobée, conduit inconnu' },
+  maritime: { detect: null, level: 2, why: 'traversée en mer : grains, courants, pirates' },
 };
 
 /** Mots du nom qui changent la perception d'un passage. */

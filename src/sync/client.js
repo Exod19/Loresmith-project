@@ -169,3 +169,8 @@ export const deleteAccount = (confirm) => request('DELETE', '/api/me', { json: {
 export async function forgetSync() {
   await saveKv(META_KEY, null);
 }
+
+/* ——— Banque Loresmith : retouches communes à toute l'application ——— */
+
+export const bankRetouches = () => request('GET', '/api/banque/retouches');
+export const putBankRetouche = (id, patch) => request('PUT', `/api/banque/retouches/${encodeURIComponent(id)}`, { json: { patch } });

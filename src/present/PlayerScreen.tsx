@@ -8,6 +8,7 @@ import { setAtlasData } from '../maps/atlas/model';
 import type { AtlasData, AtlasFeature, FeatureCategory } from '../maps/atlas/types';
 import BattleBoard, { CATEGORY_ICON, type BoardRange } from '../maps/battle/BattleBoard';
 import { reachableCells } from '../maps/battle/ranges';
+import { moveField, moverOf, occupancy, planMove, reachDetail, type MovePlan } from '../maps/battle/movement';
 import { trailProfile } from '../maps/atlas/trails';
 import { describe } from '../maps/atlas/lore';
 import { CALM_MS, type HaltAlert } from '../maps/atlas/omens';
@@ -159,6 +160,7 @@ function PlayerMap({ board, rev, onFollow, onPick, onFork }: { board: Extract<Pl
           )}
         </aside>
       )}
+      {board.talk && board.talk.lines.length > 0 && <TalkBox key={board.talk.key} talk={board.talk} />}
       {board.alert && <HaltNotice key={board.alert.key} alert={board.alert} />}
       {board.fork && !board.alert && (
         <ForkPrompt key={board.fork.key} fork={board.fork} readyAt={board.travel ? board.travel.at + journeyMs(board.travel.points, map.width, map.height) : 0} onChoose={onFork} />
@@ -263,6 +265,13 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
     return x >= 0 && y >= 0 && x < board.cols && y < board.rows ? { x, y } : null;
   };
   const tokenAt = (c: { x: number; y: number }) => [...board.tokens].reverse().find((t) => c.x >= t.x && c.x < t.x + t.size && c.y >= t.y && c.y < t.y + t.size);
+  /** Capacités d'un jeton (vitesses de sa fiche, déplacement du héros, modes accordés par le MJ). */
+  const moverFor = (t: PlayerToken) => ({ ...moverOf({ size: t.size, move: t.move, modes: t.modes }, t.speed), occ: occupancy(board.cols, t, board.tokens) });
+  /** Déplacement restant ce tour (envoyé par le MJ pour les héros). */
+  const leftOf = (t: PlayerToken) => t.left ?? moverFor(t).speed;
+  const from = (t: PlayerToken) => ({ x: t.x, y: t.y, layer: t.layer === 'pont' ? 'pont' as const : 'sol' as const });
+  const dragToken = drag ? board.tokens.find((t) => t.id === drag.id) : undefined;
+  const dragPlan: MovePlan | null = drag?.moved && dragToken && board.rules ? planMove(board.rules, moverFor(dragToken), from(dragToken), drag.cur, leftOf(dragToken)) : null;
   const down = (e: ReactPointerEvent) => {
     if (aimer || !onMove || e.button !== 0) return;
     const c = cellAt(e.clientX, e.clientY);
@@ -282,28 +291,37 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
   useEffect(() => {
     if (!drag) return;
     const up = () => {
-      if (drag.moved) { dragged.current = true; onMove?.(drag.id, drag.cur.x, drag.cur.y); setTimeout(() => { dragged.current = false; }, 0); }
+      // Même règle que le MJ : un trajet impossible ou trop long n'est pas envoyé (le jeton revient à sa place).
+      if (drag.moved && (!dragPlan || dragPlan.ok)) { dragged.current = true; onMove?.(drag.id, drag.cur.x, drag.cur.y); setTimeout(() => { dragged.current = false; }, 0); }
       setDrag(null);
     };
     window.addEventListener('pointerup', up);
     window.addEventListener('pointercancel', up);
     return () => { window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up); };
-  }, [drag, onMove]);
+  }, [drag, onMove, dragPlan]);
   const tokens = drag?.moved ? board.tokens.map((t) => (t.id === drag.id ? { ...t, ...drag.cur } : t)) : board.tokens;
 
   // Héros dont on montre le déplacement et la portée : celui qu'on glisse, sinon celui dont c'est le tour, sinon la fiche ouverte.
   const activeHero = tokens.find((t) => t.kind === 'pc' && t.id === board.turn?.active);
-  const hero = tokens.find((t) => t.kind === 'pc' && t.id === drag?.id) ?? activeHero ?? tokens.find((t) => t.kind === 'pc' && t.id === openId);
-  const ranges: BoardRange[] = hero && (showMove || showReach || drag?.id === hero.id) ? [{
-    id: hero.id, x: hero.x, y: hero.y, size: hero.size, selected: true,
-    move: showMove || drag?.id === hero.id ? reachableCells(board.terrain, board.cols, board.rows, drag?.id === hero.id ? board.tokens.find((t) => t.id === hero.id)! : hero, hero.move ?? 6) : [],
-    attack: showReach ? hero.reach?.melee ?? 1 : 0,
-    ranged: showReach ? hero.reach?.short ?? 0 : 0,
-  }] : [];
+  const hero = tokens.find((t) => t.id === drag?.id && drag?.moved) ?? activeHero ?? tokens.find((t) => t.kind === 'pc' && t.id === openId);
+  // Déplacement (cases accessibles, plus coûteuses en ambre) depuis la case de départ ; allonge et portée depuis la case
+  // visée pendant un glisser.
+  const detail = (h: PlayerToken) => (board.rules ? reachDetail(moveField(board.rules, moverFor(h), from(h)), leftOf(h)) : { cells: reachableCells(board.terrain, board.cols, board.rows, h, hero?.move ?? 6), costly: [] });
+  const draggingHero = !!hero && drag?.id === hero.id;
+  const startOf = hero ? (draggingHero ? board.tokens.find((t) => t.id === hero.id)! : hero) : null;
+  const moveDetail = hero && (showMove || draggingHero) ? detail(startOf!) : null;
+  const ranges: BoardRange[] = hero && (showMove || showReach || draggingHero) ? [{
+    id: hero.id, x: startOf!.x, y: startOf!.y, size: hero.size, selected: true,
+    move: moveDetail?.cells ?? [], costly: moveDetail?.costly,
+    attack: showReach && !draggingHero ? hero.reach?.melee ?? 1 : 0,
+    ranged: showReach && !draggingHero ? hero.reach?.short ?? 0 : 0,
+  }, ...(draggingHero ? [{ id: `${hero.id}-at`, x: hero.x, y: hero.y, size: hero.size, selected: true, move: [], attack: hero.reach?.melee ?? 1, ranged: hero.reach?.short ?? 0 }] : [])] : [];
 
   const centre = (id: string) => { const t = tokens.find((q) => q.id === id); return t && { x: t.x + t.size / 2, y: t.y + t.size / 2 }; };
   const a1 = board.aim && centre(board.aim.from), a2 = board.aim && centre(board.aim.to);
   const aim = a1 && a2 ? { x1: a1.x, y1: a1.y, x2: a2.x, y2: a2.y, tone: board.aim!.tone } : undefined;
+  /** Portrait d'un combattant dans l'annonce d'attaque (son illustration, sinon son jeton). */
+  const duelPic = (id: string) => { const t = board.tokens.find((q) => q.id === id); const src = t?.info?.image || t?.image; return src ? <img className="present-verdict-pic" src={src} alt="" /> : null; };
   const fromName = board.aim && board.tokens.find((t) => t.id === board.aim!.from)?.name;
   const toName = board.aim && board.tokens.find((t) => t.id === board.aim!.to)?.name;
   const reach = hero?.reach;
@@ -312,7 +330,7 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
       <header className="present-battle-head">
         <span>{board.title}</span>
         <span className="present-toggles">
-          <button type="button" aria-pressed={showMove} data-on={showMove ? 1 : undefined} onClick={() => setShowMove(!showMove)}>👣 Déplacement{showMove && hero?.move ? ` · ${hero.move} cases` : ''}</button>
+          <button type="button" aria-pressed={showMove} data-on={showMove ? 1 : undefined} onClick={() => setShowMove(!showMove)}>👣 Déplacement{showMove && hero ? ` · reste ${leftOf(hero) * board.feetPerCell} pi` : ''}</button>
           <button type="button" aria-pressed={showReach} data-on={showReach ? 1 : undefined} onClick={() => setShowReach(!showReach)}>
             ⚔ Portée{showReach && reach ? ` · ${reach.weapon ?? 'arme'} : ${reach.short ? `${reach.short * board.feetPerCell}/${reach.long * board.feetPerCell} pi` : `allonge ${(reach.melee || 1) * board.feetPerCell} pi`}` : ''}
           </button>
@@ -325,16 +343,28 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
         ref={wrapRef} onPointerDown={down} onPointerMove={move}
       >
         <BattleBoard
-          cols={board.cols} rows={board.rows} backdrop={board.backdrop} terrain={board.terrain} elements={board.elements} tokens={tokens} fog={board.fog} exits={board.exits}
-          onElement={pick} aim={aim} ranges={ranges} hits={board.hits}
+          cols={board.cols} rows={board.rows} backdrop={board.backdrop} theme={board.theme} terrain={board.terrain} elements={board.elements} tokens={tokens} fog={board.fog} exits={board.exits}
+          onElement={pick} aim={aim} ranges={ranges} hits={board.hits} ground={board.ground} surface={board.surface} aoes={board.aoes}
+          path={dragPlan && dragToken ? {
+            steps: dragPlan.possible ? dragPlan.steps : [from(dragToken), drag!.cur], size: dragToken.size, ok: dragPlan.ok, possible: dragPlan.possible,
+            label: dragPlan.possible ? `${dragPlan.cost * board.feetPerCell} pi${dragPlan.ok ? '' : ' ⚠'}` : '⛔',
+          } : undefined}
         />
+        {dragPlan && (
+          <div className={`present-move-info ${dragPlan.possible ? (dragPlan.ok ? '' : 'is-over') : 'is-blocked'}`} role="status">
+            <b>{dragPlan.dest}</b>
+            <span>{dragPlan.possible
+              ? `${dragPlan.cost * board.feetPerCell} pieds${dragPlan.notes.length ? ` · ${dragPlan.notes.join(', ')}` : ''}${dragPlan.ok ? '' : ' · trop loin'}`
+              : `⛔ ${dragPlan.reason}`}</span>
+          </div>
+        )}
         {aimer && <div className="present-aim-hint">🎯 {board.tokens.find((t) => t.id === aimer)?.name} vise : touche la cible sur le plateau.</div>}
         {!aimer && board.aim?.verdict ? (
           board.aim.damage !== undefined && (board.aim.verdict === 'hit' || board.aim.verdict === 'crit') ? (
             // Dégâts appliqués : ils prennent la place du « Touché ».
             <div key={`${board.aim.at}-dmg-${board.aim.damage}`} className={`present-verdict present-damage v-${board.aim.verdict}`} role="status" aria-live="assertive">
               <span className="present-verdict-dmg">−{board.aim.damage}<small>dégâts{board.aim.verdict === 'crit' ? ' · critique' : ''}</small></span>
-              <p className="present-verdict-who">{fromName} → {toName}{board.aim.weapon ? ` · ${board.aim.weapon}` : ''}</p>
+              <p className="present-verdict-who">{duelPic(board.aim.from)}{fromName} → {duelPic(board.aim.to)}{toName}{board.aim.weapon ? ` · ${board.aim.weapon}` : ''}</p>
               {board.aim.line && <p className={`present-verdict-line narration-told imp-${board.aim.importance ?? 'minor'}`}>{board.aim.line}</p>}
             </div>
           ) : (
@@ -343,7 +373,7 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
                 <b>{VERDICT_LABEL[board.aim.verdict]}</b>
                 {board.aim.roll !== undefined && <span className="present-verdict-roll">{board.aim.roll}</span>}
               </div>
-              <p className="present-verdict-who">{fromName} → {toName}{board.aim.weapon ? ` · ${board.aim.weapon}` : ''}</p>
+              <p className="present-verdict-who">{duelPic(board.aim.from)}{fromName} → {duelPic(board.aim.to)}{toName}{board.aim.weapon ? ` · ${board.aim.weapon}` : ''}</p>
               {board.aim.line && <p className={`present-verdict-line narration-told imp-${board.aim.importance ?? 'minor'}`}>{board.aim.line}</p>}
             </div>
           )
@@ -480,4 +510,32 @@ function directionsOf(board: Extract<PlayerBoard, { mode: 'map' }>, id: string):
     out.push({ dir, toward: towardOf(far[0] - board.here[0], far[1] - board.here[1]) });
   }
   return out;
+}
+
+/**
+ * Conversation montrée aux joueurs : réduite à la dernière réplique d'un clic, ou fermée (×). Une nouvelle réplique la
+ * rouvre en petit, pour ne pas reprendre toute la place.
+ */
+function TalkBox({ talk }: { talk: { key: string; name: string; image?: string; lines: { who: string; text: string }[]; at: number } }) {
+  const [state, setState] = useState<'open' | 'small' | 'closed'>('open');
+  const [seen, setSeen] = useState(talk.lines.length);
+  useEffect(() => {
+    if (talk.lines.length !== seen) { setSeen(talk.lines.length); setState((s) => (s === 'closed' ? 'small' : s)); }
+  }, [talk.lines.length, seen]);
+  if (state === 'closed') return null;
+  const lines = state === 'small' ? talk.lines.slice(-1) : talk.lines.slice(-3);
+  return (
+    <div className={`present-talk${state === 'small' ? ' is-small' : ''}`} role="log" aria-live="polite">
+      <div className="present-talk-head">
+        {talk.image && <img src={talk.image} alt="" />}<b>{talk.name}</b>
+        <span className="present-talk-tools">
+          <button onClick={() => setState(state === 'small' ? 'open' : 'small')} aria-label={state === 'small' ? 'Agrandir la conversation' : 'Réduire la conversation'}>{state === 'small' ? '▴' : '▾'}</button>
+          <button onClick={() => setState('closed')} aria-label="Fermer la conversation">×</button>
+        </span>
+      </div>
+      {lines.map((l, i) => (
+        <p key={`${talk.at}-${i}`} className={l.who === talk.name ? 'is-npc' : 'is-party'}><b>{l.who}</b> {l.text}</p>
+      ))}
+    </div>
+  );
 }

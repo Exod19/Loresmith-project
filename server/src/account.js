@@ -27,7 +27,7 @@ export function mountAccount(app) {
   app.get('/api/me', (c) => {
     const { id, email, name } = c.get('user');
     const actor = c.get('actor');
-    return c.json({ user: { id, email, name }, universes: actor.universes, campaigns: actor.campaigns, termsAccepted: c.get('termsAccepted'), termsVersion: TERMS_VERSION });
+    return c.json({ user: { id, email, name }, admin: !!actor.admin, universes: actor.universes, campaigns: actor.campaigns, termsAccepted: c.get('termsAccepted'), termsVersion: TERMS_VERSION });
   });
 
   app.post('/api/me/terms', async (c) => {

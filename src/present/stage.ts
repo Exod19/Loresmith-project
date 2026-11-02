@@ -5,6 +5,7 @@
  * Rien n'est sauvegardé. Les données envoyées sont déjà filtrées pour les joueurs : aucune note ni repère secret.
  */
 import type { HaltAlert } from '../maps/atlas/omens';
+import type { BattleObject, BattleWall, SurfaceRules, TerrainId, TerrainZone } from '../maps/battle/surface';
 import type { AtlasData } from '../maps/atlas/types';
 
 /** `info` : fiche en jeu montrée quand un joueur clique sur le jeton. */
@@ -12,7 +13,15 @@ export type PlayerToken = { id: string; name: string; kind: 'pc' | 'monster' | '
   /** C'est son tour. PV : chiffres pour les héros seulement ; les créatures n'ont qu'un état en mots. */
   active?: boolean; hp?: number; maxHp?: number; state?: string;
   /** Héros : déplacement en cases et portée de l'arme en main (allonge, portée courte et longue, en cases). */
-  move?: number; reach?: { melee: number; short: number; long: number; weapon?: string } };
+  move?: number; reach?: { melee: number; short: number; long: number; weapon?: string };
+  /** Socle (terrain sous le jeton), sur un pont, et modes de déplacement (nage, vol, escalade). */
+  socle?: string; layer?: 'pont'; modes?: { vol?: boolean; nage?: boolean; escalade?: boolean }; speed?: string;
+  /** Déplacement restant pendant ce tour, en cases (héros). */
+  left?: number;
+  /** Élévation sous le jeton, en pieds (plateau, corniche). */
+  elev?: number;
+  /** État visible d'un coup d'œil : mort, à l'agonie, stabilisé, neutralisé (et par quoi) ; couché s'il est à terre. */
+  vital?: 'mort' | 'agonie' | 'stable' | 'neutralise'; down?: boolean; cause?: string };
 
 /** Dégâts (amount < 0) ou soins reçus par un jeton, écrits en grand au-dessus de lui. */
 export type BoardHit = { id: string; to: string; amount: number; at: number };
@@ -32,7 +41,7 @@ export type PlayerBoard =
   /** `data` ne contient que le plan montré et ses lieux révélés. */
   | { mode: 'map'; title: string; planId: string; data: AtlasData; focus?: { kind: 'anchor' | 'point'; id: string; tick: number };
     /** Jetons du groupe et des héros séparés (si le MJ les montre), et brouillard de guerre. */
-    marks?: { id: string; x: number; y: number; label: string; tone: 'party' | 'dest' | 'hero' }[];
+    marks?: { id: string; x: number; y: number; label: string; tone: 'party' | 'dest' | 'hero' | 'dm' }[];
     fog?: { vision: [number, number][]; explored: [number, number][]; r: number; er: number;
       /** Vue arrêtée par les parois, cavernes visitées, et région où la mémoire peut s'éclaircir. */
       see?: { polys: [number, number][][]; lines: [number, number][][] }; memory?: { polys: [number, number][][]; lines: [number, number][][] }; clip?: { polys: [number, number][][]; lines: [number, number][][] }; lit?: number };
@@ -43,8 +52,10 @@ export type PlayerBoard =
     /** Annonce de halte : suspense, fausse alerte ou rencontre (avec son image). */
     alert?: HaltAlert;
     /** Bifurcation en chemin : un passage à côté du sentier, à prendre ou non (les joueurs répondent depuis leur écran). */
-    fork?: { key: string; line: string; out: string; on: string } }
-  | { mode: 'battle'; title: string; backdrop?: string; cols: number; rows: number; feetPerCell: number; round: number; tokens: PlayerToken[]; terrain?: string; elements: PlayerElement[]; turn?: PlayerTurn;
+    fork?: { key: string; line: string; out: string; on: string };
+    /** Conversation en cours (personnage du MJ ou groupe, et un PNJ ou une créature). */
+    talk?: { key: string; name: string; image?: string; lines: { who: string; text: string }[]; at: number } }
+  | { mode: 'battle'; title: string; backdrop?: string; theme?: import('../maps/battle/theme').BoardTheme; cols: number; rows: number; feetPerCell: number; round: number; tokens: PlayerToken[]; terrain?: string; elements: PlayerElement[]; turn?: PlayerTurn;
     /** Brouillard de guerre : cases vues par les héros, et déjà explorées. Absent = tout le plateau est visible. */
     fog?: { visible: number[]; explored: number[] };
     /** Sorties au bord du plateau, avec leur destination si les héros la connaissent. */
@@ -54,7 +65,14 @@ export type PlayerBoard =
       /** Verdict du jet pour toucher, total obtenu, phrase de récit, et dégâts infligés une fois appliqués. */
       verdict?: 'hit' | 'crit' | 'miss' | 'fumble'; roll?: number; line?: string; damage?: number; weapon?: string; importance?: 'minor' | 'major' | 'epic' };
     /** Dégâts et soins récents, à écrire en grand sur le plateau. */
-    hits?: BoardHit[] };
+    hits?: BoardHit[];
+    /** Terrain en couches (sol du fond, zones, éléments visibles, murs), et règles par case : le même calcul que chez le MJ. */
+    ground?: TerrainId; surface?: { zones?: TerrainZone[]; objects?: BattleObject[]; walls?: BattleWall[] }; rules?: SurfaceRules;
+    /** Zones d'effet posées par le MJ : contour exact et cases touchées. */
+    aoes?: AoeView[] };
+
+/** Zone d'effet telle qu'on la dessine : contour (tracé SVG, en cases), cases touchées, nom. */
+export type AoeView = { id: string; label: string; outline: string; cells: number[]; at: [number, number]; draft?: boolean };
 
 export type Stage =
   | { kind: 'blank' }

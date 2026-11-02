@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { loadUnderdarkFeed } from '../feeds/underdark';
 import { mapBoard } from '../maps/playerBoard';
 import { mapIdOf, type MapRecord } from '../maps/mapStore';
+import { sourceAtlas } from '../maps/world';
 import type { AtlasData } from '../maps/atlas/types';
 import { currentStage, onPlayerHello, PLAYER_VIEW_NAME, publishStage, type Stage } from './stage';
 import './present.css';
@@ -40,7 +41,7 @@ export default function StageControl({ universe, state, flash }: Props) {
     // Le plan entier de l'Atlas vient du fichier des Archives : on le charge au besoin (les cartes perso n'en ont pas besoin).
     const feed = rec.kind === 'atlas' ? await loadUnderdarkFeed().catch(() => null) : null;
     if (rec.kind === 'atlas' && !feed) { flash('Archives indisponibles.'); return; }
-    show({ kind: 'board', board: mapBoard(rec, feed?.atlas as AtlasData, mapIdOf(rec)) });
+    show({ kind: 'board', board: mapBoard(rec, sourceAtlas(rec, feed?.atlas as AtlasData), mapIdOf(rec)) });
   }
 
   function openPlayerScreen() {

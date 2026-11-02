@@ -2,6 +2,7 @@
  * Instantanés envoyés à l'écran joueur. Ce module est le seul à décider de ce que voient les joueurs :
  * il part de la vue joueurs (sans notes, repères secrets ni jetons cachés) et ne garde que le plan montré.
  */
+import { boardTheme } from './battle/theme';
 import type { AtlasData } from './atlas/types';
 import { mapDataFor, placeCoords, restrictToPlan, DEFAULT_BATTLE, type MapRecord, type PartyPlace } from './mapStore';
 import { effectiveGrid } from './battle/terrain';
@@ -14,11 +15,16 @@ import { describeLite } from './atlas/lore';
 import { CALM_MS } from './atlas/omens';
 import { STATS } from './atlas/statblocks';
 import type { PlayerBoard, PlayerElement, PlayerToken, PlayerTurn } from '../present/stage';
-import { initiativeOrder } from './battle/combat';
+import { initiativeOrder, vitalOf } from './battle/combat';
 import { inSight, partyVision } from './battle/fog';
 import { visionShapes, memoryShapes } from './zone';
 import { exitsOf } from './battle/trailRules';
 import type { BattleToken } from './mapStore';
+import { effectiveOf, moveLeft, surfaceOf } from './battle/placement';
+import { moverOf } from './battle/movement';
+import { attackCells, rangedCells, speedCells } from './battle/ranges';
+import { socleOf } from './battle/surface';
+import { aoeView } from './battle/aoe';
 
 /** Points découverts d'un plan, déduits de ce qui est révélé (lieux, repères) et du parcours du groupe. */
 export function seedExplored(data: AtlasData, rec: MapRecord, planId: string, at: (p?: PartyPlace) => [number, number] | null): [number, number][] {
@@ -105,21 +111,32 @@ export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus
   const alert = a && (a.phase !== 'calm' || Date.now() - a.at < CALM_MS) ? a : undefined;
   const f = party?.fork && party.fork.planId === planId ? party.fork : undefined;
   const fork = f ? { key: f.key, line: f.line, out: f.out, on: f.on } : undefined;
-  return { mode: 'map', title: rec.title, planId, data, focus, marks: marks.length ? marks : undefined, fog, travel, here: f ? f.point : here, alert, fork };
+  return { mode: 'map', title: rec.title, planId, data, focus, marks: marks.length ? marks : undefined, fog, travel, here: f ? f.point : here, alert, fork, ...(rec.overlay?.talk ? { talk: rec.overlay.talk } : {}) };
 }
 
 /** Combat tel que les joueurs le voient : jetons visibles seulement, sans points de vie ni CA. */
 /** `artOf` : illustration d'une créature par son nom (fiches des Archives), montrée en grand aux joueurs. */
 export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) => string): PlayerBoard {
   const b = rec.battle ?? DEFAULT_BATTLE;
+  // Mêmes règles que chez le MJ : passages découverts = éléments révélés.
+  const view: typeof b = b.local ? { ...b, local: { ...b.local, discovered: rec.overlay?.revealed ?? [] } } : b;
+  const rules = surfaceOf(view);
   const tokens: PlayerToken[] = b.tokens
     .filter((t) => t.visible)
-    .map(({ id, name, kind, x, y, size, icon, image, statId, hp, maxHp, move, reach }) => {
+    .map(({ id, name, kind, x, y, size, icon, image, statId, hp, maxHp, move, reach, layer, socle, modes, conditions, dying }) => {
       const portrait = tokenImage({ kind, statId, image });
       return {
-        id, name, kind, x, y, size, icon, image: portrait, statId,
+        id, name, kind, x, y, size, icon, image: portrait, statId, layer, modes, speed: (statId && STATS[statId]?.speed) || undefined,
+        socle: socleOf(rules, { x, y, size, layer, socle }) ?? undefined,
+        ...vitalOf({ kind, hp, conditions, dying }),
+        elev: Math.max(0, ...Array.from({ length: size * size }, (_, k) => rules.cells[(y + Math.floor(k / size)) * b.cols + x + (k % size)]?.elev ?? 0)) || undefined,
+        ...(kind === 'pc' ? { left: moveLeft(b, id, moverOf({ size, move, modes }, statId ? STATS[statId]?.speed : undefined, speedCells(statId ? STATS[statId] : undefined)).speed) } : {}),
         active: id === b.turn || undefined,
-        ...(kind === 'pc' ? { hp, maxHp, move, reach } : { state: woundState({ hp, maxHp }) }),
+        ...(kind === 'pc' ? { hp, maxHp, move, reach } : {
+          state: woundState({ hp, maxHp }),
+          // Allonge et portée de la créature : montrées quand on la glisse sur le plateau.
+          reach: { melee: attackCells(statId ? STATS[statId] : undefined), short: rangedCells(statId ? STATS[statId] : undefined), long: 0 },
+        }),
         info: { subtitle: (statId && STATS[statId]?.meta) || undefined, text: (statId && CREATURE_LORE[statId]) || KIND_LORE[kind], image: artOf?.(name, id) || portrait },
       };
     });
@@ -154,7 +171,7 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
   // Brouillard de guerre : seuls les héros et ce qu'ils voient ; le reste du plateau est noir, ou assombri s'il a été exploré.
   let fog: { visible: number[]; explored: number[] } | undefined;
   if (b.fog?.on) {
-    const seen = partyVision({ ...b, tokens: b.tokens }, terrain);
+    const seen = partyVision(view, effectiveOf(view));
     const explored = new Set([...(b.fog.source === (b.terrain?.source ?? 'plateau') ? b.fog.explored : []), ...seen]);
     fog = { visible: [...seen], explored: [...explored] };
     const byId = new Map(b.tokens.map((t) => [t.id, t]));
@@ -197,7 +214,7 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
     }
     : undefined;
   return {
-    mode: 'battle', title: local?.place ?? rec.title, backdrop: rec.image, cols: b.cols, rows: b.rows,
+    mode: 'battle', title: local?.place ?? rec.title, backdrop: rec.image, theme: boardTheme(local?.surface), cols: b.cols, rows: b.rows,
     feetPerCell: b.feetPerCell, round: b.round, tokens, terrain, elements, turn, fog, exits: exits.length ? exits : undefined,
     // Trait d'attaque : seulement si les joueurs voient l'attaquant et la cible.
     aim: b.aim && tokens.some((t) => t.id === b.aim!.from) && tokens.some((t) => t.id === b.aim!.to)
@@ -205,5 +222,10 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
       : undefined,
     // Dégâts et soins récents, sur les jetons que les joueurs voient.
     hits: (b.hits ?? []).filter((h) => tokens.some((t) => t.id === h.to) && Date.now() - h.at < HIT_SHOW_MS),
+    ground: b.ground,
+    surface: b.zones?.length || b.objects?.length || b.walls?.length
+      ? { zones: b.zones, objects: b.objects?.filter((o) => !o.hidden), walls: b.walls } : undefined,
+    rules,
+    aoes: b.aoes?.length ? b.aoes.map((a) => aoeView(a, rules, b.feetPerCell)) : undefined,
   };
 }

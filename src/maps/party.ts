@@ -19,15 +19,33 @@ export function withPartyAt(base: MapOverlay, p: PartyPlace): MapOverlay {
  * Lieu nommé le plus proche d'un point du plan : celui qui porte `name` d'abord, puis les lieux importants ;
  * les détails (flaque, galets) en dernier. Rien au-delà de `radius`.
  */
+type Spot = { f: AtlasData['features'][number]; x: number; y: number };
+const spotsCache = new WeakMap<AtlasData['geometries'], { features: AtlasData['features']; byPlan: Map<string, Spot[]> }>();
+/** Lieux ponctuels d'un plan (ni zone, ni tracé, ni repère), préparés une fois : la recherche est appelée en boucle. */
+function spotsOf(data: AtlasData, planId: string): Spot[] {
+  let c = spotsCache.get(data.geometries);
+  if (!c || c.features !== data.features) { c = { features: data.features, byPlan: new Map() }; spotsCache.set(data.geometries, c); }
+  let list = c.byPlan.get(planId);
+  if (!list) {
+    const byId = new Map(data.features.map((f) => [f.id, f]));
+    list = [];
+    for (const g of data.geometries) {
+      if (g.mapId !== planId || g.type !== 'point' || g.featureId.startsWith('mk-')) continue;
+      const f = byId.get(g.featureId);
+      if (!f || f.area || f.trace) continue;
+      const [x, y] = g.coordinates as [number, number];
+      list.push({ f, x, y });
+    }
+    c.byPlan.set(planId, list);
+  }
+  return list;
+}
+
 export function placeNear(data: AtlasData, planId: string, at: [number, number], opts: { name?: string; radius?: number; exclude?: string } = {}): PartyPlace | null {
   const radius = opts.radius ?? 0.06;
-  const byId = new Map(data.features.map((f) => [f.id, f]));
   let best: PartyPlace | null = null, bestScore = radius;
-  for (const g of data.geometries) {
-    if (g.mapId !== planId || g.type !== 'point' || g.featureId.startsWith('mk-') || g.featureId === opts.exclude) continue;
-    const f = byId.get(g.featureId);
-    if (!f || f.area || f.trace) continue;
-    const [x, y] = g.coordinates as [number, number];
+  for (const { f, x, y } of spotsOf(data, planId)) {
+    if (f.id === opts.exclude) continue;
     const d = Math.hypot(x - at[0], y - at[1]);
     if (d > radius) continue;
     const score = d + (opts.name && f.title === opts.name ? -1 : 0) + (f.importance === 'detail' ? 0.04 : 0);

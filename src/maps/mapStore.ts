@@ -12,7 +12,10 @@ import { setAtlasData } from './atlas/model';
 import { IMAGE_MAX, fitWithin } from '../store/imageRefs';
 import type { LocalElement } from './battle/local';
 import type { HaltAlert } from './atlas/omens';
+import type { BattleObject, BattleWall, CellFix, SocleMode, TerrainId, TerrainZone } from './battle/surface';
+import type { BattleAoe } from './battle/aoe';
 import type { AtlasData, AtlasFeature, AtlasGeometry, AtlasMap, FeatureCategory, Importance } from './atlas/types';
+import type { WorldSpec } from './world/generate';
 
 export type Zone = 'sauvage' | 'transit' | 'cite';
 
@@ -66,6 +69,8 @@ export interface MapMarker {
   knowledge?: KnowledgeHint[];
   /** Fiche des Archives à laquelle le repère est lié. Un lieu disparu après synchronisation le signale sans être effacé. */
   archiveId?: string;
+  /** Fiche de la bibliothèque de l'univers (carte des lieux découverts). Distinct de `archiveId`, qui vise l'Atlas. */
+  entryId?: string;
 }
 
 /** Où mène un passage : une ancre de l'Atlas, ou un élément interactif de cet univers. */
@@ -85,6 +90,8 @@ export interface MapOverlay {
   /** Illustrations des rencontres, par titre de rencontre (fournies par le MJ). */
   encounterImages?: Record<string, string>;
   markers: MapMarker[];
+  /** Conversation montrée aux joueurs (personnage du MJ ou groupe, et un PNJ ou une créature) : les dernières répliques. */
+  talk?: { key: string; name: string; image?: string; lines: { who: string; text: string }[]; at: number };
   /** Destinations inscrites par le MJ, par identifiant de passage (tracé de l'Atlas). */
   passageLinks?: Record<string, PassageLink>;
   /** Où est le groupe, où il veut aller, et par où il est passé (MJ seulement). */
@@ -173,6 +180,14 @@ export interface BattleToken {
   reach?: { melee: number; short: number; long: number; weapon?: string };
   /** Ajouté au combat sans place choisie : caché aux joueurs et sans vision, jusqu'à ce que le MJ le pose. */
   unplaced?: boolean;
+  /** Sur le tablier d'un pont (et non dans l'eau en dessous). */
+  layer?: 'pont';
+  /** Héros à 0 PV : à l'agonie (jets contre la mort), stabilisé, ou mort (repris du module Combat). */
+  dying?: 'agonie' | 'stable' | 'mort';
+  /** Socle sous le jeton : automatique (terrain occupé), aucun, ou choisi. Purement visuel. */
+  socle?: SocleMode;
+  /** Modes de déplacement accordés par le MJ (sort, objet), en plus de ceux de la fiche. */
+  modes?: { vol?: boolean; nage?: boolean; escalade?: boolean };
 }
 
 export interface Battle {
@@ -185,11 +200,31 @@ export interface Battle {
   /** Terrain généré depuis un lieu : `grid` = cols × rows caractères (cf. battle/terrain.ts). `source` = identifiant du lieu. */
   terrain?: { source: string; seed: number; grid: string };
   /** Zone locale autour du lieu : éléments de l'Atlas placés sur la grille, et ceux que le MJ a découverts. */
-  local?: { source: string; planId?: string; place?: string; window: { x0: number; y0: number; w: number; h: number }; elements: LocalElement[]; discovered: string[] };
+  local?: { source: string; planId?: string; place?: string; window: { x0: number; y0: number; w: number; h: number }; elements: LocalElement[]; discovered: string[];
+    /** Plateau tiré d'un plan de surface (cité, monde) : rues et bâtiments plutôt que roche ; `interieur` : dans un bâtiment. */
+    surface?: boolean | 'interieur' | 'froid' | 'chaud' | 'neige';
+    /** Galeries intérieures retirées : seules restent les sorties au bord et les passages secrets à travers la roche. */
+    trimmed?: boolean };
   /** Identifiant de la rencontre dont les créatures sont déjà placées sur le plateau. */
   encounterOf?: string;
   /** Construction manuelle : surcharges du terrain généré et objets déposés (cf. battle/build.ts). */
   build?: BattleBuild;
+  /** Sol du fond (plateau vierge, et sol des cavernes générées) : un terrain de battle/surface.ts. */
+  ground?: TerrainId;
+  /** Zones de terrain aux contours naturels, éléments (rochers, arbres, ponts) et murs : cf. battle/surface.ts. */
+  zones?: TerrainZone[];
+  objects?: BattleObject[];
+  walls?: BattleWall[];
+  /** Corrections du MJ, case par case : elles priment sur le calcul automatique. */
+  cellFix?: Record<string, CellFix>;
+  /** Dégâts du plateau (lave, ronces, chute) à appliquer par le module Combat, qui tient les PV. */
+  damage?: { id: string; to: string; amount: number; why: string }[];
+  /** Zones d'effet de sorts posées sur le plateau (cf. battle/aoe.ts). */
+  aoes?: BattleAoe[];
+  /** Zone dont les dégâts sont à résoudre : créatures touchées (la Table de guerre lance sauvegardes et dégâts). */
+  aoeHit?: { aoeId: string; targets: string[]; at: number };
+  /** Déplacement déjà parcouru pendant le tour en cours (en cases), et qui fonce (vitesse doublée). `key` = round:tour. */
+  moved?: { key: string; used: Record<string, number>; dash?: string[] };
   /** Jeton dont c'est le tour, et journal des derniers jets. */
   turn?: string;
   log?: { id: string; text: string; tone?: 'hit' | 'miss' | 'crit' | 'info' }[];
@@ -216,9 +251,16 @@ export interface BattleBuild {
 }
 
 export interface MapRecord {
+  /** Carte des lieux découverts, tenue à jour par les comptes rendus de séance (cf. placeMap.js). */
+  placeMap?: boolean;
+  /** Lieux retirés à la main de la carte des lieux : les prochaines séances ne les y remettent pas. */
+  placeDismissed?: string[];
   id: string;
   universeId: string;
-  kind: 'atlas' | 'custom';
+  /** `monde` : carte du monde générée (cités, routes, bâtiments), voir src/maps/world. */
+  kind: 'atlas' | 'custom' | 'monde';
+  /** Atlas en strates : copie de l'Atlas des profondeurs, en 3D (paliers, passages en pente, ouvertures). */
+  variant?: 'strates';
   title: string;
   description?: string;
   /** Image de fond (data URL), pour une carte personnalisée. */
@@ -231,6 +273,8 @@ export interface MapRecord {
   battle?: Battle;
   /** Dernière synchronisation avec les Archives (atlas uniquement). */
   syncedAt?: number;
+  /** Carte du monde : graine, cités et lieux du lore posés. Le dessin en est entièrement déduit. */
+  world?: WorldSpec & { defaultCityId?: string };
   createdAt: number;
   updatedAt: number;
 }

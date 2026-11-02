@@ -2,17 +2,23 @@
  * Page « Cartes » d'un univers : créer une carte vierge, importer une image, importer l'Atlas des profondeurs
  * (et le synchroniser avec les Archives), ouvrir une carte dans la visionneuse.
  */
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import BanquePanel from '../banque/BanquePanel';
+import { npcImage, setUniverseBank, type BankImage } from '../banque';
+import { fileToCompressed } from '../media/images';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Hero } from './battle/CombatPanel';
 import { clearMapIntent, peekMapIntent } from './intent';
 import type { CombatSlot } from './battle/BattleMode';
 import MapViewer from './MapViewer';
+import { buildLoreContext } from '../ai/loreContext';
 import { useUnderdarkFeed, ARCHIVES_URL_KEY } from '../feeds/underdark';
 import { bestiaryEncounters } from '../feeds/bestiary';
 import { setBestiary } from './atlas/encounters';
 import { ATLAS_MAP_ID, imageFileToDataUrl, type MapRecord } from './mapStore';
 import type { AtlasData } from './atlas/types';
 import type { BestiaryRef, GuideCampaign } from './CampaignGuide';
+import { cityFromEntry, newWorldRecord, settlementEntries, sourceAtlas, withCity } from './world';
+import type { LoreEntry } from './world/lore';
 import './maps.css';
 import './atlas/atlas.css';
 
@@ -33,7 +39,39 @@ type Props = {
   bestiary?: BestiaryRef[];
   /** Illustration d'une créature par son nom, pour l'écran joueur. */
   artOf?: (name: string, id: string) => string;
+  /** Fiches de la Bibliothèque de l'univers (cités et lieux de la carte du monde). */
+  library?: LoreEntry[];
+  /** Ouvre une fiche de la bibliothèque (repère lié à un lieu). */
+  onOpenEntry?: (entryId: string) => void;
+  /** Images que les MJ ont ajoutées à la Banque Loresmith de cet univers (assets « banque »). */
+  bankAssets?: BankAsset[];
 };
+type BankAsset = { id: string; name?: string; dataUrl: string; campaignId?: string; createdBy?: string; banque?: Partial<BankImage> };
+
+/** Mesures d'une image ajoutée : proportions, couleur moyenne, et silhouette 8 × 8 (toits en L, en T, en U…). */
+function measure(src: string): Promise<{ ratio: number; couleur: string; masque: string }> {
+  return new Promise((resolve) => {
+    const im = new Image();
+    im.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = c.height = 8;
+      const g = c.getContext('2d');
+      if (!g) { resolve({ ratio: im.width / im.height, couleur: '#888888', masque: '' }); return; }
+      g.drawImage(im, 0, 0, 8, 8);
+      const d = g.getImageData(0, 0, 8, 8).data;
+      let r = 0, gg = 0, b = 0, n = 0, masque = '';
+      for (let i = 0; i < 64; i++) {
+        const a = d[i * 4 + 3];
+        masque += a > 110 ? '1' : '0';
+        if (a > 128) { r += d[i * 4]; gg += d[i * 4 + 1]; b += d[i * 4 + 2]; n++; }
+      }
+      const hex = (v: number) => Math.round(v / Math.max(1, n)).toString(16).padStart(2, '0');
+      resolve({ ratio: Math.round((im.width / im.height) * 1000) / 1000, couleur: `#${hex(r)}${hex(gg)}${hex(b)}`, masque });
+    };
+    im.onerror = () => resolve({ ratio: 1, couleur: '#888888', masque: '' });
+    im.src = src;
+  });
+}
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 /** Identifiants des lieux connus au dernier passage : c'est ce qui permet de compter les ajouts et retraits. */
@@ -48,11 +86,38 @@ function readKnown(): Set<string> | null {
   }
 }
 
-export default function MapsPage({ universe, maps, dispatch, flash, heroes = [], campaigns = [], bestiary = [], onReturnToTable, renderCombat, artOf }: Props) {
+export default function MapsPage({ universe, maps, dispatch, flash, heroes = [], campaigns = [], bestiary = [], onReturnToTable, renderCombat, artOf, onOpenEntry, library = [], bankAssets = [] }: Props) {
   // La Table de jeu peut demander d'ouvrir une carte précise (et d'y lancer le combat).
   const [intent] = useState(peekMapIntent);
   useEffect(() => { clearMapIntent(); }, []);
   const [openId, setOpenId] = useState<string | null>(intent?.mapId ?? null);
+  const [bankOpen, setBankOpen] = useState(false);
+  // Images propres à cet univers (et à la campagne en cours) : la banque y puise comme dans le catalogue commun.
+  const activeCampaign = universe?.activeCampaignId;
+  const ownBank = useMemo(() => bankAssets.filter((a) => a.dataUrl && (!a.campaignId || a.campaignId === activeCampaign)).map((a): BankImage => ({
+    nom: a.name ?? 'Image', type: 'element', vue: 'zenith', ratio: 1, couleur: '#888888', milieux: [], climats: [], saisons: [], region: ['surface'],
+    ...a.banque, id: `u-${a.id}`, assetId: a.id, src: a.dataUrl, campaignId: a.campaignId, mips: [1024],
+  })), [bankAssets, activeCampaign]);
+  useEffect(() => { setUniverseBank(ownBank); }, [ownBank]);
+  const uploadBank = async (file: File, kind: 'portrait' | 'jeton' | 'element' | 'texture', scope: 'univers' | 'campagne') => {
+    const dataUrl = await fileToCompressed(file, { max: 1024 }) as string;
+    const m = await measure(dataUrl);
+    const nom = file.name.replace(/\.[a-z0-9]+$/i, '').replace(/[-_]+/g, ' ').trim() || 'Image';
+    const base = kind === 'texture' ? { type: 'texture', vue: 'tuile', cat: 'sol', taille: 4 }
+      : kind === 'element' ? { type: 'element', vue: 'zenith', cat: 'divers', taille: [2, 2], usage: [] }
+        : { type: 'personnage', vue: kind, peuple: '', roles: [] };
+    const banque = { nom, ...base, milieux: [], climats: [], saisons: [], region: ['surface'], ratio: m.ratio, couleur: m.couleur, ...(kind === 'element' ? { masque: m.masque } : {}) } as Partial<BankImage>;
+    dispatch({ type: 'ADD_ASSET', asset: {
+      id: `banque-${uid()}`, name: nom, category: 'banque', targetType: 'banque', targetId: universe?.id, dataUrl, source: 'upload', prompt: '', createdAt: Date.now(),
+      universeId: universe?.id, ...(scope === 'campagne' && activeCampaign ? { campaignId: activeCampaign } : {}), banque,
+    } });
+    flash(`Image ajoutée à la banque${scope === 'campagne' ? ' de la campagne' : ' de l’univers'} : complète ses étiquettes.`);
+  };
+  /** Image de la Banque Loresmith attribuée à une fiche : un « asset » comme une image téléversée (rien n'est écrasé, la plus récente l'emporte). */
+  const assignImage = (targetType: 'library' | 'npc', targetId: string, src: string, name: string) => dispatch({
+    type: 'ADD_ASSET',
+    asset: { id: `banque-${uid()}`, name, category: targetType, targetType, targetId, dataUrl: src, source: 'banque', prompt: '', createdAt: Date.now(), universeId: universe?.id },
+  });
   const [dm, setDm] = useState(true);
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -97,6 +162,26 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
     } finally {
       setBusy(false);
     }
+  };
+
+  /** Carte du monde : générée, puis tenue à jour par le lore. Les fiches de cité de l'univers y sont posées d'emblée. */
+  const hasWorld = mine.some((m) => m.kind === 'monde');
+  const newWorld = () => {
+    const rec = newWorldRecord(universe, uid());
+    let world = rec.world!;
+    for (const e of settlementEntries(world, library).filter((x) => !x.sourceId).slice(0, 8)) world = withCity(world, cityFromEntry(e));
+    dispatch({ type: 'ADD_MAP', map: { ...rec, world } });
+    setOpenId(rec.id);
+    flash(world.cities.length ? `Carte du monde créée : ${world.cities.length} cité(s) tirée(s) des fiches.` : 'Carte du monde créée : ajoute une première cité.');
+  };
+
+  /** Copie de l'Atlas en strates : mêmes cavernes et passages, navigation en 3D. L'Atlas d'origine n'est pas touché. */
+  const hasStrates = mine.some((m) => m.kind === 'atlas' && m.variant === 'strates');
+  const copyStrates = () => {
+    const now = Date.now();
+    const id = uid();
+    dispatch({ type: 'ADD_MAP', map: { id, universeId: universe.id, kind: 'atlas', variant: 'strates', title: 'Atlas des profondeurs · strates', description: 'Copie en 3D : paliers, passages en pente, ouvertures au sol et au plafond.', overlay: { revealed: [], markers: [] }, createdAt: now, updatedAt: now } });
+    flash('Atlas en strates créé (copie) : l’Atlas d’origine reste tel quel.');
   };
 
   const importAtlas = () => {
@@ -147,7 +232,25 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
       <div className="maps-page">
         <MapViewer
           rec={open}
-          atlas={feed?.atlas as AtlasData}
+          atlas={sourceAtlas(open, feed?.atlas as AtlasData)}
+          library={library}
+          onCreateNpc={(n) => { dispatch({ type: 'ADD_NPC', n }); flash(`Fiche créée : ${n.name} (PNJ & créatures)`); }}
+          onCreateEntry={(entry) => {
+            dispatch({ type: 'ADD_LIBRARY_ENTRY', entry });
+            // Un personnage né en jeu reçoit un portrait de la Banque Loresmith (le MJ le change à sa guise).
+            if (entry.archiveType === 'person') {
+              const src = npcImage({ id: entry.id, role: [entry.subtitle, entry.shortSummary].filter(Boolean).join(' '), placeText: String(entry.currentLocation ?? ''), vue: 'portrait', px: 512 });
+              if (src) assignImage('library', entry.id, src, `Banque Loresmith · ${entry.title}`);
+            }
+            flash(`Fiche créée : ${entry.title} (Bibliothèque)`);
+          }}
+          onUpdateEntry={(id, patch) => { dispatch({ type: 'UPDATE_LIBRARY_ENTRY', id, patch }); flash('Fiche complétée (Bibliothèque)'); }}
+          loreContext={(focus) => buildLoreContext({ universe, state: { libraryEntries: Object.fromEntries(library.map((e) => [e.id, e])) }, focus, budget: 5000 })}
+          onChronicle={(m) => {
+            const memory = { id: Math.random().toString(36).slice(2, 10), createdAt: Date.now(), title: m.title, summary: m.summary, consequences: [], futureSeeds: [], nostalgicEchoes: [] };
+            dispatch({ type: 'UPDATE_UNIVERSE', id: universe.id, patch: { memoryLog: [memory, ...((universe as { memoryLog?: unknown[] }).memoryLog ?? [])].slice(0, 80) } });
+            flash('Conversation gardée dans la mémoire de l’univers');
+          }}
           dm={dm}
           onDm={setDm}
           onBack={() => setOpenId(null)}
@@ -156,6 +259,7 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
           startInBattle={intent?.mapId === open.id && intent.battle}
           onReturn={intent?.from === 'table' && intent.mapId === open.id ? onReturnToTable : undefined}
           renderCombat={renderCombat}
+          onOpenEntry={onOpenEntry}
           campaigns={campaigns}
           activeCampaignId={universe.activeCampaignId}
           onCampaign={(id) => dispatch({ type: 'UPDATE_UNIVERSE', id: universe.id, patch: { activeCampaignId: id || undefined } })}
@@ -164,6 +268,20 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
           artOf={artOf}
         />
       </div>
+    );
+  }
+
+  if (bankOpen) {
+    const fiches = [
+      ...library.filter((e) => ['person', 'personnage', 'character', 'npc', 'pnj'].includes(String(e.archiveType ?? '').toLowerCase())).map((e) => ({ id: e.id, title: String(e.title ?? e.name ?? e.id), targetType: 'library' as const })),
+      ...bestiary.filter((n) => !n.isMonster).map((n) => ({ id: n.id, title: n.name, targetType: 'npc' as const })),
+    ].sort((a, b) => a.title.localeCompare(b.title, 'fr'));
+    return (
+      <BanquePanel onBack={() => setBankOpen(false)} fiches={fiches} onUpload={uploadBank}
+        campaignTitle={campaigns.find((c) => c.id === activeCampaign)?.title}
+        onEditOwn={(id, patch) => { const a = bankAssets.find((x) => x.id === id); if (a) dispatch({ type: 'UPDATE_ASSET', id, patch: { banque: { ...a.banque, ...patch }, ...(patch.nom ? { name: patch.nom } : {}) } }); }}
+        onDeleteOwn={(id) => dispatch({ type: 'DELETE_ASSET', id })}
+        onAssign={(f, img, src) => { assignImage(f.targetType, f.id, src, `Banque Loresmith · ${img.nom}`); flash(`Image attribuée : ${f.title}`); }} />
     );
   }
 
@@ -178,9 +296,12 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
         </div>
         <p className="maps-sub">Cartes interactives à projeter aux joueurs. Ce que tu révèles ou places apparaît en direct sur leur écran ; le reste reste réservé au MJ.</p>
         <div className="maps-actions">
+          {!hasWorld && <button className="maps-btn gold" onClick={newWorld} title="Une carte du monde générée : cités, routes, bâtiments ; les lieux du lore y apparaissent d’eux-mêmes">+ Carte du monde</button>}
           <button className="maps-btn gold" onClick={newBlank}>+ Carte vierge</button>
+          <button className="maps-btn" onClick={() => setBankOpen(true)} title="Portraits, jetons, éléments et textures dont Loresmith habille les cartes et les fiches">🖼 Banque Loresmith</button>
           <button className="maps-btn" disabled={busy} onClick={() => fileRef.current?.click()}>{busy ? 'Lecture…' : 'Importer une image'}</button>
           {isUnderdark && !hasAtlas && <button className="maps-btn" onClick={importAtlas}>Importer l’Atlas des profondeurs</button>}
+          {hasAtlas && !hasStrates && <button className="maps-btn" onClick={copyStrates} title="Une copie de l’Atlas, en 3D : paliers, passages en pente, ouvertures au sol et au plafond. L’original n’est pas modifié.">+ Atlas en strates (copie 3D)</button>}
           {hasAtlas && (
             <button className="maps-btn" disabled={busy} onClick={sync}>
               {busy ? 'Synchronisation…' : '⟳ Synchroniser les Archives'}
@@ -205,9 +326,10 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
       {universe.activeCampaignId && campaigns.some((c) => c.id === universe.activeCampaignId) && (
         <p className="maps-hint">📜 Campagne invoquée : <b>{campaigns.find((c) => c.id === universe.activeCampaignId)?.title}</b>. Ouvre une carte : le guide MJ indique où amener le groupe et quelles rencontres l’y attendent.</p>
       )}
-      {mine.length === 0 && <p className="maps-hint">Aucune carte pour cet univers. Crée une carte vierge, importe une image, ou ajoute l’Atlas des profondeurs.</p>}
+      {mine.length === 0 && <p className="maps-hint">Aucune carte pour cet univers. Crée la carte du monde, une carte vierge, importe une image, ou ajoute l’Atlas des profondeurs.</p>}
 
       {[
+        { id: 'Carte du monde', description: 'Générée à partir des fiches : cités, routes et bâtiments, tenue à jour par le lore.', docs: mine.filter((m) => m.kind === 'monde') },
         { id: 'Atlas intégré', description: 'Cartes fournies avec le projet.', docs: mine.filter((m) => m.kind === 'atlas') },
         { id: 'Cartes de l’univers', description: 'Cartes créées ou importées pour cet univers.', docs: mine.filter((m) => m.kind === 'custom') },
       ].filter((g) => g.docs.length > 0).map((g) => (
@@ -221,7 +343,7 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
               {g.docs.map((m) => (
                 <article key={m.id} className="maps-card">
                   <h3>{m.title}</h3>
-                  <p className="maps-sub">{m.kind === 'atlas' ? 'Atlas' : `${m.points?.length ?? 0} repère(s)`} · modifiée {new Date(m.updatedAt).toLocaleDateString('fr-CA')}</p>
+                  <p className="maps-sub">{m.kind === 'atlas' ? 'Atlas' : m.kind === 'monde' ? `${m.world?.cities.length ?? 0} cité(s) · ${Object.values(m.world?.bindings ?? {}).filter((b) => !b.excluded).length} lieu(x) du lore` : `${(m.points?.length ?? 0) + (m.overlay?.markers?.length ?? 0)} repère(s)`} · modifiée {new Date(m.updatedAt).toLocaleDateString('fr-CA')}</p>
                   {m.description && <p>{m.description}</p>}
                   <div className="maps-actions">
                     <button className="maps-btn gold" onClick={() => setOpenId(m.id)}>Ouvrir</button>
@@ -236,7 +358,7 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
               <tbody>{g.docs.map((m) => (
                 <tr key={m.id}>
                   <td><button className="maps-link" onClick={() => setOpenId(m.id)}>{m.title}</button></td>
-                  <td>{m.kind === 'atlas' ? '—' : m.points?.length ?? 0}</td>
+                  <td>{m.kind === 'atlas' ? '—' : m.kind === 'monde' ? `${m.world?.cities.length ?? 0} cité(s)` : m.points?.length ?? 0}</td>
                   <td>{new Date(m.updatedAt).toLocaleDateString('fr-CA')}</td>
                   <td><button className="maps-btn" onClick={() => { if (window.confirm(`Supprimer « ${m.title} » ?`)) dispatch({ type: 'DELETE_MAP', id: m.id }); }}>Supprimer</button></td>
                 </tr>

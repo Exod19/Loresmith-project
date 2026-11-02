@@ -38,8 +38,8 @@ export default function CreaturePicker({ npcs, imageOf, rate, onAdd, payloadOf }
   const tile = (n) => (
     <li key={n.id}>
       <button
-        type="button" className="cp-tile" data-on={sel === n.id ? 1 : 0} onClick={() => setSel(n.id)}
-        draggable onDragStart={(e) => { e.dataTransfer.setData(CREATURE_DRAG, JSON.stringify(payloadOf(n, count))); e.dataTransfer.effectAllowed = 'copy'; setSel(n.id); }}
+        type="button" className="cp-tile" data-on={sel === n.id ? 1 : 0} onClick={() => { if (sel !== n.id) setCount(1); setSel(n.id); }}
+        draggable onDragStart={(e) => { const k = sel === n.id ? count : 1; e.dataTransfer.setData(CREATURE_DRAG, JSON.stringify(payloadOf(n, k))); e.dataTransfer.effectAllowed = 'copy'; setCount(k); setSel(n.id); }}
         title="Glisse sur le plateau pour la poser à cet endroit"
       >
         {imageOf(n) ? <img src={imageOf(n)} alt="" loading="lazy" /> : <span className="cp-ph">👹</span>}
