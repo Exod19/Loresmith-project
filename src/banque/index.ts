@@ -126,34 +126,45 @@ export const isBankSrc = (src: string | undefined) => {
  * - `pose` : 'couche' pour un dormeur dans son lit ; sinon, jamais de personnage assis, agenouillé ou couché.
  * Renvoie l'adresse, ou undefined plutôt qu'un intrus.
  */
-export function npcImage({ id, role, name, desc, genre, peuple, pose, placeText, people, region = 'surface', vue = 'jeton', px = 128, peoples }: {
+export function npcImage(o: NpcQuery): string | undefined {
+  const img = npcPick(o);
+  return img ? bankSrc(img, o.px ?? 128) : undefined;
+}
+
+export type NpcQuery = {
   id: string; role?: string; name?: string; desc?: string; genre?: 'f' | 'm'; peuple?: string; pose?: string;
   placeText?: string; people?: string; region?: string; vue?: 'portrait' | 'jeton'; px?: number; peoples?: Peoples;
-}): string | undefined {
+  /** Images déjà prises dans la même scène : évitées tant qu'il reste un autre choix cohérent. */
+  exclude?: Set<string>;
+};
+
+/** Même choix que npcImage, mais renvoie l'image de la banque elle-même. */
+export function npcPick({ id, role, name, desc, genre, peuple, pose, placeText, people, region = 'surface', vue = 'jeton', px = 128, peoples, exclude }: NpcQuery): BankImage | null {
   const pe = peoples ?? peoplesOf({ text: placeText, people, region });
   const traits = npcTraits({ name, role, desc });
   const g = genre ?? traits.genre;
   const own = peuple ?? traits.peuple;
   // Son peuple d'abord (s'il n'est pas proscrit du lieu), puis ceux du lieu ; son rôle d'abord, puis n'importe quel rôle.
+  // Dans une scène, une image déjà prise n'est reprise qu'en tout dernier recours.
   const tries: Parameters<typeof pickPerson>[1][] = [];
   if (own && !(pe.banned ?? []).includes(own)) tries.push({ peuple: own, role }, { peuple: own });
   tries.push({ role }, {});
   const pick = (v: 'jeton' | 'portrait') => {
-    for (const t of tries) {
-      const got = pickPerson(images, { ...t, vue: v, peoples: pe, seed: id, genre: g, pose });
-      if (got) return got;
+    for (const ex of exclude?.size ? [exclude, undefined] : [undefined]) {
+      for (const t of tries) {
+        const got = pickPerson(images, { ...t, vue: v, peoples: pe, seed: id, genre: g, pose, exclude: ex });
+        if (got) return got;
+      }
     }
     return null;
   };
   // Le portrait et le jeton d'un même PNJ montrent la même personne : on tire le jeton, puis on prend son portrait jumeau.
   const token = pick('jeton');
-  if (vue === 'jeton') return token ? bankSrc(token, px) : undefined;
+  if (vue === 'jeton') return token;
   const twin = bankById(token?.paire);
-  if (twin && !twin.exclu) return bankSrc(twin, px);
-  const face = token ? faceOf(bankSrc(token, px), px) : undefined;
-  if (face) return face;
-  const img = pick('portrait');
-  return img ? bankSrc(img, px) : undefined;
+  if (twin && !twin.exclu) return twin;
+  const face = token ? bankImageOf(faceOf(bankSrc(token, px), px)) : null;
+  return face ?? pick('portrait');
 }
 
 /** Image de la banque derrière une adresse (catalogue : `/banque/personnages/<id>-<taille>.webp` ; ajout du MJ : sa source). */

@@ -65,7 +65,13 @@ export function woundState(t: Pick<BattleToken, 'hp' | 'maxHp'>): string | undef
 /** `tokenOf` : jeton d'un PNJ posé sur le plan (montré aux joueurs à la place de son marqueur). */
 export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus?: { kind: 'anchor' | 'point'; id: string; tick: number }, tokenOf?: (f: AtlasFeature) => string | undefined, faceOf?: (f: AtlasFeature) => string | undefined): PlayerBoard {
   const raw = restrictToPlan(mapDataFor(rec, atlas, false), planId);
-  const data = tokenOf || faceOf ? { ...raw, features: raw.features.map((f) => { const token = tokenOf?.(f), face = faceOf?.(f); return token || face ? { ...f, ...(token ? { token } : {}), ...(face ? { face } : {}) } : f; }) } : raw;
+  // Rien de réservé au MJ ne part chez les joueurs (DD de fouille) ; jeton et visage des PNJ y sont ajoutés.
+  const data = { ...raw, features: raw.features.map((f) => {
+    const rest = { ...f };
+    delete rest.fouille;
+    const token = tokenOf?.(f), face = faceOf?.(f);
+    return { ...rest, ...(token ? { token } : {}), ...(face ? { face } : {}) };
+  }) };
   const view = rec.overlay?.playerView ?? {};
   const party = rec.overlay?.party;
   // Positions : calculées sur la carte complète du MJ, mais seules les coordonnées partent chez les joueurs.

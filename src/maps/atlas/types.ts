@@ -148,6 +148,8 @@ export interface AtlasFeature {
   genre?: 'f' | 'm'; peuple?: string; pose?: 'couche';
   /** Jeton vu de dessus d'un PNJ (écran des joueurs) : calculé à l'envoi, jamais enregistré. */
   token?: string;
+  /** Pièce d'un intérieur : DD de fouille discrète (selon qui s'y trouve et le moment), réservé au MJ. */
+  fouille?: { dc: number; label: string; why: string[]; room?: string };
   /** Image de face d'un PNJ (portrait de sa fiche ou de la banque), pour la fiche de l'écran des joueurs. */
   face?: string;
   demo?: boolean;

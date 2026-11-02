@@ -11,6 +11,7 @@
 import { crowdFactor, greets, homeBonus, seasonLine } from './seasons.js';
 import { SLOT_TYPES, hashSeed, rng } from './generate.js';
 import { settleOccupants } from './settle.js';
+import { searchDC } from './fouille.js';
 import { npcTraits } from '../../banque/banque.js';
 
 const W = 1240, H = 1000;
@@ -473,7 +474,7 @@ export function generateInterior({ slot, planId, siteId, parentSiteId, bound, pe
     const space = lv === 'rdc'
       ? { id: siteId, kind: 'site', name: title, levelId: 'monde', stratumIds: [], mapId: pid, parentSpaceId: parentSiteId }
       : { id: `${siteId}:${lv}`, kind: 'palier', name: `${title} · ${LEVEL_TITLE[lv]}`, levelId: 'monde', stratumIds: [], mapId: pid, siteId, parentSpaceId: siteId, floorOrder: lv === 'cave' ? -1 : 1, floorLabel: LEVEL_TITLE[lv] };
-    return { map, features, geometries, anchors, space, addPoint, pre };
+    return { map, features, geometries, anchors, space, addPoint, pre, roomBoxes: rooms.map(([name, u0, v0, u1, v1], i) => [i, name, box(u0, v0, u1, v1)]) };
   };
 
   // ——— Rez-de-chaussée ———
@@ -694,6 +695,18 @@ export function generateInterior({ slot, planId, siteId, parentSiteId, bound, pe
   // créés par le MJ restent exactement où il les a mis.
   const keep = new Set((residents ?? []).map((r) => `pnj-${r.id}`));
   for (const lvl of out) settleOccupants(lvl, W, H, keep);
+  // Fouille : chaque pièce a son DD, selon qui s'y trouve (éveillé ou endormi, garde ou personnel) et le moment.
+  for (const lvl of out) {
+    const pts = new Map(lvl.geometries.filter((g) => g.type === 'point').map((g) => [g.featureId, g.coordinates]));
+    const people = lvl.features.filter((f) => f.id.includes(':pnj-') && pts.has(f.id));
+    for (const [i, name, [bx, by, bw, bh]] of lvl.roomBoxes) {
+      const room = lvl.features.find((f) => f.id === `${lvl.pre}piece-${i}`);
+      if (!room) continue;
+      const inside = people.filter((f) => { const [x, y] = pts.get(f.id); return x * W >= bx && x * W <= bx + bw && y * H >= by && y * H <= by + bh; });
+      room.fouille = searchDC({ type, period, occupants: inside.map((f) => ({ role: f.subtitle ?? '', asleep: f.pose === 'couche' || /^Dort/.test(f.summary ?? '') })) });
+      room.fouille.room = name;
+    }
+  }
   const strip = ({ map, features, geometries, anchors, space }) => ({ map, features, geometries, anchors, space });
   return { ...strip(rdc), levels: out.slice(1).map(strip), connections, entryId: `${rdc.pre}entree` };
 }

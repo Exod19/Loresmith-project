@@ -127,15 +127,16 @@ export function roleKeys(role) {
 /**
  * Personnage cohérent : `vue` ('portrait' | 'jeton'), `role`, `peoples` (peuples du lieu) ou `peuple` (imposé), `genre`
  * (strict : jamais une femme pour un homme), `pose` (seule une pose demandée est admise : un dormeur couché, jamais un
- * passant couché par terre), `seed`.
+ * passant couché par terre), `exclude` (identifiants déjà pris dans la scène), `seed`.
  */
-export function pickPerson(images, { vue = 'portrait', role = '', peoples = peoplesOf({}), genre, seed = '', peuple, pose } = {}) {
+export function pickPerson(images, { vue = 'portrait', role = '', peoples = peoplesOf({}), genre, seed = '', peuple, pose, exclude } = {}) {
   const roles = roleKeys(role);
   const forced = peuple ? peupleKey(peuple) : null;
   const banned = new Set(peoples.banned ?? []);
   let cands = [];
   for (const img of images) {
     if (img.type !== 'personnage' || img.vue !== vue || img.exclu || !img.peuple) continue;
+    if (exclude?.has(img.id)) continue; // déjà pris par quelqu'un d'autre dans la même scène
     const p = img.peuple;
     if (banned.has(p)) continue;
     let w;

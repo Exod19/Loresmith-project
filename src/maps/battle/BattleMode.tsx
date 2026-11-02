@@ -6,8 +6,7 @@
  * Le lieu choisi donne la zone locale : ses passages (tracés réels de l'Atlas) et ses éléments y sont à leur position.
  * « Suivre » un passage ramène sur la carte de navigation, à sa destination, et y déplace le groupe.
  */
-import { npcBankImage } from '../../banque/place';
-import { topOf } from '../../banque';
+import { npcBankImage, npcToken } from '../../banque/place';
 import type { LoreEntry } from '../world/lore';
 import { terrainAt, type Relief } from '../world/terrain';
 import { boardTheme } from './theme';
@@ -359,7 +358,8 @@ export default function BattleMode({
           id, name: f.title, kind: 'other', x: best.x, y: best.y, size: 1, visible: !f.hiddenNpc || revealed.has(f.id),
           npcId: ref?.id, hp: ref?.hp, maxHp: ref?.hp, ac: ref?.ac,
           // Sans jeton propre : un jeton de la Banque Loresmith, cohérent avec la cité (peuple, rôle).
-          image: ref?.token ?? topOf(f.image) ?? npcBankImage(rec, plan.id, library, f),
+          // Même jeton que sur la carte de navigation : réparti dans la scène, sans doublon tant que la banque le permet.
+          image: ref?.token ?? npcToken(rec, plan.id, library, bestiary, f, 128, atlas.features) ?? npcBankImage(rec, plan.id, library, f),
         }];
       }
     }
