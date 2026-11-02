@@ -9,6 +9,10 @@ import { describe as describeFeature, dmFeature } from './atlas/lore';
 import { SURFACE_CATEGORY, describeSurface } from './world/surfaceLore';
 import { rollEncounter, type EncCtx, type Encounter, type Zone } from './atlas/encounters';
 import { SITE_ENCOUNTERS } from './atlas/surfaceEncounters';
+import { DEEP_SITE_ENCOUNTERS } from './atlas/encounters';
+import { deepAlong, deepDrafts, deepRecordOf, type DeepSighting } from './atlas/deepIndex';
+import { DEEP_KINDS, type DeepSite } from './atlas/deepWilds';
+import type { WildSite } from './world/wilds';
 import { calmAlert, encounterAlert, suspenseAlert, type HaltAlert } from './atlas/omens';
 import { STATS, SRD_CREDIT, mod, type Stat } from './atlas/statblocks';
 import type { AtlasData, AtlasFeature, FeatureCategory } from './atlas/types';
@@ -119,9 +123,11 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   /** Lieux sauvages (carte du monde) : brouillons de la fenêtre affichée, assez rapprochée, pour le MJ seulement. */
   const [wildBox, setWildBox] = useState<[number, number, number, number] | null>(null);
   const wildOn = rec.kind === 'monde' && dm && !battleOpen && planId === worldPlanId(rec.id);
-  const drafts = useMemo(() => (wildOn ? wildDrafts(rec, atlas, wildBox) : null),
+  // Underdark (lot 28) : les brouillons du plan affiché, le long de ses galeries.
+  const deepOn = rec.kind === 'atlas' && dm && !battleOpen;
+  const drafts = useMemo(() => (wildOn ? wildDrafts(rec, atlas, wildBox) : deepOn && atlas ? deepDrafts(atlas, planId, rec.overlay?.wilds) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [wildOn, rec.world, atlas, wildBox?.join(',')]);
+    [wildOn, deepOn, planId, rec.world, rec.overlay?.wilds, atlas, wildBox?.join(',')]);
   const atlasX = useMemo(() => (drafts?.features.length ? { ...atlas, features: [...atlas.features, ...drafts.features], geometries: [...atlas.geometries, ...drafts.geometries] } : atlas), [atlas, drafts]);
   const data = activateMap(rec, dm, atlasX, drafts ? `${drafts.key}:${drafts.features.length}` : '');
   const [projecting, setProjecting] = useState(false);
@@ -481,12 +487,16 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     // Carte du monde : un lieu sauvage aperçu depuis la route arrête le groupe, vis-à-vis. Un lieu caché ne se voit que
     // si la Perception passive du groupe atteint son DD ; sinon le journal du MJ note qu'il est passé à côté.
     let wildFork: PartyFork | undefined;
-    if (rec.kind === 'monde' && map.id === worldPlanId(rec.id) && !leg.spur) {
-      const total = walkKm(rec, leg.points);
+    const surface = rec.kind === 'monde' && map.id === worldPlanId(rec.id);
+    if ((surface || rec.kind === 'atlas') && !leg.spur) {
+      // Surface : distances en km ; Underdark : en unités de plan (portée de torche).
+      const total = surface ? walkKm(rec, leg.points) : lengthOf(leg.points);
+      const near = surface ? 0.3 : 0.004, end = surface ? 0.05 : 0.002;
       const missed: string[] = [];
-      let spot: WildSighting | null = null;
-      for (const w of wildAlong(rec, data, leg.points, overlay.revealed)) {
-        if (w.s < 0.3 || w.s > total - 0.05) continue; // le lieu qu'on vient de quitter, ou celui où l'on arrive
+      let spot: WildSighting | DeepSighting | null = null;
+      const seen = surface ? wildAlong(rec, data, leg.points, overlay.revealed) : deepAlong(data, map.id, leg.points, overlay.wilds, overlay.revealed);
+      for (const w of seen) {
+        if (w.s < near || w.s > total - end) continue; // le lieu qu'on vient de quitter, ou celui où l'on arrive
         if (w.dc && !w.known && best.pp < w.dc) { missed.push(`${w.record.title} (Perception DD ${w.dc})`); continue; }
         spot = w;
         break;
@@ -494,8 +504,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
       if (missed.length) note = [note, `En chemin, passé sans le voir près de : ${missed.join(', ')}.`].filter(Boolean).join(' ');
       if (spot) {
         const place: PartyPlace = { id: spot.id, kind: 'feature', title: spot.record.title, planId: map.id };
-        leg = { ...leg, points: cutWalk(rec, leg.points, spot.s), hours: leg.hours * (spot.s / Math.max(0.01, total)), to: place, aside: { place, at: spot.at, side: spot.side } };
-        const onward = leg.cross ? 'votre chemin' : 'la route';
+        leg = { ...leg, points: surface ? cutWalk(rec, leg.points, spot.s) : subpath(leg.points, 0, spot.s), hours: leg.hours * (spot.s / Math.max(1e-6, total)), to: place, aside: { place, at: spot.at, side: spot.side } };
+        const onward = leg.cross || !surface ? 'votre chemin' : 'la route';
         wildFork = forkOf(e.f, leg, spot.known
           ? { known: true, line: `Sur votre ${spot.side}, vous reconnaissez ${spot.record.title}. Vous y allez, ou vous continuez ${onward} ?`, out: `Aller à ${spot.record.title}`, on: `Continuer ${onward}`, wild: spot.record, cross: leg.cross }
           : { known: false, line: `${spot.line.replace('{c}', spot.side)} Vous allez voir, ou vous continuez ${onward} ?`, out: 'Aller voir', on: `Continuer ${onward}`, wild: spot.record, cross: leg.cross });
@@ -557,7 +567,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     } };
     // Un lieu sauvage aperçu est enregistré : il ne bougera plus (les joueurs ne le voient qu'en y allant).
     const w = fork.wild;
-    if (w && rec.world && !rec.world.wilds?.[w.key]) onUpdate({ overlay: next, world: { ...rec.world, wilds: { ...(rec.world.wilds ?? {}), [w.key]: w } }, updatedAt: Date.now() });
+    if (w && w.planId && rec.kind === 'atlas' && !overlay.wilds?.[w.key]) onUpdate({ overlay: { ...next, wilds: { ...(next.wilds ?? {}), [w.key]: w } }, updatedAt: Date.now() });
+    else if (w && !w.planId && rec.world && !rec.world.wilds?.[w.key]) onUpdate({ overlay: next, world: { ...rec.world, wilds: { ...(rec.world.wilds ?? {}), [w.key]: w } }, updatedAt: Date.now() });
     else setOverlay(next);
     setTrial(null);
     setAskNote(null);
@@ -735,25 +746,29 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   const wildPrefix = `${worldPlanId(rec.id)}:wild-`;
   /** L'enregistrement d'un lieu sauvage : celui du monde s'il est enregistré, sinon le brouillon tel qu'il serait gardé. */
   const wildRecordFor = (f: AtlasFeature | null | undefined): WildRecord | null => {
-    if (!f?.wild || !f.id.startsWith(wildPrefix)) return null;
-    const kept = rec.world?.wilds?.[f.wild.key];
+    if (!f?.wild || !f.id.includes(':wild-')) return null;
+    const kept = rec.kind === 'atlas' ? overlay.wilds?.[f.wild.key] : rec.world?.wilds?.[f.wild.key];
     if (kept) return kept;
-    const site = drafts?.sites.find((x) => x.key === f.wild!.key);
-    return site ? wildRecordOf(site) : null;
+    const site = (drafts?.sites as (WildSite | DeepSite)[] | undefined)?.find((x) => x.key === f.wild!.key);
+    if (!site) return null;
+    return 'planId' in site ? deepRecordOf(site) : wildRecordOf(site);
   };
   /** Enregistre un lieu sauvage ; `reveal` : le montrer aux joueurs (ou le leur cacher) dans le même geste. */
   const saveWild = (r: WildRecord, reveal?: boolean) => {
-    if (!rec.world) return;
-    const id = `${wildPrefix}${r.key}`;
+    const deep = rec.kind === 'atlas' && !!r.planId;
+    if (!deep && !rec.world) return;
+    const id = deep ? `${r.planId}:wild-${r.key}` : `${wildPrefix}${r.key}`;
     let next = overlay;
     if (reveal === true) next = withExplored({ ...overlay, revealed: [...new Set([...overlay.revealed, id])] }, map.id, pointsOf(id));
     if (reveal === false) next = { ...overlay, revealed: overlay.revealed.filter((x) => x !== id) };
-    onUpdate({ world: { ...rec.world, wilds: { ...(rec.world.wilds ?? {}), [r.key]: r } }, overlay: next, updatedAt: Date.now() });
+    // Underdark : dans le calque de l'Atlas ; surface : dans le monde.
+    if (deep) onUpdate({ overlay: { ...next, wilds: { ...(next.wilds ?? {}), [r.key]: r } }, updatedAt: Date.now() });
+    else onUpdate({ world: { ...rec.world!, wilds: { ...(rec.world!.wilds ?? {}), [r.key]: r } }, overlay: next, updatedAt: Date.now() });
     if (r.excluded) setSelectedId(null);
   };
   const toggleReveal = (id: string) => {
     // Un brouillon de lieu sauvage montré aux joueurs est gardé du même coup (les joueurs ne voient que le monde enregistré).
-    if (id.startsWith(wildPrefix)) {
+    if (id.includes(':wild-')) {
       const r = wildRecordFor(data.features.find((x) => x.id === id));
       if (r) { saveWild(r, !overlay.revealed.includes(id)); return; }
     }
@@ -1313,14 +1328,16 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 <button className="maps-btn gold" onClick={() => enterBuilding(feature.id)}>Entrer dans {feature.title}</button>
               </div>
             )}
-            {dm && side === 'lieu' && rec.kind === 'monde' && feature?.wild && wildRecordFor(feature) && (
+            {dm && side === 'lieu' && (rec.kind === 'monde' || rec.kind === 'atlas') && feature?.wild && wildRecordFor(feature) && (
               <WildPanel key={feature.id} feature={feature} record={wildRecordFor(feature)!} draft={!!feature.draft}
-                revealed={overlay.revealed.includes(feature.id)}
+                revealed={overlay.revealed.includes(feature.id)} kinds={rec.kind === 'atlas' ? DEEP_KINDS : undefined}
                 onSave={(r) => saveWild(r)} onReveal={(r) => saveWild(r, !overlay.revealed.includes(feature.id))}
-                onEnter={(r) => { saveWild(r); setEnterWild(feature.id); }}
+                onEnter={rec.kind === 'monde' ? (r) => { saveWild(r); setEnterWild(feature.id); } : undefined}
                 onEncounter={(force) => {
-                  const titles = SITE_ENCOUNTERS[feature.wild!.kind];
-                  const ctx: EncCtx = { zone: 'sauvage', depth: 1, place: feature.title, surface: true, titles };
+                  // Surface et Underdark ne se mêlent jamais : chacun tire dans sa table.
+                  const deep = rec.kind === 'atlas';
+                  const titles = (deep ? DEEP_SITE_ENCOUNTERS : SITE_ENCOUNTERS)[feature.wild!.kind];
+                  const ctx: EncCtx = deep ? { zone: 'sauvage', depth: 3, place: feature.title, titles } : { zone: 'sauvage', depth: 1, place: feature.title, surface: true, titles };
                   setEnc({ ctx, e: rollEncounter(ctx, force) });
                 }} />
             )}
@@ -1355,7 +1372,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 onMoveCity={(id) => { setMovingCity(id); setPlanId(wid); }}
                 onShow={(pid, fid) => { setPlanId(pid); setSelectedId(fid ?? null); if (fid) { setSide('lieu'); setFocus({ kind: 'point', id: fid, tick: Date.now() }); } }} />
             )}
-            {dm && side === 'lieu' && feature && !markerId && !feature.trace && rec.kind === 'atlas' && (
+            {dm && side === 'lieu' && feature && !markerId && !feature.trace && !feature.wild && rec.kind === 'atlas' && (
               <LiveEncounters
                 feature={feature} data={data} bestiary={bestiary as LiveBestiaryRef[]} log={overlay.encounterLog ?? []}
                 onLog={(entry) => setOverlay({ ...overlay, encounterLog: [entry, ...(overlay.encounterLog ?? [])].slice(0, 200) })}

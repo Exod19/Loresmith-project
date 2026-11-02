@@ -13,6 +13,7 @@ import { IMAGE_MAX, fitWithin } from '../store/imageRefs';
 import type { LocalElement } from './battle/local';
 import type { HaltAlert } from './atlas/omens';
 import type { WildRecord } from './world/generate';
+import { withDeepWilds } from './atlas/deepIndex';
 import type { BattleObject, BattleWall, CellFix, SocleMode, TerrainId, TerrainZone } from './battle/surface';
 import type { BattleAoe } from './battle/aoe';
 import type { AtlasData, AtlasFeature, AtlasGeometry, AtlasMap, FeatureCategory, Importance } from './atlas/types';
@@ -80,6 +81,8 @@ export interface PassageLink { kind: 'anchor' | 'marker' | 'feature'; id: string
 export interface MapOverlay {
   /** Identifiants des lieux de l'atlas visibles des joueurs. Rien n'est visible par défaut. */
   revealed: string[];
+  /** Lieux sauvages de l'Underdark enregistrés (gardés, définis, aperçus ou écartés), par clé (atlas/deepWilds.js). */
+  wilds?: Record<string, WildRecord>;
   /** Carte de navigation chez les joueurs : brouillard de guerre, jeton du groupe, héros séparés. */
   playerView?: { fog?: boolean; party?: boolean; heroes?: boolean };
   /** Brouillard : points déjà découverts par plan (chemins parcourus, lieux traversés), qui restent visibles mais sombres. */
@@ -364,6 +367,8 @@ function withMarkers(data: AtlasData, rec: MapRecord, dm: boolean): AtlasData {
 /** Jeu de données complet d'une carte, vue MJ (`dm`) ou joueurs. Pour l'Atlas, `atlas` est la source synchronisée. */
 export function mapDataFor(rec: MapRecord, atlas: AtlasData, dm: boolean): AtlasData {
   if (rec.kind === 'custom') return withMarkers(buildCustomAtlas(rec, dm), rec, dm);
+  // Lieux sauvages de l'Underdark enregistrés : ils font partie de l'Atlas (les joueurs ne voient que les révélés).
+  if (rec.kind === 'atlas' && rec.overlay?.wilds) atlas = withDeepWilds(atlas, rec.overlay.wilds);
   if (dm) return withMarkers(atlas, rec, true);
   const revealed = new Set(rec.overlay?.revealed ?? []);
   return withMarkers(

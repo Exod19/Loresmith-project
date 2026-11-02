@@ -146,6 +146,16 @@ export type Encounter = {
   groups?: { stat: string; role?: string; label?: string; n: number; detail: string }[];
 };
 
+/** Rencontres propres à un type de lieu sauvage de l'Underdark (atlas/deepWilds.js) : jamais celles de la surface. */
+export const DEEP_SITE_ENCOUNTERS: Record<string, string[]> = {
+  toile: ['Toiles et araignées géantes'], 'camp-drow': ['Patrouille drow', 'Caravane de marchands drows'], 'epave-convoi': ['Pillards', 'Convoi duergar'],
+  'autel-lolth': ['Patrouille drow'], 'sanctuaire-svirf': ['Prospecteurs svirfnebelins', 'Réfugiés'], myconides: ['Cueilleurs de champignons', 'Jardin de champignons violets'],
+  champignonniere: ['Jardin de champignons violets', 'Cueilleurs de champignons'], gricks: ['Gricks'], ossuaire: ['Goules', 'Ombres'],
+  filon: ['Équipe de mineurs sous contrainte', 'Prospecteurs svirfnebelins'], vase: ['Vase grise', 'Gelée ocre', 'Cube gélatineux'],
+  refugies: ['Réfugiés'], 'chauves-souris': ['Nuée de chauves-souris'], gouffre: ['Manteaux noirs', 'Enlaceur'], 'lac-noir': ['Enlaceur', 'Lueur mouvante'],
+  'source-chaude': ['Convoi duergar', 'Caravane bigarrée'], cristaux: ['Prospecteurs svirfnebelins', 'Mastodonte des ténèbres'], vapeur: ['Grondement lointain', 'Mille-pattes géants'],
+};
+
 /** Tire une rencontre : d20 de déclenchement (≥ 15, ou ≥ 13 dans les profondeurs et les entre-strates), puis table pondérée. */
 /** Rencontres supplémentaires (Bestiaire des Archives), ajoutées au tirage. */
 let POOL: Entry[] = E;
@@ -157,7 +167,7 @@ export function rollEncounter(ctx: EncCtx, force = false): Encounter {
   const check = force ? 'Rencontre imposée par le MJ' : `1d20 = ${d20} (rencontre sur ${threshold} ou plus)`;
   if (!happens) return { d20, check, happens };
   // La surface et l'Underdark ne se mêlent jamais.
-  const pool = ctx.titles?.length ? SURFACE.filter((e) => ctx.titles!.includes(e.title)) : ctx.surface ? SURFACE.filter((e) => e.zones.includes(ctx.zone)) : POOL.filter((e) => e.zones.includes(ctx.zone) && (e.min ?? 1) <= ctx.depth && ctx.depth <= (e.max ?? 9) && (!e.assassins || ctx.assassins));
+  const pool = ctx.titles?.length ? (ctx.surface ? SURFACE : POOL).filter((e) => ctx.titles!.includes(e.title)) : ctx.surface ? SURFACE.filter((e) => e.zones.includes(ctx.zone)) : POOL.filter((e) => e.zones.includes(ctx.zone) && (e.min ?? 1) <= ctx.depth && ctx.depth <= (e.max ?? 9) && (!e.assassins || ctx.assassins));
   const sum = pool.reduce((a, e) => a + (e.weight ?? 1), 0); let r = Math.random() * sum; let entry = pool[0];
   for (const e of pool) { r -= e.weight ?? 1; if (r <= 0) { entry = e; break; } }
   const r2 = roll('2d6'); const att = entry.kind === 'Signe' ? undefined

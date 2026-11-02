@@ -435,18 +435,19 @@ export function wildAlong(rec: MapRecord, data: AtlasData, pts: [number, number]
   const roads = data.geometries.filter((g) => g.mapId === wid && g.type === 'polyline' && /:route-/.test(g.featureId)).map((g) => (g.coordinates as [number, number][]).map((p) => toKm(frame, p)));
   const cities = world.cities.map((c) => ({ name: c.name, km: cityKm(frame, c), r: cityRadiusKm(citySpecDefaults(c)) }));
   const drafts = wildSitesIn({ seed: world.seed, relief, cities, roads, lakes, density: world.wildDensity }, box, new Set(Object.keys(kept))).map(wildRecordOf);
-  const records = [...drafts, ...Object.values(kept).filter((w) => w && !w.excluded && w.km[0] >= box[0] && w.km[0] <= box[2] && w.km[1] >= box[1] && w.km[1] <= box[3])];
+  const records = [...drafts, ...Object.values(kept).filter((w) => w && !w.excluded && w.km && w.km[0] >= box[0] && w.km[0] <= box[2] && w.km[1] >= box[1] && w.km[1] <= box[3])];
   const out: WildSighting[] = [];
   for (const r of records) {
-    const pr = project(km, r.km);
+    const rk = r.km!;
+    const pr = project(km, rk);
     const sight = sightOf(r, r.forest ?? 0);
     if (pr.d > sight.km) continue;
     // Côté, dans le sens de la marche (y vers le bas : produit vectoriel positif = à droite).
     const ahead = subpath(km, pr.s, Math.min(lengthOf(km), pr.s + 0.5));
     const b = ahead[ahead.length - 1], a = ahead[0];
-    const cross = (b[0] - a[0]) * (r.km[1] - pr.at[1]) - (b[1] - a[1]) * (r.km[0] - pr.at[0]);
+    const cross = (b[0] - a[0]) * (rk[1] - pr.at[1]) - (b[1] - a[1]) * (rk[0] - pr.at[0]);
     const id = `${wid}:wild-${r.key}`;
-    out.push({ record: r, id, s: pr.s, d: pr.d, at: toAt(frame, r.km), side: cross > 0 ? 'droite' : 'gauche', known: revealed.includes(id), dc: sight.dc, line: sight.line });
+    out.push({ record: r, id, s: pr.s, d: pr.d, at: toAt(frame, rk), side: cross > 0 ? 'droite' : 'gauche', known: revealed.includes(id), dc: sight.dc, line: sight.line });
   }
   return out.sort((x, y) => x.s - y.s);
 }

@@ -10,7 +10,7 @@ import { DANGER_LABEL, TENEURS, WILD_KINDS, type Danger, type Teneur } from './w
 
 const BIOME: Record<string, string> = { neige: 'terres enneigées', taiga: 'taïga', tempere: 'terres tempérées', steppe: 'steppe', desert: 'désert' };
 
-export default function WildPanel({ feature, record, draft, revealed, onSave, onReveal, onEncounter, onEnter }: {
+export default function WildPanel({ feature, record, draft, revealed, onSave, onReveal, onEncounter, onEnter, kinds = WILD_KINDS }: {
   feature: AtlasFeature;
   /** L'enregistrement tel qu'il serait gardé (brouillon) ou tel qu'il est (lieu enregistré). */
   record: WildRecord;
@@ -24,6 +24,8 @@ export default function WildPanel({ feature, record, draft, revealed, onSave, on
   onEncounter?: (force: boolean) => void;
   /** Entrer dans le plan du lieu (un brouillon est gardé du même coup). */
   onEnter?: (r: WildRecord) => void;
+  /** Types proposés par « Définir » (ceux de la surface par défaut ; ceux de l'Underdark dans l'Atlas). */
+  kinds?: { id: string; label: string; cat: AtlasFeature['category'] }[];
 }) {
   const w = feature.wild!;
   const [edit, setEdit] = useState<WildRecord | null>(null);
@@ -31,15 +33,15 @@ export default function WildPanel({ feature, record, draft, revealed, onSave, on
 
   if (edit) {
     const set = (patch: Partial<WildRecord>) => setEdit({ ...edit, ...patch });
-    const kind = WILD_KINDS.find((k) => k.id === edit.kind);
+    const kind = kinds.find((k) => k.id === edit.kind);
     return (
       <div className="wild-panel wild-edit">
         <h4>✦ Définir ce lieu</h4>
         <label>Nom<input className="input" value={edit.title} onChange={(e) => set({ title: e.target.value })} /></label>
         <label>Type
-          <select className="input" value={edit.kind} onChange={(e) => { const k = WILD_KINDS.find((x) => x.id === e.target.value); set({ kind: e.target.value, cat: k?.cat ?? edit.cat }); }}>
+          <select className="input" value={edit.kind} onChange={(e) => { const k = kinds.find((x) => x.id === e.target.value); set({ kind: e.target.value, cat: k?.cat ?? edit.cat }); }}>
             {!kind && <option value={edit.kind}>{edit.kind}</option>}
-            {WILD_KINDS.map((k) => <option key={k.id} value={k.id}>{k.label}</option>)}
+            {kinds.map((k) => <option key={k.id} value={k.id}>{k.label}</option>)}
           </select>
         </label>
         <div className="wild-row">

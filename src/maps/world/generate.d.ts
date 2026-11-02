@@ -71,7 +71,8 @@ export interface WorldSpec { seed: number; name: string; cities: CitySpec[]; bin
 
 /** Lieu sauvage enregistré : il ne bouge plus. `excluded` : écarté par le MJ (il n'apparaît plus, même en brouillon). */
 export interface WildRecord {
-  key: string; km: [number, number]; kind: string; cat: FeatureCategory; title: string;
+  /** Surface : position en km ; Underdark (lot 28) : `planId` et `at` (0–1 du plan), `km` absent. */
+  key: string; km?: [number, number]; planId?: string; at?: [number, number]; kind: string; cat: FeatureCategory; title: string;
   teneur: 'ambiance' | 'scene' | 'quete'; danger: string; text: string; scene?: string; hook?: string; notes?: string;
   where?: string; biome?: string; e?: number; forest?: number; excluded?: boolean;
 }
