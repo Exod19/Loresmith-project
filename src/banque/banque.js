@@ -314,6 +314,9 @@ export function fitRoof(images, { mask, w, h, climat, usage, seed = '', min = 0.
   return keep[keep.length - 1];
 }
 
+/** Longueur réelle (m) d'une image de jeton dessinée à l'échelle 1 (0,94 case de 1,5 m). */
+export const TOKEN_REF_M = 1.41;
+
 /** Taille d'un peuple par rapport à un humain (stature). Drow, duergar et autres peuples absents : comme leurs cousins. */
 const STATURE = { humain: 1, elfe: 1, 'demi-elfe': 1, tieffelin: 1, drow: 0.97, 'demi-orque': 1.08, nain: 0.78, duergar: 0.76, halfelin: 0.6, gnome: 0.58, svirfnebelin: 0.58 };
 
@@ -327,6 +330,8 @@ const STATURE = { humain: 1, elfe: 1, 'demi-elfe': 1, tieffelin: 1, drow: 0.97, 
  */
 export function tokenScale(img) {
   if (!img || img.type !== 'personnage') return 1;
+  // Longueur réelle couverte par l'image (mesurée, ou retouchée par l'administrateur) : la référence est 1,41 m.
+  if (typeof img.longueur === 'number' && img.longueur > 0) return Math.round((img.longueur / TOKEN_REF_M) * 100) / 100;
   let s = STATURE[img.peuple] ?? 1;
   if ((img.roles ?? []).includes('enfant')) s *= 0.68;
   if (img.angle === 'zenith') s *= 0.68;

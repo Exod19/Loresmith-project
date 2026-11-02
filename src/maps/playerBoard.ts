@@ -63,9 +63,9 @@ export function woundState(t: Pick<BattleToken, 'hp' | 'maxHp'>): string | undef
 
 /** Carte telle que les joueurs la voient, sur le plan choisi, centrée sur `focus` si le MJ l'a demandé. */
 /** `tokenOf` : jeton d'un PNJ posé sur le plan (montré aux joueurs à la place de son marqueur). */
-export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus?: { kind: 'anchor' | 'point'; id: string; tick: number }, tokenOf?: (f: AtlasFeature) => string | undefined): PlayerBoard {
+export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus?: { kind: 'anchor' | 'point'; id: string; tick: number }, tokenOf?: (f: AtlasFeature) => string | undefined, faceOf?: (f: AtlasFeature) => string | undefined): PlayerBoard {
   const raw = restrictToPlan(mapDataFor(rec, atlas, false), planId);
-  const data = tokenOf ? { ...raw, features: raw.features.map((f) => { const token = tokenOf(f); return token ? { ...f, token } : f; }) } : raw;
+  const data = tokenOf || faceOf ? { ...raw, features: raw.features.map((f) => { const token = tokenOf?.(f), face = faceOf?.(f); return token || face ? { ...f, ...(token ? { token } : {}), ...(face ? { face } : {}) } : f; }) } : raw;
   const view = rec.overlay?.playerView ?? {};
   const party = rec.overlay?.party;
   // Positions : calculées sur la carte complète du MJ, mais seules les coordonnées partent chez les joueurs.

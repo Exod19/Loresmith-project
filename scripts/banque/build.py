@@ -434,6 +434,13 @@ def main():
         want = 'portrait' if e['vue'] == 'jeton' else 'jeton'
         other = next((o for o in entries if o['type'] == 'personnage' and o['vue'] == want and key in norm(o['titre'])), None)
         e['paire'] = other['id'] if other else None
+    # Longueur réelle (m) que couvre l'image de chaque jeton : les images remplissent toutes leur cadre, quelle que soit
+    # la taille du personnage ou l'angle de vue. Mesurée à l'œil d'après la largeur des épaules (scripts/banque/
+    # longueurs.json) ; un jeton absent de la liste prend une estimation d'après son peuple (tokenScale).
+    longueurs = json.load(open(os.path.join(os.path.dirname(__file__), 'longueurs.json'), encoding='utf-8'))
+    for e in entries:
+        if e['vue'] == 'jeton' and e['id'] in longueurs:
+            e['longueur'] = longueurs[e['id']]
     os.makedirs(os.path.dirname(CATALOGUE), exist_ok=True)
     with open(CATALOGUE, 'w', encoding='utf-8') as f:
         json.dump({'version': 1, 'images': entries}, f, ensure_ascii=False, indent=0)

@@ -49,7 +49,8 @@ import TalkPanel from './world/TalkPanel';
 import { canSpeak } from './world/speech';
 import { isHiddenNpc } from './world/interior';
 import { normalizeEntity } from '../bestiary/entityGen';
-import { npcToken } from '../banque/place';
+import { npcBankImage, npcToken } from '../banque/place';
+import { faceOf } from '../banque';
 import type { Period, Season } from './world/generate';
 import { SEASONS } from './world/seasons';
 import type { LoreEntry } from './world/lore';
@@ -305,6 +306,11 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   const avatarMarks: MapMark[] = exploring && av?.at && av.at.planId === map.id ? [{ id: 'mj', x: av.at.at[0], y: av.at.at[1], label: `🎭 ${av.name || 'MJ'}`, tone: 'dm' }] : [];
   /** Jetons des PNJ posés sur le plan : les mêmes que sur la carte de combat, sans socle. */
   const npcTokenOf = (f: AtlasFeature) => npcToken(rec, map.id, library, bestiary, f);
+  /** Image de face d'un PNJ posé sur le plan : l'illustration de sa fiche, sinon le portrait de la banque (jumeau de son jeton). */
+  const npcFaceOf = (f: AtlasFeature) => {
+    if (!f.id.includes(':pnj-')) return undefined;
+    return f.image || (f.entryId ? artOf?.(f.title, f.entryId) : undefined) || faceOf(npcTokenOf(f)) || npcBankImage(rec, map.id, library, f, 'portrait', 512);
+  };
   /** Aperçu « Joueurs » : mêmes jetons et même brouillard que sur l'écran joueur. */
   const playerPreview = useMemo(() => {
     if (dm) return { marks: [] as MapMark[], fog: null };
@@ -395,13 +401,15 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   const ficheImageOf = (id: string) => (id.startsWith('pnj-') ? data.features.find((f) => f.id.includes(':pnj-') && `pnj-${f.entryId ?? f.id}` === id)?.image : undefined);
   const tokenRef = useRef(npcTokenOf);
   tokenRef.current = npcTokenOf;
+  const faceRef = useRef(npcFaceOf);
+  faceRef.current = npcFaceOf;
   const artRef = useRef(artOf);
   artRef.current = artOf;
 
   // Projection : toute modification de la carte, du repérage ou du combat part vers l'écran joueur.
   useEffect(() => {
     if (!projecting) return;
-    publishStage({ kind: 'board', board: battleOpen ? battleBoard(rec, (name, id) => artRef.current?.(name, id) || ficheImageOf(id) || '') : mapBoard(rec, atlas, map.id, focus ?? undefined, (f) => tokenRef.current(f)) });
+    publishStage({ kind: 'board', board: battleOpen ? battleBoard(rec, (name, id) => artRef.current?.(name, id) || ficheImageOf(id) || '') : mapBoard(rec, atlas, map.id, focus ?? undefined, (f) => tokenRef.current(f), (f) => faceRef.current(f)) });
   }, [projecting, battleOpen, rec, atlas, map.id, focus]);
 
   /** Amène la vue joueurs sur ce lieu : le révèle si besoin, centre la carte chez eux, et démarre la projection. */
@@ -1323,7 +1331,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
 
             {(!dm || side === 'lieu') && feature && !markerId && (
               <FeaturePanel
-                f={feature} dm={dm} notes={point?.notes ?? ''}
+                f={feature} dm={dm} notes={point?.notes ?? ''} face={npcFaceOf(feature)}
                 depthLine={strates ? depthOfFeature(feature.id) : undefined}
                 defaultCtx={{ zone: point?.zone ?? (rec.kind === 'monde' ? (feature.wild || feature.area ? 'sauvage' : feature.trace ? 'transit' : 'cite') : 'sauvage'), depth: point?.depth ?? 3, place: feature.title }}
                 surface={rec.kind === 'monde'}
@@ -1644,7 +1652,9 @@ function PartyBar({ party, inBattle, onShow, onBattle, onClearDest, onRejoin }: 
   );
 }
 
-function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring, partyHere, partyDest, onPartyHere, onPartyDest, passive = 10, follow, onForget, depthLine, surface }: {
+function FeaturePanel({ face, f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring, partyHere, partyDest, onPartyHere, onPartyDest, passive = 10, follow, onForget, depthLine, surface }: {
+  /** Image de face d'un PNJ (fiche ou banque). */
+  face?: string;
   f: AtlasFeature; dm: boolean; notes: string; defaultCtx: EncCtx; onClose: () => void; onRoll: (ctx: EncCtx) => void;
   /** Carte du monde (surface) : descriptions, libellés et rencontres de la surface, jamais ceux de l'Underdark. */
   surface?: boolean;
@@ -1672,6 +1682,7 @@ function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onT
         <span>{CATEGORIES[f.category].glyph} {(surface && SURFACE_CATEGORY[f.category]) || CATEGORIES[f.category].label}</span>
         <button className="maps-btn" onClick={onClose} aria-label="Fermer">×</button>
       </div>
+      {face && <img className="maps-card-face" src={face} alt="" />}
       <h3>{f.title}</h3>
       {f.subtitle && <p className="maps-sub">{f.subtitle}</p>}
       {depthLine && <p className="maps-depth">⛰ {depthLine}</p>}

@@ -11,6 +11,8 @@ export interface BankImage {
   peuple?: string; genre?: 'f' | 'm'; roles?: string[]; paire?: string | null; pose?: string;
   /** Jetons : `zenith` pris à la verticale (dessus de la tête), `incline` vu à environ 15° (visage visible). */
   angle?: 'zenith' | 'incline';
+  /** Jetons : longueur réelle (m) que couvre l'image (côté le plus long), pour dessiner tous les personnages à la même échelle. */
+  longueur?: number;
   devine?: boolean; exclu?: boolean;
   /** Toits : silhouette 8 × 8 (lignes de 0 et de 1). */
   masque?: string;
