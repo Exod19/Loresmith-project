@@ -136,6 +136,8 @@ export interface AtlasFeature {
   dm?: { kind: 'test' | 'save' | 'info'; label: string; dc?: number; ok?: string; ko?: string }[];
   /** Tiré au sort, pas encore défini par le MJ (carte du monde, mode Exploration). */
   draft?: boolean;
+  /** Lieu sauvage de la carte du monde (src/maps/world/wilds.js) : sa clé, son type, sa teneur, son danger, ses textes. */
+  wild?: { key: string; kind: string; teneur: 'ambiance' | 'scene' | 'quete'; danger: string; text: string; scene?: string; hook?: string; notes?: string; where?: string; biome?: string; e?: number };
   /** PNJ expressément caché (carte du monde) : pas révélé d'office, jeton caché en combat. */
   hiddenNpc?: boolean;
   demo?: boolean;

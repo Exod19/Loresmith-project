@@ -710,3 +710,8 @@
 
 /* Terrain naturel des cités : les rues font partie du terrain ; leur tracé reste là, invisible, pour la sélection. */
 .am-roads.is-terrain .am-road path { stroke: transparent !important; }
+
+/* Lieux sauvages de la carte du monde : un brouillon (tiré au sort, MJ seulement) reste estompé, nom en italique. */
+.am-pin.is-wild.is-draft { opacity: .55; }
+.am-pin.is-wild.is-draft .lbl { font-style: italic; }
+.am-pin.is-wild.is-draft.is-sel, .am-pin.is-wild.is-draft:hover { opacity: 1; }

@@ -63,7 +63,16 @@ export interface WorldSpec { seed: number; name: string; cities: CitySpec[]; bin
   /** Mondes à l'échelle (lot 12) : version du terrain, échelle, bornes (km), latitudes du climat, mers. */
   terrain?: 2; scale?: 'region' | 'royaume' | 'continent'; bounds?: [number, number, number, number]; lat?: [number, number]; seas?: Sea[];
   /** Terres d'au-delà des mers (autres continents) : nom et point où l'écrire (km). */
-  lands?: { id: string; name: string; side: string; x: number; y: number }[] }
+  lands?: { id: string; name: string; side: string; x: number; y: number }[];
+  /** Lieux sauvages enregistrés (gardés, définis, découverts ou écartés), par clé de case (wilds.js). */
+  wilds?: Record<string, WildRecord> }
+
+/** Lieu sauvage enregistré : il ne bouge plus. `excluded` : écarté par le MJ (il n'apparaît plus, même en brouillon). */
+export interface WildRecord {
+  key: string; km: [number, number]; kind: string; cat: FeatureCategory; title: string;
+  teneur: 'ambiance' | 'scene' | 'quete'; danger: string; text: string; scene?: string; hook?: string; notes?: string;
+  where?: string; biome?: string; e?: number; excluded?: boolean;
+}
 
 export interface Near { km: number; dir?: string; to: string; label?: string }
 export interface Sea { id: string; name?: string; x: number; y: number; r: number; side?: string; crossed?: boolean; ax?: number }
@@ -97,4 +106,5 @@ export function citySlots(spec: CitySpec, planId: string): Slot[];
 export function interiorPlanId(slotId: string): string;
 export function rasterGround(surface: Surface, W: number, H: number, win: { x0: number; y0: number; w: number; h: number }, cols: number, rows: number, seed?: number): string;
 export function seaNameOf(seed: number, id: string): string;
+export function wildFeatureOf(w: WildRecord, wid: string): Omit<AtlasFeature, 'canonStatus' | 'placementStatus'>;
 export function landNameOf(seed: number, id: string): string;

@@ -4,7 +4,8 @@
  * identique d'une fois à l'autre, puis traité comme l'Atlas des profondeurs par le reste de l'application.
  */
 import { useEffect, useRef } from 'react';
-import { cityPlanId, generateWorld, hashSeed, interiorPlanId, landNameOf, placeCity, seaNameOf, worldPlanId, type CitySpec, type Sea, type WorldSpec } from './generate';
+import { cityPlanId, citySpecDefaults, generateWorld, hashSeed, interiorPlanId, landNameOf, placeCity, seaNameOf, wildFeatureOf, worldPlanId, type CitySpec, type Sea, type WildRecord, type WorldSpec } from './generate';
+import { whereLabel, wildSitesIn, type WildSite } from './wilds';
 import { nearestEdge } from './climate';
 import { DIR_ANGLE, PACE, atDir, SCALES, cityKm, cityRadiusKm, dirName, elevationAt, placeOn, reliefOf, seaBeyond, seaSideAt, toAt, toKm, worldFrame } from './terrain';
 import { norm } from './lore';
@@ -355,4 +356,54 @@ export function useWorldSync(rec: MapRecord, library: LoreEntry[] | undefined, p
 export function portSea(world: World, c: CitySpec): Sea | undefined {
   const f = worldFrame(world), k = cityKm(f, c);
   return (world.seas ?? []).map((s) => ({ s, d: Math.hypot(s.x - k[0], s.y - k[1]) - s.r })).sort((a, b) => a.d - b.d)[0]?.s;
+}
+
+/* ——— Lieux sauvages (wilds.js) ——— */
+
+/** Largeur de vue (km) en dessous de laquelle les brouillons de lieux sauvages apparaissent pour le MJ. */
+export const WILD_VIEW_KM = 90;
+const reliefCache = new Map<string, ReturnType<typeof reliefOf>>();
+/** Relief d'un monde à l'échelle (le même que celui du dessin), gardé en mémoire. */
+function worldRelief(world: World) {
+  const frame = worldFrame(world);
+  const key = JSON.stringify([world.seed, world.bounds, world.scale, world.seas, world.climate, world.season, world.lat, world.cities.map((c) => [c.id, c.km, c.at, c.population, c.port])]);
+  let r = reliefCache.get(key);
+  if (!r) {
+    const cities = world.cities.map((c) => ({ ...citySpecDefaults(c), km: cityKm(frame, c) }));
+    r = reliefOf(world, frame, cities);
+    reliefCache.set(key, r);
+    if (reliefCache.size > 3) reliefCache.delete(reliefCache.keys().next().value!);
+  }
+  return { frame, relief: r };
+}
+
+/** Enregistrement d'un lieu sauvage (pour le garder, le définir, l'écarter ou le montrer aux joueurs). */
+export const wildRecordOf = (s: WildSite): WildRecord => ({
+  key: s.key, km: s.km, kind: s.kind, cat: s.cat, title: s.title, teneur: s.teneur, danger: s.danger,
+  text: s.text, scene: s.scene, hook: s.hook, where: whereLabel(s) || undefined, biome: s.biome, e: s.e,
+});
+
+/**
+ * Brouillons de lieux sauvages dans une fenêtre du plan monde (`box` en 0–1), pour le MJ seulement. La fenêtre est
+ * arrondie à des blocs de 30 km, pour ne pas tout recalculer à chaque glissement. Rien pour un ancien monde.
+ */
+export function wildDrafts(rec: MapRecord, data: AtlasData, box: [number, number, number, number] | null) {
+  const world = rec.world;
+  if (!world || !box) return null;
+  const { frame, relief } = worldRelief(world);
+  if (frame.legacy) return null;
+  const [a0, b0] = toKm(frame, [box[0], box[1]]), [a1, b1] = toKm(frame, [box[2], box[3]]);
+  if (a1 - a0 > WILD_VIEW_KM) return null;
+  const B = 30, snap = (v: number, up: boolean) => (up ? Math.ceil(v / B) : Math.floor(v / B)) * B;
+  const win: [number, number, number, number] = [snap(a0, false), snap(b0, false), snap(a1, true), snap(b1, true)];
+  const wid = worldPlanId(rec.id);
+  const roads = data.geometries
+    .filter((g) => g.mapId === wid && g.type === 'polyline' && /:route|route-/.test(g.featureId))
+    .map((g) => (g.coordinates as [number, number][]).map((p) => toKm(frame, p)));
+  const cities = world.cities.map((c) => ({ name: c.name, km: cityKm(frame, c), r: cityRadiusKm(citySpecDefaults(c)) }));
+  const sites = wildSitesIn({ seed: world.seed, relief, cities, roads }, win, new Set(Object.keys(world.wilds ?? {})));
+  const base = { canonStatus: 'creation' as const, placementStatus: 'documented' as const };
+  const features = sites.map((s) => ({ ...base, ...wildFeatureOf(wildRecordOf(s), wid), draft: true, minZoom: 0, importance: 'detail' as const }));
+  const geometries = sites.map((s) => ({ id: `g-${wid}:wild-${s.key}`, mapId: wid, featureId: `${wid}:wild-${s.key}`, type: 'point' as const, coordinates: toAt(frame, s.km) }));
+  return { key: win.join(','), sites, features, geometries };
 }

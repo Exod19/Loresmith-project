@@ -127,7 +127,7 @@ export function journeyMs(points: [number, number][], W: number, H: number) {
   return Math.min(24000, Math.max(8000, (total / W) * 48000));
 }
 
-export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, onMovePin, dataKey, dm, marks = [], fog, journey, onZoomLimit, exploring, ghosts }: {
+export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, onMovePin, dataKey, dm, marks = [], fog, journey, onZoomLimit, exploring, ghosts, onView }: {
   map: AtlasMap; layers: Layers; hidden: Set<FeatureCategory>;
   /** Mode MJ : révèle les passages secrets. Hors MJ, la carte est une carte de lore. */
   dm: boolean;
@@ -154,6 +154,8 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   onZoomLimit?: (dir: 'in' | 'out', at: [number, number]) => void;
   /** Mode Exploration (carte du monde) : les lieux encore tirés au sort s'affichent en brouillon. */
   exploring?: boolean;
+  /** Fenêtre affichée (0–1 du plan), signalée après chaque déplacement ou zoom (lieux sauvages de la carte du monde). */
+  onView?: (box: [number, number, number, number]) => void;
 }) {
   // Le groupe en chemin : position courante le long du tracé, image par image.
   const [walker, setWalker] = useState<[number, number] | null>(null);
@@ -432,6 +434,14 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   const vw = (view.w || 1300) * px, vh = (view.h || 800) * px;
   const m = 60 * px / t.k;
   const bx0 = (W / 2 - vw / 2 - t.tx) / t.k - m, by0 = (H / 2 - vh / 2 - t.ty) / t.k - m, bx1 = bx0 + vw / t.k + 2 * m, by1 = by0 + vh / t.k + 2 * m;
+  // La fenêtre affichée, signalée un instant après le dernier geste.
+  const viewRef = useRef(onView); viewRef.current = onView;
+  const boxKey = view.w ? [bx0 / W, by0 / H, bx1 / W, by1 / H].map((v) => v.toFixed(3)).join(',') : '';
+  useEffect(() => {
+    if (!boxKey || !viewRef.current) return;
+    const id = setTimeout(() => viewRef.current?.(boxKey.split(',').map(Number) as [number, number, number, number]), 250);
+    return () => clearTimeout(id);
+  }, [boxKey]);
   const onScreen = (b: number[]) => b[2] >= bx0 && b[0] <= bx1 && b[3] >= by0 && b[1] <= by1;
   const visible = pointGeos.filter(({ f, box }) => t.k >= f.minZoom && !hidden.has(f.category) && onScreen(box));
   const points = layers.points ? visible.filter((v) => v.g.type === 'point').map((v) => v.g) : [];
@@ -657,7 +667,7 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
             const dragged = pinDrag && pinDrag.id === f.id; const x = dragged ? pinDrag.x : x0; const y = dragged ? pinDrag.y : y0;
             const isFocus = focus?.kind === 'point' && focus.id === f.id; const R = PIN_R[f.importance];
             return (
-              <g key={g.id} className={`am-pin imp-${f.importance} ${selectedId === f.id ? 'is-sel' : ''} ${isFocus ? 'is-focus' : ''} ${f.draft ? 'is-draft' : ''}`} style={{ '--c': cat.color } as React.CSSProperties}
+              <g key={g.id} className={`am-pin imp-${f.importance} ${selectedId === f.id ? 'is-sel' : ''} ${isFocus ? 'is-focus' : ''} ${f.draft ? 'is-draft' : ''} ${f.wild ? 'is-wild' : ''}`} style={{ '--c': cat.color } as React.CSSProperties}
                 transform={`translate(${x * W} ${y * H}) scale(${s})`} tabIndex={0} role="button" aria-label={`${f.title} — ${f.category === 'cite' && f.people ? peopleOf(f.people)!.label : cat.label}`}
                 onPointerDown={pinDown(f.id)} onPointerMove={pinMove} onPointerUp={pinUp} onPointerCancel={pinUp}
                 onClick={tap(() => onSelect(f))} onKeyDown={(e) => e.key === 'Enter' && onSelect(f)}>

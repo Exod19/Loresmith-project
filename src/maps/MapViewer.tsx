@@ -34,7 +34,9 @@ import { onPlayerFollow, onPlayerFork, onPlayerPick, publishStage } from '../pre
 import { zoneOf, inZone, trailInZone } from './zone';
 import LiveEncounters, { type LiveBestiaryRef } from './LiveEncounters';
 import { buildRoutes, distancesTo, goalNodes, judgeTrail, nodeOf, verdictText, type TrailVerdict } from './route';
-import { interiorPlanId, isAtlasLike, moveCity, useWorldSync, worldPlanId } from './world';
+import { interiorPlanId, isAtlasLike, moveCity, useWorldSync, wildDrafts, wildRecordOf, worldPlanId } from './world';
+import WildPanel from './world/WildPanel';
+import type { WildRecord } from './world/generate';
 import WorldPanel from './world/WorldPanel';
 import ExplorePanel from './world/ExplorePanel';
 import TalkPanel from './world/TalkPanel';
@@ -101,7 +103,6 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   /** Ajoute une conversation (mode Chronique) à la mémoire de l'univers. */
   onChronicle?: (memory: { title: string; summary: string }) => void;
 }) {
-  const data = activateMap(rec, dm, atlas);
   /** L'Atlas et la carte du monde : lieux à révéler, chemins, brouillard. */
   const atlasLike = isAtlasLike(rec);
   // Carte du monde : les lieux du lore prennent leur bâtiment, avec leurs PNJ, dès qu'ils sont créés.
@@ -110,6 +111,14 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   const [planId, setPlanId] = useState(rec.overlay?.party?.at?.planId ?? (rec.kind === 'atlas' ? ATLAS_DEFAULT_PLAN : mapIdOf(rec)));
   /** Carte de combat ouverte à la place de la carte de navigation (même mise en page). */
   const [battleOpen, setBattleOpen] = useState(startInBattle);
+  /** Lieux sauvages (carte du monde) : brouillons de la fenêtre affichée, assez rapprochée, pour le MJ seulement. */
+  const [wildBox, setWildBox] = useState<[number, number, number, number] | null>(null);
+  const wildOn = rec.kind === 'monde' && dm && !battleOpen && planId === worldPlanId(rec.id);
+  const drafts = useMemo(() => (wildOn ? wildDrafts(rec, atlas, wildBox) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [wildOn, rec.world, atlas, wildBox?.join(',')]);
+  const atlasX = useMemo(() => (drafts?.features.length ? { ...atlas, features: [...atlas.features, ...drafts.features], geometries: [...atlas.geometries, ...drafts.geometries] } : atlas), [atlas, drafts]);
+  const data = activateMap(rec, dm, atlasX, drafts ? `${drafts.key}:${drafts.features.length}` : '');
   const [projecting, setProjecting] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   /** Sur téléphone : la carte occupe tout l'écran (le panneau se replie à ses onglets) ou la moitié. */
@@ -635,7 +644,32 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     const keep = around ? exploredOf(overlay, map.id).filter(([x, y]) => !around.some(([a, b]) => Math.hypot(x - a, y - b) < 0.03)) : [];
     setOverlay({ ...overlay, explored: { ...(overlay.explored ?? {}), [map.id]: keep } });
   };
+  /* ——— Lieux sauvages (carte du monde) : garder, définir, écarter, montrer aux joueurs ——— */
+  const wildPrefix = `${worldPlanId(rec.id)}:wild-`;
+  /** L'enregistrement d'un lieu sauvage : celui du monde s'il est enregistré, sinon le brouillon tel qu'il serait gardé. */
+  const wildRecordFor = (f: AtlasFeature | null | undefined): WildRecord | null => {
+    if (!f?.wild || !f.id.startsWith(wildPrefix)) return null;
+    const kept = rec.world?.wilds?.[f.wild.key];
+    if (kept) return kept;
+    const site = drafts?.sites.find((x) => x.key === f.wild!.key);
+    return site ? wildRecordOf(site) : null;
+  };
+  /** Enregistre un lieu sauvage ; `reveal` : le montrer aux joueurs (ou le leur cacher) dans le même geste. */
+  const saveWild = (r: WildRecord, reveal?: boolean) => {
+    if (!rec.world) return;
+    const id = `${wildPrefix}${r.key}`;
+    let next = overlay;
+    if (reveal === true) next = withExplored({ ...overlay, revealed: [...new Set([...overlay.revealed, id])] }, map.id, pointsOf(id));
+    if (reveal === false) next = { ...overlay, revealed: overlay.revealed.filter((x) => x !== id) };
+    onUpdate({ world: { ...rec.world, wilds: { ...(rec.world.wilds ?? {}), [r.key]: r } }, overlay: next, updatedAt: Date.now() });
+    if (r.excluded) setSelectedId(null);
+  };
   const toggleReveal = (id: string) => {
+    // Un brouillon de lieu sauvage montré aux joueurs est gardé du même coup (les joueurs ne voient que le monde enregistré).
+    if (id.startsWith(wildPrefix)) {
+      const r = wildRecordFor(data.features.find((x) => x.id === id));
+      if (r) { saveWild(r, !overlay.revealed.includes(id)); return; }
+    }
     const on = !overlay.revealed.includes(id);
     const next = { ...overlay, revealed: on ? [...overlay.revealed, id] : overlay.revealed.filter((x) => x !== id) };
     setOverlay(on ? withExplored(next, map.id, pointsOf(id)) : next);
@@ -1002,7 +1036,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               onAnchor={(a) => { if (dm && rec.kind === 'monde') followAnchor(a.id); }}
               onPlace={dm && (placing || moving) ? addMarker : dm && movingCity && rec.world && map.id === wid ? (x, y) => { onUpdate({ world: moveCity(rec.world!, movingCity, [x, y]), updatedAt: Date.now() }); setMovingCity(null); } : undefined}
               onMovePin={dm ? (fid: string, x: number, y: number) => { if (fid.startsWith('mk-')) updateMarker(fid.slice(3), { x, y }); } : undefined}
-              dataKey={`${rec.updatedAt}:${dm}`}
+              dataKey={`${rec.updatedAt}:${dm}:${drafts?.key ?? ''}:${drafts?.features.length ?? 0}`}
+              onView={wildOn ? setWildBox : undefined}
               ghosts={dm && neighbours && ghostOn ? { above: neighbours.above, below: neighbours.below, opacity: ghostOpacity } : undefined}
               onZoomLimit={onZoomLimit}
               exploring={exploring}
@@ -1178,7 +1213,12 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 <button className="maps-btn gold" onClick={() => enterBuilding(feature.id)}>Entrer dans {feature.title}</button>
               </div>
             )}
-            {dm && side === 'lieu' && rec.kind === 'monde' && feature && (
+            {dm && side === 'lieu' && rec.kind === 'monde' && feature?.wild && wildRecordFor(feature) && (
+              <WildPanel key={feature.id} feature={feature} record={wildRecordFor(feature)!} draft={!!feature.draft}
+                revealed={overlay.revealed.includes(feature.id)}
+                onSave={(r) => saveWild(r)} onReveal={(r) => saveWild(r, !overlay.revealed.includes(feature.id))} />
+            )}
+            {dm && side === 'lieu' && rec.kind === 'monde' && feature && !feature.wild && (
               <div className="maps-actions world-enter">
                 <button className="maps-btn" onClick={() => renameFeature(feature)} title="Donner un autre nom à ce lieu, partout sur la carte">✎ Renommer</button>
                 {rec.world?.names?.[feature.id] && <button className="maps-btn" onClick={() => resetName(feature)} title="Revenir au nom d'origine">↺ Nom d’origine</button>}

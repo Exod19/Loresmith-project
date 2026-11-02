@@ -1430,6 +1430,16 @@ export function rasterGround(surface, W, H, win, cols, rows, seed = 0) {
   return out.join('');
 }
 
+/** Lieu sauvage (brouillon tiré au sort ou enregistré) en lieu de la carte du monde. */
+export function wildFeatureOf(w, wid) {
+  return {
+    // Pas de sous-titre sur la carte (elle resterait illisible) : la fiche du MJ dit la teneur et la situation.
+    id: `${wid}:wild-${w.key}`, title: w.title, summary: w.text,
+    category: w.cat, importance: 'local', minZoom: 0.9,
+    wild: { key: w.key, kind: w.kind, teneur: w.teneur, danger: w.danger, text: w.text, scene: w.scene, hook: w.hook, notes: w.notes, where: w.where, biome: w.biome, e: w.e },
+  };
+}
+
 /* ——— Monde, version 2 : relief continu à taille réelle ——— */
 
 /**
@@ -1470,6 +1480,11 @@ function terrainV2(o) {
   for (const m of landmarksOf(relief)) {
     if (m.kind === 'foret') addPoint({ ...base, id: `${wid}:foret-${m.id}`, title: `${m.biome === 'taiga' ? 'Forêt' : nameRng(`fb:${m.id}`)() < 0.5 ? 'Forêt' : 'Bois'} ${deName(placeName(nameRng(`foret:${m.id}`)))}`, category: 'vivant', importance: 'local', minZoom: 0.9, area: true }, ...N([m.x, m.y]));
     else addPoint({ ...base, id: `${wid}:monts-${m.id}`, title: `Monts ${deName(placeName(nameRng(`monts:${m.id}`)))}`, subtitle: `Sommets vers ${(Math.round(m.e / 100) * 100).toLocaleString('fr-CA')} m`, category: 'vivant', importance: 'regional', minZoom: 0, area: true }, ...N([m.x, m.y]));
+  }
+  // Lieux sauvages enregistrés (gardés, définis ou découverts) : ils font partie du monde, comme les hameaux.
+  for (const w of Object.values(world.wilds ?? {})) {
+    if (!w || w.excluded || !inside(w.km)) continue;
+    addPoint({ ...base, ...wildFeatureOf(w, wid) }, ...N(w.km));
   }
   for (const sea of world.seas ?? []) {
     // Le nom de la mer, au large de la côte la plus proche du centre du monde.

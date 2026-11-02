@@ -386,8 +386,9 @@ let activeData: AtlasData | null = null;
  * Active le jeu de données d'une carte avant son rendu (vue MJ). Ne reconstruit les index que si la carte
  * ou sa superposition a changé (`updatedAt`). Le moteur d'Atlas lit des index partagés : une seule carte est active à la fois.
  */
-export function activateMap(rec: MapRecord, dm: boolean, atlas: AtlasData): AtlasData {
-  const key = `${rec.id}:${rec.updatedAt}:${dm}`;
+/** `extraKey` : ce qui change les données sans changer la carte (brouillons de lieux sauvages de la fenêtre affichée). */
+export function activateMap(rec: MapRecord, dm: boolean, atlas: AtlasData, extraKey = ''): AtlasData {
+  const key = `${rec.id}:${rec.updatedAt}:${dm}:${extraKey}`;
   if (key !== activeKey || !activeData) {
     activeData = mapDataFor(rec, atlas, dm);
     setAtlasData(activeData);

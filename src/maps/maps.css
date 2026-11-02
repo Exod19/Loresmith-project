@@ -281,3 +281,21 @@
 .banque-detail label { display: grid; gap: 3px; font-size: 12px; }
 .banque-assign { display: grid; gap: 6px; border-top: 1px solid rgba(236,210,137,.2); padding-top: 8px; }
 .banque-assign h5 { margin: 0; }
+
+/* Lieux sauvages de la carte du monde : fiche du MJ (teneur, danger, texte à lire, scène, accroche). */
+.wild-panel { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.wild-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.wild-tag { font-size: .72rem; letter-spacing: .04em; padding: 2px 8px; border-radius: 999px; border: 1px solid #3f4b4d; color: #d6d7d1; }
+.wild-tag.t-ambiance { border-color: #6f8a5a; color: #b9d6a0; }
+.wild-tag.t-scene { border-color: #b08a3c; color: #ecd289; }
+.wild-tag.t-quete { border-color: #9d7fe0; color: #d6c8ff; }
+.wild-tag.d-calme { color: #9be37b; } .wild-tag.d-incertain { color: #e8d27a; } .wild-tag.d-dangereux { color: #ff9f6e; } .wild-tag.d-perilleux { color: #ff6b5a; border-color: #8a3a30; }
+.wild-tag.is-draft { font-style: italic; color: #a9aaa5; border-style: dashed; }
+.wild-tag.is-kept { color: #bea27b; }
+.wild-read { padding: 8px 10px; border-left: 3px solid #bea27b; background: rgba(190,162,123,.08); border-radius: 0 6px 6px 0; }
+.wild-read p, .wild-block p { margin: 4px 0 0; line-height: 1.45; }
+.wild-read b, .wild-block b { font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: #bea27b; }
+.wild-block { padding: 6px 10px; border: 1px solid #2e373a; border-radius: 6px; }
+.wild-block.is-hook { border-color: #6b5aa0; background: rgba(156,123,214,.08); }
+.wild-edit label { display: flex; flex-direction: column; gap: 3px; font-size: .8rem; color: #a9aaa5; }
+.wild-edit .wild-row { display: flex; gap: 8px; } .wild-edit .wild-row label { flex: 1; }
