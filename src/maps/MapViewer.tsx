@@ -2,6 +2,8 @@
  * Visionneuse de carte : plan interactif, repères, rencontres, combat sur grille, et projection vers l'écran joueur.
  * Mode MJ : tout est visible, notes comprises. La projection montre aux joueurs ce qu'ils doivent voir, et se met à jour en direct.
  */
+import { usePuzzles } from '../puzzles/context';
+import { shownPuzzle } from '../puzzles/run';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import MapCanvas, { type Layers, type MapMark } from './atlas/MapCanvas';
 import { CATEGORIES, connectionAt } from './atlas/model';
@@ -400,6 +402,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     [atlas, map.id, rec.kind],
   );
 
+  // Énigmes et carnet du groupe : l'énigme en cours part (filtrée) vers l'écran joueur avec le plateau.
+  const puzzleLib = usePuzzles();
   // Fonction changée à chaque rendu : lue par référence pour ne pas relancer la projection.
   /** Image de la fiche d'un PNJ posé sur le plan (jeton `pnj-…` du combat) : celle de son lieu sur la carte. */
   const ficheImageOf = (id: string) => (id.startsWith('pnj-') ? data.features.find((f) => f.id.includes(':pnj-') && `pnj-${f.entryId ?? f.id}` === id)?.image : undefined);
@@ -413,8 +417,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   // Projection : toute modification de la carte, du repérage ou du combat part vers l'écran joueur.
   useEffect(() => {
     if (!projecting) return;
-    publishStage({ kind: 'board', board: battleOpen ? battleBoard(rec, (name, id) => artRef.current?.(name, id) || ficheImageOf(id) || '') : mapBoard(rec, atlas, map.id, focus ?? undefined, (f) => tokenRef.current(f), (f) => faceRef.current(f)) });
-  }, [projecting, battleOpen, rec, atlas, map.id, focus]);
+    publishStage({ kind: 'board', board: battleOpen ? battleBoard(rec, (name, id) => artRef.current?.(name, id) || ficheImageOf(id) || '', shownPuzzle(rec.battle, puzzleLib?.puzzles ?? [], puzzleLib?.clues ?? [])) : mapBoard(rec, atlas, map.id, focus ?? undefined, (f) => tokenRef.current(f), (f) => faceRef.current(f)) });
+  }, [projecting, battleOpen, rec, atlas, map.id, focus, puzzleLib?.puzzles, puzzleLib?.clues]);
 
   /** Amène la vue joueurs sur ce lieu : le révèle si besoin, centre la carte chez eux, et démarre la projection. */
   const bringPlayers = (id: string) => {
@@ -1232,6 +1236,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 if (pv.linked && projecting && !remote) publishView(map.id, box);
               }}
               syncView={pv.linked && dm ? remoteView : null}
+              cavernArt={strates}
               ghosts={dm && neighbours && ghostOn ? { above: neighbours.above, below: neighbours.below, opacity: ghostOpacity } : undefined}
               onZoomLimit={onZoomLimit}
               exploring={exploring}

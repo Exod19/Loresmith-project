@@ -16,6 +16,7 @@ import { CALM_MS, type HaltAlert } from '../maps/atlas/omens';
 import { lengthOf, project, subpath, towardOf } from '../maps/journey';
 import { CATEGORY_IMG, vignette } from '../maps/battle/vignettes';
 import { openStageChannel, type PlayerBoard, type PlayerElement, type PlayerToken, type PlayerTurn, type Stage, type StageMessage } from './stage';
+import PuzzleStage from '../puzzles/PuzzleStage';
 import '../maps/maps.css';
 import '../maps/atlas/atlas.css';
 import '../maps/battle/battle.css';
@@ -144,6 +145,7 @@ function PlayerMap({ board, rev, onFollow, onPick, onFork, onGoto }: { board: Ex
         marks={board.marks} fog={board.fog} journey={board.travel}
         onPlace={world ? (x, y) => { setPicked(null); setSpot([x, y]); } : undefined}
         syncView={board.linked ? sync : null}
+        cavernArt={board.cavernArt}
         onView={board.linked ? (box, remote) => { if (!remote && Date.now() - touchedAt.current < 2500) sendToHost?.({ type: 'view', planId: board.planId, box, from: 'joueurs' }); } : undefined}
       />
       {world && spot && !picked && (
@@ -438,6 +440,11 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
           </aside>
         )}
       </div>
+      {board.puzzle && (
+        <div className="present-puzzle">
+          <PuzzleStage pub={board.puzzle} act={(a) => sendToHost?.({ type: 'puzzle', action: a.type === 'submit' ? { ...a, expectedRevision: board.puzzle!.state.revision } : a })} />
+        </div>
+      )}
     </div>
   );
 }

@@ -1,0 +1,242 @@
+/* Énigmes : obsidienne, bronze patiné, parchemin. Mêmes styles sur l'écran joueur et dans la console MJ. */
+.pz-stage{--pz-ink:#e8dcc0;--pz-dim:#a99a7a;--pz-gold:#ecd289;--pz-bronze:#9a6b32;--pz-patina:#6f8f7f;--pz-stone:#2a2520;
+  position:relative;display:flex;flex-direction:column;gap:12px;color:var(--pz-ink);
+  background:radial-gradient(ellipse at 50% 0%,rgba(236,210,137,.07),transparent 60%),linear-gradient(#14110d,#0b0907);
+  border:1px solid rgba(201,162,74,.35);border-radius:12px;padding:16px 18px;box-shadow:inset 0 0 60px rgba(0,0,0,.6)}
+.pz-stage h2{margin:0;font-family:'Cinzel',serif;letter-spacing:.06em;font-size:clamp(18px,2.4vh,28px);color:var(--pz-gold)}
+.pz-stage h3{margin:12px 0 4px;font-family:'Cinzel',serif;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--pz-dim)}
+.pz-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.pz-where{margin:0 0 2px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--pz-dim)}
+.pz-body{display:grid;grid-template-columns:minmax(220px,1fr) minmax(0,1.6fr);gap:18px}
+.pz-stage.compact .pz-body{grid-template-columns:1fr}
+@media (max-width:820px){.pz-body{grid-template-columns:1fr}}
+.pz-notes{font-size:14px;line-height:1.5}
+.pz-scene{margin:0 0 8px;font-style:italic;color:#d8cbae}
+.pz-goal{margin:0 0 6px}
+.pz-obs,.pz-hints{margin:0;padding-left:18px}
+.pz-obs li,.pz-hints li{margin:3px 0}
+.pz-hints li{color:#cfe0d6}
+.pz-readable{margin:6px 0;padding:8px 10px;border-left:2px solid var(--pz-bronze);background:rgba(232,220,192,.05);font-family:'EB Garamond',Georgia,serif;font-size:15px}
+.pz-readable cite{display:block;font-style:normal;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--pz-dim);margin-bottom:2px}
+.pz-center{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0}
+.pz-mech{width:100%;display:flex;flex-direction:column;align-items:center}
+.pz-mech[data-off]{opacity:.75;pointer-events:none}
+.pz-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center}
+.pz-small{gap:5px}
+.pz-actions{display:flex;align-items:center;gap:10px}
+.pz-btn{font:inherit;font-size:14px;padding:8px 14px;border-radius:8px;border:1px solid rgba(201,162,74,.5);background:linear-gradient(#3a2c19,#22190f);color:var(--pz-ink);cursor:pointer;min-height:40px}
+.pz-btn:hover:not(:disabled){border-color:var(--pz-gold)}
+.pz-btn:disabled{opacity:.45;cursor:default}
+.pz-btn.primary{background:linear-gradient(#6b4a1f,#3f2a10);color:#fff3d4;font-family:'Cinzel',serif;letter-spacing:.06em}
+.pz-btn.ghost{background:rgba(0,0,0,.25)}
+.pz-btn.on{border-color:var(--pz-gold);color:var(--pz-gold)}
+.pz-chip{font:inherit;font-size:13px;min-width:40px;min-height:36px;padding:4px 10px;border-radius:999px;border:1px solid rgba(201,162,74,.35);background:rgba(0,0,0,.35);color:var(--pz-ink);cursor:pointer}
+.pz-chip.big{min-height:46px;padding:6px 18px;font-size:15px}
+.pz-chip.on,.pz-chip[aria-checked=true]{border-color:var(--pz-gold);background:rgba(236,210,137,.16);color:var(--pz-gold)}
+.pz-chip:disabled{opacity:.35;cursor:default}
+.pz-inline{display:inline-flex;align-items:center;gap:8px;font-size:14px}
+.pz-inline select,.pz-inline input{font:inherit}
+.pz-note{margin:0;font-size:12px;color:var(--pz-dim)}
+.pz-feedback{margin:0;padding:8px 14px;border-radius:8px;font-family:'EB Garamond',Georgia,serif;font-size:17px;text-align:center}
+.pz-feedback.success{color:#d9f2c4;background:rgba(80,140,70,.18);border:1px solid rgba(140,200,120,.4)}
+.pz-feedback.failure{color:#f0c9b8;background:rgba(140,60,40,.18);border:1px solid rgba(200,110,80,.35)}
+.pz-feedback.paused{color:var(--pz-dim);border:1px dashed rgba(201,162,74,.3)}
+.pz-effects{margin:0;padding-left:18px;font-size:13px;color:#f0c9b8}
+.pz-stage.is-solved{border-color:rgba(160,220,140,.55)}
+/* SVG communs */
+.pz-bronze{fill:#7a5428;stroke:#2b1d0e;stroke-width:1.2}
+.pz-bronze-ring{fill:#1a1510;stroke:#8a6430;stroke-width:3}
+/* Brasiers */
+.pz-levers .pz-lever{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:1px solid transparent;border-radius:8px;color:var(--pz-ink);cursor:pointer;font:inherit;font-size:12px;padding:4px}
+.pz-lever svg{width:44px;height:76px}
+.pz-lever .pz-lever-arm{stroke:#c9a24a;stroke-width:4;fill:#d8b25a;transform-origin:20px 50px;transition:transform .3s ease}
+.pz-lever.down .pz-lever-arm{transform:rotate(150deg)}
+.pz-lever.up .pz-lever-arm{transform:rotate(0)}
+.pz-lever:focus-visible,.pz-lever:hover:not(:disabled){border-color:rgba(201,162,74,.5)}
+.pz-lever:disabled{opacity:.6;cursor:default}
+.pz-hearths{margin:8px 0}
+.pz-hearth{margin:0;display:flex;flex-direction:column;align-items:center;gap:4px;width:150px;text-align:center;font-size:12px}
+.pz-hearth svg{width:96px;height:96px;background:radial-gradient(circle at 50% 70%,#1f1a14,#0b0907);border-radius:12px;border:1px solid #3a3026}
+.pz-grate line{stroke:#5a5048;stroke-width:3}
+.pz-flame path{fill:#f08a2c;filter:drop-shadow(0 0 4px #f6a640)}
+.pz-flame .core{fill:#ffe39a}
+.pz-flame{animation:pz-flicker 1.4s ease-in-out infinite;transform-origin:40px 52px}
+@keyframes pz-flicker{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.9) skewX(2deg)}}
+.pz-embers circle{fill:#b83a1a;filter:drop-shadow(0 0 3px #e0542a)}
+.pz-embers .heat{fill:none;stroke:#e9a07a;stroke-width:1.2;opacity:.55}
+.pz-ash ellipse{fill:#55504a}
+@media (prefers-reduced-motion:reduce){.pz-flame{animation:none}}
+/* Galets et balances */
+.pz-balance{width:min(420px,100%);height:auto}
+.pz-beam{stroke:#c9a24a;stroke-width:4;stroke-linecap:round}
+.pz-balance line{stroke:#8a6430;stroke-width:1.5}
+.pz-pan{fill:#5a4020;stroke:#c9a24a;stroke-width:1.5}
+.pz-pan-label{fill:var(--pz-ink);font-size:9px}
+.pz-pebble{position:relative;width:46px;height:40px;border-radius:48% 52% 45% 55%;border:1px solid #5a5048;background:radial-gradient(circle at 35% 30%,#8f877c,#4a443d);color:#f2ead8;font:600 14px/1 'Cinzel',serif;cursor:pointer}
+.pz-pebble small{position:absolute;right:3px;bottom:2px;font-size:10px;color:var(--pz-gold)}
+.pz-pebble.at-left,.pz-pebble.at-right{border-color:var(--pz-gold);box-shadow:0 0 0 1px rgba(236,210,137,.35)}
+.pz-pebble.chosen{outline:2px solid #e6b75a;outline-offset:2px}
+.pz-log{margin:4px 0 0;padding-left:18px;font-size:13px}
+/* Jarres */
+.pz-jug{margin:0;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;width:180px;text-align:center}
+.pz-jug svg{width:100px;height:136px}
+.pz-clay{fill:none;stroke:#b07a46;stroke-width:3}
+.pz-water{fill:rgba(90,150,180,.75)}
+.pz-engrave{fill:#e0c48a;font:600 11px 'Cinzel',serif}
+/* Miroirs */
+.pz-mirror-grid{width:min(360px,100%);height:auto}
+.pz-flag{fill:#1b1713;stroke:#2f2922;stroke-width:1}
+.pz-source{fill:#7fc8ff;filter:drop-shadow(0 0 6px #7fc8ff)}
+.pz-receptacle{fill:#1d2a33;stroke:#6f8f9f;stroke-width:2}
+.pz-receptacle.lit{fill:#9fe0ff;stroke:#e9f8ff;filter:drop-shadow(0 0 8px #7fc8ff)}
+.pz-beam-light{fill:none;stroke:#8fd6ff;stroke-width:3;stroke-linejoin:round;opacity:.9;filter:drop-shadow(0 0 3px #4fb3ff)}
+.pz-mirror{cursor:pointer;outline:none}
+.pz-mirror-base{fill:#2a231b;stroke:#8a6430;stroke-width:2}
+.pz-mirror:focus-visible .pz-mirror-base,.pz-mirror:hover .pz-mirror-base{stroke:var(--pz-gold)}
+.pz-mirror-glass{stroke:#dfe8ee;stroke-width:4;stroke-linecap:round}
+/* Dalles, fresques, glyphes, cycles, engrenages, lueurs */
+.pz-tiles{display:grid;gap:6px;width:min(320px,100%)}
+.pz-tiles .pz-note{grid-column:1/-1;text-align:center}
+.pz-tile{aspect-ratio:1;border-radius:6px;border:1px solid #3a3026;background:linear-gradient(#3a332b,#26211b);color:var(--pz-ink);font:600 18px 'Cinzel',serif;cursor:pointer}
+.pz-tile:disabled{cursor:default;opacity:.8}
+.pz-tile.walked{background:linear-gradient(#4d4330,#2f2818);border-color:#8a6430}
+.pz-tile.here{outline:2px solid var(--pz-gold)}
+.pz-tile.end{box-shadow:inset 0 0 0 2px rgba(127,200,255,.5)}
+.pz-fresco{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;width:min(360px,100%)}
+.pz-fresco li{display:flex;align-items:center;gap:6px;padding:8px 10px;border:1px solid #3a3026;border-radius:8px;background:rgba(232,220,192,.05)}
+.pz-fresco li span{flex:1;font-family:'Cinzel',serif}
+.pz-glyph{font-size:30px;width:58px;height:58px;border-radius:10px;border:1px solid #3a3026;background:#1a1510;color:#d8c9a0;cursor:pointer}
+.pz-glyph.on{border-color:var(--pz-gold);color:var(--pz-gold);box-shadow:0 0 10px rgba(236,210,137,.25)}
+.pz-glyph-pair{font-size:38px;margin:6px 0 0;color:var(--pz-gold);letter-spacing:.2em}
+.pz-dial{margin:0;display:flex;flex-direction:column;align-items:center;font-size:12px}
+.pz-dial svg{width:110px;height:110px}
+.pz-dial .mark{fill:#5a4a30}.pz-dial .mark.home{fill:var(--pz-gold)}
+.pz-hand{stroke:var(--pz-gold);stroke-width:3;stroke-linecap:round}
+.pz-gear{display:inline-flex;flex-direction:column;align-items:center;font-size:34px;color:#b08a4a}
+.pz-gear small{font-size:12px;color:var(--pz-ink)}
+.pz-gear.cw{animation:pz-spin 6s linear infinite}.pz-gear.ccw{animation:pz-spin 6s linear infinite reverse}
+@keyframes pz-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.pz-gear{animation:none}}
+.pz-lights svg{width:min(240px,100%);height:auto}
+.pz-ring{fill:none;stroke:#3a3026;stroke-width:3}
+.pz-crystal{cursor:pointer;outline:none}
+.pz-crystal path{fill:#2a3238;stroke:#6f8f9f;stroke-width:2}
+.pz-crystal.lit path{fill:#bde9ff;stroke:#fff;filter:drop-shadow(0 0 6px #7fc8ff)}
+.pz-crystal:focus-visible path{stroke:var(--pz-gold)}
+/* Carnet */
+.pz-carnet{position:absolute;inset:auto 12px 12px auto;width:min(520px,calc(100% - 24px));max-height:calc(100% - 24px);overflow:auto;z-index:5;
+  background:linear-gradient(#211a12,#15100b);border:1px solid rgba(201,162,74,.5);border-radius:10px;padding:12px;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.pz-carnet header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-family:'Cinzel',serif;color:var(--pz-gold)}
+.pz-carnet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.pz-page{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px;border-radius:8px;border:1px solid #3a3026;background:#e8dcc010;color:var(--pz-ink);font:inherit;font-size:12px;cursor:pointer}
+.pz-page.on{border-color:var(--pz-gold)}
+.pz-page img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px}
+.pz-page-glyph{font-size:34px;line-height:1.4}
+.pz-page-open{margin-top:10px;padding:12px;border-radius:8px;background:#e9dcc0;color:#2a1f12;font-family:'EB Garamond',Georgia,serif;font-size:16px}
+.pz-page-open h4{margin:0 0 6px;font-family:'Cinzel',serif}
+.pz-page-open img{max-width:100%;border-radius:4px;display:block;margin:6px 0}
+.pz-page-open p{margin:0;white-space:pre-wrap}
+/* Console MJ : fenêtres d'énigme, carnet, préparation */
+.pz-modal{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(5,4,3,.72)}
+.pz-modal-box{width:min(760px,100%);max-height:calc(100vh - 32px);overflow:auto;display:flex;flex-direction:column;gap:10px;padding:16px 18px;border-radius:12px;
+  background:linear-gradient(#1a1510,#0f0c09);border:1px solid rgba(201,162,74,.4);color:#e8dcc0;box-shadow:0 20px 60px rgba(0,0,0,.7)}
+.pz-modal-box.wide{width:min(1040px,100%)}
+.pz-modal-box.full{width:min(1320px,100%)}
+.pz-modal-box h3{margin:10px 0 4px;font-family:'Cinzel',serif;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#a99a7a}
+.pz-modal-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.pz-modal-head b{font-family:'Cinzel',serif;color:#ecd289;font-size:16px}
+.pz-tabs{display:flex;gap:6px}
+.pz-tabs button{font:inherit;padding:6px 12px;border-radius:999px;border:1px solid rgba(201,162,74,.3);background:transparent;color:#e8dcc0;cursor:pointer}
+.pz-tabs button.on{border-color:#ecd289;color:#ecd289;background:rgba(236,210,137,.1)}
+.pz-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.pz-list li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 10px;border:1px solid #3a3026;border-radius:8px;background:rgba(232,220,192,.03)}
+.pz-list li.on{border-color:#ecd289}
+.pz-list li > div:first-of-type{flex:1;min-width:0}
+.pz-list p{margin:2px 0 0}
+.pz-status{font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid}
+.pz-status.brouillon{color:#e6b75a;border-color:rgba(230,183,90,.5)}
+.pz-status.prete{color:#9fd6a0;border-color:rgba(159,214,160,.5)}
+.pz-prep{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.pz-prep.single{grid-template-columns:1fr;max-width:620px}
+@media (max-width:820px){.pz-prep{grid-template-columns:1fr}}
+.pz-prep label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:#a99a7a;margin-bottom:6px}
+.pz-prep label.pz-check,.pz-check{flex-direction:row;align-items:flex-start;gap:6px;color:#e8dcc0;font-size:13px}
+.pz-prep .input{font:inherit;font-size:14px}
+.pz-prep-row{display:flex;gap:6px;align-items:center;margin-bottom:5px}
+.pz-prep-row .input:first-child{flex:1}
+.pz-prep-doc{display:flex;flex-direction:column;gap:3px;padding:6px 8px;margin-bottom:6px;border-left:2px solid #9a6b32;background:rgba(232,220,192,.04)}
+.pz-proof{margin:0;padding-left:18px;font-size:13px;line-height:1.5}
+.pz-proof li.done{opacity:.5;text-decoration:line-through}
+.pz-run{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(260px,1fr);gap:14px}
+@media (max-width:980px){.pz-run{grid-template-columns:1fr}}
+.pz-gm{font-size:14px;line-height:1.45;padding:10px 12px;border:1px dashed rgba(201,162,74,.35);border-radius:10px;background:rgba(0,0,0,.25)}
+.pz-gm p{margin:0 0 6px}
+.pz-carnet-icon{width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:24px;flex:none}
+.pz-carnet-icon img{width:40px;height:40px;object-fit:cover;border-radius:6px}
+.pz-clue-preview{max-width:160px;max-height:120px;border-radius:6px}
+/* Écran joueur : l'énigme par-dessus le plateau */
+.present-puzzle{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:2vh 2vw;background:rgba(4,3,2,.72)}
+.present-puzzle .pz-stage{width:min(1280px,100%);max-height:96vh;overflow:auto;font-size:clamp(14px,1.7vh,18px)}
+.present-puzzle .pz-notes{font-size:clamp(14px,1.7vh,18px)}
+/* Atelier des énigmes */
+.pz-atelier{display:flex;flex-direction:column;gap:12px;color:#e8dcc0}
+.pz-atelier .pz-modal-head b{font-family:'Cinzel',serif;color:#ecd289;font-size:17px}
+.pz-atelier-body{display:grid;grid-template-columns:240px minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.pz-atelier-body{grid-template-columns:1fr}}
+.pz-steps{display:flex;flex-direction:column;gap:4px;position:sticky;top:8px}
+@media (max-width:860px){.pz-steps{position:static;flex-direction:row;overflow-x:auto}}
+.pz-steps button{display:flex;align-items:center;gap:8px;text-align:left;font:inherit;font-size:13px;padding:8px 10px;border-radius:8px;border:1px solid transparent;background:rgba(232,220,192,.03);color:#cdbf9f;cursor:pointer;white-space:nowrap}
+.pz-steps button span{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;border:1px solid rgba(201,162,74,.5);font-size:11px;flex:none}
+.pz-steps button i{margin-left:auto;font-style:normal;font-size:11px;color:#a99a7a}
+.pz-steps button i.ok{color:#9fd6a0}.pz-steps button i.ko{color:#e8957a}
+.pz-steps button.on{border-color:#ecd289;color:#ecd289;background:rgba(236,210,137,.08)}
+.pz-step{min-width:0;padding:14px 18px;border:1px solid rgba(201,162,74,.25);border-radius:12px;background:linear-gradient(#17120d,#0f0c09)}
+.pz-step h2{margin:0 0 6px;font-family:'Cinzel',serif;color:#ecd289;font-size:20px;letter-spacing:.04em}
+.pz-step h3{margin:14px 0 6px;font-family:'Cinzel',serif;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#a99a7a}
+.pz-lead{margin:0 0 12px;color:#cfc2a3;font-style:italic;font-family:'EB Garamond',Georgia,serif;font-size:16px}
+.pz-field{display:flex;flex-direction:column;gap:3px;font-size:12px;color:#a99a7a;margin-bottom:8px;min-width:0}
+.pz-field .input,.pz-prep-row .input,.pz-prep-doc .input{font:inherit;font-size:14px}
+.pz-grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0 14px}
+.pz-mech-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.pz-mech-card{display:flex;flex-direction:column;gap:4px;text-align:left;font:inherit;padding:10px 12px;border-radius:10px;border:1px solid #3a3026;background:rgba(232,220,192,.04);color:#e8dcc0;cursor:pointer}
+.pz-mech-card b{font-family:'Cinzel',serif;color:#ecd289}
+.pz-mech-card span{font-size:13px}.pz-mech-card small{font-size:12px;color:#a99a7a}
+.pz-mech-card.on{border-color:#ecd289;box-shadow:0 0 0 1px rgba(236,210,137,.4)}
+.pz-config{display:flex;flex-direction:column;gap:6px}
+.pz-cfg-grid{display:grid;gap:3px}
+.pz-cfg-cell{height:34px;border-radius:4px;border:1px solid #3a3026;background:#1b1713;color:#dfe8ee;font:600 18px monospace;cursor:pointer}
+.pz-cfg-cell.src{box-shadow:inset 3px 0 0 #7fc8ff}.pz-cfg-cell.dst{box-shadow:inset -3px 0 0 #9fe0ff}
+.pz-cfg-num{width:52px;text-align:center}
+.pz-sandbox{margin-top:14px;padding-top:6px;border-top:1px dashed rgba(201,162,74,.25)}
+.pz-solver{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:10px;margin-bottom:10px}
+.pz-solver.ok{border:1px solid rgba(159,214,160,.45);background:rgba(80,140,70,.08)}
+.pz-solver.ko{border:1px solid rgba(232,149,122,.45);background:rgba(140,60,40,.08)}
+.pz-solver .pz-feedback{text-align:left;font-size:15px}
+.pz-checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px;font-size:14px}
+.pz-checks .bloquant{color:#f0b6a0}.pz-checks .attention{color:#e6c87a}.pz-checks .ok{color:#a9d9a9}
+.pz-scores{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:10px 18px}
+.pz-score{display:grid;grid-template-columns:minmax(120px,40%) minmax(0,1fr) 24px;align-items:center;gap:8px;font-size:13px;min-width:0}
+.pz-score input{width:100%;accent-color:#c9a24a}
+.pz-score small{grid-column:1/-1;margin-top:-2px}
+.pz-pipeline{display:flex;flex-wrap:wrap;gap:6px;list-style:none;padding:0;margin:10px 0}
+.pz-pipeline li{padding:4px 10px;border-radius:999px;border:1px solid #3a3026;font-size:12px;color:#8f826a}
+.pz-pipeline li.done{border-color:rgba(159,214,160,.5);color:#a9d9a9}
+.pz-step-nav{justify-content:space-between;margin-top:16px}
+/* Section Énigmes */
+.pz-lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.pz-lib-card{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:12px;border:1px solid rgba(201,162,74,.25);background:linear-gradient(#17120d,#100c09)}
+.pz-lib-card h3{margin:0;font-family:'Cinzel',serif;color:#ecd289;font-size:16px}
+.pz-lib-card p{margin:0;font-size:13px}
+.pz-lib-card .pz-row{justify-content:flex-start}
+.pz-lib-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 14px}
+.pz-lib-tools .input{font:inherit;font-size:14px;max-width:240px}
+
+/* Champs de saisie (section Énigmes, fenêtres du MJ) : mêmes tons que le reste de LoreSmith */
+.pz-section .input,.pz-modal .input,.pz-atelier .input{box-sizing:border-box;width:100%;padding:7px 10px;border-radius:8px;border:1px solid rgba(201,162,74,.28);background:rgba(10,8,6,.65);color:#e8dcc0;outline:none}
+.pz-section .input:focus,.pz-modal .input:focus,.pz-atelier .input:focus{border-color:#ecd289}
+.pz-section select.input option,.pz-modal select.input option{background:#14100c;color:#e8dcc0}
+.pz-section .input:disabled,.pz-modal .input:disabled{opacity:.6}
+.pz-prep-row .input{width:auto;flex:1;min-width:0}
+.pz-prep-row select.input{flex:0 1 auto}
+.pz-lib-tools .input{width:auto}
+.pz-config .pz-row .pz-field{flex:1 1 160px}

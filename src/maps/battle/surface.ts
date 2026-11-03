@@ -191,7 +191,7 @@ function rasterOf(z: TerrainZone, cols: number, rows: number) {
 
 /** `decor` : sans effet ; `partiel` : terrain difficile et couvert ; `bloquant` : on ne peut pas y entrer. */
 export type Collision = 'decor' | 'partiel' | 'bloquant';
-export type ObjectKind = 'rocher' | 'gros_rocher' | 'pierres' | 'arbre' | 'buisson' | 'souche' | 'tonneau' | 'caisses' | 'fleurs' | 'pont' | 'passerelle';
+export type ObjectKind = 'rocher' | 'gros_rocher' | 'pierres' | 'arbre' | 'buisson' | 'souche' | 'tonneau' | 'caisses' | 'fleurs' | 'pont' | 'passerelle' | 'coffre' | 'commode' | 'autel';
 
 export interface ObjectDef {
   kind: ObjectKind;
@@ -218,6 +218,9 @@ export const OBJECTS: ObjectDef[] = [
   { kind: 'souche', label: 'Souche', collision: 'partiel', cover: 'demi', radius: 0.3, text: 'Terrain difficile ; demi-couvert.' },
   { kind: 'tonneau', label: 'Tonneau', collision: 'partiel', cover: 'demi', radius: 0.3, text: 'Terrain difficile ; demi-couvert.' },
   { kind: 'caisses', label: 'Caisses empilées', collision: 'bloquant', cover: 'trois-quarts', opaque: true, radius: 0.45, text: 'Bloque sa case ; couvert aux trois quarts.' },
+  { kind: 'coffre', label: 'Coffre', collision: 'partiel', cover: 'demi', radius: 0.36, text: 'Terrain difficile ; demi-couvert. Peut être verrouillé par une énigme.' },
+  { kind: 'commode', label: 'Meuble à tiroirs', collision: 'bloquant', cover: 'demi', radius: 0.42, text: 'Bloque sa case ; demi-couvert. Ses tiroirs peuvent être verrouillés par une énigme.' },
+  { kind: 'autel', label: 'Autel, mécanisme', collision: 'bloquant', cover: 'demi', radius: 0.45, text: 'Bloque sa case. Socle d’un mécanisme ou d’un sceau : peut porter une énigme.' },
   { kind: 'fleurs', label: 'Fleurs, touffes', collision: 'decor', cover: 'aucun', radius: 0.35, text: 'Décor : aucun effet sur le déplacement.' },
   { kind: 'pont', label: 'Pont', collision: 'decor', cover: 'aucun', deck: true, len: 4, wid: 2, text: 'Tablier praticable au-dessus de l’eau ou du vide. On y monte par ses extrémités.' },
   { kind: 'passerelle', label: 'Passerelle', collision: 'decor', cover: 'aucun', deck: true, len: 4, wid: 1, text: 'Passerelle étroite (une case de large), praticable.' },
@@ -233,7 +236,14 @@ export interface BattleObject {
   rot?: number; len?: number; wid?: number;
   /** Caché aux joueurs. */
   hidden?: boolean;
+  /** Verrouillé par une énigme (coffre, tiroirs, sceau). */
+  lock?: Lock;
 }
+
+/** Verrou d'une porte, d'une herse ou d'un objet : une énigme du grimoire (cf. src/puzzles). Résolue, elle ne bloque plus. */
+export interface Lock { puzzleId: string; solved?: boolean }
+/** Objets qu'on verrouille naturellement (les autres le peuvent aussi, depuis leur fiche). */
+export const LOCKABLE_OBJECTS = new Set<ObjectKind>(['coffre', 'commode', 'autel']);
 
 /**
  * Pont droit (0°, 90°…) : son tablier est calé sur la grille, pour qu'aucune case ne soit à moitié dessus.
@@ -279,7 +289,9 @@ export interface BattleWall { id: string; kind: WallKind; /** Sommets de la gril
   /** Porte ou herse ouverte : elle ne compte plus. */
   open?: boolean;
   /** Nom affiché au MJ (« Porte du nord »). */
-  label?: string }
+  label?: string;
+  /** Verrouillée par une énigme : elle ne s'ouvre qu'une fois l'énigme résolue (ou le MJ passe outre). */
+  lock?: Lock }
 
 /** Clés des arêtes : `h x,y` sépare (x, y-1) de (x, y) ; `v x,y` sépare (x-1, y) de (x, y). */
 export function wallEdges(w: BattleWall): string[] {

@@ -2,6 +2,7 @@
  * Instantanés envoyés à l'écran joueur. Ce module est le seul à décider de ce que voient les joueurs :
  * il part de la vue joueurs (sans notes, repères secrets ni jetons cachés) et ne garde que le plan montré.
  */
+import type { PublicPuzzle } from '../puzzles/types';
 import { boardTheme } from './battle/theme';
 import type { AtlasData, AtlasFeature } from './atlas/types';
 import { mapDataFor, placeCoords, restrictToPlan, DEFAULT_BATTLE, type MapRecord, type PartyPlace } from './mapStore';
@@ -120,12 +121,13 @@ export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus
   const alert = a && (a.phase !== 'calm' || Date.now() - a.at < CALM_MS) ? a : undefined;
   const f = party?.fork && party.fork.planId === planId ? party.fork : undefined;
   const fork = f ? { key: f.key, line: f.line, out: f.out, on: f.on } : undefined;
-  return { mode: 'map', title: rec.title, planId, data, focus, marks: marks.length ? marks : undefined, fog, travel, here: f ? f.point : here, alert, fork, linked: view.linked || undefined, ...(rec.overlay?.talk ? { talk: rec.overlay.talk } : {}) };
+  return { mode: 'map', title: rec.title, planId, data, focus, marks: marks.length ? marks : undefined, fog, travel, here: f ? f.point : here, alert, fork, linked: view.linked || undefined, cavernArt: rec.variant === 'strates' || undefined, ...(rec.overlay?.talk ? { talk: rec.overlay.talk } : {}) };
 }
 
 /** Combat tel que les joueurs le voient : jetons visibles seulement, sans points de vie ni CA. */
 /** `artOf` : illustration d'une créature par son nom (fiches des Archives), montrée en grand aux joueurs. */
-export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) => string): PlayerBoard {
+/** `puzzle` : énigme en cours à montrer, déjà filtrée par puzzles/engine.ts (publicProjection). */
+export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) => string, puzzle?: PublicPuzzle): PlayerBoard {
   const b = rec.battle ?? DEFAULT_BATTLE;
   // Mêmes règles que chez le MJ : passages découverts = éléments révélés.
   const view: typeof b = b.local ? { ...b, local: { ...b.local, discovered: rec.overlay?.revealed ?? [] } } : b;
@@ -237,5 +239,6 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
       ? { zones: b.zones, objects: b.objects?.filter((o) => !o.hidden), walls: b.walls } : undefined,
     rules,
     aoes: b.aoes?.length ? b.aoes.map((a) => aoeView(a, rules, b.feetPerCell)) : undefined,
+    ...(puzzle ? { puzzle } : {}),
   };
 }

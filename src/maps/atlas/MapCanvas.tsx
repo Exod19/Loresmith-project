@@ -9,6 +9,7 @@ import NaturalTerrain, { naturalTerrainOn } from './NaturalTerrain';
 import WaterLayer, { setWaterMotion, useWaterMotion, WATER_COVERS, waterLayerOn } from './WaterLayer';
 import { poseOf, tokenScaleOf, turnsFreely } from '../../banque';
 import BankLayer, { BANK_COVERS, bankActive, GroundPatterns, useGroundTextures } from '../../banque/BankLayer';
+import { CaveDecor, CavePatterns, fineOpacity, useCaveTextures } from '../../banque/CaveArt';
 import type { Relief } from '../world/terrain';
 import { CityEmblem, paintedEmblem, peopleOf } from './emblems';
 import { type ReactElement, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent } from 'react';
@@ -136,7 +137,7 @@ const TOKEN_M = 1.41, TOKEN_MIN_PX = 14;
 /** Orientation stable d'un jeton (degrés), tirée de son identifiant : les PNJ ne regardent pas tous au nord. */
 const angleOf = (id: string) => { let h = 2166136261; for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619); return (h >>> 0) % 360; };
 
-export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, onMovePin, dataKey, dm, marks = [], fog, journey, onZoomLimit, exploring, ghosts, onView, preview, syncView, tokenOf }: {
+export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, onMovePin, dataKey, dm, marks = [], fog, journey, onZoomLimit, exploring, ghosts, onView, preview, syncView, tokenOf, cavernArt }: {
   map: AtlasMap; layers: Layers; hidden: Set<FeatureCategory>;
   /** Mode MJ : révèle les passages secrets. Hors MJ, la carte est une carte de lore. */
   dm: boolean;
@@ -156,6 +157,8 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   journey?: MapTravel | null;
   /** Atlas en strates : les grottes des strates voisines, en transparence (au-dessus en violet, au-dessous en turquoise). */
   ghosts?: { above?: Cavity[]; below?: Cavity[]; opacity: number };
+  /** Atlas en strates : cavernes habillées par la Banque Loresmith (textures de roche, décor). */
+  cavernArt?: boolean;
   /**
    * On continue de zoomer au-delà des limites du plan : `in` au zoom maximal, `out` au zoom minimal, avec le point
    * visé (0–1). La carte du monde s'en sert pour entrer dans une cité, ou en sortir, sans changer de carte.
@@ -497,18 +500,29 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cavities, W, H, map.surface]);
   const carved = shown.filter((p) => PASS_W[p.tr] > 0);
+  // Atlas en strates : textures de la banque (dossiers Outreterre), ancrées au plan.
+  const artOn = !!cavernArt && !map.surface;
+  const caveTex = useCaveTextures(map.id, W, t.k / px, artOn);
+  const clipId = `cv-clip-${map.id.replace(/[^a-z0-9]/gi, '')}`;
   const layerWalls = useMemo(() => (
     <g className="am-walls">
       <path d={rock.walls} fill={WALL} />
       {carved.map((p) => <path key={p.g.id} d={p.d} stroke={WALL} strokeWidth={PASS_W[p.tr] * kw + 14} fill="none" strokeLinecap="round" strokeLinejoin="round" />)}
+      {caveTex.wall && <path d={rock.walls} fill={`url(#${caveTex.wall.id})`} className="am-wall-tex" pointerEvents="none" />}
     </g>
-  ), [rock, shown]);
+  ), [rock, shown, caveTex.wall?.src]);
   const layerFloors = useMemo(() => (
     <g className="am-floors">
       {/* 1er passage : sols avec liseré de paroi ; 2e passage : sols seuls, qui effacent le liseré aux jonctions. */}
       <path d={rock.floors} fill={FLOOR} stroke={RIM} strokeWidth="2.4" vectorEffect="non-scaling-stroke" />
       {carved.map((p) => <path key={p.g.id} d={p.d} className="rim" style={{ '--w': `${PASS_W[p.tr] * kw}px` } as React.CSSProperties} />)}
+      {/* Galeries texturées sous le sol des cavernes : elles ne les traversent pas en bandes. */}
+      {caveTex.floor && carved.map((p) => (
+        <g key={`tx-${p.g.id}`} pointerEvents="none"><path d={p.d} stroke={FLOOR} strokeWidth={PASS_W[p.tr] * kw} fill="none" strokeLinecap="round" strokeLinejoin="round" /><path d={p.d} stroke={`url(#${caveTex.floor!.id})`} strokeWidth={PASS_W[p.tr] * kw} fill="none" strokeLinecap="round" strokeLinejoin="round" className="am-floor-tex" /></g>
+      ))}
       <path d={rock.floors} fill={FLOOR} />
+      {caveTex.floor && <path d={rock.floors} fill={`url(#${caveTex.floor.id})`} className="am-floor-tex" pointerEvents="none" />}
+      {caveTex.fine && <path d={rock.floors} fill={`url(#${caveTex.fine.id})`} className="am-floor-tex" style={{ opacity: fineOpacity(caveTex.fine) }} pointerEvents="none" />}
       <path d={rock.light} className="am-light" />
       {carved.map((p) => (
         <path key={p.g.id} d={p.d} className={`floor tr-${p.tr}`} stroke={FLOOR} strokeWidth={PASS_W[p.tr] * kw} fill="none" strokeLinecap="round" strokeLinejoin="round"
@@ -516,7 +530,7 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
       ))}
       <path d={rock.floors} className="am-shade" vectorEffect="non-scaling-stroke" />
     </g>
-  ), [rock, shown]);
+  ), [rock, shown, caveTex.floor?.src, caveTex.fine?.src, caveTex.fine && fineOpacity(caveTex.fine), artOn]);
   const layerLines = useMemo(() => (
     <g>
       {shown.filter((p) => p.tr === 'crevasse').map((p) => (
@@ -622,6 +636,8 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
           <radialGradient id="am-floor-b" cx=".55" cy=".45" r=".62"><stop offset="0" stopColor="#2a3333" /><stop offset=".75" stopColor="#212a2a" /><stop offset="1" stopColor={FLOOR} /></radialGradient>
           <radialGradient id="am-water" cx=".45" cy=".4" r=".7"><stop offset="0" stopColor="#2f5a5e" /><stop offset="1" stopColor="#14282c" /></radialGradient>
           <GroundPatterns tex={groundTex} />
+          <CavePatterns tex={caveTex} />
+          {artOn && <clipPath id={clipId}><path d={rock.floors} /></clipPath>}
           <pattern id="am-hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(40)"><path d="M0 0V9" stroke="#8a5a49" strokeWidth="1.3" opacity=".55" /></pattern>
         </defs>
         <rect x={-W} y={-H} width={W * 3} height={H * 3} fill={surf ? undefined : '#090d0e'} className={surf ? 'am-ground' : undefined} />
@@ -651,7 +667,7 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
               </g>
             </>
           ) : (
-            <g className={layers.ambiance && map.ambiance ? 'am-caves see-through' : 'am-caves'}>
+            <g className={`am-caves${layers.ambiance && map.ambiance ? ' see-through' : ''}${artOn ? ' is-art' : ''}`}>
               {ghosts && (
                 <g className="am-ghosts" pointerEvents="none" style={{ opacity: ghosts.opacity }}>
                   {ghosts.below && <path d={ghosts.below.map((c) => cavityPath(c, W, H, 0, 36)).join('')} className="am-ghost below" vectorEffect="non-scaling-stroke" />}
@@ -660,6 +676,7 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
               )}
               {layerWalls}
               {layerFloors}
+              {artOn && <g clipPath={`url(#${clipId})`}><CaveDecor mapId={map.id} cavities={cavities} W={W} H={H} pxPerUnit={pxPerUnit} view={bankView} on={artOn} /></g>}
             </g>
           )}
           <path d={relief.contours} className="am-contour" vectorEffect="non-scaling-stroke" style={{ opacity: fade(1.3) * 0.8 }} />

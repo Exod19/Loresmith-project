@@ -34,6 +34,8 @@ export const DOC_TYPES = {
   map: { collection: 'maps', scope: 'universe' },
   asset: { collection: 'assets', scope: 'universe' },
   chat: { collection: 'chatThreads', scope: 'universe-or-campaign' },
+  puzzle: { collection: 'puzzles', scope: 'universe' },
+  clue: { collection: 'clues', scope: 'universe' },
   userState: { collection: null, scope: 'user' },
 };
 
@@ -56,6 +58,9 @@ export const SECRET_FIELDS = {
   npc: ['secret'],
   map: ['points[].notes', 'overlay.markers[].notes', 'overlay.markers[].groups'],
   chat: ['messages'],
+  // Énigme : la solution, sa démonstration et les indices du MJ ; carnet : où trouver l'objet.
+  puzzle: ['gm', 'engine.serverConfig', 'design'],
+  clue: ['gmNote'],
 };
 
 /** Portée d'un élément du grimoire local. */

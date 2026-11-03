@@ -6,6 +6,7 @@
  * Le lieu choisi donne la zone locale : ses passages (tracés réels de l'Atlas) et ses éléments y sont à leur position.
  * « Suivre » un passage ramène sur la carte de navigation, à sa destination, et y déplace le groupe.
  */
+import PuzzleLocks from '../../puzzles/PuzzleLocks';
 import { npcBankImage, npcToken } from '../../banque/place';
 import type { LoreEntry } from '../world/lore';
 import { terrainAt, type Relief } from '../world/terrain';
@@ -1311,9 +1312,10 @@ export default function BattleMode({
             {(b.aoes ?? []).length > 1 && <button className="battle-chip" onClick={() => set({ aoes: [], aoeHit: undefined })}>✕ Tout retirer</button>}
           </div>
         )}
-        {(b.walls ?? []).some((w) => OPENABLE.has(w.kind)) && !building && (
+        {!building && <PuzzleLocks b={b} latest={latest} onBattle={onBattle} />}
+        {(b.walls ?? []).some((w) => OPENABLE.has(w.kind) && !(w.lock && !w.lock.solved)) && !building && (
           <div className="battle-chips" aria-label="Portes et herses">
-            {(b.walls ?? []).filter((w) => OPENABLE.has(w.kind)).map((w, i) => (
+            {(b.walls ?? []).filter((w) => OPENABLE.has(w.kind)).map((w, i) => w.lock && !w.lock.solved ? null : (
               <button
                 key={w.id} className={`battle-chip ${w.open ? 'on' : ''}`} aria-pressed={!!w.open}
                 title={w.open ? 'Ouverte : clic pour la fermer' : 'Fermée : clic pour l’ouvrir'}

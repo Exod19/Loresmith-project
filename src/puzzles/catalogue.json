@@ -1,0 +1,1542 @@
+{
+ "schemaVersion": "2.0.0",
+ "editorialWarning": "Propositions hors canon jusqu’a validation du MJ",
+ "puzzles": [
+  {
+   "schemaVersion": "2.0.0",
+   "id": "und-braseros-trois",
+   "title": "Les Trois Brasiers Sans Flamme",
+   "category": "epreuve_interactive",
+   "family": "experimentation",
+   "mechanic": "braziers",
+   "difficulty": "avancee",
+   "estimatedMinutes": 12,
+   "tags": [
+    "LoreSmith",
+    "Underdark"
+   ],
+   "canonStatus": "proposition_non_canonique",
+   "prerequisiteEvidenceIds": [],
+   "player": {
+    "location": "Antichambre d’une porte basaltique",
+    "sceneDescription": "Trois leviers de cuivre sont visibles; trois brasiers sont cachés derrière une grille. On peut manipuler les leviers librement, mais la grille d’inspection ne peut être ouverte qu’une seule fois.",
+    "objective": "Déterminer quel levier commande chaque brasier et inscrire les trois correspondances.",
+    "observations": [
+     {
+      "id": "obs-1",
+      "text": "Chaque brasier se laisse observer visuellement et toucher après ouverture.",
+      "available": "initiale"
+     },
+     {
+      "id": "obs-2",
+      "text": "Les leviers ont une position stable, vers le haut ou vers le bas.",
+      "available": "initiale"
+     },
+     {
+      "id": "obs-3",
+      "text": "La pierre autour des brasiers conserve une chaleur perceptible après extinction.",
+      "available": "inspection_sans_jet"
+     }
+    ],
+    "interactions": [
+     "Basculer séparément A, B ou C",
+     "Ouvrir la grille une fois",
+     "Examiner les trois brasiers",
+     "Soumettre une correspondance"
+    ],
+    "readables": [
+     {
+      "source": "Plaque du mécanisme",
+      "text": "À l’inspection, le pacte se fige. Les commandes resteront muettes jusqu’au jugement."
+     }
+    ],
+    "accessibility": "Tout retour sonore a un equivalent visuel et textuel. Pas de pression chronometree obligatoire."
+   },
+   "gm": {
+    "deductionPath": [
+     "Les trois leviers correspondent chacun à un brasier différent, sans doublon.",
+     "Pour distinguer trois circuits avec une seule inspection, les joueurs doivent produire trois états observables différents.",
+     "Un brasier allumé, un brasier éteint mais chaud et un brasier jamais allumé sont distinguables.",
+     "La correspondance entre ces observations et les leviers manipulés donne une solution démontrable."
+    ],
+    "solutionRationale": "Les trois leviers correspondent chacun à un brasier différent, sans doublon. Pour distinguer trois circuits avec une seule inspection, les joueurs doivent produire trois états observables différents. Un brasier allumé, un brasier éteint mais chaud et un brasier jamais allumé sont distinguables. La correspondance entre ces observations et les leviers manipulés donne une solution démontrable.",
+    "acceptedAlternativeApproaches": [
+     "Sort de détection de chaleur interprété par le MJ",
+     "Obtenir une seconde inspection en dépensant une ressource narrative"
+    ],
+    "nonSpoilerHints": [
+     {
+      "tier": 1,
+      "text": "La grille permet d’observer les conséquences des choix, pas de voir les fils du mécanisme.",
+      "kind": "orientation"
+     },
+     {
+      "tier": 2,
+      "text": "Une matière conserve parfois une trace d’un état passé.",
+      "kind": "nouvelle_observation"
+     },
+     {
+      "tier": 3,
+      "text": "Une inspection renseigne aussi sur ce qui a changé avant son ouverture.",
+      "kind": "rappel_de_regle"
+     }
+    ],
+    "skillChecks": [
+     {
+      "skill": "Perception",
+      "dc": "a_configurer",
+      "result": "Remarquer la forte conductivité de la pierre entourant les foyers."
+     },
+     {
+      "skill": "Investigation",
+      "dc": "a_configurer",
+      "result": "Comprendre que les trois circuits sont physiquement indépendants."
+     }
+    ],
+    "failureForward": {
+     "onWrongAnswer": "Un brasier souffle une vapeur opaque; la herse reste close.",
+     "threshold": 2,
+     "cost": "Après deux soumissions erronées, une ressource ou une négociation est requise pour réouvrir la grille."
+    },
+    "alternateBypass": "Le MJ accepte une approche de jeu de rôle cohérente avec un coût fictionnel proportionné.",
+    "solutionPolicy": "une_correspondance_identifiable_apres_experimentation",
+    "readyBeforeSession": [
+     "Tous les documents requis sont accessibles avant le verrou.",
+     "Le MJ connait la preuve de resolution.",
+     "La consequence et la voie alternative sont configurees.",
+     "Le puzzle est testable clavier et tactile."
+    ],
+    "spoilerPolicy": "Les chemins de resolution et parametres prives restent exclusivement MJ/serveur."
+   },
+   "engine": {
+    "kind": "braziers",
+    "publicConfig": {
+     "leverIds": [
+      "A",
+      "B",
+      "C"
+     ],
+     "brazierIds": [
+      "I",
+      "II",
+      "III"
+     ],
+     "maxInspections": 1
+    },
+    "serverConfig": {
+     "brazierToLever": [
+      "C",
+      "A",
+      "B"
+     ]
+    }
+   }
+  },
+  {
+   "schemaVersion": "2.0.0",
+   "id": "und-neuf-galets",
+   "title": "Les Neuf Galets du Juge",
+   "category": "epreuve_interactive",
+   "family": "deduction",
+   "mechanic": "heavy-stone",
+   "difficulty": "avancee",
+   "estimatedMinutes": 15,
+   "tags": [
+    "LoreSmith",
+    "Underdark"
+   ],
+   "canonStatus": "proposition_non_canonique",
+   "prerequisiteEvidenceIds": [],
+   "player": {
+    "location": "Sanctuaire des balances",
+    "sceneDescription": "Neuf galets ont rigoureusement la même apparence. Un seul est plus lourd. Une balance à deux plateaux est en état de marche, mais elle ne peut être utilisée que deux fois.",
+    "objective": "Identifier l’unique galet plus lourd.",
+    "observations": [
+     {
+      "id": "obs-1",
+      "text": "Les neuf galets sont apparemment identiques, sans marque de poids.",
+      "available": "initiale"
+     },
+     {
+      "id": "obs-2",
+      "text": "La balance indique gauche, droite ou équilibre.",
+      "available": "initiale"
+     },
+     {
+      "id": "obs-3",
+      "text": "Le mécanisme n’accepte que deux pesées avant de se verrouiller.",
+      "available": "inspection_sans_jet"
+     }
+    ],
+    "interactions": [
+     "Placer des galets sur les plateaux",
+     "Peser des groupes en nombre égal",
+     "Observer l’inclinaison",
+     "Désigner le galet"
+    ],
+    "readables": [
+     {
+      "source": "Injonction du juge",
+      "text": "Un seul parmi neuf porte le mensonge du poids. Deux sentences seront prononcées."
+     }
+    ],
+    "accessibility": "Tout retour sonore a un equivalent visuel et textuel. Pas de pression chronometree obligatoire."
+   },
+   "gm": {
+    "deductionPath": [
+     "Une pesée possède trois issues distinctes : gauche lourde, droite lourde ou équilibre.",
+     "Neuf candidats peuvent être divisés en trois groupes de trois.",
+     "Une première pesée de trois contre trois réduit les candidats à un groupe de trois.",
+     "Une deuxième pesée de un contre un permet de déterminer l’unique galet lourd."
+    ],
+    "solutionRationale": "Une pesée possède trois issues distinctes : gauche lourde, droite lourde ou équilibre. Neuf candidats peuvent être divisés en trois groupes de trois. Une première pesée de trois contre trois réduit les candidats à un groupe de trois. Une deuxième pesée de un contre un permet de déterminer l’unique galet lourd.",
+    "acceptedAlternativeApproaches": [
+     "Un autre type de balance magique peut être proposé par le joueur et arbitré par le MJ"
+    ],
+    "nonSpoilerHints": [
+     {
+      "tier": 1,
+      "text": "Comparer un candidat à chacun des huit autres épuiserait rapidement le mécanisme.",
+      "kind": "orientation"
+     },
+     {
+      "tier": 2,
+      "text": "Une expérience peut écarter plusieurs hypothèses à la fois.",
+      "kind": "nouvelle_observation"
+     },
+     {
+      "tier": 3,
+      "text": "Une balance distingue trois résultats possibles, y compris l’équilibre.",
+      "kind": "rappel_de_regle"
+     }
+    ],
+    "skillChecks": [
+     {
+      "skill": "Investigation",
+      "dc": "a_configurer",
+      "result": "Confirmer que les galets sont de matière similaire et qu’un seul diffère."
+     },
+     {
+      "skill": "Arcane",
+      "dc": "a_configurer",
+      "result": "Déceler que le nombre de pesées, et non la vitesse, est la contrainte du rite."
+     }
+    ],
+    "failureForward": {
+     "onWrongAnswer": "Le juge réclame un objet en gage; les joueurs peuvent négocier une nouvelle tentative.",
+     "threshold": 1,
+     "cost": "Dépôt d’un objet ou passage alternatif."
+    },
+    "alternateBypass": "Le MJ accepte une approche de jeu de rôle cohérente avec un coût fictionnel proportionné.",
+    "solutionPolicy": "unique_si_pesees_informatives",
+    "readyBeforeSession": [
+     "Tous les documents requis sont accessibles avant le verrou.",
+     "Le MJ connait la preuve de resolution.",
+     "La consequence et la voie alternative sont configurees.",
+     "Le puzzle est testable clavier et tactile."
+    ],
+    "spoilerPolicy": "Les chemins de resolution et parametres prives restent exclusivement MJ/serveur."
+   },
+   "engine": {
+    "kind": "heavy-stone",
+    "publicConfig": {
+     "stoneIds": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "H",
+      "I"
+     ],
+     "maxWeighings": 2,
+     "uniqueHeavy": true
+    },
+    "serverConfig": {
+     "heavyStoneId": "G"
+    }
+   }
+  },
+  {
+   "schemaVersion": "2.0.0",
+   "id": "und-aqueduc",
+   "title": "L’Aqueduc du Dernier Mesureur",
+   "category": "epreuve_interactive",
+   "family": "physique",
+   "mechanic": "jugs",
+   "difficulty": "accessible",
+   "estimatedMinutes": 10,
+   "tags": [
+    "LoreSmith",
+    "Underdark"
+   ],
+   "canonStatus": "proposition_non_canonique",
+   "prerequisiteEvidenceIds": [],
+   "player": {
+    "location": "Ancienne écluse souterraine",
+    "sceneDescription": "Deux jarres sont gravées des capacités « trois parts » et « cinq parts ». Une vasque actionnant la porte exige exactement quatre parts d’eau. Une source et une rigole permettent de remplir et vider les jarres.",
+    "objective": "Obtenir exactement quatre parts dans une jarre et les verser dans la vasque.",
+    "observations": [
+     {
+      "id": "obs-1",
+      "text": "Aucune jarre ne porte de graduation intermédiaire.",
+      "available": "initiale"
+     },
+     {
+      "id": "obs-2",
+      "text": "La source remplit entièrement un récipient; la rigole le vide entièrement.",
+      "available": "initiale"
+     },
+     {
+      "id": "obs-3",
+      "text": "Le contenu peut être versé d’une jarre dans l’autre jusqu’à ce que l’une soit pleine ou l’autre vide.",
+      "available": "inspection_sans_jet"
+     }
+    ],
+    "interactions": [
+     "Remplir une jarre",
+     "Vider une jarre",
+     "Verser une jarre dans l’autre",
+     "Activer la vasque"
+    ],
+    "readables": [
+     {
+      "source": "Plaque des fontainiers",
+      "text": "Le seuil exige quatre parts, sans en perdre une dans la coupe d’offrande."
+     }
+    ],
+    "accessibility": "Tout retour sonore a un equivalent visuel et textuel. Pas de pression chronometree obligatoire."
+   },
+   "gm": {
+    "deductionPath": [
+     "La conservation des volumes permet de créer un résidu de deux parts dans la jarre de cinq.",
+     "Transférer ces deux parts dans la jarre de trois, remplir celle de cinq puis ajouter une part à la petite jarre.",
+     "Il reste alors quatre parts dans la jarre de cinq.",
+     "Le système accepte toute suite d’actions respectant les règles et atteignant quatre parts."
+    ],
+    "solutionRationale": "La conservation des volumes permet de créer un résidu de deux parts dans la jarre de cinq. Transférer ces deux parts dans la jarre de trois, remplir celle de cinq puis ajouter une part à la petite jarre. Il reste alors quatre parts dans la jarre de cinq. Le système accepte toute suite d’actions respectant les règles et atteignant quatre parts.",
+    "acceptedAlternativeApproaches": [
+     "Un personnage peut fournir un instrument de mesure cohérent avec la campagne"
+    ],
+    "nonSpoilerHints": [
+     {
+      "tier": 1,
+      "text": "Regardez ce qui reste dans un récipient après un transfert incomplet.",
+      "kind": "orientation"
+     },
+     {
+      "tier": 2,
+      "text": "La capacité des récipients constitue votre seule mesure exacte.",
+      "kind": "nouvelle_observation"
+     },
+     {
+      "tier": 3,
+      "text": "La différence entre deux capacités peut devenir une quantité utilisable.",
+      "kind": "rappel_de_regle"
+     }
+    ],
+    "skillChecks": [
+     {
+      "skill": "Investigation",
+      "dc": "a_configurer",
+      "result": "Vérifier que les jarres ne présentent pas de fuite."
+     }
+    ],
+    "failureForward": {
+     "onWrongAnswer": "L’eau retourne à la rigole sans blessure; le défi reste accessible.",
+     "threshold": 0,
+     "cost": "Temps fictionnel."
+    },
+    "alternateBypass": "Le MJ accepte une approche de jeu de rôle cohérente avec un coût fictionnel proportionné.",
+    "solutionPolicy": "toute_suite_valide",
+    "readyBeforeSession": [
+     "Tous les documents requis sont accessibles avant le verrou.",
+     "Le MJ connait la preuve de resolution.",
+     "La consequence et la voie alternative sont configurees.",
+     "Le puzzle est testable clavier et tactile."
+    ],
+    "spoilerPolicy": "Les chemins de resolution et parametres prives restent exclusivement MJ/serveur."
+   },
+   "engine": {
+    "kind": "jugs",
+    "publicConfig": {
+     "capacities": [
+      3,
+      5
+     ],
+     "target": 4,
+     "initial": [
+      0,
+      0
+     ]
+    },
+    "serverConfig": {}
+   }
+  },
+  {
+   "schemaVersion": "2.0.0",
+   "id": "und-statues-serments",
+   "title": "Les Quatre Statues et le Coffret",
+   "category": "epreuve_interactive",
+   "family": "logique_formelle",
+   "mechanic": "statues",
+   "difficulty": "avancee",
+   "estimatedMinutes": 15,
+   "tags": [
+    "LoreSmith",
+    "Underdark"
+   ],
+   "canonStatus": "proposition_non_canonique",
+   "prerequisiteEvidenceIds": [],
+   "player": {
+    "location": "Seuil du tribunal des Serments",
+    "sceneDescription": "Quatre statues gardent chacune un coffret. Une seule inscription sur les statues est vraie; les trois autres sont fausses. Une seule cache la clé.",
+    "objective": "Désigner le coffret contenant la clé.",
+    "observations": [
+     {
+      "id": "obs-1",
+      "text": "Les coffrets A, B, C et D sont identiques et ne peuvent être ouverts sans faire le choix final.",
+      "available": "initiale"
+     },
+     {
+      "id": "obs-2",
+      "text": "Le tribunal atteste qu’exactement une inscription est vraie.",
+      "available": "initiale"
+     },
+     {
+      "id": "obs-3",
+      "text": "Les inscriptions sont toutes lisibles à l’œil nu.",
+      "available": "inspection_sans_jet"
+     }
+    ],
+    "interactions": [
+     "Lire les inscriptions",
+     "Noter les contradictions",
+     "Choisir un coffre"
+    ],
+    "readables": [
+     {
+      "source": "Statue A",
+      "text": "La clé n’est pas dans le coffret A."
+     },
+     {
+      "source": "Statue B",
+      "text": "La clé se trouve dans le coffret C."
+     },
+     {
+      "source": "Statue C",
+      "text": "La clé n’est pas dans le coffret B."
+     },
+     {
+      "source": "Statue D",
+      "text": "La clé se trouve dans le coffret A."
+     }
+    ],
+    "accessibility": "Tout retour sonore a un equivalent visuel et textuel. Pas de pression chronometree obligatoire."
+   },
+   "gm": {
+    "deductionPath": [
+     "Tester hypothétiquement chaque coffret et compter les inscriptions vraies.",
+     "Une clé en A rend vraies C et D; en C, A, B et C; en D, A et C.",
+     "Seule une clé en B rend vraie exactement l’inscription A.",
+     "La réponse est donc B, indépendamment de toute intuition sur le narrateur."
+    ],
+    "solutionRationale": "Tester hypothétiquement chaque coffret et compter les inscriptions vraies. Une clé en A rend vraies C et D; en C, A, B et C; en D, A et C. Seule une clé en B rend vraie exactement l’inscription A. La réponse est donc B, indépendamment de toute intuition sur le narrateur.",
+    "acceptedAlternativeApproaches": [
+     "Rituel de vérité limité à une statue, si le personnage justifie un tel pouvoir"
+    ],
+    "nonSpoilerHints": [
+     {
+      "tier": 1,
+      "text": "Ne choisissez pas le propos qui semble le plus convaincant.",
+      "kind": "orientation"
+     },
+     {
+      "tier": 2,
+      "text": "Examinez les conséquences de chaque emplacement possible.",
+      "kind": "nouvelle_observation"
+     },
+     {
+      "tier": 3,
+      "text": "Le nombre exact de phrases vraies permet d’éliminer des hypothèses.",
+      "kind": "rappel_de_regle"
+     }
+    ],
+    "skillChecks": [
+     {
+      "skill": "Investigation",
+      "dc": "a_configurer",
+      "result": "Confirmer que toutes les phrases concernent les mêmes quatre coffrets."
+     }
+    ],
+    "failureForward": {
+     "onWrongAnswer": "Le coffret choisi devient pierre; l’objet reste ailleurs et le groupe doit obtenir l’autorisation de recommencer.",
+     "threshold": 1,
+     "cost": "Temps et faveur du tribunal."
+    },
+    "alternateBypass": "Le MJ accepte une approche de jeu de rôle cohérente avec un coût fictionnel proportionné.",
+    "solutionPolicy": "une_reponse_unique",
+    "readyBeforeSession": [
+     "Tous les documents requis sont accessibles avant le verrou.",
+     "Le MJ connait la preuve de resolution.",
+     "La consequence et la voie alternative sont configurees.",
+     "Le puzzle est testable clavier et tactile."
+    ],
+    "spoilerPolicy": "Les chemins de resolution et parametres prives restent exclusivement MJ/serveur."
+   },
+   "engine": {
+    "kind": "statues",
+    "publicConfig": {
+     "coffrets": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ],
+     "truthCount": 1
+    },
+    "serverConfig": {
+     "correctChest": "B"
+    }
+   }
+  },
+  {
+   "schemaVersion": "2.0.0",
+   "id": "und-miroirs-faille",
+   "title": "Le Réseau des Miroirs de Faille",
+   "category": "epreuve_interactive",
+   "family": "raisonnement_spatial",
+   "mechanic": "mirrors",
+   "difficulty": "avancee",
+   "estimatedMinutes": 15,
+   "tags": [
+    "LoreSmith",
+    "Underdark"
+   ],
+   "canonStatus": "proposition_non_canonique",
+   "prerequisiteEvidenceIds": [],
+   "player": {
+    "location": "Chapelle des lueurs froides",
+    "sceneDescription": "Un mince rayon bleu entre dans une grille de pierre. Quatre miroirs anciens peuvent pivoter sur eux-mêmes; le réceptacle se trouve sur le mur de droite, une rangée au-dessus de la source.",
+    "objective": "Diriger le rayon jusqu’au réceptacle en orientant les miroirs.",
+    "observations": [
+     {
+      "id": "obs-1",
+      "text": "Les miroirs ne renvoient la lumière qu’à angle droit.",
+      "available": "initiale"
+     },
+     {
+      "id": "obs-2",
+      "text": "La trajectoire est visible après chaque rotation.",
+      "available": "initiale"
+     },
+     {
+      "id": "obs-3",
+      "text": "Le rayon cesse à la première paroi qu’il rencontre.",
+      "available": "inspection_sans_jet"
+     }
+    ],
+    "interactions": [
+     "Pivoter un miroir / ou \\",
+     "Observer le rayon",
+     "Activer le réceptacle"
+    ],
+    "readables": [
+     {
+      "source": "Gravure géométrique",
+      "text": "La lumière ne traverse pas la pierre. Le retour juste n’est pas toujours le plus court."
+     }
+    ],
+    "accessibility": "Tout retour sonore a un equivalent visuel et textuel. Pas de pression chronometree obligatoire."
+   },
+   "gm": {
+    "deductionPath": [
+     "Un rayon horizontal entre depuis la gauche sur la ligne 2.",
+     "Le premier miroir peut le faire descendre vers la deuxième rangée de miroirs.",
+     "Les orientations suivantes le font repartir vers la droite, monter puis atteindre la sortie haute.",
+     "Toute configuration atteignant le réceptacle est valide; pas de code secret arbitraire."
+    ],
+    "solutionRationale": "Un rayon horizontal entre depuis la gauche sur la ligne 2. Le premier miroir peut le faire descendre vers la deuxième rangée de miroirs. Les orientations suivantes le font repartir vers la droite, monter puis atteindre la sortie haute. Toute configuration atteignant le réceptacle est valide; pas de code secret arbitraire.",
+    "acceptedAlternativeApproaches": [
+     "Lancer un rayon secondaire, si un pouvoir ou un objet de campagne le permet"
+    ],
+    "nonSpoilerHints": [
+     {
+      "tier": 1,
+      "text": "Le rayonnement obéit au mécanisme apparent de chaque surface.",
+      "kind": "orientation"
+     },
+     {
+      "tier": 2,
+      "text": "Regardez où la trajectoire quitte la grille lors d’un changement.",
+      "kind": "nouvelle_observation"
+     },
+     {
+      "tier": 3,
+      "text": "Il est possible de traverser plusieurs directions avant de rejoindre la sortie.",
+      "kind": "rappel_de_regle"
+     }
+    ],
+    "skillChecks": [
+     {
+      "skill": "Investigation",
+      "dc": "a_configurer",
+      "result": "Distinguer une surface réfléchissante d’une pierre ordinaire."
+     }
+    ],
+    "failureForward": {
+     "onWrongAnswer": "Le faisceau s’éteint. Aucun compteur d’essais punitif tant que le groupe explore.",
+     "threshold": 0,
+     "cost": "Temps fictionnel."
+    },
+    "alternateBypass": "Le MJ accepte une approche de jeu de rôle cohérente avec un coût fictionnel proportionné.",
+    "solutionPolicy": "toute_trajectoire_valide",
+    "readyBeforeSession": [
+     "Tous les documents requis sont accessibles avant le verrou.",
+     "Le MJ connait la preuve de resolution.",
+     "La consequence et la voie alternative sont configurees.",
+     "Le puzzle est testable clavier et tactile."
+    ],
+    "spoilerPolicy": "Les chemins de resolution et parametres prives restent exclusivement MJ/serveur."
+   },
+   "engine": {
+    "kind": "mirrors",
+    "publicConfig": {
+     "grid": 5,
+     "sourceRow": 1,
+     "targetRow": 0,
+     "mirrors": [
+      [
+       1,
+       1
+      ],
+      [
+       1,
+       3
+      ],
+      [
+       3,
+       3
+      ],
+      [
+       3,
+       0
+      ]
+     ],
+     "initial": [
+      "/",
+      "/",
+      "/",
+      "/"
+     ]
+    },
+    "serverConfig": {}
+   }
+  },
+  {
+   "schemaVersion": "2.0.0",
+   "id": "und-dalles-indivisibles",
+   "title": "Le Passage des Pierres Indivisibles",
+   "category": "epreuve_interactive",
+   "family": "mathematiques",
+   "mechanic": "prime-tiles",
+   "difficulty": "avancee",
+   "estimatedMinutes": 12,
+   "tags": [
+    "LoreSmith",
+    "Underdark"
+   ],
+   "canonStatus": "proposition_non_canonique",
+   "prerequisiteEvidenceIds": [],
+   "player": {
+    "location": "Pont suspendu sur une faille",
+    "sceneDescription": "Une passerelle de quatre rangées de quatre dalles traverse une fosse. Chaque dalle porte un nombre ancien. Une inscription parle des « entiers que nul partage équitable n’épuise, hormis l’unité et la totalité ».",
+    "objective": "Atteindre la dernière dalle, en se déplaçant orthogonalement seulement.",
+    "observations": [
+     {
+      "id": "obs-1",
+      "text": "Le point de départ porte le nombre 2 et le seuil opposé porte 17.",
+      "available": "initiale"
+     },
+     {
+      "id": "obs-2",
+      "text": "Une dalle franchie est stable uniquement si son nombre répond à la règle de l’inscription.",
+      "available": "initiale"
+     },
+     {
+      "id": "obs-3",
+      "text": "Les sauts en diagonale sont impossibles.",
+      "available": "inspection_sans_jet"
+     }
+    ],
+    "interactions": [
+     "Examiner un nombre",
+     "Se déplacer sur une dalle adjacente",
+     "Revenir à la dernière dalle stable après erreur"
+    ],
+    "readables": [
+     {
+      "source": "Déclaration du tailleur",
+      "text": "Ni l’unité, ni l’assemblage en parts égales ne suffisent au pont."
+     }
+    ],
+    "accessibility": "Tout retour sonore a un equivalent visuel et textuel. Pas de pression chronometree obligatoire."
+   },
+   "gm": {
+    "deductionPath": [
+     "La règle désigne les nombres premiers, définis sans exiger une connaissance d’une langue fictive.",
+     "Les dalles sûres forment une chaîne orthogonale continue.",
+     "Le chemin 2,3,5,7,11,13,17 rejoint le seuil sans traverser une dalle composée.",
+     "La progression peut être démontrée avant de se déplacer."
+    ],
+    "solutionRationale": "La règle désigne les nombres premiers, définis sans exiger une connaissance d’une langue fictive. Les dalles sûres forment une chaîne orthogonale continue. Le chemin 2,3,5,7,11,13,17 rejoint le seuil sans traverser une dalle composée. La progression peut être démontrée avant de se déplacer.",
+    "acceptedAlternativeApproaches": [
+     "Mettre en place une corde et traverser avec un test de groupe ou un coût narrative si le MJ l’accepte"
+    ],
+    "nonSpoilerHints": [
+     {
+      "tier": 1,
+      "text": "Le texte définit une propriété des nombres, pas leur ordre d’écriture.",
+      "kind": "orientation"
+     },
+     {
+      "tier": 2,
+      "text": "Pour certains nombres, un partage en groupes égaux laisse toujours un reste.",
+      "kind": "nouvelle_observation"
+     },
+     {
+      "tier": 3,
+      "text": "Comparer les dalles voisines avant de choisir un déplacement évite une erreur.",
+      "kind": "rappel_de_regle"
+     }
+    ],
+    "skillChecks": [
+     {
+      "skill": "Investigation",
+      "dc": "a_configurer",
+      "result": "Repérer de minuscules fissures sur une dalle déjà effondrée."
+     }
+    ],
+    "failureForward": {
+     "onWrongAnswer": "Une dalle bascule puis revient; retour au dernier point sûr avec une conséquence non mortelle.",
+     "threshold": 1,
+     "cost": "Ressource de sécurité ou temps."
+    },
+    "alternateBypass": "Le MJ accepte une approche de jeu de rôle cohérente avec un coût fictionnel proportionné.",
+    "solutionPolicy": "chemin_valide_plusieurs_mouvements",
+    "readyBeforeSession": [
+     "Tous les documents requis sont accessibles avant le verrou.",
+     "Le MJ connait la preuve de resolution.",
+     "La consequence et la voie alternative sont configurees.",
+     "Le puzzle est testable clavier et tactile."
+    ],
+    "spoilerPolicy": "Les chemins de resolution et parametres prives restent exclusivement MJ/serveur."
+   },
+   "engine": {
+    "kind": "prime-tiles",
+    "publicConfig": {
+     "grid": [
+      [
+       2,
+       4,
+       6,
+       9
+      ],
+      [
+       3,
+       5,
+       8,
+       10
+      ],
+      [
+       12,
+       7,
+       11,
+       13
+      ],
+      [
+       14,
+       15,
+       16,
+       17
+      ]
+     ],
+     "start": [
+      0,
+      0
+     ],
+     "end": [
+      3,
+      3
+     ],
+     "move": "orthogonal"
+    },
+    "serverConfig": {}
+   }
+  },
+  {
+   "schemaVersion": "2.0.0",
+   "id": "und-fresques-exil",
+   "title": "Les Cinq Fresques de l’Exil",
+   "category": "epreuve_interactive",
+   "family": "recoupement",
+   "mechanic": "chronology",
+   "difficulty": "avancee",
+   "estimatedMinutes": 17,
+   "tags": [
+    "LoreSmith",
+    "Underdark",
+    "Archives",
+    "Drehjur"
+   ],
+   "canonStatus": "proposition_non_canonique",
+   "prerequisiteEvidenceIds": [],
+   "player": {
+    "location": "Archives effondrées des anciens clans",
+    "sceneDescription": "Cinq fresques représentant des événements ont été séparées lors d’un effondrement. Un archiviste explique que remettre leur ordre chronologique révèle une chambre cachée.",
+    "objective": "Replacer les fresques dans l’ordre des événements.",
+    "observations": [
+     {
+      "id": "obs-1",
+      "text": "Les fresques sont nommées Fondation, Couronne, Pacte, Rupture et Exil.",
+      "available": "initiale"
+     },
+     {
+      "id": "obs-2",
+      "text": "Aucun des fragments ne donne une date exacte.",
+      "available": "initiale"
+     },
+     {
+      "id": "obs-3",
+      "text": "Les témoignages sont issus de supports différents et se complètent.",
+      "available": "inspection_sans_jet"
+     }
+    ],
+    "interactions": [
+     "Consulter quatre fragments",
+     "Déplacer les cinq fresques",
+     "Soumettre une chronologie"
+    ],
+    "readables": [
+     {
+      "source": "Tablette brisée",
+      "text": "Les fondations furent achevées avant que l’on couronne le premier gardien."
+     },
+     {
+      "source": "Lettre scellée",
+      "text": "Le pacte fut juré alors que le gardien portait déjà la couronne."
+     },
+     {
+      "source": "Rapport de guet",
+      "text": "La rupture du pacte précéda l’évacuation."
+     },
+     {
+      "source": "Confession de l’archiviste",
+      "text": "Personne n’évoquait la rupture avant la signature du pacte."
+     }
+    ],
+    "accessibility": "Tout retour sonore a un equivalent visuel et textuel. Pas de pression chronometree obligatoire."
+   },
+   "gm": {
+    "deductionPath": [
+     "Chaque fragment impose une relation avant/après distincte.",
+     "Ces contraintes forment une chaîne sans ambiguïté : Fondation avant Couronne, avant Pacte, avant Rupture, avant Exil.",
+     "Une autre chronologie viole nécessairement au moins un des quatre témoignages."
+    ],
+    "solutionRationale": "Chaque fragment impose une relation avant/après distincte. Ces contraintes forment une chaîne sans ambiguïté : Fondation avant Couronne, avant Pacte, avant Rupture, avant Exil. Une autre chronologie viole nécessairement au moins un des quatre témoignages.",
+    "acceptedAlternativeApproaches": [
+     "Le groupe peut trouver un registre indépendant et l’utiliser comme preuve narrative"
+    ],
+    "nonSpoilerHints": [
+     {
+      "tier": 1,
+      "text": "Aucune fresque ne décrit directement la totalité du récit.",
+      "kind": "orientation"
+     },
+     {
+      "tier": 2,
+      "text": "La chronologie peut être reconstituée en notant seulement « avant » et « après ».",
+      "kind": "nouvelle_observation"
+     },
+     {
+      "tier": 3,
+      "text": "Une affirmation tardive peut confirmer la position d’un événement antérieur.",
+      "kind": "rappel_de_regle"
+     }
+    ],
+    "skillChecks": [
+     {
+      "skill": "Histoire",
+      "dc": "a_configurer",
+      "result": "Identifier l’usage des sceaux sur les fragments, sans révéler leur ordre."
+     },
+     {
+      "skill": "Investigation",
+      "dc": "a_configurer",
+      "result": "Retrouver les quatre fragments si l’un a été manqué."
+     }
+    ],
+    "failureForward": {
+     "onWrongAnswer": "Les fresques glissent à leur position initiale, sans perte de ressources.",
+     "threshold": 0,
+     "cost": "Temps fictionnel."
+    },
+    "alternateBypass": "Le MJ accepte une approche de jeu de rôle cohérente avec un coût fictionnel proportionné.",
+    "solutionPolicy": "une_reponse_unique",
+    "readyBeforeSession": [
+     "Tous les documents requis sont accessibles avant le verrou.",
+     "Le MJ connait la preuve de resolution.",
+     "La consequence et la voie alternative sont configurees.",
+     "Le puzzle est testable clavier et tactile."
+    ],
+    "spoilerPolicy": "Les chemins de resolution et parametres prives restent exclusivement MJ/serveur."
+   },
+   "engine": {
+    "kind": "chronology",
+    "publicConfig": {
+     "events": [
+      "Fondation",
+      "Couronne",
+      "Pacte",
+      "Rupture",
+      "Exil"
+     ],
+     "initialOrder": [
+      "Rupture",
+      "Fondation",
+      "Exil",
+      "Pacte",
+      "Couronne"
+     ],
+     "relations": [
+      [
+       "Fondation",
+       "Couronne"
+      ],
+      [
+       "Couronne",
+       "Pacte"
+      ],
+      [
+       "Pacte",
+       "Rupture"
+      ],
+      [
+       "Rupture",
+       "Exil"
+      ]
+     ]
+    },
+    "serverConfig": {
+     "orderedEvents": [
+      "Fondation",
+      "Couronne",
+      "Pacte",
+      "Rupture",
+      "Exil"
+     ]
+    }
+   }
+  },
+  {
+   "schemaVersion": "2.0.0",
+   "id": "und-syntaxe-glyphes",
+   "title": "La Syntaxe des Glyphes Jumeaux",
+   "category": "epreuve_interactive",
+   "family": "analogie",
+   "mechanic": "glyphs",
+   "difficulty": "accessible",
+   "estimatedMinutes": 10,
+   "tags": [
+    "LoreSmith",
+    "Underdark"
+   ],
+   "canonStatus": "proposition_non_canonique",
+   "prerequisiteEvidenceIds": [],
+   "player": {
+    "location": "Vestibule des scribes",
+    "sceneDescription": "Sur trois stèles figurent des couples de glyphes et leur signification. Une quatrième stèle demande une idée nouvelle exprimée avec le même langage.",
+    "objective": "Composer la paire de glyphes signifiant « lueur mouvante ».",
+    "observations": [
+     {
+      "id": "obs-1",
+      "text": "Chaque stèle présente exactement deux signes dans le même ordre.",
+      "available": "initiale"
+     },
+     {
+      "id": "obs-2",
+      "text": "Un seul mot change entre les traductions de deux premières stèles.",
+      "available": "initiale"
+     },
+     {
+      "id": "obs-3",
+      "text": "La quatrième expression utilise uniquement des mots connus sur les trois précédentes.",
+      "available": "inspection_sans_jet"
+     }
+    ],
+    "interactions": [
+     "Comparer les inscriptions",
+     "Choisir un premier et un second glyphe",
+     "Valider la traduction"
+    ],
+    "readables": [
+     {
+      "source": "Stèle 1",
+      "text": "◈ ∴ : roche immobile"
+     },
+     {
+      "source": "Stèle 2",
+      "text": "◈ ≋ : roche mouvante"
+     },
+     {
+      "source": "Stèle 3",
+      "text": "✦ ∴ : lueur immobile"
+     },
+     {
+      "source": "Stèle 4",
+      "text": "Composer : lueur mouvante"
+     }
+    ],
+    "accessibility": "Tout retour sonore a un equivalent visuel et textuel. Pas de pression chronometree obligatoire."
+   },
+   "gm": {
+    "deductionPath": [
+     "Le premier glyphe code le nom, car ◈ reste commun aux deux exemples de roche.",
+     "Le second glyphe code l’état, car ∴ reste commun aux deux exemples immobiles.",
+     "Les signes requis pour lueur mouvante sont donc ✦ et ≋."
+    ],
+    "solutionRationale": "Le premier glyphe code le nom, car ◈ reste commun aux deux exemples de roche. Le second glyphe code l’état, car ∴ reste commun aux deux exemples immobiles. Les signes requis pour lueur mouvante sont donc ✦ et ≋.",
+    "acceptedAlternativeApproaches": [
+     "Un personnage parlant une langue ancienne peut repérer la structure grammaticale, pas recevoir la réponse"
+    ],
+    "nonSpoilerHints": [
+     {
+      "tier": 1,
+      "text": "Les répétitions dans les deux langues portent une information.",
+      "kind": "orientation"
+     },
+     {
+      "tier": 2,
+      "text": "Quand un terme reste identique, cherchez le signe qui reste identique.",
+      "kind": "nouvelle_observation"
+     },
+     {
+      "tier": 3,
+      "text": "On peut combiner deux éléments déjà observés sans inventer de nouveau signe.",
+      "kind": "rappel_de_regle"
+     }
+    ],
+    "skillChecks": [
+     {
+      "skill": "Arcane",
+      "dc": "a_configurer",
+      "result": "Constater que tous les glyphes ont été tracés par la même main."
+     }
+    ],
+    "failureForward": {
+     "onWrongAnswer": "La stèle répète le terme proposé sans confirmer; une nouvelle comparaison est possible.",
+     "threshold": 0,
+     "cost": "Temps fictionnel."
+    },
+    "alternateBypass": "Le MJ accepte une approche de jeu de rôle cohérente avec un coût fictionnel proportionné.",
+    "solutionPolicy": "une_reponse_unique",
+    "readyBeforeSession": [
+     "Tous les documents requis sont accessibles avant le verrou.",
+     "Le MJ connait la preuve de resolution.",
+     "La consequence et la voie alternative sont configurees.",
+     "Le puzzle est testable clavier et tactile."
+    ],
+    "spoilerPolicy": "Les chemins de resolution et parametres prives restent exclusivement MJ/serveur."
+   },
+   "engine": {
+    "kind": "glyphs",
+    "publicConfig": {
+     "firstGlyphs": [
+      "◈",
+      "✦",
+      "☷"
+     ],
+     "secondGlyphs": [
+      "∴",
+      "≋",
+      "⌁"
+     ]
+    },
+    "serverConfig": {
+     "correct": [
+      "✦",
+      "≋"
+     ]
+    }
+   }
+  },
+  {
+   "schemaVersion": "2.0.0",
+   "id": "und-cycle-deux-marees",
+   "title": "Le Calendrier des Deux Marées",
+   "category": "epreuve_interactive",
+   "family": "maths_cycles",
+   "mechanic": "cycles",
+   "difficulty": "experte",
+   "estimatedMinutes": 18,
+   "tags": [
+    "LoreSmith",
+    "Underdark"
+   ],
+   "canonStatus": "proposition_non_canonique",
+   "prerequisiteEvidenceIds": [],
+   "player": {
+    "location": "Observatoire des nappes souterraines",
+    "sceneDescription": "Deux aiguilles parcourent des cadrans distincts : la première revient au sommet chaque quatre pulsations, la seconde chaque six. Elles ont coïncidé à la pulsation zéro, et l’observateur est à la pulsation sept.",
+    "objective": "Déterminer la prochaine pulsation où les deux aiguilles reviendront ensemble au sommet.",
+    "observations": [
+     {
+      "id": "obs-1",
+      "text": "Le compteur central indique sept pulsations écoulées.",
+      "available": "initiale"
+     },
+     {
+      "id": "obs-2",
+      "text": "Un tour du premier cadran correspond à quatre pulsations, du second à six.",
+      "available": "initiale"
+     },
+     {
+      "id": "obs-3",
+      "text": "L’ouverture exige un alignement au sommet, et non un simple croisement des aiguilles.",
+      "available": "inspection_sans_jet"
+     }
+    ],
+    "interactions": [
+     "Faire défiler les pulsations",
+     "Observer les deux aiguilles",
+     "Arrêter l’horloge à la prochaine coïncidence au sommet"
+    ],
+    "readables": [
+     {
+      "source": "Journal des marées",
+      "text": "Ce qui partage un même retour n’a nul besoin de suivre la même période."
+     }
+    ],
+    "accessibility": "Tout retour sonore a un equivalent visuel et textuel. Pas de pression chronometree obligatoire."
+   },
+   "gm": {
+    "deductionPath": [
+     "Les retours au sommet surviennent aux multiples de 4 pour la première aiguille et de 6 pour l’autre.",
+     "Leur premier retour commun strictement après la pulsation 7 est le plus petit multiple commun supérieur à 7.",
+     "La réponse est la pulsation 12."
+    ],
+    "solutionRationale": "Les retours au sommet surviennent aux multiples de 4 pour la première aiguille et de 6 pour l’autre. Leur premier retour commun strictement après la pulsation 7 est le plus petit multiple commun supérieur à 7. La réponse est la pulsation 12.",
+    "acceptedAlternativeApproaches": [
+     "Modélisation par jetons ou calcul mental, à la convenance des joueurs"
+    ],
+    "nonSpoilerHints": [
+     {
+      "tier": 1,
+      "text": "Chaque aiguille a un rythme constant.",
+      "kind": "orientation"
+     },
+     {
+      "tier": 2,
+      "text": "La bonne pulsation doit convenir aux deux rythmes simultanément.",
+      "kind": "nouvelle_observation"
+     },
+     {
+      "tier": 3,
+      "text": "Les coïncidences se répètent périodiquement.",
+      "kind": "rappel_de_regle"
+     }
+    ],
+    "skillChecks": [
+     {
+      "skill": "Investigation",
+      "dc": "a_configurer",
+      "result": "Confirmer que les aiguilles reviennent exactement sur la marque du sommet."
+     }
+    ],
+    "failureForward": {
+     "onWrongAnswer": "Une décharge lumineuse mineure fait perdre une pulsation fictionnelle; l’horloge reste consultable.",
+     "threshold": 0,
+     "cost": "Temps fictionnel."
+    },
+    "alternateBypass": "Le MJ accepte une approche de jeu de rôle cohérente avec un coût fictionnel proportionné.",
+    "solutionPolicy": "une_reponse_unique",
+    "readyBeforeSession": [
+     "Tous les documents requis sont accessibles avant le verrou.",
+     "Le MJ connait la preuve de resolution.",
+     "La consequence et la voie alternative sont configurees.",
+     "Le puzzle est testable clavier et tactile."
+    ],
+    "spoilerPolicy": "Les chemins de resolution et parametres prives restent exclusivement MJ/serveur."
+   },
+   "engine": {
+    "kind": "cycles",
+    "publicConfig": {
+     "periods": [
+      4,
+      6
+     ],
+     "currentTick": 7,
+     "maxTick": 36
+    },
+    "serverConfig": {
+     "nextAlignment": 12
+    }
+   }
+  },
+  {
+   "schemaVersion": "2.0.0",
+   "id": "und-balance-gardiens",
+   "title": "Les Offrandes du Gardien Silencieux",
+   "category": "epreuve_interactive",
+   "family": "combinatoire",
+   "mechanic": "equal-balance",
+   "difficulty": "accessible",
+   "estimatedMinutes": 12,
+   "tags": [
+    "LoreSmith",
+    "Underdark"
+   ],
+   "canonStatus": "proposition_non_canonique",
+   "prerequisiteEvidenceIds": [],
+   "player": {
+    "location": "Portail des intendants",
+    "sceneDescription": "Six poids gravés « 1, 2, 3, 4, 6, 8 » reposent au pied d’une balance à deux plateaux. Un oracle exige d’employer toutes les pièces et de faire porter la même charge aux deux mains.",
+    "objective": "Placer tous les poids sur les deux plateaux pour obtenir exactement le même total.",
+    "observations": [
+     {
+      "id": "obs-1",
+      "text": "Les valeurs sont des poids, pas des symboles d’ordre.",
+      "available": "initiale"
+     },
+     {
+      "id": "obs-2",
+      "text": "Aucun poids ne peut être laissé au sol.",
+      "available": "initiale"
+     },
+     {
+      "id": "obs-3",
+      "text": "Les plateaux révèlent leur équilibre sans indiquer la solution.",
+      "available": "inspection_sans_jet"
+     }
+    ],
+    "interactions": [
+     "Placer un poids à gauche ou à droite",
+     "Comparer les totaux",
+     "Valider l’équilibre"
+    ],
+    "readables": [
+     {
+      "source": "Sentence du gardien",
+      "text": "Le partage juste n’abandonne rien."
+     }
+    ],
+    "accessibility": "Tout retour sonore a un equivalent visuel et textuel. Pas de pression chronometree obligatoire."
+   },
+   "gm": {
+    "deductionPath": [
+     "La somme des poids vaut 24, chaque côté doit donc porter 12.",
+     "Plusieurs répartitions peuvent donner douze; toute partition de l’ensemble est acceptée.",
+     "Exemple : 8+4 contre 6+3+2+1, ou leurs inverses."
+    ],
+    "solutionRationale": "La somme des poids vaut 24, chaque côté doit donc porter 12. Plusieurs répartitions peuvent donner douze; toute partition de l’ensemble est acceptée. Exemple : 8+4 contre 6+3+2+1, ou leurs inverses.",
+    "acceptedAlternativeApproaches": [
+     "Utiliser un objet de campagne comme contrepoids, sous arbitrage MJ"
+    ],
+    "nonSpoilerHints": [
+     {
+      "tier": 1,
+      "text": "Le nombre de pièces de chaque côté n’a aucune importance.",
+      "kind": "orientation"
+     },
+     {
+      "tier": 2,
+      "text": "Calculez d’abord le poids total avant de choisir une répartition.",
+      "kind": "nouvelle_observation"
+     },
+     {
+      "tier": 3,
+      "text": "L’objectif porte sur les sommes, pas sur les valeurs individuelles.",
+      "kind": "rappel_de_regle"
+     }
+    ],
+    "skillChecks": [
+     {
+      "skill": "Investigation",
+      "dc": "a_configurer",
+      "result": "Vérifier que les chiffres sur les masses représentent bien leur poids."
+     }
+    ],
+    "failureForward": {
+     "onWrongAnswer": "La balance émet un son grave et se remet à zéro sans blessure.",
+     "threshold": 0,
+     "cost": "Temps fictionnel."
+    },
+    "alternateBypass": "Le MJ accepte une approche de jeu de rôle cohérente avec un coût fictionnel proportionné.",
+    "solutionPolicy": "toutes_partitions_equilibrees",
+    "readyBeforeSession": [
+     "Tous les documents requis sont accessibles avant le verrou.",
+     "Le MJ connait la preuve de resolution.",
+     "La consequence et la voie alternative sont configurees.",
+     "Le puzzle est testable clavier et tactile."
+    ],
+    "spoilerPolicy": "Les chemins de resolution et parametres prives restent exclusivement MJ/serveur."
+   },
+   "engine": {
+    "kind": "equal-balance",
+    "publicConfig": {
+     "weights": [
+      1,
+      2,
+      3,
+      4,
+      6,
+      8
+     ],
+     "targetPerSide": 12
+    },
+    "serverConfig": {}
+   }
+  },
+  {
+   "schemaVersion": "2.0.0",
+   "id": "und-engrenages-couronne",
+   "title": "La Couronne des Engrenages",
+   "category": "epreuve_interactive",
+   "family": "causalite",
+   "mechanic": "gears",
+   "difficulty": "accessible",
+   "estimatedMinutes": 8,
+   "tags": [
+    "LoreSmith",
+    "Underdark"
+   ],
+   "canonStatus": "proposition_non_canonique",
+   "prerequisiteEvidenceIds": [],
+   "player": {
+    "location": "Pont roulant de l’arsenal",
+    "sceneDescription": "Quatre roues dentées A, B, C et D sont alignées. Les contacts entre roues inversent le sens de rotation. Deux roues intermédiaires X et Y peuvent être introduites entre C et D.",
+    "objective": "Faire tourner D dans le même sens que A en choisissant les roues intermédiaires.",
+    "observations": [
+     {
+      "id": "obs-1",
+      "text": "Avec quatre roues en contact, D tourne en sens inverse de A.",
+      "available": "initiale"
+     },
+     {
+      "id": "obs-2",
+      "text": "Chaque roue supplémentaire ajoute un contact et inverse à nouveau le sens transmis.",
+      "available": "initiale"
+     },
+     {
+      "id": "obs-3",
+      "text": "X et Y peuvent être insérées indépendamment.",
+      "available": "inspection_sans_jet"
+     }
+    ],
+    "interactions": [
+     "Insérer ou retirer X",
+     "Insérer ou retirer Y",
+     "Faire tourner le volant A",
+     "Observer le sens de D"
+    ],
+    "readables": [
+     {
+      "source": "Gravure du contremaître",
+      "text": "Une couronne n’accepte ni recul, ni contradiction."
+     }
+    ],
+    "accessibility": "Tout retour sonore a un equivalent visuel et textuel. Pas de pression chronometree obligatoire."
+   },
+   "gm": {
+    "deductionPath": [
+     "Chaque contact inverse le sens.",
+     "Avec 4 roues, on a 3 contacts, nombre impair : sortie opposée à l’entrée.",
+     "Insérer exactement une roue ajoute un contact : 4 contacts, sortie dans le même sens.",
+     "Avec zéro ou deux roues insérées, la sortie tourne à contresens."
+    ],
+    "solutionRationale": "Chaque contact inverse le sens. Avec 4 roues, on a 3 contacts, nombre impair : sortie opposée à l’entrée. Insérer exactement une roue ajoute un contact : 4 contacts, sortie dans le même sens. Avec zéro ou deux roues insérées, la sortie tourne à contresens.",
+    "acceptedAlternativeApproaches": [
+     "Le MJ peut autoriser la construction d’une transmission improvisée avec de vraies ressources"
+    ],
+    "nonSpoilerHints": [
+     {
+      "tier": 1,
+      "text": "Observez non seulement le mouvement, mais son sens.",
+      "kind": "orientation"
+     },
+     {
+      "tier": 2,
+      "text": "Ajouter une roue modifie la relation entre les deux extrémités.",
+      "kind": "nouvelle_observation"
+     },
+     {
+      "tier": 3,
+      "text": "Deux changements de sens opposés finissent par se compenser.",
+      "kind": "rappel_de_regle"
+     }
+    ],
+    "skillChecks": [
+     {
+      "skill": "Investigation",
+      "dc": "a_configurer",
+      "result": "Repérer les points où les engrenages se touchent."
+     }
+    ],
+    "failureForward": {
+     "onWrongAnswer": "Le pont reste immobile; un tour d’essai ne cause pas de dégât.",
+     "threshold": 0,
+     "cost": "Temps fictionnel."
+    },
+    "alternateBypass": "Le MJ accepte une approche de jeu de rôle cohérente avec un coût fictionnel proportionné.",
+    "solutionPolicy": "deux_configurations_valides",
+    "readyBeforeSession": [
+     "Tous les documents requis sont accessibles avant le verrou.",
+     "Le MJ connait la preuve de resolution.",
+     "La consequence et la voie alternative sont configurees.",
+     "Le puzzle est testable clavier et tactile."
+    ],
+    "spoilerPolicy": "Les chemins de resolution et parametres prives restent exclusivement MJ/serveur."
+   },
+   "engine": {
+    "kind": "gears",
+    "publicConfig": {
+     "baseGearIds": [
+      "A",
+      "B",
+      "C",
+      "D"
+     ],
+     "optionalGearIds": [
+      "X",
+      "Y"
+     ],
+     "targetRelativeDirection": "same"
+    },
+    "serverConfig": {}
+   }
+  },
+  {
+   "schemaVersion": "2.0.0",
+   "id": "und-reseau-lueurs",
+   "title": "Le Réseau des Quatre Lueurs",
+   "category": "epreuve_interactive",
+   "family": "systemes",
+   "mechanic": "light-network",
+   "difficulty": "experte",
+   "estimatedMinutes": 18,
+   "tags": [
+    "LoreSmith",
+    "Underdark"
+   ],
+   "canonStatus": "proposition_non_canonique",
+   "prerequisiteEvidenceIds": [],
+   "player": {
+    "location": "Salle de surveillance d’une porte magique",
+    "sceneDescription": "Quatre pierres lumineuses entourent un disque central. Chaque contact sur une pierre modifie plusieurs lueurs, sans qu’un ordre apparent ne soit indiqué. Le disque doit être entièrement illuminé.",
+    "objective": "Déduire les interdépendances et obtenir les quatre lueurs allumées.",
+    "observations": [
+     {
+      "id": "obs-1",
+      "text": "Une pression agit sur la pierre touchée ainsi que sur ses deux voisines sur l’anneau.",
+      "available": "initiale"
+     },
+     {
+      "id": "obs-2",
+      "text": "Presser deux fois une même pierre ramène les lueurs à leur état précédent.",
+      "available": "initiale"
+     },
+     {
+      "id": "obs-3",
+      "text": "Le dispositif peut être réinitialisé sans punition.",
+      "available": "inspection_sans_jet"
+     }
+    ],
+    "interactions": [
+     "Toucher une pierre",
+     "Observer les effets voisins",
+     "Réinitialiser les lueurs",
+     "Valider le disque totalement allumé"
+    ],
+    "readables": [
+     {
+      "source": "Devise des veilleurs",
+      "text": "La lueur d’une pierre appartient aussi aux deux qui la jouxtent."
+     }
+    ],
+    "accessibility": "Tout retour sonore a un equivalent visuel et textuel. Pas de pression chronometree obligatoire."
+   },
+   "gm": {
+    "deductionPath": [
+     "Le réseau se comporte comme un système binaire où chaque action est réversible.",
+     "Observer le résultat de chaque pression permet d’inférer les influences locales.",
+     "On peut raisonner en termes de parité des pressions et viser une configuration de quatre pierres allumées.",
+     "Le mécanisme accepte toutes les suites de touches qui atteignent l’état final, même si elles sont longues."
+    ],
+    "solutionRationale": "Le réseau se comporte comme un système binaire où chaque action est réversible. Observer le résultat de chaque pression permet d’inférer les influences locales. On peut raisonner en termes de parité des pressions et viser une configuration de quatre pierres allumées. Le mécanisme accepte toutes les suites de touches qui atteignent l’état final, même si elles sont longues.",
+    "acceptedAlternativeApproaches": [
+     "Modifier les lueurs via magie ou pièces conductrices, sous arbitrage MJ"
+    ],
+    "nonSpoilerHints": [
+     {
+      "tier": 1,
+      "text": "Le dispositif répond aux mêmes règles à chaque essai.",
+      "kind": "orientation"
+     },
+     {
+      "tier": 2,
+      "text": "Ce qui s’allume peut aussi s’éteindre : observez les voisins.",
+      "kind": "nouvelle_observation"
+     },
+     {
+      "tier": 3,
+      "text": "Plusieurs manipulations identiques peuvent neutraliser leurs effets.",
+      "kind": "rappel_de_regle"
+     }
+    ],
+    "skillChecks": [
+     {
+      "skill": "Arcane",
+      "dc": "a_configurer",
+      "result": "Constater qu’il n’y a pas de réponse aléatoire des cristaux."
+     }
+    ],
+    "failureForward": {
+     "onWrongAnswer": "Une courte pulsation dérange le groupe mais n’empêche aucun nouvel essai.",
+     "threshold": 0,
+     "cost": "Temps fictionnel."
+    },
+    "alternateBypass": "Le MJ accepte une approche de jeu de rôle cohérente avec un coût fictionnel proportionné.",
+    "solutionPolicy": "toute_configuration_cible_atteinte",
+    "readyBeforeSession": [
+     "Tous les documents requis sont accessibles avant le verrou.",
+     "Le MJ connait la preuve de resolution.",
+     "La consequence et la voie alternative sont configurees.",
+     "Le puzzle est testable clavier et tactile."
+    ],
+    "spoilerPolicy": "Les chemins de resolution et parametres prives restent exclusivement MJ/serveur."
+   },
+   "engine": {
+    "kind": "light-network",
+    "publicConfig": {
+     "count": 4,
+     "initial": [
+      true,
+      false,
+      false,
+      true
+     ],
+     "target": [
+      true,
+      true,
+      true,
+      true
+     ],
+     "neighbors": "cycle_plus_self"
+    },
+    "serverConfig": {}
+   }
+  }
+ ]
+}

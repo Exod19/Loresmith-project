@@ -145,6 +145,34 @@ function objectArt(o: BattleObject): ReactNode {
           <path d={`M${x - 0.42} ${y - 0.42}L${x + 0.42} ${y + 0.42}M${x + 0.42} ${y - 0.42}L${x - 0.42} ${y + 0.42}`} stroke="#2b1d10" strokeWidth={0.04} opacity={0.7} />
         </g>
       );
+    case 'coffre':
+      return (
+        <g transform={`translate(${x} ${y}) rotate(${o.rot ?? 0})`}>
+          <rect x={-0.34} y={-0.22} width={0.7} height={0.48} rx={0.05} fill="#000" opacity={0.4} transform="translate(0.05 0.07)" />
+          <rect x={-0.34} y={-0.24} width={0.68} height={0.48} rx={0.05} fill="url(#wood-shade)" stroke="#2b1d10" strokeWidth={0.035} />
+          <path d="M-0.34 -0.06H0.34" stroke="#2b1d10" strokeWidth={0.03} />
+          {[-0.24, 0.24].map((u) => <path key={u} d={`M${u} -0.24V0.24`} stroke="#8a7a5a" strokeWidth={0.05} />)}
+          <rect x={-0.05} y={-0.1} width={0.1} height={0.1} rx={0.015} fill="#c9a24a" stroke="#3b2a12" strokeWidth={0.015} />
+        </g>
+      );
+    case 'commode':
+      return (
+        <g transform={`translate(${x} ${y}) rotate(${o.rot ?? 0})`}>
+          <rect x={-0.42} y={-0.3} width={0.84} height={0.6} fill="#000" opacity={0.4} transform="translate(0.05 0.07)" />
+          <rect x={-0.42} y={-0.3} width={0.84} height={0.6} rx={0.03} fill="url(#wood-shade)" stroke="#2b1d10" strokeWidth={0.035} />
+          {[-0.1, 0.1].map((v) => <path key={v} d={`M-0.42 ${v}H0.42`} stroke="#2b1d10" strokeWidth={0.025} />)}
+          {[-0.2, 0, 0.2].map((v) => <circle key={v} cx={0} cy={v} r={0.03} fill="#c9a24a" />)}
+        </g>
+      );
+    case 'autel':
+      return (
+        <g>
+          <circle cx={x + 0.05} cy={y + 0.07} r={0.46} fill="#000" opacity={0.4} />
+          <circle cx={x} cy={y} r={0.45} fill="url(#rock-shade)" stroke="#2b2620" strokeWidth={0.03} />
+          <circle cx={x} cy={y} r={0.3} fill="none" stroke="#c9a24a" strokeWidth={0.025} opacity={0.75} />
+          <path d={`M${x} ${y - 0.22}L${x + 0.19} ${y + 0.11}L${x - 0.19} ${y + 0.11}Z`} fill="none" stroke="#c9a24a" strokeWidth={0.02} opacity={0.75} />
+        </g>
+      );
     case 'fleurs':
       return [0, 1, 2, 3, 4].map((i) => {
         const a = (seed(o.id + i) % 628) / 100, k = (seed(o.id + i + 'r') % 30) / 100;
@@ -170,6 +198,17 @@ function objectArt(o: BattleObject): ReactNode {
   return null;
 }
 
+/** Cadenas : porte, herse ou objet verrouillé par une énigme (visible de tous : c'est un fait du monde). */
+function LockMark({ x, y }: { x: number; y: number }) {
+  return (
+    <g className="surface-lock" transform={`translate(${x} ${y})`}>
+      <circle r={0.2} fill="#120d08" stroke="#c9a24a" strokeWidth={0.025} />
+      <path d="M-0.07 -0.01V-0.07A0.07 0.07 0 0 1 0.07 -0.07V-0.01" fill="none" stroke="#e2c26a" strokeWidth={0.03} />
+      <rect x={-0.1} y={-0.02} width={0.2} height={0.14} rx={0.02} fill="#e2c26a" />
+    </g>
+  );
+}
+
 /** Éléments posés (rochers, arbres, ponts…). `ghost` : cachés aux joueurs, estompés pour le MJ. */
 export function ObjectsLayer({ objects, selectedId }: { objects: BattleObject[]; selectedId?: string | null }) {
   // Ponts d'abord (au ras de l'eau), puis le reste ; les arbres en dernier (leur feuillage passe au-dessus).
@@ -179,6 +218,7 @@ export function ObjectsLayer({ objects, selectedId }: { objects: BattleObject[];
       {[...objects].sort((a, b) => order(a) - order(b)).map((o) => (
         <g key={o.id} opacity={o.hidden ? 0.5 : 1}>
           {objectArt(o)}
+          {o.lock && !o.lock.solved && <LockMark x={o.x + 0.3} y={o.y - 0.3} />}
           {selectedId === o.id && <circle cx={o.x} cy={o.y} r={OBJECT_DEF[o.kind]?.deck ? 0.3 : (OBJECT_DEF[o.kind]?.radius ?? 0.4) + 0.12} fill="none" stroke="#ecd289" strokeWidth={0.06} strokeDasharray="0.12 0.08" />}
         </g>
       ))}
@@ -195,7 +235,15 @@ export function WallsLayer({ walls, selectedId }: { walls: BattleWall[]; selecte
   return (
     <g className="surface-walls" pointerEvents="none">
       {walls.map((w) => {
-        if (w.kind === 'porte' || w.kind === 'herse') return <DoorArt key={w.id} w={w} selected={selectedId === w.id} />;
+        if (w.kind === 'porte' || w.kind === 'herse') {
+          const [a, c] = [w.points[0], w.points[1] ?? w.points[0]];
+          return (
+            <g key={w.id}>
+              <DoorArt w={w} selected={selectedId === w.id} />
+              {w.lock && !w.lock.solved && !w.open && <LockMark x={(a[0] + c[0]) / 2} y={(a[1] + c[1]) / 2} />}
+            </g>
+          );
+        }
         const s = WALL_STYLE[w.kind] ?? WALL_STYLE.mur;
         const d = pathOf(w.points, false);
         return (
