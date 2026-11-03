@@ -88,6 +88,7 @@ import { entityFromSrd, generateEntities, normalizeEntity, xpForCr } from './bes
 import CreaturePicker from './bestiary/CreaturePicker';
 import { heroSaveProfs, heroSaves } from './combat/saves';
 import { revealIn } from './shell/reveal';
+import { PuzzleContext } from './puzzles/context';
 import AoePanel from './combat/AoePanel';
 import UnderdarkImport from './bestiary/UnderdarkImport';
 import { underdarkIdOf } from './bestiary/underdark.js';
@@ -4784,6 +4785,8 @@ function seedUniverse() {
     assets: {},
     libraryEntries: {},
     chatThreads: {},
+    puzzles: {},
+    clues: {},
     combat: { combatants: [], round: 1 },
     log: [],
   };
@@ -5022,6 +5025,20 @@ function reducer(s, a) {
       delete chatThreads[a.id];
       return { ...s, chatThreads };
     }
+    // Énigmes et carnet d'indices du groupe (cf. src/puzzles) : rattachés à l'univers actif.
+    case 'UPSERT_PUZZLE':
+    case 'UPSERT_CLUE': {
+      const key = a.type === 'UPSERT_PUZZLE' ? 'puzzles' : 'clues';
+      const cur = (s[key] || {})[a.item.id];
+      return { ...s, [key]: { ...(s[key] || {}), [a.item.id]: { ...cur, ...a.item, universeId: a.item.universeId ?? cur?.universeId ?? s.activeUniverseId, updatedAt: now() } } };
+    }
+    case 'DELETE_PUZZLE':
+    case 'DELETE_CLUE': {
+      const key = a.type === 'DELETE_PUZZLE' ? 'puzzles' : 'clues';
+      const next = { ...(s[key] || {}) };
+      delete next[a.id];
+      return { ...s, [key]: next };
+    }
     case 'COMBAT_SET':
       return { ...s, combat: { ...s.combat, ...a.patch } };
     // Documents reçus du serveur par la synchronisation (src/sync).
@@ -5152,6 +5169,8 @@ export default function App() {
             assets: parsed.assets || {},
             libraryEntries: parsed.libraryEntries || {},
             chatThreads: parsed.chatThreads || {},
+            puzzles: parsed.puzzles || {},
+            clues: parsed.clues || {},
             combat: parsed.combat || { combatants: [], round: 1 },
             log: parsed.log || [],
           },
@@ -5231,6 +5250,22 @@ export default function App() {
     e.target.value = '';
   }
 
+  // Énigmes et carnet de l'univers actif, pour les cartes (cf. src/puzzles/context.ts). Avant tout retour anticipé :
+  // l'ordre des hooks ne doit pas dépendre du chargement.
+  const activeU = state?.activeUniverseId;
+  const puzzleLibrary = useMemo(() => {
+    const mine = (obj) => Object.values(obj || {}).filter((x) => x.universeId === activeU);
+    return {
+      universeId: activeU,
+      puzzles: mine(state?.puzzles),
+      clues: mine(state?.clues),
+      savePuzzle: (item) => dispatch({ type: 'UPSERT_PUZZLE', item }),
+      deletePuzzle: (id) => dispatch({ type: 'DELETE_PUZZLE', id }),
+      saveClue: (item) => dispatch({ type: 'UPSERT_CLUE', item }),
+      deleteClue: (id) => dispatch({ type: 'DELETE_CLUE', id }),
+    };
+  }, [activeU, state?.puzzles, state?.clues]);
+
   if (!hydrated || !state)
     return (
       <>
@@ -5271,6 +5306,7 @@ export default function App() {
 
   return (
     <AIContext.Provider value={{ ai, setAI }}>
+    <PuzzleContext.Provider value={puzzleLibrary}>
       <>
         <style>{STYLE}</style>
         <div className="ls-root lsx-root">
@@ -5480,6 +5516,7 @@ export default function App() {
           {toast && <div className="toast">{toast}</div>}
         </div>
       </>
+    </PuzzleContext.Provider>
     </AIContext.Provider>
   );
 }

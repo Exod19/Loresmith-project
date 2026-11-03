@@ -88,7 +88,7 @@ const api = {
 /** L'univers d'exemple créé au premier lancement, jamais modifié ni utilisé : il ne part pas sur le serveur. */
 function seedSkipper(persisted) {
   const used = new Set();
-  for (const c of ['characters', 'campaigns', 'npcs', 'quests', 'assets', 'libraryEntries', 'maps', 'chatThreads']) for (const v of Object.values(persisted[c] || {})) used.add(v.universeId);
+  for (const c of ['characters', 'campaigns', 'npcs', 'quests', 'assets', 'libraryEntries', 'maps', 'chatThreads', 'puzzles', 'clues']) for (const v of Object.values(persisted[c] || {})) used.add(v.universeId);
   return (doc) => doc.type === 'universe' && doc.data?.name === 'The Sundered Reach' && /^A coastal frontier of drowned ruins/.test(doc.data?.lore || '') && !used.has(doc.id);
 }
 

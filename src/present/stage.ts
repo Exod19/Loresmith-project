@@ -69,7 +69,9 @@ export type PlayerBoard =
     /** Terrain en couches (sol du fond, zones, éléments visibles, murs), et règles par case : le même calcul que chez le MJ. */
     ground?: TerrainId; surface?: { zones?: TerrainZone[]; objects?: BattleObject[]; walls?: BattleWall[] }; rules?: SurfaceRules;
     /** Zones d'effet posées par le MJ : contour exact et cases touchées. */
-    aoes?: AoeView[] };
+    aoes?: AoeView[];
+    /** Énigme montrée aux joueurs (porte, coffre…) : vue filtrée, sans solution (cf. puzzles/engine.ts). */
+    puzzle?: import('../puzzles/types').PublicPuzzle };
 
 /** Zone d'effet telle qu'on la dessine : contour (tracé SVG, en cases), cases touchées, nom. */
 export type AoeView = { id: string; label: string; outline: string; cells: number[]; at: [number, number]; draft?: boolean };
@@ -84,7 +86,7 @@ export type Stage =
 /** `move` : depuis l'écran joueur, un jeton est glissé sur une autre case (le MJ valide). */
 /** `fork` : à une bifurcation en chemin, les joueurs choisissent de sortir vers le passage ou de continuer. */
 /** `follow` : depuis la carte de navigation des joueurs, le groupe demande à suivre un chemin (le MJ valide ou fait l'épreuve). */
-export type StageMessage = { type: 'hello' } | { type: 'stage'; stage: Stage; at?: number } | { type: 'aim'; from: string; to: string } | { type: 'move'; id: string; x: number; y: number } | { type: 'follow'; featureId: string; dir?: 'a' | 'b' } | { type: 'pick'; featureId: string } | { type: 'fork'; key: string; choice: 'out' | 'on' };
+export type StageMessage = { type: 'hello' } | { type: 'stage'; stage: Stage; at?: number } | { type: 'aim'; from: string; to: string } | { type: 'move'; id: string; x: number; y: number } | { type: 'follow'; featureId: string; dir?: 'a' | 'b' } | { type: 'pick'; featureId: string } | { type: 'fork'; key: string; choice: 'out' | 'on' } | { type: 'puzzle'; action: import('../puzzles/types').PuzzleAction };
 
 const CHANNEL = 'loresmith:stage:v1';
 
@@ -114,6 +116,7 @@ const moveListeners = new Set<(id: string, x: number, y: number) => void>();
 const followListeners = new Set<(featureId: string, dir?: 'a' | 'b') => void>();
 const pickListeners = new Set<(featureId: string) => void>();
 const forkListeners = new Set<(key: string, choice: 'out' | 'on') => void>();
+const puzzleListeners = new Set<(action: import('../puzzles/types').PuzzleAction) => void>();
 
 /** À appeler une fois dans la console MJ : répond aux écrans joueurs qui se connectent. */
 export function hostStage() {
@@ -124,6 +127,7 @@ export function hostStage() {
     if (e.data?.type === 'move') { const { id, x, y } = e.data; moveListeners.forEach((f) => f(id, x, y)); return; }
     if (e.data?.type === 'follow') { const { featureId, dir } = e.data; followListeners.forEach((f) => f(featureId, dir)); return; }
     if (e.data?.type === 'fork') { const { key, choice } = e.data; forkListeners.forEach((f) => f(key, choice)); return; }
+    if (e.data?.type === 'puzzle') { const { action } = e.data; puzzleListeners.forEach((f) => f(action)); return; }
     if (e.data?.type === 'pick') { const { featureId } = e.data; pickListeners.forEach((f) => f(featureId)); return; }
     if (e.data?.type === 'stage') { if ((e.data.at ?? 0) > currentAt) superseded = true; return; }
     if (e.data?.type !== 'hello' || superseded) return;
@@ -184,4 +188,11 @@ export function onPlayerFork(listener: (key: string, choice: 'out' | 'on') => vo
   hostStage();
   forkListeners.add(listener);
   return () => { forkListeners.delete(listener); };
+}
+
+/** Préviens quand un joueur manipule le mécanisme d'une énigme (la console valide et applique). */
+export function onPlayerPuzzle(listener: (action: import('../puzzles/types').PuzzleAction) => void) {
+  hostStage();
+  puzzleListeners.add(listener);
+  return () => { puzzleListeners.delete(listener); };
 }

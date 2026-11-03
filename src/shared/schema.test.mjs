@@ -26,6 +26,8 @@ const grimoire = () => ({
     },
   },
   chatThreads: { t1: { id: 't1', universeId: 'u1', campaignId: 'k1', messages: [{ role: 'user', content: 'x' }] }, t2: { id: 't2', universeId: 'u1', campaignId: '', messages: [] } },
+  puzzles: { e1: { id: 'e1', universeId: 'u1', title: 'Brasiers', mechanic: 'braziers', player: { observations: [] }, gm: { nonSpoilerHints: [] }, engine: { publicConfig: { leverIds: ['A'] }, serverConfig: { brazierToLever: ['A'] } } } },
+  clues: { i1: { id: 'i1', universeId: 'u1', title: 'Page', kind: 'page', text: 'lisible', held: true, gmNote: 'dans la cave' } },
   combat: { combatants: [{ id: 'x' }], round: 3 },
   log: [{ id: 'g1', universeId: 'u1' }],
 });
@@ -77,5 +79,8 @@ test('redact : retire chaque champ secret, sans toucher au reste ni à l’origi
   const map = redact('map', s.maps.m1);
   assert.deepEqual(map.points, [{ id: 'p1', title: 'Porte', secret: false }], 'repère secret retiré, notes retirées');
   assert.deepEqual(map.overlay.markers, [{ id: 'r1', revealed: true, summary: 'vu' }], 'repère non révélé retiré');
+  assert.deepEqual(redact('puzzle', s.puzzles.e1).engine, { publicConfig: { leverIds: ['A'] } }, 'solution de l’énigme retirée');
+  assert.equal(redact('puzzle', s.puzzles.e1).gm, undefined);
+  assert.deepEqual(redact('clue', s.clues.i1), { id: 'i1', universeId: 'u1', title: 'Page', kind: 'page', text: 'lisible', held: true }, 'note du MJ retirée');
   assert.deepEqual(redact('universe', s.universes.u1), s.universes.u1, 'type sans secret : inchangé');
 });
