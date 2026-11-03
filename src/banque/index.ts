@@ -4,7 +4,8 @@
  */
 import { useSyncExternalStore } from 'react';
 import catalogue from './catalogue.json';
-import { bankUrl, hash, mipFor, norm, npcTraits, peoplesOf, pickPerson, tokenScale, withOverrides, type BankImage, type Peoples } from './banque';
+import { bankUrl, hash, mipFor, norm, npcTraits, peoplesOf, pickPerson, replacementFor, tokenScale, withOverrides, type BankImage, type Peoples } from './banque';
+import { mapStrings } from '../store/imageRefs';
 
 export * from './banque';
 
@@ -28,14 +29,23 @@ let overrides: Overrides = {};
 let images: BankImage[] = RAW;
 const listeners = new Set<() => void>();
 
+/** Images communes supprimées par l'administrateur : absentes partout, remplacées là où elles étaient posées. */
+let deleted: BankImage[] = [];
+/** Images du MJ retirées de son univers : leur adresse → celle de leur remplaçante. */
+const ownRetired = new Map<string, string>();
+
 function recompute() {
   overrides = { ...shared };
   for (const [id, p] of Object.entries(pending)) {
     if (p === null) delete overrides[id]; else overrides[id] = { ...overrides[id], ...p };
   }
-  images = [...withOverrides(RAW, overrides), ...own];
+  const all = withOverrides(RAW, overrides);
+  deleted = all.filter((i) => i.supprime);
+  images = [...all.filter((i) => !i.supprime), ...own];
+  retiredKey = `${deleted.map((i) => i.id).join(',')}|${[...ownRetired.keys()].length}`;
   listeners.forEach((f) => f());
 }
+let retiredKey = '';
 recompute();
 
 /** Catalogue courant (retouches comprises). */
@@ -243,3 +253,56 @@ export function creatureToken(name?: string, statId?: string, px = 128, vue: 'je
 
 /** Portrait (vue de face, en situation) d'une créature de la banque, d'après son nom : pour l'initiative et les fiches. */
 export const creaturePortrait = (name?: string, statId?: string, px = 256) => creatureToken(name, statId, px, 'portrait');
+
+/* ——— Suppression et remplacement ——— */
+
+/** Images communes supprimées (pour les rétablir). */
+export const bankDeleted = () => deleted;
+/** L'image qui prendra la place de celle-ci là où elle est posée. */
+export const bankReplacement = (img: BankImage | null | undefined) => replacementFor(images, img);
+
+/**
+ * Retire une image du MJ de la banque de son univers : ses emplacements prendront l'image la plus proche.
+ * (Le retrait de l'asset lui-même est fait par l'appelant.)
+ */
+export function retireOwn(img: BankImage) {
+  if (!img.src) return;
+  const repl = replacementFor(images.filter((i) => i.id !== img.id), img);
+  if (repl) ownRetired.set(img.src, bankSrc(repl, 512));
+  recompute();
+}
+
+const BANK_URL = /banque\/(?:textures|elements|personnages|creatures)\/([a-z0-9-]+)-(\d+)\.webp/g;
+
+/** Une adresse (ou un texte) avec les images supprimées remplacées par leurs remplaçantes. */
+export function rewriteBankString(s: string): string {
+  if (ownRetired.has(s)) return ownRetired.get(s)!;
+  if (!deleted.length || !s.includes('banque/')) return s;
+  return s.replace(BANK_URL, (all, id: string, size: string) => {
+    const gone = deleted.find((d) => d.id === id);
+    const repl = gone && replacementFor(images, gone);
+    if (!repl) return all;
+    const mips = repl.mips?.length ? repl.mips : [256, 512, 1024];
+    return bankUrl(repl, mips.find((m) => m >= Number(size)) ?? mips[mips.length - 1], '');
+  });
+}
+
+/** Clé qui change quand une image est supprimée, rétablie ou retirée : relance la réécriture du grimoire. */
+export function useBankRetired(): string {
+  return useSyncExternalStore(subscribe, () => retiredKey, () => retiredKey);
+}
+
+/** Collections du grimoire où une image de la banque peut être posée (cartes, portraits, jetons, combat…). */
+const HOLDERS = ['maps', 'assets', 'npcs', 'characters', 'libraryEntries', 'campaigns', 'combat'] as const;
+
+/** Changements à apporter au grimoire pour remplacer les images supprimées ; null s'il n'y a rien à faire. */
+export function bankRewriteState(state: Record<string, unknown>): Record<string, unknown> | null {
+  if (!deleted.length && !ownRetired.size) return null;
+  const patch: Record<string, unknown> = {};
+  for (const k of HOLDERS) {
+    if (!state[k]) continue;
+    const next = mapStrings(state[k], rewriteBankString);
+    if (next !== state[k]) patch[k] = next;
+  }
+  return Object.keys(patch).length ? patch : null;
+}

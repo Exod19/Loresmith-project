@@ -23,7 +23,7 @@ import React, {
 import { Download, Upload, Settings, ExternalLink, Undo2, Keyboard, MonitorPlay, Trash2, Move, Square, Ruler, Grid3x3, EyeOff, Eye, Eraser, Swords, SkipForward, Dices, Pencil, RefreshCw, Users, Plus, ChevronLeft, RotateCcw } from 'lucide-react';
 import MapsPage from './maps/MapsPage';
 import TableMap, { tableMapId } from './maps/TableMap';
-import { creaturePortrait, faceOf } from './banque';
+import { bankRewriteState, creaturePortrait, faceOf, useBankRetired } from './banque';
 import { setMapIntent } from './maps/intent';
 import { placeTokens as placeOnBoard, effectiveOf } from './maps/battle/placement';
 import { tacticalNotes, profileFromStat, coverAgainst } from './maps/battle/tactics';
@@ -5049,6 +5049,9 @@ function reducer(s, a) {
       delete next[a.id];
       return { ...s, [key]: next };
     }
+    // Banque : images supprimées remplacées là où elles étaient posées (cf. banque/index.ts, bankRewriteState).
+    case 'BANK_REWRITE':
+      return { ...s, ...a.patch };
     case 'COMBAT_SET':
       return { ...s, combat: { ...s.combat, ...a.patch } };
     // Documents reçus du serveur par la synchronisation (src/sync).
@@ -5260,6 +5263,15 @@ export default function App() {
     if (file) setImportFile(file);
     e.target.value = '';
   }
+
+  // Banque Loresmith : une image supprimée (ou retirée de l'univers) est remplacée partout où elle était posée.
+  const bankRetired = useBankRetired();
+  useEffect(() => {
+    if (!hydrated || !state) return;
+    const patch = bankRewriteState(state);
+    if (patch) dispatch({ type: 'BANK_REWRITE', patch });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bankRetired, hydrated]);
 
   // Énigmes et carnet de l'univers actif, pour les cartes (cf. src/puzzles/context.ts). Avant tout retour anticipé :
   // l'ordre des hooks ne doit pas dépendre du chargement.

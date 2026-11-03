@@ -5,7 +5,7 @@
  *    de l'univers (un contributeur ne change que les siennes).
  */
 import { useEffect, useMemo, useState } from 'react';
-import { bankAdmin, bankSrc, overridesOf, setOverride, syncBank, useBank, type BankImage } from './index';
+import { bankAdmin, bankDeleted, bankReplacement, bankSrc, overridesOf, retireOwn, setOverride, syncBank, useBank, type BankImage } from './index';
 
 type Fiche = { id: string; title: string; targetType: 'library' | 'npc' };
 type Props = {
@@ -42,6 +42,10 @@ export default function BanquePanel({ onBack, fiches, onAssign, onUpload, onEdit
   const [upKind, setUpKind] = useState<'portrait' | 'jeton' | 'element' | 'texture'>('jeton');
   const [upScope, setUpScope] = useState<'univers' | 'campagne'>('univers');
   const [busy, setBusy] = useState(false);
+  /** Sélection multiple (pour supprimer plusieurs images ajoutées par erreur) et vue des images supprimées. */
+  const [picking, setPicking] = useState(false);
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [showDeleted, setShowDeleted] = useState(false);
   const shown = useMemo(() => {
     const t = q.trim().toLowerCase();
     return images.filter((i) => (!type || i.type === type) && (!vue || i.vue === vue) && (!region || (i.region ?? ['surface']).includes(region))
@@ -53,6 +57,22 @@ export default function BanquePanel({ onBack, fiches, onAssign, onUpload, onEdit
   const admin = bankAdmin();
   // Image du MJ : il la change lui-même ; image commune : l'administrateur seulement.
   const canEdit = !!sel && (sel.assetId ? true : admin);
+  /** Peut-on supprimer cette image ? Les siennes toujours ; les communes, l'administrateur seulement. */
+  const canDelete = (img: BankImage) => !!img.assetId || admin;
+  /** Supprime définitivement : l'image quitte la banque, et chaque carte qui l'utilisait prend la plus proche. */
+  const removeImages = (list: BankImage[]) => {
+    const ok = list.filter(canDelete);
+    if (!ok.length) return;
+    const lines = ok.slice(0, 8).map((i) => { const r = bankReplacement(i); return `• ${i.nom} → ${r ? r.nom : 'rien (retirée sans remplaçante)'}`; }).join('\n');
+    const msg = `Supprimer définitivement ${ok.length > 1 ? `ces ${ok.length} images` : `« ${ok[0].nom} »`} ?\n\nElles disparaissent de la banque${ok.some((i) => !i.assetId) ? ' pour tous les MJ' : ''}, et les cartes qui les utilisent prennent automatiquement l’image la plus proche :\n${lines}${ok.length > 8 ? '\n…' : ''}`;
+    if (!window.confirm(msg)) return;
+    for (const i of ok) {
+      if (i.assetId) { retireOwn(i); onDeleteOwn(i.assetId); } else void setOverride(i.id, { supprime: true }).then(setMode);
+    }
+    setPicked(new Set());
+    setSelId(null);
+  };
+  const deletedList = bankDeleted();
   const edit = (patch: Partial<BankImage>) => {
     if (!sel || !canEdit) return;
     if (sel.assetId) onEditOwn(sel.assetId, patch); else void setOverride(sel.id, patch).then(setMode);
@@ -85,6 +105,11 @@ export default function BanquePanel({ onBack, fiches, onAssign, onUpload, onEdit
           <input className="maps-btn" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Chercher (nom, peuple, rôle, milieu…)" />
         </div>
         <div className="maps-actions banque-upload">
+          <button className={`maps-btn ${picking ? 'gold' : ''}`} aria-pressed={picking} onClick={() => { setPicking(!picking); setPicked(new Set()); }}>
+            {picking ? '✓ Sélection multiple' : '☐ Sélectionner plusieurs'}
+          </button>
+          {picking && <button className="maps-btn" disabled={!picked.size} onClick={() => removeImages(images.filter((i) => picked.has(i.id)))}>🗑 Supprimer la sélection ({picked.size})</button>}
+          {admin && deletedList.length > 0 && <button className={`maps-btn ${showDeleted ? 'gold' : ''}`} onClick={() => setShowDeleted(!showDeleted)}>Supprimées ({deletedList.length})</button>}
           <label className="maps-btn gold" aria-disabled={busy}>
             {busy ? 'Ajout…' : '＋ Ajouter une image'}
             <input type="file" accept="image/*" hidden disabled={busy} onChange={async (e) => {
@@ -108,13 +133,26 @@ export default function BanquePanel({ onBack, fiches, onAssign, onUpload, onEdit
       <div className="banque-body">
         <div className="banque-grid">
           {shown.map((i) => (
-            <button key={i.id} className={`banque-card${selId === i.id ? ' is-sel' : ''}${i.exclu ? ' is-off' : ''}`} onClick={() => setSelId(i.id)} title={i.titre}>
+            <button key={i.id} className={`banque-card${selId === i.id || picked.has(i.id) ? ' is-sel' : ''}${i.exclu ? ' is-off' : ''}`} aria-pressed={picking ? picked.has(i.id) : undefined} title={i.titre}
+              onClick={() => { if (!picking) { setSelId(i.id); return; } if (!canDelete(i)) return; const n = new Set(picked); if (n.has(i.id)) n.delete(i.id); else n.add(i.id); setPicked(n); }}>
+              {picking && <i className="banque-check" aria-hidden>{picked.has(i.id) ? '☑' : canDelete(i) ? '☐' : '🔒'}</i>}
               <img src={bankSrc(i, 120)} alt="" loading="lazy" className={i.type === 'texture' ? 'tex' : ''} />
               <span>{i.nom}{touched[i.id] ? ' ✎' : ''}</span>
               <small>{i.type === 'personnage' ? `${i.vue} · ${i.peuple || '?'}` : i.type === 'creature' ? `${i.vue} · ${size(i)}` : `${i.cat ?? ''} · ${size(i)}`}</small>
             </button>
           ))}
           {!shown.length && <p className="maps-hint">Aucune image ne correspond.</p>}
+          {showDeleted && (
+            <div className="banque-deleted">
+              <h5>Images supprimées (remplacées sur les cartes)</h5>
+              {deletedList.map((i) => (
+                <div key={i.id} className="banque-deleted-row">
+                  <img src={bankSrc(i, 60)} alt="" loading="lazy" /> <span>{i.nom}</span>
+                  <button className="maps-btn" onClick={() => { void setOverride(i.id, { supprime: false }).then(setMode); }}>Rétablir</button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {sel && (
@@ -122,7 +160,10 @@ export default function BanquePanel({ onBack, fiches, onAssign, onUpload, onEdit
             <img src={bankSrc(sel, 360)} alt={sel.nom} className={sel.type === 'texture' ? 'tex' : ''} />
             <p className="maps-sub">{sel.assetId ? `Ton image · ${sel.campaignId ? 'propre à ta campagne' : 'propre à cet univers'}` : `${sel.titre} · ${sel.mips.join(', ')} px`}</p>
             {!canEdit && <p className="maps-sub">Image commune : seul l’administrateur change ses étiquettes.</p>}
-            {sel.assetId && <button className="maps-btn" onClick={() => { if (window.confirm(`Retirer « ${sel.nom} » de la banque de cet univers ?`)) { onDeleteOwn(sel.assetId!); setSelId(null); } }}>Retirer cette image</button>}
+            {canDelete(sel)
+              ? <button className="maps-btn" onClick={() => removeImages([sel])}>🗑 Supprimer définitivement</button>
+              : <p className="maps-sub">Seul l’administrateur peut supprimer une image commune.</p>}
+            {canDelete(sel) && (() => { const r = bankReplacement(sel); return <p className="maps-sub">Sur les cartes, elle serait remplacée par : <b>{r ? r.nom : 'rien (aucune image proche)'}</b></p>; })()}
             <label>Nom <input className="maps-btn" disabled={!canEdit} value={sel.nom} onChange={(e) => edit({ nom: e.target.value })} /></label>
             {sel.type === 'personnage' ? (
               <>

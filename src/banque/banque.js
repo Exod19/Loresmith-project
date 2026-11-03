@@ -387,3 +387,35 @@ export function npcTraits({ name = '', role = '', desc = '', gender, race } = {}
   }
   return { ...(genre ? { genre } : {}), ...(peuple ? { peuple } : {}) };
 }
+
+/**
+ * Image qui remplace une image supprimée de la banque, là où elle était posée : la plus proche parmi celles qui
+ * restent (même type et même vue ; puis catégorie, usage, peuple, genre — obligatoire pour un personnage —,
+ * rôles, monde, milieux, taille). Toujours la même pour une même image. null : rien d'assez proche.
+ */
+export function replacementFor(images, img) {
+  if (!img) return null;
+  const size = (i) => (Array.isArray(i.taille) ? i.taille[0] * i.taille[1] : typeof i.taille === 'number' ? i.taille * i.taille : 0);
+  const common = (a = [], b = []) => a.filter((x) => b.includes(x)).length;
+  let best = null, bestScore = -Infinity;
+  for (const c of images) {
+    if (c.id === img.id || c.supprime || c.exclu || c.type !== img.type || c.vue !== img.vue) continue;
+    if (img.type === 'personnage' && img.genre && c.genre && c.genre !== img.genre) continue;
+    let s = 0;
+    if (img.cat && c.cat === img.cat) s += 6;
+    s += 2 * common(img.usage, c.usage);
+    if (img.forme && c.forme === img.forme) s += 2;
+    if (img.peuple && c.peuple === img.peuple) s += 5;
+    if (img.genre && c.genre === img.genre) s += 2;
+    s += common(img.roles, c.roles);
+    s += 2 * common(img.region, c.region);
+    s += common(img.milieux, c.milieux);
+    if (img.pose && c.pose === img.pose) s += 1;
+    const a = size(img), b = size(c);
+    if (a && b) s -= 2 * Math.abs(Math.log(a / b));
+    // Départage stable : la même image remplacée prend toujours le même remplaçant.
+    s += (hash(`${img.id}:${c.id}`) % 100) / 1000;
+    if (s > bestScore) { bestScore = s; best = c; }
+  }
+  return best;
+}

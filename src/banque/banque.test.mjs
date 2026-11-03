@@ -172,3 +172,16 @@ test('Échelle des jetons : un halfelin, un nain, un enfant sont plus petits qu�
   assert.ok(tokenScale({ type: 'personnage', peuple: 'humain', roles: ['enfant'] }) < h);
   assert.ok(tokenScale({ type: 'personnage', peuple: 'humain', angle: 'zenith' }) < h);
 });
+
+test('une image supprimée est remplacée par la plus proche (même type, catégorie, peuple, genre)', async () => {
+  const { replacementFor } = await import('./banque.js');
+  const img = (id, o) => ({ id, nom: id, type: 'element', vue: 'zenith', ratio: 1, couleur: '#000', mips: [256], milieux: [], climats: [], saisons: [], region: ['surface'], ...o });
+  const gone = img('chene', { cat: 'arbre', taille: [6, 6] });
+  const pool = [gone, img('rocher', { cat: 'rocher', taille: [6, 6] }), img('saule', { cat: 'arbre', taille: [5, 5] }), img('chene-geant', { cat: 'arbre', taille: [20, 20] }), img('pin-exclu', { cat: 'arbre', taille: [6, 6], exclu: true })];
+  assert.equal(replacementFor(pool, gone).id, 'saule', 'même catégorie, taille la plus proche, jamais une image exclue');
+  assert.equal(replacementFor(pool, gone).id, replacementFor(pool, gone).id, 'toujours la même');
+  const p = (id, o) => img(id, { type: 'personnage', vue: 'jeton', ...o });
+  const tav = p('taverniere', { peuple: 'nain', genre: 'f', roles: ['tavernier'] });
+  assert.equal(replacementFor([tav, p('cuisinier-nain', { peuple: 'nain', genre: 'm', roles: ['tavernier'] }), p('aubergiste', { peuple: 'humain', genre: 'f', roles: ['tavernier'] })], tav).id, 'aubergiste', 'le genre est respecté avant le peuple');
+  assert.equal(replacementFor([gone], gone), null, 'rien de proche : pas de remplaçante');
+});

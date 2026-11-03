@@ -20,6 +20,7 @@ test('Seul l’administrateur retouche la banque ; tous voient ses retouches', a
   assert.deepEqual(seen.roles, ['marchand']);
   assert.equal(seen.pirate, undefined, 'champ inconnu ignoré');
   assert.equal((await ana.call('PUT', '/api/banque/retouches/apple-merchant', { patch: { exclu: true } })).body.retouches['apple-merchant'].peuple, 'nain', 'les retouches se fusionnent');
+  assert.equal((await ana.call('PUT', '/api/banque/retouches/apple-merchant', { patch: { supprime: true } })).body.retouches['apple-merchant'].supprime, true, 'une image peut être supprimée de la banque');
   await ana.call('PUT', '/api/banque/retouches/apple-merchant', { patch: null });
   assert.equal((await ana.call('GET', '/api/banque/retouches')).body.retouches['apple-merchant'], undefined);
   assert.equal((await ana.call('PUT', '/api/banque/retouches/..%2Fx', { patch: {} })).status, 400);
