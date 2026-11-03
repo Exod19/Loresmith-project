@@ -11,6 +11,12 @@ import { coverageOf, isActive, newId, place, proposalsFor, validateArc, type Rea
 import { CRITICALITY, MEDIA, MEDIUM_LABEL, READINESS_LABEL, STATE_LABEL, type ClueDesign, type Gate, type KnowledgeAtom, type Medium, type MysteryArc, type SceneRef, type SceneSlot } from './types';
 import './mysteries.css';
 
+/** Ce que l'IA rend pour enrichir un mystère (tout est facultatif, et relu par le MJ). */
+type AiArc = {
+  atoms?: { statement?: unknown; criticality?: string; discoverableBy?: string[] }[];
+  designs?: { title?: unknown; media?: string; atoms?: number[]; playerContent?: unknown; gmIntent?: unknown; unique?: unknown }[];
+};
+
 export type CampaignLike = { id: string; title?: string; name?: string; scenes?: { id: string; title?: string; played?: boolean }[] };
 
 export { READINESS_LABEL };
@@ -35,10 +41,10 @@ export default function ArcEditor({ arc, campaigns, onClose }: { arc: MysteryArc
   const save = (next: MysteryArc) => lib.saveMystery({ ...next, updatedAt: Date.now() });
   const set = (patch: Partial<MysteryArc>) => save({ ...current, ...patch });
   const edit = <K extends 'knowledgeAtoms' | 'clueDesigns' | 'sceneSlots' | 'gates'>(key: K, id: string, patch: Partial<MysteryArc[K][number]>) =>
-    set({ [key]: (current[key] as any[]).map((x) => (x.id === id ? { ...x, ...patch } : x)) } as Partial<MysteryArc>);
+    set({ [key]: (current[key] as { id: string }[]).map((x) => (x.id === id ? { ...x, ...patch } : x)) } as Partial<MysteryArc>);
   const remove = (key: 'knowledgeAtoms' | 'clueDesigns' | 'sceneSlots' | 'gates', id: string) => {
     if (!confirm('Retirer cet élément ?')) return;
-    const next: MysteryArc = { ...current, [key]: (current[key] as any[]).filter((x) => x.id !== id) };
+    const next: MysteryArc = { ...current, [key]: (current[key] as { id: string }[]).filter((x) => x.id !== id) };
     // Un support ou un emplacement retiré emporte ses placements jamais montrés (ce qui a été vu reste dans l'historique).
     if (key === 'clueDesigns' || key === 'sceneSlots') next.manifestations = next.manifestations.filter((m) => (key === 'clueDesigns' ? m.clueDesignId : m.slotId) !== id || m.state !== 'slotted');
     save(next);
@@ -54,10 +60,10 @@ export default function ArcEditor({ arc, campaigns, onClose }: { arc: MysteryArc
       const gates = current.gates.map((g) => { const p = puzzleOf(g.puzzleId); return `- ${g.title}${p ? ` (énigme « ${p.title} » : ${(p.design?.laws ?? []).join(' ')} ; démonstration : ${(p.gm.deductionPath ?? []).join(' / ')})` : ''}`; }).join('\n');
       const system = 'Tu conçois des mystères à la Myst pour un jeu de rôle dark fantasy, en français. Un fait (KnowledgeAtom) est une règle stable du monde ; un support d’indice l’enseigne sans jamais donner la solution, le code ou le dernier geste. Varie les supports (journal, inscription, fresque, dialogue, expérience, observation du lieu). Chaque objet doit être intéressant en lui-même.';
       const user = `Mystère : ${current.title}. Question : ${current.synopsis || '—'}. Intention : ${current.intention || '—'}.\nVerrous :\n${gates || '—'}\nFaits déjà écrits : ${current.knowledgeAtoms.map((a) => a.statement).join(' | ') || 'aucun'}.\nRends {"atoms":[{"statement","criticality":"critical"|"supporting"|"enrichment","discoverableBy":["manifestation"|"local_observation"|"experiment"|"dialogue"]}],"designs":[{"title","media":"journal"|"inscription"|"fresque"|"schema"|"objet"|"dialogue"|"experience"|"environnement"|"chant"|"vision","atoms":[indices des faits],"playerContent","gmIntent","unique":bool}]}. 2 à 4 faits, 3 à 6 supports, au moins deux supports différents par fait critique.`;
-      const out = parseJson<any>(await askAI(system, user, { json: true }));
+      const out = parseJson<AiArc>(await askAI(system, user, { json: true }));
       if (!out) throw new Error('Réponse illisible de l’IA.');
-      const atoms: KnowledgeAtom[] = (out.atoms ?? []).map((a: any) => ({ id: newId('fait'), statement: String(a.statement ?? ''), criticality: ['critical', 'supporting', 'enrichment', 'optional'].includes(a.criticality) ? a.criticality : 'supporting', discoverableBy: (a.discoverableBy ?? ['manifestation']).filter((x: string) => DISCOVER.some((d) => d.id === x)) }));
-      const designs: ClueDesign[] = (out.designs ?? []).map((d: any) => ({ id: newId('support'), title: String(d.title ?? 'Indice'), media: MEDIA.some((m) => m.id === d.media) ? d.media : 'journal', knowledgeAtomIds: (d.atoms ?? []).map((i: number) => atoms[i]?.id).filter(Boolean), playerContent: String(d.playerContent ?? ''), gmIntent: String(d.gmIntent ?? ''), unique: !!d.unique }));
+      const atoms: KnowledgeAtom[] = (out.atoms ?? []).map((a) => ({ id: newId('fait'), statement: String(a.statement ?? ''), criticality: (['critical', 'supporting', 'enrichment', 'optional'].includes(a.criticality ?? '') ? a.criticality : 'supporting') as KnowledgeAtom['criticality'], discoverableBy: (a.discoverableBy ?? ['manifestation']).filter((x) => DISCOVER.some((d) => d.id === x)) as KnowledgeAtom['discoverableBy'] }));
+      const designs: ClueDesign[] = (out.designs ?? []).map((d) => ({ id: newId('support'), title: String(d.title ?? 'Indice'), media: (MEDIA.some((m) => m.id === d.media) ? d.media : 'journal') as Medium, knowledgeAtomIds: (d.atoms ?? []).map((i) => atoms[i]?.id).filter((x): x is string => !!x), playerContent: String(d.playerContent ?? ''), gmIntent: String(d.gmIntent ?? ''), unique: !!d.unique }));
       set({ knowledgeAtoms: [...current.knowledgeAtoms, ...atoms], clueDesigns: [...current.clueDesigns, ...designs] });
     } catch (e) { setAiError((e as Error).message); } finally { setBusy(false); }
   };
