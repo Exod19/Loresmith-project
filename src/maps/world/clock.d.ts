@@ -1,0 +1,13 @@
+import type { Period, Season } from './generate';
+export type Clock = { day: number; minute: number; seasonDay?: number };
+export const DAY: number;
+export const SEASON_DAYS: number;
+export const PERIOD_START: Record<Period, number>;
+export const DURATIONS: { round: number; fouille: number; reposCourt: number; reposLong: number; heure: number; jour: number; semaine: number; mois: number };
+export function periodOf(minute: number): Period;
+export function clockOf(world: { clock?: Clock; time?: Period } | undefined): Clock;
+export function tick<W extends { clock?: Clock; time?: Period; season?: Season }>(world: W, minutes: number): W & { clock: Clock; time: Period };
+export function untilPeriod(world: { clock?: Clock; time?: Period }, period: Period): number;
+export function clockLabel(c: Clock | { clock?: Clock; time?: Period }): string;
+export function stamp(c: Clock): number;
+export function elapsedLabel(from: number, to: number): string;

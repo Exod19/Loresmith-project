@@ -67,7 +67,11 @@ export interface WorldSpec { seed: number; name: string; cities: CitySpec[]; bin
   /** Lieux sauvages enregistrés (gardés, définis, découverts ou écartés), par clé de case (wilds.js). */
   wilds?: Record<string, WildRecord>;
   /** Densité des lieux sauvages (lot 27) : rares, normaux (par défaut) ou nombreux. */
-  wildDensity?: 'rare' | 'normale' | 'riche' }
+  wildDensity?: 'rare' | 'normale' | 'riche';
+  /** Horloge du monde (clock.js) : la date du jeu, qui avance avec les actions. */
+  clock?: import('./clock').Clock;
+  /** Mémoire du monde (worldEvents.js) : événements datés et situés. */
+  events?: import('./worldEvents').WorldEvent[] }
 
 /** Lieu sauvage enregistré : il ne bouge plus. `excluded` : écarté par le MJ (il n'apparaît plus, même en brouillon). */
 export interface WildRecord {

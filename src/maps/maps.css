@@ -313,3 +313,22 @@
 .maps-search-out { margin: 6px 0 0; font-style: italic; }
 .maps-search-out.k-notable { color: #ecd289; font-style: normal; font-weight: 600; }
 .maps-search-out.k-repere { color: #e08a70; }
+/* Journal du monde : horloge et mémoire (événements datés). */
+.journal h3 { margin: 4px 0; }
+.journal-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.journal-head { margin-top: 14px; align-items: center; }
+.journal-form { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 10px; }
+.journal-form textarea, .journal-notes textarea { width: 100%; resize: vertical; font: inherit; }
+.journal-notes { margin: 8px 0; }
+.journal-notes summary { cursor: pointer; color: #ecd289; }
+.journal-err { color: #e08a70; }
+.journal-proposals { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.journal-proposal { display: flex; gap: 8px; align-items: flex-start; }
+.journal-list { list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 8px; }
+.journal-list li { padding: 6px 8px; border-left: 3px solid rgba(236,210,137,.35); background: rgba(0,0,0,.15); border-radius: 4px; display: flex; flex-direction: column; gap: 2px; }
+.journal-list li.grav-3 { border-left-color: #c8463c; }
+.journal-list li.grav-2 { border-left-color: #d68c46; }
+.journal-list li p { margin: 4px 0 0; }
+.journal-ev-head { display: flex; justify-content: space-between; gap: 6px; align-items: center; }
+/* Onglets du panneau : ils passent à la ligne plutôt que de se couper (Journal, Exploration, Campagne…). */
+.maps-tabs { flex-wrap: wrap; row-gap: 2px; }
