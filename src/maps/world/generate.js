@@ -728,6 +728,8 @@ export function generateCity(rawSpec, planId, bindings = {}) {
       subtitle: bound ? (s.label && bound.type === s.type ? s.label : T.label) : (b.district === 'haute' && type !== 'manoir' ? 'Haute-ville' : undefined),
       summary: [bound?.summary, npcLine].filter(Boolean).join('\n\n') || undefined,
       entryId: bound?.entryId, relatedEntryIds: bound?.npcs?.map((n) => n.id),
+      // Nature et quartier du bâtiment : serrure, dormeurs et garde, la nuit (effraction.js).
+      batiment: { type, quartier: b.district },
       // Le château fait partie de la cité : jamais un brouillon.
       ...(b.district === 'chateau' ? { fixed: true } : {}),
     }, b.x, b.y);
