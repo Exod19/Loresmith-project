@@ -39,3 +39,20 @@ tracées dans `terrainV2` de `src/maps/world/generate.js`).
 - nature des routes et des sentiers ;
 - un monde à l'échelle a une route royale, des chemins et au moins trois sentiers, chacun relié à un lieu qui existe ;
 - le même monde à chaque génération.
+
+## Rencontres selon la voie (lot 28 bis)
+
+- La fréquence ne change pas : même jet de 1d20, même seuil.
+- Ce qu'on croise dépend de la voie suivie (`VOIE_TABLES` et `surfacePool`, `src/maps/atlas/surfaceEncounters.ts`).
+  La voie vient de la route suivie pendant le voyage, ou du bouton « Rencontre ici » sur sa fiche.
+
+| Voie | Ce qu'on y croise | Rencontres propres |
+|---|---|---|
+| Route royale | marchands, patrouilles (poids × 3), pèlerins ; brigands rares (× 0,15) ; jamais de loups ni de bêtes | grande caravane, courrier royal, marcheurs et colporteurs, péage du pont, relais de poste |
+| Chemin | la table de la route ; brigands un peu moins fréquents | marcheurs et colporteurs |
+| Sentier | mélange route et nature ; peu de marchands et de patrouilles | bûcherons, braconniers |
+| Piste forestière | brigands et loups (× 2,5), araignées (× 2), ours, gobelins ; jamais de caravane ni de patrouille | bûcherons, braconniers, worgs en chasse |
+| Sentier de montagne | ogres (× 2,5), orques, loups ; pas d'araignées | chevriers, contrebandiers du col, éboulement |
+
+- Sans voie (hors route), la table de toujours, sans les rencontres propres aux voies.
+- Test : `src/maps/atlas/voieEncounters.test.mjs`.

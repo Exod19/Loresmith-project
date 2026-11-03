@@ -690,7 +690,9 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     const h = party.halt;
     if (!h) return;
     // Carte du monde : rencontres de la surface, sur la route ; Atlas : celles de l'Underdark.
-    const ctx: EncCtx = rec.kind === 'monde' ? { zone: h.trailId === OFFROAD ? 'sauvage' : 'transit', depth: 1, place: h.trail, surface: true } : { zone: 'sauvage', depth: 3, place: h.trail };
+    // Sur une voie : même fréquence, mais on y croise ce qui y passe (caravanes sur la route royale, loups sur une piste).
+    const voie = h.trailId === OFFROAD ? undefined : data.features.find((f) => f.id === h.trailId)?.voie;
+    const ctx: EncCtx = rec.kind === 'monde' ? { zone: h.trailId === OFFROAD ? 'sauvage' : 'transit', depth: 1, place: h.trail, surface: true, ...(voie ? { voie } : {}) } : { zone: 'sauvage', depth: 3, place: h.trail };
     const e = rollEncounter(ctx, !roll);
     setEnc({ ctx, e });
     setOverlay({ ...overlay, alert: alertFor(e), party: { ...party, halt: { ...h, encounter: true } } });
@@ -1812,7 +1814,7 @@ function FeaturePanel({ face, f, dm, notes, defaultCtx, onClose, onRoll, reveale
               <input className="maps-btn" type="number" min={1} max={9} value={depth} onChange={(e) => setDepth(Math.max(1, Math.min(9, +e.target.value || 1)))} />
             </label>
           )}
-          <button className="maps-btn gold" onClick={() => onRoll({ zone, depth, place: f.title, surface })}>⚄ Rencontre ici (1d20)</button>
+          <button className="maps-btn gold" onClick={() => onRoll({ zone, depth, place: f.title, surface, ...(surface && f.voie && zone === 'transit' ? { voie: f.voie } : {}) })}>⚄ Rencontre ici (1d20)</button>
         </div>
       )}
     </div>
