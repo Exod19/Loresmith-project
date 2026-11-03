@@ -17,6 +17,8 @@ import React, {
   useCallback,
   useContext,
   createContext,
+  lazy,
+  Suspense,
 } from 'react';
 import { Download, Upload, Settings, ExternalLink, Undo2, Keyboard, MonitorPlay, Trash2, Move, Square, Ruler, Grid3x3, EyeOff, Eye, Eraser, Swords, SkipForward, Dices, Pencil, RefreshCw, Users, Plus, ChevronLeft, RotateCcw } from 'lucide-react';
 import MapsPage from './maps/MapsPage';
@@ -99,6 +101,9 @@ import ArchiveImagePicker from './media/ArchiveImagePicker';
 import { CLANS, archiveImageIndex, clanPaintBrief, compressImage, fileToCompressed, generatePortrait, makeToken, matchArchiveImages, matchPortrait } from './media/images';
 import { STATS } from './maps/atlas/statblocks';
 import { tokenImage } from './maps/battle/vignettes';
+
+// Section Énigmes : chargée à la demande (atelier, solveur, catalogue).
+const PuzzlesPage = lazy(() => import('./puzzles/PuzzlesPage'));
 
 /* ----------------------------- styles (gold / ornate) ------------------- */
 const STYLE = `
@@ -5468,6 +5473,10 @@ export default function App() {
                     ? <AoePanel key={slot.battle.aoeHit?.at} state={state} battle={slot.battle} setBattle={slot.setBattle} />
                     : <MapEncounter {...{ state, dispatch, party, npcs, flash }} {...slot} />}
               />
+            ) : view === 'enigmes' ? (
+              <Suspense fallback={<div className="empty"><Spin /></div>}>
+                <PuzzlesPage maps={state.maps || {}} campaigns={campaigns} />
+              </Suspense>
             ) : view === 'present' ? (
               <StageControl {...{ universe, state, flash }} />
             ) : view === 'quests' ? (

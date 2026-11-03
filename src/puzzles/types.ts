@@ -47,6 +47,8 @@ export interface Puzzle {
     readyBeforeSession?: string[];
   };
   engine: { kind?: Mechanic; publicConfig: any; serverConfig: any };
+  /** Conception (atelier, réservé au MJ) : place dans la campagne, lois, affirmations des statues, revue. */
+  design?: PuzzleDesign;
   createdAt?: number;
   updatedAt?: number;
 }
@@ -109,3 +111,24 @@ export interface PublicPuzzle {
 
 /** Action d'un joueur ou du MJ sur le mécanisme. */
 export type PuzzleAction = { type: string; [k: string]: unknown };
+
+/** Notes de conception de l'atelier. */
+export interface PuzzleDesign {
+  campaignId?: string;
+  sceneId?: string;
+  /** Objet verrouillé : porte, coffre, tiroirs, autel… */
+  objectKind?: string;
+  /** Rôle dramatique, enjeu. */
+  stakes?: string;
+  experience?: string;
+  /** Lois stables que suit le mécanisme. */
+  laws?: string[];
+  /** Statues : ce que dit chaque inscription (sert à écrire les textes et à vérifier la logique). */
+  claims?: { statue: string; is: boolean; chest: string }[];
+  /** Grille de qualité (0–5 par critère), notée par le MJ. */
+  scores?: Record<string, number>;
+  /** Relue par le MJ (jouabilité et canon) : une IA ne peut pas le cocher seule. */
+  reviewed?: boolean;
+  /** Proposée par l'IA (à relire). */
+  aiDraft?: boolean;
+}

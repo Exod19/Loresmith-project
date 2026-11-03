@@ -59,7 +59,7 @@ export const SECRET_FIELDS = {
   map: ['points[].notes', 'overlay.markers[].notes', 'overlay.markers[].groups'],
   chat: ['messages'],
   // Énigme : la solution, sa démonstration et les indices du MJ ; carnet : où trouver l'objet.
-  puzzle: ['gm', 'engine.serverConfig'],
+  puzzle: ['gm', 'engine.serverConfig', 'design'],
   clue: ['gmNote'],
 };
 

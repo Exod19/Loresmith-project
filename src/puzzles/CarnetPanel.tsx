@@ -12,6 +12,17 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 const KIND = Object.fromEntries(CLUE_KINDS.map((k) => [k.id, k]));
 
 export default function CarnetPanel({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="pz-modal" role="dialog" aria-label="Carnet du groupe">
+      <div className="pz-modal-box wide">
+        <CarnetManager onClose={onClose} />
+      </div>
+    </div>
+  );
+}
+
+/** Le carnet, dans une fenêtre (carte de combat) ou en pleine page (section Énigmes). */
+export function CarnetManager({ onClose }: { onClose?: () => void }) {
   const lib = usePuzzles();
   const [edit, setEdit] = useState<Clue | null>(null);
   if (!lib) return null;
@@ -34,13 +45,12 @@ export default function CarnetPanel({ onClose }: { onClose: () => void }) {
     </li>
   );
   return (
-    <div className="pz-modal" role="dialog" aria-label="Carnet du groupe">
-      <div className="pz-modal-box wide">
+      <>
         <header className="pz-modal-head">
           <b>📜 Carnet du groupe</b>
           <div className="pz-row pz-small">
             <button type="button" className="pz-btn" onClick={() => setEdit(blank())}>+ Nouvel indice</button>
-            <button type="button" className="pz-btn ghost" onClick={onClose}>Fermer</button>
+            {onClose && <button type="button" className="pz-btn ghost" onClick={onClose}>Fermer</button>}
           </div>
         </header>
         {edit ? <ClueForm clue={edit} onCancel={() => setEdit(null)} onSave={(c) => { lib.saveClue(c); setEdit(null); }} onDelete={lib.clues.some((c) => c.id === edit.id) ? () => { if (confirm(`Supprimer « ${edit.title} » ?`)) { lib.deleteClue(edit.id); setEdit(null); } } : undefined} /> : (
@@ -51,8 +61,7 @@ export default function CarnetPanel({ onClose }: { onClose: () => void }) {
             {rest.length ? <ul className="pz-list">{rest.map(row)}</ul> : <p className="pz-note">Prépare ici les symboles, pages et journaux que le groupe ramassera en chemin.</p>}
           </>
         )}
-      </div>
-    </div>
+      </>
   );
 }
 

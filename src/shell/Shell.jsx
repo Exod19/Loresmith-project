@@ -14,6 +14,7 @@ import {
   Menu,
   Monitor,
   Plus,
+  Puzzle,
   ScrollText,
   Search,
   Settings,
@@ -49,6 +50,7 @@ export const NAV = [
     icon: Feather,
     items: [
       { view: 'forge', label: 'Campagnes', icon: ScrollText },
+      { view: 'enigmes', label: 'Énigmes', icon: Puzzle },
       { view: 'chat', label: 'Générateur & voix', icon: Sparkles },
     ],
   },

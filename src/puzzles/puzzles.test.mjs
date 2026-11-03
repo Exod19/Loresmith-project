@@ -128,3 +128,40 @@ test('le MJ seul peut forcer, et une énigme résolue ouvre la porte qu’elle v
   assert.equal(next.walls[0].open, true);
   assert.equal(R.act(next, p, { type: 'jugs.fill', i: 0 }, 'player').error, 'L’épreuve est résolue');
 });
+
+test('le solveur vérifie les 12 modèles et repère les énigmes injouables', async () => {
+  const S = await load('./solver.ts');
+  const C = await load('./catalogue.ts');
+  const T = await load('./templates.ts');
+  for (const m of puzzles) {
+    const p = C.fromModel(m, 'u1');
+    const r = S.solvePuzzle(p);
+    assert.ok(r.ok, `${p.title} : ${r.errors.join(' ; ')}`);
+    assert.ok(!JSON.stringify(E.publicProjection(p, E.createState(p), [])).includes('relations'), 'relations des fresques côté MJ');
+  }
+  for (const mech of Object.keys(T.DEFAULTS)) assert.ok(S.solvePuzzle(T.blankPuzzle(mech, 'u1')).ok, `modèle vierge ${mech} injouable`);
+  const jugs = T.blankPuzzle('jugs', 'u1');
+  jugs.engine.publicConfig = { capacities: [4, 6], target: 3, initial: [0, 0] };
+  assert.equal(S.solvePuzzle(jugs).ok, false, '3 avec 4 et 6 : impossible (PGCD 2)');
+  const st = T.blankPuzzle('statues', 'u1');
+  const claims = [{ statue: 'A', is: false, chest: 'A' }, { statue: 'B', is: true, chest: 'B' }, { statue: 'C', is: false, chest: 'B' }, { statue: 'D', is: true, chest: 'A' }];
+  assert.match(S.solvePuzzle(st, { claims }).errors.join(), /Plusieurs|Aucun|désigne/);
+  assert.deepEqual(S.claimOf('A', 'La clé n’est pas dans le coffret A.'), { statue: 'A', is: false, chest: 'A' });
+});
+
+test('contrôle qualité : un indice qui donne la réponse bloque, une énigme relue et complète est prête', async () => {
+  const Q = await load('./quality.ts');
+  const S = await load('./solver.ts');
+  const C = await load('./catalogue.ts');
+  const p = C.fromModel(byMech.chronology, 'u1');
+  p.gm.nonSpoilerHints[0].text = 'Fondation, Couronne, Pacte, Rupture, Exil';
+  assert.ok(Q.checksOf(p, []).some((c) => c.level === 'bloquant' && /indice 1/.test(c.text)), 'la séquence complète dans un indice est bloquante');
+  const ok = C.fromModel(byMech.jugs, 'u1');
+  const solver = S.solvePuzzle(ok);
+  let r = Q.readiness(ok, Q.checksOf(ok, [], solver), solver);
+  assert.equal(r.ready, false);
+  assert.ok(r.reasons.some((x) => /relue/.test(x)), 'une énigme non relue par le MJ n’est jamais prête');
+  ok.design = { reviewed: true };
+  r = Q.readiness(ok, Q.checksOf(ok, [], solver), solver);
+  assert.ok(r.total >= 32 && r.ready, r.reasons.join(' ; '));
+});
