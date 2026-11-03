@@ -23,7 +23,7 @@ import React, {
 import { Download, Upload, Settings, ExternalLink, Undo2, Keyboard, MonitorPlay, Trash2, Move, Square, Ruler, Grid3x3, EyeOff, Eye, Eraser, Swords, SkipForward, Dices, Pencil, RefreshCw, Users, Plus, ChevronLeft, RotateCcw } from 'lucide-react';
 import MapsPage from './maps/MapsPage';
 import TableMap, { tableMapId } from './maps/TableMap';
-import { faceOf } from './banque';
+import { creaturePortrait, faceOf } from './banque';
 import { setMapIntent } from './maps/intent';
 import { placeTokens as placeOnBoard, effectiveOf } from './maps/battle/placement';
 import { tacticalNotes, profileFromStat, coverAgainst } from './maps/battle/tactics';
@@ -15515,6 +15515,8 @@ function combatantPictureOf(state, t) {
   return combatantArtOf(state, t)
     || (npc && portraitOf(state, npc))
     || (src.startsWith('srd:') && tokenImage({ kind: 'monster', statId: src.slice(4) }))
+    // Portrait d'une créature de la banque (dossiers « créatures » du Drive), d'après son nom.
+    || (!t.isPC && creaturePortrait(t.name))
     || t.image || '';
 }
 

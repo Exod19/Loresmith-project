@@ -144,7 +144,7 @@ TEXTURES = [
     (r'neige ivoire', dict(nom='Neige fraîche', cat='neige', taille=6, milieux=['campagne', 'ville', 'montagne', 'toundra'], climats=[F, T], saisons=['hiver'])),
     (r'pav.s m.di.vaux', dict(nom='Pavés', cat='paves', taille=4, milieux=['ville'])),
     (r'planches de bois', dict(nom='Planches', cat='planches', taille=3, milieux=['interieur', 'ponton'])),
-    (r'plateau granitique', dict(nom='Plateau rocheux', cat='roche', taille=8, milieux=['montagne'])),
+    (r'^(?!angle).*plateau granitique', dict(nom='Plateau rocheux', cat='roche', taille=8, milieux=['montagne'])),
     (r'sol brun granuleux', dict(nom='Terre battue', cat='terre', taille=5, milieux=['ville', 'campagne', 'route'])),
     (r'sol rocheux sombre', dict(nom='Roche sombre veinée', cat='roche', taille=6, milieux=['caverne'], region=['outreterre'])),
     (r'sol tropical', dict(nom='Sol de jungle', cat='humus', taille=5, milieux=['jungle'], climats=[TR, C])),
