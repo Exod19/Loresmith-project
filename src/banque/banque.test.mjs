@@ -172,3 +172,23 @@ test('Échelle des jetons : un halfelin, un nain, un enfant sont plus petits qu�
   assert.ok(tokenScale({ type: 'personnage', peuple: 'humain', roles: ['enfant'] }) < h);
   assert.ok(tokenScale({ type: 'personnage', peuple: 'humain', angle: 'zenith' }) < h);
 });
+
+test('surface et Outreterre ne se mêlent jamais : personnages et créatures d’un seul monde, tirage limité au sien', () => {
+  const imgs = JSON.parse(readFileSync(new URL('./catalogue.json', import.meta.url), 'utf8')).images;
+  for (const e of imgs.filter((i) => i.type === 'personnage' || i.type === 'creature')) assert.equal(e.region.length, 1, e.id);
+  const peoples = { main: ['moriquendi', 'drow', 'duergar', 'svirfnebelin', 'humain', 'nain'], others: [], banned: [] };
+  for (const region of ['surface', 'outreterre']) {
+    for (let i = 0; i < 60; i++) {
+      for (const vue of ['jeton', 'portrait']) {
+        const got = pickPerson(imgs, { vue, peoples, seed: `s${i}`, region });
+        if (got) assert.deepEqual(got.region, [region], got.id);
+      }
+    }
+  }
+  // Un jeton et son portrait jumeau : même monde, même type.
+  const byId = Object.fromEntries(imgs.map((i) => [i.id, i]));
+  for (const e of imgs.filter((i) => i.paire && byId[i.paire])) {
+    assert.equal(byId[e.paire].type, e.type, e.id);
+    assert.deepEqual(byId[e.paire].region, e.region, e.id);
+  }
+});

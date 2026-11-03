@@ -13,7 +13,8 @@ import {
 } from './combat';
 import { passiveOf } from '../atlas/trails';
 import { speedCells } from './ranges';
-import { tokenImage } from './vignettes';
+import { battleRegion, tokenImage } from './vignettes';
+import { faceOf } from '../../banque';
 import { iconFor } from './encounter';
 import type { BestiaryRef } from '../CampaignGuide';
 
@@ -222,7 +223,7 @@ export default function CombatPanel({ b, grid, place, selectedId, onSelect, set,
                   value={t.init ?? ''} onChange={(e) => patch(t.id, { init: e.target.value === '' ? undefined : Number(e.target.value) || 0 })}
                 />
                 <button className="combat-who" onClick={() => onSelect(t.id === selectedId ? null : t.id)}>
-                  <img src={tokenImage(t)} alt="" />
+                  <img src={tokenImage(t, battleRegion(b))} alt="" />
                   <span className="combat-name">{t.name}{!t.visible && <small title="Caché aux joueurs"> · caché</small>}</span>
                   {t.conditions?.length ? <span className="combat-conds">{t.conditions.join(' · ')}</span> : null}
                 </button>
@@ -252,7 +253,8 @@ export default function CombatPanel({ b, grid, place, selectedId, onSelect, set,
       {sheet && (
         <section className="maps-card combat-sheet">
           <div className="combat-sheet-head">
-            <img src={tokenImage(sheet)} alt="" />
+            {/* Image de fiche : le visage du jeton posé sur le plateau (son portrait jumeau), sinon le jeton lui-même. */}
+            <img src={faceOf(tokenImage(sheet, battleRegion(b)), 256) ?? tokenImage(sheet, battleRegion(b))} alt="" />
             <div>
               <h3>{sheet.name}</h3>
               <p className="maps-sub">{sheetStat?.meta ?? KIND_LABEL[sheet.kind]}</p>

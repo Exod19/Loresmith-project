@@ -23,7 +23,7 @@ import React, {
 import { Download, Upload, Settings, ExternalLink, Undo2, Keyboard, MonitorPlay, Trash2, Move, Square, Ruler, Grid3x3, EyeOff, Eye, Eraser, Swords, SkipForward, Dices, Pencil, RefreshCw, Users, Plus, ChevronLeft, RotateCcw } from 'lucide-react';
 import MapsPage from './maps/MapsPage';
 import TableMap, { tableMapId } from './maps/TableMap';
-import { creaturePortrait, faceOf } from './banque';
+import { faceOf } from './banque';
 import { setMapIntent } from './maps/intent';
 import { placeTokens as placeOnBoard, effectiveOf } from './maps/battle/placement';
 import { tacticalNotes, profileFromStat, coverAgainst } from './maps/battle/tactics';
@@ -100,7 +100,7 @@ import StatSheet from './bestiary/StatSheet';
 import ArchiveImagePicker from './media/ArchiveImagePicker';
 import { CLANS, archiveImageIndex, clanPaintBrief, compressImage, fileToCompressed, generatePortrait, makeToken, matchArchiveImages, matchPortrait } from './media/images';
 import { STATS } from './maps/atlas/statblocks';
-import { tokenImage } from './maps/battle/vignettes';
+import { battleRegion, tokenImage } from './maps/battle/vignettes';
 
 // Section Énigmes : chargée à la demande (atelier, solveur, catalogue).
 const PuzzlesPage = lazy(() => import('./puzzles/PuzzlesPage'));
@@ -13994,6 +13994,9 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
     // Sur la page Cartes, le plateau est celui de la carte ouverte ; sur la page Combat, celui lié au combat.
     const boardBattle = embedded ? embedded.battle : boundMapRec?.battle && battleKeyOf(boundMapRec) === c.battleKey ? boundMapRec.battle : null;
     const boardTokens = new Map((boardBattle?.tokens || []).map((t) => [t.id, t]));
+    // Visage d'un combattant posé sur le plateau : le portrait jumeau du jeton qu'on y voit (banque), pour que la fiche et
+    // l'initiative montrent la même personne ou la même créature que le plateau, et du même monde (surface, Outreterre).
+    const boardFace = (id) => { const bt = boardTokens.get(id); return bt ? faceOf(tokenImage(bt, battleRegion(boardBattle))) : undefined; };
     const setBoardBattle = embedded ? embedded.setBattle : (b) => dispatch({ type: 'UPDATE_MAP', id: boundMapRec.id, patch: { battle: b, updatedAt: Date.now() } });
     const hiddenCount = (boardBattle?.tokens || []).filter((t) => t.visible === false).length;
     /**
@@ -14180,7 +14183,7 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
                   t={selectedCombatant}
                   isActive={selectedCombatant.id === activeCombatant?.id}
                   activeName={activeCombatant?.name}
-                  art={combatantArtOf(state, selectedCombatant) || faceOf(boardTokens.get(selectedCombatant.id)?.image) || ''}
+                  art={boardFace(selectedCombatant.id) || combatantArtOf(state, selectedCombatant) || ''}
                   sourceNpc={npcs.find((n) => n.id === selectedCombatant.sourceId)}
                   variants={(() => { const src = npcs.find((n) => n.id === selectedCombatant.sourceId); return src ? siblingsOf(src, npcs) : null; })()}
                   onSwap={(n) => swapVariant(selectedCombatant, n)}
@@ -14319,7 +14322,7 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
           activeId={activeCombatant?.id}
           selectedId={selectedCombatant?.id}
           round={c.round || 1}
-          art={(t) => combatantPictureOf(state, t) || faceOf(boardTokens.get(t.id)?.image) || ''}
+          art={(t) => boardFace(t.id) || combatantPictureOf(state, t) || ''}
           boardTokens={boardTokens}
           onPick={(id) => { setSelectedTokenId(id); setTab('tour'); }}
           onNext={advanceTurn}
@@ -15515,8 +15518,6 @@ function combatantPictureOf(state, t) {
   return combatantArtOf(state, t)
     || (npc && portraitOf(state, npc))
     || (src.startsWith('srd:') && tokenImage({ kind: 'monster', statId: src.slice(4) }))
-    // Portrait d'une créature de la banque (dossiers « créatures » du Drive), d'après son nom.
-    || (!t.isPC && creaturePortrait(t.name))
     || t.image || '';
 }
 
@@ -15810,7 +15811,9 @@ function AttackPanel({ state, dispatch, battle, setBattle }) {
       <div className="attack-head">
         <div className="attack-duel">
           {[A, T].map((x, i) => {
-            const pic = combatantPictureOf(state, x) || (i === 0 ? tA.image : tT.image);
+            // Le visage du jeton posé sur le plateau d'abord : même personne, même créature, même monde.
+            const bt = i === 0 ? tA : tT;
+            const pic = faceOf(tokenImage(bt, battleRegion(battle))) || combatantPictureOf(state, x) || bt.image;
             return (
               <span key={x.id} className={`attack-duel-who ${x.isPC ? 'is-pc' : 'is-foe'}`}>
                 {pic ? <img src={pic} alt="" /> : <i aria-hidden="true">{x.isPC ? '🛡' : '👹'}</i>}

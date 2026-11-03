@@ -28,11 +28,18 @@ export const CATEGORY_IMG: Record<string, string> = {
 };
 
 /** Image d'un jeton : celle que le MJ a importée, sinon le jeton de la banque à son nom, sinon le portrait de la créature, sinon un jeton générique. */
-export function tokenImage(t: { kind: 'pc' | 'monster' | 'other'; statId?: string; image?: string; name?: string }): string {
+/**
+ * Monde d'un plateau, pour la banque : surface (plan d'une cité, du monde ou d'un lieu sauvage) ou Outreterre (plan de
+ * l'Atlas). Plateau vierge : inconnu, et la banque ne choisit rien.
+ */
+export const battleRegion = (b?: { local?: { surface?: unknown; nature?: boolean } } | null): 'surface' | 'outreterre' | undefined =>
+  !b?.local ? undefined : b.local.surface || b.local.nature ? 'surface' : 'outreterre';
+
+export function tokenImage(t: { kind: 'pc' | 'monster' | 'other'; statId?: string; image?: string; name?: string }, region?: string): string {
   if (t.image) return t.image;
   if (t.kind === 'pc') return vignette('jeton_joueur');
   // Monstre sans image : le jeton vu du dessus de la Banque Loresmith (dossiers « créatures »), s'il y en a un à son nom.
-  if (t.kind === 'monster' && t.name) { const bank = creatureToken(t.name, t.statId); if (bank) return bank; }
+  if (t.kind === 'monster' && t.name) { const bank = creatureToken(t.name, t.statId, region); if (bank) return bank; }
   if (t.statId && CREATURE[t.statId]) return vignette(CREATURE[t.statId]);
   if (t.kind === 'monster') return vignette('jeton_creature_defaut');
   return vignette('jeton_autre');

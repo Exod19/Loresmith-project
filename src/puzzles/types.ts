@@ -3,6 +3,13 @@
  * filtrée envoyée à l'écran joueur. La solution (`engine.serverConfig`, `gm`) ne quitte jamais la console MJ.
  */
 
+/**
+ * Valeur dont la forme dépend du mécanisme (configuration publique ou secrète, brouillon des joueurs) : chacun des
+ * douze mécanismes a la sienne (cf. templates.ts), lue champ par champ et validée par engine.ts.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- forme propre à chaque mécanisme, sans type commun
+export type Dyn = any;
+
 export type Mechanic =
   | 'braziers' | 'heavy-stone' | 'jugs' | 'statues' | 'mirrors' | 'prime-tiles'
   | 'chronology' | 'glyphs' | 'cycles' | 'equal-balance' | 'gears' | 'light-network';
@@ -46,7 +53,7 @@ export interface Puzzle {
     alternateBypass?: string;
     readyBeforeSession?: string[];
   };
-  engine: { kind?: Mechanic; publicConfig: any; serverConfig: any };
+  engine: { kind?: Mechanic; publicConfig: Dyn; serverConfig: Dyn };
   /** Conception (atelier, réservé au MJ) : place dans la campagne, lois, affirmations des statues, revue. */
   design?: PuzzleDesign;
   createdAt?: number;
@@ -88,7 +95,7 @@ export interface PuzzleState {
   puzzleId: string;
   revision: number;
   status: 'active' | 'solved' | 'paused';
-  draft: any;
+  draft: Dyn;
   attempts: number;
   hintLevel: number;
   sceneInspected: boolean;
@@ -103,8 +110,8 @@ export interface PublicPuzzle {
   title: string;
   mechanic: Mechanic;
   player: Omit<Puzzle['player'], 'readables'> & { readables: { source: string; text: string }[]; canInspectScene: boolean };
-  publicConfig: any;
-  state: { revision: number; status: PuzzleState['status']; draft: any; attempts: number; feedback: Feedback; hints: string[]; effects: { kind: string; text: string }[] };
+  publicConfig: Dyn;
+  state: { revision: number; status: PuzzleState['status']; draft: Dyn; attempts: number; feedback: Feedback; hints: string[]; effects: { kind: string; text: string }[] };
   /** Carnet du groupe : ce qu'il a ramassé. */
   carnet: { id: string; title: string; kind: ClueKind; text: string; image?: string }[];
 }

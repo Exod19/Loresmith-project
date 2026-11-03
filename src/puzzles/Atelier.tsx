@@ -16,6 +16,13 @@ import { DEFAULTS, EXPERIENCES, mechanicStart } from './templates';
 import type { Clue, Mechanic, Puzzle, PuzzleAction, PuzzleState } from './types';
 import './puzzles.css';
 
+/** Ce que l'IA rend pour remplir une énigme (tout est facultatif : on garde l'existant pour ce qui manque). */
+type AiPuzzle = {
+  title?: string; location?: string; sceneDescription?: string; objective?: string;
+  observations?: { text?: unknown; available?: string }[]; readables?: { source?: unknown; text?: unknown }[];
+  deductionPath?: unknown[]; hints?: unknown[]; onWrongAnswer?: string; alternateBypass?: string;
+};
+
 const uid = () => Math.random().toString(36).slice(2, 10);
 const clone = <T,>(o: T): T => JSON.parse(JSON.stringify(o));
 
@@ -83,7 +90,7 @@ export default function Atelier({ initial, campaigns = [], onClose }: { initial:
         camp ? `Campagne : ${camp.title ?? camp.name}.` : '',
         'Rends un objet : {"title","location","sceneDescription","objective","observations":[{"text","available":"initiale"|"inspection"}],"readables":[{"source","text"}],"deductionPath":[...],"hints":[3 textes : orienter, révéler une observation, rappeler la loi],"onWrongAnswer","alternateBypass"}. Au moins deux observations initiales et une à découvrir. Aucun indice ni observation ne contient la réponse.',
       ].filter(Boolean).join('\n');
-      const out = parseJson<any>(await askAI(system, user, { json: true }));
+      const out = parseJson<AiPuzzle>(await askAI(system, user, { json: true }));
       if (!out) throw new Error('Réponse illisible de l’IA.');
       const keepReadables = p.mechanic === 'statues';
       change({
@@ -94,13 +101,13 @@ export default function Atelier({ initial, campaigns = [], onClose }: { initial:
           location: pl.location || out.location || '',
           sceneDescription: out.sceneDescription ?? pl.sceneDescription,
           objective: out.objective ?? pl.objective,
-          observations: (out.observations ?? []).map((o: any) => ({ id: `obs-${uid()}`, text: String(o.text ?? ''), available: o.available === 'initiale' ? 'initiale' : 'inspection_sans_jet' })),
-          readables: keepReadables ? pl.readables : (out.readables ?? []).map((r: any) => ({ source: String(r.source ?? 'Document'), text: String(r.text ?? '') })),
+          observations: (out.observations ?? []).map((o) => ({ id: `obs-${uid()}`, text: String(o.text ?? ''), available: o.available === 'initiale' ? 'initiale' : 'inspection_sans_jet' })),
+          readables: keepReadables ? pl.readables : (out.readables ?? []).map((r) => ({ source: String(r.source ?? 'Document'), text: String(r.text ?? '') })),
         },
         gm: {
           ...gm,
           deductionPath: (out.deductionPath ?? []).map(String),
-          nonSpoilerHints: (out.hints ?? []).slice(0, 3).map((t: any, i: number) => ({ tier: i + 1, text: String(t), kind: ['orientation', 'nouvelle_observation', 'rappel_de_regle'][i] })),
+          nonSpoilerHints: (out.hints ?? []).slice(0, 3).map((t, i) => ({ tier: i + 1, text: String(t), kind: ['orientation', 'nouvelle_observation', 'rappel_de_regle'][i] })),
           failureForward: { ...gm.failureForward, onWrongAnswer: out.onWrongAnswer ?? gm.failureForward.onWrongAnswer },
           alternateBypass: out.alternateBypass ?? gm.alternateBypass,
         },

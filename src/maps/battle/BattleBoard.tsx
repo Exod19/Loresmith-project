@@ -39,6 +39,8 @@ type Props = {
   backdrop?: string;
   /** Fond tactique (tuile de la banque) : couvre tout le plateau, au-dessus du sol peint. */
   tile?: string;
+  /** Rotation du fond tactique, en quarts de tour (sens horaire). */
+  tileRot?: number;
   /** Terrain effectif (cols × rows caractères, cf. terrain.ts). */
   terrain?: string;
   elements?: BoardElement[];
@@ -449,7 +451,7 @@ function cellUnder(ev: ReactMouseEvent<SVGElement>, cols: number, rows: number) 
   return x >= 0 && y >= 0 && x < cols && y < rows ? { x, y } : undefined;
 }
 
-export default function BattleBoard({ cols, rows, backdrop, tile, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview, labels = [], highlight, fog, exits = [], aim, hits = [], ground, surface, overlay, path, surfaceSelected, draft, theme, aoes = [] }: Props) {
+export default function BattleBoard({ cols, rows, backdrop, tile, tileRot = 0, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview, labels = [], highlight, fog, exits = [], aim, hits = [], ground, surface, overlay, path, surfaceSelected, draft, theme, aoes = [] }: Props) {
   const lines: string[] = [];
   for (let x = 0; x <= cols; x++) lines.push(`M${x} 0V${rows}`);
   for (let y = 0; y <= rows; y++) lines.push(`M0 ${y}H${cols}`);
@@ -476,7 +478,9 @@ export default function BattleBoard({ cols, rows, backdrop, tile, terrain, eleme
       {TEXTURES}
       <defs>{SURFACE_FILTERS}<TexturePatterns ids={textures} /></defs>
       {backdrop && <image href={backdrop} x={0} y={0} width={cols} height={rows} preserveAspectRatio="xMidYMid slice" opacity={0.55} />}
-      {tile && <image href={tile} x={0} y={0} width={cols} height={rows} preserveAspectRatio="xMidYMid slice" />}
+      {tile && (tileRot % 2
+        ? <image href={tile} x={(cols - rows) / 2} y={(rows - cols) / 2} width={rows} height={cols} preserveAspectRatio="xMidYMid slice" transform={`rotate(${tileRot * 90} ${cols / 2} ${rows / 2})`} />
+        : <image href={tile} x={0} y={0} width={cols} height={rows} preserveAspectRatio="xMidYMid slice" transform={tileRot ? `rotate(${tileRot * 90} ${cols / 2} ${rows / 2})` : undefined} />)}
       {surface?.zones?.length ? <ZonesLayer zones={surface.zones} cols={cols} rows={rows} /> : null}
 
       <path d={lines.join('')} stroke="rgba(201,162,74,.22)" strokeWidth={0.03} fill="none" pointerEvents="none" />

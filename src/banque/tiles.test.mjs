@@ -32,3 +32,14 @@ test('tuile de gué reconnue par son nom', () => {
   assert.ok(isFordTile({ id: 'gue-de-galets-sur-riviere-peu-profonde' }));
   assert.ok(!isFordTile({ id: 'riviere-centrale-entre-herbe-et-terre' }));
 });
+
+test('une ombre isolée au milieu d’un ravin reste du gouffre', () => {
+  const w = 24, h = 24, data = new Uint8ClampedArray(w * h * 4);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const k = (y * w + x) * 4, ravine = y >= 9 && y < 15, shadow = y === 12 && x === 12;
+    data.set(shadow ? [60, 58, 55, 255] : ravine ? [8, 8, 8, 255] : [140, 138, 132, 255], k);
+  }
+  const cells = tileCells(data, w, h, 8, 8);
+  assert.equal(cells[4 * 8 + 4], 'gouffre');
+  assert.equal(cells[0], 'granite');
+});

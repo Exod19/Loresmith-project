@@ -3,12 +3,12 @@
  * Les textes de la scène restent à écrire (ou à proposer par l'IA) : rien n'est « prêt » sans relecture.
  */
 import { claimText } from './solver';
-import type { Mechanic, Puzzle } from './types';
+import type { Dyn, Mechanic, Puzzle } from './types';
 
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 /** Configuration publique et secrète par défaut, et la loi que suit le mécanisme. */
-export const DEFAULTS: Record<Mechanic, { publicConfig: any; serverConfig: any; law: string; family: string; text: string }> = {
+export const DEFAULTS: Record<Mechanic, { publicConfig: Dyn; serverConfig: Dyn; law: string; family: string; text: string }> = {
   braziers: { publicConfig: { leverIds: ['A', 'B', 'C'], brazierIds: ['I', 'II', 'III'], maxInspections: 1 }, serverConfig: { brazierToLever: ['C', 'A', 'B'] }, family: 'experimentation',
     law: 'Chaque levier allume un seul brasier ; la pierre garde la chaleur d’un feu éteint.', text: 'Trois leviers, trois brasiers derrière une grille qu’on n’ouvre qu’une fois : concevoir une expérience qui répond en une seule observation.' },
   'heavy-stone': { publicConfig: { stoneIds: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'], maxWeighings: 2, uniqueHeavy: true }, serverConfig: { heavyStoneId: 'G' }, family: 'strategie_information',
