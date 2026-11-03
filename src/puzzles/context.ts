@@ -4,6 +4,7 @@
  */
 import { createContext, useContext } from 'react';
 import type { Clue, Puzzle } from './types';
+import type { MysteryArc } from '../mysteries/types';
 
 export type PuzzleLibrary = {
   universeId: string;
@@ -13,6 +14,10 @@ export type PuzzleLibrary = {
   deletePuzzle: (id: string) => void;
   saveClue: (c: Clue) => void;
   deleteClue: (id: string) => void;
+  /** Fil des mystères (cf. src/mysteries). */
+  mysteries: MysteryArc[];
+  saveMystery: (m: MysteryArc) => void;
+  deleteMystery: (id: string) => void;
 };
 
 export const PuzzleContext = createContext<PuzzleLibrary | null>(null);

@@ -92,6 +92,7 @@ import CreaturePicker from './bestiary/CreaturePicker';
 import { heroSaveProfs, heroSaves } from './combat/saves';
 import { revealIn } from './shell/reveal';
 import { PuzzleContext } from './puzzles/context';
+import MysteryScenePanel from './mysteries/MysteryScenePanel';
 import AoePanel from './combat/AoePanel';
 import UnderdarkImport from './bestiary/UnderdarkImport';
 import { underdarkIdOf } from './bestiary/underdark.js';
@@ -4793,6 +4794,7 @@ function seedUniverse() {
     chatThreads: {},
     puzzles: {},
     clues: {},
+    mysteries: {},
     combat: { combatants: [], round: 1 },
     log: [],
   };
@@ -5033,14 +5035,16 @@ function reducer(s, a) {
     }
     // Énigmes et carnet d'indices du groupe (cf. src/puzzles) : rattachés à l'univers actif.
     case 'UPSERT_PUZZLE':
-    case 'UPSERT_CLUE': {
-      const key = a.type === 'UPSERT_PUZZLE' ? 'puzzles' : 'clues';
+    case 'UPSERT_CLUE':
+    case 'UPSERT_MYSTERY': {
+      const key = a.type === 'UPSERT_PUZZLE' ? 'puzzles' : a.type === 'UPSERT_CLUE' ? 'clues' : 'mysteries';
       const cur = (s[key] || {})[a.item.id];
       return { ...s, [key]: { ...(s[key] || {}), [a.item.id]: { ...cur, ...a.item, universeId: a.item.universeId ?? cur?.universeId ?? s.activeUniverseId, updatedAt: now() } } };
     }
     case 'DELETE_PUZZLE':
-    case 'DELETE_CLUE': {
-      const key = a.type === 'DELETE_PUZZLE' ? 'puzzles' : 'clues';
+    case 'DELETE_CLUE':
+    case 'DELETE_MYSTERY': {
+      const key = a.type === 'DELETE_PUZZLE' ? 'puzzles' : a.type === 'DELETE_CLUE' ? 'clues' : 'mysteries';
       const next = { ...(s[key] || {}) };
       delete next[a.id];
       return { ...s, [key]: next };
@@ -5177,6 +5181,7 @@ export default function App() {
             chatThreads: parsed.chatThreads || {},
             puzzles: parsed.puzzles || {},
             clues: parsed.clues || {},
+            mysteries: parsed.mysteries || {},
             combat: parsed.combat || { combatants: [], round: 1 },
             log: parsed.log || [],
           },
@@ -5265,12 +5270,15 @@ export default function App() {
       universeId: activeU,
       puzzles: mine(state?.puzzles),
       clues: mine(state?.clues),
+      mysteries: mine(state?.mysteries),
       savePuzzle: (item) => dispatch({ type: 'UPSERT_PUZZLE', item }),
       deletePuzzle: (id) => dispatch({ type: 'DELETE_PUZZLE', id }),
       saveClue: (item) => dispatch({ type: 'UPSERT_CLUE', item }),
       deleteClue: (id) => dispatch({ type: 'DELETE_CLUE', id }),
+      saveMystery: (item) => dispatch({ type: 'UPSERT_MYSTERY', item }),
+      deleteMystery: (id) => dispatch({ type: 'DELETE_MYSTERY', id }),
     };
-  }, [activeU, state?.puzzles, state?.clues]);
+  }, [activeU, state?.puzzles, state?.clues, state?.mysteries]);
 
   if (!hydrated || !state)
     return (
@@ -9899,6 +9907,9 @@ Réponds uniquement avec une ou deux répliques en français que ce personnage p
             </table>
           )}
         </section>
+
+        {/* Fil des mystères : indices de la scène, visibles du MJ seulement. */}
+        <MysteryScenePanel campaignId={activeCampaign?.id} sceneId={activeScene?.id} scenes={(activeCampaign?.scenes || []).map((sc) => ({ id: sc.id, title: sc.title, played: !!sc.played }))} />
       </main>
 
       <aside className="scene-right">
