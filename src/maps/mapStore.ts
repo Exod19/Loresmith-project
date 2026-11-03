@@ -234,7 +234,7 @@ export interface Battle {
   /** Corrections du MJ, case par case : elles priment sur le calcul automatique. */
   cellFix?: Record<string, CellFix>;
   /** Fond tactique : tuile de la banque qui couvre le plateau, et corrections de cases d'avant (rendues en la retirant). */
-  tile?: { id: string; src: string; prevFix?: Record<string, CellFix> };
+  tile?: { id: string; src: string; rot?: number; prevFix?: Record<string, CellFix> };
   /** Dégâts du plateau (lave, ronces, chute) à appliquer par le module Combat, qui tient les PV. */
   damage?: { id: string; to: string; amount: number; why: string }[];
   /** Zones d'effet de sorts posées sur le plateau (cf. battle/aoe.ts). */

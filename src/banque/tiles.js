@@ -48,7 +48,28 @@ export function tileCells(data, w, h, cols, rows, ford = false) {
       out.push(best);
     }
   }
-  return out;
+  // Lissage : une case isolée au milieu d'un gouffre (une ombre sur la paroi) ou d'eau profonde (un reflet) prend le
+  // terrain de ses voisines, pour qu'aucun jeton ne se retrouve « à l'abri » sur un îlot qui n'existe pas.
+  const smooth = out.slice();
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const i = y * cols + x;
+      if (out[i] === 'gouffre' || out[i] === 'eau_profonde') continue;
+      const n = { gouffre: 0, eau_profonde: 0 };
+      let around = 0;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        if (!dx && !dy) continue;
+        const xx = x + dx, yy = y + dy;
+        if (xx < 0 || yy < 0 || xx >= cols || yy >= rows) continue;
+        around++;
+        const t = out[yy * cols + xx];
+        if (t in n) n[t]++;
+      }
+      if (n.gouffre >= Math.ceil(around * 0.6)) smooth[i] = 'gouffre';
+      else if (n.eau_profonde >= Math.ceil(around * 0.6)) smooth[i] = 'eau_profonde';
+    }
+  }
+  return smooth;
 }
 
 /** Tuile de gué ? (d'après son identifiant ou son nom). */

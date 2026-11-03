@@ -129,7 +129,11 @@ export function roleKeys(role) {
  * (strict : jamais une femme pour un homme), `pose` (seule une pose demandée est admise : un dormeur couché, jamais un
  * passant couché par terre), `exclude` (identifiants déjà pris dans la scène), `seed`.
  */
-export function pickPerson(images, { vue = 'portrait', role = '', peoples = peoplesOf({}), genre, seed = '', peuple, pose, exclude } = {}) {
+/**
+ * `region` ('surface' | 'outreterre') : seules les images de ce monde. Un habitant de l'Outreterre n'apparaît jamais à
+ * la surface, ni l'inverse : seul le MJ peut faire ce choix, à la main.
+ */
+export function pickPerson(images, { vue = 'portrait', role = '', peoples = peoplesOf({}), genre, seed = '', peuple, pose, exclude, region } = {}) {
   const roles = roleKeys(role);
   const forced = peuple ? peupleKey(peuple) : null;
   const banned = new Set(peoples.banned ?? []);
@@ -137,6 +141,7 @@ export function pickPerson(images, { vue = 'portrait', role = '', peoples = peop
   for (const img of images) {
     if (img.type !== 'personnage' || img.vue !== vue || img.exclu || !img.peuple) continue;
     if (exclude?.has(img.id)) continue; // déjà pris par quelqu'un d'autre dans la même scène
+    if (region && !(img.region ?? ['surface']).includes(region)) continue;
     const p = img.peuple;
     if (banned.has(p)) continue;
     let w;
@@ -401,6 +406,8 @@ export function replacementFor(images, img) {
   for (const c of images) {
     if (c.id === img.id || c.supprime || c.exclu || c.type !== img.type || c.vue !== img.vue) continue;
     if (img.type === 'personnage' && img.genre && c.genre && c.genre !== img.genre) continue;
+    // Surface et Outreterre ne se mêlent jamais pour les personnages et les créatures.
+    if ((img.type === 'personnage' || img.type === 'creature') && img.region?.length && c.region?.length && !img.region.some((r) => c.region.includes(r))) continue;
     let s = 0;
     if (img.cat && c.cat === img.cat) s += 6;
     s += 2 * common(img.usage, c.usage);

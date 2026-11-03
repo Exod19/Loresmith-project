@@ -8,7 +8,7 @@ import BattleBoard, { type BoardToken } from './BattleBoard';
 import type { Battle } from '../mapStore';
 import { baseGridOf, fits, paintedOf, surfaceOf } from './placement';
 import { socleOf } from './surface';
-import { tokenImage } from './vignettes';
+import { battleRegion, tokenImage } from './vignettes';
 import { isOut, vitalOf } from './combat';
 import { moveAlerts, type Note } from './tactics';
 
@@ -71,7 +71,7 @@ export default function MiniBattle({ battle, onBattle, selectedId, onSelect }: {
   const tokens: BoardToken[] = b.tokens.map((t) => {
     const at = drag?.moved && drag.id === t.id ? drag.cur : t;
     return {
-      id: t.id, name: t.name, kind: t.kind, x: at.x, y: at.y, size: t.size, icon: t.icon, image: tokenImage(t),
+      id: t.id, name: t.name, kind: t.kind, x: at.x, y: at.y, size: t.size, icon: t.icon, image: tokenImage(t, battleRegion(b)),
       selected: t.id === selectedId, hidden: !t.visible, active: t.id === b.turn, hp: t.hp, maxHp: t.maxHp, out: isOut(t), conditions: t.conditions,
       socle: socleOf(rules, t, painted) ?? undefined,
       ...vitalOf(t),
@@ -82,7 +82,7 @@ export default function MiniBattle({ battle, onBattle, selectedId, onSelect }: {
   return (
     <div className="mini-battle">
       <div ref={wrapRef} className={`mini-battle-board ${drag ? 'dragging' : ''}`} onPointerDown={down} onPointerMove={move}>
-        <BattleBoard cols={b.cols} rows={b.rows} tile={b.tile?.src} terrain={baseGridOf(b)} elements={[]} ranges={[]} tokens={tokens} interactive={false} hits={b.hits} theme={boardTheme(b.local?.surface, b.local?.nature)}
+        <BattleBoard cols={b.cols} rows={b.rows} tile={b.tile?.src} tileRot={b.tile?.rot} terrain={baseGridOf(b)} elements={[]} ranges={[]} tokens={tokens} interactive={false} hits={b.hits} theme={boardTheme(b.local?.surface, b.local?.nature)}
           ground={b.ground} surface={{ zones: b.zones, objects: b.objects, walls: b.walls }} />
         {shown.length > 0 && (
           <div className={`battle-move-alerts ${live ? 'live' : ''}`} role="status">

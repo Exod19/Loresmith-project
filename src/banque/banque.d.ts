@@ -33,7 +33,7 @@ export function peupleKey(s: unknown): string | null;
 export function peoplesOf(o?: { text?: string; people?: string; region?: string }): Peoples;
 export function hash(s: string): number;
 export function roleKeys(role: string): string[];
-export function pickPerson(images: BankImage[], o?: { vue?: 'portrait' | 'jeton'; role?: string; peoples?: Peoples; genre?: 'f' | 'm'; seed?: string; peuple?: string; pose?: string; exclude?: Set<string> }): BankImage | null;
+export function pickPerson(images: BankImage[], o?: { vue?: 'portrait' | 'jeton'; role?: string; peoples?: Peoples; genre?: 'f' | 'm'; seed?: string; peuple?: string; pose?: string; exclude?: Set<string>; region?: string }): BankImage | null;
 export function pickElement(images: BankImage[], o?: { cat?: string; cats?: string[]; climat?: string; saison?: string; region?: string; milieu?: string; usage?: string; forme?: string; formes?: string[]; ratio?: number; seed?: string }): BankImage | null;
 export function pickTexture(images: BankImage[], o?: { cat?: string; cats?: string[]; climat?: string; saison?: string; region?: string; seed?: string }): BankImage | null;
 export function mipFor(img: { mips?: number[] }, px: number, dpr?: number): number;
