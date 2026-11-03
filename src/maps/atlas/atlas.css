@@ -723,3 +723,13 @@
 .am-pin.is-wild.is-draft.is-sel, .am-pin.is-wild.is-draft:hover { opacity: 1; }
 .am-preview { stroke: #ecd289; opacity: .95; filter: drop-shadow(0 0 3px rgba(0,0,0,.9)); }
 .am-surface .dc-cliff { fill: #6b655a; stroke: #2e2a24; stroke-width: 3; filter: drop-shadow(0 6px 6px rgba(0,0,0,.55)); }
+/* Voies de la carte du monde : route royale large et claire (pavée), chemin de terre, sentier en tirets, piste
+   forestière et sentier de montagne en pointillés. */
+.am-surface .am-road.tr-tunnel .top { stroke: #d8c79f; stroke-width: 3px; }
+.am-surface .am-road.tr-tunnel .edge { stroke-width: 5px; }
+.am-surface .am-road.tr-galerie .top { stroke: #b39e74; }
+.am-surface .am-road.tr-boyau .edge { stroke-width: 2.4px; opacity: .7; }
+.am-surface .am-road.tr-boyau .top { stroke: #a08d68; stroke-width: 1.5px; stroke-dasharray: 6 4; }
+.am-surface .am-road.tr-etroit .edge { stroke-width: 2.8px; opacity: .6; }
+.am-surface .am-road.tr-etroit .top { stroke: #b29d72; stroke-width: 1.7px; stroke-dasharray: 2.5 3.5; }
+.am-surface .am-road.tr-boyau:hover .top, .am-surface .am-road.tr-etroit:hover .top { stroke: #e0c890; }
