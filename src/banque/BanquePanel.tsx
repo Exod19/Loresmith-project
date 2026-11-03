@@ -22,7 +22,9 @@ type Props = {
   campaignTitle?: string;
 };
 
-const TYPES = [['', 'Tout'], ['personnage', 'Personnages'], ['element', 'Éléments'], ['texture', 'Textures']] as const;
+const TYPES = [['', 'Tout'], ['personnage', 'Personnages'], ['creature', 'Créatures'], ['element', 'Éléments'], ['texture', 'Textures']] as const;
+/** Monde d'une image : la surface et l'Outreterre ont chacune leurs dossiers dans le Drive. */
+const REGIONS = [['', 'Tous les mondes'], ['surface', 'Surface'], ['outreterre', 'Outreterre']] as const;
 const PEUPLES = ['humain', 'nain', 'elfe', 'demi-elfe', 'halfelin', 'gnome', 'demi-orque', 'orque', 'tieffelin', 'drow', 'duergar', 'svirfnebelin', 'moriquendi'];
 const list = (v: string) => v.split(',').map((x) => x.trim()).filter(Boolean);
 const size = (img: BankImage) => (Array.isArray(img.taille) ? `${img.taille[0]} × ${img.taille[1]} m` : typeof img.taille === 'number' ? `tuile de ${img.taille} m` : '');
@@ -33,6 +35,7 @@ export default function BanquePanel({ onBack, fiches, onAssign, onUpload, onEdit
   useEffect(() => { void syncBank().then(setMode); }, []);
   const [type, setType] = useState<string>('');
   const [vue, setVue] = useState<string>('');
+  const [region, setRegion] = useState<string>('');
   const [q, setQ] = useState('');
   const [selId, setSelId] = useState<string | null>(null);
   const [fiche, setFiche] = useState('');
@@ -41,9 +44,9 @@ export default function BanquePanel({ onBack, fiches, onAssign, onUpload, onEdit
   const [busy, setBusy] = useState(false);
   const shown = useMemo(() => {
     const t = q.trim().toLowerCase();
-    return images.filter((i) => (!type || i.type === type) && (!vue || i.vue === vue)
+    return images.filter((i) => (!type || i.type === type) && (!vue || i.vue === vue) && (!region || (i.region ?? ['surface']).includes(region))
       && (!t || [i.nom, i.titre, i.peuple, i.cat, ...(i.roles ?? []), ...(i.milieux ?? [])].join(' ').toLowerCase().includes(t)));
-  }, [images, type, vue, q]);
+  }, [images, type, vue, region, q]);
   const sel = images.find((i) => i.id === selId) ?? null;
   const touched = overridesOf();
 
@@ -61,8 +64,8 @@ export default function BanquePanel({ onBack, fiches, onAssign, onUpload, onEdit
       <header className="maps-head">
         <h2>Banque Loresmith</h2>
         <p className="maps-sub">
-          {images.length} images : personnages (portraits et jetons vus du dessus), éléments à leur taille réelle et textures de sol.
-          Loresmith y puise pour les cités, les intérieurs et les combats, selon le climat, la saison et les peuples du lieu.
+          {images.length} images, de la surface et de l’Outreterre : personnages (portraits et jetons vus du dessus), créatures, éléments à leur taille réelle et textures de sol.
+          Loresmith y puise pour les cités, les intérieurs, les cavernes de l’Atlas en strates et les combats, selon le climat, la saison et les peuples du lieu.
           Pour ajouter les nouvelles images du Drive, demande à Claude : « synchronise la banque ».
           <br />{admin ? 'Compte administrateur : tes retouches des images communes valent pour toute l’application.'
             : mode ? 'Les images communes sont réservées à l’administrateur. Tu peux ajouter les tiennes : elles sont propres à cet univers, ou à ta campagne.' : ''}
@@ -71,7 +74,10 @@ export default function BanquePanel({ onBack, fiches, onAssign, onUpload, onEdit
           <div className="maps-seg" role="group" aria-label="Type">
             {TYPES.map(([k, l]) => <button key={k} className={type === k ? 'on' : ''} onClick={() => { setType(k); setVue(''); }}>{l}</button>)}
           </div>
-          {type === 'personnage' && (
+          <div className="maps-seg" role="group" aria-label="Monde">
+            {REGIONS.map(([k, l]) => <button key={k} className={region === k ? 'on' : ''} onClick={() => setRegion(k)}>{l}</button>)}
+          </div>
+          {(type === 'personnage' || type === 'creature') && (
             <div className="maps-seg" role="group" aria-label="Vue">
               {[['', 'Toutes'], ['portrait', 'Portraits'], ['jeton', 'Jetons']].map(([k, l]) => <button key={k} className={vue === k ? 'on' : ''} onClick={() => setVue(k)}>{l}</button>)}
             </div>
@@ -105,7 +111,7 @@ export default function BanquePanel({ onBack, fiches, onAssign, onUpload, onEdit
             <button key={i.id} className={`banque-card${selId === i.id ? ' is-sel' : ''}${i.exclu ? ' is-off' : ''}`} onClick={() => setSelId(i.id)} title={i.titre}>
               <img src={bankSrc(i, 120)} alt="" loading="lazy" className={i.type === 'texture' ? 'tex' : ''} />
               <span>{i.nom}{touched[i.id] ? ' ✎' : ''}</span>
-              <small>{i.type === 'personnage' ? `${i.vue} · ${i.peuple || '?'}` : `${i.cat ?? ''} · ${size(i)}`}</small>
+              <small>{i.type === 'personnage' ? `${i.vue} · ${i.peuple || '?'}` : i.type === 'creature' ? `${i.vue} · ${size(i)}` : `${i.cat ?? ''} · ${size(i)}`}</small>
             </button>
           ))}
           {!shown.length && <p className="maps-hint">Aucune image ne correspond.</p>}
@@ -138,7 +144,7 @@ export default function BanquePanel({ onBack, fiches, onAssign, onUpload, onEdit
               <label>Taille réelle (m) <input className="maps-btn" disabled={!canEdit} key={`t-${sel.id}`} defaultValue={Array.isArray(sel.taille) ? sel.taille.join(' × ') : String(sel.taille ?? '')}
                 onBlur={(e) => { const n = e.target.value.split(/[x×*,; ]+/).map(Number).filter((x) => x > 0); if (n.length) edit({ taille: sel.type === 'texture' ? n[0] : [n[0], n[1] ?? n[0]] }); }} /></label>
             )}
-            {sel.type !== 'personnage' && (
+            {sel.type !== 'personnage' && sel.type !== 'creature' && (
               <label>Catégorie <input className="maps-btn" disabled={!canEdit} key={`k-${sel.id}`} defaultValue={[sel.cat, ...(sel.usage ?? [])].filter(Boolean).join(', ')}
                 title="arbre, arbuste, rocher, toit, mobilier, monument, marche… puis l’usage (lit, table, tonneau, coffre, place, marche…)"
                 onBlur={(e) => { const [cat, ...usage] = list(e.target.value); edit({ cat, usage }); }} /></label>

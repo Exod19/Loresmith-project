@@ -231,7 +231,7 @@ export const MIN_PX = 5;
 
 /** Chemin public d'une image de la banque, dans la version voulue. */
 export function bankUrl(img, size, base = '/') {
-  const folder = { texture: 'textures', element: 'elements', personnage: 'personnages' }[img.type];
+  const folder = { texture: 'textures', element: 'elements', personnage: 'personnages', creature: 'creatures' }[img.type];
   return `${base}banque/${folder}/${img.id}-${size}.webp`;
 }
 

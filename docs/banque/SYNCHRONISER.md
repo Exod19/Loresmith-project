@@ -1,13 +1,28 @@
 # Synchroniser la Banque Loresmith
 
-La source des images reste le Google Drive (trois dossiers : **éléments**, **personnages**, **textures**).
-L'application n'y accède pas : elle lit `public/banque/` (WebP en 256, 512 et parfois 1024 px) et
-`src/banque/catalogue.json` (étiquettes).
+La source des images reste le Google Drive : huit dossiers, quatre pour la **surface** et quatre pour
+l'**Outreterre** (Underdark). L'application n'y accède pas : elle lit `public/banque/` (WebP en 256, 512 et parfois
+1024 px) et `src/banque/catalogue.json` (étiquettes).
+
+| Dossier du Drive | Identifiant | `folder` / `region` dans `drive.json` |
+| --- | --- | --- |
+| Textures (surface) | `18_EpGaJbFOQbtatqtmMZmVoBZBooXMwu` | `textures` / `surface` |
+| Éléments de décor (surface) | `1wBXCvyYLdaCX4C2Ia_7s8-7WxUmAF0gY` | `elements` / `surface` |
+| Personnages (surface) | `1N3O2O6uippON1dyPlLrpKq5E8Jln_Vt2` | `people` / `surface` |
+| Créatures et monstres (surface) | `1xDMZsTlYZmpzelNCLfnBV0dQCNmn8HAs` | `creatures` / `surface` |
+| Textures (Underdark) | `1tM0n_jNkYUmKmm-UxrOW_HdYLz2WshYx` | `textures` / `outreterre` |
+| Éléments de décor (Underdark) | `1FJs0yuZcY-enDUFwUt8x6nYRUijhvotp` | `elements` / `outreterre` |
+| Personnages (Underdark) | `1oKX1izeFlQV3Ozzd6wNunsJgnx0SuzG3` | `people` / `outreterre` |
+| Créatures et monstres (Underdark) | `1qqwjlh8dzQpbhnF15-DWUBpLltDt6swM` | `creatures` / `outreterre` |
+
+Les sous-dossiers ne sont pas lus. Les fichiers des dossiers sont publics en lecture : Claude les télécharge par
+`https://drive.usercontent.google.com/download?id=<id>&export=download`.
 
 ## Ce que fait Claude quand tu demandes « synchronise la banque »
 
-1. Il liste les trois dossiers du Drive et met à jour `scripts/banque/drive.json` (identifiant, titre, dossier).
-2. Il télécharge seulement les images nouvelles ou modifiées, dans un dossier de travail (hors du dépôt).
+1. Il liste les huit dossiers du Drive et met à jour `scripts/banque/drive.json` (identifiant, titre, dossier, région).
+2. Il télécharge seulement les images nouvelles ou modifiées, dans un dossier de travail (hors du dépôt). Une image déjà
+   convertie dont l'original n'est pas dans ce dossier est gardée telle quelle.
 3. Il lance :
 
    ```
@@ -18,7 +33,12 @@ L'application n'y accède pas : elle lit `public/banque/` (WebP en 256, 512 et p
    - convertit les nouvelles images en WebP, sans jamais les agrandir ;
    - garde 1024 px seulement pour les textures, les portraits et les grands éléments (8 m et plus) ;
    - recadre éléments et jetons sur leur partie visible ;
-   - étiquette chaque image d'après son titre (règles `ELEMENTS`, `TEXTURES` et `PEOPLE` du script) ;
+   - étiquette chaque image d'après son titre : d'abord les règles précises (`ELEMENTS`, `TEXTURES`, `PEOPLE`), puis
+     les règles générales par mots-clés (`ELEMENTS_GEN`, `TEXTURES_GEN`, `CREATURES`, `PEOPLE_GEN`, `ROLES_FR`, `NOMS`) ;
+     la région vient du dossier ;
+   - donne un nom français à chaque image (le titre du Drive reste dans `titre`) ;
+   - range les créatures à part (`public/banque/creatures/`), nommées comme dans le bestiaire ;
+   - ignore les fichiers sans rapport (liste `EXCLURE`) et les signale ;
    - réunit portrait et jeton d'un même personnage ;
    - retire les fichiers qui ne correspondent plus à rien.
 4. Il vérifie les images signalées « étiquettes devinées » : il ajoute une règle au script pour chacune (taille réelle,
@@ -53,3 +73,12 @@ l'Outreterre reste sans image plutôt que d'y mettre un humain.
 Les toits reçoivent aussi une silhouette (`masque`, 8 × 8 cases), calculée par le script. Pour un nouveau toit en L,
 en T, en U ou en croix, ajoute une règle avec la bonne `forme`. Loresmith le pose ensuite tout seul, dans la bonne
 orientation, sur les bâtiments qui ont cette forme.
+
+## Où l'application s'en sert
+
+- Cités et intérieurs : sols, arbres, toits, mobilier (`BankLayer.tsx`).
+- PNJ : portraits et jetons cohérents avec le peuple du lieu (`place.ts`).
+- **Atlas en strates** : sols et parois des cavernes en texture de roche de l'Outreterre, et décor posé dans chaque
+  caverne (stalagmites, champignons, cristaux, éboulis, flaques, ossements) : `CaveArt.tsx`. L'Atlas d'origine reste
+  tel quel.
+- Page **Cartes → 🖼 Banque Loresmith** : filtres par type (dont Créatures) et par monde (surface, Outreterre).
