@@ -1,0 +1,45 @@
+/* Fil des mystères : améthyste (MJ seulement), ambre, bronze patiné. */
+.ms-layout{display:grid;grid-template-columns:220px minmax(0,1fr) 250px;gap:16px;align-items:start}
+@media (max-width:1180px){.ms-layout{grid-template-columns:200px minmax(0,1fr)}.ms-side{grid-column:1/-1}}
+@media (max-width:860px){.ms-layout{grid-template-columns:1fr}}
+.ms-side{position:sticky;top:8px;padding:12px 14px;border-radius:12px;border:1px solid rgba(160,120,220,.3);background:linear-gradient(#17121c,#0f0c12);color:#e8dcc0;font-size:13px}
+.ms-side h3{margin:10px 0 4px;font-family:'Cinzel',serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#b9a3d9}
+.ms-side p{margin:2px 0}
+.ms-card{display:flex;flex-direction:column;gap:6px;padding:10px 12px;margin-bottom:8px;border-radius:10px;border:1px solid #3a3026;background:rgba(232,220,192,.03)}
+.ms-ready{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;border:1px solid;margin-right:4px}
+.ms-ready.r-READY{color:#a9d9a9;border-color:rgba(159,214,160,.5)}
+.ms-ready.r-AT_RISK{color:#e6c87a;border-color:rgba(230,200,122,.5)}
+.ms-ready.r-BLOCKED{color:#f0a890;border-color:rgba(240,168,144,.55)}
+.ms-ready.r-UNKNOWN{color:#b0a6c4;border-color:rgba(176,166,196,.5)}
+.ms-atoms{margin:0;padding-left:18px;font-size:13px}
+.ms-atoms .a-acquis b,.ms-atoms .a-sur\ place b{color:#a9d9a9}
+.ms-atoms .a-probable b{color:#e6c87a}.ms-atoms .a-fragile b{color:#e8a76a}.ms-atoms .a-introuvable b{color:#f0a890}
+.ms-timeline{list-style:none;margin:8px 0;padding:0;display:flex;flex-direction:column;gap:8px;border-left:2px solid rgba(160,120,220,.35)}
+.ms-timeline > li{margin-left:12px;padding:8px 10px;border-radius:10px;border:1px solid #3a3026;background:rgba(232,220,192,.03)}
+.ms-timeline > li.played{opacity:.65}
+.ms-timeline header{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px}
+.ms-gate{font-size:12px;padding:1px 8px;border-radius:999px;border:1px solid rgba(236,210,137,.5);color:#ecd289}
+.ms-slot{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px}
+.ms-slot > .input{flex:1 1 180px;width:auto}
+.ms-slot > select.input{flex:0 1 180px}
+.ms-placed{display:flex;flex-wrap:wrap;gap:4px;width:100%}
+.ms-manif{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid rgba(160,120,220,.45);color:#d8c8f0}
+.ms-manif button{background:none;border:0;color:inherit;cursor:pointer}
+.ms-manif.st-collected,.ms-manif.st-inspected,.ms-manif.st-noticed{border-color:rgba(159,214,160,.5);color:#a9d9a9}
+.ms-manif.st-missed,.ms-manif.st-withdrawn,.ms-manif.st-destroyed{opacity:.6;text-decoration:line-through}
+.ms-toggle{all:unset;cursor:pointer;display:flex;gap:8px;align-items:baseline}
+.ms-toggle:focus-visible{outline:1px solid #ecd289}
+/* Table de jeu : indices de la scène (MJ seulement). Le halo n'existe que dans la console : rien ne part chez les joueurs. */
+.ms-scene{margin-top:14px;padding:12px 14px;border-radius:12px;border:1px solid rgba(160,120,220,.35);background:linear-gradient(#18131d,#100c13);color:#e8dcc0}
+.ms-scene h3{margin:0 0 6px;font-family:'Cinzel',serif;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#c9b3ec}
+.ms-clue{position:relative;display:flex;flex-direction:column;gap:6px;padding:9px 11px;margin:6px 0;border-radius:10px;border:1px solid rgba(160,120,220,.35);background:rgba(160,120,220,.05)}
+.ms-clue.c-critical{border-color:rgba(180,130,240,.75)}
+.ms-clue.c-critical.pulse{animation:ms-pulse 1.9s ease-in-out infinite}
+.ms-clue.c-supporting{border-color:rgba(170,130,230,.55)}
+.ms-clue.c-enrichment{border-color:rgba(201,162,74,.35)}
+@keyframes ms-pulse{0%,100%{box-shadow:0 0 0 0 rgba(170,110,240,.0)}50%{box-shadow:0 0 0 4px rgba(170,110,240,.28)}}
+@media (prefers-reduced-motion:reduce){.ms-clue.c-critical.pulse{animation:none;box-shadow:0 0 0 2px rgba(170,110,240,.35)}}
+.ms-clue .ms-why{font-size:12px;color:#b9a3d9}
+.ms-clue .pz-row{justify-content:flex-start}
+.ms-defer{margin-top:4px;padding:8px 10px;border-radius:8px;border:1px dashed rgba(160,120,220,.45)}
+.ms-defer ol{margin:4px 0;padding-left:18px;font-size:13px}

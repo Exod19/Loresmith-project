@@ -19,7 +19,7 @@ import './puzzles.css';
 const uid = () => Math.random().toString(36).slice(2, 10);
 const clone = <T,>(o: T): T => JSON.parse(JSON.stringify(o));
 
-export type CampaignRef = { id: string; title?: string; name?: string; scenes?: { id: string; title?: string }[] };
+export type CampaignRef = { id: string; title?: string; name?: string; scenes?: { id: string; title?: string; played?: boolean }[] };
 
 const STEPS = [
   { id: 'place', label: 'Place dans la campagne' },
