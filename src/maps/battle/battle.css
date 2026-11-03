@@ -956,3 +956,10 @@
 .battle-pulse.heal{stroke:#6fe07a}
 @keyframes token-pulse{0%{opacity:.95;transform:scale(.9)}100%{opacity:0;transform:scale(1.7)}}
 @media (prefers-reduced-motion:reduce){.battle-dying-ring{animation:none;opacity:.9}.battle-pulse{animation:token-pulse-still 1.6s linear forwards}@keyframes token-pulse-still{0%,70%{opacity:.9}100%{opacity:0}}}
+
+/* Fond tactique (tuiles de la banque) */
+.tile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px; margin: 6px 0 8px; }
+.tile-pick { display: flex; flex-direction: column; gap: 3px; padding: 3px; background: rgba(0,0,0,.25); border: 1px solid rgba(201,162,74,.25); border-radius: 6px; color: inherit; cursor: pointer; font-size: .72rem; line-height: 1.15; text-align: left; }
+.tile-pick img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px; }
+.tile-pick.on { border-color: #ecd289; box-shadow: 0 0 0 1px #ecd289; }
+.tile-pick:disabled { opacity: .6; cursor: wait; }

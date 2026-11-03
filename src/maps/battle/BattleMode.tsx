@@ -21,6 +21,8 @@ import { blocksCell, effectiveGrid, generateTerrain, seedOf, TERRAIN, type Locat
 import { buildLocalMap, cellIn, trimPassages } from './local';
 import { attackCells, rangedCells, speedCells } from './ranges';
 import { tokenImage } from './vignettes';
+import TilePanel, { tileFix } from './TilePanel';
+import { bankSrc } from '../../banque';
 import BuildPanel from './BuildPanel';
 import CombatPanel, { type Hero } from './CombatPanel';
 import type { BestiaryRef } from '../CampaignGuide';
@@ -1101,6 +1103,9 @@ export default function BattleMode({
   );
   const buildPanel = (
     <>
+    <TilePanel current={b.tile?.id}
+      onPick={async (img) => { const fix = await tileFix(img, b.cols, b.rows); set({ tile: { id: img.id, src: bankSrc(img, 1024), prevFix: b.tile ? b.tile.prevFix : b.cellFix }, cellFix: fix }); }}
+      onClear={() => set({ tile: undefined, cellFix: b.tile?.prevFix })} />
     {editor.panel}
     <BuildPanel
             brush={brush} onBrush={setBrush} propVisible={propVisible} onPropVisible={setPropVisible}
@@ -1365,7 +1370,7 @@ export default function BattleMode({
             }}
           >
             <BattleBoard
-              cols={b.cols} rows={b.rows} backdrop={rec.image} terrain={baseGrid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
+              cols={b.cols} rows={b.rows} backdrop={rec.image} tile={b.tile?.src} terrain={baseGrid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
               theme={boardTheme(b.local?.surface, b.local?.nature)}
               ground={b.ground} surface={editor.view} overlay={building && editor.overlay ? { rules, focus: editor.focus } : undefined}
               path={pathView} surfaceSelected={editor.selectedId} draft={editor.draft}

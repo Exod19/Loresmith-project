@@ -136,7 +136,7 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
   const tokens: PlayerToken[] = b.tokens
     .filter((t) => t.visible)
     .map(({ id, name, kind, x, y, size, icon, image, statId, hp, maxHp, move, reach, layer, socle, modes, conditions, dying }) => {
-      const portrait = tokenImage({ kind, statId, image });
+      const portrait = tokenImage({ kind, statId, image, name });
       return {
         id, name, kind, x, y, size, icon, image: portrait, statId, layer, modes, speed: (statId && STATS[statId]?.speed) || undefined,
         socle: socleOf(rules, { x, y, size, layer, socle }, painted) ?? undefined,
@@ -226,7 +226,7 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
     }
     : undefined;
   return {
-    mode: 'battle', title: local?.place ?? rec.title, backdrop: rec.image, theme: boardTheme(local?.surface, local?.nature), cols: b.cols, rows: b.rows,
+    mode: 'battle', title: local?.place ?? rec.title, backdrop: rec.image, tile: b.tile?.src, theme: boardTheme(local?.surface, local?.nature), cols: b.cols, rows: b.rows,
     feetPerCell: b.feetPerCell, round: b.round, tokens, terrain, elements, turn, fog, exits: exits.length ? exits : undefined,
     // Trait d'attaque : seulement si les joueurs voient l'attaquant et la cible.
     aim: b.aim && tokens.some((t) => t.id === b.aim!.from) && tokens.some((t) => t.id === b.aim!.to)

@@ -4,7 +4,7 @@
  */
 import { useSyncExternalStore } from 'react';
 import catalogue from './catalogue.json';
-import { bankUrl, mipFor, npcTraits, peoplesOf, pickPerson, tokenScale, withOverrides, type BankImage, type Peoples } from './banque';
+import { bankUrl, hash, mipFor, norm, npcTraits, peoplesOf, pickPerson, tokenScale, withOverrides, type BankImage, type Peoples } from './banque';
 
 export * from './banque';
 
@@ -115,7 +115,7 @@ export const bankById = (id: string | undefined | null) => (id ? images.find((i)
 export const isBankSrc = (src: string | undefined) => {
   const img = bankImageOf(src);
   // Image du catalogue retirée depuis (jeton enregistré dans un ancien combat) : on la dessine comme un jeton.
-  return img ? img.vue === 'jeton' : !!src && src.includes('/banque/personnages/') && src.endsWith('.webp');
+  return img ? img.vue === 'jeton' : !!src && /\/banque\/(personnages|creatures)\//.test(src) && src.endsWith('.webp');
 };
 
 /**
@@ -170,7 +170,7 @@ export function npcPick({ id, role, name, desc, genre, peuple, pose, placeText, 
 /** Image de la banque derrière une adresse (catalogue : `/banque/personnages/<id>-<taille>.webp` ; ajout du MJ : sa source). */
 export function bankImageOf(src: string | undefined): BankImage | null {
   if (!src) return null;
-  const m = /\/banque\/personnages\/(.+)-\d+\.webp$/.exec(src);
+  const m = /\/banque\/(?:personnages|creatures)\/(.+)-\d+\.webp$/.exec(src);
   return m ? bankById(m[1]) : own.find((i) => i.src === src) ?? null;
 }
 
@@ -212,3 +212,34 @@ export function topOf(src: string | undefined, px = 128): string | undefined {
   const twin = bankById(img.paire);
   return twin && twin.vue === 'jeton' ? bankSrc(twin, px) : src;
 }
+
+/** Fiches SRD du plateau (identifiant anglais) → nom de la créature dans la banque. */
+const SRD_FR: Record<string, string> = {
+  'giant-spider': 'Araignée géante', 'bat-swarm': 'Nuée de chauves-souris', 'giant-centipede': 'Mille-pattes géant', grick: 'Grick',
+  darkmantle: 'Mante obscure', 'gelatinous-cube': 'Cube gélatineux', otyugh: 'Otyugh', 'umber-hulk': 'Horreur fouisseuse', roper: 'Roper',
+};
+
+/**
+ * Jeton de créature de la banque pour un monstre du plateau, d'après son nom (« Otyugh 2 », « Araignée géante
+ * chasseuse ») ou sa fiche SRD : le nom de créature le plus long contenu dans le sien l'emporte. Toujours la même image
+ * pour un même nom. undefined : aucune créature de la banque ne lui correspond.
+ */
+export function creatureToken(name?: string, statId?: string, px = 128, vue: 'jeton' | 'portrait' = 'jeton'): string | undefined {
+  const base = norm(name ?? '').replace(/\s+\d+$/, '').trim();
+  const words = ` ${base.replace(/[^a-z0-9]+/g, ' ')} `;
+  const fromStat = statId ? norm(SRD_FR[statId] ?? '') : '';
+  let best: BankImage[] = [], len = 0;
+  for (const img of images) {
+    if (img.type !== 'creature' || img.vue !== vue || img.exclu) continue;
+    const n = norm(img.nom).replace(/[^a-z0-9]+/g, ' ').trim();
+    if (!n) continue;
+    const hit = words.includes(` ${n} `) || (fromStat && n === fromStat.replace(/[^a-z0-9]+/g, ' ').trim());
+    if (!hit) continue;
+    if (n.length > len) { best = [img]; len = n.length; } else if (n.length === len) best.push(img);
+  }
+  if (!best.length) return undefined;
+  return bankSrc(best[hash(base || statId || '') % best.length], px);
+}
+
+/** Portrait (vue de face, en situation) d'une créature de la banque, d'après son nom : pour l'initiative et les fiches. */
+export const creaturePortrait = (name?: string, statId?: string, px = 256) => creatureToken(name, statId, px, 'portrait');
