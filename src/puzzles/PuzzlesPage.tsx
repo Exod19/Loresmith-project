@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { usePuzzles } from './context';
 import Atelier, { type CampaignRef } from './Atelier';
 import { CarnetManager } from './CarnetPanel';
+import MysteriesTab from '../mysteries/MysteriesTab';
 import { fromModel, loadCatalogue } from './catalogue';
 import { MECHANIC_LABEL, MECHANICS } from './engine';
 import { checksOf, readiness } from './quality';
@@ -21,7 +22,7 @@ const OBJ: Record<string, string> = { coffre: 'Coffre', commode: 'Meuble à tiro
 
 export default function PuzzlesPage({ maps = {}, campaigns = [] }: { maps?: Record<string, MapLike>; campaigns?: CampaignRef[] }) {
   const lib = usePuzzles();
-  const [tab, setTab] = useState<'enigmes' | 'carnet'>('enigmes');
+  const [tab, setTab] = useState<'enigmes' | 'mysteres' | 'carnet'>('enigmes');
   const [open, setOpen] = useState<Puzzle | null>(null);
   const [models, setModels] = useState<Puzzle[] | null>(null);
   const [showModels, setShowModels] = useState(false);
@@ -66,10 +67,11 @@ export default function PuzzlesPage({ maps = {}, campaigns = [] }: { maps?: Reco
       <h1 className="view">Énigmes</h1>
       <div className="pz-tabs" role="tablist">
         <button type="button" role="tab" aria-selected={tab === 'enigmes'} className={tab === 'enigmes' ? 'on' : ''} onClick={() => setTab('enigmes')}>🧩 Énigmes ({lib.puzzles.length})</button>
+        <button type="button" role="tab" aria-selected={tab === 'mysteres'} className={tab === 'mysteres' ? 'on' : ''} onClick={() => setTab('mysteres')}>🕸 Fil des mystères ({lib.mysteries.length})</button>
         <button type="button" role="tab" aria-selected={tab === 'carnet'} className={tab === 'carnet' ? 'on' : ''} onClick={() => setTab('carnet')}>📜 Carnet du groupe ({lib.clues.length})</button>
       </div>
 
-      {tab === 'carnet' ? <div className="pz-step" style={{ marginTop: 12 }}><CarnetManager /></div> : (
+      {tab === 'mysteres' ? <MysteriesTab campaigns={campaigns} /> : tab === 'carnet' ? <div className="pz-step" style={{ marginTop: 12 }}><CarnetManager /></div> : (
         <>
           <p className="pz-lead" style={{ marginTop: 10 }}>Des énigmes qui se résolvent en observant et en raisonnant, pas aux dés. Crée-les ici, puis pose-les sur une porte, une herse ou un coffre depuis la carte de combat.</p>
           <div className="pz-lib-tools">

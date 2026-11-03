@@ -5,7 +5,7 @@
  */
 
 /** Collections du grimoire dont les éléments portent un `universeId`. */
-const DICTS = ['characters', 'campaigns', 'npcs', 'quests', 'libraryEntries', 'chatThreads', 'maps', 'assets', 'puzzles', 'clues'];
+const DICTS = ['characters', 'campaigns', 'npcs', 'quests', 'libraryEntries', 'chatThreads', 'maps', 'assets', 'puzzles', 'clues', 'mysteries'];
 
 const ownedBy = (id) => (x) => x && x.universeId === id;
 

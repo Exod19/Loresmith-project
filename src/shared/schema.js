@@ -36,6 +36,7 @@ export const DOC_TYPES = {
   chat: { collection: 'chatThreads', scope: 'universe-or-campaign' },
   puzzle: { collection: 'puzzles', scope: 'universe' },
   clue: { collection: 'clues', scope: 'universe' },
+  mystery: { collection: 'mysteries', scope: 'universe' },
   userState: { collection: null, scope: 'user' },
 };
 
@@ -61,6 +62,8 @@ export const SECRET_FIELDS = {
   // Énigme : la solution, sa démonstration et les indices du MJ ; carnet : où trouver l'objet.
   puzzle: ['gm', 'engine.serverConfig', 'design'],
   clue: ['gmNote'],
+  // Fil des mystères : tout, sauf le titre, est réservé au MJ (faits, supports, emplacements, journal).
+  mystery: ['synopsis', 'intention', 'knowledgeAtoms', 'clueDesigns', 'sceneSlots', 'manifestations', 'gates', 'events'],
 };
 
 /** Portée d'un élément du grimoire local. */
