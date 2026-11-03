@@ -1,34 +1,45 @@
-# Lot 29 : objets des lieux sur le plateau, densité de l'Underdark (statut : à valider)
+# Lot 29 : horloge et mémoire du monde (lots A et B du monde vivant)
 
-## Ce qui change
+## Horloge du monde (`src/maps/world/clock.js`)
 
-- **Les objets d'un lieu sauvage sont posés sur le plateau de combat.** Le plan d'un lieu (lot 26) contient des objets : coffre, tonneau, autel, colonnes, sarcophage, fontaine. Quand on ouvre le combat dans ce plan, ceux qui tombent dans le cadre deviennent des objets du plateau, avec leurs règles de couvert et de passage :
-  - tonneau → tonneau ;
-  - coffre → caisses ;
-  - colonne ou pierre levée → rocher ;
-  - autel ou sarcophage → gros rocher ;
-  - fontaine → pierres.
+- Chaque monde a sa date de jeu (`world.clock` : jour, minute, jour dans la saison) : « Jour 12 · 14 h 30 ». Elle
+  avance selon ce que font les personnages, jamais selon le temps réel :
+  - voyage : les heures de marche du groupe ;
+  - combat sur la carte du monde : 6 secondes par round ;
+  - fouille d'une pièce : 10 min ;
+  - le MJ, à la main (onglet Journal) : + 10 min, repos court (1 h), repos long (8 h), jusqu'à l'aube, jusqu'au soir,
+    + 1 jour, + 1 semaine, ou une durée libre (minutes, heures, jours, semaines, mois).
+- Le moment de la journée en découle : matin à 6 h, jour à 11 h, soir à 17 h, nuit à 22 h. Le sélecteur de moment
+  avance maintenant le temps jusqu'au moment choisi.
+- La saison, si le MJ en a choisi une, change d'elle-même tous les 91 jours.
+- Un monde sans horloge démarre au Jour 1, au moment qu'il avait.
+- L'horloge et la mémoire n'entrent pas dans la clé du cache de génération : avancer de quelques minutes ne régénère
+  pas la carte. Seul un changement de moment de la journée ou de saison le fait.
 
-  Ils se déplacent et se retirent comme les objets posés à la main (onglet Construire).
-- **Densité des lieux sauvages de l'Underdark** (onglet Groupe de l'Atlas, carte « Lieux sauvages ») :
-  - rares : environ un toutes les 11 heures de marche ;
-  - normaux : un toutes les 6 à 7 heures, le réglage par défaut ;
-  - nombreux : un toutes les 4 heures.
+## Mémoire du monde (`src/maps/world/worldEvents.js`, onglet 🕰 Journal)
 
-  Le réglage change les brouillons et la découverte en chemin ; les lieux déjà gardés ou découverts ne changent pas.
+- Chaque événement (`world.events`) porte :
+  - une date (à la minute) ;
+  - un titre et des détails ;
+  - une nature : incendie, destruction, mort, cadavre laissé, vol, effraction, agression, humiliation, aide, accord,
+    lieu délaissé, découverte, rumeur, autre ;
+  - un lieu de la carte ;
+  - les PNJ touchés ;
+  - l'implication des héros : auteurs, témoins, victimes, ou sans eux ;
+  - une gravité : mineur, notable, grave.
+- On l'inscrit à la main (lieu proposé : le lieu choisi, sinon celui du groupe).
+- On peut aussi coller ses notes de séance : l'IA propose les événements qui changent le monde, en reprenant les noms
+  des lieux et des PNJ connus. Le MJ coche ce qui est vrai ; rien n'est inscrit sans lui.
+- Liste du plus récent au plus ancien, avec « il y a … » et un lien vers le lieu sur la carte.
 
-## Fichiers
+## La suite
 
-- Modifiés :
-  - `battle/BattleMode.tsx` : objets du plan du lieu (`wildObjects`) ;
-  - `atlas/deepWilds.js` et `deepWilds.d.ts` : densité ;
-  - `atlas/deepIndex.ts` : densité transmise au tirage, en mémoire par densité ;
-  - `mapStore.ts` (`overlay.wildDensity`) ;
-  - `MapViewer.tsx` : réglage de la densité dans l'onglet Groupe de l'Atlas ;
-  - `atlas/deepWilds.test.mjs` (un test de plus).
-- Zones à risque (`App.jsx`, `persist.js`, `sync/engine.js`, `server/src/`) : non touchées.
+- Lot C : le monde réagit au temps qui passe. Petits effets automatiques ; gros effets (bâtiments, PNJ) proposés au
+  MJ.
+- Lot D : la nuit et l'effraction.
+- Lot E : « depuis votre dernier passage ».
 
-## Vérifications
+## Tests
 
-- Dans le navigateur, plan d'un camp de bandits : le plateau de combat porte le tonneau près du feu et les caisses du chef, en plus des tentes et des points d'intérêt (F1, F2).
-- Tests : la densité de l'Underdark respecte l'ordre rares < normaux < nombreux.
+`clock.test.mjs` : avance par voyage, repos et rounds ; moment de la journée ; saison tous les 91 jours ; temps écoulé
+en mots ; événements datés, triés, situés ; notes de séance lues.

@@ -53,6 +53,8 @@ import { isHiddenNpc } from './world/interior';
 import { normalizeEntity } from '../bestiary/entityGen';
 import { npcBankImage, npcToken } from '../banque/place';
 import { visibleFrom } from './world/sight';
+import { DURATIONS, clockLabel, tick as tickWorld, untilPeriod } from './world/clock';
+import JournalPanel from './world/JournalPanel';
 import { rollFind } from './world/fouille';
 import { faceOf } from '../banque';
 import type { Period, Season } from './world/generate';
@@ -158,7 +160,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   /** Brouillon gardé pour y entrer : on entre dans son plan dès que le monde l'a généré. */
   const [enterWild, setEnterWild] = useState<string | null>(null);
   const [cross, setCross] = useState<{ picking: boolean; to?: PartyPlace; at?: [number, number]; path?: CrossPath | null; by?: 'joueurs' } | null>(null);
-  const [side, setSide] = useState<'lieu' | 'groupe' | 'campagne' | 'reperes' | 'monde' | 'explore'>(rec.kind === 'monde' && !(rec.world?.cities.length) ? 'monde' : 'lieu');
+  const [side, setSide] = useState<'lieu' | 'groupe' | 'campagne' | 'reperes' | 'monde' | 'explore' | 'journal'>(rec.kind === 'monde' && !(rec.world?.cities.length) ? 'monde' : 'lieu');
   useEffect(() => { if (selectedId) setSide((cur) => (cur === 'explore' ? cur : 'lieu')); }, [selectedId]);
 
   const overlay = rec.overlay ?? EMPTY_OVERLAY;
@@ -452,7 +454,26 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     publishStage({ kind: 'blank' });
   }
 
-  const setOverlay = (next: MapOverlay) => onUpdate({ overlay: next, updatedAt: Date.now() });
+  /**
+   * Superposition (ce que voient les joueurs, le groupe…). Sur la carte du monde, les heures de marche du groupe font
+   * avancer l'horloge du monde dans la même mise à jour.
+   */
+  const setOverlay = (next: MapOverlay) => {
+    const walked = (next.party?.walked ?? 0) - (overlay.party?.walked ?? 0);
+    onUpdate({ overlay: next, ...(rec.kind === 'monde' && rec.world && walked > 0 ? { world: tickWorld(rec.world, walked * 60) } : {}), updatedAt: Date.now() });
+  };
+  /** Le temps passe : l'horloge du monde avance (repos, fouille, ou le MJ à la main). */
+  const advanceTime = (minutes: number) => { if (rec.world && minutes > 0) onUpdate({ world: tickWorld(rec.world, minutes), updatedAt: Date.now() }); };
+  // Combat sur la carte du monde : chaque round écoulé compte 6 secondes.
+  const lastRound = useRef<number | null>(null);
+  const round = rec.kind === 'monde' ? rec.battle?.round : undefined;
+  useEffect(() => {
+    const prev = lastRound.current;
+    lastRound.current = round ?? null;
+    if (round == null || prev == null || round <= prev) return;
+    advanceTime((round - prev) * DURATIONS.round);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [round]);
 
   /**
    * Dans un intérieur, ce qui est évident se voit d'office : dès que le groupe se tient quelque part (en entrant, en
@@ -1106,8 +1127,12 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
             onClick={() => { const on = !exploring; setExploring(on); setSide(on ? 'explore' : 'lieu'); }}>🎭 Exploration</button>
         )}
         {rec.kind === 'monde' && rec.world && (
-          <select className="maps-btn" value={rec.world.time ?? 'jour'} aria-label="Moment de la journée" title="Moment de la journée : qui est dans les bâtiments, et la lumière"
-            onChange={(e) => onUpdate({ world: { ...rec.world!, time: e.target.value as Period }, updatedAt: Date.now() })}>
+          <button className={`maps-btn ${side === 'journal' ? 'gold' : ''}`} title="Horloge et mémoire du monde : avancer le temps, inscrire ce qui s’est passé"
+            onClick={() => setSide('journal')}>🕰 {clockLabel(rec.world)}</button>
+        )}
+        {rec.kind === 'monde' && rec.world && (
+          <select className="maps-btn" value={rec.world.time ?? 'jour'} aria-label="Moment de la journée" title="Moment de la journée : le temps avance jusqu’au moment choisi (qui est dans les bâtiments, et la lumière)"
+            onChange={(e) => advanceTime(untilPeriod(rec.world!, e.target.value as Period))}>
             <option value="matin">🌅 Matin</option><option value="jour">☀ Jour</option><option value="soir">🌇 Soir</option><option value="nuit">🌙 Nuit</option>
           </select>
         )}
@@ -1237,7 +1262,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
           <aside className="maps-panel maps-side">
             {dm && (
               <nav className="maps-tabs" role="tablist" aria-label="Panneau de la carte">
-                {([...(exploring ? [['explore', '🎭 Exploration']] : []), ...(rec.kind === 'monde' ? [['monde', '🏰 Monde']] : []), ['lieu', '📍 Lieu'], ['groupe', '👥 Groupe'], ...(campaigns.length ? [['campagne', '📜 Campagne']] : []), ['reperes', '🔖 Repères']] as [typeof side, string][]).map(([id, label]) => (
+                {([...(exploring ? [['explore', '🎭 Exploration']] : []), ...(rec.kind === 'monde' ? [['monde', '🏰 Monde']] : []), ['lieu', '📍 Lieu'], ['groupe', '👥 Groupe'], ...(campaigns.length ? [['campagne', '📜 Campagne']] : []), ['reperes', '🔖 Repères'], ...(rec.kind === 'monde' && dm ? [['journal', '🕰 Journal']] : [])] as [typeof side, string][]).map(([id, label]) => (
                   <button key={id} role="tab" aria-selected={side === id} className={side === id ? 'on' : ''} onClick={() => setSide(id)}>
                     {label}
                     {id === 'groupe' && (party.apart?.length ?? 0) > 0 && <small>{party.apart!.length}</small>}
@@ -1357,7 +1382,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
 
             {(!dm || side === 'lieu') && feature && !markerId && (
               <FeaturePanel
-                f={feature} dm={dm} notes={point?.notes ?? ''} face={npcFaceOf(feature)}
+                f={feature} dm={dm} notes={point?.notes ?? ''} face={npcFaceOf(feature)} onTime={rec.kind === 'monde' ? advanceTime : undefined}
                 depthLine={strates ? depthOfFeature(feature.id) : undefined}
                 defaultCtx={{ zone: point?.zone ?? (rec.kind === 'monde' ? (feature.wild || feature.area ? 'sauvage' : feature.trace ? 'transit' : 'cite') : 'sauvage'), depth: point?.depth ?? 3, place: feature.title }}
                 surface={rec.kind === 'monde'}
@@ -1427,6 +1452,14 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                   const pts = (g.type === 'point' ? [g.coordinates] : g.coordinates) as [number, number][];
                   moveAvatar(map.id, pts[Math.floor(pts.length / 2)], f.title);
                 }} />
+            )}
+            {dm && side === 'journal' && rec.kind === 'monde' && rec.world && (
+              <JournalPanel world={rec.world} data={data}
+                here={feature ? { planId: map.id, featureId: feature.id, title: feature.title } : party.at ? { planId: party.at.planId, featureId: party.at.kind === 'feature' ? party.at.id : undefined, title: party.at.title } : undefined}
+                npcNames={[...new Set([...(library ?? []).filter((e) => (e as { archiveType?: string }).archiveType === 'person').map((e) => e.title), ...data.features.filter((f) => f.id.includes(':pnj-') && !f.id.includes(':pnj-gen-')).map((f) => f.title)])]}
+                onAdvance={advanceTime}
+                onEvents={(events) => onUpdate({ world: { ...rec.world!, events }, updatedAt: Date.now() })}
+                onShow={(p) => { if (p.planId) setPlanId(p.planId); if (p.featureId) { setSelectedId(p.featureId); setFocus({ kind: 'point', id: p.featureId, tick: Date.now() }); } }} />
             )}
             {dm && side === 'monde' && rec.kind === 'monde' && rec.world && (
               <WorldPanel rec={rec} data={data} library={library ?? []} planId={map.id} revealed={overlay.revealed} onUpdate={onUpdate}
@@ -1682,11 +1715,12 @@ function PartyBar({ party, inBattle, onShow, onBattle, onClearDest, onRejoin }: 
  * Fouille d'une pièce (MJ) : son DD selon qui s'y trouve et le moment, puis le résultat d'après le jet du joueur.
  * Une réussite rapporte souvent des broutilles ; une vraie trouvaille reste rare.
  */
-function SearchBox({ f }: { f: AtlasFeature }) {
+function SearchBox({ f, onTime }: { f: AtlasFeature; onTime?: (minutes: number) => void }) {
   const [roll, setRoll] = useState('');
   const [found, setFound] = useState<{ kind: string; text: string } | null>(null);
   const s = f.fouille!;
-  const go = () => { const n = Number(roll); if (Number.isFinite(n) && roll !== '') setFound(rollFind(s.room ?? f.title, n - s.dc)); };
+  // Une fouille prend une dizaine de minutes de jeu.
+  const go = () => { const n = Number(roll); if (Number.isFinite(n) && roll !== '') { setFound(rollFind(s.room ?? f.title, n - s.dc)); onTime?.(DURATIONS.fouille); } };
   return (
     <div className={`maps-search dc-${s.label === 'Presque impossible' ? 'max' : s.dc > 20 ? 'hard' : s.dc > 15 ? 'mid' : 'easy'}`}>
       <p className="maps-search-dc"><b>🔎 Fouille discrète · DD {s.dc}</b> <span>({s.label})</span></p>
@@ -1700,9 +1734,11 @@ function SearchBox({ f }: { f: AtlasFeature }) {
   );
 }
 
-function FeaturePanel({ face, f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring, partyHere, partyDest, onPartyHere, onPartyDest, passive = 10, follow, onForget, depthLine, surface }: {
+function FeaturePanel({ onTime, face, f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring, partyHere, partyDest, onPartyHere, onPartyDest, passive = 10, follow, onForget, depthLine, surface }: {
   /** Image de face d'un PNJ (fiche ou banque). */
   face?: string;
+  /** Le temps passe (fouille) : minutes de jeu. */
+  onTime?: (minutes: number) => void;
   f: AtlasFeature; dm: boolean; notes: string; defaultCtx: EncCtx; onClose: () => void; onRoll: (ctx: EncCtx) => void;
   /** Carte du monde (surface) : descriptions, libellés et rencontres de la surface, jamais ceux de l'Underdark. */
   surface?: boolean;
@@ -1735,7 +1771,7 @@ function FeaturePanel({ face, f, dm, notes, defaultCtx, onClose, onRoll, reveale
       {f.subtitle && <p className="maps-sub">{f.subtitle}</p>}
       {depthLine && <p className="maps-depth">⛰ {depthLine}</p>}
       <p>{text}</p>
-      {dm && f.fouille && <SearchBox f={f} />}
+      {dm && f.fouille && <SearchBox f={f} onTime={onTime} />}
       {f.trace && (() => {
         const t = trailProfile(f, f.trace === 'secret' ? 15 : undefined);
         return (
