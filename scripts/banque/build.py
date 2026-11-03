@@ -125,8 +125,12 @@ TEXTURES = [
     (r'cendre volcanique', dict(nom='Cendre volcanique', cat='cendre', taille=6, milieux=['volcan'])),
     (r'cro.te volcanique', dict(nom='Croûte de lave', cat='lave', taille=6, milieux=['volcan'], region=['surface', 'outreterre'])),
     (r'dalles de pierre', dict(nom='Dalles de pierre', cat='dalles', taille=4, milieux=['interieur', 'ville', 'temple', 'caverne'], region=['surface', 'outreterre'])),
-    (r'eau douce turquoise', dict(nom='Eau claire', cat='eau', taille=8, milieux=['riviere', 'lac'], climats=[C, TR, T])),
-    (r'eau sombre', dict(nom='Eau sombre', cat='eau', taille=8, milieux=['riviere', 'lac', 'mer', 'marais'], region=['surface', 'mer', 'outreterre'])),
+    # Eaux : `usage` dit la profondeur (peu-profonde près des berges, profonde au milieu) et l'aspect (boueuse, claire).
+    (r'eau de rivi.re boueuse', dict(nom='Eau boueuse', cat='eau', taille=10, usage=['peu-profonde', 'boueuse'], raccorder=True, milieux=['riviere', 'marais', 'lac'], climats=[T, F])),
+    (r'eau profonde vert sombre', dict(nom='Eau profonde', cat='eau', taille=12, usage=['profonde'], milieux=['riviere', 'lac', 'mer'], region=['surface', 'mer'], raccorder=True)),
+    (r'eau claire turquoise peu profonde', dict(nom='Eau claire peu profonde', cat='eau', taille=8, usage=['peu-profonde', 'claire'], raccorder=True, milieux=['mer', 'lac', 'riviere'], climats=[T, C, TR])),
+    (r'eau douce turquoise', dict(nom='Eau claire', cat='eau', taille=8, usage=['peu-profonde', 'claire'], milieux=['riviere', 'lac'], climats=[C, TR, T])),
+    (r'eau sombre', dict(nom='Eau sombre', cat='eau', taille=8, usage=['profonde'], milieux=['riviere', 'lac', 'mer', 'marais'], region=['surface', 'mer', 'outreterre'])),
     (r'flanc montagneux', dict(nom='Granite fracturé', cat='roche', taille=8, milieux=['montagne'])),
     (r'glace lacustre', dict(nom='Glace', cat='glace', taille=8, milieux=['lac', 'riviere'], climats=[F], saisons=['hiver'])),
     (r'herbe dense', dict(nom='Prairie', cat='herbe', taille=4, milieux=['campagne', 'ville'], climats=[T], saisons=['printemps', 'ete'])),
@@ -232,6 +236,11 @@ PEOPLE = [
 ]
 
 # Jetons appariés à un portrait : on reprend peuple et rôles du portrait.
+# Jetons pris vraiment à la verticale (on voit le dessus de la tête, pas le visage) : `angle: zenith`. Les autres sont
+# inclinés d'environ 15° (visage et pieds visibles) ; sur un plan vu de haut, la banque préfère les premiers.
+ZENITH = ['-zenith-jeton', 'elder dwarf with book', 'halfling healer with bandage', 'funerary officiant', 'silver-haired archer',
+          'armored warrior with wooden shield', 'zenith view of a leather-clad']
+
 TOKEN_ALIASES = {
     'apple basket token': 'apple merchant', 'bucket bearer': 'auburn-haired servant', 'child with wooden toy': 'braided girl',
     'token with tray': 'cheerful halfling tavern', 'dark fantasy dwarf token': 'chiaroscuro dwarf laborer', 'darksteel officer': 'city watch captain',
@@ -313,6 +322,68 @@ def guess(folder, title):
     return dict(nom=nom, cat='divers', taille=[2, 2], milieux=[], devine=True)
 
 
+# Noms normalisés des nouvelles images (consignes données à ChatGPT, doc « Échelle des images ») :
+#   jeton    : <peuple>-<f|m>-<rôle>[-description][-couche|-assis|-agenouille]-zenith-jeton
+#   portrait : le même nom, « portrait » au lieu de « zenith-jeton » (paire reconnue d'office)
+#   mobilier : <objet>-<matériau>-<largeur>x<profondeur> ; toit : toit-<forme>-<matériau>-<l>x<p> ;
+#   arbre    : <espèce>-<saison>-<diamètre> ; texture : texture-<matière>-<taille>m
+PEUPLE_MOTS = {'humain': 'humain', 'humaine': 'humain', 'elfe': 'elfe', 'demi-elfe': 'demi-elfe', 'nain': 'nain', 'naine': 'nain',
+               'halfelin': 'halfelin', 'halfeline': 'halfelin', 'gnome': 'gnome', 'demi-orque': 'demi-orque', 'tieffelin': 'tieffelin',
+               'tieffeline': 'tieffelin', 'drow': 'drow', 'duergar': 'duergar', 'svirfnebelin': 'svirfnebelin'}
+SAISONS = {'printemps', 'ete', 'automne', 'hiver'}
+
+
+def structured(folder, title):
+    """Étiquettes lues dans un nom normalisé ; None si le nom ne suit pas le modèle."""
+    stem = unicodedata.normalize('NFKD', title).encode('ascii', 'ignore').decode().lower().strip()
+    stem = re.sub(r'\.(png|jpe?g|webp)$', '', stem)
+    stem = re.sub(r'\s*\(\d+\)$', '', stem)  # « (2) » ajouté par le Drive à un doublon
+    stem = re.sub(r'[\s_]+', '-', stem)
+    if folder == 'people':
+        m = re.match(r'^(demi-elfe|demi-orque|[a-z]+)-([fm])-([a-z]+)(.*?)-(zenith-jeton|portrait)$', stem)
+        if not m or m.group(1) not in PEUPLE_MOTS:
+            return None
+        rest = m.group(4)
+        pose = next((p for p in ('couche', 'assis', 'agenouille') if f'-{p}' in rest), None)
+        meta = dict(nom=title.rsplit('.', 1)[0], peuple=PEUPLE_MOTS[m.group(1)], genre=m.group(2), roles=[m.group(3)],
+                    paire=stem[: m.start(5) - 1], cadre_fixe=m.group(5) == 'zenith-jeton')
+        if m.group(3) == 'enfant':
+            meta['roles'] = ['enfant']
+        if pose:
+            meta['pose'] = pose
+        return meta
+    if folder == 'textures':
+        m = re.match(r'^texture-(.+)-(\d+(?:\.\d+)?)m$', stem)
+        return dict(nom=m.group(1).replace('-', ' '), cat='sol', taille=float(m.group(2)), milieux=[], raccorder=True) if m else None
+    m = re.match(r'^toit-([a-z]+)-([a-z-]+)-(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)$', stem)
+    if m:
+        return dict(nom=f'Toit en {m.group(1).upper() if len(m.group(1)) == 1 else m.group(1)} ({m.group(2)})', cat='toit', forme=m.group(1).upper() if len(m.group(1)) == 1 else m.group(1),
+                    usage=['maison'], taille=[float(m.group(3)), float(m.group(4))], milieux=[])
+    m = re.match(r'^(.+)-(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)$', stem)
+    if m:
+        obj = m.group(1).split('-')[0]
+        return dict(nom=m.group(1).replace('-', ' '), cat='mobilier', usage=[obj], taille=[float(m.group(2)), float(m.group(3))], milieux=[])
+    m = re.match(r'^([a-z-]+?)-(printemps|ete|automne|hiver)-(\d+(?:\.\d+)?)$', stem)
+    if m:
+        d = float(m.group(3))
+        return dict(nom=m.group(1).replace('-', ' '), cat='arbre' if d >= 4 else 'arbuste', taille=[d, d], saisons=[m.group(2)], milieux=[])
+    return None
+
+
+def seamless(im):
+    """Texture raccordable sur ses quatre bords : mélange avec sa copie décalée d'une demi-tuile, le poids de l'original
+    s'annulant près des bords (là où la copie décalée est continue d'un bord à l'autre)."""
+    import numpy as np
+    a = np.asarray(im.convert('RGB')).astype(np.float32)
+    h, w = a.shape[:2]
+    r = np.roll(np.roll(a, h // 2, axis=0), w // 2, axis=1)
+    wx = np.clip(np.minimum(np.arange(w), w - 1 - np.arange(w)) / (w * 0.25), 0, 1)
+    wy = np.clip(np.minimum(np.arange(h), h - 1 - np.arange(h)) / (h * 0.25), 0, 1)
+    k = (np.minimum.outer(wy, wx))[..., None]
+    k = k * k * (3 - 2 * k)
+    return Image.fromarray(np.clip(a * k + r * (1 - k), 0, 255).astype(np.uint8))
+
+
 def avg_color(im):
     rgba = im.convert('RGBA').resize((16, 16), Image.LANCZOS)
     px = [p for p in (rgba.get_flattened_data() if hasattr(rgba, 'get_flattened_data') else rgba.getdata()) if p[3] > 128] or [(128, 128, 128, 255)]
@@ -341,11 +412,11 @@ def main():
         has_alpha = im.mode in ('RGBA', 'LA') and im.getchannel('A').getextrema()[0] < 250
         folder = x['folder']
         if folder == 'textures':
-            kind, vue, meta = 'texture', 'tuile', match(TEXTURES, x['title'])
+            kind, vue, meta = 'texture', 'tuile', match(TEXTURES, x['title']) or structured(folder, x['title'])
         elif folder == 'people':
             kind = 'personnage'
             vue = 'jeton' if has_alpha else 'portrait'
-            meta = match(PEOPLE, x['title'])
+            meta = structured(folder, x['title']) or match(PEOPLE, x['title'])
             if meta is None:
                 t = norm(x['title'])
                 alias = next((v for k, v in TOKEN_ALIASES.items() if k in t), None)
@@ -354,14 +425,22 @@ def main():
                 if meta:
                     meta.pop('pose', None)
         else:
-            kind, vue, meta = 'element', 'zenith', match(ELEMENTS, x['title'])
+            kind, vue, meta = 'element', 'zenith', match(ELEMENTS, x['title']) or structured(folder, x['title'])
         meta = meta or guess(folder, x['title'])
+        if vue == 'jeton':
+            meta['angle'] = 'zenith' if any(z in norm(x['title']) for z in ZENITH) else 'incline'
         # Recadrage sur la partie visible (éléments et jetons) : la taille réelle vaut pour ce qui est dessiné.
         if has_alpha:
             bbox = im.getchannel('A').point(lambda a: 255 if a > 24 else 0).getbbox()
             if bbox:
+                # Jeton à cadre fixe (largeur du cadre = 1,5 m) : sa longueur réelle se lit avant le recadrage.
+                if meta.pop('cadre_fixe', False):
+                    meta['longueur'] = round(max(bbox[2] - bbox[0], bbox[3] - bbox[1]) * 1.5 / im.size[0], 2)
                 im = im.crop(bbox)
+        meta.pop('cadre_fixe', None)
         im = im.convert('RGBA' if has_alpha else 'RGB')
+        if meta.pop('raccorder', False):
+            im = seamless(im)
         slug = ascii_slug(x['title'])
         if vue == 'jeton':
             slug += '-jeton'
@@ -407,6 +486,13 @@ def main():
         want = 'portrait' if e['vue'] == 'jeton' else 'jeton'
         other = next((o for o in entries if o['type'] == 'personnage' and o['vue'] == want and key in norm(o['titre'])), None)
         e['paire'] = other['id'] if other else None
+    # Longueur réelle (m) que couvre l'image de chaque jeton : les images remplissent toutes leur cadre, quelle que soit
+    # la taille du personnage ou l'angle de vue. Mesurée à l'œil d'après la largeur des épaules (scripts/banque/
+    # longueurs.json) ; un jeton absent de la liste prend une estimation d'après son peuple (tokenScale).
+    longueurs = json.load(open(os.path.join(os.path.dirname(__file__), 'longueurs.json'), encoding='utf-8'))
+    for e in entries:
+        if e['vue'] == 'jeton' and e['id'] in longueurs:
+            e['longueur'] = longueurs[e['id']]
     os.makedirs(os.path.dirname(CATALOGUE), exist_ok=True)
     with open(CATALOGUE, 'w', encoding='utf-8') as f:
         json.dump({'version': 1, 'images': entries}, f, ensure_ascii=False, indent=0)

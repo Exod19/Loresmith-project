@@ -6,7 +6,7 @@ import { boardTheme } from './theme';
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import BattleBoard, { type BoardToken } from './BattleBoard';
 import type { Battle } from '../mapStore';
-import { baseGridOf, fits, surfaceOf } from './placement';
+import { baseGridOf, fits, paintedOf, surfaceOf } from './placement';
 import { socleOf } from './surface';
 import { tokenImage } from './vignettes';
 import { isOut, vitalOf } from './combat';
@@ -65,6 +65,7 @@ export default function MiniBattle({ battle, onBattle, selectedId, onSelect }: {
   }, [drag]);
 
   const rules = surfaceOf(b);
+  const painted = paintedOf(b);
   const live = drag?.moved ? moveAlerts(b, drag.id, drag.cur) : null;
   const shown = live ?? (drag ? [] : alerts);
   const tokens: BoardToken[] = b.tokens.map((t) => {
@@ -72,7 +73,7 @@ export default function MiniBattle({ battle, onBattle, selectedId, onSelect }: {
     return {
       id: t.id, name: t.name, kind: t.kind, x: at.x, y: at.y, size: t.size, icon: t.icon, image: tokenImage(t),
       selected: t.id === selectedId, hidden: !t.visible, active: t.id === b.turn, hp: t.hp, maxHp: t.maxHp, out: isOut(t), conditions: t.conditions,
-      socle: socleOf(rules, t) ?? undefined,
+      socle: socleOf(rules, t, painted) ?? undefined,
       ...vitalOf(t),
     };
   });
@@ -81,7 +82,7 @@ export default function MiniBattle({ battle, onBattle, selectedId, onSelect }: {
   return (
     <div className="mini-battle">
       <div ref={wrapRef} className={`mini-battle-board ${drag ? 'dragging' : ''}`} onPointerDown={down} onPointerMove={move}>
-        <BattleBoard cols={b.cols} rows={b.rows} terrain={baseGridOf(b)} elements={[]} ranges={[]} tokens={tokens} interactive={false} hits={b.hits} theme={boardTheme(b.local?.surface)}
+        <BattleBoard cols={b.cols} rows={b.rows} terrain={baseGridOf(b)} elements={[]} ranges={[]} tokens={tokens} interactive={false} hits={b.hits} theme={boardTheme(b.local?.surface, b.local?.nature)}
           ground={b.ground} surface={{ zones: b.zones, objects: b.objects, walls: b.walls }} />
         {shown.length > 0 && (
           <div className={`battle-move-alerts ${live ? 'live' : ''}`} role="status">

@@ -13,7 +13,8 @@ import type { LoreEntry } from './lore';
 import { PROPOSAL_TYPES, chronicleOf, npcSystemPrompt, npcUserPrompt, parseNpcReply, type Proposal, type TalkLine } from './talk';
 import type { World } from './index';
 import { canSpeak, creatureVoice } from './speech';
-import { npcBankImage } from '../../banque/place';
+import { npcBankImage, npcToken } from '../../banque/place';
+import { faceOf } from '../../banque';
 
 type Props = {
   rec: MapRecord;
@@ -49,7 +50,7 @@ export default function TalkPanel({ rec, data, planId, npc, library, loreContext
   useEffect(() => () => { if (sharedRef.current) shareRef.current?.(null); }, []);
   const shareKey = useRef(`${npc.id}:${Date.now()}`);
   // Visage du PNJ : le sien, sinon un portrait de la Banque Loresmith cohérent avec la cité (jamais pour une créature).
-  const face = npc.image ?? (creature ? undefined : npcBankImage(rec, planId, library, npc, 'portrait', 256));
+  const face = npc.image ?? (creature ? undefined : faceOf(npcToken(rec, planId, library, [], npc, 256, data.features), 256) ?? npcBankImage(rec, planId, library, npc, 'portrait', 256));
   const share = (lines: TalkLine[], on = shared) => {
     if (!onShare || !on) return;
     onShare({ key: shareKey.current, name: npc.title, image: face, at: Date.now(), lines: lines.slice(-6).map((m) => ({ who: m.from === 'avatar' ? avatar.name || 'Le groupe' : npc.title, text: m.text })) });

@@ -4,7 +4,7 @@
  */
 import { useSyncExternalStore } from 'react';
 import catalogue from './catalogue.json';
-import { bankUrl, mipFor, peoplesOf, pickPerson, withOverrides, type BankImage, type Peoples } from './banque';
+import { bankUrl, mipFor, npcTraits, peoplesOf, pickPerson, tokenScale, withOverrides, type BankImage, type Peoples } from './banque';
 
 export * from './banque';
 
@@ -112,17 +112,103 @@ export function bankSrc(img: BankImage, px = 256): string {
 export const bankById = (id: string | undefined | null) => (id ? images.find((i) => i.id === id) ?? null : null);
 
 /** Une adresse d'image vient-elle de la banque ? (jetons : on les dessine entiers et orientés, sans médaillon). */
-export const isBankSrc = (src: string | undefined) => !!src && ((src.includes('/banque/personnages/') && src.endsWith('.webp')) || own.some((i) => i.vue === 'jeton' && i.src === src));
+export const isBankSrc = (src: string | undefined) => {
+  const img = bankImageOf(src);
+  // Image du catalogue retirée depuis (jeton enregistré dans un ancien combat) : on la dessine comme un jeton.
+  return img ? img.vue === 'jeton' : !!src && src.includes('/banque/personnages/') && src.endsWith('.webp');
+};
 
 /**
- * Image d'un PNJ (portrait ou jeton), cohérente avec le lieu : `role` (sous-titre du PNJ), `place` (fiche de la cité ou
- * du lieu, et son peuple), `region`. Renvoie l'adresse, ou undefined plutôt qu'un intrus.
+ * Image d'un PNJ (portrait ou jeton), cohérente avec le lieu et avec lui-même :
+ * - `role` (sous-titre), `name`, `desc`, `genre`, `peuple` : son genre (strict) et son peuple, d'après sa fiche ou son
+ *   prénom (npcTraits) ;
+ * - `placeText`, `people`, `region` ou `peoples` : les peuples du lieu, quand le sien n'est pas connu ;
+ * - `pose` : 'couche' pour un dormeur dans son lit ; sinon, jamais de personnage assis, agenouillé ou couché.
+ * Renvoie l'adresse, ou undefined plutôt qu'un intrus.
  */
-export function npcImage({ id, role, placeText, people, region = 'surface', vue = 'jeton', px = 128, peoples }: {
-  id: string; role?: string; placeText?: string; people?: string; region?: string; vue?: 'portrait' | 'jeton'; px?: number; peoples?: Peoples;
-}): string | undefined {
+export function npcImage(o: NpcQuery): string | undefined {
+  const img = npcPick(o);
+  return img ? bankSrc(img, o.px ?? 128) : undefined;
+}
+
+export type NpcQuery = {
+  id: string; role?: string; name?: string; desc?: string; genre?: 'f' | 'm'; peuple?: string; pose?: string;
+  placeText?: string; people?: string; region?: string; vue?: 'portrait' | 'jeton'; px?: number; peoples?: Peoples;
+  /** Images déjà prises dans la même scène : évitées tant qu'il reste un autre choix cohérent. */
+  exclude?: Set<string>;
+};
+
+/** Même choix que npcImage, mais renvoie l'image de la banque elle-même. */
+export function npcPick({ id, role, name, desc, genre, peuple, pose, placeText, people, region = 'surface', vue = 'jeton', px = 128, peoples, exclude }: NpcQuery): BankImage | null {
   const pe = peoples ?? peoplesOf({ text: placeText, people, region });
-  const genre = /\b(elle|femme|fille|dame|soeur|mere|tavern(i|e)ere|servante|pretresse|marchande)\b/.test((role ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')) ? 'f' as const : undefined;
-  const img = pickPerson(images, { vue, role, peoples: pe, seed: id, genre });
-  return img ? bankSrc(img, px) : undefined;
+  const traits = npcTraits({ name, role, desc });
+  const g = genre ?? traits.genre;
+  const own = peuple ?? traits.peuple;
+  // Son peuple d'abord (s'il n'est pas proscrit du lieu), puis ceux du lieu ; son rôle d'abord, puis n'importe quel rôle.
+  // Dans une scène, une image déjà prise n'est reprise qu'en tout dernier recours.
+  const tries: Parameters<typeof pickPerson>[1][] = [];
+  if (own && !(pe.banned ?? []).includes(own)) tries.push({ peuple: own, role }, { peuple: own });
+  tries.push({ role }, {});
+  const pick = (v: 'jeton' | 'portrait') => {
+    for (const ex of exclude?.size ? [exclude, undefined] : [undefined]) {
+      for (const t of tries) {
+        const got = pickPerson(images, { ...t, vue: v, peoples: pe, seed: id, genre: g, pose, exclude: ex });
+        if (got) return got;
+      }
+    }
+    return null;
+  };
+  // Le portrait et le jeton d'un même PNJ montrent la même personne : on tire le jeton, puis on prend son portrait jumeau.
+  const token = pick('jeton');
+  if (vue === 'jeton') return token;
+  const twin = bankById(token?.paire);
+  if (twin && !twin.exclu) return twin;
+  const face = token ? bankImageOf(faceOf(bankSrc(token, px), px)) : null;
+  return face ?? pick('portrait');
+}
+
+/** Image de la banque derrière une adresse (catalogue : `/banque/personnages/<id>-<taille>.webp` ; ajout du MJ : sa source). */
+export function bankImageOf(src: string | undefined): BankImage | null {
+  if (!src) return null;
+  const m = /\/banque\/personnages\/(.+)-\d+\.webp$/.exec(src);
+  return m ? bankById(m[1]) : own.find((i) => i.src === src) ?? null;
+}
+
+/**
+ * Un jeton peut-il tourner sur lui-même ? Oui s'il est pris à la verticale ; un jeton incliné (visage visible) reste
+ * droit, sinon sa perspective penche de travers sur un plan vu de haut.
+ */
+/** Échelle d'un jeton (1 : humain adulte debout) : tous les personnages sont dessinés à la même échelle. */
+export const tokenScaleOf = (src: string | undefined) => { const img = bankImageOf(src); return img ? tokenScale(img) : 1; };
+
+/** Pose dessinée sur l'image d'un jeton ('couche', 'assis', 'agenouille'), ou undefined : debout. */
+export const poseOf = (src: string | undefined) => bankImageOf(src)?.pose;
+
+export const turnsFreely = (src: string | undefined) => bankImageOf(src)?.angle !== 'incline';
+
+/**
+ * Image de face d'un jeton (fiche, carte d'information) : le portrait jumeau d'un jeton de la banque, sinon un
+ * portrait de la banque qui lui ressemble (même peuple, même rôle, même genre, toujours le même pour ce jeton), ou
+ * l'image elle-même si c'est déjà un portrait. undefined : ce n'est pas une image de la banque.
+ */
+export function faceOf(src: string | undefined, px = 512): string | undefined {
+  const img = bankImageOf(src);
+  if (!img) return undefined;
+  if (img.vue === 'portrait') return src;
+  const twin = bankById(img.paire);
+  if (twin && twin.vue === 'portrait' && !twin.exclu) return bankSrc(twin, px);
+  // Même genre obligatoire (une tavernière ne prend pas le visage d'un cuisinier) ; le peuple, puis le rôle, ensuite.
+  const pool = img.genre ? images.filter((i) => !i.genre || i.genre === img.genre) : images;
+  const like = pickPerson(pool, { vue: 'portrait', peuple: img.peuple, role: (img.roles ?? []).join(' '), genre: img.genre, seed: img.id, peoples: peoplesOf({}) })
+    ?? pickPerson(pool, { vue: 'portrait', role: (img.roles ?? []).join(' '), genre: img.genre, seed: img.id, peoples: { main: [...new Set(pool.map((i) => i.peuple).filter(Boolean))] as string[], others: [], banned: [] } });
+  return like ? bankSrc(like, px) : undefined;
+}
+
+/** Jeton vu de dessus d'une image de la banque : le jeton jumeau d'un portrait, ou l'image si c'est déjà un jeton. */
+export function topOf(src: string | undefined, px = 128): string | undefined {
+  const img = bankImageOf(src);
+  if (!img) return src;
+  if (img.vue === 'jeton') return src;
+  const twin = bankById(img.paire);
+  return twin && twin.vue === 'jeton' ? bankSrc(twin, px) : src;
 }

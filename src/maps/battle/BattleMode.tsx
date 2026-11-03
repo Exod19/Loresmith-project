@@ -7,7 +7,7 @@
  * « Suivre » un passage ramène sur la carte de navigation, à sa destination, et y déplace le groupe.
  */
 import PuzzleLocks from '../../puzzles/PuzzleLocks';
-import { npcBankImage } from '../../banque/place';
+import { npcBankImage, npcToken } from '../../banque/place';
 import type { LoreEntry } from '../world/lore';
 import { terrainAt, type Relief } from '../world/terrain';
 import { boardTheme } from './theme';
@@ -26,7 +26,7 @@ import CombatPanel, { type Hero } from './CombatPanel';
 import type { BestiaryRef } from '../CampaignGuide';
 import PlacePanel, { type ExitItem, type SearchItem, type SecretItem } from './PlacePanel';
 import { DEFAULT_BRUSH, PROP_BY_KEY, PROP_LABEL, propUrl, shapeCells, type Brush } from './build';
-import { passageDifficulty, searchFor, type SearchEntry } from './search';
+import { passageDifficulty, poiEntry, searchFor, type SearchEntry } from './search';
 import { advanceBattle, isOut, passiveOfToken, sightOf, statOf, vitalOf } from './combat';
 import { moveAlerts, type Note } from './tactics';
 import { partyVision } from './fog';
@@ -36,10 +36,10 @@ import { detectLabel, trailProfile } from '../atlas/trails';
 import { describeLite } from '../atlas/lore';
 import { placeEncounter, type EncounterGroup } from './encounter';
 import { askAI, aiReady, parseJson } from '../../ai/client';
-import { baseGridOf, effectiveOf, fits, isDashing, moveLeft, overlaps, placeTokens as placeOnBoard, surfaceOf, usedMove, withMove } from './placement';
+import { baseGridOf, effectiveOf, fits, isDashing, moveLeft, overlaps, paintedOf, placeTokens as placeOnBoard, surfaceOf, usedMove, withMove } from './placement';
 import { hazardsOf, moveField, moverOf, occupancy, planMove, reachDetail, type MovePlan, type Mover } from './movement';
 import { roll } from '../atlas/encounters';
-import { OPENABLE, socleOf, TERRAIN_DEF, TERRAINS, type SurfaceRules, type TerrainId } from './surface';
+import { OPENABLE, socleOf, TERRAIN_DEF, TERRAINS, type BattleObject, type ObjectKind, type SurfaceRules, type TerrainId } from './surface';
 import { useSurfaceEditor } from './SurfaceEditor';
 import { AOE_PRESETS, AOE_SHAPES, aoeName, aoeView, DAMAGE_TYPES, SAVE_LABEL, type AoeEffect, type AoeShape, type BattleAoe, type SaveAbility } from './aoe';
 import type { PathView } from './SurfaceLayers';
@@ -147,6 +147,20 @@ export type CombatSlot = {
 };
 
 /** Thème du plateau d'un plan de surface : intérieur, neige, climat de la cité, ou terrain réel du monde à l'échelle. */
+/** Objets d'un plan de lieu sauvage (world/wildPlan.js) dans la fenêtre du plateau, en objets de combat. */
+const PROP_OBJECT: Record<string, ObjectKind> = { tonneau: 'tonneau', coffre: 'caisses', colonne: 'rocher', autel: 'gros_rocher', sarcophage: 'gros_rocher', fontaine: 'pierres' };
+function wildObjects(plan: AtlasMap, win: { x0: number; y0: number; w: number; h: number }, cols: number, rows: number): BattleObject[] {
+  const out: BattleObject[] = [];
+  for (const [k, px, py] of plan.surface?.ground.p ?? []) {
+    const kind = PROP_OBJECT[k];
+    if (!kind) continue;
+    const x = ((px / plan.width - win.x0) / win.w) * cols, y = ((py / plan.height - win.y0) / win.h) * rows;
+    if (x < 0 || y < 0 || x >= cols || y >= rows) continue;
+    out.push({ id: `wp-${k}-${Math.round(px)}-${Math.round(py)}`, kind, x: Math.round(x * 2) / 2, y: Math.round(y * 2) / 2 });
+  }
+  return out;
+}
+
 function surfaceTheme(surface: NonNullable<AtlasMap['surface']>, win: { x0: number; y0: number; w: number; h: number }): 'interieur' | 'neige' | 'froid' | 'chaud' | true {
   if (surface.theme === 'interieur') return 'interieur';
   if ((surface.snow ?? 0) >= 0.1) return 'neige';
@@ -216,7 +230,8 @@ export default function BattleMode({
   const [drag, setDrag] = useState<{ id: string; origin: { x: number; y: number }; start: { x: number; y: number }; cur: { x: number; y: number }; moved: boolean; wasSelected: boolean } | null>(null);
   /** Vrai juste après un déplacement : le clic qui suit le relâchement ne doit pas désélectionner. */
   const justDropped = useRef(false);
-  const [zoom, setZoom] = useState(1);
+  // Sur téléphone, le plateau s'ouvre zoomé (des cases assez grandes pour le doigt) et défile au glisser.
+  const [zoom, setZoom] = useState(() => (typeof window !== 'undefined' && window.innerWidth <= 760 ? 2 : 1));
   /** Élément dont la fiche est ouverte sur le plateau. */
   const [infoId, setInfoId] = useState<string | null>(null);
   // Une seule fiche ouverte à la fois : celle d'un jeton ou celle d'un élément du lieu.
@@ -275,6 +290,7 @@ export default function BattleMode({
   const grid = effectiveOf(bv);
   /** Classification des cases (règles) et grille de base (dessin). */
   const rules = surfaceOf(bv);
+  const painted = paintedOf(bv);
   const baseGrid = baseGridOf(bv);
   // Zones d'effet posées, et celle qu'on est en train de placer.
   const aoeViews = [
@@ -324,10 +340,18 @@ export default function BattleMode({
         const cell = g && cellIn(local.window, b.cols, b.rows, (g.coordinates as [number, number])[0], (g.coordinates as [number, number])[1]);
         if (cell === undefined || !g) continue;
         const cx = cell % b.cols, cy = Math.floor(cell / b.cols);
+        // Une case de sol libre : jamais sur une table, un lit, dans l'eau ou sur des gravats (cases gênantes ou
+        // difficiles), sauf pour qui dort : il reste dans son lit. À défaut de sol libre tout près, une case praticable.
+        const asleep = f.pose === 'couche';
         let best: { x: number; y: number } | null = null, bd = Infinity;
-        for (let y = 0; y < b.rows; y++) for (let x = 0; x < b.cols; x++) {
-          const d = Math.max(Math.abs(x - cx), Math.abs(y - cy));
-          if (d < bd && !blocksCell(ground, b.cols, x, y) && !taken(x, y)) { bd = d; best = { x, y }; }
+        for (const strict of [true, false]) {
+          for (let y = 0; y < b.rows; y++) for (let x = 0; x < b.cols; x++) {
+            const d = Math.max(Math.abs(x - cx), Math.abs(y - cy)) + (strict ? 0 : 0.5);
+            const k = ground[y * b.cols + x];
+            const ok = asleep && x === cx && y === cy ? !taken(x, y) : !blocksCell(ground, b.cols, x, y) && !taken(x, y) && (!strict || k === '.');
+            if (d < bd && ok) { bd = d; best = { x, y }; }
+          }
+          if (best && bd <= 2) break;
         }
         if (!best || bd > 4) continue;
         const ref = bestiary.find((r) => r.id === f.entryId);
@@ -335,16 +359,19 @@ export default function BattleMode({
           id, name: f.title, kind: 'other', x: best.x, y: best.y, size: 1, visible: !f.hiddenNpc || revealed.has(f.id),
           npcId: ref?.id, hp: ref?.hp, maxHp: ref?.hp, ac: ref?.ac,
           // Sans jeton propre : un jeton de la Banque Loresmith, cohérent avec la cité (peuple, rôle).
-          image: ref?.token ?? f.image ?? npcBankImage(rec, plan.id, library, f),
+          // Même jeton que sur la carte de navigation : réparti dans la scène, sans doublon tant que la banque le permet.
+          image: ref?.token ?? npcToken(rec, plan.id, library, bestiary, f, 128, atlas.features) ?? npcBankImage(rec, plan.id, library, f),
         }];
       }
     }
     set({
       terrain: { source, seed, grid: local.base },
-      local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous, surface: plan.surface ? surfaceTheme(plan.surface, local.window) : undefined, trimmed: !plan.surface },
+      local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous, surface: plan.surface ? surfaceTheme(plan.surface, local.window) : undefined, trimmed: !plan.surface, nature: plan.surface?.nature || undefined },
       tokens,
       encounterOf: groups?.length ? source : b.encounterOf,
       build: undefined,
+      // Plan d'un lieu sauvage : ses objets (coffre, tonneau, autel, colonnes…) sont posés sur le plateau.
+      ...(plan.surface?.nature ? { objects: wildObjects(plan, local.window, b.cols, b.rows) } : {}),
       ...(groups?.length ? { turn: undefined, round: 1, log: [] } : {}),
     });
     setHistory([]);
@@ -431,6 +458,61 @@ export default function BattleMode({
     }
     if (added.length) set({ tokens: [...b.tokens, ...added] });
   };
+  /**
+   * Faire défiler le plateau zoomé en le glissant (doigt ou souris) depuis une case sans jeton : le défilement natif
+   * est coupé sur le plateau pour pouvoir y saisir les jetons.
+   */
+  // Plateau zoomé à l'ouverture (téléphone) : on le centre sur les héros, ou sur les jetons, plutôt que sur le coin.
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap || zoom === 1) return;
+    const focus = b.tokens.filter((t) => t.kind === 'pc');
+    const list = focus.length ? focus : b.tokens;
+    if (!list.length) return;
+    const cx = list.reduce((sum, t) => sum + t.x + t.size / 2, 0) / list.length / b.cols;
+    const cy = list.reduce((sum, t) => sum + t.y + t.size / 2, 0) / list.length / b.rows;
+    // (après la mise en page du plateau : sa hauteur dépend de l'image et de la grille)
+    const id = setTimeout(() => {
+      for (let el: HTMLElement | null = wrap; el; el = el.parentElement) {
+        const st = getComputedStyle(el);
+        if (/(auto|scroll)/.test(st.overflowX) && el.scrollWidth > el.clientWidth + 1) el.scrollLeft = cx * wrap.scrollWidth - el.clientWidth / 2;
+        if (/(auto|scroll)/.test(st.overflowY) && el.scrollHeight > el.clientHeight + 1) { el.scrollTop = cy * wrap.scrollHeight - el.clientHeight / 2; break; }
+      }
+    }, 300);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const panned = useRef(false);
+  const startPan = (e: ReactPointerEvent, onTap?: () => void) => {
+    const wrap = wrapRef.current;
+    if (!wrap) { onTap?.(); return; }
+    const scroller = (axis: 'x' | 'y') => {
+      for (let el: HTMLElement | null = wrap; el; el = el.parentElement) {
+        const st = getComputedStyle(el);
+        const ov = axis === 'x' ? st.overflowX : st.overflowY;
+        const more = axis === 'x' ? el.scrollWidth > el.clientWidth + 1 : el.scrollHeight > el.clientHeight + 1;
+        if (more && (ov === 'auto' || ov === 'scroll')) return el;
+      }
+      return null;
+    };
+    const ex = scroller('x'), ey = scroller('y');
+    // Rien à faire défiler : le geste est un simple clic, traité tout de suite.
+    if (!ex && !ey) { onTap?.(); return; }
+    const x0 = e.clientX, y0 = e.clientY, sl = ex?.scrollLeft ?? 0, sTop = ey?.scrollTop ?? 0;
+    panned.current = false;
+    const move = (ev: PointerEvent) => {
+      if (Math.abs(ev.clientX - x0) + Math.abs(ev.clientY - y0) > 6) panned.current = true;
+      if (ex) ex.scrollLeft = sl - (ev.clientX - x0);
+      if (ey) ey.scrollTop = sTop - (ev.clientY - y0);
+    };
+    const up = (ev: PointerEvent) => {
+      if (ev.type === 'pointerup' && !panned.current) onTap?.();
+      window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', up);
+  };
   const onBoardDown = (e: ReactPointerEvent) => {
     if (e.button !== 0) return;
     if (aoeTool && !building) {
@@ -456,14 +538,18 @@ export default function BattleMode({
         return;
       }
       // Un jeton sélectionné : un clic sur une autre case l'y déplace (le trajet suivait déjà le pointeur).
+      // Sur un plateau qui défile (zoomé, téléphone), on attend le relâchement : un glisser fait défiler, sans déplacer.
       if (c && !t && selected && !selected.unplaced) {
         e.preventDefault();
-        commitMove(selected, c.x, c.y, freeMove || e.altKey);
-        justDropped.current = true;
-        setTimeout(() => { justDropped.current = false; }, 0);
+        const alt = freeMove || e.altKey;
+        startPan(e, () => {
+          commitMove(selected, c.x, c.y, alt);
+          justDropped.current = true;
+          setTimeout(() => { justDropped.current = false; }, 0);
+        });
         return;
       }
-      if (!c || !t) return;
+      if (!c || !t) { startPan(e); return; }
       e.preventDefault();
       setDrag({ id: t.id, origin: { x: t.x, y: t.y }, start: c, cur: c, moved: false, wasSelected: selectedId === t.id });
       setSelectedId(t.id);
@@ -670,7 +756,8 @@ export default function BattleMode({
   const notes = rec.overlay?.searchNotes ?? {};
   const searchPoints = localElements
     .filter((e) => e.kind === 'point' && e.cell !== undefined)
-    .map((e) => ({ e, entry: searchFor(e.title, notes[e.id]) }))
+    // Point d'intérêt d'un lieu sauvage : sa fiche vient de son propre texte.
+    .map((e) => ({ e, entry: e.id.includes(':poi-') ? poiEntry(e.summary, notes[e.id]) : searchFor(e.title, notes[e.id]) }))
     .filter((x): x is { e: typeof x.e; entry: SearchEntry } => !!x.entry);
   const markerPoints = b.local?.window && plan
     ? markers.filter((m) => m.planId === plan.id && (m.kind === 'objet' || m.kind === 'repere')).flatMap((m) => {
@@ -799,7 +886,7 @@ export default function BattleMode({
       id: t.id, name: t.name, kind: t.kind, x: at.x, y: at.y, size: t.size, icon: t.icon, image: tokenImage(t),
       selected: t.id === selectedId, hidden: !t.visible, active: t.id === b.turn, hp: t.hp, maxHp: t.maxHp, out: isOut(t), conditions: t.conditions,
       // Socle : terrain sous la position validée (pas pendant le glisser, pour éviter les clignotements).
-      socle: socleOf(rules, t) ?? undefined,
+      socle: socleOf(rules, t, painted) ?? undefined,
       elev: elevAt(rules, t) || undefined,
       ...vitalOf(t),
     };
@@ -1177,7 +1264,7 @@ export default function BattleMode({
 
         {selected && !building && !selected.unplaced && (() => {
           const m = moverFor(selected);
-          const auto = socleOf(rules, { ...selected, socle: undefined });
+          const auto = socleOf(rules, { ...selected, socle: undefined }, painted);
           const value = selected.socle?.mode === 'manuel' ? selected.socle.t : selected.socle?.mode ?? 'auto';
           const toggle = (k: 'nage' | 'vol' | 'escalade', on: boolean) => patchToken(selected.id, { modes: { ...selected.modes, [k]: on } });
           return (
@@ -1258,6 +1345,8 @@ export default function BattleMode({
             ref={wrapRef} className={`battle-board-wrap ${building ? 'building' : ''} ${zoom !== 1 ? 'zoomed' : ''} ${drag ? 'dragging' : ''}`}
             style={{ width: `${zoom * 100}%` }}
             onPointerDown={onBoardDown} onPointerMove={onBoardMove} onDoubleClick={() => editor.onDouble()}
+            // Après un glisser de défilement, le clic qui suit ne doit pas viser une case.
+            onClickCapture={(e) => { if (panned.current) { panned.current = false; e.stopPropagation(); e.preventDefault(); } }}
             onDragOver={(e) => { if (building || e.dataTransfer.types.includes(CREATURE_DRAG)) e.preventDefault(); }}
             onDrop={(e) => {
               const creature = e.dataTransfer.getData(CREATURE_DRAG);
@@ -1277,7 +1366,7 @@ export default function BattleMode({
           >
             <BattleBoard
               cols={b.cols} rows={b.rows} backdrop={rec.image} terrain={baseGrid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
-              theme={boardTheme(b.local?.surface)}
+              theme={boardTheme(b.local?.surface, b.local?.nature)}
               ground={b.ground} surface={editor.view} overlay={building && editor.overlay ? { rules, focus: editor.focus } : undefined}
               path={pathView} surfaceSelected={editor.selectedId} draft={editor.draft}
               onCell={onBoardCell} onElement={building || aoeTool || aiming || (selected && !selected.unplaced) ? undefined : (id) => { if (boardElements.some((e) => e.id === id)) setInfoId(id); }} onHover={(x, y) => setHover((h) => (h && h.x === x && h.y === y ? h : { x, y }))}

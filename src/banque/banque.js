@@ -124,30 +124,47 @@ export function roleKeys(role) {
  * Personnage cohérent : `vue` 'portrait' | 'jeton' ; `role` (texte libre) ; `peoples` (résultat de peoplesOf) ;
  * `genre` 'f' | 'm' facultatif ; `seed` (identifiant du PNJ). Renvoie l'image, ou null plutôt qu'un choix incohérent.
  */
-export function pickPerson(images, { vue = 'portrait', role = '', peoples = peoplesOf({}), genre, seed = '', peuple } = {}) {
+/**
+ * Personnage cohérent : `vue` ('portrait' | 'jeton'), `role`, `peoples` (peuples du lieu) ou `peuple` (imposé), `genre`
+ * (strict : jamais une femme pour un homme), `pose` (seule une pose demandée est admise : un dormeur couché, jamais un
+ * passant couché par terre), `exclude` (identifiants déjà pris dans la scène), `seed`.
+ */
+export function pickPerson(images, { vue = 'portrait', role = '', peoples = peoplesOf({}), genre, seed = '', peuple, pose, exclude } = {}) {
   const roles = roleKeys(role);
   const forced = peuple ? peupleKey(peuple) : null;
   const banned = new Set(peoples.banned ?? []);
-  const cands = [];
+  let cands = [];
   for (const img of images) {
     if (img.type !== 'personnage' || img.vue !== vue || img.exclu || !img.peuple) continue;
+    if (exclude?.has(img.id)) continue; // déjà pris par quelqu'un d'autre dans la même scène
     const p = img.peuple;
     if (banned.has(p)) continue;
     let w;
     if (forced) w = p === forced ? 6 : 0;
     else w = peoples.main.includes(p) ? 6 : (peoples.others ?? []).includes(p) ? 1 : 0;
     if (!w) continue;
-    const hit = roles.length && (img.roles ?? []).some((r) => roles.includes(r));
+    // Rôle de l'image au féminin ou au pluriel (« taverniere ») : ramené à ses formes de base, comme celui demandé.
+    const hit = roles.length && (img.roles ?? []).some((r) => roles.includes(r) || roleKeys(r).some((k) => roles.includes(k)));
     if (roles.length) w *= hit ? 8 : 1;
-    if (genre && img.genre && img.genre !== genre) w *= 0.25;
-    if (img.pose) w *= 0.3; // assis, couché : seulement faute de mieux
+    if (genre && img.genre && img.genre !== genre) continue;
+    if (img.pose && img.pose !== pose) continue; // assis, agenouillé, couché : seulement quand la scène le demande
     cands.push({ img, w, hit });
   }
   // Un rôle reconnu l'emporte : on ne garde que les images qui le portent quand il y en a.
   // Sinon, une figure ordinaire (villageois, voyageur, client) : jamais un marchand de pommes pour jouer un garde.
+  // Une pose demandée (un dormeur couché) passe avant tout le reste, quand la banque en a une.
+  if (pose && cands.some((c) => c.img.pose === pose)) cands = cands.filter((c) => c.img.pose === pose);
   const hits = cands.filter((c) => c.hit);
   const plain = roles.length ? cands.filter((c) => (c.img.roles ?? []).some((r) => GENERIQUES.has(r))) : cands;
-  return weighted(hits.length ? hits : plain, `${seed}|${vue}`);
+  const pool = hits.length ? hits : plain;
+  // Jetons : ceux pris vraiment à la verticale (`angle: zenith`) vont mieux sur un plan vu de haut. Pour un rôle
+  // reconnu, ils passent seuls quand il y en a ; sinon, ils sont nettement favorisés.
+  if (vue === 'jeton') {
+    const top = pool.filter((c) => c.img.angle === 'zenith');
+    if (hits.length && top.length) return weighted(top, `${seed}|${vue}`);
+    for (const c of top) c.w *= 4;
+  }
+  return weighted(pool, `${seed}|${vue}`);
 }
 
 /** Climat de l'application ('froid' | 'tempere' | 'chaud') → climats acceptés dans la banque. */
@@ -297,4 +314,76 @@ export function fitRoof(images, { mask, w, h, climat, usage, seed = '', min = 0.
   let x = ((hash(seed) % 100000) / 100000) * keep.reduce((s, c) => s + c.score, 0);
   for (const c of keep) { x -= c.score; if (x < 0) return c; }
   return keep[keep.length - 1];
+}
+
+/** Longueur réelle (m) d'une image de jeton dessinée à l'échelle 1 (0,94 case de 1,5 m). */
+export const TOKEN_REF_M = 1.41;
+
+/** Taille d'un peuple par rapport à un humain (stature). Drow, duergar et autres peuples absents : comme leurs cousins. */
+const STATURE = { humain: 1, elfe: 1, 'demi-elfe': 1, tieffelin: 1, drow: 0.97, 'demi-orque': 1.08, nain: 0.78, duergar: 0.76, halfelin: 0.6, gnome: 0.58, svirfnebelin: 0.58 };
+
+/**
+ * Échelle d'un jeton de la banque, pour que tous les personnages soient dessinés à la même échelle : 1 pour un humain
+ * adulte debout vu à 15° (l'image couvre sa hauteur). Chaque image remplit son cadre quelle que soit la taille réelle
+ * du personnage ; on corrige donc d'après ses étiquettes :
+ * - peuple (un halfelin fait 0,6 humain) et âge (un enfant, 0,68) ;
+ * - pose : agenouillé ou assis, l'image couvre moins que sa hauteur debout ; couché, toute sa longueur ;
+ * - vue à la verticale (`angle: zenith`) : l'image couvre les épaules et les bras, plus la hauteur.
+ */
+export function tokenScale(img) {
+  if (!img || img.type !== 'personnage') return 1;
+  // Longueur réelle couverte par l'image (mesurée, ou retouchée par l'administrateur) : la référence est 1,41 m.
+  if (typeof img.longueur === 'number' && img.longueur > 0) return Math.round((img.longueur / TOKEN_REF_M) * 100) / 100;
+  let s = STATURE[img.peuple] ?? 1;
+  if ((img.roles ?? []).includes('enfant')) s *= 0.68;
+  if (img.angle === 'zenith') s *= 0.68;
+  else if (img.pose === 'agenouille' || img.pose === 'assis') s *= 0.72;
+  return Math.round(s * 100) / 100;
+}
+
+/* ——— Genre et peuple d'un PNJ, pour lui donner une image qui lui ressemble ——— */
+
+const FEM_WORDS = /\b(elle|femme|dame|reine|fille|mere|tante|soeur|epouse|veuve|matrone|demoiselle|nonne|abbesse|princesse|duchesse|comtesse|baronne|pretresse|sorciere)\b/;
+const MASC_WORDS = /\b(il|homme|roi|seigneur|garcon|fils|pere|oncle|frere|epoux|veuf|moine|abbe|prince|duc|comte|baron|pretre|sorcier)\b/;
+/** Métiers au féminin (tavernière, couturière, servante, marchande) : suffixes sans équivoque. */
+const FEM_ROLE = /\b\w+(iere|euse|esse|trice|ienne|onne|ante|ande)\b/;
+const MASC_ROLE = /\b\w+(ier|eur|ien|on|ant|and|in)\b/;
+/** Prénoms dont la terminaison trompe : féminins sans « e » final, masculins en « e ». */
+const FEM_NAMES = new Set(['mahaut', 'ysolde', 'isaure', 'aenor', 'agnes', 'ines', 'margot', 'ninon', 'manon', 'alix', 'beatrix', 'yseult']);
+const MASC_NAMES = new Set(['anselme', 'lothaire', 'guillaume', 'philippe', 'etienne', 'pierre', 'georges', 'jacques', 'gilles', 'hugues', 'baptiste', 'jerome', 'auguste', 'theodore', 'barnabe', 'andre', 'rene', 'aime', 'thibaude', 'fulbert', 'ange', 'cyrille', 'achille', 'hercule', 'jule', 'serge', 'eustache', 'ambroise', 'theophile', 'alexandre', 'enguerrande', 'arthure', 'aristide', 'clotaire', 'childebert', 'onesime', 'ignace', 'boniface', 'apollinaire', 'hilaire', 'honore', 'antoine', 'maxime', 'luce', 'mathieu', 'emmanuel', 'joshua', 'luca', 'nicola', 'elie', 'noe', 'jose']);
+
+/** Genre d'un prénom : 'f', 'm' ou undefined (prénom inconnu ou épicène). */
+export function nameGenre(name = '') {
+  const first = norm(String(name)).split(/[\s,'’-]+/)[0] ?? '';
+  if (!first) return undefined;
+  if (FEM_NAMES.has(first)) return 'f';
+  if (MASC_NAMES.has(first)) return 'm';
+  // En français, un prénom en « e » ou en « a » est presque toujours féminin (les exceptions sont listées plus haut).
+  if (/[ea]$/.test(first)) return 'f';
+  return /[a-z]$/.test(first) ? 'm' : undefined;
+}
+
+/**
+ * Genre et peuple d'un PNJ, d'après sa fiche : champs explicites d'abord (`gender`, `race`), puis son rôle et sa
+ * description, puis son prénom. Renvoie { genre?: 'f' | 'm', peuple?: string } ; rien d'inventé quand rien ne le dit.
+ */
+export function npcTraits({ name = '', role = '', desc = '', gender, race } = {}) {
+  const g = String(gender ?? '').toLowerCase();
+  let genre = /^(f|female|femme|feminin)/.test(g) ? 'f' : /^(m|male|homme|masculin)/.test(g) ? 'm' : undefined;
+  const r = norm(role), d = norm(desc);
+  if (!genre) genre = FEM_WORDS.test(r) || FEM_ROLE.test(r) ? 'f' : MASC_WORDS.test(r) ? 'm' : undefined;
+  if (!genre) genre = nameGenre(name);
+  if (!genre) genre = FEM_WORDS.test(d) && !MASC_WORDS.test(d) ? 'f' : MASC_WORDS.test(d) && !FEM_WORDS.test(d) ? 'm' : MASC_ROLE.test(r) ? 'm' : undefined;
+  // Peuple : le champ de la fiche, sinon un peuple nommé dans le rôle ou la description (« une naine », « l'elfe »).
+  let peuple = race ? peupleKey(race) : null;
+  if (peuple && !PEUPLES[peuple]) peuple = null;
+  if (!peuple) {
+    const t = `${r} ${d}`.replace(/\bhommes?\b/g, '');
+    for (const k of ['demi-elfe', 'demi-orque', 'svirfnebelin', 'duergar', 'drow', 'tieffelin', 'halfelin', 'gnome', 'nain', 'elfe', 'orque', 'humain']) {
+      // « demi-elfe » contient « elfe » : les peuples simples se cherchent sans les noms composés.
+      const plain = k.includes('-') ? t : t.replace(/\bdemi-\w+/g, '');
+      if (PEUPLES[k].test(plain)) { peuple = k; break; }
+    }
+  }
+  return { ...(genre ? { genre } : {}), ...(peuple ? { peuple } : {}) };
 }

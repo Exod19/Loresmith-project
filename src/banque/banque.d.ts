@@ -9,6 +9,10 @@ export interface BankImage {
   taille?: number[] | number;
   milieux: string[]; climats: string[]; saisons: string[]; region: string[];
   peuple?: string; genre?: 'f' | 'm'; roles?: string[]; paire?: string | null; pose?: string;
+  /** Jetons : `zenith` pris à la verticale (dessus de la tête), `incline` vu à environ 15° (visage visible). */
+  angle?: 'zenith' | 'incline';
+  /** Jetons : longueur réelle (m) que couvre l'image (côté le plus long), pour dessiner tous les personnages à la même échelle. */
+  longueur?: number;
   devine?: boolean; exclu?: boolean;
   /** Toits : silhouette 8 × 8 (lignes de 0 et de 1). */
   masque?: string;
@@ -26,7 +30,7 @@ export function peupleKey(s: unknown): string | null;
 export function peoplesOf(o?: { text?: string; people?: string; region?: string }): Peoples;
 export function hash(s: string): number;
 export function roleKeys(role: string): string[];
-export function pickPerson(images: BankImage[], o?: { vue?: 'portrait' | 'jeton'; role?: string; peoples?: Peoples; genre?: 'f' | 'm'; seed?: string; peuple?: string }): BankImage | null;
+export function pickPerson(images: BankImage[], o?: { vue?: 'portrait' | 'jeton'; role?: string; peoples?: Peoples; genre?: 'f' | 'm'; seed?: string; peuple?: string; pose?: string; exclude?: Set<string> }): BankImage | null;
 export function pickElement(images: BankImage[], o?: { cat?: string; cats?: string[]; climat?: string; saison?: string; region?: string; milieu?: string; usage?: string; forme?: string; formes?: string[]; ratio?: number; seed?: string }): BankImage | null;
 export function pickTexture(images: BankImage[], o?: { cat?: string; cats?: string[]; climat?: string; saison?: string; region?: string; seed?: string }): BankImage | null;
 export function mipFor(img: { mips?: number[] }, px: number, dpr?: number): number;
@@ -38,3 +42,6 @@ export function faceAngle(dx: number, dy: number): number;
 export function maskFromParts(parts: number[][], n?: number): string;
 export function turnedMask(mask: string, rot: number, flip: boolean, n?: number): string;
 export function fitRoof(images: BankImage[], o: { mask: string; w: number; h: number; climat?: string; usage?: string; seed?: string; min?: number }): { img: BankImage; rot: number; flip: boolean; iw: number; ih: number } | null;
+export function tokenScale(img: BankImage | null | undefined): number;
+export function nameGenre(name?: string): 'f' | 'm' | undefined;
+export function npcTraits(npc?: { name?: string; role?: string; desc?: string; gender?: string; race?: string }): { genre?: 'f' | 'm'; peuple?: string };

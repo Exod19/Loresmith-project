@@ -6,6 +6,7 @@
  * toit couvre son bâtiment, un arbre sa couronne. Le dessin vectoriel déjà peint reste dessous : si une image manque,
  * le plateau reste lisible.
  */
+import { isUrban, outsideOf, waterDepth } from '../maps/battle/groundCells';
 import { bankImages, bankSrc, fitRoof, hash, maskFromParts, pickElement, pickTexture, type BankImage } from './index';
 
 const CELL_M = 1.5;
@@ -72,32 +73,12 @@ function groups(terrain: string, cols: number, rows: number, kind: string) {
   return out;
 }
 
-/** Cases du dehors d'un intérieur : même règle que le plateau peint (BattleBoard, paintInterior). */
-function outsideOf(terrain: string, cols: number, rows: number) {
-  const at = (x: number, y: number) => (x < 0 || y < 0 || x >= cols || y >= rows ? '#' : terrain[y * cols + x]);
-  const doorway = (x: number, y: number) => (at(x - 1, y) === '#' && at(x + 1, y) === '#') || (at(x, y - 1) === '#' && at(x, y + 1) === '#');
-  const out = new Set<number>();
-  const queue: number[] = [];
-  for (let i = 0; i < terrain.length; i++) {
-    const x = i % cols, y = Math.floor(i / cols);
-    if ((x === 0 || y === 0 || x === cols - 1 || y === rows - 1) && terrain[i] !== '#') { out.add(i); queue.push(i); }
-  }
-  while (queue.length) {
-    const i = queue.pop()!, x = i % cols, y = Math.floor(i / cols);
-    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      const nx = x + dx, ny = y + dy, j = ny * cols + nx;
-      if (nx < 0 || ny < 0 || nx >= cols || ny >= rows || out.has(j) || terrain[j] === '#' || doorway(nx, ny)) continue;
-      out.add(j); queue.push(j);
-    }
-  }
-  return out;
-}
-
 /**
  * Habille un plateau de surface (`climate`) ou d'intérieur. `alive()` : faux si un autre dessin a commencé entre-temps
  * (on abandonne alors sans rien peindre de travers).
  */
-export async function dressBoard(canvas: HTMLCanvasElement, cols: number, rows: number, terrain: string | undefined, mode: Climate | 'interieur', C: number, alive: () => boolean) {
+/** `nature` : plan d'un lieu sauvage (sol d'herbe et de terre, paroi de roche ; ni pavés ni toits). */
+export async function dressBoard(canvas: HTMLCanvasElement, cols: number, rows: number, terrain: string | undefined, mode: Climate | 'interieur', C: number, alive: () => boolean, nature = false) {
   const ctx = canvas.getContext('2d');
   if (!ctx || !terrain) return;
   const images = bankImages();
@@ -106,6 +87,9 @@ export async function dressBoard(canvas: HTMLCanvasElement, cols: number, rows: 
   const ctxPick = { climat, saison, region: 'surface' };
   const tex = (cats: string[], seed: string) => pickTexture(images, { cats, ...ctxPick, seed });
   const steps: (() => Promise<void>)[] = [];
+  const compact = (g: { x0: number; y0: number; x1: number; y1: number; n: number }) => { const a = (g.x1 - g.x0 + 1) * (g.y1 - g.y0 + 1); return a <= 60 && g.n / a >= 0.7; };
+  const rockCells = new Set<number>();
+  if (nature && terrain) for (const g of groups(terrain, cols, rows, '#')) if (!compact(g)) for (let y = g.y0; y <= g.y1; y++) for (let x = g.x0; x <= g.x1; x++) if (terrain[y * cols + x] === '#') rockCells.add(y * cols + x);
   // Sol sous un objet dessiné : la case est repeinte avant l'image, pour qu'aucun tracé vectoriel ne reste dessous.
   let under: BankImage | null = null;
   const at = (x: number, y: number) => (x < 0 || y < 0 || x >= cols || y >= rows ? '#' : terrain[y * cols + x]);
@@ -119,16 +103,32 @@ export async function dressBoard(canvas: HTMLCanvasElement, cols: number, rows: 
     steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === '#', tex(['dalles'], 'mur'), 0.75));
   } else {
     // En ville (beaucoup de bâti, peu de champs), le sol libre est pavé ; à la campagne, c'est de la terre.
-    const count = (k: string) => terrain.split(k).length - 1;
-    // Une place sans bâtiment dans le cadre (ni champ, ni bosquet) compte comme la ville.
-    const urban = (count('#') / terrain.length > 0.08 || (count(',') === 0 && count('I') < terrain.length * 0.02)) && count(',') / terrain.length < 0.1;
-    const sol = mode === 'neige' ? ['neige'] : mode === 'chaud' ? ['sable', 'terre'] : urban ? ['paves', 'terre'] : mode === 'froid' ? ['toundra', 'terre'] : ['terre'];
+    const urban = isUrban(terrain, nature);
+    const sol = mode === 'neige' ? ['neige'] : mode === 'chaud' ? ['sable', 'terre'] : urban ? ['paves', 'terre'] : mode === 'froid' ? ['toundra', 'terre'] : nature ? ['herbe', 'terre'] : ['terre'];
     under = tex(sol, 'sol');
     steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === '.', under, 0.9));
     steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === ',', tex(mode === 'neige' ? ['neige'] : ['champ', 'herbe'], 'champ'), 0.95));
-    steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === '~', tex(mode === 'neige' ? ['glace', 'eau'] : ['eau'], 'eau'), 0.9));
+    // Eau : peu profonde près des berges, profonde au large (distance en cases à la terre) ; berges de terre mouillée.
+    if (mode === 'neige') steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === '~', tex(['glace', 'eau'], 'eau'), 0.9));
+    else {
+      const depth = waterDepth(terrain, cols, rows);
+      const byUsage = (u: string, seed: string) => pickTexture(images.filter((i) => i.usage?.includes(u)), { cats: ['eau'], ...ctxPick, seed });
+      const shallow = byUsage(mode === 'chaud' ? 'claire' : 'boueuse', 'eau-s') ?? byUsage('peu-profonde', 'eau-s') ?? tex(['eau'], 'eau');
+      const deep = byUsage('profonde', 'eau-p');
+      steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === '~', shallow, 0.95));
+      steps.push(() => fillCells(ctx, C, cols, terrain, (k, i) => k === '~' && depth[i] === 2, deep, 0.45));
+      steps.push(() => fillCells(ctx, C, cols, terrain, (k, i) => k === '~' && depth[i] >= 3, deep, 0.9));
+      steps.push(async () => {
+        ctx.save();
+        ctx.fillStyle = mode === 'chaud' ? 'rgba(196,173,124,.35)' : mode === 'froid' ? 'rgba(111,106,94,.35)' : 'rgba(80,66,44,.32)';
+        for (let i = 0; i < terrain.length; i++) if ((terrain[i] === '.' || terrain[i] === ',') && depth[i] === -1) ctx.fillRect((i % cols) * C, Math.floor(i / cols) * C, C, C);
+        ctx.restore();
+      });
+    }
     steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === '=', tex(['planches'], 'pont'), 1));
     steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === ':', tex(mode === 'neige' ? ['neige'] : ['eboulis'], 'eboulis'), 0.9));
+    // Pleine nature : une paroi ou des rochers (formes étirées) sont de la roche ; un abri compact (tente, cabane) garde son toit.
+    if (nature) steps.push(() => fillCells(ctx, C, cols, terrain, (_k, i) => rockCells.has(i), tex(['roche', 'eboulis'], 'roche'), 0.95));
   }
   for (const s of steps) { if (!alive()) return; await s(); }
   if (!alive()) return;
@@ -136,7 +136,7 @@ export async function dressBoard(canvas: HTMLCanvasElement, cols: number, rows: 
 
   if (mode !== 'interieur') {
     // Toits : chaque bâtiment (rectangle, L, T, U…) reçoit le toit qui épouse sa forme, dans la bonne orientation.
-    for (const g of groups(terrain, cols, rows, '#')) {
+    for (const g of groups(terrain, cols, rows, '#').filter((q) => !nature || compact(q))) {
       const wC = g.x1 - g.x0 + 1, hC = g.y1 - g.y0 + 1;
       if (wC * hC < 4) continue;
       const parts: number[][] = [];

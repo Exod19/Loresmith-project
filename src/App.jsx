@@ -21,6 +21,7 @@ import React, {
 import { Download, Upload, Settings, ExternalLink, Undo2, Keyboard, MonitorPlay, Trash2, Move, Square, Ruler, Grid3x3, EyeOff, Eye, Eraser, Swords, SkipForward, Dices, Pencil, RefreshCw, Users, Plus, ChevronLeft, RotateCcw } from 'lucide-react';
 import MapsPage from './maps/MapsPage';
 import TableMap, { tableMapId } from './maps/TableMap';
+import { faceOf } from './banque';
 import { setMapIntent } from './maps/intent';
 import { placeTokens as placeOnBoard, effectiveOf } from './maps/battle/placement';
 import { tacticalNotes, profileFromStat, coverAgainst } from './maps/battle/tactics';
@@ -14170,7 +14171,7 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
                   t={selectedCombatant}
                   isActive={selectedCombatant.id === activeCombatant?.id}
                   activeName={activeCombatant?.name}
-                  art={combatantArtOf(state, selectedCombatant)}
+                  art={combatantArtOf(state, selectedCombatant) || faceOf(boardTokens.get(selectedCombatant.id)?.image) || ''}
                   sourceNpc={npcs.find((n) => n.id === selectedCombatant.sourceId)}
                   variants={(() => { const src = npcs.find((n) => n.id === selectedCombatant.sourceId); return src ? siblingsOf(src, npcs) : null; })()}
                   onSwap={(n) => swapVariant(selectedCombatant, n)}
@@ -14309,7 +14310,7 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
           activeId={activeCombatant?.id}
           selectedId={selectedCombatant?.id}
           round={c.round || 1}
-          art={(t) => combatantPictureOf(state, t)}
+          art={(t) => combatantPictureOf(state, t) || faceOf(boardTokens.get(t.id)?.image) || ''}
           boardTokens={boardTokens}
           onPick={(id) => { setSelectedTokenId(id); setTab('tour'); }}
           onNext={advanceTurn}

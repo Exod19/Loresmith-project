@@ -508,15 +508,20 @@ export type SocleMode = { mode: 'auto' } | { mode: 'aucun' } | { mode: 'manuel';
  * Socle d'un jeton à sa position validée : le terrain majoritaire sous son empreinte (le pont s'il y est),
  * égalité départagée par l'ordre des terrains. Purement visuel : il ne change ni la taille ni les règles.
  */
-export function socleOf(r: SurfaceRules | undefined, t: { x: number; y: number; size: number; layer?: 'pont'; socle?: SocleMode }): TerrainId | null {
+/**
+ * `painted` : terrain peint sous chaque case d'un plateau de surface généré (groundCells) ; il remplace le fond par défaut
+ * (sol de caverne) pour que le socle montre le vrai sol : pavés, herbes, eau peu profonde ou profonde, neige…
+ */
+export function socleOf(r: SurfaceRules | undefined, t: { x: number; y: number; size: number; layer?: 'pont'; socle?: SocleMode }, painted?: (TerrainId | undefined)[]): TerrainId | null {
   if (t.socle?.mode === 'aucun') return null;
   if (t.socle?.mode === 'manuel') return TERRAIN_DEF[t.socle.t] ? t.socle.t : null;
   if (!r) return null;
   const count = new Map<TerrainId, number>();
   for (let dy = 0; dy < t.size; dy++) for (let dx = 0; dx < t.size; dx++) {
-    const c = r.cells[(t.y + dy) * r.cols + t.x + dx];
+    const i = (t.y + dy) * r.cols + t.x + dx;
+    const c = r.cells[i];
     if (!c) continue;
-    const id: TerrainId = c.deck && t.layer === 'pont' ? 'pont' : c.t;
+    const id: TerrainId = c.deck && t.layer === 'pont' ? 'pont' : (c.src === 'fond' && painted?.[i]) || c.t;
     count.set(id, (count.get(id) ?? 0) + 1);
   }
   let best: TerrainId | null = null;

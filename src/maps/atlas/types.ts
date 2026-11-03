@@ -78,6 +78,8 @@ export interface MapSurface {
   snow?: number;
   /** Eaux gelées : toutes, ou seulement les rivières. */
   frozen?: 'tout' | 'rivieres';
+  /** Pleine nature (plan d'un lieu sauvage) : le plateau de combat ne prend jamais l'allure d'une rue. */
+  nature?: boolean;
   /** Relief continu d'un monde à l'échelle (lot 12) : voir world/terrain.js. */
   relief?: Record<string, unknown>;
   ground: {
@@ -107,6 +109,8 @@ export interface MapDecor {
     | 'biome-neige' | 'biome-taiga' | 'biome-steppe' | 'biome-desert' | 'dune' | 'pine' | 'forest-sparse' | 'mountain' | 'snowcap'
     | 'shore' | 'shore-cold' | 'beach' | 'sea' | 'pier' | 'lake-ice' | 'stream'
     /* Intérieurs. */
+    /* Lieux sauvages (lot 26). */
+    | 'cliff'
     | 'street' | 'floor' | 'floor-stone' | 'hatch' | 'pillar' | 'stool' | 'wall-in' | 'furn' | 'table' | 'chest' | 'tomb' | 'throne' | 'bed' | 'hearth' | 'altar' | 'anvil' | 'trough' | 'stair' | 'barrel' | 'crate' | 'bars' | 'rug' | 'dais' | 'stall';
   d: string;
   /** Épaisseur du trait en unités de plan (rempart, rivière) : elle suit le zoom, contrairement aux traits fins. */
@@ -136,8 +140,20 @@ export interface AtlasFeature {
   dm?: { kind: 'test' | 'save' | 'info'; label: string; dc?: number; ok?: string; ko?: string }[];
   /** Tiré au sort, pas encore défini par le MJ (carte du monde, mode Exploration). */
   draft?: boolean;
+  /** Lieu sauvage de la carte du monde (src/maps/world/wilds.js) : sa clé, son type, sa teneur, son danger, ses textes. */
+  wild?: { key: string; kind: string; teneur: 'ambiance' | 'scene' | 'quete'; danger: string; text: string; scene?: string; hook?: string; notes?: string; where?: string; biome?: string; e?: number };
   /** PNJ expressément caché (carte du monde) : pas révélé d'office, jeton caché en combat. */
   hiddenNpc?: boolean;
+  /** PNJ : genre et peuple (pour lui donner une image qui lui ressemble), et pose (`couche` : il dort dans un lit). */
+  genre?: 'f' | 'm'; peuple?: string; pose?: 'couche';
+  /** Jeton vu de dessus d'un PNJ (écran des joueurs) : calculé à l'envoi, jamais enregistré. */
+  token?: string;
+  /** Voie de la carte du monde : route royale, chemin, sentier, piste forestière ou sentier de montagne (world/voies.js). */
+  voie?: 'royale' | 'chemin' | 'sentier' | 'piste' | 'col';
+  /** Pièce d'un intérieur : DD de fouille discrète (selon qui s'y trouve et le moment), réservé au MJ. */
+  fouille?: { dc: number; label: string; why: string[]; room?: string };
+  /** Image de face d'un PNJ (portrait de sa fiche ou de la banque), pour la fiche de l'écran des joueurs. */
+  face?: string;
   demo?: boolean;
 }
 

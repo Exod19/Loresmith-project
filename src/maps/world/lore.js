@@ -144,7 +144,10 @@ export function npcsOf(place, people) {
     const theirs = norm([p.currentLocation, p.occupation, p.role, p.function, p.shortDescription, p.shortSummary, p.description, p.body, p.backstory].map(txt).join(' '));
     const here = (core.length >= 4 && theirs.includes(core)) || (n.length >= 4 && hasWord(placeText, n));
     const desc = (p.shortDescription || p.shortSummary || '').toString().trim().slice(0, 300) || undefined;
-    if (here) out.push({ id: p.id, name, role: (p.occupation || p.role || p.function || '').toString().trim() || undefined, desc });
+    // Genre et peuple, s'ils sont écrits sur la fiche : l'image du PNJ doit lui ressembler.
+    const gender = typeof p.gender === 'string' && p.gender ? p.gender : undefined;
+    const race = [p.race, p.species, p.people].find((v) => typeof v === 'string' && v.trim());
+    if (here) out.push({ id: p.id, name, role: (p.occupation || p.role || p.function || '').toString().trim() || undefined, desc, ...(gender ? { gender } : {}), ...(race ? { race: race.trim() } : {}) });
   }
   return out;
 }

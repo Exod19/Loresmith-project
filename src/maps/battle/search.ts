@@ -73,6 +73,16 @@ export function searchFor(title: string, override?: SearchNote): SearchEntry | n
   return override ? { ...found, ...override } : found;
 }
 
+/**
+ * Fiche de fouille d'un point d'intérêt de lieu sauvage (world/wildPlan.js) : son texte, et le jet qu'il indique
+ * (« … (Investigation DD 12) ») ; à défaut, un coup d'œil (Perception DD 10).
+ */
+export function poiEntry(summary: string | undefined, override?: SearchNote): SearchEntry {
+  const m = (summary ?? '').match(/\(([^()]*?) DD (\d+)[^()]*\)/);
+  const base: SearchEntry = { skill: m ? m[1].replace(/ pour .*$/, '').trim() : 'Perception', dc: m ? Number(m[2]) : 10, find: (summary ?? '').replace(/\s*\([^()]*DD \d+[^()]*\)/, '').trim() || 'Rien de plus à voir.' };
+  return override ? { ...base, ...override } : base;
+}
+
 /** Un élément mérite-t-il sa place sur le plateau (et dans la liste de fouille) ? */
 export const isSearchable = (title: string) => !!searchFor(title);
 

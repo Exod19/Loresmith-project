@@ -3,8 +3,15 @@
  * Chaque rencontre précise l'effectif (dés lancés), l'attitude, ce que veulent les rencontrés, une accroche,
  * et renvoie aux fiches de statistiques complètes (statblocks.ts).
  */
+import { SURFACE, surfacePool } from './surfaceEncounters';
+
 export type Zone = 'sauvage' | 'transit' | 'cite';
-export type EncCtx = { zone: Zone; depth: number; place: string; assassins?: boolean };
+/** `surface` : carte du monde (rencontres de la surface, surfaceEncounters.ts) ; sinon l'Underdark. */
+export type EncCtx = { zone: Zone; depth: number; place: string; assassins?: boolean; surface?: boolean;
+  /** Rencontres permises (titres) : celles d'un lieu sauvage précis. */
+  titles?: string[];
+  /** Voie suivie sur la carte du monde : même fréquence, mais pas les mêmes rencontres (surfaceEncounters.ts, VOIE_TABLES). */
+  voie?: string };
 type Group = { stat: string; dice: string; role?: string; label?: string };
 export type Entry = {
   kind: 'Créature' | 'Convoi' | 'Travailleurs' | 'Voyageurs' | 'Patrouille' | 'Signe';
@@ -12,6 +19,8 @@ export type Entry = {
   zones: Zone[]; min?: number; max?: number; weight?: number; peaceful?: boolean; assassins?: boolean;
   /** Faune (ne parle pas) ou capable de parler : une créature qui parle négocie comme un personnage. */
   faune?: boolean; talks?: boolean; statut?: string;
+  /** Rencontre propre à certaines voies de la carte du monde (royale, chemin, sentier, piste, col) : seulement là. */
+  voies?: string[];
 };
 
 const E: Entry[] = [
@@ -141,17 +150,28 @@ export type Encounter = {
   groups?: { stat: string; role?: string; label?: string; n: number; detail: string }[];
 };
 
+/** Rencontres propres à un type de lieu sauvage de l'Underdark (atlas/deepWilds.js) : jamais celles de la surface. */
+export const DEEP_SITE_ENCOUNTERS: Record<string, string[]> = {
+  toile: ['Toiles et araignées géantes'], 'camp-drow': ['Patrouille drow', 'Caravane de marchands drows'], 'epave-convoi': ['Pillards', 'Convoi duergar'],
+  'autel-lolth': ['Patrouille drow'], 'sanctuaire-svirf': ['Prospecteurs svirfnebelins', 'Réfugiés'], myconides: ['Cueilleurs de champignons', 'Jardin de champignons violets'],
+  champignonniere: ['Jardin de champignons violets', 'Cueilleurs de champignons'], gricks: ['Gricks'], ossuaire: ['Goules', 'Ombres'],
+  filon: ['Équipe de mineurs sous contrainte', 'Prospecteurs svirfnebelins'], vase: ['Vase grise', 'Gelée ocre', 'Cube gélatineux'],
+  refugies: ['Réfugiés'], 'chauves-souris': ['Nuée de chauves-souris'], gouffre: ['Manteaux noirs', 'Enlaceur'], 'lac-noir': ['Enlaceur', 'Lueur mouvante'],
+  'source-chaude': ['Convoi duergar', 'Caravane bigarrée'], cristaux: ['Prospecteurs svirfnebelins', 'Mastodonte des ténèbres'], vapeur: ['Grondement lointain', 'Mille-pattes géants'],
+};
+
 /** Tire une rencontre : d20 de déclenchement (≥ 15, ou ≥ 13 dans les profondeurs et les entre-strates), puis table pondérée. */
 /** Rencontres supplémentaires (Bestiaire des Archives), ajoutées au tirage. */
 let POOL: Entry[] = E;
 export function setBestiary(list: Entry[]) { POOL = [...E, ...list]; }
 
 export function rollEncounter(ctx: EncCtx, force = false): Encounter {
-  const threshold = ctx.zone === 'cite' ? 14 : ctx.depth >= 4 || ctx.zone === 'transit' ? 13 : 15;
+  const threshold = ctx.surface ? (ctx.zone === 'sauvage' ? 14 : 15) : ctx.zone === 'cite' ? 14 : ctx.depth >= 4 || ctx.zone === 'transit' ? 13 : 15;
   const d20 = rnd(20); const happens = force || d20 >= threshold;
   const check = force ? 'Rencontre imposée par le MJ' : `1d20 = ${d20} (rencontre sur ${threshold} ou plus)`;
   if (!happens) return { d20, check, happens };
-  const pool = POOL.filter((e) => e.zones.includes(ctx.zone) && (e.min ?? 1) <= ctx.depth && ctx.depth <= (e.max ?? 9) && (!e.assassins || ctx.assassins));
+  // La surface et l'Underdark ne se mêlent jamais.
+  const pool = ctx.titles?.length ? (ctx.surface ? SURFACE : POOL).filter((e) => ctx.titles!.includes(e.title)) : ctx.surface ? surfacePool(ctx.zone, ctx.voie) : POOL.filter((e) => e.zones.includes(ctx.zone) && (e.min ?? 1) <= ctx.depth && ctx.depth <= (e.max ?? 9) && (!e.assassins || ctx.assassins));
   const sum = pool.reduce((a, e) => a + (e.weight ?? 1), 0); let r = Math.random() * sum; let entry = pool[0];
   for (const e of pool) { r -= e.weight ?? 1; if (r <= 0) { entry = e; break; } }
   const r2 = roll('2d6'); const att = entry.kind === 'Signe' ? undefined

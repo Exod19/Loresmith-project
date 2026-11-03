@@ -133,7 +133,8 @@ export function buildLocalMap(p: {
   for (const g of onPlan) {
     if (g.type !== 'point' || g.featureId.startsWith('mk-')) continue;
     const f = byId.get(g.featureId);
-    if (!f || f.area || !f.category || !isSearchable(f.title)) continue;
+    // Les points d'intérêt d'un lieu sauvage (world/wildPlan.js) sont toujours posés.
+    if (!f || f.area || !f.category || !(isSearchable(f.title) || f.id.includes(':poi-'))) continue;
     const [px, py] = g.coordinates as [number, number];
     const c = toCell(px, py);
     if (!inside(c)) continue;

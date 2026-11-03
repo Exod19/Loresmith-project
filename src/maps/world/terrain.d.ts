@@ -24,3 +24,4 @@ export function atDir(d: string): string;
 export function travelGrid(relief: Relief, lakes?: [number, number][][], mode?: 'terre' | 'mer'): unknown;
 export function routeOn(grid: unknown, a: [number, number], b: [number, number]): { pts: [number, number][]; km: number; effort: number } | null;
 export function nearestWater(grid: unknown, km: [number, number], maxKm: number): [number, number] | null;
+export function crossCountry(grid: unknown, a: [number, number], b: [number, number]): { effort: number; blocked: boolean };

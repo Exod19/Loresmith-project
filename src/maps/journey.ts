@@ -11,6 +11,8 @@ type Pt = [number, number];
 
 /** Traverser toute la largeur d'un plan prend environ 16 heures de marche prudente ; certains passages ralentissent. */
 const HOURS_PER_PLAN = 16;
+/** À la surface (carte du monde, cités) : route royale et chemin au pas normal, sentier, piste et col plus lents. */
+const SLOW_SURFACE: Record<string, number> = { tunnel: 1, galerie: 1.1, boyau: 1.3, etroit: 1.6, maritime: 1 };
 const SLOW: Record<string, number> = { tunnel: 1, galerie: 1, ruisseau: 1.4, boyau: 1.6, secret: 1.5, etroit: 1.8, crevasse: 2, maritime: 1 };
 /** Vitesses réelles (km/h) sur un plan à l'échelle : marche au rythme normal de D&D 5e (3 milles/h), navire à voile. */
 const KMH = { pied: 4.8, navire: 5 };
@@ -71,7 +73,7 @@ export function hoursOn(plan: AtlasMap | undefined, pts: Pt[], trace?: string) {
   if (!plan?.surface) return hoursOf(lengthOf(pts), trace);
   const kw = (plan.width * plan.surface.scale) / 1000, kh = (plan.height * plan.surface.scale) / 1000;
   const km = pts.reduce((sum, p, i) => (i ? sum + Math.hypot((p[0] - pts[i - 1][0]) * kw, (p[1] - pts[i - 1][1]) * kh) : 0), 0);
-  return trace === 'maritime' ? km / KMH.navire : (km / KMH.pied) * (SLOW[trace ?? ''] ?? 1.2);
+  return trace === 'maritime' ? km / KMH.navire : (km / KMH.pied) * (SLOW_SURFACE[trace ?? ''] ?? 1.2);
 }
 
 /** « 1 h 20 », « 40 min » (arrondi à 10 minutes). */
@@ -193,7 +195,11 @@ export type Aside = { place: PartyPlace; at: Pt; side: 'gauche' | 'droite' };
  * Une direction possible sur un chemin depuis le groupe : jusqu'à la prochaine étape (ou au bout). Si l'étape est un
  * lieu à côté du chemin, le trajet s'arrête sur le tracé, vis-à-vis (`aside`) : les joueurs choisissent d'y aller ou non.
  */
-export type Leg = { dir: 'a' | 'b'; to: PartyPlace | null; points: Pt[]; hours: number; toward: string; aside?: Aside };
+export type Leg = { dir: 'a' | 'b'; to: PartyPlace | null; points: Pt[]; hours: number; toward: string; aside?: Aside;
+  /** Court chemin hors de la route vers un lieu vu en passant (pas de nouvelle découverte en route). */
+  spur?: boolean;
+  /** Marche hors route (carte du monde) : la destination finale, pour reprendre après une halte ou une bifurcation. */
+  cross?: { to: PartyPlace; at: Pt } };
 
 /**
  * Les étapes d'un chemin depuis le groupe : vers chacun de ses deux bouts, la prochaine caverne ou le prochain lieu
@@ -221,7 +227,8 @@ export function legsOf(data: AtlasData, planId: string, g: AtlasGeometry, from: 
     if (c) { stopAt(c.f, c.p); named.add(poly); }
   }
   for (const q of data.geometries) {
-    if (q.mapId !== planId || q.type !== 'point' || q.featureId === exclude || q.featureId.startsWith('mk-')) continue;
+    // Les lieux sauvages de la carte du monde ont leur propre règle (vus selon le terrain, world/index.ts : wildAlong).
+    if (q.mapId !== planId || q.type !== 'point' || q.featureId === exclude || q.featureId.startsWith('mk-') || q.featureId.includes(':wild-')) continue;
     const f = byId.get(q.featureId);
     // Un simple détail (piton, éboulis, racine…) se voit en passant : ce n'est pas une étape.
     if (!f || f.trace || f.area || f.importance === 'detail') continue;

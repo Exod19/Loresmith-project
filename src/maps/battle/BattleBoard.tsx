@@ -4,7 +4,7 @@
  */
 import type { BoardTheme } from './theme';
 import { dressBoard } from '../../banque/boardDress';
-import { faceAngle, isBankSrc } from '../../banque';
+import { faceAngle, isBankSrc, tokenScaleOf, turnsFreely } from '../../banque';
 import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
 import type { AoeView, PlayerElement, PlayerToken } from '../../present/stage';
 import type { TerrainKind } from './terrain';
@@ -183,9 +183,9 @@ function loadUrl(url: string): Promise<HTMLImageElement> {
 
 /** Angle d'un jeton de la banque : face au jeton du camp d'en face le plus proche (le groupe face aux monstres, et
  *  inversement) ; à défaut, vers le centre du plateau occupé. */
-function facing(t: PlayerToken, all: PlayerToken[]) {
-  const foe = (o: PlayerToken) => o.id !== t.id && !o.out && (t.kind === 'pc' ? o.kind !== 'pc' : o.kind === 'pc');
-  let best: PlayerToken | null = null, bd = Infinity;
+function facing(t: BoardToken, all: BoardToken[]) {
+  const foe = (o: BoardToken) => o.id !== t.id && !o.out && (t.kind === 'pc' ? o.kind !== 'pc' : o.kind === 'pc');
+  let best: BoardToken | null = null, bd = Infinity;
   for (const o of all) if (foe(o)) { const d = Math.hypot(o.x - t.x, o.y - t.y); if (d < bd) { bd = d; best = o; } }
   if (!best) {
     const others = all.filter((o) => o.id !== t.id);
@@ -207,9 +207,10 @@ async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: numbe
   paintGen.set(canvas, gen);
   const alive = () => paintGen.get(canvas) === gen;
   if (theme?.startsWith('surface')) {
-    const climate = theme === 'surface-froid' ? 'froid' : theme === 'surface-chaud' ? 'chaud' : theme === 'surface-neige' ? 'neige' : 'tempere';
-    paintSurface(ctx, cols, rows, terrain, climate);
-    await dressBoard(canvas, cols, rows, terrain, climate, CELL_PX, alive);
+    const climate = theme.includes('froid') ? 'froid' : theme.includes('chaud') ? 'chaud' : theme.includes('neige') ? 'neige' : 'tempere';
+    const nature = theme.endsWith('-nature');
+    paintSurface(ctx, cols, rows, terrain, climate, nature);
+    await dressBoard(canvas, cols, rows, terrain, climate, CELL_PX, alive, nature);
     return;
   }
   if (theme === 'interieur') { paintInterior(ctx, cols, rows, terrain); await dressBoard(canvas, cols, rows, terrain, 'interieur', CELL_PX, alive); return; }
@@ -257,9 +258,10 @@ const SURFACE_PALETTE = {
   chaud: { ground: '#8a7650', field: '#8a7a42', furrow: 'rgba(180,160,90,.55)', roof: '#d2b07a', roofHi: '#e0c290', roofEdge: '#6d5634', water: '#1f6a78', tree: '#4e6a2c', treeHi: '#6c8a3a' },
 };
 
-function paintSurface(ctx: CanvasRenderingContext2D, cols: number, rows: number, terrain: string | undefined, climate: keyof typeof SURFACE_PALETTE = 'tempere') {
+function paintSurface(ctx: CanvasRenderingContext2D, cols: number, rows: number, terrain: string | undefined, climate: keyof typeof SURFACE_PALETTE = 'tempere', nature = false) {
   const C = CELL_PX;
-  const P = SURFACE_PALETTE[climate];
+  // Pleine nature : une paroi (case bloquée) est de la roche, pas un toit.
+  const P = nature ? { ...SURFACE_PALETTE[climate], roof: '#5d5a52', roofHi: '#6e6a60', roofEdge: '#2b2924' } : SURFACE_PALETTE[climate];
   ctx.fillStyle = P.ground;
   ctx.fillRect(0, 0, cols * C, rows * C);
   if (!terrain) return;
@@ -614,9 +616,12 @@ export default function BattleBoard({ cols, rows, backdrop, terrain, elements = 
                   </>
                 )}
                 <circle cx={cx} cy={cy} r={r - 0.035} fill="none" stroke={KIND_FILL[t.kind]} strokeOpacity={0.55} strokeWidth={0.03} />
-                <image href={t.image} x={cx - r * 1.12} y={cy - r * 1.12} width={2.24 * r} height={2.24 * r} preserveAspectRatio="xMidYMid meet" style={{ filter: 'drop-shadow(0 0.04px 0.05px rgba(0,0,0,.85))' }}
-                  // Jeton de la Banque Loresmith (vu du dessus) : tourné vers son vis-à-vis le plus proche.
-                  transform={isBankSrc(t.image) ? `rotate(${(facing(t, tokens) * 180) / Math.PI} ${cx} ${cy})` : undefined} />
+                {/* Jeton de la banque : à l'échelle de son personnage (un halfelin est plus petit qu'un humain). */}
+                {(() => { const k = isBankSrc(t.image) ? tokenScaleOf(t.image) : 1; return (
+                <image href={t.image} x={cx - r * 1.12 * k} y={cy - r * 1.12 * k} width={2.24 * r * k} height={2.24 * r * k} preserveAspectRatio="xMidYMid meet" style={{ filter: 'drop-shadow(0 0.04px 0.05px rgba(0,0,0,.85))' }}
+                  // Jeton de la Banque Loresmith : tourné vers son vis-à-vis le plus proche s'il est pris à la verticale ; incliné, il reste droit.
+                  transform={isBankSrc(t.image) && turnsFreely(t.image) ? `rotate(${(facing(t, tokens) * 180) / Math.PI} ${cx} ${cy})` : undefined} />
+                ); })()}
                 <circle cx={cx} cy={cy} r={r} fill="none" stroke={t.selected ? '#ecd289' : '#0b0906'} strokeWidth={t.selected ? 0.12 : 0.05} strokeDasharray={t.hidden ? '0.12 0.08' : undefined} />
               </>
             ) : t.image ? (

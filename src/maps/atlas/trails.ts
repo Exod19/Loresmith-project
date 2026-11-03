@@ -9,7 +9,7 @@ export type Danger = { level: DangerLevel; label: string; text: string; why: str
 export type Detect = { dc: number; skill: string } | null;
 export type TrailProfile = { detect: Detect; danger: Danger };
 
-type TrailLike = { title: string; trace?: string; category?: string };
+type TrailLike = { title: string; trace?: string; category?: string; voie?: string };
 
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
@@ -32,6 +32,15 @@ const BASE: Record<string, { detect: Detect; level: DangerLevel; why: string }> 
   maritime: { detect: null, level: 2, why: 'traversée en mer : grains, courants, pirates' },
 };
 
+/** Voies de la carte du monde (surface) : leur repérage et leur danger, en mots d'extérieur. */
+const SURFACE: Record<string, { detect: Detect; level: DangerLevel; why: string }> = {
+  royale: { detect: null, level: 1, why: 'route pavée, entretenue et patrouillée' },
+  chemin: { detect: null, level: 1, why: 'chemin de terre fréquenté' },
+  sentier: { detect: { dc: 10, skill: 'Perception' }, level: 2, why: 'sentier peu fréquenté, sans patrouille' },
+  piste: { detect: { dc: 13, skill: 'Perception' }, level: 3, why: 'piste qui se perd sous les arbres (Sagesse (Survie) DD 12 pour ne pas s’égarer)' },
+  col: { detect: { dc: 12, skill: 'Perception' }, level: 3, why: 'sentier de montagne : éboulis, vent, à-pics' },
+};
+
 /** Mots du nom qui changent la perception d'un passage. */
 const WORSE: [RegExp, string][] = [
   [/instable|effondr|eboul/, 'roche instable'],
@@ -49,7 +58,7 @@ const HIDDEN: [RegExp, number][] = [[/cache|derobe|secret|faux|fausse|oublie/, 3
 
 export function trailProfile(t: TrailLike, secretDc?: number): TrailProfile {
   const n = norm(t.title);
-  const base = BASE[t.trace ?? ''] ?? { detect: { dc: 12, skill: 'Perception' }, level: 2 as DangerLevel, why: 'passage irrégulier' };
+  const base = (t.voie && SURFACE[t.voie]) || BASE[t.trace ?? ''] || { detect: { dc: 12, skill: 'Perception' }, level: 2 as DangerLevel, why: 'passage irrégulier' };
   const why = [base.why];
   let level: number = base.level;
   // Les crevasses sont toutes classées « danger » dans l'Atlas : leur niveau de base en tient déjà compte.
@@ -61,7 +70,7 @@ export function trailProfile(t: TrailLike, secretDc?: number): TrailProfile {
   let detect: Detect = base.detect ? { ...base.detect } : null;
   if (t.trace === 'secret' && secretDc) detect = { dc: secretDc, skill: 'Investigation' };
   else if (detect) for (const [re, plus] of HIDDEN) if (re.test(n)) { detect.dc += plus; break; }
-  if (/grande|principale|route|voie/.test(n) && t.trace !== 'secret') detect = null;
+  if (/grande|principale|route|voie/.test(n) && t.trace !== 'secret' && !t.voie) detect = null;
 
   return { detect, danger: { level: clamped, ...DANGER[clamped], why } };
 }

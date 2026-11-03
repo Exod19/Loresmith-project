@@ -12,6 +12,8 @@ import { setAtlasData } from './atlas/model';
 import { IMAGE_MAX, fitWithin } from '../store/imageRefs';
 import type { LocalElement } from './battle/local';
 import type { HaltAlert } from './atlas/omens';
+import type { WildRecord } from './world/generate';
+import { withDeepWilds } from './atlas/deepIndex';
 import type { BattleObject, BattleWall, CellFix, SocleMode, TerrainId, TerrainZone } from './battle/surface';
 import type { BattleAoe } from './battle/aoe';
 import type { PuzzleState } from '../puzzles/types';
@@ -80,8 +82,12 @@ export interface PassageLink { kind: 'anchor' | 'marker' | 'feature'; id: string
 export interface MapOverlay {
   /** Identifiants des lieux de l'atlas visibles des joueurs. Rien n'est visible par défaut. */
   revealed: string[];
+  /** Lieux sauvages de l'Underdark enregistrés (gardés, définis, aperçus ou écartés), par clé (atlas/deepWilds.js). */
+  wilds?: Record<string, WildRecord>;
+  /** Densité des lieux sauvages de l'Underdark (lot 29) : rares, normaux (par défaut) ou nombreux. */
+  wildDensity?: 'rare' | 'normale' | 'riche';
   /** Carte de navigation chez les joueurs : brouillard de guerre, jeton du groupe, héros séparés. */
-  playerView?: { fog?: boolean; party?: boolean; heroes?: boolean };
+  playerView?: { fog?: boolean; party?: boolean; heroes?: boolean; linked?: boolean };
   /** Brouillard : points déjà découverts par plan (chemins parcourus, lieux traversés), qui restent visibles mais sombres. */
   explored?: Record<string, [number, number][]>;
   /** Dernier trajet du groupe le long d'un chemin, pour l'animer (MJ et joueurs). */
@@ -138,6 +144,10 @@ export interface PartyFork {
   /** Annonce aux joueurs, et libellés des deux choix. */
   line: string; out: string; on: string;
   from?: PartyPlace;
+  /** Lieu sauvage aperçu depuis la route (carte du monde) : il est enregistré dès qu'on l'aperçoit. */
+  wild?: WildRecord;
+  /** Marche hors route : la destination finale (continuer reprend le chemin vers elle). */
+  cross?: { to: PartyPlace; at: [number, number] };
 }
 
 /** Ce que le MJ sait d'un élément à fouiller : comment le trouver, ce qu'on y trouve, et ce que ça fait. */
@@ -208,7 +218,9 @@ export interface Battle {
     /** Plateau tiré d'un plan de surface (cité, monde) : rues et bâtiments plutôt que roche ; `interieur` : dans un bâtiment. */
     surface?: boolean | 'interieur' | 'froid' | 'chaud' | 'neige';
     /** Galeries intérieures retirées : seules restent les sorties au bord et les passages secrets à travers la roche. */
-    trimmed?: boolean };
+    trimmed?: boolean;
+    /** Plan d'un lieu sauvage (pleine nature) : sol d'herbe et de terre, paroi de roche, jamais de pavés ni de toits. */
+    nature?: boolean };
   /** Identifiant de la rencontre dont les créatures sont déjà placées sur le plateau. */
   encounterOf?: string;
   /** Construction manuelle : surcharges du terrain généré et objets déposés (cf. battle/build.ts). */
@@ -363,6 +375,8 @@ function withMarkers(data: AtlasData, rec: MapRecord, dm: boolean): AtlasData {
 /** Jeu de données complet d'une carte, vue MJ (`dm`) ou joueurs. Pour l'Atlas, `atlas` est la source synchronisée. */
 export function mapDataFor(rec: MapRecord, atlas: AtlasData, dm: boolean): AtlasData {
   if (rec.kind === 'custom') return withMarkers(buildCustomAtlas(rec, dm), rec, dm);
+  // Lieux sauvages de l'Underdark enregistrés : ils font partie de l'Atlas (les joueurs ne voient que les révélés).
+  if (rec.kind === 'atlas' && rec.overlay?.wilds) atlas = withDeepWilds(atlas, rec.overlay.wilds);
   if (dm) return withMarkers(atlas, rec, true);
   const revealed = new Set(rec.overlay?.revealed ?? []);
   return withMarkers(
@@ -392,8 +406,9 @@ let activeData: AtlasData | null = null;
  * Active le jeu de données d'une carte avant son rendu (vue MJ). Ne reconstruit les index que si la carte
  * ou sa superposition a changé (`updatedAt`). Le moteur d'Atlas lit des index partagés : une seule carte est active à la fois.
  */
-export function activateMap(rec: MapRecord, dm: boolean, atlas: AtlasData): AtlasData {
-  const key = `${rec.id}:${rec.updatedAt}:${dm}`;
+/** `extraKey` : ce qui change les données sans changer la carte (brouillons de lieux sauvages de la fenêtre affichée). */
+export function activateMap(rec: MapRecord, dm: boolean, atlas: AtlasData, extraKey = ''): AtlasData {
+  const key = `${rec.id}:${rec.updatedAt}:${dm}:${extraKey}`;
   if (key !== activeKey || !activeData) {
     activeData = mapDataFor(rec, atlas, dm);
     setAtlasData(activeData);

@@ -4,9 +4,11 @@
  * identique d'une fois à l'autre, puis traité comme l'Atlas des profondeurs par le reste de l'application.
  */
 import { useEffect, useRef } from 'react';
-import { cityPlanId, generateWorld, hashSeed, interiorPlanId, landNameOf, placeCity, seaNameOf, worldPlanId, type CitySpec, type Sea, type WorldSpec } from './generate';
+import { cityPlanId, citySpecDefaults, generateWorld, worldLakes, hashSeed, interiorPlanId, landNameOf, placeCity, seaNameOf, wildFeatureOf, worldPlanId, type CitySpec, type Sea, type WildRecord, type WorldSpec } from './generate';
+import { sightOf, whereLabel, wildSitesIn, type WildSite } from './wilds';
+import { lengthOf, project, subpath } from '../journey';
 import { nearestEdge } from './climate';
-import { DIR_ANGLE, PACE, atDir, SCALES, cityKm, cityRadiusKm, dirName, elevationAt, placeOn, reliefOf, seaBeyond, seaSideAt, toAt, toKm, worldFrame } from './terrain';
+import { DIR_ANGLE, PACE, atDir, SCALES, cityKm, cityRadiusKm, crossCountry, dirName, elevationAt, placeOn, reliefOf, routeOn, seaBeyond, seaSideAt, terrainAt, toAt, toKm, travelGrid, worldFrame } from './terrain';
 import { norm } from './lore';
 import { citySpecFromEntry, isSettlement, syncBindings, type LoreEntry } from './lore';
 import type { AtlasData } from '../atlas/types';
@@ -355,4 +357,162 @@ export function useWorldSync(rec: MapRecord, library: LoreEntry[] | undefined, p
 export function portSea(world: World, c: CitySpec): Sea | undefined {
   const f = worldFrame(world), k = cityKm(f, c);
   return (world.seas ?? []).map((s) => ({ s, d: Math.hypot(s.x - k[0], s.y - k[1]) - s.r })).sort((a, b) => a.d - b.d)[0]?.s;
+}
+
+/* ——— Lieux sauvages (wilds.js) ——— */
+
+/** Largeur de vue (km) en dessous de laquelle les brouillons de lieux sauvages apparaissent pour le MJ. */
+export const WILD_VIEW_KM = 90;
+const reliefCache = new Map<string, ReturnType<typeof reliefOf>>();
+/** Relief d'un monde à l'échelle (le même que celui du dessin), gardé en mémoire. */
+function worldRelief(world: World) {
+  const frame = worldFrame(world);
+  const key = JSON.stringify([world.seed, world.bounds, world.scale, world.seas, world.climate, world.season, world.lat, world.cities.map((c) => [c.id, c.km, c.at, c.population, c.port])]);
+  let r = reliefCache.get(key);
+  if (!r) {
+    const cities = world.cities.map((c) => ({ ...citySpecDefaults(c), km: cityKm(frame, c) }));
+    r = reliefOf(world, frame, cities);
+    reliefCache.set(key, r);
+    if (reliefCache.size > 3) reliefCache.delete(reliefCache.keys().next().value!);
+  }
+  let lakes = lakesCache.get(r);
+  if (!lakes) { lakes = worldLakes(r); lakesCache.set(r, lakes); }
+  return { frame, relief: r, lakes };
+}
+const lakesCache = new WeakMap<object, [number, number][][]>();
+const gridCache = new WeakMap<object, ReturnType<typeof travelGrid>>();
+
+/** Enregistrement d'un lieu sauvage (pour le garder, le définir, l'écarter ou le montrer aux joueurs). */
+export const wildRecordOf = (s: WildSite): WildRecord => ({
+  key: s.key, km: s.km, kind: s.kind, cat: s.cat, title: s.title, teneur: s.teneur, danger: s.danger,
+  text: s.text, scene: s.scene, hook: s.hook, where: whereLabel(s) || undefined, biome: s.biome, e: s.e, forest: s.forest,
+});
+
+/**
+ * Brouillons de lieux sauvages dans une fenêtre du plan monde (`box` en 0–1), pour le MJ seulement. La fenêtre est
+ * arrondie à des blocs de 30 km, pour ne pas tout recalculer à chaque glissement. Rien pour un ancien monde.
+ */
+export function wildDrafts(rec: MapRecord, data: AtlasData, box: [number, number, number, number] | null) {
+  const world = rec.world;
+  if (!world || !box) return null;
+  const { frame, relief, lakes } = worldRelief(world);
+  if (frame.legacy) return null;
+  const [a0, b0] = toKm(frame, [box[0], box[1]]), [a1, b1] = toKm(frame, [box[2], box[3]]);
+  if (a1 - a0 > WILD_VIEW_KM) return null;
+  const B = 30, snap = (v: number, up: boolean) => (up ? Math.ceil(v / B) : Math.floor(v / B)) * B;
+  const win: [number, number, number, number] = [snap(a0, false), snap(b0, false), snap(a1, true), snap(b1, true)];
+  const wid = worldPlanId(rec.id);
+  const roads = data.geometries
+    .filter((g) => g.mapId === wid && g.type === 'polyline' && /:route|route-/.test(g.featureId))
+    .map((g) => (g.coordinates as [number, number][]).map((p) => toKm(frame, p)));
+  const cities = world.cities.map((c) => ({ name: c.name, km: cityKm(frame, c), r: cityRadiusKm(citySpecDefaults(c)) }));
+  const sites = wildSitesIn({ seed: world.seed, relief, cities, roads, lakes, density: world.wildDensity }, win, new Set(Object.keys(world.wilds ?? {})));
+  const base = { canonStatus: 'creation' as const, placementStatus: 'documented' as const };
+  const features = sites.map((s) => ({ ...base, ...wildFeatureOf(wildRecordOf(s), wid), draft: true, minZoom: 0, importance: 'detail' as const }));
+  const geometries = sites.map((s) => ({ id: `g-${wid}:wild-${s.key}`, mapId: wid, featureId: `${wid}:wild-${s.key}`, type: 'point' as const, coordinates: toAt(frame, s.km) }));
+  return { key: win.join(','), sites, features, geometries };
+}
+
+/** Un lieu sauvage aperçu depuis la route : où (km le long du trajet), de quel côté, et s'il faut le chercher. */
+export type WildSighting = { record: WildRecord; id: string; s: number; d: number; at: [number, number]; side: 'gauche' | 'droite'; known: boolean; dc?: number; line: string };
+
+/**
+ * Lieux sauvages visibles le long d'un trajet du plan monde (`pts` en 0–1) : brouillons et lieux enregistrés (sauf
+ * écartés), à portée de vue selon le terrain. Triés dans l'ordre de la marche. `s` et `d` en km.
+ */
+export function wildAlong(rec: MapRecord, data: AtlasData, pts: [number, number][], revealed: string[] = []): WildSighting[] {
+  const world = rec.world;
+  if (!world || pts.length < 2) return [];
+  const { frame, relief, lakes } = worldRelief(world);
+  if (frame.legacy) return [];
+  const wid = worldPlanId(rec.id);
+  const km = pts.map((p) => toKm(frame, p));
+  const pad = 7;
+  const box: [number, number, number, number] = [
+    Math.min(...km.map((p) => p[0])) - pad, Math.min(...km.map((p) => p[1])) - pad, Math.max(...km.map((p) => p[0])) + pad, Math.max(...km.map((p) => p[1])) + pad,
+  ];
+  const kept = world.wilds ?? {};
+  const roads = data.geometries.filter((g) => g.mapId === wid && g.type === 'polyline' && /:route-/.test(g.featureId)).map((g) => (g.coordinates as [number, number][]).map((p) => toKm(frame, p)));
+  const cities = world.cities.map((c) => ({ name: c.name, km: cityKm(frame, c), r: cityRadiusKm(citySpecDefaults(c)) }));
+  const drafts = wildSitesIn({ seed: world.seed, relief, cities, roads, lakes, density: world.wildDensity }, box, new Set(Object.keys(kept))).map(wildRecordOf);
+  const records = [...drafts, ...Object.values(kept).filter((w) => w && !w.excluded && w.km && w.km[0] >= box[0] && w.km[0] <= box[2] && w.km[1] >= box[1] && w.km[1] <= box[3])];
+  const out: WildSighting[] = [];
+  for (const r of records) {
+    const rk = r.km!;
+    const pr = project(km, rk);
+    const sight = sightOf(r, r.forest ?? 0);
+    if (pr.d > sight.km) continue;
+    // Côté, dans le sens de la marche (y vers le bas : produit vectoriel positif = à droite).
+    const ahead = subpath(km, pr.s, Math.min(lengthOf(km), pr.s + 0.5));
+    const b = ahead[ahead.length - 1], a = ahead[0];
+    const cross = (b[0] - a[0]) * (rk[1] - pr.at[1]) - (b[1] - a[1]) * (rk[0] - pr.at[0]);
+    const id = `${wid}:wild-${r.key}`;
+    out.push({ record: r, id, s: pr.s, d: pr.d, at: toAt(frame, rk), side: cross > 0 ? 'droite' : 'gauche', known: revealed.includes(id), dc: sight.dc, line: sight.line });
+  }
+  return out.sort((x, y) => x.s - y.s);
+}
+
+/** Le début d'un trajet du plan monde (0–1), jusqu'à `sKm` km de marche. */
+export function cutWalk(rec: MapRecord, pts: [number, number][], sKm: number): [number, number][] {
+  const frame = worldFrame(rec.world);
+  const km = pts.map((p) => toKm(frame, p));
+  return subpath(km, 0, sKm).map((p) => toAt(frame, p));
+}
+/** Longueur (km) d'un trajet du plan monde. */
+export const walkKm = (rec: MapRecord, pts: [number, number][]) => { const f = worldFrame(rec.world); return lengthOf(pts.map((p) => toKm(f, p))); };
+
+/* ——— Hors route (lot 25) ——— */
+
+/** Trajet à travers la campagne : points (0–1), km parcourus, effort (km équivalents), heures de marche, terrain traversé. */
+export type CrossPath = { pts: [number, number][]; km: number; effort: number; hours: number; forest: number; mountain: number; snow: number; maxE: number };
+
+/**
+ * Chemin le moins pénible d'un point à un autre du plan monde (0–1), à travers champs : il suit les vallées et les cols,
+ * contourne la mer et les lacs. L'effort compte pleinement la pente, la forêt, la neige et la haute montagne ; une heure
+ * de marche couvre 4,8 km d'effort. `null` si c'est infranchissable (île, autre rive) ou un ancien monde.
+ */
+export function crossPath(rec: MapRecord, from: [number, number], to: [number, number]): CrossPath | null {
+  const world = rec.world;
+  if (!world) return null;
+  const { frame, relief, lakes } = worldRelief(world);
+  if (frame.legacy) return null;
+  let grid = gridCache.get(relief);
+  if (!grid) { grid = travelGrid(relief, lakes); gridCache.set(relief, grid); }
+  const a = toKm(frame, from), b = toKm(frame, to);
+  const r = routeOn(grid, a, b);
+  if (!r) return null;
+  let effort = 0, forest = 0, mountain = 0, snow = 0, maxE = 0, total = 0;
+  for (let i = 1; i < r.pts.length; i++) {
+    const p = r.pts[i - 1], q = r.pts[i];
+    const d = Math.hypot(q[0] - p[0], q[1] - p[1]);
+    effort += crossCountry(grid, p, q).effort;
+    const t = terrainAt(relief, (p[0] + q[0]) / 2, (p[1] + q[1]) / 2);
+    total += d;
+    if (t.forest > 0.5) forest += d;
+    if (t.e > 900) mountain += d;
+    if (t.biome === 'neige') snow += d;
+    maxE = Math.max(maxE, t.e);
+  }
+  const share = (v: number) => (total ? Math.round((v / total) * 100) : 0);
+  return {
+    pts: r.pts.map((p) => toAt(frame, p as [number, number])), km: Math.round(r.km * 10) / 10, effort: Math.round(effort * 10) / 10,
+    hours: effort / 4.8, forest: share(forest), mountain: share(mountain), snow: share(snow), maxE: Math.round(maxE),
+  };
+}
+
+/** Nom d'un point en pleine nature (destination hors route) : « Cœur de la forêt », « Flanc de montagne »… */
+export function wildernessLabel(rec: MapRecord, at: [number, number]): string {
+  const world = rec.world;
+  if (!world) return 'En pleine nature';
+  const { frame, relief } = worldRelief(world);
+  const t = terrainAt(relief, ...toKm(frame, at));
+  if (t.e > 1800) return 'Haute montagne';
+  if (t.e > 900) return 'Flanc de montagne';
+  if (t.biome === 'neige') return 'Étendue enneigée';
+  if (t.forest > 0.75) return 'Cœur de la forêt';
+  if (t.forest > 0.4) return 'Lisière de forêt';
+  if (t.biome === 'desert') return 'En plein désert';
+  if (t.biome === 'steppe') return 'Steppe';
+  if (t.biome === 'taiga') return 'Taïga';
+  return t.e > 500 ? 'Collines' : 'Campagne';
 }
