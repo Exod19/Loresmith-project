@@ -46,6 +46,7 @@ test('les occupants connus de l’intérieur passent avant l’estimation ; l’
   const guess = nightOccupants({ id: 'b2', type: 'caserne' });
   assert.ok(guess.sleepers.length >= 4 && guess.watchers.length === 2);
   const quiet = breakInEvent({ place: { title: 'Forge' } });
+  assert.equal(quiet.title, 'Effraction à la forge');
   assert.equal(quiet.gravite, 1);
   assert.match(quiet.text, /au matin/);
   const loud = breakInEvent({ place: { title: 'Forge' }, woken: [{ name: 'Garin', role: 'forgeron' }], shout: true, fight: true, guard: { who: 'une patrouille du guet', rounds: 7 } });

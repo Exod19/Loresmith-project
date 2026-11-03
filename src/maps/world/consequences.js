@@ -128,7 +128,7 @@ export function ofPlace(title = '') {
   return /^le /.test(t) ? `du ${t.slice(3)}` : /^les /.test(t) ? `des ${t.slice(4)}` : /^(la |l’)/.test(t) ? `de ${t}` : `de ${t}`;
 }
 /** « au temple », « à l’église », « à la taverne », « aux halles », « à Brumeval ». */
-const atPlace = (title) => { const t = the(title); return /^le /.test(t) ? `au ${t.slice(3)}` : /^les /.test(t) ? `aux ${t.slice(4)}` : `à ${t}`; };
+export const atPlace = (title) => { const t = the(title); return /^le /.test(t) ? `au ${t.slice(3)}` : /^les /.test(t) ? `aux ${t.slice(4)}` : `à ${t}`; };
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 const at = (ev) => (ev.place?.title ? atPlace(ev.place.title) : 'là-bas');
 /** « Église de Brumeval » → « Nouvelle église de Brumeval ». */
@@ -185,7 +185,9 @@ export function passTime(world, minutes) {
 
 /** Décision du MJ sur une suite proposée : 'accepte' ou 'refuse'. Une suite acceptée peut en débloquer d'autres. */
 export function decide(world, eventId, suiteId, status) {
-  const events = (world.events ?? []).map((ev) => (ev.id !== eventId ? ev : { ...ev, suites: (ev.suites ?? []).map((s) => (s.id === suiteId ? { ...s, status } : s)) }));
+  // L'instant de la décision compte pour le « depuis votre dernier passage » : un chantier accepté hier est une nouvelle.
+  const decidedAt = stamp(clockOf(world));
+  const events = (world.events ?? []).map((ev) => (ev.id !== eventId ? ev : { ...ev, suites: (ev.suites ?? []).map((s) => (s.id === suiteId ? { ...s, status, decidedAt } : s)) }));
   return evolve({ ...world, events }).world;
 }
 

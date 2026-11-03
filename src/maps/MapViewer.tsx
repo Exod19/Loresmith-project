@@ -53,6 +53,7 @@ import { isHiddenNpc } from './world/interior';
 import { normalizeEntity } from '../bestiary/entityGen';
 import { npcBankImage, npcToken } from '../banque/place';
 import { visibleFrom } from './world/sight';
+import { arrive } from './world/retour';
 import { DURATIONS, clockLabel, clockOf, untilPeriod } from './world/clock';
 import { ATTITUDE_LABEL, PLACE_STATE_LABEL, decide, evolve, npcMemories, passTime, pending, placeStates } from './world/consequences';
 import JournalPanel from './world/JournalPanel';
@@ -463,8 +464,28 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
    */
   const setOverlay = (next: MapOverlay) => {
     const walked = (next.party?.walked ?? 0) - (overlay.party?.walked ?? 0);
-    onUpdate({ overlay: next, ...(rec.kind === 'monde' && rec.world && walked > 0 ? { world: passTime(rec.world, walked * 60) } : {}), updatedAt: Date.now() });
+    let world = rec.kind === 'monde' && rec.world && walked > 0 ? passTime(rec.world, walked * 60) : undefined;
+    // Le groupe change de lieu : passages notés et, s'il revient après un temps, ce qui a changé depuis.
+    if (rec.kind === 'monde' && rec.world) {
+      const arrival = withArrival(world ?? rec.world, next, overlay);
+      if (arrival) { world = arrival.world; next = arrival.overlay; }
+    }
+    onUpdate({ overlay: next, ...(world ? { world } : {}), updatedAt: Date.now() });
   };
+  /**
+   * Arrivée du groupe sur un autre plan (cité, bâtiment) : notes de passage et récit du retour (retour.js). Renvoie le
+   * monde et la superposition mis à jour, ou rien si le groupe n'a pas changé de plan.
+   */
+  function withArrival(w: World, next: MapOverlay, prev: MapOverlay) {
+    const to = next.party?.at?.planId, from = prev.party?.at?.planId;
+    if (!to || to === from) return null;
+    const a = arrive(w, to, from);
+    const title = a.retour ? (data.features.find((f) => f.id === a.retour!.key)?.title ?? data.maps.find((m) => m.id === a.retour!.key)?.title ?? 'ce lieu') : '';
+    return {
+      world: { ...w, visits: a.visits },
+      overlay: a.retour ? { ...next, retour: { key: a.retour.key, title, ago: a.retour.ago, dm: a.retour.dm, players: a.retour.players, at: Date.now() } } : next,
+    };
+  }
   /** Le temps passe : l'horloge du monde avance (repos, fouille, ou le MJ à la main). */
   const advanceTime = (minutes: number) => { if (rec.world && minutes > 0) onUpdate({ world: passTime(rec.world, minutes), updatedAt: Date.now() }); };
   // Combat sur la carte du monde : chaque round écoulé compte 6 secondes.
@@ -1015,7 +1036,10 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
       next = { ...next, revealed: [...new Set([...next.revealed, slotId, ...seen])] };
     }
     const interiors = (world.interiors ?? []).includes(slotId) ? world.interiors : [...(world.interiors ?? []), slotId];
-    onUpdate({ world: { ...world, interiors }, ...(next !== overlay ? { overlay: next } : {}), updatedAt: Date.now() });
+    // Entrer avec le groupe : passages notés, et ce qui a changé depuis le dernier passage dans ce bâtiment.
+    const arrival = next !== overlay ? withArrival({ ...world, interiors }, next, overlay) : null;
+    if (arrival) next = arrival.overlay;
+    onUpdate({ world: arrival ? arrival.world : { ...world, interiors }, ...(next !== overlay ? { overlay: next } : {}), updatedAt: Date.now() });
     setPlanId(ipid); setSelectedId(null); setPlacing(null);
   };
   /**
@@ -1281,6 +1305,20 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                   </button>
                 ))}
               </nav>
+            )}
+            {dm && overlay.retour && (
+              <div className="maps-card retour">
+                <div className="maps-card-head"><span>🔁 Depuis votre dernier passage</span>
+                  <button className="maps-btn" aria-label="Fermer" onClick={() => setOverlay({ ...overlay, retour: undefined })}>×</button>
+                </div>
+                <h3>{overlay.retour.title} · il y a {overlay.retour.ago}</h3>
+                <ul>{overlay.retour.dm.map((l, i) => <li key={i}>{l}</li>)}</ul>
+                {overlay.retour.players.length > 0 ? (
+                  <button className={`maps-btn ${overlay.retour.shown ? '' : 'gold'}`} onClick={() => setOverlay({ ...overlay, retour: { ...overlay.retour!, shown: !overlay.retour!.shown } })}>
+                    {overlay.retour.shown ? '🙈 Retirer de l’écran des joueurs' : '👁 Montrer aux joueurs ce qui se voit et se raconte'}
+                  </button>
+                ) : <p className="maps-sub">Rien de visible sur place : les joueurs n’en sauront que ce qu’on leur dira.</p>}
+              </div>
             )}
             {dm && party.halt && (
               <div className="maps-halt" role="status">

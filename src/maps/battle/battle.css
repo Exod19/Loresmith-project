@@ -963,3 +963,5 @@
 .tile-pick img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px; }
 .tile-pick.on { border-color: #ecd289; box-shadow: 0 0 0 1px #ecd289; }
 .tile-pick:disabled { opacity: .6; cursor: wait; }
+/* Retour des héros (écran des joueurs) : en haut, pour ne pas cacher la fiche d'un lieu touché. */
+.present-map-card.present-retour { top: 2vmin; bottom: auto; }

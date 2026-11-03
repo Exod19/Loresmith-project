@@ -94,6 +94,11 @@ export interface MapOverlay {
   travel?: { key: string; planId: string; points: [number, number][]; at: number; hold?: boolean };
   /** Annonce montrée aux joueurs pendant une halte en chemin (suspense, fausse alerte, rencontre). */
   alert?: HaltAlert;
+  /**
+   * Retour des héros dans un lieu après un temps (world/retour.js) : ce qui a changé. `dm` pour le MJ ; `players`, ce qui
+   * se voit et se raconte, montré aux joueurs quand le MJ le décide (`shown`).
+   */
+  retour?: { key: string; title: string; ago: string; dm: string[]; players: string[]; shown?: boolean; at: number };
   /** Illustrations des rencontres, par titre de rencontre (fournies par le MJ). */
   encounterImages?: Record<string, string>;
   markers: MapMarker[];

@@ -124,7 +124,9 @@ export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus
   const fork = f ? { key: f.key, line: f.line, out: f.out, on: f.on } : undefined;
   // Ce que le temps a fait des lieux de ce plan (ruines, chantiers) : visible de tous.
   const states = Object.fromEntries(Object.entries(rec.world ? placeStates(rec.world) : {}).filter(([fid]) => data.features.some((f) => f.id === fid)).map(([fid, st]) => [fid, { etat: st.etat }]));
-  return { mode: 'map', title: rec.title, planId, data, focus, ...(Object.keys(states).length ? { states } : {}), marks: marks.length ? marks : undefined, fog, travel, here: f ? f.point : here, alert, fork, linked: view.linked || undefined, cavernArt: rec.variant === 'strates' || undefined, ...(rec.overlay?.talk ? { talk: rec.overlay.talk } : {}) };
+  const r = rec.overlay?.retour;
+  const retour = r?.shown && r.players.length ? { title: r.title, ago: r.ago, lines: r.players } : undefined;
+  return { mode: 'map', title: rec.title, planId, data, focus, ...(Object.keys(states).length ? { states } : {}), ...(retour ? { retour } : {}), marks: marks.length ? marks : undefined, fog, travel, here: f ? f.point : here, alert, fork, linked: view.linked || undefined, cavernArt: rec.variant === 'strates' || undefined, ...(rec.overlay?.talk ? { talk: rec.overlay.talk } : {}) };
 }
 
 /** Combat tel que les joueurs le voient : jetons visibles seulement, sans points de vie ni CA. */
