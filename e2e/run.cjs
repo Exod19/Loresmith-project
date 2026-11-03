@@ -50,9 +50,11 @@ async function waitFor(url, test = (r) => r.ok) {
 /* ——— Outils de navigateur ——— */
 
 const errors = [];
+const pages = [];
 async function browserPage(browser, name) {
   const ctx = await browser.newContext({ viewport: { width: 1400, height: 900 }, acceptDownloads: true });
   const page = await ctx.newPage();
+  pages.push({ name, page });
   page.on('pageerror', (e) => errors.push(`${name} : ${e.message}`));
   page.on('dialog', (d) => d.accept());
   // Page vide de la même origine, pour préparer IndexedDB avant que l'application ne s'ouvre.
@@ -124,6 +126,26 @@ const disk = (page) =>
     return out;
   });
 
+/**
+ * Attend que l'application soit affichée (barre du haut de la coquille), puis lui laisse le temps de charger le grimoire.
+ * Au premier chargement, Vite transforme `src/App.jsx` (plusieurs secondes) : une attente fixe ne suffit pas.
+ */
+async function appReady(page, settle = 1500) {
+  await page.waitForSelector('header.lsx-top', { timeout: 90000 });
+  await page.waitForTimeout(settle);
+}
+
+/** Attend qu'une condition sur le disque devienne vraie (migration, synchronisation…). */
+async function untilDisk(page, test, timeout = 15000) {
+  const end = Date.now() + timeout;
+  let d = await disk(page);
+  while (!test(d) && Date.now() < end) {
+    await page.waitForTimeout(500);
+    d = await disk(page);
+  }
+  return d;
+}
+
 const shownImages = (page) => page.evaluate(() => [...document.images].filter((i) => i.src.startsWith('blob:')).map((i) => i.complete && i.naturalWidth > 0));
 
 async function openSettings(page) {
@@ -158,6 +180,15 @@ function check(cond, message) {
   if (!cond) throw new Error(message);
 }
 
+/** À l'échec d'un parcours : capture de chaque page encore ouverte (dossier E2E_SHOTS, sinon le dossier temporaire). */
+async function screenshots() {
+  const dir = process.env.E2E_SHOTS || tmpdir();
+  for (const { name, page } of pages.splice(0)) {
+    const file = join(dir, `e2e-${name.replace(/[^\w-]+/g, '_')}.png`);
+    if (await page.screenshot({ path: file, fullPage: true }).then(() => true, () => false)) console.log(`    capture : ${file}`);
+  }
+}
+
 /* ——— Parcours ——— */
 
 const SCENARIOS = {
@@ -165,8 +196,8 @@ const SCENARIOS = {
     const page = await browserPage(browser, 'lot 1');
     await seedLegacy(page);
     await page.goto(SITE + '/?view=party');
-    await page.waitForTimeout(3000);
-    const d = await disk(page);
+    await appReady(page);
+    const d = await untilDisk(page, (x) => x.base64 === 0 && x.images === 3);
     check(d.base64 === 0, `il reste ${d.base64} image(s) en base64`);
     check(d.refs >= 3 && d.images === 3, `références ${d.refs}, images ${d.images}`);
     check(d.state.npcs.n1.name === 'Yemena' && d.state.characters.c1.name === 'Aria', 'données perdues');
@@ -178,19 +209,19 @@ const SCENARIOS = {
     const a = await browserPage(browser, 'lot 2 A');
     await seedLegacy(a);
     await a.goto(SITE + '/?view=party');
-    await a.waitForTimeout(3000);
+    await appReady(a);
     await a.click('[aria-label="Exporter une sauvegarde"]');
     const [download] = await Promise.all([a.waitForEvent('download'), a.getByRole('button', { name: '⤓ Exporter' }).click()]);
     const zip = await download.path();
     check(readFileSync(zip).subarray(0, 2).toString() === 'PK', 'le fichier n’est pas un .zip');
     const b = await browserPage(browser, 'lot 2 B');
     await b.goto(SITE + '/?view=party');
-    await b.waitForTimeout(2500);
+    await appReady(b);
     await b.setInputFiles('input[accept*="zip"]', zip);
     await b.getByRole('button', { name: /Remplacer tout le grimoire/ }).click();
     await b.waitForTimeout(2000);
     await b.reload();
-    await b.waitForTimeout(2500);
+    await appReady(b);
     const d = await disk(b);
     check(Object.values(d.state.universes).map((u) => u.name).join() === 'Underdark', 'univers non restauré');
     check(d.state.npcs.n1?.name === 'Yemena' && d.images === 3, `données ou images manquantes (images : ${d.images})`);
@@ -201,9 +232,13 @@ const SCENARIOS = {
   async 'Lot 5 : synchronisation entre deux navigateurs et conflit réglé'(browser) {
     const email = `mj-${randomUUID().slice(0, 8)}@exemple.org`;
     const a = await browserPage(browser, 'lot 5 A');
-    await seedLegacy(a);
+    // Une énigme et un indice (collections `puzzles` et `clues`) doivent voyager comme le reste, champs secrets compris.
+    await seedLegacy(a, {
+      puzzles: { z1: { id: 'z1', universeId: 'u1', title: 'La porte aux trois runes', gm: 'Réponse : lune', createdAt: 3 } },
+      clues: { i1: { id: 'i1', universeId: 'u1', puzzleId: 'z1', text: 'Une rune brille la nuit', gmNote: 'mène à la lune', createdAt: 3 } },
+    });
     await a.goto(SITE + '/?view=bestiary');
-    await a.waitForTimeout(2500);
+    await appReady(a);
     await openSettings(a);
     await signUp(a, 'MJ', email);
     await a.waitForSelector('text=Connecté :');
@@ -212,12 +247,14 @@ const SCENARIOS = {
 
     const b = await browserPage(browser, 'lot 5 B');
     await b.goto(SITE + '/?view=bestiary');
-    await b.waitForTimeout(2500);
+    await appReady(b);
     await openSettings(b);
     await signIn(b, email);
     await b.waitForTimeout(3500);
     const got = await disk(b);
     check(got.state.npcs.n1?.name === 'Yemena' && got.state.campaigns.k1?.title === 'La descente', 'le second navigateur n’a pas tout reçu');
+    check(got.state.puzzles?.z1?.title === 'La porte aux trois runes' && got.state.puzzles.z1.gm === 'Réponse : lune', 'l’énigme n’est pas arrivée dans le second navigateur');
+    check(got.state.clues?.i1?.text === 'Une rune brille la nuit' && got.state.clues.i1.gmNote === 'mène à la lune', 'l’indice n’est pas arrivé dans le second navigateur');
 
     const rename = (page, name) =>
       page.evaluate(async (name) => {
@@ -240,7 +277,7 @@ const SCENARIOS = {
     await rename(a, 'Yemena (A)');
     await rename(b, 'Yemena (B)');
     await a.reload();
-    await a.waitForTimeout(3500);
+    await appReady(a);
     await b.reload();
     await b.waitForSelector('text=Versions différentes à départager', { timeout: 15000 });
     await b.getByRole('button', { name: 'Garder ma version' }).click();
@@ -257,7 +294,7 @@ const SCENARIOS = {
     const page = await browserPage(browser, 'lot 8');
     await seedLegacy(page);
     await page.goto(SITE + '/?view=bestiary');
-    await page.waitForTimeout(2500);
+    await appReady(page);
     await openSettings(page);
     await page.getByRole('button', { name: 'Créer un compte' }).click();
     await page.getByPlaceholder('Nom affiché').fill('Zoé');
@@ -291,7 +328,7 @@ const SCENARIOS = {
     const a = await browserPage(browser, 'lot 6 A');
     await seedLegacy(a, { universes: { u6: { id: 'u6', name: 'Univers partagé', tone: 't', lore: 'l', createdAt: 1 } }, activeUniverseId: 'u6', npcs: { n6: { id: 'n6', name: 'Garde', universeId: 'u6' } }, characters: {}, campaigns: {}, assets: {}, maps: {} });
     await a.goto(SITE + '/');
-    await a.waitForTimeout(2500);
+    await appReady(a);
     await openSettings(a);
     await signUp(a, 'Alice', `alice-${tag}@exemple.org`);
     await a.waitForSelector('text=Connecté :');
@@ -326,13 +363,20 @@ const SCENARIOS = {
     await waitFor(API + '/api/health');
     await waitFor(SITE);
     browser = await chromium.launch();
+    // Préchauffage : le premier chargement fait transformer tout le site par Vite.
+    const warm = await browser.newPage();
+    await warm.goto(SITE + '/');
+    await appReady(warm, 0);
+    await warm.context().close();
     for (const [name, run] of Object.entries(SCENARIOS)) {
       try {
         await run(browser);
+        pages.length = 0;
         console.log(`✓ ${name}`);
       } catch (e) {
         failed++;
         console.log(`✗ ${name}\n    ${e.message.split('\n')[0]}`);
+        await screenshots();
       }
     }
     if (errors.length) {
