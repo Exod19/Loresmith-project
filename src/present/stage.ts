@@ -40,6 +40,8 @@ export type PlayerElement = { id: string; kind: 'passage' | 'point'; title: stri
 export type PlayerBoard =
   /** `data` ne contient que le plan montré et ses lieux révélés. */
   | { mode: 'map'; title: string; planId: string; data: AtlasData; focus?: { kind: 'anchor' | 'point'; id: string; tick: number };
+    /** Lieux touchés par le temps (bâtiment en ruine, en chantier, délaissé) : ce qui se voit sur place. */
+    states?: Record<string, { etat: string }>;
     /** Jetons du groupe et des héros séparés (si le MJ les montre), et brouillard de guerre. */
     marks?: { id: string; x: number; y: number; label: string; tone: 'party' | 'dest' | 'hero' | 'dm' }[];
     fog?: { vision: [number, number][]; explored: [number, number][]; r: number; er: number;

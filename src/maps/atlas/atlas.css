@@ -743,3 +743,10 @@
 .am-caves.is-art .am-floors .floor:hover { stroke: #3b4a47; stroke-opacity: .55; }
 /* Décor des cavernes : assombri et désaturé, pour se fondre dans la roche au lieu de sauter aux yeux. */
 .am-cave-decor { filter: brightness(.78) saturate(.65); }
+/* Lieux touchés par le temps (mémoire du monde) : carcasse noircie aux braises encore rouges, chantier, maison délaissée. */
+.am-place-state rect, .am-place-state path { vector-effect: non-scaling-stroke; }
+.am-place-state.is-ruine rect { fill: #4a3e36; fill-opacity: .95; stroke: #e0752f; stroke-width: 2.5px; }
+.am-place-state.is-ruine .beams { stroke: #120c08; stroke-width: 3px; stroke-linecap: round; fill: none; }
+.am-place-state.is-chantier rect { fill: #a88a5a; fill-opacity: .5; stroke: #e2c58f; stroke-width: 1.6px; stroke-dasharray: 4 3; }
+.am-place-state.is-chantier .scaffold { stroke: #f0d6a0; stroke-width: 1.2px; fill: none; opacity: .85; }
+.am-place-state.is-delaisse rect { fill: #7d7a74; fill-opacity: .4; stroke: #9a968c; stroke-width: 1px; stroke-dasharray: 2 3; }

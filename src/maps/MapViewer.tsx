@@ -53,7 +53,8 @@ import { isHiddenNpc } from './world/interior';
 import { normalizeEntity } from '../bestiary/entityGen';
 import { npcBankImage, npcToken } from '../banque/place';
 import { visibleFrom } from './world/sight';
-import { DURATIONS, clockLabel, tick as tickWorld, untilPeriod } from './world/clock';
+import { DURATIONS, clockLabel, untilPeriod } from './world/clock';
+import { ATTITUDE_LABEL, PLACE_STATE_LABEL, decide, evolve, npcMemories, passTime, pending, placeStates } from './world/consequences';
 import JournalPanel from './world/JournalPanel';
 import { rollFind } from './world/fouille';
 import { faceOf } from '../banque';
@@ -460,10 +461,10 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
    */
   const setOverlay = (next: MapOverlay) => {
     const walked = (next.party?.walked ?? 0) - (overlay.party?.walked ?? 0);
-    onUpdate({ overlay: next, ...(rec.kind === 'monde' && rec.world && walked > 0 ? { world: tickWorld(rec.world, walked * 60) } : {}), updatedAt: Date.now() });
+    onUpdate({ overlay: next, ...(rec.kind === 'monde' && rec.world && walked > 0 ? { world: passTime(rec.world, walked * 60) } : {}), updatedAt: Date.now() });
   };
   /** Le temps passe : l'horloge du monde avance (repos, fouille, ou le MJ à la main). */
-  const advanceTime = (minutes: number) => { if (rec.world && minutes > 0) onUpdate({ world: tickWorld(rec.world, minutes), updatedAt: Date.now() }); };
+  const advanceTime = (minutes: number) => { if (rec.world && minutes > 0) onUpdate({ world: passTime(rec.world, minutes), updatedAt: Date.now() }); };
   // Combat sur la carte du monde : chaque round écoulé compte 6 secondes.
   const lastRound = useRef<number | null>(null);
   const round = rec.kind === 'monde' ? rec.battle?.round : undefined;
@@ -475,6 +476,10 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [round]);
 
+  /** Mémoire du monde : suites en attente du MJ, état des lieux touchés, ce dont les PNJ se souviennent. */
+  const waiting = rec.world ? pending(rec.world).length : 0;
+  const states = useMemo(() => (rec.world ? placeStates(rec.world) : {}), [rec.world]);
+  const memories = useMemo(() => (rec.world ? npcMemories(rec.world) : {}), [rec.world]);
   /**
    * Dans un intérieur, ce qui est évident se voit d'office : dès que le groupe se tient quelque part (en entrant, en
    * changeant de pièce ou d'étage, ou quand l'heure change et que d'autres occupants arrivent), tout ce qui est dans
@@ -1244,6 +1249,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               focusKey={focus ? String(focus.tick) : undefined}
               dm={dm}
               tokenOf={npcTokenOf}
+              placeMarks={states}
             />
             <button type="button" className="maps-mobile-only maps-mapsize" onClick={() => setMapFull(!mapFull)}
               aria-label={mapFull ? 'Réduire la carte' : 'Agrandir la carte'} title={mapFull ? 'Réduire la carte' : 'Agrandir la carte'}>{mapFull ? '⤡' : '⤢'}</button>
@@ -1262,7 +1268,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
           <aside className="maps-panel maps-side">
             {dm && (
               <nav className="maps-tabs" role="tablist" aria-label="Panneau de la carte">
-                {([...(exploring ? [['explore', '🎭 Exploration']] : []), ...(rec.kind === 'monde' ? [['monde', '🏰 Monde']] : []), ['lieu', '📍 Lieu'], ['groupe', '👥 Groupe'], ...(campaigns.length ? [['campagne', '📜 Campagne']] : []), ['reperes', '🔖 Repères'], ...(rec.kind === 'monde' && dm ? [['journal', '🕰 Journal']] : [])] as [typeof side, string][]).map(([id, label]) => (
+                {([...(exploring ? [['explore', '🎭 Exploration']] : []), ...(rec.kind === 'monde' ? [['monde', '🏰 Monde']] : []), ['lieu', '📍 Lieu'], ['groupe', '👥 Groupe'], ...(campaigns.length ? [['campagne', '📜 Campagne']] : []), ['reperes', '🔖 Repères'], ...(rec.kind === 'monde' && dm ? [['journal', `🕰 Journal${waiting ? ` (${waiting})` : ''}`]] : [])] as [typeof side, string][]).map(([id, label]) => (
                   <button key={id} role="tab" aria-selected={side === id} className={side === id ? 'on' : ''} onClick={() => setSide(id)}>
                     {label}
                     {id === 'groupe' && (party.apart?.length ?? 0) > 0 && <small>{party.apart!.length}</small>}
@@ -1382,7 +1388,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
 
             {(!dm || side === 'lieu') && feature && !markerId && (
               <FeaturePanel
-                f={feature} dm={dm} notes={point?.notes ?? ''} face={npcFaceOf(feature)} onTime={rec.kind === 'monde' ? advanceTime : undefined}
+                f={feature} dm={dm} notes={point?.notes ?? ''} face={npcFaceOf(feature)} placeState={states[feature.id]} memory={memories[feature.title.toLowerCase().trim()]} onTime={rec.kind === 'monde' ? advanceTime : undefined}
                 depthLine={strates ? depthOfFeature(feature.id) : undefined}
                 defaultCtx={{ zone: point?.zone ?? (rec.kind === 'monde' ? (feature.wild || feature.area ? 'sauvage' : feature.trace ? 'transit' : 'cite') : 'sauvage'), depth: point?.depth ?? 3, place: feature.title }}
                 surface={rec.kind === 'monde'}
@@ -1458,7 +1464,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 here={feature ? { planId: map.id, featureId: feature.id, title: feature.title } : party.at ? { planId: party.at.planId, featureId: party.at.kind === 'feature' ? party.at.id : undefined, title: party.at.title } : undefined}
                 npcNames={[...new Set([...(library ?? []).filter((e) => (e as { archiveType?: string }).archiveType === 'person').map((e) => e.title), ...data.features.filter((f) => f.id.includes(':pnj-') && !f.id.includes(':pnj-gen-')).map((f) => f.title)])]}
                 onAdvance={advanceTime}
-                onEvents={(events) => onUpdate({ world: { ...rec.world!, events }, updatedAt: Date.now() })}
+                onEvents={(events) => onUpdate({ world: evolve({ ...rec.world!, events }).world, updatedAt: Date.now() })}
+                onDecide={(eventId, suiteId, status) => onUpdate({ world: decide(rec.world!, eventId, suiteId, status), updatedAt: Date.now() })}
                 onShow={(p) => { if (p.planId) setPlanId(p.planId); if (p.featureId) { setSelectedId(p.featureId); setFocus({ kind: 'point', id: p.featureId, tick: Date.now() }); } }} />
             )}
             {dm && side === 'monde' && rec.kind === 'monde' && rec.world && (
@@ -1734,11 +1741,14 @@ function SearchBox({ f, onTime }: { f: AtlasFeature; onTime?: (minutes: number) 
   );
 }
 
-function FeaturePanel({ onTime, face, f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring, partyHere, partyDest, onPartyHere, onPartyDest, passive = 10, follow, onForget, depthLine, surface }: {
+function FeaturePanel({ placeState, memory, onTime, face, f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring, partyHere, partyDest, onPartyHere, onPartyDest, passive = 10, follow, onForget, depthLine, surface }: {
   /** Image de face d'un PNJ (fiche ou banque). */
   face?: string;
   /** Le temps passe (fouille) : minutes de jeu. */
   onTime?: (minutes: number) => void;
+  /** Mémoire du monde : l'état du lieu (en ruine…) et ce dont le PNJ se souvient. */
+  placeState?: { etat: keyof typeof PLACE_STATE_LABEL; title: string };
+  memory?: { attitude?: keyof typeof ATTITUDE_LABEL; souvenirs: string[] };
   f: AtlasFeature; dm: boolean; notes: string; defaultCtx: EncCtx; onClose: () => void; onRoll: (ctx: EncCtx) => void;
   /** Carte du monde (surface) : descriptions, libellés et rencontres de la surface, jamais ceux de l'Underdark. */
   surface?: boolean;
@@ -1770,7 +1780,14 @@ function FeaturePanel({ onTime, face, f, dm, notes, defaultCtx, onClose, onRoll,
       <h3>{f.title}</h3>
       {f.subtitle && <p className="maps-sub">{f.subtitle}</p>}
       {depthLine && <p className="maps-depth">⛰ {depthLine}</p>}
+      {placeState && <p className={`maps-place-state is-${placeState.etat}`}>{placeState.etat === 'ruine' ? '🔥' : placeState.etat === 'chantier' ? '🏗' : placeState.etat === 'delaisse' ? '🕸' : '✨'} {PLACE_STATE_LABEL[placeState.etat].replace(/^./, (c) => c.toUpperCase())}</p>}
       <p>{text}</p>
+      {dm && memory && (memory.attitude || memory.souvenirs.length > 0) && (
+        <div className="maps-memory">
+          {memory.attitude && <p><b>{f.title} {ATTITUDE_LABEL[memory.attitude]}.</b></p>}
+          {memory.souvenirs.length > 0 && <p className="maps-sub">Se souvient : {memory.souvenirs.slice(-4).join(' ; ')}.</p>}
+        </div>
+      )}
       {dm && f.fouille && <SearchBox f={f} onTime={onTime} />}
       {f.trace && (() => {
         const t = trailProfile(f, f.trace === 'secret' ? 15 : undefined);

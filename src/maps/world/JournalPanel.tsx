@@ -8,6 +8,7 @@ import type { AtlasData } from '../atlas/types';
 import type { Period } from './generate';
 import type { World } from './index';
 import { DURATIONS, clockLabel, clockOf, untilPeriod } from './clock';
+import { pending } from './consequences';
 import { EVENT_KINDS, GRAVITY, ROLES, eventWhen, eventsOf, eventsPrompt, newEvent, parseEvents, type EventDraft, type EventKind, type EventPlace, type EventRole, type WorldEvent } from './worldEvents';
 
 type Props = {
@@ -18,12 +19,14 @@ type Props = {
   npcNames: string[];
   onAdvance: (minutes: number) => void;
   onEvents: (events: WorldEvent[]) => void;
+  /** Décision du MJ sur une suite proposée (bâtiment rebâti, PNJ rancunier…). */
+  onDecide: (eventId: string, suiteId: string, status: 'accepte' | 'refuse') => void;
   onShow?: (place: EventPlace) => void;
 };
 
 const UNITS: [string, number][] = [['minutes', 1], ['heures', 60], ['jours', DURATIONS.jour], ['semaines', DURATIONS.semaine], ['mois', DURATIONS.mois]];
 
-export default function JournalPanel({ world, data, here, npcNames, onAdvance, onEvents, onShow }: Props) {
+export default function JournalPanel({ world, data, here, npcNames, onAdvance, onEvents, onDecide, onShow }: Props) {
   const clock = clockOf(world);
   const events = eventsOf(world);
   const [n, setN] = useState('1');
@@ -75,6 +78,23 @@ export default function JournalPanel({ world, data, here, npcNames, onAdvance, o
         </select>
         <button className="maps-btn gold" disabled={!(Number(n) > 0)} onClick={() => onAdvance(Number(n) * unit)}>Avancer le temps</button>
       </div>
+
+      {pending(world).length > 0 && (
+        <div className="journal-pending">
+          <div className="maps-card-head journal-head"><span>⚖ Conséquences à valider</span></div>
+          <p className="maps-sub">Le temps a passé : voici ce qui pourrait en découler. Rien ne change sans ton accord.</p>
+          {pending(world).map((s) => (
+            <div key={`${s.eventId}:${s.id}`} className="journal-suite is-propose">
+              <small>{EVENT_KINDS[s.event.kind].icon} {s.event.title} · {eventWhen({ ...s.event, at: s.at }, clock).label}</small>
+              <p>{s.text}</p>
+              <div className="journal-row">
+                <button className="maps-btn gold" onClick={() => onDecide(s.eventId, s.id, 'accepte')}>Accepter</button>
+                <button className="maps-btn" onClick={() => onDecide(s.eventId, s.id, 'refuse')}>Refuser</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="maps-card-head journal-head"><span>📜 Mémoire du monde</span>
         <button className="maps-btn" onClick={() => setDraft(draft ? null : { title: '', kind: 'autre', joueurs: 'temoins', gravite: 2, place: here })}>{draft ? 'Annuler' : '+ Événement'}</button>
@@ -140,6 +160,12 @@ export default function JournalPanel({ world, data, here, npcNames, onAdvance, o
               <small>{w.label} · {w.ago}{ev.place ? <> · {ev.place.planId && onShow ? <button className="maps-link" onClick={() => onShow(ev.place!)}>{ev.place.title}</button> : ev.place.title}</> : null}</small>
               <small>{ROLES[ev.joueurs]} · {GRAVITY[ev.gravite]}{ev.npcs?.length ? ` · ${ev.npcs.join(', ')}` : ''}</small>
               {ev.text && <p>{ev.text}</p>}
+              {(ev.suites ?? []).filter((s) => s.status !== 'propose').map((s) => (
+                <div key={s.id} className={`journal-suite is-${s.status}`}>
+                  <small>{eventWhen({ ...ev, at: s.at }, clock).label} · {s.status === 'auto' ? 'de lui-même' : s.status === 'accepte' ? 'accepté' : 'refusé'}</small>
+                  <p>{s.text}</p>
+                </div>
+              ))}
             </li>
           );
         })}

@@ -137,7 +137,7 @@ const TOKEN_M = 1.41, TOKEN_MIN_PX = 14;
 /** Orientation stable d'un jeton (degrés), tirée de son identifiant : les PNJ ne regardent pas tous au nord. */
 const angleOf = (id: string) => { let h = 2166136261; for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619); return (h >>> 0) % 360; };
 
-export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, onMovePin, dataKey, dm, marks = [], fog, journey, onZoomLimit, exploring, ghosts, onView, preview, syncView, tokenOf, cavernArt }: {
+export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, onMovePin, dataKey, dm, marks = [], fog, journey, onZoomLimit, exploring, ghosts, onView, preview, syncView, tokenOf, cavernArt, placeMarks }: {
   map: AtlasMap; layers: Layers; hidden: Set<FeatureCategory>;
   /** Mode MJ : révèle les passages secrets. Hors MJ, la carte est une carte de lore. */
   dm: boolean;
@@ -177,6 +177,8 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
    * sans socle, à la place du marqueur dès qu'il est assez grand à l'écran.
    */
   tokenOf?: (f: AtlasFeature) => string | undefined;
+  /** État des lieux touchés par le temps (mémoire du monde) : bâtiment en ruine, en chantier, délaissé. */
+  placeMarks?: Record<string, { etat: string }>;
 }) {
   // Le groupe en chemin : position courante le long du tracé, image par image.
   const [walker, setWalker] = useState<[number, number] | null>(null);
@@ -684,6 +686,33 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
           {rz >= 3.4 && <path d={relief.blocks} className="am-blocks" style={{ opacity: fade(3.4) }} />}
           {decorOver.length > 0 && <g className="am-decor">{decorOver.map(decorPath)}</g>}
           {bankOn && <BankLayer map={map} layer="dessus" pxPerUnit={pxPerUnit} view={bankView} />}
+          {surf && placeMarks && (() => {
+            // Un bâtiment touché : son emprise (le bâtiment du plan le plus proche de son repère) en ruine, en chantier ou délaissée.
+            const bx: number[][] = surf.ground.bx ?? Array.from({ length: Math.floor((surf.ground.b?.length ?? 0) / 5) }, (_, i) => surf.ground.b.slice(i * 5, i * 5 + 5));
+            const out: ReactElement[] = [];
+            for (const [fid, st] of Object.entries(placeMarks)) {
+              if (st.etat === 'reconstruit') continue;
+              const g = geos.find((q) => q.featureId === fid && q.type === 'point');
+              if (!g) continue;
+              const [px, py] = [(g.coordinates as [number, number])[0] * W, (g.coordinates as [number, number])[1] * H];
+              let best: number[] | null = null, bd = Infinity;
+              // Le bâtiment qui contient le repère ; sinon le plus proche.
+              const inside = (e: number[]) => { const c = Math.cos(-e[4]), sn = Math.sin(-e[4]), dx = px - e[0], dy = py - e[1]; return Math.abs(dx * c - dy * sn) <= e[2] / 2 && Math.abs(dx * sn + dy * c) <= e[3] / 2; };
+              best = bx.filter(inside).sort((p1, p2) => p1[2] * p1[3] - p2[2] * p2[3])[0] ?? null;
+              if (best) bd = 0;
+              else for (const e of bx) { const d = Math.hypot(e[0] - px, e[1] - py); if (d < bd) { bd = d; best = e; } }
+              if (!best || bd > Math.max(best[2], best[3]) * 1.2 + 4 / surf.scale) continue;
+              const [x, y, w, d, a] = best;
+              out.push(
+                <g key={fid} className={`am-place-state is-${st.etat}`} transform={`translate(${x} ${y}) rotate(${(a * 180) / Math.PI})`}>
+                  <rect x={-w / 2} y={-d / 2} width={w} height={d} rx={Math.min(w, d) * 0.04} />
+                  {st.etat === 'ruine' && <path d={`M${-w * 0.4} ${-d * 0.3}L${w * 0.35} ${d * 0.25}M${-w * 0.3} ${d * 0.35}L${w * 0.25} ${-d * 0.35}M${-w * 0.45} 0L${w * 0.45} ${d * 0.05}`} className="beams" />}
+                  {st.etat === 'chantier' && <path d={`M${-w / 2} ${-d / 2}L${w / 2} ${d / 2}M${w / 2} ${-d / 2}L${-w / 2} ${d / 2}M0 ${-d / 2}V${d / 2}M${-w / 2} 0H${w / 2}`} className="scaffold" />}
+                </g>,
+              );
+            }
+            return out.length ? <g className="am-place-states" pointerEvents="none">{out}</g> : null;
+          })()}
           {houses.map((b, i) => (
             <g key={i} className="am-house"><rect x={b.x} y={b.y} width={b.w} height={b.h} rx="2" /><rect x={b.x + 4} y={b.y + 4} width={b.w * 0.76} height={b.h * 0.55} className="in" /></g>
           ))}

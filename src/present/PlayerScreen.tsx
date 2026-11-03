@@ -142,7 +142,7 @@ function PlayerMap({ board, rev, onFollow, onPick, onFork, onGoto }: { board: Ex
         dataKey={rev}
         focus={board.focus ? { kind: board.focus.kind, id: board.focus.id } : null}
         focusKey={board.focus ? String(board.focus.tick) : undefined}
-        marks={board.marks} fog={board.fog} journey={board.travel}
+        marks={board.marks} fog={board.fog} journey={board.travel} placeMarks={board.states}
         onPlace={world ? (x, y) => { setPicked(null); setSpot([x, y]); } : undefined}
         syncView={board.linked ? sync : null}
         cavernArt={board.cavernArt}

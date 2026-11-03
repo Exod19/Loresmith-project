@@ -6,6 +6,8 @@ export type EventPlace = { planId?: string; featureId?: string; title: string };
 export interface WorldEvent {
   id: string; at: number; title: string; text?: string; kind: EventKind; place?: EventPlace; npcs?: string[];
   joueurs: EventRole; gravite: 1 | 2 | 3; source: 'mj' | 'notes' | 'jeu';
+  /** Suites (consequences.js) : ce que le temps en a fait. */
+  suites?: import('./consequences').Suite[];
 }
 export type EventDraft = Partial<Omit<WorldEvent, 'id' | 'at'>> & { title: string; hoursAgo?: number };
 export const EVENT_KINDS: Record<EventKind, { label: string; icon: string }>;
