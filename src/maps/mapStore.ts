@@ -16,6 +16,7 @@ import type { WildRecord } from './world/generate';
 import { withDeepWilds } from './atlas/deepIndex';
 import type { BattleObject, BattleWall, CellFix, SocleMode, TerrainId, TerrainZone } from './battle/surface';
 import type { BattleAoe } from './battle/aoe';
+import type { PuzzleState } from '../puzzles/types';
 import type { AtlasData, AtlasFeature, AtlasGeometry, AtlasMap, FeatureCategory, Importance } from './atlas/types';
 import type { WorldSpec } from './world/generate';
 
@@ -152,6 +153,9 @@ export interface PartyFork {
 /** Ce que le MJ sait d'un élément à fouiller : comment le trouver, ce qu'on y trouve, et ce que ça fait. */
 export interface SearchNote { skill: string; dc: number; find: string; loot?: string; effect?: string }
 
+/** Énigme lancée sur un verrou du plateau : quel verrou, quelle énigme, son état, et si l'écran joueur la montre. */
+export interface PuzzleRun { on: { kind: 'wall' | 'object'; id: string }; puzzleId: string; state: PuzzleState; shown: boolean }
+
 export interface BattleToken {
   id: string;
   name: string;
@@ -237,6 +241,8 @@ export interface Battle {
   aoeHit?: { aoeId: string; targets: string[]; at: number };
   /** Déplacement déjà parcouru pendant le tour en cours (en cases), et qui fonce (vitesse doublée). `key` = round:tour. */
   moved?: { key: string; used: Record<string, number>; dash?: string[] };
+  /** Énigme en cours (porte, coffre…) : son état est tenu ici, la solution reste dans le grimoire (cf. src/puzzles). */
+  puzzle?: PuzzleRun;
   /** Jeton dont c'est le tour, et journal des derniers jets. */
   turn?: string;
   log?: { id: string; text: string; tone?: 'hit' | 'miss' | 'crit' | 'info' }[];

@@ -17,7 +17,7 @@ export const FORMAT = 'loresmith';
 export const ARCHIVE_VERSION = 1;
 
 /** Collections du grimoire, indexées par identifiant. */
-export const COLLECTIONS = ['universes', 'characters', 'campaigns', 'npcs', 'quests', 'assets', 'libraryEntries', 'maps', 'chatThreads'];
+export const COLLECTIONS = ['universes', 'characters', 'campaigns', 'npcs', 'quests', 'assets', 'libraryEntries', 'maps', 'chatThreads', 'puzzles', 'clues'];
 
 /** Identifiants qui ne peuvent pas être renommés (l'Atlas est reconnu par son identifiant fixe). */
 const FIXED_IDS = new Set(['atlas-profondeurs']);
