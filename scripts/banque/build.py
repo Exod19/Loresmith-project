@@ -70,11 +70,16 @@ ELEMENTS = [
     (r'lichen-covered', dict(nom='Bloc alpin à lichens', cat='rocher', taille=[2.6, 2.6], milieux=['montagne', 'toundra'], climats=[F, T])),
     (r'snow-capped granite', dict(nom='Rocher enneigé', cat='rocher', taille=[2.6, 2.6], milieux=['montagne', 'toundra'], climats=[F], saisons=['hiver'])),
     (r'sandstone boulder', dict(nom='Rocher de grès', cat='rocher', taille=[3, 3], milieux=['desert', 'badlands'], climats=[C, A])),
-    (r'obsidian', dict(nom='Obsidienne', cat='rocher', taille=[3, 3], milieux=['volcan', 'caverne'], region=['surface', 'outreterre'])),
+    (r'obsidian(?!.*(boundary|base))', dict(nom='Obsidienne', cat='rocher', taille=[3, 3], milieux=['volcan', 'caverne'], region=['surface', 'outreterre'])),
     (r'basalt column', dict(nom='Orgues basaltiques', cat='rocher', taille=[3, 3], milieux=['volcan', 'cote', 'caverne'], region=['surface', 'outreterre'])),
     (r'basalt hex', dict(nom='Dalles de basalte', cat='rocher', taille=[2.6, 2.6], milieux=['volcan', 'cote', 'caverne'], region=['surface', 'outreterre'])),
     (r'glacial ice', dict(nom='Bloc de glace', cat='rocher', taille=[2.6, 2.6], milieux=['toundra', 'montagne', 'lac'], climats=[F], saisons=['hiver'])),
     # Toits (bâtiments vus du ciel)
+    (r'toit terracotta en l', dict(nom='Maison en L (terre cuite)', cat='toit', forme='L', materiau='tuiles', taille=[14, 14], milieux=['ville', 'campagne'], climats=[T, C], usage=['maison'])),
+    (r'toit de halle', dict(nom='Halle (tuiles)', cat='toit', forme='rect', materiau='tuiles', taille=[20, 10], milieux=['ville'], climats=[T], usage=['marche', 'atelier'])),
+    (r'toit en ardoise et chemin', dict(nom='Maison (ardoise)', cat='toit', forme='rect', materiau='ardoise', taille=[10, 7], milieux=['ville', 'campagne'], climats=[T, F], usage=['maison'])),
+    (r'petite maison, tuiles', dict(nom='Petite maison (tuiles)', cat='toit', forme='rect', materiau='tuiles', taille=[8, 6], milieux=['ville', 'campagne'], climats=[T], usage=['maison'])),
+    (r'woodland thatch roof', dict(nom='Chaumière', cat='toit', forme='rect', materiau='chaume', taille=[9, 6], milieux=['campagne', 'foret'], climats=[T, F], usage=['maison', 'ferme'])),
     (r'manoir en u', dict(nom='Manoir en U (ardoise)', cat='toit', forme='U', materiau='ardoise', taille=[30, 20], milieux=['ville'], climats=[T, F], usage=['noble'])),
     (r'grange', dict(nom='Grange (chaume)', cat='toit', forme='rect', materiau='chaume', taille=[14, 8], milieux=['campagne'], climats=[T, F], usage=['ferme'])),
     (r'toit carr. de cabane', dict(nom='Cabane (bardeaux)', cat='toit', forme='carre', materiau='bardeaux', taille=[6, 6], milieux=['campagne', 'foret', 'ville'], climats=[T, F], usage=['maison'])),
@@ -288,6 +293,213 @@ TOKEN_ALIASES = {
 }
 
 
+# ——— Règles générales (synchronisation du 2026-11-03 : huit dossiers, surface et Outreterre) ———
+# Elles s'appliquent après les règles précises ci-dessus, sur les mots du titre (anglais ou français). La région vient
+# du dossier du Drive ; une règle peut l'élargir.
+O = 'outreterre'
+
+# Fichiers déposés par erreur (images sans rapport, maquettes d'écran) : ignorés, et signalés.
+EXCLURE = [r'investment and returns', r'planning for a stronger', r'coffee, clarity', r'empty chair, working legacy',
+           r'navigation map', r'galerie basse n', r'passage from floor to ceiling']
+
+# Textures : (motif, étiquettes). `tactique` : tuile de plateau dessinée (berges, gué, ravin), pas une texture répétable.
+TEXTURES_GEN = [
+    (r'cavern floor|cave floor', dict(nom='Sol de caverne', cat='roche', taille=6, milieux=['caverne'], region=[O])),
+    (r'bedrock', dict(nom='Roche-mère calcaire', cat='roche', taille=6, milieux=['caverne'], region=[O])),
+    (r'silt floor', dict(nom='Limon humide', cat='vase', taille=6, milieux=['caverne', 'lac'], region=[O])),
+    (r'pine needle', dict(nom='Aiguilles de pin', cat='humus', taille=4, milieux=['foret'], climats=[T, F])),
+    (r'humus', dict(nom='Humus forestier', cat='humus', taille=4, milieux=['foret'], climats=[T])),
+    (r'moss carpet', dict(nom='Tapis de mousse', cat='mousse', taille=4, milieux=['foret', 'marais'], climats=[T, F])),
+    (r'beige sand', dict(nom='Sable fin', cat='sable', taille=5, milieux=['cote', 'desert'], climats=[T, C, A])),
+    (r'taupe sand', dict(nom='Sable humide', cat='sable', taille=5, milieux=['cote', 'riviere', 'lac'])),
+    (r'gravel', dict(nom='Gravier', cat='gravier', taille=4, milieux=['route', 'riviere', 'montagne', 'campagne'])),
+    (r'limestone texture', dict(nom='Calcaire pâle', cat='roche', taille=6, milieux=['montagne', 'interieur', 'caverne'], region=['surface', O])),
+    (r'granite texture', dict(nom='Granite gris', cat='roche', taille=6, milieux=['montagne', 'campagne'])),
+    (r'rivi.re|river|gu.|rivage|baie|promontoire|fluvial', dict(nom=None, cat='tuile-eau', taille=12, usage=['tactique'], milieux=['riviere', 'lac'])),
+    (r'ravin|ravine|plateau', dict(nom=None, cat='tuile-roche', taille=12, usage=['tactique'], milieux=['montagne'])),
+]
+
+# Éléments : (motif, catégorie, taille en mètres, milieux). Le premier motif qui correspond l'emporte.
+ELEMENTS_GEN = [
+    (r'miniature base|socle|\bbase\b', 'socle', [1.5, 1.5], []),
+    (r'canopy|crown|cime|couronne', 'arbre', [9, 9], ['foret', 'campagne']),
+    (r'cactus|cacti|agave|bromeliad|banana|fern|wildflower|sedge|reeds|cattail|lily|grass patch|lichen|juniper', 'arbuste', [1.8, 1.8], ['foret', 'campagne']),
+    (r'shrub|bramble|hazel|hawthorn|thorn', 'arbuste', [2.5, 2.5], ['foret', 'campagne']),
+    (r'mushroom|fungal|fungi', 'champignon', [2.5, 2.5], ['caverne', 'foret']),
+    (r'crystal|quartz|amethyst', 'cristal', [1.6, 1.6], ['caverne']),
+    (r'stalagmite|pillar', 'stalagmite', [2.5, 2.5], ['caverne']),
+    (r'opening|shaft|sinkhole|sump|crevasse|fissure|blowhole|pit trap|steps into|ramp into|hatch|trapdoor', 'ouverture', [3, 3], ['caverne']),
+    (r'skeleton|skull|bones|carcass|droppings', 'ossements', [1.8, 1.8], ['caverne', 'foret', 'desert']),
+    (r'boundary|cave wall|cave edge|cave bend|ridge|spur|cavebank|arc\b|rock shelf|wall segment|walkway|scree wedge|gravel shoulder|limestone arc', 'paroi', [6, 3], ['caverne']),
+    (r'puddle|pool|basin|spring|sandbar|seepage|pebble crescent', 'flaque', [2.5, 2.5], ['caverne']),
+    (r'campfire|bedroll|campsite|tent|tente|expedition pack|gear|lantern|crate|caisse|coffre|chest|pack,|lean-to|firewood|campsite scatter', 'campement', [2, 2], ['camp', 'caverne', 'foret']),
+    (r'handcart|cart|charrette|mine rails|mine support|mining|timber|tool scatter', 'mine', [2.5, 1.5], ['caverne', 'route']),
+    (r'marker|waymarker|signpost|offering|altar|autel', 'repere', [1.2, 1.2], ['caverne', 'foret', 'route']),
+    (r'bootprints|footprints|hoofprint|scuff|dust patch|mud patch|gravel patch|gravel fan|calcite|sulfur|moss patch|excavation scar|ripple', 'sol', [3, 3], ['caverne']),
+    (r'rubble|rockfall|boulder|rock cluster|rock outcrop|outcrop|scree|ledge|cairn|basalt|lava|ice blocks|snowdrift|slab', 'rocher', [3, 3], ['caverne', 'montagne', 'campagne']),
+    (r'mist|vapor|vapour|gas veil|wisp', 'vapeur', [4, 4], ['caverne']),
+    (r'tripwire|pressure plate|piton|rope|ladder', 'piege', [1.5, 1.5], ['caverne']),
+    (r'bridge|footbridge|passerelle|log crossing', 'pont', [6, 2], ['riviere', 'caverne']),
+    (r'log|stump|trunk|fallen .*oak|branches|root|driftwood|leaf heap|nest|burrow|den\b|dam', 'bois', [3, 2], ['foret']),
+    (r'wall|mur|masonry|foundation|barricade|well\b', 'ruine', [5, 2], ['ruine', 'campagne']),
+    (r'web|silk', 'toile', [3, 3], ['caverne', 'foret']),
+    (r'roof|toit|house|maison', 'toit', [8, 8], ['ville', 'campagne']),
+    (r'chair|chaise|bed\b|lit m', 'mobilier', [1, 1], ['interieur']),
+    (r'kelp|seaweed|coral|shells|barnacle', 'plante-eau', [2, 2], ['cote', 'mer']),
+    (r'termite|tumbleweed', 'divers', [2, 2], ['desert', 'savane']),
+]
+
+# Créatures : (motif, nom du bestiaire, taille en mètres). Le nom suit le bestiaire de l'Underdark quand il existe.
+CREATURES = [
+    (r'scorpion', 'Scorpion géant', 3), (r'bat swarm|swarm of flying bats', 'Nuée de chauves-souris', 3),
+    (r'\bbat\b', 'Chauve-souris géante', 3), (r'cerveau psionique|intellect', 'Dévoreur d’intellect', 1.5),
+    (r'charognard', 'Charognard rampant', 3), (r'troglodyte', 'Troglodyte', 1.5),
+    (r'constrictor', 'Serpent constricteur géant', 4.5), (r'snake|viper', 'Serpent venimeux géant', 1.5),
+    (r'cloaker', 'Manteleuse', 3), (r'crustac', 'Chuul', 3), (r'cube g.latineux', 'Cube gélatineux', 3),
+    (r'darkmantle', 'Mante obscure', 1.5), (r'drider', 'Drider', 3), (r'ettercap', 'Ettercap', 1.5),
+    (r'salamander', 'Salamandre aquatique géante', 3), (r'wolf spider', 'Araignée-loup géante', 3),
+    (r'phase spider|ivory and indigo spider', 'Araignée de phase', 3), (r'spider|orb-weaver', 'Araignée géante', 3),
+    (r'grick', 'Grick', 1.5), (r'grimlock', 'Grimlock', 1.5), (r'fouisseur|umber hulk', 'Horreur fouisseuse', 3),
+    (r'crochets', 'Horreur crochue', 3), (r'illithid', 'Flagelleur mental', 1.5), (r'kuo-toa', 'Kuo-toa', 1.5),
+    (r'perceur|piercer', 'Perceur', 1.5), (r'roper|stalagmitique', 'Roper', 3), (r'rouill', 'Monstre rouilleur', 1.5),
+    (r'otyugh', 'Otyugh', 3), (r'p.cheur des cavernes', 'Pêcheur des cavernes', 3), (r'quaggoth', 'Quaggoth', 1.5),
+    (r'centipede', 'Mille-pattes géant', 1.5), (r'draconic', 'Humanoïde draconique', 1.5),
+]
+
+# Personnages : peuple, genre et rôles lus dans le titre.
+PEOPLE_GEN = [
+    (r'moriquendi|norrianiss|warral|drehjur|iznogood|deep[- ]elf|bayou elf', 'moriquendi'), (r'drow', 'drow'),
+    (r'duergar', 'duergar'), (r'deep gnome|svirfneblin|svirfnebelin', 'svirfnebelin'), (r'goblin', 'gobelin'),
+    (r'halfling', 'halfelin'), (r'dwarf|dwarven', 'nain'), (r'half-elf', 'demi-elfe'), (r'half-orc', 'demi-orque'),
+    (r'\belf|elven', 'elfe'), (r'gnome', 'gnome'),
+]
+FEMININ = r'\bwoman|priestess|prophetess|midwife|hostess|dancer|\bher\b|\bshe\b|lady|girl'
+ROLES_GEN = [
+    (r'priest|officiant|oracle|prophet', ['pretre', 'clerc']), (r'merchant|dealer|peddler|seller|pawnbroker|trader|outfitter', ['marchand']),
+    (r'innkeeper|tavern|bar\b|hostess', ['aubergiste', 'tavernier']), (r'blacksmith', ['forgeron', 'artisan']),
+    (r'guard|watch|patrol|sergeant|corporal|militia|warrior|commander|garrison|defense instructor', ['garde', 'soldat']),
+    (r'archmage|mage|enchantment|ward ', ['mage']), (r'archivist|registrar|registry|clerk|notary|administrator|superintendent|magistrate|lecturer|teacher|bookseller|bookbinder|cartographer|storykeeper|keeper of', ['erudit', 'scribe']),
+    (r'apothecary|herbalist|alchem|physician|healer|caregiver|infirmary|midwife', ['guerisseur', 'herboriste']),
+    (r'tracker|scout|hunter|rescue', ['eclaireur', 'chasseur']), (r'ferry|boat|river captain|canal|fisher', ['batelier', 'pecheur']),
+    (r'farmer|gardener|breeder|drover', ['fermier', 'eleveur']), (r'cook|kitchen', ['cuisinier']), (r'courier|relay|envoy|diplomat', ['messager', 'diplomate']),
+    (r'locksmith|repairer|potter|weaver|rope maker|carpenter|laundry|quartermaster', ['artisan']), (r'dancer|fiddler', ['artiste']),
+    (r'aristocrat|noble|velvet|salon', ['noble']), (r'traveler|wayfarer|expeditioner', ['voyageur']),
+]
+
+# Noms français des nouvelles images (le titre anglais reste dans `titre`). Premier motif qui correspond.
+NOMS = [
+    # Outreterre
+    (r'bedroll camp|campsite|expedition tent', 'Campement abandonné'), (r'campfire', 'Foyer éteint'),
+    (r'expedition pack|pack, rope|gear assembly', 'Paquetage abandonné'), (r'mining handcart|broken underdark handcart', 'Wagonnet de mine'),
+    (r'droppings', 'Bouses de rothé'), (r'waymarker|route marker|trail marker', 'Borne de piste'), (r'steps into', 'Escalier taillé'),
+    (r'rope bridge', 'Pont de corde'), (r'footbridge|bridge span|footbridge deck', 'Passerelle'), (r'offering slab', 'Dalle d’offrandes'),
+    (r'waterlogged beam|timber mine support', 'Étais effondrés'), (r'mineral pool|rimstone', 'Vasque calcaire'), (r'trapdoor|hatch', 'Trappe'),
+    (r'rubble|rockfall', 'Éboulement'), (r'copper-veined|iron seam', 'Dalle veinée de métal'), (r'mist|gas veil|vapor|wisp', 'Nappe de vapeur'),
+    (r'spiderweb|spider silk', 'Toiles d’araignée'), (r'pillar', 'Piliers calcaires'), (r'lantern', 'Lanterne tombée'),
+    (r'adventurer skeleton', 'Squelette d’aventurier'), (r'roth. carcass', 'Carcasse de rothé'), (r'roth. skeleton', 'Squelette de rothé'),
+    (r'roth. skull', 'Crâne de rothé'), (r'piton', 'Piton et corde'), (r'bootprints|footprints', 'Traces de pas'), (r'hoofprint', 'Traces de sabots'),
+    (r'rope coil|rope ladder', 'Corde abandonnée'), (r'stalagmite', 'Stalagmites'), (r'puddle|seepage', 'Flaque'), (r'amethyst', 'Améthystes'),
+    (r'quartz', 'Quartz fumé'), (r'blue-gray crystal', 'Cristaux brisés'), (r'shaft|floor opening|cave floor opening|rock opening', 'Puits'),
+    (r'sinkhole', 'Doline'), (r'sump', 'Siphon'), (r'crevasse|fissure', 'Crevasse'), (r'blowhole', 'Évent glacé'), (r'pit trap', 'Fosse piégée'),
+    (r'ramp into', 'Rampe vers les ténèbres'), (r'mushroom|fungal', 'Champignons'), (r'mine rails', 'Rails de mine'), (r'mining tool', 'Outils de mineur'),
+    (r'crate', 'Caisse brisée'), (r'tripwire', 'Fil-piège'), (r'pressure plate', 'Dalle à pression'), (r'sandbar|silt', 'Banc de limon'),
+    (r'sulfur', 'Croûte de soufre'), (r'calcite', 'Croûte de calcite'), (r'moss patch', 'Mousse et cailloux'), (r'mud patch', 'Boue piétinée'),
+    (r'dust', 'Poussière remuée'), (r'gravel', 'Gravier sombre'), (r'excavation', 'Saignée de fouille'), (r'bones', 'Ossements'),
+    (r'spring', 'Source'), (r'cairn', 'Cairn'), (r'masonry foundation', 'Fondations en ruine'), (r'scree', 'Éboulis'),
+    (r'walkway|rock shelf', 'Corniche'), (r'boulder', 'Blocs calcaires'), (r'obsidian.*(boundary|strip)', 'Paroi d’obsidienne'),
+    (r'slate.*(boundary|segment|fragment)|y-shaped slate', 'Paroi d’ardoise'), (r'basalt cave ridge', 'Crête de basalte'),
+    (r'boundary|cave wall|cave edge|cave bend|ridge|spur|cavebank|limestone arc|wall segment', 'Paroi calcaire'),
+    (r'pebble crescent', 'Grève de galets'), (r'slab', 'Dalle fendue'),
+    # Socles de figurines
+    (r'base|socle', 'Socle'),
+    # Surface
+    (r'oak canopy', 'Chêne'), (r'birch canopy', 'Bouleau'), (r'spruce', 'Épicéa'), (r'scots pine', 'Pin sylvestre'), (r'olive woodland', 'Olivier'),
+    (r'boreal', 'Bosquet boréal'), (r'snow-laden conifer', 'Conifère enneigé'), (r'acacia', 'Acacia'), (r'date palm', 'Palmier dattier'),
+    (r'bamboo', 'Bambous'), (r'banana', 'Bananier'), (r'hawthorn', 'Aubépine en fleurs'), (r'copper and burgundy', 'Arbuste pourpre'),
+    (r'frost-dusted', 'Arbuste givré'), (r'raspberry', 'Framboisiers'), (r'hazel', 'Noisetiers'), (r'bramble', 'Ronces'),
+    (r'shrub', 'Buissons'), (r'fern', 'Fougères'), (r'wildflower', 'Fleurs sauvages'), (r'reeds|cattail', 'Roseaux'), (r'sedge', 'Touffe de carex'),
+    (r'lily', 'Nénuphars'), (r'cacti', 'Cactus'), (r'agave', 'Agave'), (r'bromeliad', 'Broméliacées'), (r'savanna grass', 'Herbes de savane'),
+    (r'lichen', 'Lichens et arbrisseaux'), (r'juniper', 'Genévrier'), (r'stump', 'Souche'), (r'log crossing', 'Tronc-passerelle'),
+    (r'log|trunk|fallen .*oak', 'Tronc couché'), (r'branches', 'Tas de branches'), (r'root ball|uprooted', 'Arbre déraciné'),
+    (r'mangrove', 'Racines de palétuvier'), (r'root', 'Racines'), (r'driftwood', 'Bois flotté'), (r'leaf heap', 'Tas de feuilles'),
+    (r'bird nest', 'Nid abandonné'), (r'burrow|den\b', 'Terrier'), (r'beaver', 'Barrage de castors'), (r'well\b', 'Puits'),
+    (r'altar', 'Autel'), (r'firewood', 'Bois de chauffage bâché'), (r'ruined stone wall|mur', 'Muret en ruine'), (r'footbridge|passerelle', 'Passerelle'),
+    (r'handcart|cart\b|charrette', 'Charrette'), (r'campfire', 'Feu de camp éteint'), (r'cairn', 'Cairn'), (r'signpost', 'Poteau indicateur'),
+    (r'lean-to', 'Abri de branchages'), (r'skeleton', 'Squelette'), (r'thatch roof', 'Toit de chaume'), (r'tumbleweed', 'Virevoltant'),
+    (r'termite', 'Termitière'), (r'kelp|seaweed', 'Varech'), (r'coral', 'Corail'), (r'shells|barnacle', 'Coquillages et bois flotté'),
+    (r'coastal rocks', 'Rochers côtiers'), (r'ice blocks', 'Blocs de glace'), (r'snowdrift', 'Congère'), (r'lava', 'Lave refroidie'),
+    (r'basalt', 'Orgues basaltiques'), (r'sinkhole cave', 'Entrée de caverne'), (r'ledge', 'Corniche rocheuse'), (r'outcrop', 'Affleurement rocheux'),
+    (r'boulder|rock cluster', 'Rochers'), (r'scree', 'Éboulis d’ardoise'), (r'mushroom', 'Champignons'), (r'bracket fungi', 'Tronc à polypores'),
+]
+ROLES_FR = [
+    (r'high priest', ('Grand prêtre', 'Grande prêtresse')), (r'priest|officiant|oracle', ('Prêtre', 'Prêtresse')), (r'prophet', ('Prophète', 'Prophétesse')),
+    (r'locksmith', ('Serrurier', 'Serrurière')), (r'archivist|archive', ('Archiviste', 'Archiviste')), (r'registrar|registry|clerk', ('Greffier', 'Greffière')),
+    (r'notary', ('Notaire', 'Notaire')), (r'administrator|superintendent', ('Intendant', 'Intendante')), (r'magistrate', ('Magistrat', 'Magistrate')),
+    (r'lecturer|teacher|instructor', ('Professeur', 'Professeure')), (r'bookseller', ('Libraire', 'Libraire')), (r'bookbinder', ('Relieur', 'Relieuse')),
+    (r'cartographer|surveyor', ('Cartographe', 'Cartographe')), (r'storykeeper|keeper of', ('Gardien des mémoires', 'Gardienne des mémoires')),
+    (r'archmage|mage', ('Mage', 'Mage')), (r'alchem', ('Apprenti alchimiste', 'Apprentie alchimiste')), (r'apothecary', ('Apothicaire', 'Apothicaire')),
+    (r'herbalist|herbal', ('Herboriste', 'Herboriste')), (r'physician', ('Médecin', 'Médecin')), (r'healer|caregiver', ('Guérisseur', 'Guérisseuse')),
+    (r'infirmary', ('Infirmier', 'Infirmière')), (r'midwife', ('Sage-femme', 'Sage-femme')), (r'tracker|rescue', ('Pisteur', 'Pisteuse')),
+    (r'scout', ('Éclaireur', 'Éclaireuse')), (r'hunter', ('Chasseur', 'Chasseuse')), (r'river captain', ('Capitaine fluvial', 'Capitaine fluviale')),
+    (r'ferry|boat hook', ('Passeur', 'Passeuse')), (r'boat carpenter', ('Charpentier de barques', 'Charpentière de barques')),
+    (r'fisher', ('Pêcheur', 'Pêcheuse')), (r'river keeper', ('Gardien du fleuve', 'Gardienne du fleuve')), (r'mushroom farmer|gardener', ('Cultivateur de champignons', 'Cultivatrice de champignons')),
+    (r'breeder', ('Éleveur', 'Éleveuse')), (r'drover', ('Bouvier', 'Bouvière')), (r'cook|kitchen', ('Cuisinier', 'Cuisinière')),
+    (r'courier|relay', ('Messager', 'Messagère')), (r'envoy|diplomat', ('Diplomate', 'Diplomate')), (r'pawnbroker', ('Prêteur sur gages', 'Prêteuse sur gages')),
+    (r'curio|curiosity', ('Marchand de curiosités', 'Marchande de curiosités')), (r'crystal merchant', ('Marchand de cristaux', 'Marchande de cristaux')),
+    (r'mushroom merchant', ('Marchand de champignons', 'Marchande de champignons')), (r'cloth merchant', ('Drapier', 'Drapière')),
+    (r'provisions', ('Vendeur de vivres', 'Vendeuse de vivres')), (r'spoon peddler', ('Colporteur', 'Colporteuse')), (r'outfitter', ('Équipementier', 'Équipementière')),
+    (r'merchant|dealer|seller|trader', ('Marchand', 'Marchande')), (r'innkeeper|bar\b', ('Aubergiste', 'Aubergiste')), (r'hostess', ('Hôte', 'Hôtesse')),
+    (r'tavern', ('Tavernier', 'Tavernière')), (r'blacksmith', ('Forgeron', 'Forgeronne')), (r'commander|garrison', ('Commandant', 'Commandante')),
+    (r'sergeant', ('Sergent', 'Sergente')), (r'corporal|patrol', ('Patrouilleur', 'Patrouilleuse')), (r'watchkeeper|night watch', ('Veilleur de nuit', 'Veilleuse de nuit')),
+    (r'gate guard|access guard|outpost guard|guard', ('Garde', 'Garde')), (r'toll', ('Péager', 'Péagère')), (r'warrior', ('Guerrier', 'Guerrière')),
+    (r'quartermaster', ('Intendant', 'Intendante')), (r'repairer', ('Réparateur', 'Réparatrice')), (r'potter', ('Potier', 'Potière')),
+    (r'weaver', ('Tisserand', 'Tisserande')), (r'rope maker', ('Cordier', 'Cordière')), (r'dancer', ('Danseur', 'Danseuse')),
+    (r'fiddler', ('Violoneux', 'Violoneuse')), (r'aristocrat|noble|velvet', ('Noble', 'Noble')), (r'expeditioner|traveler|wayfarer', ('Voyageur', 'Voyageuse')),
+    (r'goblin', ('Gobelin', 'Gobeline')), (r'elder', ('Ancien', 'Ancienne')), (r'monobrow|portrait|token|character', ('Habitant', 'Habitante')),
+]
+PEUPLE_FR = {'moriquendi': ('moriquendi', 'moriquendi'), 'drow': ('drow', 'drow'), 'duergar': ('duergar', 'duergar'),
+             'svirfnebelin': ('svirfnebelin', 'svirfnebeline'), 'gobelin': ('', ''), 'humain': ('humain', 'humaine'),
+             'nain': ('nain', 'naine'), 'halfelin': ('halfelin', 'halfeline'), 'elfe': ('elfe', 'elfe'), 'gnome': ('gnome', 'gnome')}
+
+
+def first(rules, t):
+    return next((v for pat, v in rules if re.search(pat, t)), None)
+
+
+def infer(folder, region, title):
+    """Étiquettes d'une image que les règles précises ne connaissent pas, d'après les mots de son titre."""
+    t = norm(title)
+    nom = re.sub(r'[\s_-]*(\(\d+\)|-\d+)?\.(png|jpe?g|webp)$', '', title).strip()
+    if folder == 'textures':
+        m = first(TEXTURES_GEN, t)
+        if m:
+            m = dict(m)
+            m['nom'] = m['nom'] or nom
+            m.setdefault('region', [region])
+            return m
+    elif folder == 'creatures':
+        m = first([(p, (n, s)) for p, n, s in CREATURES], t)
+        if m:
+            return dict(nom=m[0], cat='creature', taille=[m[1], m[1]], milieux=['caverne'] if region == O else [], region=[region])
+    elif folder == 'people':
+        # Outreterre : sans peuple nommé, un habitant des cités moriquendi (le MJ retouche au besoin) ; un « nordique » est humain.
+        peuple = first(PEOPLE_GEN, t) or ('humain' if region == 'surface' or re.search(r'nordic|ash-blond', t) else 'moriquendi')
+        roles = sorted({r for pat, rs in ROLES_GEN if re.search(pat, t) for r in rs}) or ['villageois']
+        genre = 'f' if re.search(FEMININ, t) else None
+        lab = first(ROLES_FR, t) or ('Habitant', 'Habitante')
+        adj = PEUPLE_FR.get(peuple, ('', ''))[1 if genre == 'f' else 0]
+        nom_fr = f"{lab[1 if genre == 'f' else 0]} {adj}".strip()
+        return dict(nom=nom_fr, peuple=peuple, genre=genre, roles=roles, region=[region])
+    else:
+        m = first([(p, (c, s, mi)) for p, c, s, mi in ELEMENTS_GEN], t)
+        if m:
+            c, s, mi = m
+            return dict(nom='Socle de figurine' if c == 'socle' else first(NOMS, t) or nom, cat=c, taille=list(s), milieux=[x for x in mi if region != O or x == 'caverne'] or mi, region=[region])
+    out = guess(folder, title)
+    out['region'] = [region]
+    return out
+
+
 def ascii_slug(s):
     s = unicodedata.normalize('NFKD', s).encode('ascii', 'ignore').decode().lower()
     s = re.sub(r'\.(png|jpe?g|webp)$', '', s)
@@ -349,16 +561,43 @@ def main():
         drive_path = args[args.index('--drive') + 1]
     drive = json.load(open(drive_path, encoding='utf-8'))
     entries, slugs, by_title = [], set(), {}
+    # Catalogue actuel : une image déjà convertie dont l'original n'est pas dans le dossier de travail est gardée telle
+    # quelle (synchronisation partielle : on ne télécharge que les nouvelles).
+    old = {}
+    if os.path.exists(CATALOGUE):
+        old = {e['drive']: e for e in json.load(open(CATALOGUE, encoding='utf-8'))['images'] if e.get('drive')}
+    exclues = []
     for x in sorted(drive, key=lambda x: (x['folder'], x['title'])):
+        if any(re.search(p, norm(x['title'])) for p in EXCLURE):
+            exclues.append(x['title'])
+            continue
+        region = x.get('region', 'surface')
         src = os.path.join(raw, x['id'] + '.png')
         if not os.path.exists(src):
-            print('absent :', x['title'])
+            e = old.get(x['id'])
+            sub = e and {'texture': 'textures', 'element': 'elements', 'personnage': 'personnages', 'creature': 'creatures'}[e['type']]
+            if e and all(os.path.exists(os.path.join(OUT, sub, f"{e['id']}-{m}.webp")) for m in e['mips']):
+                e = dict(e)
+                if region not in e.get('region', ['surface']):
+                    e['region'] = [*e.get('region', ['surface']), region]
+                entries.append(e)
+                slugs.add(e['id'])
+                by_title[norm(x['title'])] = e['id']
+            else:
+                print('absent :', x['title'])
             continue
         im = Image.open(src)
         im.load()
         has_alpha = im.mode in ('RGBA', 'LA') and im.getchannel('A').getextrema()[0] < 250
         folder = x['folder']
-        if folder == 'textures':
+        t0 = norm(x['title'])
+        if t0.startswith('seamless'):
+            folder = 'textures'  # texture déposée avec le décor
+        if folder == 'creatures' and re.search(r'svirfneblin|deep gnome', t0):
+            folder = 'people'  # un éclaireur svirfnebelin est un personnage, pas une créature
+        if folder == 'creatures':
+            kind, vue, meta = 'creature', 'jeton' if has_alpha else 'portrait', None
+        elif folder == 'textures':
             kind, vue, meta = 'texture', 'tuile', match(TEXTURES, x['title'])
         elif folder == 'people':
             kind = 'personnage'
@@ -373,7 +612,11 @@ def main():
                     meta.pop('pose', None)
         else:
             kind, vue, meta = 'element', 'zenith', match(ELEMENTS, x['title'])
-        meta = meta or guess(folder, x['title'])
+        meta = meta or infer(folder, region, x['title'])
+        if region == 'outreterre' and 'region' not in meta:
+            meta['region'] = ['outreterre']
+        if meta.get('genre') is None:
+            meta.pop('genre', None)
         # Recadrage sur la partie visible (éléments et jetons) : la taille réelle vaut pour ce qui est dessiné.
         if has_alpha:
             bbox = im.getchannel('A').point(lambda a: 255 if a > 24 else 0).getbbox()
@@ -389,7 +632,7 @@ def main():
         while slug in slugs:
             slug, n = f'{base_slug}-{n}', n + 1
         slugs.add(slug)
-        folder_out = {'texture': 'textures', 'element': 'elements', 'personnage': 'personnages'}[kind]
+        folder_out = {'texture': 'textures', 'element': 'elements', 'personnage': 'personnages', 'creature': 'creatures'}[kind]
         os.makedirs(os.path.join(OUT, folder_out), exist_ok=True)
         w0, h0 = im.size
         mips = []
@@ -417,6 +660,8 @@ def main():
         e.setdefault('region', ['surface'])
         if kind == 'personnage':
             e.setdefault('taille', [0.9, 0.9])
+        if e.get('usage') == ['tactique']:
+            e['vue'] = 'tuile'
         entries.append(e)
         by_title[norm(x['title'])] = slug
     # Paires portrait ↔ jeton : on remplace l'indice textuel par l'identifiant de l'autre image.
@@ -431,14 +676,17 @@ def main():
     with open(CATALOGUE, 'w', encoding='utf-8') as f:
         json.dump({'version': 1, 'images': entries}, f, ensure_ascii=False, indent=0)
     # Fichiers qui ne correspondent plus à aucune version du catalogue (image retirée ou renommée) : retirés.
-    keep = {os.path.join(OUT, {'texture': 'textures', 'element': 'elements', 'personnage': 'personnages'}[e['type']], f"{e['id']}-{m}.webp") for e in entries for m in e['mips']}
-    for d in ('textures', 'elements', 'personnages'):
+    keep = {os.path.join(OUT, {'texture': 'textures', 'element': 'elements', 'personnage': 'personnages', 'creature': 'creatures'}[e['type']], f"{e['id']}-{m}.webp") for e in entries for m in e['mips']}
+    for d in ('textures', 'elements', 'personnages', 'creatures'):
         for f in os.listdir(os.path.join(OUT, d)) if os.path.isdir(os.path.join(OUT, d)) else []:
             if os.path.join(OUT, d, f) not in keep:
                 os.remove(os.path.join(OUT, d, f))
     devine = [e['titre'] for e in entries if e.get('devine')]
     print(len(entries), 'images ;', sum(1 for e in entries if e['type'] == 'texture'), 'textures,',
-          sum(1 for e in entries if e['type'] == 'element'), 'éléments,', sum(1 for e in entries if e['type'] == 'personnage'), 'personnages')
+          sum(1 for e in entries if e['type'] == 'element'), 'éléments,', sum(1 for e in entries if e['type'] == 'personnage'), 'personnages,',
+          sum(1 for e in entries if e['type'] == 'creature'), 'créatures ;', sum(1 for e in entries if 'outreterre' in e['region']), 'en Outreterre')
+    if exclues:
+        print('Ignorées (sans rapport avec la banque) :', *exclues, sep='\n  ')
     if devine:
         print('Étiquettes devinées (à vérifier) :', *devine, sep='\n  ')
 

@@ -144,6 +144,7 @@ function PlayerMap({ board, rev, onFollow, onPick, onFork, onGoto }: { board: Ex
         marks={board.marks} fog={board.fog} journey={board.travel}
         onPlace={world ? (x, y) => { setPicked(null); setSpot([x, y]); } : undefined}
         syncView={board.linked ? sync : null}
+        cavernArt={board.cavernArt}
         onView={board.linked ? (box, remote) => { if (!remote && Date.now() - touchedAt.current < 2500) sendToHost?.({ type: 'view', planId: board.planId, box, from: 'joueurs' }); } : undefined}
       />
       {world && spot && !picked && (

@@ -1,5 +1,6 @@
 /** Types de la Banque Loresmith (voir banque.js). */
-export type BankType = 'texture' | 'element' | 'personnage';
+/** `creature` : monstres et bêtes (jeton ou portrait), nommés comme dans le bestiaire. */
+export type BankType = 'texture' | 'element' | 'personnage' | 'creature';
 export interface BankImage {
   id: string; drive?: string; titre?: string; nom: string; type: BankType;
   vue: 'zenith' | 'tuile' | 'portrait' | 'jeton';
