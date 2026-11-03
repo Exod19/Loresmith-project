@@ -20,8 +20,8 @@ import {
 import { blocksCell, effectiveGrid, generateTerrain, seedOf, TERRAIN, type LocationHint, type TerrainKind } from './terrain';
 import { buildLocalMap, cellIn, trimPassages } from './local';
 import { attackCells, rangedCells, speedCells } from './ranges';
-import { battleRegion, tokenImage } from './vignettes';
-import TilePanel, { tileFix } from './TilePanel';
+import { battleRegion, placeRegion, tokenImage } from './vignettes';
+import TilePanel, { tileFix, WorldPicker } from './TilePanel';
 import { bankById, bankSrc, type BankImage } from '../../banque';
 import BuildPanel from './BuildPanel';
 import CombatPanel, { type Hero } from './CombatPanel';
@@ -1112,6 +1112,7 @@ export default function BattleMode({
   };
   const buildPanel = (
     <>
+    <WorldPicker value={b.region} auto={placeRegion(b)} onChange={(region) => set({ region })} />
     <TilePanel current={b.tile?.id} note={tileNote}
       onPick={(img) => applyTile(img, 0)}
       onTurn={async () => { const img = bankById(b.tile?.id); if (img) await applyTile(img, ((b.tile?.rot ?? 0) + 1) % 4); }}

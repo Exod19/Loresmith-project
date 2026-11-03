@@ -32,8 +32,10 @@ export const CATEGORY_IMG: Record<string, string> = {
  * Monde d'un plateau, pour la banque : surface (plan d'une cité, du monde ou d'un lieu sauvage) ou Outreterre (plan de
  * l'Atlas). Plateau vierge : inconnu, et la banque ne choisit rien.
  */
-export const battleRegion = (b?: { local?: { surface?: unknown; nature?: boolean } } | null): 'surface' | 'outreterre' | undefined =>
-  !b?.local ? undefined : b.local.surface || b.local.nature ? 'surface' : 'outreterre';
+export const battleRegion = (b?: { region?: 'surface' | 'outreterre'; local?: { surface?: unknown; nature?: boolean } } | null): 'surface' | 'outreterre' | undefined =>
+  b?.region ?? (!b?.local ? undefined : b.local.surface || b.local.nature ? 'surface' : 'outreterre');
+/** Monde déduit du lieu, sans le choix du MJ (pour afficher « Automatique : … »). */
+export const placeRegion = (b?: { local?: { surface?: unknown; nature?: boolean } } | null) => battleRegion(b ? { local: b.local } : b);
 
 export function tokenImage(t: { kind: 'pc' | 'monster' | 'other'; statId?: string; image?: string; name?: string }, region?: string): string {
   if (t.image) return t.image;

@@ -23,7 +23,9 @@ import React, {
 import { Download, Upload, Settings, ExternalLink, Undo2, Keyboard, MonitorPlay, Trash2, Move, Square, Ruler, Grid3x3, EyeOff, Eye, Eraser, Swords, SkipForward, Dices, Pencil, RefreshCw, Users, Plus, ChevronLeft, RotateCcw } from 'lucide-react';
 import MapsPage from './maps/MapsPage';
 import TableMap, { tableMapId } from './maps/TableMap';
-import { bankRewriteState, faceOf, useBankRetired } from './banque';
+import { bankRewriteState, faceOf, setBankGenres, useBankRetired } from './banque';
+import { genresOf } from './banque/genres';
+import GenrePicker from './banque/GenrePicker';
 import { setMapIntent } from './maps/intent';
 import { placeTokens as placeOnBoard, effectiveOf } from './maps/battle/placement';
 import { tacticalNotes, profileFromStat, coverAgainst } from './maps/battle/tactics';
@@ -5114,6 +5116,9 @@ function Spin() {
       ========================================================================= */
 export default function App() {
   const [state, dispatch] = useReducer(reducer, null, () => null);
+  // Genres de l'univers ouvert : la banque ne propose d'office que les images de ces genres (et les communes).
+  const activeGenres = genresOf(state?.universes?.[state?.activeUniverseId]).join(',');
+  useEffect(() => { setBankGenres(activeGenres.split(',')); }, [activeGenres]);
   const [hydrated, setHydrated] = useState(false);
   // Garde de parole : les créatures de faune ne parlent pas (feeds/fauna.ts).
   const { feed: faunaFeed } = useUnderdarkFeed();
@@ -5834,6 +5839,9 @@ function Dashboard({
               })
             }
           />
+        </Field>
+        <Field label="Genres de l’univers">
+          <GenrePicker universe={universe} onChange={(genres) => dispatch({ type: 'UPDATE_UNIVERSE', id: universe.id, patch: { genres } })} />
         </Field>
         <Field label="Lore & canon — l’IA le relit à chaque génération">
           <textarea

@@ -15,13 +15,15 @@ l'**Outreterre** (Underdark). L'application n'y accède pas : elle lit `public/b
 | Personnages (Underdark) | `1oKX1izeFlQV3Ozzd6wNunsJgnx0SuzG3` | `people` / `outreterre` |
 | Créatures et monstres (Underdark) | `1qqwjlh8dzQpbhnF15-DWUBpLltDt6swM` | `creatures` / `outreterre` |
 
-Les sous-dossiers ne sont pas lus. Les fichiers des dossiers sont publics en lecture : Claude les télécharge par
+Ces huit dossiers sont le genre **Fantasy** (`genre: fantasy` dans `drive.json`). Genres, mondes et doublons : voir
+`docs/banque/STRUCTURE.md`. Les sous-dossiers ne sont pas lus. Les fichiers des dossiers sont publics en lecture : Claude les télécharge par
 `https://drive.usercontent.google.com/download?id=<id>&export=download`.
 
 ## Ce que fait Claude quand tu demandes « synchronise la banque »
 
 1. Il liste les huit dossiers du Drive et met à jour `scripts/banque/drive.json` (identifiant, titre, dossier, région).
-2. Il télécharge seulement les images nouvelles ou modifiées, dans un dossier de travail (hors du dépôt). Une image déjà
+2. Il télécharge seulement les images nouvelles ou modifiées, dans un dossier de travail (hors du dépôt), et note
+   l'empreinte (MD5) de chacune dans `drive.json` : un même fichier dans deux dossiers devient une seule image. Une image déjà
    convertie dont l'original n'est pas dans ce dossier est gardée telle quelle.
 3. Il lance :
 

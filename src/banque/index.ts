@@ -4,6 +4,7 @@
  */
 import { useSyncExternalStore } from 'react';
 import catalogue from './catalogue.json';
+import { fitsGenres, GENRE_DEFAUT } from './genres';
 import { bankUrl, hash, mipFor, norm, npcTraits, peoplesOf, pickPerson, replacementFor, tokenScale, withOverrides, type BankImage, type Peoples } from './banque';
 import { mapStrings } from '../store/imageRefs';
 
@@ -27,6 +28,10 @@ let admin = false;
 let pending: Record<string, Partial<BankImage> | null> = readJson(PENDING_KEY, {});
 let overrides: Overrides = {};
 let images: BankImage[] = RAW;
+/** Toutes les images communes, tous genres confondus (page Banque, « tous les genres »). */
+let allImages: BankImage[] = RAW;
+/** Genres de l'univers ouvert : seules les images de ces genres (ou communes) sont proposées d'office. */
+let genres: string[] = [GENRE_DEFAUT];
 const listeners = new Set<() => void>();
 
 /** Images communes supprimées par l'administrateur : absentes partout, remplacées là où elles étaient posées. */
@@ -41,15 +46,30 @@ function recompute() {
   }
   const all = withOverrides(RAW, overrides);
   deleted = all.filter((i) => i.supprime);
-  images = [...all.filter((i) => !i.supprime), ...own];
+  allImages = [...all.filter((i) => !i.supprime), ...own];
+  // Un univers futuriste ne voit pas de centaure : les images d'un autre genre restent au catalogue, hors des choix.
+  images = [...all.filter((i) => !i.supprime && fitsGenres(i, genres)), ...own];
   retiredKey = `${deleted.map((i) => i.id).join(',')}|${[...ownRetired.keys()].length}`;
   listeners.forEach((f) => f());
 }
 let retiredKey = '';
 recompute();
 
-/** Catalogue courant (retouches comprises). */
+/** Catalogue courant (retouches comprises), limité aux genres de l'univers ouvert. */
 export const bankImages = () => images;
+export const bankAllImages = () => allImages;
+/** Toutes les images, tous genres (page Banque). */
+export function useBankAll(): BankImage[] {
+  return useSyncExternalStore(subscribe, bankAllImages, bankAllImages);
+}
+/** Genres de l'univers ouvert (appelé par l'application quand l'univers change). */
+export function setBankGenres(list: string[]) {
+  const next = list.length ? list : [GENRE_DEFAUT];
+  if (next.join(',') === genres.join(',')) return;
+  genres = next;
+  recompute();
+}
+export const bankGenres = () => genres;
 export const overridesOf = () => overrides;
 /** Retouches pas encore partagées (compte non connecté, serveur injoignable). */
 export const pendingCount = () => Object.keys(pending).length;

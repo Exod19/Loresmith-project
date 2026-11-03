@@ -33,6 +33,22 @@ export async function tileFix(img: BankImage, cols: number, rows: number, rot = 
   return Object.fromEntries(cells.map((t, i) => [String(i), { t }]));
 }
 
+/** Monde du plateau : déduit du lieu, ou choisi par le MJ ; la banque ne propose que des images de ce monde. */
+export function WorldPicker({ value, auto, onChange }: { value?: 'surface' | 'outreterre'; auto?: 'surface' | 'outreterre'; onChange: (v: 'surface' | 'outreterre' | undefined) => void }) {
+  const label = (r?: string) => (r === 'surface' ? 'Surface' : r === 'outreterre' ? 'Outreterre' : 'inconnu');
+  return (
+    <section className="maps-card build-panel">
+      <h3>Monde du plateau</h3>
+      <p className="build-hint">Les créatures et personnages de la banque ne viennent que de ce monde. {auto ? '' : 'Plateau vierge : sans choix, la banque ne propose rien.'}</p>
+      <select className="maps-btn" value={value ?? ''} onChange={(e) => onChange((e.target.value || undefined) as 'surface' | 'outreterre' | undefined)} aria-label="Monde du plateau">
+        <option value="">Automatique ({label(auto)})</option>
+        <option value="surface">Surface</option>
+        <option value="outreterre">Outreterre (Underdark)</option>
+      </select>
+    </section>
+  );
+}
+
 export const isTactical = (i: BankImage) => i.type === 'texture' && !!i.usage?.includes('tactique') && !i.exclu;
 
 export default function TilePanel({ current, note, onPick, onClear, onTurn }: { current?: string; note?: string; onPick: (img: BankImage) => Promise<void>; onClear: () => void; onTurn: () => Promise<void> }) {

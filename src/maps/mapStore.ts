@@ -240,6 +240,8 @@ export interface Battle {
   cellFix?: Record<string, CellFix>;
   /** Fond tactique : tuile de la banque qui couvre le plateau, et corrections de cases d'avant (rendues en la retirant). */
   tile?: { id: string; src: string; rot?: number; prevFix?: Record<string, CellFix> };
+  /** Monde du plateau choisi par le MJ (sinon déduit du lieu) : la banque n'y propose que des images de ce monde. */
+  region?: 'surface' | 'outreterre';
   /** Dégâts du plateau (lave, ronces, chute) à appliquer par le module Combat, qui tient les PV. */
   damage?: { id: string; to: string; amount: number; why: string }[];
   /** Zones d'effet de sorts posées sur le plateau (cf. battle/aoe.ts). */
