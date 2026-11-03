@@ -733,3 +733,13 @@
 .am-surface .am-road.tr-etroit .edge { stroke-width: 2.8px; opacity: .6; }
 .am-surface .am-road.tr-etroit .top { stroke: #b29d72; stroke-width: 1.7px; stroke-dasharray: 2.5 3.5; }
 .am-surface .am-road.tr-boyau:hover .top, .am-surface .am-road.tr-etroit:hover .top { stroke: #e0c890; }
+
+/* Atlas en strates : cavernes habillées par la Banque Loresmith (src/banque/CaveArt.tsx). */
+.am-floor-tex { opacity: .62; }
+.am-wall-tex { opacity: .3; }
+.am-caves.is-art .am-light { opacity: .28; }
+/* Le sol des galeries vient de la texture ; le tracé cliquable ne s'éclaire qu'au survol. */
+.am-caves.is-art .am-floors .floor { stroke-opacity: 0; }
+.am-caves.is-art .am-floors .floor:hover { stroke: #3b4a47; stroke-opacity: .55; }
+/* Décor des cavernes : assombri et désaturé, pour se fondre dans la roche au lieu de sauter aux yeux. */
+.am-cave-decor { filter: brightness(.78) saturate(.65); }

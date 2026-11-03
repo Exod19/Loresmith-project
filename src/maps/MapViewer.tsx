@@ -1211,6 +1211,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 if (pv.linked && projecting && !remote) publishView(map.id, box);
               }}
               syncView={pv.linked && dm ? remoteView : null}
+              cavernArt={strates}
               ghosts={dm && neighbours && ghostOn ? { above: neighbours.above, below: neighbours.below, opacity: ghostOpacity } : undefined}
               onZoomLimit={onZoomLimit}
               exploring={exploring}

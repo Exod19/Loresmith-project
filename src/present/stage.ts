@@ -53,6 +53,8 @@ export type PlayerBoard =
     alert?: HaltAlert;
     /** Vue liée : le zoom et le cadrage suivent d'un écran à l'autre (messages `view`). */
     linked?: boolean;
+    /** Atlas en strates : cavernes habillées (textures et décor de la banque). */
+    cavernArt?: boolean;
     /** Bifurcation en chemin : un passage à côté du sentier, à prendre ou non (les joueurs répondent depuis leur écran). */
     fork?: { key: string; line: string; out: string; on: string };
     /** Conversation en cours (personnage du MJ ou groupe, et un PNJ ou une créature). */
