@@ -7,6 +7,7 @@
 import { useReliefDetail, useReliefImage } from '../world/reliefImage';
 import NaturalTerrain, { naturalTerrainOn } from './NaturalTerrain';
 import WaterLayer, { setWaterMotion, useWaterMotion, WATER_COVERS, waterLayerOn } from './WaterLayer';
+import { poseOf, tokenScaleOf, turnsFreely } from '../../banque';
 import BankLayer, { BANK_COVERS, bankActive, GroundPatterns, useGroundTextures } from '../../banque/BankLayer';
 import { CaveDecor, CavePatterns, fineOpacity, useCaveTextures } from '../../banque/CaveArt';
 import type { Relief } from '../world/terrain';
@@ -128,7 +129,15 @@ export function journeyMs(points: [number, number][], W: number, H: number) {
   return Math.min(24000, Math.max(8000, (total / W) * 48000));
 }
 
-export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, onMovePin, dataKey, dm, marks = [], fog, journey, onZoomLimit, exploring, ghosts, onView, preview, syncView, cavernArt }: {
+/**
+ * Longueur réelle de l'image d'un humain adulte debout (mètres), la même que sur la carte de combat (0,94 case de
+ * 1,5 m) ; les autres personnages suivent leur échelle (tokenScaleOf). Taille minimale à l'écran pour le montrer.
+ */
+const TOKEN_M = 1.41, TOKEN_MIN_PX = 14;
+/** Orientation stable d'un jeton (degrés), tirée de son identifiant : les PNJ ne regardent pas tous au nord. */
+const angleOf = (id: string) => { let h = 2166136261; for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619); return (h >>> 0) % 360; };
+
+export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, onMovePin, dataKey, dm, marks = [], fog, journey, onZoomLimit, exploring, ghosts, onView, preview, syncView, tokenOf, cavernArt }: {
   map: AtlasMap; layers: Layers; hidden: Set<FeatureCategory>;
   /** Mode MJ : révèle les passages secrets. Hors MJ, la carte est une carte de lore. */
   dm: boolean;
@@ -163,6 +172,11 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   syncView?: { box: [number, number, number, number]; key: number } | null;
   /** Trajet proposé, avant le départ (hors route, carte du monde) : tracé en pointillés. */
   preview?: [number, number][] | null;
+  /**
+   * Jeton vu de dessus d'un lieu (PNJ posé sur un plan de surface ou d'intérieur) : dessiné à sa taille réelle, orienté,
+   * sans socle, à la place du marqueur dès qu'il est assez grand à l'écran.
+   */
+  tokenOf?: (f: AtlasFeature) => string | undefined;
 }) {
   // Le groupe en chemin : position courante le long du tracé, image par image.
   const [walker, setWalker] = useState<[number, number] | null>(null);
@@ -601,6 +615,15 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
     const tex = groundTex[x.kind];
     return <path key={i} d={x.d} className={`dc-${x.kind}${x.w ? ' dc-w' : ''}`} style={x.w || tex ? { ...(x.w ? { strokeWidth: x.w } : {}), ...(tex ? { fill: `url(#${tex.id})` } : {}) } : undefined} />;
   };
+  /** Lit (mobilier de la banque) sous un point du plan : son axe long ('v' ou 'h') et son angle en degrés. */
+  const bedAt = (px: number, py: number) => {
+    for (const [k, bx, by, bw, bh, ba] of surf?.ground.p ?? []) {
+      if (k !== 'lit') continue;
+      const c = Math.cos(-ba), sn = Math.sin(-ba), dx = px - bx, dy = py - by;
+      if (Math.abs(dx * c - dy * sn) <= bw / 2 + 0.5 && Math.abs(dx * sn + dy * c) <= bh / 2 + 0.5) return { long: bh >= bw ? 'v' as const : 'h' as const, deg: (ba * 180) / Math.PI };
+    }
+    return null;
+  };
   const fade = (from: number) => Math.min(1, Math.max(0, (rz - from) / 0.6));
 
   return (
@@ -700,17 +723,36 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
             const f = features.get(g.featureId)!; const [x0, y0] = g.coordinates as [number, number]; const cat = CATEGORIES[f.category];
             const dragged = pinDrag && pinDrag.id === f.id; const x = dragged ? pinDrag.x : x0; const y = dragged ? pinDrag.y : y0;
             const isFocus = focus?.kind === 'point' && focus.id === f.id; const R = PIN_R[f.importance];
+            // Jeton du PNJ : son diamètre réel (TOKEN_M) en pixels d'écran ; trop petit, le marqueur reste.
+            const tok = surf && (f.token ?? tokenOf?.(f));
+            const tokPx = tok ? ((TOKEN_M * tokenScaleOf(tok)) / surf.scale) * pxPerUnit : 0;
+            const asToken = !!tok && tokPx >= TOKEN_MIN_PX;
             return (
-              <g key={g.id} className={`am-pin imp-${f.importance} ${selectedId === f.id ? 'is-sel' : ''} ${isFocus ? 'is-focus' : ''} ${f.draft ? 'is-draft' : ''} ${f.wild ? 'is-wild' : ''}`} style={{ '--c': cat.color } as React.CSSProperties}
+              <g key={g.id} className={`am-pin imp-${f.importance}${asToken ? ' is-token' : ''} ${selectedId === f.id ? 'is-sel' : ''} ${isFocus ? 'is-focus' : ''} ${f.draft ? 'is-draft' : ''} ${f.wild ? 'is-wild' : ''}`} style={{ '--c': cat.color } as React.CSSProperties}
                 transform={`translate(${x * W} ${y * H}) scale(${s})`} tabIndex={0} role="button" aria-label={`${f.title} — ${f.category === 'cite' && f.people ? peopleOf(f.people)!.label : cat.label}`}
                 onPointerDown={pinDown(f.id)} onPointerMove={pinMove} onPointerUp={pinUp} onPointerCancel={pinUp}
                 onClick={tap(() => onSelect(f))} onKeyDown={(e) => e.key === 'Enter' && onSelect(f)}>
                 {f.importance === 'detail' && <circle r="12" className="hit" />}
-                {f.category === 'cite' && f.people ? <CityEmblem people={f.people} R={R * 1.25} id={f.id} variant={f.emblem} /> : <>
+                {asToken ? <>
+                  <circle r={Math.max(12, tokPx / 2)} className="hit" />
+                  <circle r={tokPx / 2 + 2} className="tok-ring" />
+                  {(() => {
+                    // Qui dort est couché dans son lit, dans l'axe du lit ; un jeton debout y est allongé sous une couverture.
+                    const bed = f.pose === 'couche' ? bedAt(x0 * W, y0 * H) : null;
+                    const lying = poseOf(tok as string) === 'couche';
+                    const rot = bed ? (bed.long === 'v' ? (lying ? 90 : 0) : (lying ? 0 : 90)) + bed.deg : turnsFreely(tok as string) ? angleOf(f.id) : 0;
+                    return (
+                      <g transform={rot ? `rotate(${rot})` : undefined}>
+                        <image href={tok as string} x={-tokPx / 2} y={-tokPx / 2} width={tokPx} height={tokPx} preserveAspectRatio="xMidYMid meet" />
+                        {bed && !lying && <rect className="tok-blanket" x={-tokPx * 0.3} y={-tokPx * 0.08} width={tokPx * 0.6} height={tokPx * 0.56} rx={tokPx * 0.08} />}
+                      </g>
+                    );
+                  })()}
+                </> : f.category === 'cite' && f.people ? <CityEmblem people={f.people} R={R * 1.25} id={f.id} variant={f.emblem} /> : <>
                   <circle r={R} className="disc" />
                   {f.importance !== 'detail' && <><circle r={R * 0.7} className="glow" /><text y={R * 0.33} textAnchor="middle" className="glyph" style={{ fontSize: R * 0.92 }}>{cat.glyph}</text></>}
                 </>}
-                {labelled.has(g.id) && (() => { const lx = f.category === 'cite' && paintedEmblem(f.people) ? R * 2.2 + 6 : R + 7; return <><text x={lx} y="4" className="lbl">{f.title}</text>{f.subtitle && <text x={lx} y="19" className="sub">{f.subtitle}</text>}</>; })()}
+                {labelled.has(g.id) && (() => { const lx = asToken ? tokPx / 2 + 6 : f.category === 'cite' && paintedEmblem(f.people) ? R * 2.2 + 6 : R + 7; return <><text x={lx} y="4" className="lbl">{f.title}</text>{f.subtitle && <text x={lx} y="19" className="sub">{f.subtitle}</text>}</>; })()}
               </g>
             );
           })}

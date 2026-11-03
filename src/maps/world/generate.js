@@ -42,6 +42,7 @@ export function rng(seed) {
 
 import { generateInterior } from './interior.js';
 import { generateWildPlan, wildPlanId } from './wildPlan.js';
+import { VOIES, roadKind, trailKind, trailTitle } from './voies.js';
 import { EDGE_ANGLE, biomeOf, climateOf, smoothNoise, temperatureAt } from './climate.js';
 import { SNOW_LINE, snowOf } from './seasons.js';
 import { PACE, SCALES, TRAVEL, cityKm, nearestWater, cityRadiusKm, daysLabel, landmarksOf, reliefOf, riversOf, routeOn, slopeAt, terrainAt, toAt, travelGrid, worldFrame } from './terrain.js';
@@ -1538,9 +1539,13 @@ function terrainV2(o) {
     for (let i = 0; i < cities.length; i++) for (let j = i + 1; j < cities.length; j++) {
       if (pairs.some(([a, b]) => (a === i && b === j) || (a === j && b === i))) continue;
       if (dist(i, j) < span * 0.3 && pairs.filter(([a, b]) => a === i || b === i).length < 3) pairs.push([i, j]);
+      // Deux grandes cités assez proches ont toujours leur route directe (la route royale du pays).
+      else if (roadKind(cities[i].population, cities[j].population) === 'royale' && Math.min(cities[i].population, cities[j].population) >= 2500 && dist(i, j) < span * 0.6) pairs.push([i, j]);
     }
   }
   const worldRoads = [];
+  /** Points (km) des routes et des lieux habités : d'où partent les sentiers. */
+  const network = cityKms.map((p) => p.slice());
   const hamletDots = [];
   const hamThr = Math.max(6, SCALES[frame.scale].w * 0.06);
   for (const [i0, j0] of pairs) {
@@ -1551,9 +1556,12 @@ function terrainV2(o) {
     const id = `${wid}:route-${A.c.id}-${B.c.id}`;
     const days = route.effort / PACE.normal;
     routes.push({ a: A.c.id, b: B.c.id, km: route.km, effort: route.effort });
-    features.push({ ...base, id, title: `Route de ${A.c.name} à ${B.c.name}`, subtitle: `${Math.round(route.km)} km · ${daysLabel(days)}`, category: 'voie', importance: 'regional', minZoom: 0, trace: 'tunnel' });
+    // Route royale (pavée, patrouillée) entre grandes cités ; chemin de terre vers les plus modestes.
+    const kind = roadKind(A.c.population, B.c.population), V = VOIES[kind];
+    features.push({ ...base, id, title: kind === 'royale' ? `Route royale de ${A.c.name} à ${B.c.name}` : `Chemin de ${A.c.name} à ${B.c.name}`, subtitle: `${Math.round(route.km)} km · ${daysLabel(days)}`, summary: V.text, voie: kind, category: 'voie', importance: 'regional', minZoom: 0, trace: V.trace });
     geometries.push({ id: `g-${id}`, mapId: wid, featureId: id, type: 'polyline', coordinates: route.pts.map(N) });
-    worldRoads.push({ pts: route.pts.flatMap((p) => U(p).map(r1)), hw: Math.max(0.05, 6 / S) });
+    worldRoads.push({ pts: route.pts.flatMap((p) => U(p).map(r1)), hw: Math.max(0.05, V.hwM / S) });
+    network.push(...route.pts);
     // Hameaux : à mi-chemin d'une longue route ; deux sur une très longue route (relais, auberges de grand chemin).
     const n = route.km >= hamThr * 3 ? 2 : route.km >= hamThr ? 1 : 0;
     const ptsU = route.pts.map(U);
@@ -1580,8 +1588,53 @@ function terrainV2(o) {
       hamletDots.push(r1(hu[0]), r1(hu[1]), r1(hr));
       addPoint({ ...base, id: `${id}:hameau${k ? `-${k + 1}` : ''}`, title: hname, category: 'cite', importance: 'local', minZoom: 0.9, subtitle: `Hameau · ${spec.population} habitants`, opens: { kind: 'site', id: hg.map.scope.id } }, ...N(hk));
       const aid = `${wid}:entree-${hid}`;
+      network.push(hk);
       anchors.push({ id: aid, mapId: wid, at: N(hk), label: hname });
       for (const gt of hg.gates) connections.push({ id: `cx-${hid}-${gt.i}`, kind: 'naturel', fromAnchorId: gt.anchorId, toAnchorId: aid, direction: 'both', title: `${gt.name} · ${hname}`, ...base });
+    }
+  }
+
+  // Sentiers : chaque grand lieu de la nature (lac, forêt, sommets, lieu sauvage) est relié à la route ou au village le
+  // plus proche, pour qu'on puisse l'explorer. Le terrain traversé dit sa nature : piste sous les arbres, sentier de
+  // montagne vers les cols, simple sentier ailleurs.
+  if (grid && network.length) {
+    const span = SCALES[frame.scale].w;
+    const kmOfN = ([x, y]) => [frame.x0 + x * (frame.x1 - frame.x0), frame.y0 + y * (frame.y1 - frame.y0)];
+    const targets = features.filter((f) => f.id.startsWith(`${wid}:`) && /^(lac|foret|monts|wild)-/.test(f.id.slice(wid.length + 1))).map((f) => {
+      const g = geometries.find((q) => q.featureId === f.id && q.type === 'point');
+      return g ? { f, km: kmOfN(g.coordinates), mountain: f.id.includes(':monts-') } : null;
+    }).filter(Boolean);
+    // Au plus proche d'abord : chaque sentier tracé devient un départ possible pour le suivant (un réseau qui
+    // s'enfonce peu à peu dans la nature, jamais une ligne droite de 200 km à travers tout).
+    const nearest = (t) => {
+      let best = null;
+      for (const p of network) { const d = Math.hypot(p[0] - t.km[0], p[1] - t.km[1]); if (!best || d < best.d) best = { p, d }; }
+      return best;
+    };
+    const left = [...targets];
+    const plans = [];
+    while (left.length && plans.length < 40) {
+      let pick = null;
+      for (const t of left) { const b = nearest(t); if (b && (!pick || b.d < pick.d || (b.d === pick.d && t.f.id < pick.t.f.id))) pick = { t, ...b }; }
+      if (!pick || pick.d >= Math.min(span * 0.15, 60)) break;
+      left.splice(left.indexOf(pick.t), 1);
+      if (pick.d <= Math.max(1.5, span * 0.004)) continue; // déjà au bord de la route
+      plans.push(pick);
+      const tr = routeOn(grid, pick.p, pick.t.km);
+      pick.tr = tr;
+      if (tr) network.push(...tr.pts);
+    }
+    for (const { t, tr } of plans) {
+      if (!tr || tr.pts.length < 2) continue;
+      let forest = 0, high = 0;
+      for (const p of tr.pts) { const q = terrainAt(relief, p[0], p[1]); forest += q.forest; if (q.e > 1600) high++; }
+      const kind = trailKind({ forest: forest / tr.pts.length, high: high / tr.pts.length, toMountain: t.mountain }), V = VOIES[kind];
+      const id = `${wid}:sentier-${t.f.id.slice(wid.length + 1)}`;
+      // On y avance moins vite que sur une route : 1,3 fois plus lentement sur un sentier, 1,6 fois sur une piste ou un col.
+      const days = (tr.effort / PACE.normal) * (kind === 'sentier' ? 1.3 : 1.6);
+      features.push({ ...base, id, title: trailTitle(kind, t.f.title), subtitle: `${Math.max(1, Math.round(tr.km))} km · ${daysLabel(days)}`, summary: V.text, voie: kind, category: 'voie', importance: 'local', minZoom: 0, trace: V.trace });
+      geometries.push({ id: `g-${id}`, mapId: wid, featureId: id, type: 'polyline', coordinates: tr.pts.map(N) });
+      worldRoads.push({ pts: tr.pts.flatMap((p) => U(p).map(r1)), hw: Math.max(0.03, V.hwM / S) });
     }
   }
 

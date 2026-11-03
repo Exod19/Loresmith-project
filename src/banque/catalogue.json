@@ -1745,6 +1745,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -12352,6 +12353,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -12468,6 +12470,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -12584,6 +12587,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -12647,6 +12651,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -12675,6 +12680,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -12768,6 +12774,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -12797,6 +12804,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -12827,6 +12835,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -12957,6 +12966,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -13111,6 +13121,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -13181,7 +13192,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 0.94
 },
 {
 "id": "crystal-merchant-in-the-underground-reagent-shop",
@@ -13389,7 +13402,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 0.98
 },
 {
 "id": "deep-gnome-scout-battlemap-token-jeton",
@@ -13412,6 +13427,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -13596,6 +13612,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -13625,6 +13642,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -13662,7 +13680,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "zenith",
+"longueur": 0.82
 },
 {
 "id": "elderly-gnome-cobbler-with-leather-shoe",
@@ -14020,7 +14040,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 0.96
 },
 {
 "id": "gray-haired-officiant-with-wooden-box",
@@ -14117,7 +14139,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.55
 },
 {
 "id": "half-elf-cloth-merchant-portrait",
@@ -14251,7 +14275,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.5
 },
 {
 "id": "half-orc-smuggler-with-cloth-parcel",
@@ -14417,7 +14443,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.6
 },
 {
 "id": "halfling-healer-with-bandage-roll-jeton",
@@ -14448,7 +14476,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "zenith",
+"longueur": 0.85
 },
 {
 "id": "halfling-healer-with-linen-bandage",
@@ -14689,7 +14719,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.47
 },
 {
 "id": "kneeling-prayer-adventurer-token-jeton",
@@ -14720,7 +14752,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.2
 },
 {
 "id": "lanky-curio-dealer-with-a-wooden-box-jeton",
@@ -14742,6 +14776,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -14841,7 +14876,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.35
 },
 {
 "id": "loresmith-traveler-in-overhead-conversation-jeton",
@@ -14873,7 +14910,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.55
 },
 {
 "id": "medieval-carpenter-holding-a-hand-plane",
@@ -15527,6 +15566,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -15556,6 +15596,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -15971,6 +16012,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -16010,7 +16052,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 0.94
 },
 {
 "id": "norrianiss-elder-with-eightfold-face-paint",
@@ -16094,6 +16138,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -16182,6 +16227,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -16211,6 +16257,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -16241,6 +16288,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -16279,7 +16327,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.5
 },
 {
 "id": "overhead-dark-fantasy-envoy-token-jeton",
@@ -16302,6 +16352,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -16331,6 +16382,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -16369,7 +16421,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.2
 },
 {
 "id": "overhead-halfling-bard-with-lute-jeton",
@@ -16402,7 +16456,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 0.75
 },
 {
 "id": "overhead-loresmith-ledger-keeper-jeton",
@@ -16434,7 +16490,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.75
 },
 {
 "id": "overhead-medieval-carpenter-with-wooden-plane-jeton",
@@ -16467,7 +16525,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.57
 },
 {
 "id": "overhead-white-haired-drover-token-jeton",
@@ -16490,6 +16550,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -16519,6 +16580,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -16555,7 +16617,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.11
 },
 {
 "id": "overhead-courier-with-dispatch-satchel-jeton",
@@ -16587,7 +16651,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.33
 },
 {
 "id": "overhead-crystal-merchant-token-jeton",
@@ -16609,6 +16675,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -16648,7 +16715,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.57
 },
 {
 "id": "overhead-dark-fantasy-dwarf-token-jeton",
@@ -16681,7 +16750,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.3
 },
 {
 "id": "overhead-dark-fantasy-game-token-jeton",
@@ -16714,7 +16785,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.02
 },
 {
 "id": "overhead-dark-fantasy-map-token-with-tray-jeton",
@@ -16746,7 +16819,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.0
 },
 {
 "id": "overhead-dark-fantasy-map-token-jeton",
@@ -16777,7 +16852,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.5
 },
 {
 "id": "overhead-dark-fantasy-medic-token-jeton",
@@ -16810,7 +16887,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.57
 },
 {
 "id": "overhead-dark-fantasy-sickle-token-jeton",
@@ -16842,7 +16921,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.47
 },
 {
 "id": "overhead-dark-fantasy-warrior-token-jeton",
@@ -16865,6 +16946,7 @@
 "region": [
 "surface"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -16903,7 +16985,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.47
 },
 {
 "id": "overhead-darksteel-officer-with-tower-badge-jeton",
@@ -16936,7 +17020,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.1
 },
 {
 "id": "overhead-drow-priestess-battle-token-jeton",
@@ -16960,6 +17046,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -16989,6 +17076,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -17026,7 +17114,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.35
 },
 {
 "id": "overhead-dwarf-baker-with-a-loaf-jeton",
@@ -17058,7 +17148,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.3
 },
 {
 "id": "overhead-dwarf-girl-with-basket-jeton",
@@ -17088,7 +17180,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.11
 },
 {
 "id": "overhead-dwarf-holding-folded-laundry-jeton",
@@ -17120,7 +17214,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.3
 },
 {
 "id": "overhead-dwarf-with-saucepan-jeton",
@@ -17153,7 +17249,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.12
 },
 {
 "id": "overhead-dwarf-with-staff-and-backpack-jeton",
@@ -17185,7 +17283,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.3
 },
 {
 "id": "overhead-elderly-fisherman-token-jeton",
@@ -17216,7 +17316,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.33
 },
 {
 "id": "overhead-elven-caravan-merchant-token-jeton",
@@ -17248,7 +17350,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.19
 },
 {
 "id": "overhead-fantasy-adventurer-with-burgundy-scarf-jeton",
@@ -17280,7 +17384,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.33
 },
 {
 "id": "overhead-funerary-officiant-with-wooden-box-jeton",
@@ -17313,7 +17419,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "zenith",
+"longueur": 1.1
 },
 {
 "id": "overhead-garrison-commander-in-blackened-steel-jeton",
@@ -17336,6 +17444,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -17376,7 +17485,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 0.91
 },
 {
 "id": "overhead-gnome-shoemaker-with-unfinished-shoe-jeton",
@@ -17407,7 +17518,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 0.91
 },
 {
 "id": "overhead-gnome-token-with-wooden-tool-jeton",
@@ -17439,7 +17552,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.0
 },
 {
 "id": "overhead-half-elf-laborer-battle-token-jeton",
@@ -17472,7 +17587,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.47
 },
 {
 "id": "overhead-half-orc-battlemap-token-jeton",
@@ -17505,7 +17622,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 0.98
 },
 {
 "id": "overhead-halfling-innkeeper-token-jeton",
@@ -17535,7 +17654,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 0.81
 },
 {
 "id": "overhead-halfling-traveler-with-a-staff-jeton",
@@ -17567,7 +17688,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.0
 },
 {
 "id": "overhead-halfling-with-brass-candlestick-jeton",
@@ -17599,7 +17722,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 0.81
 },
 {
 "id": "overhead-halfling-with-straw-hat-and-carrots-jeton",
@@ -17631,7 +17756,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 0.81
 },
 {
 "id": "overhead-medieval-boy-with-cloth-ball-jeton",
@@ -17661,7 +17788,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.2
 },
 {
 "id": "overhead-medieval-fishmonger-token-jeton",
@@ -17692,7 +17821,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.33
 },
 {
 "id": "overhead-midwife-with-linen-roll-jeton",
@@ -17716,6 +17847,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -17744,6 +17876,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -17773,6 +17906,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -17801,6 +17935,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -17829,6 +17964,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -17866,7 +18002,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.2
 },
 {
 "id": "overhead-silver-haired-archer-token-jeton",
@@ -17900,7 +18038,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "zenith",
+"longueur": 1.0
 },
 {
 "id": "overhead-sneaking-map-token-jeton",
@@ -17932,7 +18072,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.63
 },
 {
 "id": "overhead-stout-dwarf-battlemap-token-jeton",
@@ -17965,7 +18107,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 0.96
 },
 {
 "id": "overhead-tiefling-boy-map-token-jeton",
@@ -17995,7 +18139,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.2
 },
 {
 "id": "overhead-tiefling-lorekeeper-with-leather-book-jeton",
@@ -18027,7 +18173,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.75
 },
 {
 "id": "overhead-tiefling-merchant-with-market-sack-jeton",
@@ -18059,7 +18207,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.33
 },
 {
 "id": "overhead-tiefling-noble-map-token-jeton",
@@ -18092,7 +18242,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.47
 },
 {
 "id": "overhead-traveler-carrying-a-wooden-crate-jeton",
@@ -18125,7 +18277,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.3
 },
 {
 "id": "painted-night-watchkeeper-jeton",
@@ -18148,6 +18302,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -18296,6 +18451,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -18892,6 +19048,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -18922,6 +19079,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -18979,6 +19137,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -19037,6 +19196,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -19075,7 +19235,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 0.94
 },
 {
 "id": "portrait-of-a-dwarf-laundress",
@@ -19195,6 +19357,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -19232,7 +19395,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.47
 },
 {
 "id": "rust-cloaked-courier-with-a-dispatch-satchel",
@@ -19297,7 +19462,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 0.91
 },
 {
 "id": "shy-tiefling-boy-medieval-town",
@@ -19455,7 +19622,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.47
 },
 {
 "id": "silver-haired-bayou-elf-healer",
@@ -19585,7 +19754,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.0
 },
 {
 "id": "silver-braided-gnome-herbalist",
@@ -19700,6 +19871,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -19729,6 +19901,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -19821,6 +19994,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -19888,7 +20062,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.35
 },
 {
 "id": "soot-marked-half-orc-blacksmith",
@@ -19972,6 +20148,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -20222,6 +20399,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -20250,6 +20428,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -20289,7 +20468,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.12
 },
 {
 "id": "top-down-face-painted-bookseller-jeton",
@@ -20313,6 +20494,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -20342,6 +20524,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -20370,6 +20553,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -20400,6 +20584,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -20438,7 +20623,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "zenith",
+"longueur": 1.1
 },
 {
 "id": "top-down-black-painted-courier-token-jeton",
@@ -20461,6 +20648,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -20499,7 +20687,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.47
 },
 {
 "id": "top-down-dark-fantasy-defender-jeton",
@@ -20530,7 +20720,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.47
 },
 {
 "id": "top-down-duergar-innkeeper-token-jeton",
@@ -20553,6 +20745,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -20592,7 +20785,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 0.8
 },
 {
 "id": "top-down-gray-robed-archmage-with-brass-frame-jeton",
@@ -20614,6 +20809,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -20643,6 +20839,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -20672,6 +20869,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -20700,6 +20898,7 @@
 "region": [
 "surface"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -20729,6 +20928,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -20758,6 +20958,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -20787,6 +20988,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -20815,6 +21017,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -20853,7 +21056,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "incline",
+"longueur": 1.12
 },
 {
 "id": "top-down-underground-relay-guide-jeton",
@@ -20876,6 +21081,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -21244,6 +21450,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -21565,6 +21772,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -21625,6 +21833,7 @@
 "region": [
 "outreterre"
 ],
+"angle": "incline",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -21756,7 +21965,9 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"angle": "zenith",
+"longueur": 0.87
 },
 {
 "id": "angle-de-plateau-granitique-escarpe",

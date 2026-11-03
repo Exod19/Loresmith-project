@@ -4,6 +4,7 @@
  */
 import BanquePanel from '../banque/BanquePanel';
 import { npcImage, setUniverseBank, type BankImage } from '../banque';
+import { npcTraits } from '../banque/banque';
 import { fileToCompressed } from '../media/images';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Hero } from './battle/CombatPanel';
@@ -239,7 +240,9 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
             dispatch({ type: 'ADD_LIBRARY_ENTRY', entry });
             // Un personnage né en jeu reçoit un portrait de la Banque Loresmith (le MJ le change à sa guise).
             if (entry.archiveType === 'person') {
-              const src = npcImage({ id: entry.id, role: [entry.subtitle, entry.shortSummary].filter(Boolean).join(' '), placeText: String(entry.currentLocation ?? ''), vue: 'portrait', px: 512 });
+              const e = entry as typeof entry & { gender?: string; race?: string };
+              const t = npcTraits({ name: entry.title, role: entry.subtitle, desc: entry.shortSummary, gender: e.gender, race: e.race });
+              const src = npcImage({ id: entry.id, name: entry.title, role: [entry.subtitle, entry.shortSummary].filter(Boolean).join(' '), desc: entry.shortSummary, genre: t.genre, peuple: t.peuple, placeText: String(entry.currentLocation ?? ''), vue: 'portrait', px: 512 });
               if (src) assignImage('library', entry.id, src, `Banque Loresmith · ${entry.title}`);
             }
             flash(`Fiche créée : ${entry.title} (Bibliothèque)`);

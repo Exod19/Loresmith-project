@@ -144,6 +144,16 @@ export interface AtlasFeature {
   wild?: { key: string; kind: string; teneur: 'ambiance' | 'scene' | 'quete'; danger: string; text: string; scene?: string; hook?: string; notes?: string; where?: string; biome?: string; e?: number };
   /** PNJ expressément caché (carte du monde) : pas révélé d'office, jeton caché en combat. */
   hiddenNpc?: boolean;
+  /** PNJ : genre et peuple (pour lui donner une image qui lui ressemble), et pose (`couche` : il dort dans un lit). */
+  genre?: 'f' | 'm'; peuple?: string; pose?: 'couche';
+  /** Jeton vu de dessus d'un PNJ (écran des joueurs) : calculé à l'envoi, jamais enregistré. */
+  token?: string;
+  /** Voie de la carte du monde : route royale, chemin, sentier, piste forestière ou sentier de montagne (world/voies.js). */
+  voie?: 'royale' | 'chemin' | 'sentier' | 'piste' | 'col';
+  /** Pièce d'un intérieur : DD de fouille discrète (selon qui s'y trouve et le moment), réservé au MJ. */
+  fouille?: { dc: number; label: string; why: string[]; room?: string };
+  /** Image de face d'un PNJ (portrait de sa fiche ou de la banque), pour la fiche de l'écran des joueurs. */
+  face?: string;
   demo?: boolean;
 }
 

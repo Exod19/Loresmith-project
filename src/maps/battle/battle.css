@@ -778,6 +778,10 @@
 .present-map-card h3{margin:2px 0 6px;font-family:var(--font-joueurs-titre,'Cinzel',serif);color:#f6e8c4;font-size:clamp(16px,2.6vmin,26px)}
 .present-map-card p{margin:0 0 6px;font-size:clamp(13px,1.8vmin,17px)}
 .present-map-card .present-info-kind{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#c9a24a}
+/* Portrait d'un PNJ dans la fiche d'un lieu (écran des joueurs) : à gauche du texte. */
+.present-map-card .present-card-hero{float:left;width:clamp(80px,14vmin,150px);aspect-ratio:3/4;max-height:none;margin:0 1.6vmin .6vmin 0;border-radius:8px;border:1px solid #7d6128}
+.present-map-card .present-card-hero::after{display:none}
+.present-map-card::after{content:"";display:block;clear:both}
 .present-map-card .present-info-close{position:absolute;right:6px;top:6px}
 /* Le groupe en marche. */
 .am-walker .am-mark-ring{animation:none;stroke-width:4}

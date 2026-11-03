@@ -49,6 +49,10 @@ import TalkPanel from './world/TalkPanel';
 import { canSpeak } from './world/speech';
 import { isHiddenNpc } from './world/interior';
 import { normalizeEntity } from '../bestiary/entityGen';
+import { npcBankImage, npcToken } from '../banque/place';
+import { visibleFrom } from './world/sight';
+import { rollFind } from './world/fouille';
+import { faceOf } from '../banque';
 import type { Period, Season } from './world/generate';
 import { SEASONS } from './world/seasons';
 import type { LoreEntry } from './world/lore';
@@ -302,6 +306,13 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   /** Le personnage du MJ sur le plan affiché (mode Exploration). */
   const av = rec.world?.avatar;
   const avatarMarks: MapMark[] = exploring && av?.at && av.at.planId === map.id ? [{ id: 'mj', x: av.at.at[0], y: av.at.at[1], label: `🎭 ${av.name || 'MJ'}`, tone: 'dm' }] : [];
+  /** Jetons des PNJ posés sur le plan : les mêmes que sur la carte de combat, sans socle. */
+  const npcTokenOf = (f: AtlasFeature) => npcToken(rec, map.id, library, bestiary, f, 256, data.features);
+  /** Image de face d'un PNJ posé sur le plan : l'illustration de sa fiche, sinon le portrait de la banque (jumeau de son jeton). */
+  const npcFaceOf = (f: AtlasFeature) => {
+    if (!f.id.includes(':pnj-')) return undefined;
+    return f.image || (f.entryId ? artOf?.(f.title, f.entryId) : undefined) || faceOf(npcTokenOf(f)) || npcBankImage(rec, map.id, library, f, 'portrait', 512);
+  };
   /** Aperçu « Joueurs » : mêmes jetons et même brouillard que sur l'écran joueur. */
   const playerPreview = useMemo(() => {
     if (dm) return { marks: [] as MapMark[], fog: null };
@@ -388,13 +399,19 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   );
 
   // Fonction changée à chaque rendu : lue par référence pour ne pas relancer la projection.
+  /** Image de la fiche d'un PNJ posé sur le plan (jeton `pnj-…` du combat) : celle de son lieu sur la carte. */
+  const ficheImageOf = (id: string) => (id.startsWith('pnj-') ? data.features.find((f) => f.id.includes(':pnj-') && `pnj-${f.entryId ?? f.id}` === id)?.image : undefined);
+  const tokenRef = useRef(npcTokenOf);
+  tokenRef.current = npcTokenOf;
+  const faceRef = useRef(npcFaceOf);
+  faceRef.current = npcFaceOf;
   const artRef = useRef(artOf);
   artRef.current = artOf;
 
   // Projection : toute modification de la carte, du repérage ou du combat part vers l'écran joueur.
   useEffect(() => {
     if (!projecting) return;
-    publishStage({ kind: 'board', board: battleOpen ? battleBoard(rec, (name, id) => artRef.current?.(name, id) ?? '') : mapBoard(rec, atlas, map.id, focus ?? undefined) });
+    publishStage({ kind: 'board', board: battleOpen ? battleBoard(rec, (name, id) => artRef.current?.(name, id) || ficheImageOf(id) || '') : mapBoard(rec, atlas, map.id, focus ?? undefined, (f) => tokenRef.current(f), (f) => faceRef.current(f)) });
   }, [projecting, battleOpen, rec, atlas, map.id, focus]);
 
   /** Amène la vue joueurs sur ce lieu : le révèle si besoin, centre la carte chez eux, et démarre la projection. */
@@ -432,6 +449,23 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   }
 
   const setOverlay = (next: MapOverlay) => onUpdate({ overlay: next, updatedAt: Date.now() });
+
+  /**
+   * Dans un intérieur, ce qui est évident se voit d'office : dès que le groupe se tient quelque part (en entrant, en
+   * changeant de pièce ou d'étage, ou quand l'heure change et que d'autres occupants arrivent), tout ce qui est dans
+   * son champ de vision et n'est pas caché est révélé aux joueurs (occupants, mobilier nommé, escaliers, pièces).
+   */
+  const sightPlan = party.at?.planId ? data.maps.find((m) => m.id === party.at!.planId) : undefined;
+  const sightAt = sightPlan?.surface?.theme === 'interieur' && party.at ? placeCoords(data, rec, party.at) : null;
+  const sightKey = sightAt && sightPlan ? `${sightPlan.id}:${sightAt[0].toFixed(4)}:${sightAt[1].toFixed(4)}:${data.features.length}:${rec.world?.time ?? ''}` : '';
+  useEffect(() => {
+    if (!dm || !sightKey || !sightAt || !sightPlan) return;
+    const seen = visibleFrom(sightPlan, sightAt, data.features, data.geometries);
+    const known = new Set(overlay.revealed);
+    const fresh = seen.filter((id) => !known.has(id));
+    if (fresh.length) setOverlay({ ...overlay, revealed: [...overlay.revealed, ...fresh] });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dm, sightKey]);
 
   /**
    * Le groupe arrive à un lieu, le long d'un tracé : il glisse sur le chemin (animé chez le MJ et les joueurs), le
@@ -1178,6 +1212,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               focus={focus ? { kind: 'point', id: focus.id } : null}
               focusKey={focus ? String(focus.tick) : undefined}
               dm={dm}
+              tokenOf={npcTokenOf}
             />
             <button type="button" className="maps-mobile-only maps-mapsize" onClick={() => setMapFull(!mapFull)}
               aria-label={mapFull ? 'Réduire la carte' : 'Agrandir la carte'} title={mapFull ? 'Réduire la carte' : 'Agrandir la carte'}>{mapFull ? '⤡' : '⤢'}</button>
@@ -1316,7 +1351,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
 
             {(!dm || side === 'lieu') && feature && !markerId && (
               <FeaturePanel
-                f={feature} dm={dm} notes={point?.notes ?? ''}
+                f={feature} dm={dm} notes={point?.notes ?? ''} face={npcFaceOf(feature)}
                 depthLine={strates ? depthOfFeature(feature.id) : undefined}
                 defaultCtx={{ zone: point?.zone ?? (rec.kind === 'monde' ? (feature.wild || feature.area ? 'sauvage' : feature.trace ? 'transit' : 'cite') : 'sauvage'), depth: point?.depth ?? 3, place: feature.title }}
                 surface={rec.kind === 'monde'}
@@ -1637,7 +1672,31 @@ function PartyBar({ party, inBattle, onShow, onBattle, onClearDest, onRejoin }: 
   );
 }
 
-function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring, partyHere, partyDest, onPartyHere, onPartyDest, passive = 10, follow, onForget, depthLine, surface }: {
+/**
+ * Fouille d'une pièce (MJ) : son DD selon qui s'y trouve et le moment, puis le résultat d'après le jet du joueur.
+ * Une réussite rapporte souvent des broutilles ; une vraie trouvaille reste rare.
+ */
+function SearchBox({ f }: { f: AtlasFeature }) {
+  const [roll, setRoll] = useState('');
+  const [found, setFound] = useState<{ kind: string; text: string } | null>(null);
+  const s = f.fouille!;
+  const go = () => { const n = Number(roll); if (Number.isFinite(n) && roll !== '') setFound(rollFind(s.room ?? f.title, n - s.dc)); };
+  return (
+    <div className={`maps-search dc-${s.label === 'Presque impossible' ? 'max' : s.dc > 20 ? 'hard' : s.dc > 15 ? 'mid' : 'easy'}`}>
+      <p className="maps-search-dc"><b>🔎 Fouille discrète · DD {s.dc}</b> <span>({s.label})</span></p>
+      <p className="maps-sub">Intelligence (Investigation), ou Dextérité (Escamotage) pour ne pas être vu. {(() => { const w = s.why.join(' ; '); return w.charAt(0).toUpperCase() + w.slice(1); })()}.</p>
+      <div className="maps-search-row">
+        <input className="maps-btn" type="number" placeholder="Jet du joueur" value={roll} onChange={(e) => { setRoll(e.target.value); setFound(null); }} onKeyDown={(e) => e.key === 'Enter' && go()} />
+        <button className="maps-btn" onClick={go} disabled={roll === ''}>Fouiller</button>
+      </div>
+      {found && <p className={`maps-search-out k-${found.kind}`}>{found.text}</p>}
+    </div>
+  );
+}
+
+function FeaturePanel({ face, f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring, partyHere, partyDest, onPartyHere, onPartyDest, passive = 10, follow, onForget, depthLine, surface }: {
+  /** Image de face d'un PNJ (fiche ou banque). */
+  face?: string;
   f: AtlasFeature; dm: boolean; notes: string; defaultCtx: EncCtx; onClose: () => void; onRoll: (ctx: EncCtx) => void;
   /** Carte du monde (surface) : descriptions, libellés et rencontres de la surface, jamais ceux de l'Underdark. */
   surface?: boolean;
@@ -1665,10 +1724,12 @@ function FeaturePanel({ f, dm, notes, defaultCtx, onClose, onRoll, revealed, onT
         <span>{CATEGORIES[f.category].glyph} {(surface && SURFACE_CATEGORY[f.category]) || CATEGORIES[f.category].label}</span>
         <button className="maps-btn" onClick={onClose} aria-label="Fermer">×</button>
       </div>
+      {face && <img className="maps-card-face" src={face} alt="" />}
       <h3>{f.title}</h3>
       {f.subtitle && <p className="maps-sub">{f.subtitle}</p>}
       {depthLine && <p className="maps-depth">⛰ {depthLine}</p>}
       <p>{text}</p>
+      {dm && f.fouille && <SearchBox f={f} />}
       {f.trace && (() => {
         const t = trailProfile(f, f.trace === 'secret' ? 15 : undefined);
         return (

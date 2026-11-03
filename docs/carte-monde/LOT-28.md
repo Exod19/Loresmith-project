@@ -1,53 +1,41 @@
-# Lot 28 : lieux sauvages de l'Underdark (statut : à valider)
+# Lot 28 : routes, chemins et sentiers de la carte du monde
 
-Les lieux sauvages arrivent dans l'Atlas des profondeurs, sans jamais se mêler à ceux de la surface.
+Les voies relient maintenant les grands lieux de façon logique, du plus sûr au plus sauvage (`src/maps/world/voies.js`,
+tracées dans `terrainV2` de `src/maps/world/generate.js`).
 
-## Ce qui change
+## Voies
 
-- **Des lieux le long des galeries** (`atlas/deepWilds.js`, nouveau). L'Atlas a déjà environ 1 460 lieux et 250 cavernes par plan, toutes peuplées. Les lieux sauvages de l'Underdark se posent donc dans les tronçons de galerie entre les cavernes, un peu à l'écart du tracé (une niche, une faille latérale), jamais dans une caverne ni contre un lieu existant.
-  - Environ 40 par plan, soit un lieu toutes les 6 à 7 heures de marche.
-  - Le tirage est toujours le même, puisqu'il vient de la galerie.
-  - Les galeries secrètes et les crevasses n'en ont pas.
-- **18 types souterrains** : forêt de champignons géants, lac noir (plus fréquent le long des ruisseaux), source chaude, gouffre sans fond, toile géante, grotte de cristaux chantants, campement drow abandonné, épave d'un convoi duergar, autel de Lolth, sanctuaire svirfnebelin caché, colonie de myconides, repaire de gricks, faille de vapeur, ossuaire oublié, filon de mithral, mare de vase, bivouac de réfugiés, dortoir de chauves-souris.
-  - Même modèle qu'à la surface : teneur (ambiance, scène, accroche), danger, textes variés.
-  - Les touches d'ambiance sont souterraines (lichens luminescents, écho en retard, roche tiède…).
-  - Sous terre, une scène ou une accroche est au moins « incertaine ».
-- **Pour le MJ** : les brouillons apparaissent au zoom régional, estompés. La fiche est la même qu'à la surface : Garder, Définir (types de l'Underdark), Montrer aux joueurs, Écarter, et les rencontres du lieu.
-- **Enregistrés dans le calque de l'Atlas** (`overlay.wilds`) : ils rejoignent ses données, et les joueurs ne voient que ceux qui sont révélés.
-- **Découverte en chemin**, à portée de torche, en suivant une galerie.
-  - Le groupe s'arrête vis-à-vis du lieu. L'écran joueur annonce ce qu'on perçoit et propose « Aller voir » ou « Continuer votre chemin ». Par exemple : « Un bruissement d'ailes emplit une faille, sur votre droite ».
-  - Les lieux cachés ne se voient qu'avec la Perception passive : sanctuaire svirfnebelin DD 15, autel de Lolth DD 14, toile géante, campement drow, repaire de gricks et filon de mithral DD 13, mare de vase DD 12.
-  - Un lieu aperçu est enregistré ; « Aller voir » y mène le groupe et le révèle aux joueurs.
-- **Rencontres du lieu, de l'Underdark seulement** : toile géante → araignées géantes ; campement drow → patrouille drow ; épave → pillards ou convoi duergar ; ossuaire → goules ou ombres ; mare de vase → vase grise, gelée ocre ou cube gélatineux ; dortoir → nuée de chauves-souris…
+| Voie | Tracé | Où | Patrouilles et fréquentation | Allure | Repérage | Danger |
+|---|---|---|---|---|---|---|
+| Route royale | large, claire | entre deux grandes cités (2 500 habitants et plus), ou entre une très grande cité (5 000) et une cité moyenne (1 200) | pavée, entretenue, patrouillée par la garde, très fréquentée | 1 | évidente | Sûr |
+| Chemin | terre battue | entre une cité et ses voisines plus modestes, par les hameaux | patrouilles rares, fréquenté | 1,1 | évident | Sûr |
+| Sentier | tirets | vers un lac, une forêt ou un lieu sauvage, depuis la route ou le village le plus proche | aucune patrouille, peu fréquenté | 1,3 | Perception 10 | Praticable |
+| Piste forestière | pointillés | un sentier qui passe surtout sous les arbres | rarement empruntée ; Sagesse (Survie) DD 12 pour ne pas s'égarer | 1,6 | Perception 13 | Incertain |
+| Sentier de montagne | pointillés | vers les sommets, par les cols | chevriers et contrebandiers ; éboulis, vent, à-pics | 1,6 | Perception 12 | Incertain |
 
-## La surface et l'Underdark restent séparés
+- Deux grandes cités assez proches (moins de 60 % de la largeur du monde) ont toujours leur route royale directe.
+- Les sentiers sont tracés du plus proche au plus lointain. Chacun devient un départ possible pour le suivant : le
+  réseau s'enfonce peu à peu dans la nature, sans ligne droite à travers tout le pays.
+- Chaque tronçon fait au plus 60 km (ou 15 % de la largeur du monde) ; 40 sentiers au plus.
+- Ils suivent le terrain comme les routes (vallées, cols, contournement des lacs).
+- Chaque voie a sa durée (km et jours de marche) et une description pour le MJ : surface, entretien, patrouilles,
+  fréquentation.
 
-- Types, textes et rencontres sont propres à chacun : `world/wilds.js` et `atlas/surfaceEncounters.ts` pour la surface ; `atlas/deepWilds.js` et la table de l'Underdark (`atlas/encounters.ts`, `DEEP_SITE_ENCOUNTERS`) pour l'Atlas.
-- La fiche du lieu ne propose que les types de son monde.
+## Suivre une voie
 
-## Fichiers
+- `trailProfile` lit le champ `voie` : repérage et danger en mots d'extérieur.
+- `hoursOn` applique l'allure de chaque voie à la surface (`SLOW_SURFACE`).
+- Les lieux sauvages vus en chemin (`wildAlong`) suivent les sentiers comme les routes : on peut explorer la nature.
 
-- Nouveaux : `atlas/deepWilds.js`, `deepWilds.d.ts`, `deepWilds.test.mjs` (3 tests), `atlas/deepIndex.ts`, `docs/carte-monde/LOT-28.md`.
-- Modifiés :
-  - `mapStore.ts` : `overlay.wilds`, lieux enregistrés dans les données de l'Atlas ;
-  - `world/generate.d.ts` : `WildRecord` porte `planId` et `at` dans l'Underdark ;
-  - `world/index.ts` (typage) ;
-  - `atlas/encounters.ts` : rencontres de lieu de l'Underdark, tirage restreint ;
-  - `world/WildPanel.tsx` : types proposés selon le monde ;
-  - `MapViewer.tsx` : brouillons, enregistrement, fiche et découverte dans l'Atlas.
-- `src/App.jsx` et `src/store/persist.js` ne sont pas touchés.
+## Ce qui ne change pas
 
-## Vérifications
+- L'Atlas des profondeurs (l'Underdark) et ses galeries.
+- Les cités et leurs rues.
+- Les mondes à l'ancienne, sans relief à l'échelle.
 
-Dans le navigateur, sur la strate I-3 :
+## Tests
 
-- en partant de la Mare d'infiltration par une galerie, le groupe s'arrête devant le Dortoir de chauves-souris des Os blanchis ;
-- l'écran joueur affiche « Un bruissement d'ailes emplit une faille, sur votre droite. Vous allez voir, ou vous continuez votre chemin ? » ;
-- le lieu est enregistré dans le calque ; « Aller voir » y mène le groupe et le révèle ;
-- la fiche du lieu tire une « Nuée de chauves-souris » (table de l'Underdark) ;
-- au zoom régional, les brouillons voisins s'affichent pour le MJ (« Source chaude du Silence », « Toile géante… »).
-
-## Limites
-
-- Pas encore de plan propre au lieu : le combat se fait sur le terrain de l'Atlas à cet endroit.
-- Pas de réglage de densité pour l'Underdark.
+`voies.test.mjs` :
+- nature des routes et des sentiers ;
+- un monde à l'échelle a une route royale, des chemins et au moins trois sentiers, chacun relié à un lieu qui existe ;
+- le même monde à chaque génération.

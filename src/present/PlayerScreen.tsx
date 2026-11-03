@@ -160,7 +160,8 @@ function PlayerMap({ board, rev, onFollow, onPick, onFork, onGoto }: { board: Ex
       {picked && (
         <aside className="present-map-card" role="dialog" aria-label={picked.title}>
           <button className="present-info-close" onClick={() => setPicked(null)} aria-label="Fermer">×</button>
-          <span className="present-info-kind">{picked.trace ? TRACE_FR[picked.trace] ?? 'Chemin' : 'Lieu'}</span>
+          {(picked.face ?? picked.image) && <figure className="present-card-hero"><img src={picked.face ?? picked.image} alt="" /></figure>}
+          <span className="present-info-kind">{picked.trace ? TRACE_FR[picked.trace] ?? 'Chemin' : picked.token ? 'Personnage' : 'Lieu'}</span>
           <h3>{picked.title}</h3>
           {picked.subtitle && <p>{picked.subtitle}</p>}
           {(() => { const d = map.surface ? describeSurface(picked) : describe(picked); return d ? <p className="present-map-lore">{d}</p> : null; })()}

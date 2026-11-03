@@ -1,4 +1,4 @@
-# Lot 30 : banque en huit dossiers (surface et Outreterre), cavernes habillées dans l'Atlas en strates (statut : à valider)
+# Lot 30 (série lieux sauvages) : banque en huit dossiers (surface et Outreterre), cavernes habillées dans l'Atlas en strates (statut : à valider)
 
 ## Ce qui change
 
@@ -18,14 +18,21 @@
   - les sols des cavernes et des galeries prennent une texture de roche de l'Outreterre ;
   - les parois prennent une roche-mère calcaire ;
   - un grain fin apparaît en zoomant ;
-  - chaque caverne reçoit un décor qui ne change pas d'une ouverture à l'autre : stalagmites, champignons, cristaux,
-    éboulis, flaques, ossements. Ce décor est symbolique, à l'échelle de la caverne, et ne s'affiche qu'une fois assez
-    grand à l'écran.
+  - chaque caverne reçoit un décor qui ne change pas d'une ouverture à l'autre : éboulis, stalagmites, champignons,
+    cristaux, flaques.
+  - Le décor tient en trois paliers de taille : quelques amas, puis des blocs, puis du menu détail. Chaque palier a une
+    taille presque fixe par rapport à la caverne.
+  - Les éléments apparaissent en fondu à mesure qu'on zoome et disparaissent en dézoomant. Ils gardent leur taille par
+    rapport à la caverne.
+  - Ils sont posés surtout au pied des parois, assombris et désaturés pour se fondre dans la roche. Les images trop
+    claires (os blanchis, soufre vif) sont écartées.
+  - Retour du MJ sur une première version (« trop gros, trop irréguliers, trop évidents ») : tailles divisées par 3 à 10,
+    écart de taille ramené à ±12 %, fondu d'apparition, teinte assombrie.
   - L'Atlas des profondeurs d'origine n'est pas modifié.
 
 ## Fichiers
 
-- Nouveaux : `src/banque/CaveArt.tsx`, `public/banque/creatures/`, les nouvelles images de `public/banque/*`, ce document.
+- Nouveaux : `src/banque/CaveArt.tsx`, `docs/carte-monde/lieux-sauvages/` (lots 23 à 30 de cette série, rangés à part : une autre série a pris les mêmes numéros), `public/banque/creatures/`, les nouvelles images de `public/banque/*`, ce document.
 - Modifiés :
   - `scripts/banque/build.py` : régions, créatures, règles générales, noms français, exclusions, images déjà converties
     gardées ;

@@ -248,6 +248,12 @@
 .am-pin.imp-detail .lbl { font: italic 11px var(--font-ui); fill: #aeb6b1; }
 .am-pin.imp-detail .disc { fill: var(--c); stroke: #0c1417; stroke-width: 1.5; }
 .am-pin .hit { fill: transparent; }
+/* Jeton d'un PNJ sur un plan (sans socle) : une ombre portée, un liseré doré quand il est choisi. */
+.am-pin.is-token image { filter: drop-shadow(0 1px 2px #000a); }
+.am-pin .tok-ring { fill: none; stroke: transparent; stroke-width: 2; }
+/* Couverture d'un dormeur (jeton debout allongé dans son lit). */
+.am-pin .tok-blanket { fill: #7a5b45; stroke: #3b2a1f; stroke-width: 1; opacity: .96; }
+.am-pin.is-token:hover .tok-ring, .am-pin.is-token.is-sel .tok-ring, .am-pin.is-token.is-focus .tok-ring { stroke: #f0d6aa; }
 .am-pin.imp-local .disc { stroke-width: 1.5; }
 .am-gallery.imp-detail, .am-gallery.imp-local { animation: am-in .4s ease-out; }
 @media (prefers-reduced-motion: reduce) { .am-pin, .am-area-label, .am-gallery { animation: none; } }
@@ -717,6 +723,16 @@
 .am-pin.is-wild.is-draft.is-sel, .am-pin.is-wild.is-draft:hover { opacity: 1; }
 .am-preview { stroke: #ecd289; opacity: .95; filter: drop-shadow(0 0 3px rgba(0,0,0,.9)); }
 .am-surface .dc-cliff { fill: #6b655a; stroke: #2e2a24; stroke-width: 3; filter: drop-shadow(0 6px 6px rgba(0,0,0,.55)); }
+/* Voies de la carte du monde : route royale large et claire (pavée), chemin de terre, sentier en tirets, piste
+   forestière et sentier de montagne en pointillés. */
+.am-surface .am-road.tr-tunnel .top { stroke: #d8c79f; stroke-width: 3px; }
+.am-surface .am-road.tr-tunnel .edge { stroke-width: 5px; }
+.am-surface .am-road.tr-galerie .top { stroke: #b39e74; }
+.am-surface .am-road.tr-boyau .edge { stroke-width: 2.4px; opacity: .7; }
+.am-surface .am-road.tr-boyau .top { stroke: #a08d68; stroke-width: 1.5px; stroke-dasharray: 6 4; }
+.am-surface .am-road.tr-etroit .edge { stroke-width: 2.8px; opacity: .6; }
+.am-surface .am-road.tr-etroit .top { stroke: #b29d72; stroke-width: 1.7px; stroke-dasharray: 2.5 3.5; }
+.am-surface .am-road.tr-boyau:hover .top, .am-surface .am-road.tr-etroit:hover .top { stroke: #e0c890; }
 
 /* Atlas en strates : cavernes habillées par la Banque Loresmith (src/banque/CaveArt.tsx). */
 .am-floor-tex { opacity: .62; }
@@ -725,3 +741,5 @@
 /* Le sol des galeries vient de la texture ; le tracé cliquable ne s'éclaire qu'au survol. */
 .am-caves.is-art .am-floors .floor { stroke-opacity: 0; }
 .am-caves.is-art .am-floors .floor:hover { stroke: #3b4a47; stroke-opacity: .55; }
+/* Décor des cavernes : assombri et désaturé, pour se fondre dans la roche au lieu de sauter aux yeux. */
+.am-cave-decor { filter: brightness(.78) saturate(.65); }

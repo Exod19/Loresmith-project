@@ -3,11 +3,12 @@
  * il part de la vue joueurs (sans notes, repères secrets ni jetons cachés) et ne garde que le plan montré.
  */
 import { boardTheme } from './battle/theme';
-import type { AtlasData } from './atlas/types';
+import type { AtlasData, AtlasFeature } from './atlas/types';
 import { mapDataFor, placeCoords, restrictToPlan, DEFAULT_BATTLE, type MapRecord, type PartyPlace } from './mapStore';
 import { effectiveGrid } from './battle/terrain';
 import { cellIn } from './battle/local';
 import { tokenImage } from './battle/vignettes';
+import { faceOf } from '../banque';
 import { applyBuild, PROP_BY_KEY, propUrl } from './battle/build';
 import { CREATURE_LORE, KIND_LORE } from './battle/lore';
 import { isSearchable } from './battle/search';
@@ -20,7 +21,7 @@ import { inSight, partyVision } from './battle/fog';
 import { visionShapes, memoryShapes } from './zone';
 import { exitsOf } from './battle/trailRules';
 import type { BattleToken } from './mapStore';
-import { effectiveOf, moveLeft, surfaceOf } from './battle/placement';
+import { effectiveOf, moveLeft, paintedOf, surfaceOf } from './battle/placement';
 import { moverOf } from './battle/movement';
 import { attackCells, rangedCells, speedCells } from './battle/ranges';
 import { socleOf } from './battle/surface';
@@ -61,8 +62,16 @@ export function woundState(t: Pick<BattleToken, 'hp' | 'maxHp'>): string | undef
 }
 
 /** Carte telle que les joueurs la voient, sur le plan choisi, centrée sur `focus` si le MJ l'a demandé. */
-export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus?: { kind: 'anchor' | 'point'; id: string; tick: number }): PlayerBoard {
-  const data = restrictToPlan(mapDataFor(rec, atlas, false), planId);
+/** `tokenOf` : jeton d'un PNJ posé sur le plan (montré aux joueurs à la place de son marqueur). */
+export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus?: { kind: 'anchor' | 'point'; id: string; tick: number }, tokenOf?: (f: AtlasFeature) => string | undefined, faceOf?: (f: AtlasFeature) => string | undefined): PlayerBoard {
+  const raw = restrictToPlan(mapDataFor(rec, atlas, false), planId);
+  // Rien de réservé au MJ ne part chez les joueurs (DD de fouille) ; jeton et visage des PNJ y sont ajoutés.
+  const data = { ...raw, features: raw.features.map((f) => {
+    const rest = { ...f };
+    delete rest.fouille;
+    const token = tokenOf?.(f), face = faceOf?.(f);
+    return { ...rest, ...(token ? { token } : {}), ...(face ? { face } : {}) };
+  }) };
   const view = rec.overlay?.playerView ?? {};
   const party = rec.overlay?.party;
   // Positions : calculées sur la carte complète du MJ, mais seules les coordonnées partent chez les joueurs.
@@ -121,13 +130,14 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
   // Mêmes règles que chez le MJ : passages découverts = éléments révélés.
   const view: typeof b = b.local ? { ...b, local: { ...b.local, discovered: rec.overlay?.revealed ?? [] } } : b;
   const rules = surfaceOf(view);
+  const painted = paintedOf(view);
   const tokens: PlayerToken[] = b.tokens
     .filter((t) => t.visible)
     .map(({ id, name, kind, x, y, size, icon, image, statId, hp, maxHp, move, reach, layer, socle, modes, conditions, dying }) => {
       const portrait = tokenImage({ kind, statId, image });
       return {
         id, name, kind, x, y, size, icon, image: portrait, statId, layer, modes, speed: (statId && STATS[statId]?.speed) || undefined,
-        socle: socleOf(rules, { x, y, size, layer, socle }) ?? undefined,
+        socle: socleOf(rules, { x, y, size, layer, socle }, painted) ?? undefined,
         ...vitalOf({ kind, hp, conditions, dying }),
         elev: Math.max(0, ...Array.from({ length: size * size }, (_, k) => rules.cells[(y + Math.floor(k / size)) * b.cols + x + (k % size)]?.elev ?? 0)) || undefined,
         ...(kind === 'pc' ? { left: moveLeft(b, id, moverOf({ size, move, modes }, statId ? STATS[statId]?.speed : undefined, speedCells(statId ? STATS[statId] : undefined)).speed) } : {}),
@@ -137,7 +147,7 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
           // Allonge et portée de la créature : montrées quand on la glisse sur le plateau.
           reach: { melee: attackCells(statId ? STATS[statId] : undefined), short: rangedCells(statId ? STATS[statId] : undefined), long: 0 },
         }),
-        info: { subtitle: (statId && STATS[statId]?.meta) || undefined, text: (statId && CREATURE_LORE[statId]) || KIND_LORE[kind], image: artOf?.(name, id) || portrait },
+        info: { subtitle: (statId && STATS[statId]?.meta) || undefined, text: (statId && CREATURE_LORE[statId]) || KIND_LORE[kind], image: artOf?.(name, id) || faceOf(portrait) || portrait },
       };
     });
   const local = b.local;

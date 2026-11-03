@@ -132,6 +132,13 @@ export default function BanquePanel({ onBack, fiches, onAssign, onUpload, onEdit
                   </select>
                 </label>
                 <label>Rôles <input className="maps-btn" disabled={!canEdit} defaultValue={(sel.roles ?? []).join(', ')} key={`r-${sel.id}`} onBlur={(e) => edit({ roles: list(e.target.value) })} /></label>
+                {sel.vue === 'jeton' && (
+                  <label title="Longueur réelle que couvre l’image (son côté le plus long), en mètres. Un humain debout vu de haut fait environ 1,2 à 1,6 m ; un halfelin, un gnome ou un enfant, moins. Tous les personnages sont ainsi dessinés à la même échelle.">
+                    Longueur réelle de l’image (m)
+                    <input className="maps-btn" type="number" step="0.05" min="0.3" max="3" disabled={!canEdit} key={`l-${sel.id}`} defaultValue={sel.longueur ?? ''}
+                      onBlur={(e) => { const n = Number(e.target.value); if (n > 0) edit({ longueur: Math.round(n * 100) / 100 }); }} />
+                  </label>
+                )}
               </>
             ) : (
               <label>Taille réelle (m) <input className="maps-btn" disabled={!canEdit} key={`t-${sel.id}`} defaultValue={Array.isArray(sel.taille) ? sel.taille.join(' × ') : String(sel.taille ?? '')}
