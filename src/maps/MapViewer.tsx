@@ -53,9 +53,11 @@ import { isHiddenNpc } from './world/interior';
 import { normalizeEntity } from '../bestiary/entityGen';
 import { npcBankImage, npcToken } from '../banque/place';
 import { visibleFrom } from './world/sight';
-import { DURATIONS, clockLabel, untilPeriod } from './world/clock';
+import { DURATIONS, clockLabel, clockOf, untilPeriod } from './world/clock';
 import { ATTITUDE_LABEL, PLACE_STATE_LABEL, decide, evolve, npcMemories, passTime, pending, placeStates } from './world/consequences';
 import JournalPanel from './world/JournalPanel';
+import BreakInBox from './world/BreakInBox';
+import { newEvent } from './world/worldEvents';
 import { rollFind } from './world/fouille';
 import { faceOf } from '../banque';
 import type { Period, Season } from './world/generate';
@@ -478,6 +480,10 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
 
   /** Mémoire du monde : suites en attente du MJ, état des lieux touchés, ce dont les PNJ se souviennent. */
   const waiting = rec.world ? pending(rec.world).length : 0;
+  /** Occupants d'un bâtiment déjà visité (son intérieur généré), endormis ou non : pour l'effraction nocturne. */
+  const nightKnown = (slotId: string) => data.features
+    .filter((f) => f.id.startsWith(`${slotId}:int`) && f.id.includes(':pnj-'))
+    .map((f) => ({ name: f.title, role: f.subtitle ?? '', asleep: f.pose === 'couche' || /^Dort/.test(f.summary ?? '') }));
   const states = useMemo(() => (rec.world ? placeStates(rec.world) : {}), [rec.world]);
   const memories = useMemo(() => (rec.world ? npcMemories(rec.world) : {}), [rec.world]);
   /**
@@ -1388,7 +1394,11 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
 
             {(!dm || side === 'lieu') && feature && !markerId && (
               <FeaturePanel
-                f={feature} dm={dm} notes={point?.notes ?? ''} face={npcFaceOf(feature)} placeState={states[feature.id]} memory={memories[feature.title.toLowerCase().trim()]} onTime={rec.kind === 'monde' ? advanceTime : undefined}
+                f={feature} dm={dm} notes={point?.notes ?? ''} face={npcFaceOf(feature)} placeState={states[feature.id]}
+                breakIn={rec.kind === 'monde' && rec.world && feature.batiment && map.surface?.theme === 'cite' ? (
+                  <BreakInBox key={`${feature.id}:${rec.world.time}`} f={feature} period={rec.world.time ?? 'jour'} planId={map.id} known={nightKnown(feature.id)}
+                    onTime={advanceTime} onEvent={(e) => onUpdate({ world: evolve({ ...rec.world!, events: [...(rec.world!.events ?? []), newEvent(clockOf(rec.world!), e)] }).world, updatedAt: Date.now() })} />
+                ) : undefined} memory={memories[feature.title.toLowerCase().trim()]} onTime={rec.kind === 'monde' ? advanceTime : undefined}
                 depthLine={strates ? depthOfFeature(feature.id) : undefined}
                 defaultCtx={{ zone: point?.zone ?? (rec.kind === 'monde' ? (feature.wild || feature.area ? 'sauvage' : feature.trace ? 'transit' : 'cite') : 'sauvage'), depth: point?.depth ?? 3, place: feature.title }}
                 surface={rec.kind === 'monde'}
@@ -1741,11 +1751,13 @@ function SearchBox({ f, onTime }: { f: AtlasFeature; onTime?: (minutes: number) 
   );
 }
 
-function FeaturePanel({ placeState, memory, onTime, face, f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring, partyHere, partyDest, onPartyHere, onPartyDest, passive = 10, follow, onForget, depthLine, surface }: {
+function FeaturePanel({ breakIn, placeState, memory, onTime, face, f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring, partyHere, partyDest, onPartyHere, onPartyDest, passive = 10, follow, onForget, depthLine, surface }: {
   /** Image de face d'un PNJ (fiche ou banque). */
   face?: string;
   /** Le temps passe (fouille) : minutes de jeu. */
   onTime?: (minutes: number) => void;
+  /** Effraction nocturne d'un bâtiment (BreakInBox), déjà prête. */
+  breakIn?: ReactNode;
   /** Mémoire du monde : l'état du lieu (en ruine…) et ce dont le PNJ se souvient. */
   placeState?: { etat: keyof typeof PLACE_STATE_LABEL; title: string };
   memory?: { attitude?: keyof typeof ATTITUDE_LABEL; souvenirs: string[] };
@@ -1789,6 +1801,7 @@ function FeaturePanel({ placeState, memory, onTime, face, f, dm, notes, defaultC
         </div>
       )}
       {dm && f.fouille && <SearchBox f={f} onTime={onTime} />}
+      {dm && breakIn}
       {f.trace && (() => {
         const t = trailProfile(f, f.trace === 'secret' ? 15 : undefined);
         return (

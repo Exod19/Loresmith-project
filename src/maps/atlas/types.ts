@@ -148,6 +148,8 @@ export interface AtlasFeature {
   genre?: 'f' | 'm'; peuple?: string; pose?: 'couche';
   /** Jeton vu de dessus d'un PNJ (écran des joueurs) : calculé à l'envoi, jamais enregistré. */
   token?: string;
+  /** Bâtiment d'une cité : sa nature (SLOT_TYPES) et son quartier, pour la nuit et l'effraction (world/effraction.js). */
+  batiment?: { type: string; quartier: string };
   /** Voie de la carte du monde : route royale, chemin, sentier, piste forestière ou sentier de montagne (world/voies.js). */
   voie?: 'royale' | 'chemin' | 'sentier' | 'piste' | 'col';
   /** Pièce d'un intérieur : DD de fouille discrète (selon qui s'y trouve et le moment), réservé au MJ. */
