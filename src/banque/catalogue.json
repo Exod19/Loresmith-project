@@ -21982,17 +21982,20 @@
 512,
 1024
 ],
-"nom": "Plateau rocheux",
-"cat": "roche",
-"taille": 8,
+"nom": "Angle de plateau granitique escarpé",
+"cat": "tuile-roche",
+"taille": 12,
+"usage": [
+"tactique"
+],
 "milieux": [
 "montagne"
 ],
-"climats": [],
-"saisons": [],
 "region": [
 "surface"
-]
+],
+"climats": [],
+"saisons": []
 },
 {
 "id": "baie-concave-et-prairie-terreuse",

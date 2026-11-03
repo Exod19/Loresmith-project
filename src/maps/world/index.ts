@@ -26,7 +26,8 @@ const cache = new Map<string, AtlasData>();
 export function worldAtlas(rec: MapRecord): AtlasData {
   const world = rec.world ?? EMPTY_WORLD;
   // La position du personnage du MJ ne change pas le dessin : elle n'entre pas dans la clé.
-  const key = `${rec.id}|${JSON.stringify({ ...world, avatar: world.avatar && { ...world.avatar, at: undefined } })}`;
+  // L'horloge et la mémoire du monde ne changent pas le dessin non plus (le moment de la journée, lui, si : `time`).
+  const key = `${rec.id}|${JSON.stringify({ ...world, avatar: world.avatar && { ...world.avatar, at: undefined }, clock: undefined, events: undefined })}`;
   let d = cache.get(key);
   if (!d) {
     d = generateWorld(world as WorldSpec, rec.id) as AtlasData;

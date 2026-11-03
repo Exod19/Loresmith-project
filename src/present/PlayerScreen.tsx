@@ -142,7 +142,7 @@ function PlayerMap({ board, rev, onFollow, onPick, onFork, onGoto }: { board: Ex
         dataKey={rev}
         focus={board.focus ? { kind: board.focus.kind, id: board.focus.id } : null}
         focusKey={board.focus ? String(board.focus.tick) : undefined}
-        marks={board.marks} fog={board.fog} journey={board.travel}
+        marks={board.marks} fog={board.fog} journey={board.travel} placeMarks={board.states}
         onPlace={world ? (x, y) => { setPicked(null); setSpot([x, y]); } : undefined}
         syncView={board.linked ? sync : null}
         cavernArt={board.cavernArt}
@@ -384,7 +384,7 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
         ref={wrapRef} onPointerDown={down} onPointerMove={move}
       >
         <BattleBoard
-          cols={board.cols} rows={board.rows} backdrop={board.backdrop} theme={board.theme} terrain={board.terrain} elements={board.elements} tokens={tokens} fog={board.fog} exits={board.exits}
+          cols={board.cols} rows={board.rows} backdrop={board.backdrop} tile={board.tile} theme={board.theme} terrain={board.terrain} elements={board.elements} tokens={tokens} fog={board.fog} exits={board.exits}
           onElement={pick} aim={aim} ranges={ranges} hits={board.hits} ground={board.ground} surface={board.surface} aoes={board.aoes}
           path={dragPlan && dragToken ? {
             steps: dragPlan.possible ? dragPlan.steps : [from(dragToken), drag!.cur], size: dragToken.size, ok: dragPlan.ok, possible: dragPlan.possible,

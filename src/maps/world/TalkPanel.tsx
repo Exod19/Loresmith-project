@@ -15,6 +15,7 @@ import type { World } from './index';
 import { canSpeak, creatureVoice } from './speech';
 import { npcBankImage, npcToken } from '../../banque/place';
 import { faceOf } from '../../banque';
+import { ATTITUDE_LABEL, npcMemories, rumorsIn } from './consequences';
 
 type Props = {
   rec: MapRecord;
@@ -77,6 +78,14 @@ export default function TalkPanel({ rec, data, planId, npc, library, loreContext
   const place = building ? { title: building.title, type: binding ? SLOT_TYPES[binding.type]?.label : building.subtitle, summary: building.summary } : creature?.place ? { title: creature.place } : undefined;
   const city = cityMap ? { name: cityMap.title, population: citySpec?.population } : undefined;
   const ctx = { season: world.season, climate: cityMap?.surface?.climate, time: world.time ?? 'jour' };
+  // Mémoire du monde : ce dont ce PNJ se souvient, ce qu'il ressent pour les héros, et les rumeurs de sa cité.
+  const mem = npcMemories(world)[npc.title.toLowerCase().trim()];
+  const rumors = cityPlan ? rumorsIn(world, cityPlan).slice(0, 4) : [];
+  const memory = [
+    mem?.attitude ? `CE QUE TU RESSENS : tu ${ATTITUDE_LABEL[mem.attitude]} ; ça se sent dans ta façon de leur parler.` : '',
+    mem?.souvenirs.length ? `CE DONT TU TE SOUVIENS (récent) : ${mem.souvenirs.slice(-5).join(' ; ')}.` : '',
+    rumors.length ? `CE QUI SE DIT EN VILLE (tu peux en parler, à ta manière) : ${rumors.map((r) => r.text).join(' ')}` : '',
+  ].filter(Boolean).join('\n');
 
   const send = async () => {
     const msg = said.trim();
@@ -86,7 +95,7 @@ export default function TalkPanel({ rec, data, planId, npc, library, loreContext
     setHistory(next); setSaid('');
     try {
       const lore = loreContext?.([npc.title, subtitle, place?.title, city?.name, msg].filter(Boolean).join(' ')) ?? '';
-      const system = npcSystemPrompt({ npc: { name: npc.title, role: subtitle, summary: npc.summary }, fiche: [fiche, creature ? creatureVoice(creature.stat, canSpeak(creature.stat)) : ''].filter(Boolean).join('\n\n'), place, city, ctx, avatar, mode, lore });
+      const system = npcSystemPrompt({ npc: { name: npc.title, role: subtitle, summary: npc.summary }, fiche: [fiche, memory, creature ? creatureVoice(creature.stat, canSpeak(creature.stat)) : ''].filter(Boolean).join('\n\n'), place, city, ctx, avatar, mode, lore });
       const reply = parseNpcReply(await askAI(system, npcUserPrompt(history, msg, avatar.name || 'Le voyageur', npc.title)));
       setHistory([...next, { from: 'npc', text: reply.say }]);
       share([...next, { from: 'npc', text: reply.say }]);

@@ -2,6 +2,8 @@
  * Vignettes de la carte de combat (public/images/combat-map/vignettes) : jetons, portraits de créatures,
  * icônes des lieux et des éléments cachés. Une créature de la fiche SRD a son portrait ; à défaut, un jeton générique.
  */
+import { creatureToken } from '../../banque';
+
 const BASE = `${import.meta.env.BASE_URL}images/combat-map/vignettes/`;
 export const vignette = (name: string) => `${BASE}${name}.webp`;
 
@@ -25,10 +27,12 @@ export const CATEGORY_IMG: Record<string, string> = {
   garde: 'lieu_garde', sanctuaire: 'lieu_sanctuaire', institution: 'lieu_institution', cite: 'lieu_cite', voie: 'lieu_voie', indetermine: 'lieu_indetermine',
 };
 
-/** Image d'un jeton : celle que le MJ a importée, sinon le portrait de la créature, sinon un jeton générique. */
-export function tokenImage(t: { kind: 'pc' | 'monster' | 'other'; statId?: string; image?: string }): string {
+/** Image d'un jeton : celle que le MJ a importée, sinon le jeton de la banque à son nom, sinon le portrait de la créature, sinon un jeton générique. */
+export function tokenImage(t: { kind: 'pc' | 'monster' | 'other'; statId?: string; image?: string; name?: string }): string {
   if (t.image) return t.image;
   if (t.kind === 'pc') return vignette('jeton_joueur');
+  // Monstre sans image : le jeton vu du dessus de la Banque Loresmith (dossiers « créatures »), s'il y en a un à son nom.
+  if (t.kind === 'monster' && t.name) { const bank = creatureToken(t.name, t.statId); if (bank) return bank; }
   if (t.statId && CREATURE[t.statId]) return vignette(CREATURE[t.statId]);
   if (t.kind === 'monster') return vignette('jeton_creature_defaut');
   return vignette('jeton_autre');
