@@ -82,3 +82,14 @@ orientation, sur les bâtiments qui ont cette forme.
   caverne (stalagmites, champignons, cristaux, éboulis, flaques, ossements) : `CaveArt.tsx`. L'Atlas d'origine reste
   tel quel.
 - Page **Cartes → 🖼 Banque Loresmith** : filtres par type (dont Créatures) et par monde (surface, Outreterre).
+
+## Deux mondes, et une fiche qui montre le jeton
+
+- Un personnage ou une créature appartient au monde de son dossier (surface ou Outreterre), et à lui seul.
+  L'application ne prend jamais une image de l'autre monde. Le MJ peut le faire à la main.
+- Le script apparie chaque jeton à son portrait (`pair_auto`) : même monde, même peuple et même rôle, ou même nom pour
+  une créature, plus un mot distinctif commun dans les titres.
+- Un couple trompeur se refuse dans `PAIRES_REFUSEES`. Une planche-contact des paires se vérifie à chaque nouvelle
+  série.
+- Sans portrait jumeau, la fiche montre le jeton lui-même. Pour qu'une fiche ait un vrai visage, dépose le portrait et
+  le jeton avec des titres qui se ressemblent (même rôle, même détail : « Lantern Repairer… »).

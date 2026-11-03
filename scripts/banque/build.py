@@ -505,6 +505,61 @@ def infer(folder, region, title):
     return out
 
 
+# Mots qui ne disent rien du personnage (cadrage, support) : ignorés pour apparier un jeton et son portrait.
+VIDES = set('top down overhead token portrait battle map battlemap character sheet the with a an of in and by at on rpg vtt '
+            'zenith zenithal vue du dessus de la le les des en une un au aux isole isolated view '
+            # mots communs à tout un peuple ou à tout un décor : ils ne distinguent pas deux personnages
+            'moriquendi norrianiss warral drow duergar deep gnome goblin dwarf elf halfling human woman man pale painted paint '
+            'face black underdark underground cavern cave crystal amber violet amethyst light lamps lit beneath dark fantasy '
+            'weathered silver haired white braided question mark marked eight eightfold leg geometric clan'.split())
+
+
+def mots(titre):
+    t = unicodedata.normalize('NFKD', titre).encode('ascii', 'ignore').decode().lower()
+    t = re.sub(r'\.(png|jpe?g|webp)$', '', t)
+    t = re.sub(r'[\s_-]*(\(\d+\)|-\d+)$', '', t)
+    return {w for w in re.split(r'[^a-z]+', t) if len(w) > 2 and w not in VIDES}
+
+
+# Couples que les titres rapprochent à tort (vérifiés à l'œil : deux personnes différentes). (jeton, portrait), en minuscules.
+PAIRES_REFUSEES = [('pale quartermaster with towels', 'quartermaster with geometric'), ('access guard with iron key', 'outpost guard'),
+                   ('underground relay guide', 'relay guide')]
+
+
+def pair_auto(entries):
+    """Jeton et portrait d'un même personnage (ou d'une même créature) sans paire connue : même type, même monde, même
+    peuple (personnages) ou même nom (créatures), et le plus de mots communs dans leurs titres (au moins deux pour un
+    personnage). Appariement glouton, du couple le plus sûr au moins sûr ; chaque image ne sert qu'une fois."""
+    libres = [e for e in entries if e['type'] in ('personnage', 'creature') and not e.get('paire')]
+    jetons = [e for e in libres if e['vue'] == 'jeton']
+    portraits = [e for e in libres if e['vue'] == 'portrait']
+    couples = []
+    for j in jetons:
+        for p in portraits:
+            if p['type'] != j['type'] or p.get('region') != j.get('region'):
+                continue
+            if j['type'] == 'creature' and p['nom'] != j['nom']:
+                continue
+            if j['type'] == 'personnage' and (p.get('peuple') != j.get('peuple') or (j.get('genre') and p.get('genre') and j['genre'] != p['genre'])):
+                continue
+            # Personnage : même rôle (le nom français le porte : « Cuisinier moriquendi ») et au moins un mot distinctif commun.
+            if j['type'] == 'personnage' and p['nom'] != j['nom']:
+                continue
+            if any(x in norm(j['titre']) and y in norm(p['titre']) for x, y in PAIRES_REFUSEES):
+                continue
+            commun = len(mots(j['titre']) & mots(p['titre']))
+            if j['type'] == 'personnage' and commun < 1:
+                continue
+            couples.append((commun, j['id'], p['id']))
+    pris = set()
+    by_id = {e['id']: e for e in entries}
+    for _, a, b in sorted(couples, reverse=True):
+        if a in pris or b in pris:
+            continue
+        by_id[a]['paire'], by_id[b]['paire'] = b, a
+        pris.update((a, b))
+
+
 def ascii_slug(s):
     s = unicodedata.normalize('NFKD', s).encode('ascii', 'ignore').decode().lower()
     s = re.sub(r'\.(png|jpe?g|webp)$', '', s)
@@ -631,7 +686,9 @@ def main():
             sub = e and {'texture': 'textures', 'element': 'elements', 'personnage': 'personnages', 'creature': 'creatures'}[e['type']]
             if e and all(os.path.exists(os.path.join(OUT, sub, f"{e['id']}-{m}.webp")) for m in e['mips']):
                 e = dict(e)
-                if region not in e.get('region', ['surface']):
+                if e['type'] in ('personnage', 'creature'):
+                    e['region'] = [region]  # le dossier du Drive décide : jamais un habitant des deux mondes
+                elif region not in e.get('region', ['surface']):
                     e['region'] = [*e.get('region', ['surface']), region]
                 entries.append(e)
                 slugs.add(e['id'])
@@ -668,6 +725,8 @@ def main():
         meta = meta or infer(folder, region, x['title'])
         if region == 'outreterre' and 'region' not in meta:
             meta['region'] = ['outreterre']
+        if kind in ('personnage', 'creature'):
+            meta['region'] = [region]  # personnages et créatures : le monde de leur dossier, et lui seul
         if meta.get('genre') is None:
             meta.pop('genre', None)
         if vue == 'jeton' and kind == 'personnage':
@@ -731,6 +790,7 @@ def main():
         want = 'portrait' if e['vue'] == 'jeton' else 'jeton'
         other = next((o for o in entries if o['type'] == 'personnage' and o['vue'] == want and key in norm(o['titre'])), None)
         e['paire'] = other['id'] if other else None
+    pair_auto(entries)
     # Longueur réelle (m) que couvre l'image de chaque jeton : les images remplissent toutes leur cadre, quelle que soit
     # la taille du personnage ou l'angle de vue. Mesurée à l'œil d'après la largeur des épaules (scripts/banque/
     # longueurs.json) ; un jeton absent de la liste prend une estimation d'après son peuple (tokenScale).

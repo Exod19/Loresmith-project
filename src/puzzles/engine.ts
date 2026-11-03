@@ -3,7 +3,7 @@
  * autorité : l'écran joueur n'envoie que des actions et ne reçoit que `publicProjection` (aucune solution).
  * Les règles de chaque mécanisme sont causales et constantes : la réponse se déduit, elle ne se devine pas.
  */
-import type { Clue, Effect, Mechanic, Puzzle, PuzzleAction, PuzzleState, PublicPuzzle } from './types';
+import type { Clue, Dyn, Effect, Mechanic, Puzzle, PuzzleAction, PuzzleState, PublicPuzzle } from './types';
 
 export const MECHANICS: { id: Mechanic; label: string }[] = [
   { id: 'braziers', label: 'Brasiers et leviers' },
@@ -28,7 +28,7 @@ const clone = <T>(o: T): T => JSON.parse(JSON.stringify(o));
 const isPrime = (n: number) => { if (!integer(n) || n < 2) return false; for (let d = 2; d * d <= n; d++) if (n % d === 0) return false; return true; };
 export { isPrime };
 
-export function initialDraft(p: Puzzle): any {
+export function initialDraft(p: Puzzle): Dyn {
   const c = p.engine.publicConfig;
   switch (p.mechanic) {
     case 'braziers': return { levers: Object.fromEntries(c.leverIds.map((x: string) => [x, false])), warmed: Object.fromEntries(c.leverIds.map((x: string) => [x, false])), inspected: false, observations: null, guess: Object.fromEntries(c.brazierIds.map((x: string) => [x, ''])) };
@@ -72,7 +72,7 @@ export function traceMirrors(c: { grid: number; sourceRow: number; targetRow: nu
   return { hit: false, points, loop: true };
 }
 
-export function evaluatePuzzle(p: Puzzle, draft: any): boolean {
+export function evaluatePuzzle(p: Puzzle, draft: Dyn): boolean {
   const c = p.engine.publicConfig, s = p.engine.serverConfig ?? {};
   switch (p.mechanic) {
     case 'braziers': return !!draft.inspected && c.brazierIds.every((n: string, i: number) => draft.guess[n] === s.brazierToLever[i]) && new Set(Object.values(draft.guess)).size === c.brazierIds.length;

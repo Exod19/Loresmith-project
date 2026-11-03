@@ -8,7 +8,7 @@ import type { AtlasData, AtlasFeature } from './atlas/types';
 import { mapDataFor, placeCoords, restrictToPlan, DEFAULT_BATTLE, type MapRecord, type PartyPlace } from './mapStore';
 import { effectiveGrid } from './battle/terrain';
 import { cellIn } from './battle/local';
-import { tokenImage } from './battle/vignettes';
+import { battleRegion, tokenImage } from './battle/vignettes';
 import { faceOf } from '../banque';
 import { placeStates } from './world/consequences';
 import { applyBuild, PROP_BY_KEY, propUrl } from './battle/build';
@@ -141,7 +141,7 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
   const tokens: PlayerToken[] = b.tokens
     .filter((t) => t.visible)
     .map(({ id, name, kind, x, y, size, icon, image, statId, hp, maxHp, move, reach, layer, socle, modes, conditions, dying }) => {
-      const portrait = tokenImage({ kind, statId, image, name });
+      const portrait = tokenImage({ kind, statId, image, name }, battleRegion(b));
       return {
         id, name, kind, x, y, size, icon, image: portrait, statId, layer, modes, speed: (statId && STATS[statId]?.speed) || undefined,
         socle: socleOf(rules, { x, y, size, layer, socle }, painted) ?? undefined,
@@ -154,7 +154,7 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
           // Allonge et portée de la créature : montrées quand on la glisse sur le plateau.
           reach: { melee: attackCells(statId ? STATS[statId] : undefined), short: rangedCells(statId ? STATS[statId] : undefined), long: 0 },
         }),
-        info: { subtitle: (statId && STATS[statId]?.meta) || undefined, text: (statId && CREATURE_LORE[statId]) || KIND_LORE[kind], image: artOf?.(name, id) || faceOf(portrait) || portrait },
+        info: { subtitle: (statId && STATS[statId]?.meta) || undefined, text: (statId && CREATURE_LORE[statId]) || KIND_LORE[kind], image: faceOf(portrait) || artOf?.(name, id) || portrait },
       };
     });
   const local = b.local;
@@ -231,7 +231,7 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
     }
     : undefined;
   return {
-    mode: 'battle', title: local?.place ?? rec.title, backdrop: rec.image, tile: b.tile?.src, theme: boardTheme(local?.surface, local?.nature), cols: b.cols, rows: b.rows,
+    mode: 'battle', title: local?.place ?? rec.title, backdrop: rec.image, tile: b.tile?.src, tileRot: b.tile?.rot, theme: boardTheme(local?.surface, local?.nature), cols: b.cols, rows: b.rows,
     feetPerCell: b.feetPerCell, round: b.round, tokens, terrain, elements, turn, fog, exits: exits.length ? exits : undefined,
     // Trait d'attaque : seulement si les joueurs voient l'attaquant et la cible.
     aim: b.aim && tokens.some((t) => t.id === b.aim!.from) && tokens.some((t) => t.id === b.aim!.to)

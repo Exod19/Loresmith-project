@@ -15,6 +15,8 @@ export interface BankImage {
   /** Jetons : longueur réelle (m) que couvre l'image (côté le plus long), pour dessiner tous les personnages à la même échelle. */
   longueur?: number;
   devine?: boolean; exclu?: boolean;
+  /** Supprimée de la banque (administrateur) : n'apparaît plus nulle part, remplacée là où elle était posée. */
+  supprime?: boolean;
   /** Toits : silhouette 8 × 8 (lignes de 0 et de 1). */
   masque?: string;
   /** Image ajoutée par un MJ à son univers : son adresse (une seule version), son asset et sa campagne éventuelle. */
@@ -31,7 +33,7 @@ export function peupleKey(s: unknown): string | null;
 export function peoplesOf(o?: { text?: string; people?: string; region?: string }): Peoples;
 export function hash(s: string): number;
 export function roleKeys(role: string): string[];
-export function pickPerson(images: BankImage[], o?: { vue?: 'portrait' | 'jeton'; role?: string; peoples?: Peoples; genre?: 'f' | 'm'; seed?: string; peuple?: string; pose?: string; exclude?: Set<string> }): BankImage | null;
+export function pickPerson(images: BankImage[], o?: { vue?: 'portrait' | 'jeton'; role?: string; peoples?: Peoples; genre?: 'f' | 'm'; seed?: string; peuple?: string; pose?: string; exclude?: Set<string>; region?: string }): BankImage | null;
 export function pickElement(images: BankImage[], o?: { cat?: string; cats?: string[]; climat?: string; saison?: string; region?: string; milieu?: string; usage?: string; forme?: string; formes?: string[]; ratio?: number; seed?: string }): BankImage | null;
 export function pickTexture(images: BankImage[], o?: { cat?: string; cats?: string[]; climat?: string; saison?: string; region?: string; seed?: string }): BankImage | null;
 export function mipFor(img: { mips?: number[] }, px: number, dpr?: number): number;
@@ -46,3 +48,4 @@ export function fitRoof(images: BankImage[], o: { mask: string; w: number; h: nu
 export function tokenScale(img: BankImage | null | undefined): number;
 export function nameGenre(name?: string): 'f' | 'm' | undefined;
 export function npcTraits(npc?: { name?: string; role?: string; desc?: string; gender?: string; race?: string }): { genre?: 'f' | 'm'; peuple?: string };
+export function replacementFor(images: BankImage[], img: BankImage | null | undefined): BankImage | null;

@@ -5,7 +5,7 @@
 import type { Battle, BattleToken } from '../mapStore';
 import { blocksCell, effectiveGrid } from './terrain';
 import { applyBuild } from './build';
-import { compatGrid, compileSurface, type SurfaceRules, type TerrainId } from './surface';
+import { compatGrid, compileSurface, TERRAIN_DEF, type SurfaceRules, type TerrainId } from './surface';
 import { groundCells } from './groundCells';
 import { boardTheme } from './theme';
 
@@ -100,4 +100,34 @@ export function placeTokens(b: Battle, list: Omit<BattleToken, 'x' | 'y'>[], nea
     next = { ...next, tokens: [...next.tokens, token] };
   }
   return placed;
+}
+
+/** Case où l'on ne peut pas se tenir debout : vide (gouffre), roche pleine, ou eau trop profonde pour y avoir pied. */
+const unsafe = (t: TerrainId | undefined) => !!t && (t === 'eau_profonde' || TERRAIN_DEF[t]?.mode === 'vide' || TERRAIN_DEF[t]?.mode === 'bloque');
+
+/**
+ * Après un changement de terrain (fond tactique) : chaque jeton dont une case est devenue un gouffre, de la roche ou de
+ * l'eau profonde va sur la place libre et sûre la plus proche. Renvoie les jetons (les mêmes objets s'ils n'ont pas
+ * bougé) et le nombre de jetons déplacés.
+ */
+export function relocateUnsafe(b: Battle): { tokens: BattleToken[]; moved: number } {
+  const rules = surfaceOf(b);
+  const safeAt = (size: number, x: number, y: number) => {
+    for (let dy = 0; dy < size; dy++) for (let dx = 0; dx < size; dx++) if (unsafe(rules.cells[(y + dy) * b.cols + x + dx]?.t)) return false;
+    return true;
+  };
+  let cur = b, moved = 0;
+  for (const t of b.tokens) {
+    if (t.layer === 'pont' || safeAt(t.size, t.x, t.y)) continue;
+    let best: { x: number; y: number; d: number } | null = null;
+    for (let y = 0; y + t.size <= b.rows; y++) for (let x = 0; x + t.size <= b.cols; x++) {
+      const d = Math.hypot(x - t.x, y - t.y);
+      if (best && d >= best.d) continue;
+      if (safeAt(t.size, x, y) && fits(cur, t.id, t.size, x, y)) best = { x, y, d };
+    }
+    if (!best) continue;
+    cur = { ...cur, tokens: cur.tokens.map((o) => (o.id === t.id ? { ...o, x: best!.x, y: best!.y } : o)) };
+    moved++;
+  }
+  return { tokens: cur.tokens, moved };
 }

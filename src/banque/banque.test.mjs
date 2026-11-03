@@ -172,3 +172,36 @@ test('Échelle des jetons : un halfelin, un nain, un enfant sont plus petits qu�
   assert.ok(tokenScale({ type: 'personnage', peuple: 'humain', roles: ['enfant'] }) < h);
   assert.ok(tokenScale({ type: 'personnage', peuple: 'humain', angle: 'zenith' }) < h);
 });
+
+test('une image supprimée est remplacée par la plus proche (même type, catégorie, peuple, genre)', async () => {
+  const { replacementFor } = await import('./banque.js');
+  const img = (id, o) => ({ id, nom: id, type: 'element', vue: 'zenith', ratio: 1, couleur: '#000', mips: [256], milieux: [], climats: [], saisons: [], region: ['surface'], ...o });
+  const gone = img('chene', { cat: 'arbre', taille: [6, 6] });
+  const pool = [gone, img('rocher', { cat: 'rocher', taille: [6, 6] }), img('saule', { cat: 'arbre', taille: [5, 5] }), img('chene-geant', { cat: 'arbre', taille: [20, 20] }), img('pin-exclu', { cat: 'arbre', taille: [6, 6], exclu: true })];
+  assert.equal(replacementFor(pool, gone).id, 'saule', 'même catégorie, taille la plus proche, jamais une image exclue');
+  assert.equal(replacementFor(pool, gone).id, replacementFor(pool, gone).id, 'toujours la même');
+  const p = (id, o) => img(id, { type: 'personnage', vue: 'jeton', ...o });
+  const tav = p('taverniere', { peuple: 'nain', genre: 'f', roles: ['tavernier'] });
+  assert.equal(replacementFor([tav, p('cuisinier-nain', { peuple: 'nain', genre: 'm', roles: ['tavernier'] }), p('aubergiste', { peuple: 'humain', genre: 'f', roles: ['tavernier'] })], tav).id, 'aubergiste', 'le genre est respecté avant le peuple');
+  assert.equal(replacementFor([gone], gone), null, 'rien de proche : pas de remplaçante');
+});
+
+test('surface et Outreterre ne se mêlent jamais : personnages et créatures d’un seul monde, tirage limité au sien', () => {
+  const imgs = JSON.parse(readFileSync(new URL('./catalogue.json', import.meta.url), 'utf8')).images;
+  for (const e of imgs.filter((i) => i.type === 'personnage' || i.type === 'creature')) assert.equal(e.region.length, 1, e.id);
+  const peoples = { main: ['moriquendi', 'drow', 'duergar', 'svirfnebelin', 'humain', 'nain'], others: [], banned: [] };
+  for (const region of ['surface', 'outreterre']) {
+    for (let i = 0; i < 60; i++) {
+      for (const vue of ['jeton', 'portrait']) {
+        const got = pickPerson(imgs, { vue, peoples, seed: `s${i}`, region });
+        if (got) assert.deepEqual(got.region, [region], got.id);
+      }
+    }
+  }
+  // Un jeton et son portrait jumeau : même monde, même type.
+  const byId = Object.fromEntries(imgs.map((i) => [i.id, i]));
+  for (const e of imgs.filter((i) => i.paire && byId[i.paire])) {
+    assert.equal(byId[e.paire].type, e.type, e.id);
+    assert.deepEqual(byId[e.paire].region, e.region, e.id);
+  }
+});

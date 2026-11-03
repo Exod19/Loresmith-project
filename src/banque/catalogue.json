@@ -55,7 +55,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "top-down-swarm-of-flying-bats-jeton"
 },
 {
 "id": "cavern-born-giant-bat",
@@ -83,7 +84,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "overhead-bat-with-spread-wings-jeton"
 },
 {
 "id": "cerveau-psionique-aux-quatre-pattes",
@@ -111,7 +113,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "devoreur-dintellect-vu-du-dessus-jeton"
 },
 {
 "id": "charognard-rampant-aux-huit-tentacules",
@@ -139,7 +142,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "ver-charognard-tentaculaire-vu-du-dessus-jeton"
 },
 {
 "id": "chasseur-troglodyte-au-bassin-souterrain",
@@ -167,7 +171,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "troglodyte-reptilien-a-la-lance-jeton"
 },
 {
 "id": "chestnut-double-coil-snake-token-jeton",
@@ -221,7 +226,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "cloaker-aberration-ailee-de-la-crypte"
 },
 {
 "id": "cloaker-aberration-ailee-de-la-crypte",
@@ -249,7 +255,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "cloaker-en-vol-plane-jeton"
 },
 {
 "id": "crustace-predateur-sur-une-corniche",
@@ -305,7 +312,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "cube-gelatineux-transparent-vu-den-haut-jeton"
 },
 {
 "id": "cube-gelatineux-transparent-vu-den-haut-jeton",
@@ -332,7 +340,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "cube-gelatineux-du-corridor"
 },
 {
 "id": "darkmantle-aux-huit-tentacules-jeton",
@@ -386,7 +395,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "le-darkmantle-sous-la-voute"
 },
 {
 "id": "drider-drow-aux-huit-pattes",
@@ -414,7 +424,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "drider-drow-a-huit-pattes-jeton"
 },
 {
 "id": "drider-drow-a-huit-pattes-jeton",
@@ -441,7 +452,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "drider-drow-aux-huit-pattes"
 },
 {
 "id": "drider-zenithal-jeton-vtt-isole-jeton",
@@ -495,7 +507,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "cerveau-psionique-aux-quatre-pattes"
 },
 {
 "id": "eight-legged-scorpion-overhead-jeton",
@@ -573,7 +586,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "overhead-hunched-ettercap-battle-token-jeton"
 },
 {
 "id": "giant-blind-salamander-of-the-underdark",
@@ -627,7 +641,8 @@
 "surface"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "overhead-scorpion-battle-token-jeton"
 },
 {
 "id": "giant-wolf-spider-in-fungal-grotto",
@@ -655,7 +670,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "overhead-striped-wolf-spider-jeton"
 },
 {
 "id": "giant-cave-orb-weaver",
@@ -683,7 +699,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "top-down-black-spider-with-ash-chevron-jeton"
 },
 {
 "id": "grick-en-spirale-vue-du-dessus-jeton",
@@ -710,7 +727,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "grick-ver-serpentin-aux-quatre-tentacules"
 },
 {
 "id": "grick-ver-serpentin-aux-quatre-tentacules",
@@ -738,7 +756,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "grick-en-spirale-vue-du-dessus-jeton"
 },
 {
 "id": "grimlock-vu-du-dessus-massue-de-pierre-jeton",
@@ -765,7 +784,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "grimlock-le-colosse-souterrain"
 },
 {
 "id": "grimlock-le-colosse-souterrain",
@@ -793,7 +813,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "grimlock-vu-du-dessus-massue-de-pierre-jeton"
 },
 {
 "id": "geant-fouisseur-a-carapace-dombre",
@@ -821,7 +842,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "umber-hulk-vu-du-dessus-jeton"
 },
 {
 "id": "horreur-des-cavernes-aux-crochets",
@@ -849,7 +871,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "horreur-a-crochets-vue-du-dessus-jeton"
 },
 {
 "id": "horreur-a-crochets-vue-du-dessus-jeton",
@@ -876,7 +899,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "horreur-des-cavernes-aux-crochets"
 },
 {
 "id": "illithid-en-vue-zenithale-jeton",
@@ -903,7 +927,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "illithide-aux-quatre-tentacules"
 },
 {
 "id": "illithide-aux-quatre-tentacules",
@@ -931,7 +956,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "illithid-en-vue-zenithale-jeton"
 },
 {
 "id": "ivory-phase-spider-by-ancient-fissure",
@@ -959,7 +985,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "ivory-and-indigo-spider-token-jeton"
 },
 {
 "id": "ivory-and-indigo-spider-token-jeton",
@@ -986,7 +1013,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "ivory-phase-spider-by-ancient-fissure"
 },
 {
 "id": "kuo-toa-du-lac-souterrain",
@@ -1014,7 +1042,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "kuo-toa-zenithal-avec-lance-et-filet-jeton"
 },
 {
 "id": "kuo-toa-zenithal-avec-lance-et-filet-jeton",
@@ -1041,7 +1070,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "kuo-toa-du-lac-souterrain"
 },
 {
 "id": "le-darkmantle-sous-la-voute",
@@ -1069,7 +1099,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "darkmantle-ombrelle-brune-a-huit-tentacules-jeton"
 },
 {
 "id": "le-perceur-limace-a-coquille-calcaire",
@@ -1097,7 +1128,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "piercer-a-coquille-calcaire-vue-zenithale-jeton"
 },
 {
 "id": "massive-cave-constrictor-by-underground-river",
@@ -1153,7 +1185,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "monstre-rouilleur-vu-du-dessus-jeton"
 },
 {
 "id": "monstre-rouilleur-vu-du-dessus-jeton",
@@ -1180,7 +1213,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "monstre-rouille-dans-la-mine"
 },
 {
 "id": "otyugh-en-vue-zenithale-jeton",
@@ -1207,7 +1241,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "otyugh-aberration-tentaculaire-des-cavernes"
 },
 {
 "id": "otyugh-aberration-tentaculaire-des-cavernes",
@@ -1235,7 +1270,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "otyugh-en-vue-zenithale-jeton"
 },
 {
 "id": "overhead-bat-with-spread-wings-jeton",
@@ -1262,7 +1298,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "cavern-born-giant-bat"
 },
 {
 "id": "overhead-centipede-battle-token-jeton",
@@ -1316,7 +1353,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "ettercap-beside-a-web-covered-fungus"
 },
 {
 "id": "overhead-scorpion-battle-token-jeton",
@@ -1341,7 +1379,8 @@
 "surface"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "giant-scorpion-of-the-stone-desert"
 },
 {
 "id": "overhead-ettercap-battle-token-jeton",
@@ -1395,7 +1434,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "giant-wolf-spider-in-fungal-grotto"
 },
 {
 "id": "piercer-a-coquille-calcaire-vue-zenithale-jeton",
@@ -1422,7 +1462,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "le-perceur-limace-a-coquille-calcaire"
 },
 {
 "id": "pecheur-des-cavernes-vue-zenithale-jeton",
@@ -1477,7 +1518,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "quaggoth-ivoire-en-vue-zenithale-jeton"
 },
 {
 "id": "quaggoth-ivoire-en-vue-zenithale-jeton",
@@ -1504,7 +1546,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "quaggoth-ivoire-en-foret-fongique"
 },
 {
 "id": "roper-rocheux-aux-six-tentacules-jeton",
@@ -1531,7 +1574,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "rodeur-stalagmitique-aux-six-tentacules"
 },
 {
 "id": "rustbound-giant-centipede-in-fungal-humus",
@@ -1559,7 +1603,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "single-headed-overhead-centipede-token-jeton"
 },
 {
 "id": "rodeur-stalagmitique-aux-six-tentacules",
@@ -1587,7 +1632,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "roper-rocheux-aux-six-tentacules-jeton"
 },
 {
 "id": "single-headed-overhead-centipede-token-jeton",
@@ -1614,7 +1660,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "rustbound-giant-centipede-in-fungal-humus"
 },
 {
 "id": "top-down-coiled-olive-viper-jeton",
@@ -1641,7 +1688,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "venomous-cave-viper-in-shadow"
 },
 {
 "id": "top-down-black-spider-with-ash-chevron-jeton",
@@ -1668,7 +1716,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "giant-cave-orb-weaver"
 },
 {
 "id": "top-down-swarm-of-flying-bats-jeton",
@@ -1695,7 +1744,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "cave-bat-swarm-beneath-stalactites"
 },
 {
 "id": "troglodyte-reptilien-a-la-lance-jeton",
@@ -1722,7 +1772,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "chasseur-troglodyte-au-bassin-souterrain"
 },
 {
 "id": "true-overhead-deep-gnome-scout-jeton",
@@ -1752,7 +1803,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "white-haired-deep-gnome-scout"
 },
 {
 "id": "umber-hulk-vu-du-dessus-jeton",
@@ -1779,7 +1831,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "geant-fouisseur-a-carapace-dombre"
 },
 {
 "id": "venomous-cave-viper-in-shadow",
@@ -1807,7 +1860,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "top-down-coiled-olive-viper-jeton"
 },
 {
 "id": "ver-charognard-tentaculaire-vu-du-dessus-jeton",
@@ -1834,7 +1888,8 @@
 "outreterre"
 ],
 "climats": [],
-"saisons": []
+"saisons": [],
+"paire": "charognard-rampant-aux-huit-tentacules"
 },
 {
 "id": "eclaireur-svirfneblin-pres-dun-affleurement-somb",
@@ -12143,7 +12198,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "overhead-alchemy-apprentice-with-amber-flask-jeton"
 },
 {
 "id": "amethyst-robed-drow-priestess",
@@ -12174,7 +12230,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "overhead-drow-priestess-battle-token-jeton"
 },
 {
 "id": "amethyst-lit-moriquendi-relay-guide",
@@ -12227,7 +12284,7 @@
 "marche",
 "villageois"
 ],
-"paire": null,
+"paire": "top-down-dark-fantasy-apple-basket-token-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -12267,7 +12324,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "overhead-duergar-blacksmith-token-jeton"
 },
 {
 "id": "ash-gray-duergar-innkeeper-portrait",
@@ -12297,7 +12355,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "top-down-duergar-innkeeper-token-jeton"
 },
 {
 "id": "auburn-haired-servant-with-wooden-bucket",
@@ -12321,7 +12380,7 @@
 "serveur",
 "villageois"
 ],
-"paire": null,
+"paire": "overhead-dark-fantasy-bucket-bearer-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -12360,7 +12419,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "moriquendi-locksmith-with-an-iron-key"
 },
 {
 "id": "bioluminescent-cavern-dock-character-sheet",
@@ -12448,7 +12508,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "pale-enchantment-lecturer-with-arachnid-paint-jeton"
 },
 {
 "id": "black-painted-potter-with-clay-bowl-jeton",
@@ -12477,7 +12538,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "pale-moriquendi-potter-in-crystal-workshop"
 },
 {
 "id": "black-marked-checkpoint-clerk-beneath-violet-cry",
@@ -12507,7 +12569,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "silver-haired-toll-clerk-overhead-token-jeton"
 },
 {
 "id": "black-painted-linen-quartermaster-in-crystal-lau",
@@ -12536,7 +12599,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "pale-quartermaster-with-towels-jeton"
 },
 {
 "id": "bold-continuous-monobrow-portrait",
@@ -12594,7 +12658,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "pale-archmage-beneath-violet-crystal-light"
 },
 {
 "id": "braided-auburn-dwarf-guildmaster",
@@ -12658,7 +12723,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "moriquendi-bayou-fisher-with-ritual-paint"
 },
 {
 "id": "braided-cook-with-spider-face-paint-jeton",
@@ -12687,7 +12753,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "pale-moriquendi-cook-with-spider-leg-paint"
 },
 {
 "id": "braided-girl-with-a-wooden-horse",
@@ -12708,7 +12775,7 @@
 "roles": [
 "enfant"
 ],
-"paire": null,
+"paire": "overhead-child-with-wooden-toy-horse-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -12781,7 +12848,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "underground-rescue-tracker-beneath-crystal-lamps"
 },
 {
 "id": "charcoal-coated-administrator-with-document-case-jeton",
@@ -12842,7 +12910,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "wrinkled-high-priestess-in-crystal-chamber"
 },
 {
 "id": "cheerful-halfling-tavern-server",
@@ -12973,7 +13042,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "silver-haired-superintendent-of-the-crystal-regi"
 },
 {
 "id": "clockwork-repairer-with-a-painted-question-mark",
@@ -13058,7 +13128,7 @@
 "aventurier",
 "guide"
 ],
-"paire": null,
+"paire": "top-down-dwarf-explorer-with-staff-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -13182,7 +13252,7 @@
 "mendiant",
 "vagabond"
 ],
-"paire": null,
+"paire": "weathered-beggar-with-empty-bowl",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -13223,7 +13293,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "overhead-crystal-merchant-token-jeton"
 },
 {
 "id": "crystal-lit-underground-pawnbroker",
@@ -13252,7 +13323,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "overhead-pawnbroker-with-a-ring-box-jeton"
 },
 {
 "id": "crystal-lit-cavern-kitchen-character-sheet",
@@ -13370,7 +13442,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "moss-green-cave-goblin-breeder-jeton"
 },
 {
 "id": "dark-fantasy-overhead-game-token-jeton",
@@ -13492,7 +13565,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "top-down-drow-merchant-token-jeton"
 },
 {
 "id": "dwarven-girl-with-woven-basket",
@@ -13513,7 +13587,7 @@
 "roles": [
 "enfant"
 ],
-"paire": null,
+"paire": "overhead-dwarf-girl-with-basket-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -13545,7 +13619,7 @@
 "potier",
 "artisan"
 ],
-"paire": null,
+"paire": "overhead-dwarf-artisan-with-clay-bowl-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -13619,7 +13693,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "moriquendi-high-priest-in-a-crystal-lit-sanctuar"
 },
 {
 "id": "elder-teacher-with-geometric-face-paint-jeton",
@@ -13649,7 +13724,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "pale-moriquendi-teacher-in-a-crystal-lit-classro"
 },
 {
 "id": "elder-dwarf-with-book-and-ochre-stole-jeton",
@@ -13704,7 +13780,7 @@
 "cordonnier",
 "artisan"
 ],
-"paire": null,
+"paire": "overhead-gnome-shoemaker-with-unfinished-shoe-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -13739,7 +13815,7 @@
 "archiviste",
 "scribe"
 ],
-"paire": null,
+"paire": "overhead-gnome-scholar-reading-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -13835,7 +13911,7 @@
 "scribe",
 "bibliothecaire"
 ],
-"paire": null,
+"paire": "moss-robed-elf-archivist-with-books-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -13901,7 +13977,7 @@
 "marchand",
 "cuisinier"
 ],
-"paire": null,
+"paire": "overhead-dwarf-baker-with-a-loaf-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -13932,7 +14008,7 @@
 "roles": [
 "enfant"
 ],
-"paire": null,
+"paire": "overhead-medieval-boy-with-cloth-ball-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -13965,7 +14041,7 @@
 "client",
 "marchand"
 ],
-"paire": null,
+"paire": "overhead-tiefling-merchant-with-market-sack-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -13998,7 +14074,7 @@
 "paysan",
 "marchand"
 ],
-"paire": null,
+"paire": "overhead-halfling-with-straw-hat-and-carrots-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -14030,7 +14106,7 @@
 "erudit",
 "explorateur"
 ],
-"paire": null,
+"paire": "thoughtful-dwarf-cartographer-with-map",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -14066,7 +14142,7 @@
 "fossoyeur",
 "croque-mort"
 ],
-"paire": null,
+"paire": "overhead-funerary-officiant-with-wooden-box-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -14129,7 +14205,7 @@
 "drapier",
 "boutiquier"
 ],
-"paire": null,
+"paire": "half-elf-cloth-merchant-portrait",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -14164,7 +14240,7 @@
 "drapier",
 "boutiquier"
 ],
-"paire": null,
+"paire": "half-elf-cloth-merchant-map-token-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -14198,7 +14274,7 @@
 "messager",
 "conseiller"
 ],
-"paire": null,
+"paire": "half-elf-loresmith-with-sealed-scroll-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -14265,7 +14341,7 @@
 "messager",
 "conseiller"
 ],
-"paire": null,
+"paire": "half-elf-diplomat-with-a-sealed-scroll",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -14301,7 +14377,7 @@
 "docker",
 "porteur"
 ],
-"paire": null,
+"paire": "overhead-half-orc-battlemap-token-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -14334,7 +14410,7 @@
 "couturier",
 "artisan"
 ],
-"paire": null,
+"paire": "half-orc-tailor-map-token-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -14367,7 +14443,7 @@
 "apprenti",
 "eleve"
 ],
-"paire": null,
+"paire": "overhead-half-elf-with-satchel-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -14401,7 +14477,7 @@
 "ouvrier",
 "marin"
 ],
-"paire": null,
+"paire": "overhead-traveler-carrying-a-wooden-crate-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -14433,7 +14509,7 @@
 "couturier",
 "artisan"
 ],
-"paire": null,
+"paire": "half-orc-tailor-with-slate-fabric",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -14466,7 +14542,7 @@
 "soigneur",
 "guerisseur"
 ],
-"paire": null,
+"paire": "halfling-healer-with-linen-bandage",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -14500,7 +14576,7 @@
 "soigneur",
 "guerisseur"
 ],
-"paire": null,
+"paire": "halfling-healer-with-bandage-roll-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -14532,16 +14608,17 @@
 "aubergiste",
 "tavernier"
 ],
-"milieux": [],
-"climats": [],
-"saisons": [],
 "region": [
 "surface"
 ],
+"milieux": [],
+"climats": [],
+"saisons": [],
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "overhead-halfling-innkeeper-token-jeton"
 },
 {
 "id": "hooded-wayfarer-in-amber-shadow",
@@ -14629,7 +14706,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "overhead-garrison-commander-in-blackened-steel-jeton"
 },
 {
 "id": "iron-gray-magistrate-with-geometric-face-paint",
@@ -14812,7 +14890,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "top-down-lantern-repairer-with-unlit-lantern-jeton"
 },
 {
 "id": "loresmith-half-orc-merchant",
@@ -14936,7 +15015,7 @@
 "artisan",
 "ouvrier"
 ],
-"paire": null,
+"paire": "overhead-medieval-carpenter-with-wooden-plane-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -14969,7 +15048,7 @@
 "colporteur",
 "boutiquier"
 ],
-"paire": null,
+"paire": "overhead-halfling-with-brass-candlestick-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -15185,7 +15264,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "top-down-mourning-officiant-token-jeton"
 },
 {
 "id": "moriquendi-gate-guard-at-crystal-checkpoint",
@@ -15335,7 +15415,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "white-braided-priestess-with-ritual-box-jeton"
 },
 {
 "id": "moriquendi-quartermaster-with-geometric-face-pai",
@@ -15633,7 +15714,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "braided-bayou-fisher-with-reed-creel-jeton"
 },
 {
 "id": "moriquendi-blacksmith-with-branching-face-paint",
@@ -15752,7 +15834,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "overhead-access-guard-with-iron-key-jeton"
 },
 {
 "id": "moriquendi-high-priest-in-a-crystal-lit-sanctuar",
@@ -15782,7 +15865,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "elder-high-priest-with-driftwood-staff-jeton"
 },
 {
 "id": "moriquendi-hostess-with-a-painted-question-mark",
@@ -15872,7 +15956,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "northern-storykeeper-with-eightfold-eye-paint-jeton"
 },
 {
 "id": "moriquendi-locksmith-with-an-iron-key",
@@ -15901,7 +15986,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "austere-locksmith-with-an-iron-key-jeton"
 },
 {
 "id": "moriquendi-night-watchkeeper-with-black-face-pai",
@@ -15931,7 +16017,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "painted-night-watchkeeper-jeton"
 },
 {
 "id": "moriquendi-rope-maker-beneath-crystal-lamps",
@@ -15960,7 +16047,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "top-down-rope-maker-with-spider-paint-jeton"
 },
 {
 "id": "moriquendi-spoon-peddler-with-question-mark-pain",
@@ -16019,7 +16107,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "curious-goblin-cave-breeder"
 },
 {
 "id": "moss-robed-elf-archivist-with-books-jeton",
@@ -16042,7 +16131,7 @@
 "scribe",
 "bibliothecaire"
 ],
-"paire": null,
+"paire": "elven-archivist-with-worn-leather-books",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -16114,7 +16203,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "overhead-midwife-with-linen-roll-jeton"
 },
 {
 "id": "norrianiss-prophetess-overhead-token-jeton",
@@ -16145,7 +16235,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "pale-norrianiss-prophetess-in-crystal-light"
 },
 {
 "id": "norrianiss-merchant-with-eight-leg-face-paint",
@@ -16234,7 +16325,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "moriquendi-keeper-of-northern-memories"
 },
 {
 "id": "overhead-alchemy-apprentice-with-amber-flask-jeton",
@@ -16264,7 +16356,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "alchemist-apprentice-beneath-crystal-caverns"
 },
 {
 "id": "overhead-archive-priestess-token-jeton",
@@ -16317,7 +16410,7 @@
 "armurier",
 "artisan"
 ],
-"paire": null,
+"paire": "soot-marked-half-orc-blacksmith",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -16359,7 +16452,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "pale-moriquendi-envoy-in-the-crystal-hall"
 },
 {
 "id": "overhead-deep-gnome-mushroom-farmer-jeton",
@@ -16389,7 +16483,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "weathered-deep-gnome-mushroom-farmer"
 },
 {
 "id": "overhead-half-elf-with-satchel-jeton",
@@ -16411,7 +16506,7 @@
 "apprenti",
 "eleve"
 ],
-"paire": null,
+"paire": "half-elf-girl-with-book-satchel",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -16446,7 +16541,7 @@
 "menestrel",
 "voyageur"
 ],
-"paire": null,
+"paire": "traveling-halfling-bard-with-lute",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -16480,7 +16575,7 @@
 "domestique",
 "scribe"
 ],
-"paire": null,
+"paire": "the-household-stewards-ledger",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -16515,7 +16610,7 @@
 "artisan",
 "ouvrier"
 ],
-"paire": null,
+"paire": "medieval-carpenter-holding-a-hand-plane",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -16557,7 +16652,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "pale-pack-drover-beneath-crystal-light"
 },
 {
 "id": "overhead-access-guard-with-iron-key-jeton",
@@ -16587,7 +16683,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "moriquendi-gate-guard-with-black-face-paint"
 },
 {
 "id": "overhead-child-with-wooden-toy-horse-jeton",
@@ -16607,7 +16704,7 @@
 "roles": [
 "enfant"
 ],
-"paire": null,
+"paire": "braided-girl-with-a-wooden-horse",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -16641,7 +16738,7 @@
 "coursier",
 "voyageur"
 ],
-"paire": null,
+"paire": "rust-cloaked-courier-with-a-dispatch-satchel",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -16682,7 +16779,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "crystal-merchant-in-the-underground-reagent-shop"
 },
 {
 "id": "overhead-dark-fantasy-bucket-bearer-jeton",
@@ -16705,7 +16803,7 @@
 "serveur",
 "villageois"
 ],
-"paire": null,
+"paire": "auburn-haired-servant-with-wooden-bucket",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -16911,7 +17009,7 @@
 "paysan",
 "villageois"
 ],
-"paire": null,
+"paire": "weathered-farmer-with-a-sickle",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -16975,7 +17073,7 @@
 "aventurier",
 "pelerin"
 ],
-"paire": null,
+"paire": "weary-tiefling-traveler-portrait",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -17053,7 +17151,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "amethyst-robed-drow-priestess"
 },
 {
 "id": "overhead-duergar-blacksmith-token-jeton",
@@ -17083,7 +17182,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "ash-gray-duergar-blacksmith-portrait"
 },
 {
 "id": "overhead-dwarf-artisan-with-clay-bowl-jeton",
@@ -17104,7 +17204,7 @@
 "potier",
 "artisan"
 ],
-"paire": null,
+"paire": "dwarven-potter-with-clay-bowl",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -17138,7 +17238,7 @@
 "marchand",
 "cuisinier"
 ],
-"paire": null,
+"paire": "freckled-dwarf-baker-with-a-fresh-loaf",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -17170,7 +17270,7 @@
 "roles": [
 "enfant"
 ],
-"paire": null,
+"paire": "dwarven-girl-with-woven-basket",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -17306,7 +17406,7 @@
 "pecheur",
 "marin"
 ],
-"paire": null,
+"paire": "weathered-fisherman-with-coiled-net",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -17340,7 +17440,7 @@
 "caravanier",
 "voyageur"
 ],
-"paire": null,
+"paire": "weathered-elf-caravan-trader",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -17409,7 +17509,7 @@
 "fossoyeur",
 "croque-mort"
 ],
-"paire": null,
+"paire": "gray-haired-officiant-with-wooden-box",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -17451,7 +17551,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "iron-gray-commander-of-the-underdark"
 },
 {
 "id": "overhead-gnome-scholar-reading-jeton",
@@ -17475,7 +17576,7 @@
 "archiviste",
 "scribe"
 ],
-"paire": null,
+"paire": "elderly-gnome-scholar-with-open-book",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -17508,7 +17609,7 @@
 "cordonnier",
 "artisan"
 ],
-"paire": null,
+"paire": "elderly-gnome-cobbler-with-leather-shoe",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -17577,7 +17678,7 @@
 "docker",
 "villageois"
 ],
-"paire": null,
+"paire": "weathered-half-elf-laborer",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -17612,7 +17713,7 @@
 "docker",
 "porteur"
 ],
-"paire": null,
+"paire": "half-orc-smuggler-with-cloth-parcel",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -17656,7 +17757,8 @@
 0.9
 ],
 "angle": "incline",
-"longueur": 0.81
+"longueur": 0.81,
+"paire": "halfling-innkeeper-with-leather-ledger"
 },
 {
 "id": "overhead-halfling-traveler-with-a-staff-jeton",
@@ -17712,7 +17814,7 @@
 "colporteur",
 "boutiquier"
 ],
-"paire": null,
+"paire": "mischievous-halfling-merchant-with-brass-candles",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -17746,7 +17848,7 @@
 "paysan",
 "marchand"
 ],
-"paire": null,
+"paire": "ginger-halfling-farmer-with-carrots",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -17778,7 +17880,7 @@
 "roles": [
 "enfant"
 ],
-"paire": null,
+"paire": "freckled-medieval-boy-with-cloth-ball",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -17811,7 +17913,7 @@
 "poissonnier",
 "marchand"
 ],
-"paire": null,
+"paire": "weathered-fishmonger-with-a-silver-moustache",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -17854,7 +17956,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "norrianiss-midwife-in-the-crystal-care-room"
 },
 {
 "id": "overhead-pale-moriquendi-map-token-jeton",
@@ -17913,7 +18016,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "pale-moriquendi-patrol-at-crystal-junction"
 },
 {
 "id": "overhead-pawnbroker-with-a-ring-box-jeton",
@@ -17942,7 +18046,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "crystal-lit-underground-pawnbroker"
 },
 {
 "id": "overhead-provisions-seller-with-ration-bundle-jeton",
@@ -18004,7 +18109,8 @@
 0.9
 ],
 "angle": "incline",
-"longueur": 1.2
+"longueur": 1.2,
+"paire": null
 },
 {
 "id": "overhead-silver-haired-archer-token-jeton",
@@ -18129,7 +18235,7 @@
 "roles": [
 "enfant"
 ],
-"paire": null,
+"paire": "shy-tiefling-boy-medieval-town",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -18163,7 +18269,7 @@
 "marchand",
 "erudit"
 ],
-"paire": null,
+"paire": "silver-horned-tiefling-bookseller",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -18197,7 +18303,7 @@
 "client",
 "marchand"
 ],
-"paire": null,
+"paire": "friendly-tiefling-townsman-with-shopping-sack",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -18232,7 +18338,7 @@
 "diplomate",
 "marchand"
 ],
-"paire": null,
+"paire": "velvet-clad-tiefling-noble",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -18267,7 +18373,7 @@
 "ouvrier",
 "marin"
 ],
-"paire": null,
+"paire": "half-orc-dock-porter-with-wooden-crate",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -18309,7 +18415,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "moriquendi-night-watchkeeper-with-black-face-pai"
 },
 {
 "id": "painted-question-mark-mushroom-gardener",
@@ -18398,7 +18505,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "braided-archmage-with-amethyst-staff-jeton"
 },
 {
 "id": "pale-ferryperson-at-the-crystal-lit-canal",
@@ -18428,7 +18536,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "weathered-canal-ferryperson-with-boat-hook-jeton"
 },
 {
 "id": "pale-herbal-caregiver-rpg-token-jeton",
@@ -18519,7 +18628,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "top-down-face-painted-bookseller-jeton"
 },
 {
 "id": "pale-moriquendi-cook-with-spider-leg-paint",
@@ -18548,7 +18658,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "braided-cook-with-spider-face-paint-jeton"
 },
 {
 "id": "pale-moriquendi-diplomat-in-a-crystal-cavern-emb",
@@ -18578,7 +18689,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "silver-haired-diplomat-with-forked-face-paint-jeton"
 },
 {
 "id": "pale-moriquendi-envoy-in-the-crystal-hall",
@@ -18608,7 +18720,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "overhead-dark-fantasy-envoy-token-jeton"
 },
 {
 "id": "pale-moriquendi-high-priestess",
@@ -18669,7 +18782,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "top-down-infirmary-attendant-with-bandages-jeton"
 },
 {
 "id": "pale-moriquendi-innkeeper-at-the-crystal-bar",
@@ -18699,7 +18813,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "top-down-innkeeper-with-question-mark-face-paint-jeton"
 },
 {
 "id": "pale-moriquendi-outfitter-in-crystal-lit-shop",
@@ -18758,7 +18873,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "overhead-patrol-corporal-with-sheathed-sword-jeton"
 },
 {
 "id": "pale-moriquendi-potter-in-crystal-workshop",
@@ -18787,7 +18903,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "black-painted-potter-with-clay-bowl-jeton"
 },
 {
 "id": "pale-moriquendi-teacher-in-a-crystal-lit-classro",
@@ -18817,7 +18934,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "elder-teacher-with-geometric-face-paint-jeton"
 },
 {
 "id": "pale-moriquendi-courier-with-angular-black-paint",
@@ -18847,7 +18965,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "top-down-black-painted-courier-token-jeton"
 },
 {
 "id": "pale-mushroom-merchant-of-the-caverns",
@@ -18966,7 +19085,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "norrianiss-prophetess-overhead-token-jeton"
 },
 {
 "id": "pale-pack-drover-beneath-crystal-light",
@@ -18996,7 +19116,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "overhead-white-haired-drover-token-jeton"
 },
 {
 "id": "pale-physician-with-geometric-clan-paint",
@@ -19055,7 +19176,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "black-painted-linen-quartermaster-in-crystal-lau"
 },
 {
 "id": "pale-enchantment-lecturer-with-arachnid-paint-jeton",
@@ -19086,7 +19208,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "black-painted-lecturer-in-the-underdark"
 },
 {
 "id": "pale-river-keeper-with-braided-hair",
@@ -19225,7 +19348,7 @@
 "commis",
 "comptable"
 ],
-"paire": null,
+"paire": "the-ledger-keeping-clerk",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -19364,7 +19487,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "teal-robed-priestess-by-the-underdark-river"
 },
 {
 "id": "running-adventurer-with-backpack-and-tail-jeton",
@@ -19420,7 +19544,7 @@
 "coursier",
 "voyageur"
 ],
-"paire": null,
+"paire": "overhead-courier-with-dispatch-satchel-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -19485,7 +19609,7 @@
 "roles": [
 "enfant"
 ],
-"paire": null,
+"paire": "overhead-tiefling-boy-map-token-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -19612,7 +19736,7 @@
 "dame",
 "seigneur"
 ],
-"paire": null,
+"paire": "silver-haired-noblewoman-in-midnight-velvet",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -19677,7 +19801,7 @@
 "marchand",
 "erudit"
 ],
-"paire": null,
+"paire": "overhead-tiefling-lorekeeper-with-leather-book-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -19744,7 +19868,7 @@
 "soigneur",
 "guerisseur"
 ],
-"paire": null,
+"paire": "silver-braided-gnome-herbalist",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -19779,7 +19903,7 @@
 "soigneur",
 "guerisseur"
 ],
-"paire": null,
+"paire": "silver-braided-gnome-herbalist-token-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -19908,7 +20032,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "pale-moriquendi-diplomat-in-a-crystal-cavern-emb"
 },
 {
 "id": "silver-haired-noblewoman-in-midnight-velvet",
@@ -19931,7 +20056,7 @@
 "dame",
 "seigneur"
 ],
-"paire": null,
+"paire": "silver-curled-noblewoman-in-midnight-velvet-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -19971,7 +20096,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "clan-painted-registrar-with-registry-and-keys-jeton"
 },
 {
 "id": "silver-haired-toll-clerk-overhead-token-jeton",
@@ -20001,7 +20127,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "black-marked-checkpoint-clerk-beneath-violet-cry"
 },
 {
 "id": "skeptical-notary-with-painted-question-mark",
@@ -20087,7 +20214,7 @@
 "armurier",
 "artisan"
 ],
-"paire": null,
+"paire": "overhead-blacksmith-with-hammer-and-tongs-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -20187,7 +20314,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": null
 },
 {
 "id": "subterranean-locksmith-character-sheet",
@@ -20247,7 +20375,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "river-priestess-with-charms-jeton"
 },
 {
 "id": "the-household-stewards-ledger",
@@ -20270,7 +20399,7 @@
 "domestique",
 "scribe"
 ],
-"paire": null,
+"paire": "overhead-loresmith-ledger-keeper-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -20303,7 +20432,7 @@
 "commis",
 "comptable"
 ],
-"paire": null,
+"paire": "plum-gowned-loresmith-with-ledger-and-quill-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -20336,7 +20465,7 @@
 "erudit",
 "explorateur"
 ],
-"paire": null,
+"paire": "ginger-dwarf-cartographer-battle-token-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -20376,7 +20505,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "top-down-goblin-apothecary-token-jeton"
 },
 {
 "id": "top-down-ash-blond-militia-sergeant-jeton",
@@ -20435,7 +20565,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "drow-merchant-in-chiaroscuro"
 },
 {
 "id": "top-down-dwarf-explorer-with-staff-jeton",
@@ -20458,7 +20589,7 @@
 "aventurier",
 "guide"
 ],
-"paire": null,
+"paire": "copper-braided-dwarf-explorer-portrait",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -20501,7 +20632,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "pale-moriquendi-bookseller-with-question-mark-pa"
 },
 {
 "id": "top-down-goblin-apothecary-token-jeton",
@@ -20531,7 +20663,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "thoughtful-goblin-apothecary-portrait"
 },
 {
 "id": "top-down-lantern-repairer-with-unlit-lantern-jeton",
@@ -20560,7 +20693,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "lantern-repairer-in-the-deep"
 },
 {
 "id": "top-down-priestess-with-stone-offering-bowl-jeton",
@@ -20655,7 +20789,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "pale-moriquendi-courier-with-angular-black-paint"
 },
 {
 "id": "top-down-dark-fantasy-apple-basket-token-jeton",
@@ -20677,7 +20812,7 @@
 "marche",
 "villageois"
 ],
-"paire": null,
+"paire": "apple-merchant-in-ochre-headscarf",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -20752,7 +20887,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "ash-gray-duergar-innkeeper-portrait"
 },
 {
 "id": "top-down-gnome-seamstress-token-jeton",
@@ -20816,7 +20952,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "ward-archmage-in-the-crystal-workshop"
 },
 {
 "id": "top-down-infirmary-attendant-with-bandages-jeton",
@@ -20846,7 +20983,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "pale-moriquendi-infirmary-attendant"
 },
 {
 "id": "top-down-innkeeper-with-question-mark-face-paint-jeton",
@@ -20876,7 +21014,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "pale-moriquendi-innkeeper-at-the-crystal-bar"
 },
 {
 "id": "top-down-medieval-fantasy-battlemap-token-jeton",
@@ -20935,7 +21074,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "moriquendi-funeral-officiant-in-the-underdark"
 },
 {
 "id": "top-down-painted-defense-instructor-token-jeton",
@@ -20965,7 +21105,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "underdark-defense-instructor-with-question-mark-"
 },
 {
 "id": "top-down-river-cartographer-with-brass-dividers-jeton",
@@ -20995,7 +21136,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "underground-river-cartographer"
 },
 {
 "id": "top-down-rope-maker-with-spider-paint-jeton",
@@ -21024,7 +21166,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "moriquendi-rope-maker-beneath-crystal-lamps"
 },
 {
 "id": "top-down-shieldbearer-with-short-spear-jeton",
@@ -21112,7 +21255,7 @@
 "menestrel",
 "voyageur"
 ],
-"paire": null,
+"paire": "overhead-halfling-bard-with-lute-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -21152,7 +21295,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "top-down-painted-defense-instructor-token-jeton"
 },
 {
 "id": "underground-rescue-tracker-beneath-crystal-lamps",
@@ -21182,7 +21326,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "cave-rescue-tracker-token-jeton"
 },
 {
 "id": "underground-river-cartographer",
@@ -21212,7 +21357,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "top-down-river-cartographer-with-brass-dividers-jeton"
 },
 {
 "id": "velvet-clad-tiefling-noble",
@@ -21236,7 +21382,7 @@
 "diplomate",
 "marchand"
 ],
-"paire": null,
+"paire": "overhead-tiefling-noble-map-token-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -21275,7 +21421,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "top-down-gray-robed-archmage-with-brass-frame-jeton"
 },
 {
 "id": "warral-elder-with-spider-lattice-face-paint",
@@ -21385,7 +21532,7 @@
 "aventurier",
 "pelerin"
 ],
-"paire": null,
+"paire": "overhead-dark-fantasy-traveler-token-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -21417,7 +21564,7 @@
 "mendiant",
 "vagabond"
 ],
-"paire": null,
+"paire": "cross-legged-cloaked-figure-with-wooden-bowl-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -21457,7 +21604,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "pale-ferryperson-at-the-crystal-lit-canal"
 },
 {
 "id": "weathered-deep-gnome-mushroom-farmer",
@@ -21487,7 +21635,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "overhead-deep-gnome-mushroom-farmer-jeton"
 },
 {
 "id": "weathered-dwarf-pilgrim-portrait",
@@ -21576,7 +21725,7 @@
 "caravanier",
 "voyageur"
 ],
-"paire": null,
+"paire": "overhead-elven-caravan-merchant-token-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -21609,7 +21758,7 @@
 "paysan",
 "villageois"
 ],
-"paire": null,
+"paire": "overhead-dark-fantasy-sickle-token-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -21641,7 +21790,7 @@
 "pecheur",
 "marin"
 ],
-"paire": null,
+"paire": "overhead-elderly-fisherman-token-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -21673,7 +21822,7 @@
 "poissonnier",
 "marchand"
 ],
-"paire": null,
+"paire": "overhead-medieval-fishmonger-token-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -21707,7 +21856,7 @@
 "docker",
 "villageois"
 ],
-"paire": null,
+"paire": "overhead-half-elf-laborer-battle-token-jeton",
 "milieux": [],
 "climats": [],
 "saisons": [],
@@ -21809,7 +21958,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "true-overhead-deep-gnome-scout-jeton"
 },
 {
 "id": "white-braided-priestess-with-ritual-box-jeton",
@@ -21840,7 +21990,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "moriquendi-priestess-beneath-amethyst-lamps"
 },
 {
 "id": "wrinkled-high-priestess-in-crystal-chamber",
@@ -21871,7 +22022,8 @@
 "taille": [
 0.9,
 0.9
-]
+],
+"paire": "charcoal-robed-high-priestess-token-jeton"
 },
 {
 "id": "young-gnome-apprentice-portrait",

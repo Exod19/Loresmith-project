@@ -4,7 +4,8 @@
  */
 import { useSyncExternalStore } from 'react';
 import catalogue from './catalogue.json';
-import { bankUrl, hash, mipFor, norm, npcTraits, peoplesOf, pickPerson, tokenScale, withOverrides, type BankImage, type Peoples } from './banque';
+import { bankUrl, hash, mipFor, norm, npcTraits, peoplesOf, pickPerson, replacementFor, tokenScale, withOverrides, type BankImage, type Peoples } from './banque';
+import { mapStrings } from '../store/imageRefs';
 
 export * from './banque';
 
@@ -28,14 +29,23 @@ let overrides: Overrides = {};
 let images: BankImage[] = RAW;
 const listeners = new Set<() => void>();
 
+/** Images communes supprimées par l'administrateur : absentes partout, remplacées là où elles étaient posées. */
+let deleted: BankImage[] = [];
+/** Images du MJ retirées de son univers : leur adresse → celle de leur remplaçante. */
+const ownRetired = new Map<string, string>();
+
 function recompute() {
   overrides = { ...shared };
   for (const [id, p] of Object.entries(pending)) {
     if (p === null) delete overrides[id]; else overrides[id] = { ...overrides[id], ...p };
   }
-  images = [...withOverrides(RAW, overrides), ...own];
+  const all = withOverrides(RAW, overrides);
+  deleted = all.filter((i) => i.supprime);
+  images = [...all.filter((i) => !i.supprime), ...own];
+  retiredKey = `${deleted.map((i) => i.id).join(',')}|${[...ownRetired.keys()].length}`;
   listeners.forEach((f) => f());
 }
+let retiredKey = '';
 recompute();
 
 /** Catalogue courant (retouches comprises). */
@@ -139,7 +149,7 @@ export type NpcQuery = {
 };
 
 /** Même choix que npcImage, mais renvoie l'image de la banque elle-même. */
-export function npcPick({ id, role, name, desc, genre, peuple, pose, placeText, people, region = 'surface', vue = 'jeton', px = 128, peoples, exclude }: NpcQuery): BankImage | null {
+export function npcPick({ id, role, name, desc, genre, peuple, pose, placeText, people, region = 'surface', vue = 'jeton', peoples, exclude }: NpcQuery): BankImage | null {
   const pe = peoples ?? peoplesOf({ text: placeText, people, region });
   const traits = npcTraits({ name, role, desc });
   const g = genre ?? traits.genre;
@@ -152,7 +162,7 @@ export function npcPick({ id, role, name, desc, genre, peuple, pose, placeText, 
   const pick = (v: 'jeton' | 'portrait') => {
     for (const ex of exclude?.size ? [exclude, undefined] : [undefined]) {
       for (const t of tries) {
-        const got = pickPerson(images, { ...t, vue: v, peoples: pe, seed: id, genre: g, pose, exclude: ex });
+        const got = pickPerson(images, { ...t, vue: v, peoples: pe, seed: id, genre: g, pose, exclude: ex, region });
         if (got) return got;
       }
     }
@@ -161,10 +171,10 @@ export function npcPick({ id, role, name, desc, genre, peuple, pose, placeText, 
   // Le portrait et le jeton d'un même PNJ montrent la même personne : on tire le jeton, puis on prend son portrait jumeau.
   const token = pick('jeton');
   if (vue === 'jeton') return token;
+  // La fiche montre la même personne que le jeton : son portrait jumeau, sinon le jeton lui-même (jamais un sosie).
   const twin = bankById(token?.paire);
   if (twin && !twin.exclu) return twin;
-  const face = token ? bankImageOf(faceOf(bankSrc(token, px), px)) : null;
-  return face ?? pick('portrait');
+  return token ?? pick('portrait');
 }
 
 /** Image de la banque derrière une adresse (catalogue : `/banque/personnages/<id>-<taille>.webp` ; ajout du MJ : sa source). */
@@ -197,11 +207,8 @@ export function faceOf(src: string | undefined, px = 512): string | undefined {
   if (img.vue === 'portrait') return src;
   const twin = bankById(img.paire);
   if (twin && twin.vue === 'portrait' && !twin.exclu) return bankSrc(twin, px);
-  // Même genre obligatoire (une tavernière ne prend pas le visage d'un cuisinier) ; le peuple, puis le rôle, ensuite.
-  const pool = img.genre ? images.filter((i) => !i.genre || i.genre === img.genre) : images;
-  const like = pickPerson(pool, { vue: 'portrait', peuple: img.peuple, role: (img.roles ?? []).join(' '), genre: img.genre, seed: img.id, peoples: peoplesOf({}) })
-    ?? pickPerson(pool, { vue: 'portrait', role: (img.roles ?? []).join(' '), genre: img.genre, seed: img.id, peoples: { main: [...new Set(pool.map((i) => i.peuple).filter(Boolean))] as string[], others: [], banned: [] } });
-  return like ? bankSrc(like, px) : undefined;
+  // Personnage sans portrait jumeau : pas de visage d'emprunt (ce serait quelqu'un d'autre) ; la fiche montre le jeton.
+  return undefined;
 }
 
 /** Jeton vu de dessus d'une image de la banque : le jeton jumeau d'un portrait, ou l'image si c'est déjà un jeton. */
@@ -222,15 +229,17 @@ const SRD_FR: Record<string, string> = {
 /**
  * Jeton de créature de la banque pour un monstre du plateau, d'après son nom (« Otyugh 2 », « Araignée géante
  * chasseuse ») ou sa fiche SRD : le nom de créature le plus long contenu dans le sien l'emporte. Toujours la même image
- * pour un même nom. undefined : aucune créature de la banque ne lui correspond.
+ * pour un même nom. `region` : le monde du plateau ('surface' ou 'outreterre') ; une créature de l'autre monde n'est
+ * jamais prise, et sans monde connu, rien n'est choisi. undefined : aucune créature ne convient.
  */
-export function creatureToken(name?: string, statId?: string, px = 128, vue: 'jeton' | 'portrait' = 'jeton'): string | undefined {
+export function creatureToken(name: string | undefined, statId: string | undefined, region: string | undefined, px = 128, vue: 'jeton' | 'portrait' = 'jeton'): string | undefined {
+  if (!region) return undefined;
   const base = norm(name ?? '').replace(/\s+\d+$/, '').trim();
   const words = ` ${base.replace(/[^a-z0-9]+/g, ' ')} `;
   const fromStat = statId ? norm(SRD_FR[statId] ?? '') : '';
   let best: BankImage[] = [], len = 0;
   for (const img of images) {
-    if (img.type !== 'creature' || img.vue !== vue || img.exclu) continue;
+    if (img.type !== 'creature' || img.vue !== vue || img.exclu || !(img.region ?? ['surface']).includes(region)) continue;
     const n = norm(img.nom).replace(/[^a-z0-9]+/g, ' ').trim();
     if (!n) continue;
     const hit = words.includes(` ${n} `) || (fromStat && n === fromStat.replace(/[^a-z0-9]+/g, ' ').trim());
@@ -238,8 +247,61 @@ export function creatureToken(name?: string, statId?: string, px = 128, vue: 'je
     if (n.length > len) { best = [img]; len = n.length; } else if (n.length === len) best.push(img);
   }
   if (!best.length) return undefined;
-  return bankSrc(best[hash(base || statId || '') % best.length], px);
+  // Un jeton qui a son portrait jumeau d'abord : la fiche montrera exactement la même créature.
+  const twinned = vue === 'jeton' ? best.filter((i) => bankById(i.paire)) : [];
+  const list = twinned.length ? twinned : best;
+  return bankSrc(list[hash(base || statId || '') % list.length], px);
 }
 
-/** Portrait (vue de face, en situation) d'une créature de la banque, d'après son nom : pour l'initiative et les fiches. */
-export const creaturePortrait = (name?: string, statId?: string, px = 256) => creatureToken(name, statId, px, 'portrait');
+/* ——— Suppression et remplacement ——— */
+
+/** Images communes supprimées (pour les rétablir). */
+export const bankDeleted = () => deleted;
+/** L'image qui prendra la place de celle-ci là où elle est posée. */
+export const bankReplacement = (img: BankImage | null | undefined) => replacementFor(images, img);
+
+/**
+ * Retire une image du MJ de la banque de son univers : ses emplacements prendront l'image la plus proche.
+ * (Le retrait de l'asset lui-même est fait par l'appelant.)
+ */
+export function retireOwn(img: BankImage) {
+  if (!img.src) return;
+  const repl = replacementFor(images.filter((i) => i.id !== img.id), img);
+  if (repl) ownRetired.set(img.src, bankSrc(repl, 512));
+  recompute();
+}
+
+const BANK_URL = /banque\/(?:textures|elements|personnages|creatures)\/([a-z0-9-]+)-(\d+)\.webp/g;
+
+/** Une adresse (ou un texte) avec les images supprimées remplacées par leurs remplaçantes. */
+export function rewriteBankString(s: string): string {
+  if (ownRetired.has(s)) return ownRetired.get(s)!;
+  if (!deleted.length || !s.includes('banque/')) return s;
+  return s.replace(BANK_URL, (all, id: string, size: string) => {
+    const gone = deleted.find((d) => d.id === id);
+    const repl = gone && replacementFor(images, gone);
+    if (!repl) return all;
+    const mips = repl.mips?.length ? repl.mips : [256, 512, 1024];
+    return bankUrl(repl, mips.find((m) => m >= Number(size)) ?? mips[mips.length - 1], '');
+  });
+}
+
+/** Clé qui change quand une image est supprimée, rétablie ou retirée : relance la réécriture du grimoire. */
+export function useBankRetired(): string {
+  return useSyncExternalStore(subscribe, () => retiredKey, () => retiredKey);
+}
+
+/** Collections du grimoire où une image de la banque peut être posée (cartes, portraits, jetons, combat…). */
+const HOLDERS = ['maps', 'assets', 'npcs', 'characters', 'libraryEntries', 'campaigns', 'combat'] as const;
+
+/** Changements à apporter au grimoire pour remplacer les images supprimées ; null s'il n'y a rien à faire. */
+export function bankRewriteState(state: Record<string, unknown>): Record<string, unknown> | null {
+  if (!deleted.length && !ownRetired.size) return null;
+  const patch: Record<string, unknown> = {};
+  for (const k of HOLDERS) {
+    if (!state[k]) continue;
+    const next = mapStrings(state[k], rewriteBankString);
+    if (next !== state[k]) patch[k] = next;
+  }
+  return Object.keys(patch).length ? patch : null;
+}

@@ -20,9 +20,9 @@ import {
 import { blocksCell, effectiveGrid, generateTerrain, seedOf, TERRAIN, type LocationHint, type TerrainKind } from './terrain';
 import { buildLocalMap, cellIn, trimPassages } from './local';
 import { attackCells, rangedCells, speedCells } from './ranges';
-import { tokenImage } from './vignettes';
+import { battleRegion, tokenImage } from './vignettes';
 import TilePanel, { tileFix } from './TilePanel';
-import { bankSrc } from '../../banque';
+import { bankById, bankSrc, type BankImage } from '../../banque';
 import BuildPanel from './BuildPanel';
 import CombatPanel, { type Hero } from './CombatPanel';
 import type { BestiaryRef } from '../CampaignGuide';
@@ -38,7 +38,7 @@ import { detectLabel, trailProfile } from '../atlas/trails';
 import { describeLite } from '../atlas/lore';
 import { placeEncounter, type EncounterGroup } from './encounter';
 import { askAI, aiReady, parseJson } from '../../ai/client';
-import { baseGridOf, effectiveOf, fits, isDashing, moveLeft, overlaps, paintedOf, placeTokens as placeOnBoard, surfaceOf, usedMove, withMove } from './placement';
+import { baseGridOf, effectiveOf, fits, isDashing, moveLeft, overlaps, paintedOf, placeTokens as placeOnBoard, relocateUnsafe, surfaceOf, usedMove, withMove } from './placement';
 import { hazardsOf, moveField, moverOf, occupancy, planMove, reachDetail, type MovePlan, type Mover } from './movement';
 import { roll } from '../atlas/encounters';
 import { OPENABLE, socleOf, TERRAIN_DEF, TERRAINS, type BattleObject, type ObjectKind, type SurfaceRules, type TerrainId } from './surface';
@@ -885,7 +885,7 @@ export default function BattleMode({
   const boardTokens: BoardToken[] = b.tokens.map((t) => {
     const at = liveAt(t);
     return {
-      id: t.id, name: t.name, kind: t.kind, x: at.x, y: at.y, size: t.size, icon: t.icon, image: tokenImage(t),
+      id: t.id, name: t.name, kind: t.kind, x: at.x, y: at.y, size: t.size, icon: t.icon, image: tokenImage(t, battleRegion(bv)),
       selected: t.id === selectedId, hidden: !t.visible, active: t.id === b.turn, hp: t.hp, maxHp: t.maxHp, out: isOut(t), conditions: t.conditions,
       // Socle : terrain sous la position validée (pas pendant le glisser, pour éviter les clignotements).
       socle: socleOf(rules, t, painted) ?? undefined,
@@ -1101,11 +1101,21 @@ export default function BattleMode({
             legend={legend}
           />
   );
+  const [tileNote, setTileNote] = useState('');
+  /** Pose un fond tactique (tuile de la banque, tournée de `rot` quarts de tour) et met à l'abri les jetons qui tombent dans le vide ou l'eau profonde. */
+  const applyTile = async (img: BankImage, rot: number) => {
+    const fix = await tileFix(img, b.cols, b.rows, rot);
+    const next: Battle = { ...b, tile: { id: img.id, src: bankSrc(img, 1024), rot: rot || undefined, prevFix: b.tile ? b.tile.prevFix : b.cellFix }, cellFix: fix };
+    const { tokens, moved } = relocateUnsafe(next);
+    set({ tile: next.tile, cellFix: fix, tokens });
+    setTileNote(moved ? `${moved} jeton${moved > 1 ? 's' : ''} déplacé${moved > 1 ? 's' : ''} sur la place sûre la plus proche.` : '');
+  };
   const buildPanel = (
     <>
-    <TilePanel current={b.tile?.id}
-      onPick={async (img) => { const fix = await tileFix(img, b.cols, b.rows); set({ tile: { id: img.id, src: bankSrc(img, 1024), prevFix: b.tile ? b.tile.prevFix : b.cellFix }, cellFix: fix }); }}
-      onClear={() => set({ tile: undefined, cellFix: b.tile?.prevFix })} />
+    <TilePanel current={b.tile?.id} note={tileNote}
+      onPick={(img) => applyTile(img, 0)}
+      onTurn={async () => { const img = bankById(b.tile?.id); if (img) await applyTile(img, ((b.tile?.rot ?? 0) + 1) % 4); }}
+      onClear={() => { setTileNote(''); set({ tile: undefined, cellFix: b.tile?.prevFix }); }} />
     {editor.panel}
     <BuildPanel
             brush={brush} onBrush={setBrush} propVisible={propVisible} onPropVisible={setPropVisible}
@@ -1370,7 +1380,7 @@ export default function BattleMode({
             }}
           >
             <BattleBoard
-              cols={b.cols} rows={b.rows} backdrop={rec.image} tile={b.tile?.src} terrain={baseGrid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
+              cols={b.cols} rows={b.rows} backdrop={rec.image} tile={b.tile?.src} tileRot={b.tile?.rot} terrain={baseGrid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
               theme={boardTheme(b.local?.surface, b.local?.nature)}
               ground={b.ground} surface={editor.view} overlay={building && editor.overlay ? { rules, focus: editor.focus } : undefined}
               path={pathView} surfaceSelected={editor.selectedId} draft={editor.draft}

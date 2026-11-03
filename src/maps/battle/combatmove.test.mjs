@@ -113,3 +113,16 @@ test('dégâts de zone : sauvegarde de la fiche, moitié si réussie, résistanc
   assert.equal(S.aoeDamage(28, fire, true, 0.5), 7);
   assert.equal(S.aoeDamage(28, { ...fire, save: { ...fire.save, half: false } }, true, 1), 0);
 });
+
+test('fond tactique : un jeton tombé dans un gouffre ou en eau profonde va sur la place sûre la plus proche', () => {
+  const cellFix = {};
+  for (let y = 0; y < H; y++) { cellFix[y * W + 4] = { t: 'gouffre' }; cellFix[y * W + 5] = { t: 'eau_profonde' }; }
+  const b = battle([tok('a', 'pc', 4, 2), tok('b', 'monster', 5, 6), tok('c', 'monster', 1, 1)], { cellFix });
+  const { tokens, moved } = S.relocateUnsafe(b);
+  assert.equal(moved, 2);
+  const at = Object.fromEntries(tokens.map((t) => [t.id, [t.x, t.y]]));
+  assert.deepEqual(at.a, [3, 2]); // à côté, du bon côté du gouffre
+  assert.deepEqual(at.b, [6, 6]); // sur la rive la plus proche
+  assert.deepEqual(at.c, [1, 1]); // rien à changer
+  assert.equal(tokens.find((t) => t.id === 'c'), b.tokens.find((t) => t.id === 'c'));
+});

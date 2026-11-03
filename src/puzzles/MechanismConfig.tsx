@@ -5,7 +5,7 @@
  */
 import type { ReactNode } from 'react';
 import { claimText, type Claim } from './solver';
-import type { Puzzle } from './types';
+import type { Dyn, Puzzle } from './types';
 
 type Props = { p: Puzzle; onChange: (p: Puzzle) => void };
 
@@ -14,9 +14,9 @@ const num = (v: string, min: number, max: number) => Math.min(max, Math.max(min,
 
 export default function MechanismConfig({ p, onChange }: Props) {
   const c = p.engine.publicConfig, s = p.engine.serverConfig ?? {};
-  const setPub = (patch: any) => onChange({ ...p, engine: { ...p.engine, publicConfig: { ...c, ...patch } } });
-  const setSec = (patch: any) => onChange({ ...p, engine: { ...p.engine, serverConfig: { ...s, ...patch } } });
-  const setBoth = (pub: any, sec: any) => onChange({ ...p, engine: { ...p.engine, publicConfig: { ...c, ...pub }, serverConfig: { ...s, ...sec } } });
+  const setPub = (patch: Dyn) => onChange({ ...p, engine: { ...p.engine, publicConfig: { ...c, ...patch } } });
+  const setSec = (patch: Dyn) => onChange({ ...p, engine: { ...p.engine, serverConfig: { ...s, ...patch } } });
+  const setBoth = (pub: Dyn, sec: Dyn) => onChange({ ...p, engine: { ...p.engine, publicConfig: { ...c, ...pub }, serverConfig: { ...s, ...sec } } });
   const field = (label: string, input: ReactNode, hint?: string) => <label className="pz-field">{label}{input}{hint && <small className="pz-note">{hint}</small>}</label>;
 
   switch (p.mechanic) {
@@ -91,7 +91,7 @@ export default function MechanismConfig({ p, onChange }: Props) {
       return (
         <div className="pz-config">
           <div className="pz-row" style={{ justifyContent: 'flex-start' }}>
-            {field('Taille', <input className="input" type="number" min={3} max={8} value={n} onChange={(e) => { const g = num(e.target.value, 3, 8); const keep = c.mirrors.map((m: number[], i: number) => [m, i]).filter(([m]: any) => m[0] < g && m[1] < g); setPub({ grid: g, sourceRow: Math.min(c.sourceRow, g - 1), targetRow: Math.min(c.targetRow, g - 1), mirrors: keep.map(([m]: any) => m), initial: keep.map(([, i]: any) => c.initial[i]) }); }} />)}
+            {field('Taille', <input className="input" type="number" min={3} max={8} value={n} onChange={(e) => { const g = num(e.target.value, 3, 8); const keep = (c.mirrors as number[][]).map((m, i) => [m, i] as [number[], number]).filter(([m]) => m[0] < g && m[1] < g); setPub({ grid: g, sourceRow: Math.min(c.sourceRow, g - 1), targetRow: Math.min(c.targetRow, g - 1), mirrors: keep.map(([m]) => m), initial: keep.map(([, i]) => c.initial[i]) }); }} />)}
             {field('Rangée de la source (gauche)', <input className="input" type="number" min={1} max={n} value={c.sourceRow + 1} onChange={(e) => setPub({ sourceRow: num(e.target.value, 1, n) - 1 })} />)}
             {field('Rangée du réceptacle (droite)', <input className="input" type="number" min={1} max={n} value={c.targetRow + 1} onChange={(e) => setPub({ targetRow: num(e.target.value, 1, n) - 1 })} />)}
           </div>
