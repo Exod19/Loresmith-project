@@ -2,6 +2,7 @@ import { StrictMode, Suspense, lazy } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import ErrorBoundary from './ErrorBoundary';
+import UpdateBanner from './UpdateBanner';
 
 // La fenêtre joueur (?view=player) n'a ni menus ni console : elle n'affiche que ce que le MJ pousse.
 // Chaque fenêtre ne charge que son propre code : l'écran joueur s'ouvre vite, sans la console MJ.
@@ -14,6 +15,8 @@ createRoot(document.getElementById('root')).render(
       <Suspense fallback={null}>
         <Root />
       </Suspense>
+      {/* Onglet resté ouvert pendant une mise en ligne : on propose de recharger plutôt que de garder l'ancienne version. */}
+      {!isPlayerScreen && <UpdateBanner />}
     </ErrorBoundary>
   </StrictMode>
 );
