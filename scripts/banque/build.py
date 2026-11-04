@@ -303,6 +303,10 @@ TOKEN_ALIASES = {
 # du dossier du Drive ; une règle peut l'élargir.
 O = 'outreterre'
 
+# Monde imposé par le MJ à des images rangées dans le dossier d'un autre monde (le dossier décide, sauf ici).
+# Les scorpions géants vivent dans l'Underdark (indication du MJ, 2026-11-04), même déposés avec la surface.
+MONDE_FORCE = [(r'scorpion', 'outreterre')]
+
 # Fichiers déposés par erreur (images sans rapport, maquettes d'écran) : ignorés, et signalés.
 EXCLURE = [r'investment and returns', r'planning for a stronger', r'coffee, clarity', r'empty chair, working legacy',
            r'navigation map', r'galerie basse n', r'passage from floor to ceiling']
@@ -707,6 +711,7 @@ def main():
             exclues.append(x['title'])
             continue
         region = x.get('region', 'surface')
+        region = next((r for pat, r in MONDE_FORCE if re.search(pat, norm(x['title']))), region)
         src = os.path.join(raw, x['id'] + '.png')
         if not os.path.exists(src):
             e = old.get(x['id'])

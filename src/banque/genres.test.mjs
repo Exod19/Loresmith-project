@@ -22,3 +22,10 @@ test('catalogue : aucun personnage ni aucune créature n’est commun à tous le
   // Un univers futuriste ne reçoit aucun personnage ni aucune créature de fantasy.
   assert.ok(!imgs.some((e) => (e.type === 'personnage' || e.type === 'creature') && fitsGenres(e, ['scifi'])));
 });
+
+test('les scorpions géants sont de l’Outreterre (indication du MJ), même déposés avec la surface', () => {
+  const imgs = JSON.parse(readFileSync(new URL('./catalogue.json', import.meta.url), 'utf8')).images;
+  const sc = imgs.filter((e) => e.type === 'creature' && /scorpion/i.test(e.titre ?? ''));
+  assert.ok(sc.length >= 4);
+  for (const e of sc) assert.deepEqual(e.region, ['outreterre'], e.id);
+});

@@ -32,12 +32,16 @@ export const CATEGORY_IMG: Record<string, string> = {
  * Monde d'un plateau, pour la banque : surface (plan d'une cité, du monde ou d'un lieu sauvage) ou Outreterre (plan de
  * l'Atlas). Plateau vierge : inconnu, et la banque ne choisit rien.
  */
-export const battleRegion = (b?: { region?: 'surface' | 'outreterre'; local?: { surface?: unknown; nature?: boolean } } | null): 'surface' | 'outreterre' | undefined =>
-  b?.region ?? (!b?.local ? undefined : b.local.surface || b.local.nature ? 'surface' : 'outreterre');
+type WorldId = 'surface' | 'outreterre';
+export function battleRegion(b?: { region?: WorldId | WorldId[]; local?: { surface?: unknown; nature?: boolean } } | null): WorldId[] | undefined {
+  const chosen = b?.region ? (Array.isArray(b.region) ? b.region : [b.region]) : [];
+  if (chosen.length) return chosen;
+  return !b?.local ? undefined : [b.local.surface || b.local.nature ? 'surface' : 'outreterre'];
+}
 /** Monde déduit du lieu, sans le choix du MJ (pour afficher « Automatique : … »). */
-export const placeRegion = (b?: { local?: { surface?: unknown; nature?: boolean } } | null) => battleRegion(b ? { local: b.local } : b);
+export const placeRegion = (b?: { local?: { surface?: unknown; nature?: boolean } } | null) => battleRegion(b ? { local: b.local } : b)?.[0];
 
-export function tokenImage(t: { kind: 'pc' | 'monster' | 'other'; statId?: string; image?: string; name?: string }, region?: string): string {
+export function tokenImage(t: { kind: 'pc' | 'monster' | 'other'; statId?: string; image?: string; name?: string }, region?: string | string[]): string {
   if (t.image) return t.image;
   if (t.kind === 'pc') return vignette('jeton_joueur');
   // Monstre sans image : le jeton vu du dessus de la Banque Loresmith (dossiers « créatures »), s'il y en a un à son nom.

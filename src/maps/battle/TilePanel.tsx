@@ -33,18 +33,22 @@ export async function tileFix(img: BankImage, cols: number, rows: number, rot = 
   return Object.fromEntries(cells.map((t, i) => [String(i), { t }]));
 }
 
-/** Monde du plateau : déduit du lieu, ou choisi par le MJ ; la banque ne propose que des images de ce monde. */
-export function WorldPicker({ value, auto, onChange }: { value?: 'surface' | 'outreterre'; auto?: 'surface' | 'outreterre'; onChange: (v: 'surface' | 'outreterre' | undefined) => void }) {
-  const label = (r?: string) => (r === 'surface' ? 'Surface' : r === 'outreterre' ? 'Outreterre' : 'inconnu');
+/** Mondes du plateau : déduits du lieu, ou choisis par le MJ (un ou plusieurs) ; la banque ne propose que des images de ces mondes. */
+type WorldId = 'surface' | 'outreterre';
+const WORLDS: [WorldId, string][] = [['surface', 'Surface'], ['outreterre', 'Outreterre (Underdark)']];
+export function WorldPicker({ value, auto, onChange }: { value?: WorldId | WorldId[]; auto?: WorldId; onChange: (v: WorldId[] | undefined) => void }) {
+  const cur = value ? (Array.isArray(value) ? value : [value]) : [];
+  const label = (r?: string) => WORLDS.find(([k]) => k === r)?.[1] ?? 'inconnu';
+  const toggle = (w: WorldId) => { const next = cur.includes(w) ? cur.filter((x) => x !== w) : [...cur, w]; onChange(next.length ? next : undefined); };
   return (
     <section className="maps-card build-panel">
-      <h3>Monde du plateau</h3>
-      <p className="build-hint">Les créatures et personnages de la banque ne viennent que de ce monde. {auto ? '' : 'Plateau vierge : sans choix, la banque ne propose rien.'}</p>
-      <select className="maps-btn" value={value ?? ''} onChange={(e) => onChange((e.target.value || undefined) as 'surface' | 'outreterre' | undefined)} aria-label="Monde du plateau">
-        <option value="">Automatique ({label(auto)})</option>
-        <option value="surface">Surface</option>
-        <option value="outreterre">Outreterre (Underdark)</option>
-      </select>
+      <h3>Mondes du plateau</h3>
+      <p className="build-hint">
+        Les créatures et personnages de la banque ne viennent que de ces mondes. Rien de coché : {auto ? `automatique (${label(auto)}).` : 'plateau vierge, la banque ne propose rien.'}
+      </p>
+      {WORLDS.map(([k, l]) => (
+        <label key={k} className="build-check"><input type="checkbox" checked={cur.includes(k)} onChange={() => toggle(k)} /> {l}</label>
+      ))}
     </section>
   );
 }

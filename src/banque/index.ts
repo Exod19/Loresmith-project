@@ -249,17 +249,18 @@ const SRD_FR: Record<string, string> = {
 /**
  * Jeton de créature de la banque pour un monstre du plateau, d'après son nom (« Otyugh 2 », « Araignée géante
  * chasseuse ») ou sa fiche SRD : le nom de créature le plus long contenu dans le sien l'emporte. Toujours la même image
- * pour un même nom. `region` : le monde du plateau ('surface' ou 'outreterre') ; une créature de l'autre monde n'est
- * jamais prise, et sans monde connu, rien n'est choisi. undefined : aucune créature ne convient.
+ * pour un même nom. `region` : le ou les mondes du plateau ('surface', 'outreterre') ; une créature d'un autre monde
+ * n'est jamais prise, et sans monde connu, rien n'est choisi. undefined : aucune créature ne convient.
  */
-export function creatureToken(name: string | undefined, statId: string | undefined, region: string | undefined, px = 128, vue: 'jeton' | 'portrait' = 'jeton'): string | undefined {
-  if (!region) return undefined;
+export function creatureToken(name: string | undefined, statId: string | undefined, region: string | string[] | undefined, px = 128, vue: 'jeton' | 'portrait' = 'jeton'): string | undefined {
+  const worlds = region ? (Array.isArray(region) ? region : [region]) : [];
+  if (!worlds.length) return undefined;
   const base = norm(name ?? '').replace(/\s+\d+$/, '').trim();
   const words = ` ${base.replace(/[^a-z0-9]+/g, ' ')} `;
   const fromStat = statId ? norm(SRD_FR[statId] ?? '') : '';
   let best: BankImage[] = [], len = 0;
   for (const img of images) {
-    if (img.type !== 'creature' || img.vue !== vue || img.exclu || !(img.region ?? ['surface']).includes(region)) continue;
+    if (img.type !== 'creature' || img.vue !== vue || img.exclu || !(img.region ?? ['surface']).some((w) => worlds.includes(w))) continue;
     const n = norm(img.nom).replace(/[^a-z0-9]+/g, ' ').trim();
     if (!n) continue;
     const hit = words.includes(` ${n} `) || (fromStat && n === fromStat.replace(/[^a-z0-9]+/g, ' ').trim());

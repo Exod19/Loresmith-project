@@ -601,9 +601,11 @@
 3,
 3
 ],
-"milieux": [],
+"milieux": [
+"caverne"
+],
 "region": [
-"surface"
+"outreterre"
 ],
 "climats": [],
 "saisons": [],
@@ -630,9 +632,11 @@
 3,
 3
 ],
-"milieux": [],
+"milieux": [
+"caverne"
+],
 "region": [
-"surface"
+"outreterre"
 ],
 "climats": [],
 "saisons": [],
@@ -725,9 +729,11 @@
 3,
 3
 ],
-"milieux": [],
+"milieux": [
+"caverne"
+],
 "region": [
-"surface"
+"outreterre"
 ],
 "climats": [],
 "saisons": [],
@@ -1567,9 +1573,11 @@
 3,
 3
 ],
-"milieux": [],
+"milieux": [
+"caverne"
+],
 "region": [
-"surface"
+"outreterre"
 ],
 "climats": [],
 "saisons": [],

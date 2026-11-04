@@ -20,6 +20,9 @@ export const GENRES = [
   { id: 'moderne', label: 'Moderne, contemporain' },
   { id: 'postapo', label: 'Post-apocalyptique' },
   { id: 'scifi', label: 'Science-fiction, futuriste' },
+  { id: 'cyberpunk', label: 'Cyberpunk' },
+  { id: 'pirate', label: 'Pirates, flibuste' },
+  { id: 'horreur', label: 'Horreur' },
 ];
 /** Toutes les familles d'univers : une image commune (sol, eau, roche, végétation ordinaire). */
 export const TOUS = '*';

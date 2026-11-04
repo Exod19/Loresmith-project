@@ -209,6 +209,9 @@ export interface BattleToken {
   modes?: { vol?: boolean; nage?: boolean; escalade?: boolean };
 }
 
+/** Monde d'un lieu dans un univers (cf. src/banque/genres.js). */
+export type World = 'surface' | 'outreterre';
+
 export interface Battle {
   cols: number;
   rows: number;
@@ -240,8 +243,11 @@ export interface Battle {
   cellFix?: Record<string, CellFix>;
   /** Fond tactique : tuile de la banque qui couvre le plateau, et corrections de cases d'avant (rendues en la retirant). */
   tile?: { id: string; src: string; rot?: number; prevFix?: Record<string, CellFix> };
-  /** Monde du plateau choisi par le MJ (sinon déduit du lieu) : la banque n'y propose que des images de ce monde. */
-  region?: 'surface' | 'outreterre';
+  /**
+   * Mondes du plateau choisis par le MJ (sinon déduits du lieu) : la banque n'y propose que des images de ces mondes.
+   * Plusieurs à la fois possible (l'entrée d'une caverne : surface et Outreterre). Une seule valeur : ancien format.
+   */
+  region?: World | World[];
   /** Dégâts du plateau (lave, ronces, chute) à appliquer par le module Combat, qui tient les PV. */
   damage?: { id: string; to: string; amount: number; why: string }[];
   /** Zones d'effet de sorts posées sur le plateau (cf. battle/aoe.ts). */

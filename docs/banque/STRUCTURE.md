@@ -7,8 +7,8 @@ L'inventaire d'images est **unique** : une image n'existe qu'une fois. Ses étiq
 
 | Axe | Champ | Exemples | Qui le fixe |
 | --- | --- | --- | --- |
-| **Genre d'univers** | `genres` sur l'image ; `genres` sur l'univers | `fantasy`, `steampunk`, `historique`, `moderne`, `postapo`, `scifi` ; `*` = tous | le dossier du Drive, ou une règle du script ; l'univers : réglages (Univers → Genres) |
-| **Monde dans l'univers** | `region` sur l'image ; monde du lieu ou du plateau | `surface`, `outreterre`, `mer` (plus tard `espace`, `orbite`…) | le dossier du Drive ; le plateau : déduit du lieu, ou choisi par le MJ (Construire → Monde du plateau) |
+| **Genre d'univers** | `genres` sur l'image ; `genres` sur l'univers | `fantasy`, `steampunk`, `historique`, `moderne`, `postapo`, `scifi`, `cyberpunk`, `pirate`, `horreur` ; `*` = tous | le dossier du Drive, ou une règle du script ; l'univers : réglages (Univers → Genres) |
+| **Monde dans l'univers** | `region` sur l'image ; monde du lieu ou du plateau | `surface`, `outreterre`, `mer` (plus tard `espace`, `orbite`…) | le dossier du Drive (sauf `MONDE_FORCE`) ; le plateau : déduit du lieu, ou choisi par le MJ, un ou plusieurs (Construire → Mondes du plateau) |
 
 **Règle d'or : Loresmith ne propose jamais seul une image hors de l'univers.**
 - Une image est proposée d'office seulement si :
@@ -17,8 +17,13 @@ L'inventaire d'images est **unique** : une image n'existe qu'une fois. Ses étiq
 - Pas de centaure dans un univers futuriste, pas de drow à la surface.
 - Le MJ, lui, peut toujours poser n'importe quelle image à la main (page Banque, case « Tous les genres »).
 
-Un univers peut avoir plusieurs genres, par exemple fantasy et steampunk pour un monde arcanopunk. Il reçoit alors les
-images des deux.
+Genres et mondes se combinent librement.
+- Un univers « fantasy + pirate » reçoit la flibuste dans un monde de fantasy, centaures compris. Un univers
+  « pirate » seul reçoit la flibuste sans magie ni monstres de fantasy.
+- Un plateau peut cumuler plusieurs mondes, par exemple l'entrée d'une caverne : surface et Outreterre.
+
+**Exceptions au dossier** : `MONDE_FORCE` dans le script impose un monde à des images rangées ailleurs. Les scorpions
+géants sont de l'Outreterre, même déposés avec la surface. Le mieux reste de les déplacer dans le bon dossier du Drive.
 
 ## Ce qui est commun, ce qui est propre à un genre
 
