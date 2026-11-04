@@ -89,7 +89,7 @@ const FORK_LINES: ((side: string) => string)[] = [
   (c) => `Un écho différent, sur votre ${c} : la paroi s’ouvre sur un espace plus large. Vous allez voir, ou vous continuez ?`,
 ];
 
-export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false, onReturn, renderCombat, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [], artOf, onOpenEntry, library, onCreateNpc, onCreateEntry, loreContext, onUpdateEntry, onChronicle }: {
+export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false, onReturn, renderCombat, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [], artOf, onOpenEntry, library, onCreateNpc, onCreateEntry, loreContext, onUpdateEntry, onChronicle, hiddenEntries = [] }: {
   rec: MapRecord; atlas: AtlasData; dm: boolean; onDm: (v: boolean) => void;
   /** Illustration d'une créature par son nom, pour l'écran joueur. */
   artOf?: (name: string, id: string) => string;
@@ -113,6 +113,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   bestiary?: BestiaryRef[];
   /** Fiches de la Bibliothèque de l'univers : la carte du monde y prend ses cités et ses lieux. */
   library?: LoreEntry[];
+  /** Fiches qui n'ont pas leur place dans cet univers (l'Underdark hors des univers Underdark) : retirées des cités. */
+  hiddenEntries?: string[];
   /** Crée une fiche de PNJ (PNJ & Créatures) : un occupant anonyme devient un PNJ du lore. */
   onCreateNpc?: (npc: Record<string, unknown> & { id: string; name: string }) => void;
   /** Crée une fiche de lieu dans la Bibliothèque (mode Exploration). */
@@ -127,7 +129,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   /** L'Atlas et la carte du monde : lieux à révéler, chemins, brouillard. */
   const atlasLike = isAtlasLike(rec);
   // Carte du monde : les lieux du lore prennent leur bâtiment, avec leurs PNJ, dès qu'ils sont créés.
-  useWorldSync(rec, library, bestiary as unknown as LoreEntry[], onUpdate);
+  useWorldSync(rec, library, bestiary as unknown as LoreEntry[], onUpdate, hiddenEntries);
   // Le plan affiché d'abord : celui où se trouve le groupe, s'il est connu.
   const [planId, setPlanId] = useState(rec.overlay?.party?.at?.planId ?? (rec.kind === 'atlas' ? ATLAS_DEFAULT_PLAN : mapIdOf(rec)));
   /** Carte de combat ouverte à la place de la carte de navigation (même mise en page). */

@@ -75,6 +75,7 @@ export default function CampaignStudio({ universe, state, campaigns, party, npcs
   const [feed, setFeed] = useState(null);
   useEffect(() => {
     let alive = true;
+    setFeed(null); // l'univers d'avant ne prête jamais ses Archives, même le temps d'un chargement
     feedFor(universe).then((f) => alive && setFeed(f));
     return () => {
       alive = false;

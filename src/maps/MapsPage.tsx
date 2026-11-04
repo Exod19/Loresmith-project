@@ -3,6 +3,7 @@
  * (et le synchroniser avec les Archives), ouvrir une carte dans la visionneuse.
  */
 import BanquePanel from '../banque/BanquePanel';
+import { scopedEntries } from '../universe/underdark';
 import { npcImage, setUniverseBank, type BankImage } from '../banque';
 import { npcTraits } from '../banque/banque';
 import { fileToCompressed } from '../media/images';
@@ -87,7 +88,11 @@ function readKnown(): Set<string> | null {
   }
 }
 
-export default function MapsPage({ universe, maps, dispatch, flash, heroes = [], campaigns = [], bestiary = [], onReturnToTable, renderCombat, artOf, onOpenEntry, library = [], bankAssets = [] }: Props) {
+export default function MapsPage({ universe, maps, dispatch, flash, heroes = [], campaigns = [], bestiary = [], onReturnToTable, renderCombat, artOf, onOpenEntry, library: libraryAll = [], bankAssets = [] }: Props) {
+  // Hors univers Underdark, aucune fiche de l'Underdark (lieu de Hosten Valak, fiche des Archives) ne prend place sur
+  // les cartes : ni bâtiment de cité, ni repère, ni contexte d'IA.
+  const library = useMemo(() => scopedEntries(universe, libraryAll), [universe, libraryAll]);
+  const hiddenEntries = useMemo(() => { const keep = new Set(library.map((e) => e.id)); return libraryAll.filter((e) => !keep.has(e.id)).map((e) => e.id); }, [library, libraryAll]);
   // La Table de jeu peut demander d'ouvrir une carte précise (et d'y lancer le combat).
   const [intent] = useState(peekMapIntent);
   useEffect(() => { clearMapIntent(); }, []);
@@ -235,6 +240,7 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
           rec={open}
           atlas={sourceAtlas(open, feed?.atlas as AtlasData)}
           library={library}
+          hiddenEntries={hiddenEntries}
           onCreateNpc={(n) => { dispatch({ type: 'ADD_NPC', n }); flash(`Fiche créée : ${n.name} (PNJ & créatures)`); }}
           onCreateEntry={(entry) => {
             dispatch({ type: 'ADD_LIBRARY_ENTRY', entry });

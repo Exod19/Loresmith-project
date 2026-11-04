@@ -9,6 +9,7 @@
  *  - les PNJ et créatures déjà créés, pour les réutiliser plutôt que d'en inventer d'autres.
  */
 import { loadUnderdarkFeed } from '../feeds/underdark';
+import { isUnderdarkUniverse, underdarkSpecific } from '../universe/underdark';
 
 export const norm = (s) =>
   String(s || '')
@@ -40,7 +41,7 @@ function score(text, focus) {
 
 /** Charge les Archives si l'univers y est lié (sinon null, sans erreur). */
 export async function feedFor(universe) {
-  if (universe?.archives !== 'underdark') return null;
+  if (!isUnderdarkUniverse(universe)) return null;
   try {
     return await loadUnderdarkFeed();
   } catch {
@@ -74,7 +75,11 @@ export function atlasPlaces(feed, limit = 140) {
  * Construit le bloc de contexte. `focus` : texte de la demande (thème, notes) qui oriente le tri.
  * `budget` : nombre de caractères visé, pour ne pas noyer le modèle.
  */
-export function buildLoreContext({ universe, state, feed, focus = '', budget = 14000, party = [], noNamedPersons = false }) {
+export function buildLoreContext({ universe, state, feed: feedIn, focus = '', budget = 14000, party = [], noNamedPersons = false }) {
+  // L'Underdark ne sort pas de ses univers : hors univers Underdark, ni Archives ni lieux de l'Atlas, même si un flux
+  // traîne encore en mémoire (changement d'univers), et aucune fiche de l'Underdark arrivée là par erreur.
+  const deep = isUnderdarkUniverse(universe);
+  const feed = deep ? feedIn : null;
   const f = new Set(words(focus));
   const parts = [];
 
@@ -107,6 +112,7 @@ export function buildLoreContext({ universe, state, feed, focus = '', budget = 1
   // Bibliothèque : les fiches les plus pertinentes en entier (résumé), les autres en simple nom.
   const lib = Object.values(state?.libraryEntries || {})
     .filter((e) => e.universeId === universe.id)
+    .filter((e) => deep || !underdarkSpecific(e))
     .filter((e) => !(noNamedPersons && e.archiveType === 'person'));
   if (lib.length) {
     const ranked = lib

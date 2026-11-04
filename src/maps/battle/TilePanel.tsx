@@ -4,7 +4,7 @@
  * Retirer le fond rend les corrections de cases d'avant.
  */
 import { useState } from 'react';
-import { bankSrc, useBank, type BankImage } from '../../banque';
+import { bankSrc, bankUnderdark, useBank, type BankImage } from '../../banque';
 import { isFordTile, tileCells } from '../../banque/tiles';
 import type { CellFix, TerrainId } from './surface';
 
@@ -46,7 +46,8 @@ export function WorldPicker({ value, auto, onChange }: { value?: WorldId | World
       <p className="build-hint">
         Les créatures et personnages de la banque ne viennent que de ces mondes. Rien de coché : {auto ? `automatique (${label(auto)}).` : 'plateau vierge, la banque ne propose rien.'}
       </p>
-      {WORLDS.map(([k, l]) => (
+      {/* L'Outreterre n'existe que dans les univers Underdark. */}
+      {WORLDS.filter(([k]) => k !== 'outreterre' || bankUnderdark() || cur.includes(k)).map(([k, l]) => (
         <label key={k} className="build-check"><input type="checkbox" checked={cur.includes(k)} onChange={() => toggle(k)} /> {l}</label>
       ))}
     </section>

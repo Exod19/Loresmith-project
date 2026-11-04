@@ -336,7 +336,7 @@ export function settlementEntries(world: World, library: LoreEntry[]): LoreEntry
  * Garde la carte du monde à jour avec le lore : chaque fiche de lieu rattachée à une cité y prend un bâtiment,
  * avec les PNJ qui s'y trouvent. N'écrit que si quelque chose a changé.
  */
-export function useWorldSync(rec: MapRecord, library: LoreEntry[] | undefined, people: LoreEntry[] | undefined, onUpdate: (patch: Partial<MapRecord>) => void) {
+export function useWorldSync(rec: MapRecord, library: LoreEntry[] | undefined, people: LoreEntry[] | undefined, onUpdate: (patch: Partial<MapRecord>) => void, hidden: string[] = []) {
   const update = useRef(onUpdate);
   update.current = onUpdate;
   const revealedKey = (rec.overlay?.revealed ?? []).join('|');
@@ -347,11 +347,11 @@ export function useWorldSync(rec: MapRecord, library: LoreEntry[] | undefined, p
     const villages = (worldAtlas(rec) as AtlasData & { villages?: CitySpec[] }).villages ?? [];
     const { bindings, changed } = syncBindings({
       world: { ...rec.world, cities: [...rec.world.cities, ...villages] }, mapRecordId: rec.id, places, people: [...(people ?? []), ...library.filter((e) => e.archiveType === 'person')],
-      revealed: new Set(rec.overlay?.revealed ?? []),
+      revealed: new Set(rec.overlay?.revealed ?? []), hidden: new Set(hidden),
     });
     if (changed) update.current({ world: { ...rec.world, bindings }, updatedAt: Date.now() });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rec.kind, rec.id, rec.world, library, people, revealedKey]);
+  }, [rec.kind, rec.id, rec.world, library, people, revealedKey, hidden.join('|')]);
 }
 
 /** Mer d'un port : la plus proche de la cité. */

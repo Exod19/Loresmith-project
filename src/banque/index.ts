@@ -32,6 +32,9 @@ let images: BankImage[] = RAW;
 let allImages: BankImage[] = RAW;
 /** Genres de l'univers ouvert : seules les images de ces genres (ou communes) sont proposées d'office. */
 let genres: string[] = [GENRE_DEFAUT];
+/** L'univers ouvert est-il un univers Underdark ? Sinon, aucune image de l'Outreterre n'est proposée d'office. */
+let underdark = false;
+const inScope = (i: BankImage) => fitsGenres(i, genres) && (underdark || (i.region ?? ['surface']).some((r) => r !== 'outreterre'));
 const listeners = new Set<() => void>();
 
 /** Images communes supprimées par l'administrateur : absentes partout, remplacées là où elles étaient posées. */
@@ -48,7 +51,7 @@ function recompute() {
   deleted = all.filter((i) => i.supprime);
   allImages = [...all.filter((i) => !i.supprime), ...own];
   // Un univers futuriste ne voit pas de centaure : les images d'un autre genre restent au catalogue, hors des choix.
-  images = [...all.filter((i) => !i.supprime && fitsGenres(i, genres)), ...own];
+  images = [...all.filter((i) => !i.supprime && inScope(i)), ...own];
   retiredKey = `${deleted.map((i) => i.id).join(',')}|${[...ownRetired.keys()].length}`;
   listeners.forEach((f) => f());
 }
@@ -63,12 +66,15 @@ export function useBankAll(): BankImage[] {
   return useSyncExternalStore(subscribe, bankAllImages, bankAllImages);
 }
 /** Genres de l'univers ouvert (appelé par l'application quand l'univers change). */
-export function setBankGenres(list: string[]) {
+export function setBankGenres(list: string[], isUnderdark = underdark) {
   const next = list.length ? list : [GENRE_DEFAUT];
-  if (next.join(',') === genres.join(',')) return;
+  if (next.join(',') === genres.join(',') && isUnderdark === underdark) return;
   genres = next;
+  underdark = isUnderdark;
   recompute();
 }
+/** L'univers ouvert est-il un univers Underdark (relié aux Archives de l'Underdark) ? */
+export const bankUnderdark = () => underdark;
 export const bankGenres = () => genres;
 export const overridesOf = () => overrides;
 /** Retouches pas encore partagées (compte non connecté, serveur injoignable). */

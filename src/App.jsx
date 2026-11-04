@@ -25,6 +25,8 @@ import MapsPage from './maps/MapsPage';
 import TableMap, { tableMapId } from './maps/TableMap';
 import { bankRewriteState, faceOf, setBankGenres, useBankRetired } from './banque';
 import { genresOf } from './banque/genres';
+import { isUnderdarkUniverse } from './universe/underdark';
+import UnderdarkAudit from './universe/UnderdarkAudit';
 import GenrePicker from './banque/GenrePicker';
 import { setMapIntent } from './maps/intent';
 import { placeTokens as placeOnBoard, effectiveOf } from './maps/battle/placement';
@@ -5117,8 +5119,11 @@ function Spin() {
 export default function App() {
   const [state, dispatch] = useReducer(reducer, null, () => null);
   // Genres de l'univers ouvert : la banque ne propose d'office que les images de ces genres (et les communes).
-  const activeGenres = genresOf(state?.universes?.[state?.activeUniverseId]).join(',');
-  useEffect(() => { setBankGenres(activeGenres.split(',')); }, [activeGenres]);
+  // L'Outreterre (images de l'Underdark) n'est proposée que dans un univers Underdark.
+  const bankUniverse = state?.universes?.[state?.activeUniverseId];
+  const activeGenres = genresOf(bankUniverse).join(',');
+  const activeDeep = isUnderdarkUniverse(bankUniverse);
+  useEffect(() => { setBankGenres(activeGenres.split(','), activeDeep); }, [activeGenres, activeDeep]);
   const [hydrated, setHydrated] = useState(false);
   // Garde de parole : les créatures de faune ne parlent pas (feeds/fauna.ts).
   const { feed: faunaFeed } = useUnderdarkFeed();
@@ -5799,6 +5804,9 @@ function Dashboard({
           et colle une clé (Gemini gratuit conseillé) pour générer campagnes, scènes et PNJ.
         </div>
       )}
+      {/* Visible d'emblée : ce qui vient de l'Underdark dans un univers qui n'y est pas relié. */}
+      <UnderdarkAudit universe={universe} entries={Object.values(state.libraryEntries || {})} campaigns={Object.values(state.campaigns || {})}
+        onDelete={(id) => { dispatch({ type: 'DELETE_LIBRARY_ENTRY', id }); flash('Fiche supprimée de cet univers.'); }} />
       <details className="lsx-advanced">
         <summary>
           Canon, mémoire & sauvegardes
@@ -6513,6 +6521,7 @@ function useUniverseFeed(universe) {
   const [feed, setFeed] = useState(null);
   useEffect(() => {
     let alive = true;
+    setFeed(null); // l'univers d'avant ne prête jamais ses Archives, même le temps d'un chargement
     feedFor(universe).then((f) => alive && setFeed(f));
     return () => {
       alive = false;

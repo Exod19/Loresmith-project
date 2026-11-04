@@ -16,6 +16,6 @@ export function npcsOf(place: LoreEntry, people: LoreEntry[]): { id: string; nam
 export function pickSlot(slots: Slot[], cls: { type: SlotType; district: District | null }, entryId: string, taken: Set<string>): Slot | null;
 export function cityOf(place: LoreEntry, cities: CitySpec[], defaultCityId?: string): CitySpec | null;
 export function syncBindings(p: {
-  world: WorldSpec & { defaultCityId?: string }; mapRecordId: string; places: LoreEntry[]; people?: LoreEntry[]; revealed?: Set<string>;
+  world: WorldSpec & { defaultCityId?: string }; mapRecordId: string; places: LoreEntry[]; people?: LoreEntry[]; revealed?: Set<string>; hidden?: Set<string>;
 }): { bindings: Record<string, Binding>; changed: boolean };
 export function nearFromText(t: string): Near[] | undefined;
