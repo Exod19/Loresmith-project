@@ -25,7 +25,7 @@ function config(): AIConfig | null {
 export const aiReady = () => !!config()?.apiKey;
 
 /** Pose une question à l'IA et renvoie sa réponse en texte. */
-export async function askAI(system: string, user: string, opts: { json?: boolean } = {}): Promise<string> {
+export async function askAI(system: string, user: string, opts: { json?: boolean; maxTokens?: number } = {}): Promise<string> {
   const ai = config();
   if (!ai?.apiKey) throw new Error('Configure l’IA dans Réglages (clé API manquante).');
   const model = (ai.model || '').trim() || DEFAULT_MODEL[ai.provider ?? ''];
@@ -42,7 +42,7 @@ export async function askAI(system: string, user: string, opts: { json?: boolean
         { role: 'user', content: opts.json ? `${user}\n\nRéponds UNIQUEMENT en JSON valide, sans Markdown.` : user },
       ],
       temperature: opts.json ? 0.3 : 0.75,
-      max_tokens: 1200,
+      max_tokens: opts.maxTokens ?? 1200,
     }),
   });
   if (!res.ok) throw new Error(`L’IA a répondu ${res.status}. Vérifie la clé et le modèle dans Réglages.`);

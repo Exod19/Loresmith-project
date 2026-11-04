@@ -5806,7 +5806,9 @@ function Dashboard({
       )}
       {/* Visible d'emblée : ce qui vient de l'Underdark dans un univers qui n'y est pas relié. */}
       <UnderdarkAudit universe={universe} entries={Object.values(state.libraryEntries || {})} campaigns={Object.values(state.campaigns || {})}
-        onDelete={(id) => { dispatch({ type: 'DELETE_LIBRARY_ENTRY', id }); flash('Fiche supprimée de cet univers.'); }} />
+        onDelete={(id) => { dispatch({ type: 'DELETE_LIBRARY_ENTRY', id }); flash('Fiche supprimée de cet univers.'); }}
+        onUpdateEntry={(id, patch) => dispatch({ type: 'UPDATE_LIBRARY_ENTRY', id, patch: { ...patch, updatedAt: Date.now() } })}
+        onUpdateCampaign={(id, patch) => dispatch({ type: 'UPDATE_CAMPAIGN', id, patch })} />
       <details className="lsx-advanced">
         <summary>
           Canon, mémoire & sauvegardes

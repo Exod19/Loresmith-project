@@ -61,3 +61,22 @@ l'Underdark. Seul le niveau application (règles, interface, images communes) es
 
 La fiche de l'univers concerné a pu arriver de plusieurs façons : une campagne forgée pendant que l'univers était relié
 aux Archives, un import, ou une campagne copiée. L'encadré de l'accueil permet de la retrouver et de la supprimer.
+
+## Complément : tout réécrire d'un coup
+
+- Sur l'accueil d'un univers non relié, le bouton « ✨ Tout réécrire pour cet univers » envoie à l'IA chaque fiche de
+  l'Underdark et chaque scène de campagne qui en parle. Elle les réécrit pour cet univers :
+  - les lieux deviennent des lieux de surface ;
+  - les enjeux, les PNJ, les indices et la longueur restent les mêmes ;
+  - les scènes qui ne parlent pas de l'Underdark ne sont pas touchées.
+- Une réponse qui nomme encore l'Underdark est refusée et signalée ; l'élément reste tel quel.
+- Une fiche importée des Archives perd ce lien une fois réécrite.
+- L'original est gardé (`avantReecriture`). La rubrique « Réécrits pour cet univers » permet de le rétablir.
+- Le client d'IA accepte une limite de réponse plus haute (`maxTokens`) pour les scènes développées.
+- Fichiers : `src/universe/rewriteUnderdark.ts` (nouveau), `UnderdarkAudit.tsx`, `src/ai/client.ts`, et `src/App.jsx`
+  (zone à risque : deux actions passées à l'encadré).
+- Vérifié dans le navigateur, avec une IA simulée :
+  - la Porte souterraine devient « La Porte des Catacombes » ;
+  - la scène « Descente » à Hosten Valak devient une descente aux catacombes de Port-Sel ;
+  - la scène « Marché » reste intacte ;
+  - « Rétablir l'original » remet la fiche d'origine.
