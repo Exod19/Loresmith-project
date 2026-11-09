@@ -15,7 +15,7 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, ty
 import BattleBoard, { anchorOf, type BoardElement, type BoardLabel, type BoardRange, type BoardToken } from './BattleBoard';
 import type { AtlasData, AtlasMap } from '../atlas/types';
 import {
-  DEFAULT_BATTLE, type Battle, type BattleBuild, type BattleToken, type MapMarker, type MapRecord, type PartyTrack, type PassageLink, type SearchNote,
+  DEFAULT_BATTLE, placeCoords, type Battle, type BattleBuild, type BattleToken, type MapMarker, type MapRecord, type PartyTrack, type PassageLink, type SearchNote,
 } from '../mapStore';
 import { blocksCell, effectiveGrid, generateTerrain, seedOf, TERRAIN, type LocationHint, type TerrainKind } from './terrain';
 import { buildLocalMap, cellIn, trimPassages } from './local';
@@ -321,9 +321,28 @@ export default function BattleMode({
     const previous = b.local?.source === source ? b.local.discovered : [];
     const ids = local.elements.map((e) => e.id);
     const ground = effectiveGrid(local.base, local.elements, [], ids);
+    // Nouveau lieu : nouvelle scène. Rien de l'ancien lieu n'est repris (créatures, PNJ, objets posés, murs, zones,
+    // corrections de cases, fond tactique, zones d'effet, tour et journal). Seuls les héros suivent, posés là où se
+    // trouve le groupe sur la carte de navigation (à défaut, au centre du lieu). « Régénérer » garde la scène.
+    const newPlace = b.local?.source !== source;
+    const sceneReset: Partial<Battle> = newPlace ? {
+      zones: undefined, objects: undefined, walls: undefined, cellFix: undefined, tile: undefined, region: undefined, aoes: undefined,
+      aoeHit: undefined, damage: undefined, aim: undefined, hits: undefined, moved: undefined, puzzle: undefined, entry: undefined,
+      encounterOf: undefined, turn: undefined, round: 1, log: [],
+    } : {};
     let tokens = b.tokens;
+    if (newPlace) {
+      const fresh: Battle = { ...b, ...sceneReset, tokens: [], terrain: { source, seed, grid: local.base },
+        local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous }, build: undefined };
+      const at = party?.at && party.at.planId === plan.id ? placeCoords(atlas, rec, party.at) : null;
+      const cell = at ? cellIn(local.window, b.cols, b.rows, at[0], at[1]) : undefined;
+      const near = cell !== undefined ? { x: cell % b.cols, y: Math.floor(cell / b.cols) } : { x: Math.floor(b.cols / 2), y: Math.floor(b.rows / 2) };
+      // Les héros, sans leur ancienne case (placeOnBoard leur en donne une nouvelle).
+      const pcs = b.tokens.filter((t) => t.kind === 'pc').map((t) => ({ ...t, unplaced: undefined, layer: undefined }));
+      tokens = placeOnBoard(fresh, pcs, near);
+    }
     if (groups?.length) {
-      const kept = b.tokens.filter((t) => t.kind !== 'monster');
+      const kept = tokens.filter((t) => t.kind !== 'monster');
       const free = (x: number, y: number, size: 1 | 2) =>
         x >= 0 && y >= 0 && x + size <= b.cols && y + size <= b.rows
         && !Array.from({ length: size * size }).some((_, i) => blocksCell(ground, b.cols, x + (i % size), y + Math.floor(i / size)))
@@ -367,10 +386,11 @@ export default function BattleMode({
       }
     }
     set({
+      ...sceneReset,
       terrain: { source, seed, grid: local.base },
       local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous, surface: plan.surface ? surfaceTheme(plan.surface, local.window) : undefined, trimmed: !plan.surface, nature: plan.surface?.nature || undefined },
       tokens,
-      encounterOf: groups?.length ? source : b.encounterOf,
+      encounterOf: groups?.length ? source : newPlace ? undefined : b.encounterOf,
       build: undefined,
       // Plan d'un lieu sauvage : ses objets (coffre, tonneau, autel, colonnes…) sont posés sur le plateau.
       ...(plan.surface?.nature ? { objects: wildObjects(plan, local.window, b.cols, b.rows) } : {}),
