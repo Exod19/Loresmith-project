@@ -15,7 +15,7 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, ty
 import BattleBoard, { anchorOf, type BoardElement, type BoardLabel, type BoardRange, type BoardToken } from './BattleBoard';
 import type { AtlasData, AtlasMap } from '../atlas/types';
 import {
-  DEFAULT_BATTLE, placeCoords, type Battle, type BattleBuild, type BattleToken, type MapMarker, type MapRecord, type PartyTrack, type PassageLink, type SearchNote,
+  DEFAULT_BATTLE, placeCoords, type Battle, type BoardFurniture, type BattleBuild, type BattleToken, type MapMarker, type MapRecord, type PartyTrack, type PassageLink, type SearchNote,
 } from '../mapStore';
 import { blocksCell, effectiveGrid, generateTerrain, seedOf, TERRAIN, type LocationHint, type TerrainKind } from './terrain';
 import { buildLocalMap, cellIn, trimPassages } from './local';
@@ -163,6 +163,28 @@ function wildObjects(plan: AtlasMap, win: { x0: number; y0: number; w: number; h
   return out;
 }
 
+/** Mobilier d'un plan d'intérieur, converti en cases du plateau (fenêtre `win`, 0–1) : les mêmes meubles qu'en navigation. */
+function furnitureOf(plan: AtlasMap, win: { x0: number; y0: number; w: number; h: number }, cols: number, rows: number): BoardFurniture[] {
+  const p = (plan.surface?.ground as { p?: [string, number, number, number, number, number][] } | undefined)?.p ?? [];
+  const W = plan.width, H = plan.height;
+  const out: BoardFurniture[] = [];
+  for (const [k, x, y, w, h, a] of p) {
+    const cx = ((x / W - win.x0) / win.w) * cols, cy = ((y / H - win.y0) / win.h) * rows;
+    if (cx < -1 || cy < -1 || cx > cols + 1 || cy > rows + 1) continue;
+    out.push({ k, x: cx, y: cy, w: (w / W / win.w) * cols, h: (h / H / win.h) * rows, a, seed: `${plan.id}:${k}:${x}:${y}`, ref: [x, y] });
+  }
+  return out;
+}
+
+/** Tracés du mobilier d'un intérieur (ceux de la carte de navigation) et leur passage du plan aux cases du plateau. */
+const FURN_KINDS = new Set(['rug', 'dais', 'stall', 'stool', 'furn', 'table', 'bed', 'hearth', 'altar', 'throne', 'tomb', 'anvil', 'trough', 'stair', 'hatch', 'barrel', 'crate', 'chest', 'bars', 'pillar']);
+function decorOf(plan: AtlasMap, win: { x0: number; y0: number; w: number; h: number }, cols: number, rows: number) {
+  const list = (plan.decor ?? []).filter((d) => FURN_KINDS.has(d.kind)).map((d) => ({ kind: d.kind, d: d.d }));
+  if (!list.length) return undefined;
+  const W = plan.width, H = plan.height;
+  return { list, tf: [cols / (win.w * W), rows / (win.h * H), -win.x0 * W, -win.y0 * H] as [number, number, number, number] };
+}
+
 function surfaceTheme(surface: NonNullable<AtlasMap['surface']>, win: { x0: number; y0: number; w: number; h: number }): 'interieur' | 'neige' | 'froid' | 'chaud' | true {
   if (surface.theme === 'interieur') return 'interieur';
   if ((surface.snow ?? 0) >= 0.1) return 'neige';
@@ -307,6 +329,50 @@ export default function BattleMode({
   const placeTitle = context?.title ?? b.local?.place ?? rec.title;
 
   /**
+   * PNJ d'un intérieur posés sur le plateau : ceux qui y sont à cette heure (les mêmes qu'en navigation), chacun à sa
+   * place (comptoir, porte…), visible des joueurs sauf s'il est expressément caché. Un PNJ déjà sur le plateau n'est pas
+   * reposé. `ground` : grille du plateau ; `win` : fenêtre du plan (0–1).
+   */
+  const placeNpcs = (start: BattleToken[], ground: string, win: { x0: number; y0: number; w: number; h: number }): BattleToken[] => {
+    if (!(atlas && plan) || plan.surface?.theme !== 'interieur') return start;
+    let tokens = start;
+    const local = { window: win };
+    const revealed = new Set(rec.overlay?.revealed ?? []);
+    const taken = (x: number, y: number) => tokens.some((t) => x >= t.x && x < t.x + t.size && y >= t.y && y < t.y + t.size);
+    for (const f of atlas.features.filter((x) => x.id.startsWith(`${plan.id}:pnj-`))) {
+      const id = `pnj-${f.entryId ?? f.id}`;
+      if (tokens.some((t) => t.id === id)) continue;
+      const g = atlas.geometries.find((x) => x.featureId === f.id && x.type === 'point');
+      const cell = g && cellIn(local.window, b.cols, b.rows, (g.coordinates as [number, number])[0], (g.coordinates as [number, number])[1]);
+      if (cell === undefined || !g) continue;
+      const cx = cell % b.cols, cy = Math.floor(cell / b.cols);
+      // Une case de sol libre : jamais sur une table, un lit, dans l'eau ou sur des gravats (cases gênantes ou
+      // difficiles), sauf pour qui dort : il reste dans son lit. À défaut de sol libre tout près, une case praticable.
+      const asleep = f.pose === 'couche';
+      let best: { x: number; y: number } | null = null, bd = Infinity;
+      for (const strict of [true, false]) {
+        for (let y = 0; y < b.rows; y++) for (let x = 0; x < b.cols; x++) {
+          const d = Math.max(Math.abs(x - cx), Math.abs(y - cy)) + (strict ? 0 : 0.5);
+          const k = ground[y * b.cols + x];
+          const ok = asleep && x === cx && y === cy ? !taken(x, y) : !blocksCell(ground, b.cols, x, y) && !taken(x, y) && (!strict || k === '.');
+          if (d < bd && ok) { bd = d; best = { x, y }; }
+        }
+        if (best && bd <= 2) break;
+      }
+      if (!best || bd > 4) continue;
+      const ref = bestiary.find((r) => r.id === f.entryId);
+      tokens = [...tokens, {
+        id, name: f.title, kind: 'other', x: best.x, y: best.y, size: 1, visible: !f.hiddenNpc || revealed.has(f.id),
+        npcId: ref?.id, hp: ref?.hp, maxHp: ref?.hp, ac: ref?.ac,
+        // Sans jeton propre : un jeton de la Banque Loresmith, cohérent avec la cité (peuple, rôle).
+        // Même jeton que sur la carte de navigation : réparti dans la scène, sans doublon tant que la banque le permet.
+        image: ref?.token ?? npcToken(rec, plan.id, library, bestiary, f, 128, atlas.features) ?? npcBankImage(rec, plan.id, library, f),
+      }];
+    }
+        return tokens;
+  };
+
+  /**
    * Construit la carte du lieu : terrain, passages et éléments à leur place. Une rencontre place aussi ses créatures,
    * groupées (caravane) ou dispersées (mineurs) selon leur rôle. `n` change la disposition du terrain (« Régénérer »).
    */
@@ -349,46 +415,14 @@ export default function BattleMode({
         && !kept.some((t) => t.x < x + size && x < t.x + t.size && t.y < y + size && y < t.y + t.size);
       tokens = [...kept, ...placeEncounter(groups, b.cols, b.rows, free, seed)];
     }
-    // Dans un bâtiment : ses PNJ y sont, combat ou pas. Chacun est posé à sa place (comptoir, porte…), visible des joueurs
-    // sauf s'il est expressément caché ; le MJ les déplace ensuite à sa guise. Un PNJ déjà sur le plateau n'est pas reposé.
-    if (plan.surface?.theme === 'interieur') {
-      const revealed = new Set(rec.overlay?.revealed ?? []);
-      const taken = (x: number, y: number) => tokens.some((t) => x >= t.x && x < t.x + t.size && y >= t.y && y < t.y + t.size);
-      for (const f of atlas.features.filter((x) => x.id.startsWith(`${plan.id}:pnj-`))) {
-        const id = `pnj-${f.entryId ?? f.id}`;
-        if (tokens.some((t) => t.id === id)) continue;
-        const g = atlas.geometries.find((x) => x.featureId === f.id && x.type === 'point');
-        const cell = g && cellIn(local.window, b.cols, b.rows, (g.coordinates as [number, number])[0], (g.coordinates as [number, number])[1]);
-        if (cell === undefined || !g) continue;
-        const cx = cell % b.cols, cy = Math.floor(cell / b.cols);
-        // Une case de sol libre : jamais sur une table, un lit, dans l'eau ou sur des gravats (cases gênantes ou
-        // difficiles), sauf pour qui dort : il reste dans son lit. À défaut de sol libre tout près, une case praticable.
-        const asleep = f.pose === 'couche';
-        let best: { x: number; y: number } | null = null, bd = Infinity;
-        for (const strict of [true, false]) {
-          for (let y = 0; y < b.rows; y++) for (let x = 0; x < b.cols; x++) {
-            const d = Math.max(Math.abs(x - cx), Math.abs(y - cy)) + (strict ? 0 : 0.5);
-            const k = ground[y * b.cols + x];
-            const ok = asleep && x === cx && y === cy ? !taken(x, y) : !blocksCell(ground, b.cols, x, y) && !taken(x, y) && (!strict || k === '.');
-            if (d < bd && ok) { bd = d; best = { x, y }; }
-          }
-          if (best && bd <= 2) break;
-        }
-        if (!best || bd > 4) continue;
-        const ref = bestiary.find((r) => r.id === f.entryId);
-        tokens = [...tokens, {
-          id, name: f.title, kind: 'other', x: best.x, y: best.y, size: 1, visible: !f.hiddenNpc || revealed.has(f.id),
-          npcId: ref?.id, hp: ref?.hp, maxHp: ref?.hp, ac: ref?.ac,
-          // Sans jeton propre : un jeton de la Banque Loresmith, cohérent avec la cité (peuple, rôle).
-          // Même jeton que sur la carte de navigation : réparti dans la scène, sans doublon tant que la banque le permet.
-          image: ref?.token ?? npcToken(rec, plan.id, library, bestiary, f, 128, atlas.features) ?? npcBankImage(rec, plan.id, library, f),
-        }];
-      }
-    }
+    // Dans un bâtiment : ses PNJ y sont, combat ou pas (placeNpcs).
+    tokens = placeNpcs(tokens, ground, local.window);
     set({
       ...sceneReset,
       terrain: { source, seed, grid: local.base },
-      local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous, surface: plan.surface ? surfaceTheme(plan.surface, local.window) : undefined, trimmed: !plan.surface, nature: plan.surface?.nature || undefined },
+      local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous, surface: plan.surface ? surfaceTheme(plan.surface, local.window) : undefined, trimmed: !plan.surface, nature: plan.surface?.nature || undefined,
+        furniture: plan.surface?.theme === 'interieur' ? furnitureOf(plan, local.window, b.cols, b.rows) : undefined,
+        decor: plan.surface?.theme === 'interieur' ? decorOf(plan, local.window, b.cols, b.rows) : undefined },
       tokens,
       encounterOf: groups?.length ? source : newPlace ? undefined : b.encounterOf,
       build: undefined,
@@ -399,6 +433,18 @@ export default function BattleMode({
     setHistory([]);
     if (groups?.length && !renderCombat) setTab('combat');
   };
+
+  // Les gens du lieu suivent l'heure (et la saison) : quand ceux qui sont là changent en navigation (le soir, la nuit…),
+  // le plateau suit aussi. Ceux qui sont partis quittent le plateau, les nouveaux venus prennent leur place.
+  const npcKey = atlas && plan?.surface?.theme === 'interieur' ? atlas.features.filter((f) => f.id.startsWith(`${plan.id}:pnj-`)).map((f) => `pnj-${f.entryId ?? f.id}`).sort().join('|') : '';
+  useEffect(() => {
+    if (!b.local || b.local.planId !== plan?.id || plan?.surface?.theme !== 'interieur' || !b.terrain) return;
+    const present = new Set(npcKey ? npcKey.split('|') : []);
+    const kept = b.tokens.filter((t) => !(t.id.startsWith('pnj-') && t.kind === 'other' && !present.has(t.id)));
+    const next = placeNpcs(kept, baseGridOf(b) ?? b.terrain.grid, b.local.window);
+    if (next.length !== b.tokens.length || next.some((t, i) => t !== b.tokens[i])) set({ tokens: next });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [npcKey]);
 
   // Plateaux ouverts avant ce nettoyage : on retire une fois les galeries intérieures (souterrain seulement).
   useEffect(() => {
@@ -1401,7 +1447,7 @@ export default function BattleMode({
             }}
           >
             <BattleBoard
-              cols={b.cols} rows={b.rows} backdrop={rec.image} tile={b.tile?.src} tileRot={b.tile?.rot} terrain={baseGrid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
+              cols={b.cols} rows={b.rows} backdrop={rec.image} tile={b.tile?.src} tileRot={b.tile?.rot} furniture={b.local?.furniture} decor={b.local?.decor} light={b.local?.surface ? plan?.surface?.light : undefined} terrain={baseGrid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
               theme={boardTheme(b.local?.surface, b.local?.nature)}
               ground={b.ground} surface={editor.view} overlay={building && editor.overlay ? { rules, focus: editor.focus } : undefined}
               path={pathView} surfaceSelected={editor.selectedId} draft={editor.draft}

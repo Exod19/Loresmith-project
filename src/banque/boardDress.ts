@@ -78,7 +78,7 @@ function groups(terrain: string, cols: number, rows: number, kind: string) {
  * (on abandonne alors sans rien peindre de travers).
  */
 /** `nature` : plan d'un lieu sauvage (sol d'herbe et de terre, paroi de roche ; ni pavés ni toits). */
-export async function dressBoard(canvas: HTMLCanvasElement, cols: number, rows: number, terrain: string | undefined, mode: Climate | 'interieur', C: number, alive: () => boolean, nature = false) {
+export async function dressBoard(canvas: HTMLCanvasElement, cols: number, rows: number, terrain: string | undefined, mode: Climate | 'interieur', C: number, alive: () => boolean, nature = false, furnished = false) {
   const ctx = canvas.getContext('2d');
   if (!ctx || !terrain) return;
   const images = bankImages();
@@ -99,7 +99,7 @@ export async function dressBoard(canvas: HTMLCanvasElement, cols: number, rows: 
     const out = outsideOf(terrain, cols, rows);
     under = tex(['planches'], 'sol');
     steps.push(() => fillCells(ctx, C, cols, terrain, (k, i) => (k === '.' || k === ':') && !out.has(i), under, 0.92));
-    steps.push(() => fillCells(ctx, C, cols, terrain, (k, i) => k !== '#' && out.has(i), tex(['paves'], 'rue'), 0.9));
+    // Dehors : neutre, comme la carte de navigation de l'intérieur (plus de pavés de rue autour du bâtiment).
     steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === '#', tex(['dalles'], 'mur'), 0.75));
   } else {
     // En ville (beaucoup de bâti, peu de champs), le sol libre est pavé ; à la campagne, c'est de la terre.
@@ -179,8 +179,9 @@ export async function dressBoard(canvas: HTMLCanvasElement, cols: number, rows: 
       await clear(new Set([i]));
       put(ctx, im, (i % cols + 0.5) * C, (Math.floor(i / cols) + 0.5) * C, px, px, ((hash(seed) % 360) * Math.PI) / 180);
     }
-  } else {
-    // Intérieur : un obstacle isolé devient un tonneau ou un coffre (sa case est repeinte en plancher dessous).
+  } else if (!furnished) {
+    // Intérieur sans mobilier connu : un obstacle isolé devient un tonneau ou un coffre (sa case est repeinte en plancher
+    // dessous). Avec le mobilier du plan, chaque meuble est dessiné tel qu'en navigation (BattleBoard, FurnitureLayer).
     for (let i = 0; i < terrain.length; i++) {
       if (terrain[i] !== 'I') continue;
       const x = i % cols, y = Math.floor(i / cols);

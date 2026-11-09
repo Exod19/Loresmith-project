@@ -212,6 +212,9 @@ export interface BattleToken {
 /** Monde d'un lieu dans un univers (cf. src/banque/genres.js). */
 export type World = 'surface' | 'outreterre';
 
+/** Un meuble sur le plateau (cases) : type, centre, emprise, angle, et la graine de l'image (celle de la navigation). */
+export interface BoardFurniture { k: string; x: number; y: number; w: number; h: number; a: number; seed: string; ref: [number, number] }
+
 export interface Battle {
   cols: number;
   rows: number;
@@ -223,6 +226,10 @@ export interface Battle {
   terrain?: { source: string; seed: number; grid: string };
   /** Zone locale autour du lieu : éléments de l'Atlas placés sur la grille, et ceux que le MJ a découverts. */
   local?: { source: string; planId?: string; place?: string; window: { x0: number; y0: number; w: number; h: number }; elements: LocalElement[]; discovered: string[];
+    /** Mobilier du plan (intérieurs) en cases : tables, lits, tonneaux… les mêmes qu'en navigation, à la même taille. */
+    furniture?: BoardFurniture[];
+    /** Dessin vectoriel du mobilier (le même qu'en navigation : comptoir, cheminée, tabourets, tapis…) et la mise à l'échelle plan → cases. */
+    decor?: { list: { kind: string; d: string }[]; tf: [number, number, number, number] };
     /** Plateau tiré d'un plan de surface (cité, monde) : rues et bâtiments plutôt que roche ; `interieur` : dans un bâtiment. */
     surface?: boolean | 'interieur' | 'froid' | 'chaud' | 'neige';
     /** Galeries intérieures retirées : seules restent les sorties au bord et les passages secrets à travers la roche. */

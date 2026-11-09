@@ -965,3 +965,12 @@
 .tile-pick:disabled { opacity: .6; cursor: wait; }
 /* Retour des héros (écran des joueurs) : en haut, pour ne pas cacher la fiche d'un lieu touché. */
 .present-map-card.present-retour { top: 2vmin; bottom: auto; }
+
+/* Lumière du moment, comme sur la carte de navigation : le terrain et le mobilier s'assombrissent le soir et la nuit
+   (les jetons et repères restent lisibles). */
+.battle-stack.light-soir > .battle-terrain, .battle-stack.light-soir .battle-furniture { filter: sepia(.25) saturate(.9) brightness(.82) hue-rotate(-8deg); }
+.battle-stack.light-nuit > .battle-terrain, .battle-stack.light-nuit .battle-furniture { filter: saturate(.55) brightness(.5) hue-rotate(195deg) sepia(.2); }
+/* Mobilier vectoriel d'un intérieur (le même qu'en navigation) : traits fins, quelle que soit l'échelle. */
+.battle-decor path { vector-effect: non-scaling-stroke; }
+.battle-stack.light-soir .battle-decor { filter: sepia(.25) saturate(.9) brightness(.82) hue-rotate(-8deg); }
+.battle-stack.light-nuit .battle-decor { filter: saturate(.55) brightness(.5) hue-rotate(195deg) sepia(.2); }
