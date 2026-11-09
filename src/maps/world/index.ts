@@ -7,7 +7,7 @@ import { useEffect, useRef } from 'react';
 import { cityPlanId, citySpecDefaults, generateWorld, worldLakes, worldRivers, hashSeed, interiorPlanId, landNameOf, placeCity, seaNameOf, wildFeatureOf, worldPlanId, type CitySpec, type Sea, type WildRecord, type WorldSpec } from './generate';
 import { nookSitesIn, sightOf, spotSite, whereLabel, wildSitesIn, type WildSite } from './wilds';
 import { lengthOf, project, subpath } from '../journey';
-import { generateZonePlan, zoneAt, zoneBox, zoneKey, zonePlanId } from './zonePlan';
+import { generateZonePlan, zoneAt, zoneBox, zoneKey, zonePlanId, ZONE_MARGIN } from './zonePlan';
 import { nearestEdge } from './climate';
 import { DIR_ANGLE, PACE, atDir, SCALES, cityKm, cityRadiusKm, crossCountry, dirName, elevationAt, placeOn, reliefOf, routeOn, seaBeyond, seaSideAt, terrainAt, toAt, toKm, travelGrid, worldFrame } from './terrain';
 import { norm } from './lore';
@@ -578,7 +578,9 @@ function withZones(rec: MapRecord, d: AtlasData): AtlasData {
     const box = zoneBox(z.km);
     const kept = Object.values(world.wilds ?? {}).filter((w) => w.km && !w.excluded && w.km[0] > box[0] && w.km[0] < box[2] && w.km[1] > box[1] && w.km[1] < box[3]);
     const skip = new Set(Object.keys(world.wilds ?? {}));
-    const sites = [...kept.map((w) => ({ key: w.key, km: w.km!, kind: w.kind })), ...wildSitesIn(ctx, box, skip), ...nookSitesIn(ctx, box, skip)];
+    // Les lieux de la marge aussi : leurs trouées et leurs ruisseaux prolongent le plan au-delà de son bord.
+    const ext = zoneBox(z.km, ZONE_MARGIN);
+    const sites = [...kept.map((w) => ({ key: w.key, km: w.km!, kind: w.kind })), ...wildSitesIn(ctx, ext, skip), ...nookSitesIn(ctx, ext, skip)];
     const map = generateZonePlan(z, pid, {
       seed: world.seed, rivers, roads, lakes, sites,
       sample: (x, y) => { const t = terrainAt(relief, x, y); return { forest: t.forest, e: t.e, biome: t.biome, moist: t.moist, water: !!t.sea || inLake(x, y) }; },

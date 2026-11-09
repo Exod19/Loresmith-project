@@ -1496,6 +1496,8 @@ function terrainV2(o) {
     // Son plan (lot 26) : on y entre comme dans un hameau, au zoom le plus fort ou par « Entrer ».
     const pid = wildPlanId(wid, w.key);
     const wp = generateWildPlan(w, pid, seed);
+    // La saison du monde (arbres, neige, glace) : le plan d'un lieu sauvage la suit comme celui d'une cité.
+    if (season) wp.map.surface = { ...wp.map.surface, season, ...snowOf(season, wp.map.surface.climate) };
     maps.push(wp.map); features.push(...wp.features); geometries.push(...wp.geometries);
     spaces.push({ id: wp.map.scope.id, kind: 'site', name: w.title, levelId: 'monde', stratumIds: [], mapId: pid });
     addPoint({ ...base, ...wildFeatureOf(w, wid), opens: { kind: 'site', id: wp.map.scope.id } }, ...N(w.km));

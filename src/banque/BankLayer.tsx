@@ -120,14 +120,16 @@ export function useGroundTextures(map: AtlasMap, pxPerUnit: number) {
     const snowy = (s.snow ?? 0) >= 0.3;
     const wants: Record<string, string[]> = s.theme === 'interieur'
       ? { floor: ['planches'], 'floor-stone': ['dalles'] }
-      : { plot: snowy ? ['neige'] : s.season === 'printemps' ? ['herbe', 'champ'] : ['champ', 'herbe', 'sable'], square: ['paves'], court: ['paves', 'dalles'] };
+      : { plot: snowy ? ['neige'] : s.season === 'printemps' ? ['herbe', 'champ'] : ['champ', 'herbe', 'sable'], square: ['paves'], court: ['paves', 'dalles'],
+        // Pleine nature : la canopée vue de haut (texture « canopee » de la banque), à la place des taches vertes.
+        ...(s.nature ? { forest: ['canopee'] } : {}) };
     for (const [kind, cats] of Object.entries(wants)) {
       const img = pickTexture(images, { cats, ...ctx, seed: `${map.id}:${kind}` });
       if (!img) continue;
       const tileM = typeof img.taille === 'number' ? img.taille : 5;
       const tile = tileM / s.scale; // unités de plan
       const px = tile * pxPerUnit;
-      if (px < 24) continue;
+      if (px < (kind === 'forest' ? 8 : 24)) continue;
       out[kind] = { id: `bk-${kind}-${map.id.replace(/[^a-z0-9]/gi, '')}`, img, tile, src: bankSrc(img, px) };
     }
     return out;

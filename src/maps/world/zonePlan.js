@@ -30,9 +30,14 @@ const M = (m) => m / ZONE_SCALE; // mètres → unités
 export const zonePlanId = (wid, key) => `${wid}:zone-${key}:plan`;
 /** Clé d'une zone centrée en `km` (à 100 m près). */
 export const zoneKey = (km) => `z${Math.round(km[0] * 10)}_${Math.round(km[1] * 10)}`;
-/** Fenêtre (km) d'une zone : [x0, y0, x1, y1]. */
-export function zoneBox(km) {
-  const w = ZONE_KM, h = (ZONE_KM * ZONE_H) / ZONE_W;
+/**
+ * Marge dessinée autour du plan (part de sa largeur, de chaque côté) : en dézoomant, la forêt, les sentiers et l'eau
+ * continuent au-delà du bord au lieu de s'arrêter sur un carré.
+ */
+export const ZONE_MARGIN = 0.5;
+/** Fenêtre (km) d'une zone : [x0, y0, x1, y1] ; `margin` : avec la marge dessinée autour. */
+export function zoneBox(km, margin = 0) {
+  const w = ZONE_KM * (1 + 2 * margin), h = ((ZONE_KM * ZONE_H) / ZONE_W) * (1 + 2 * margin);
   return [km[0] - w / 2, km[1] - h / 2, km[0] + w / 2, km[1] + h / 2];
 }
 /** Position d'un point (km) dans le plan de la zone (0–1). */
@@ -81,19 +86,21 @@ export function generateZonePlan(z, planId, env) {
   const r = rng(hash(`${env.seed ?? 1}:zone:${z.key}`));
   const W = ZONE_W, H = ZONE_H;
   const box = zoneBox(z.km);
+  const ext = zoneBox(z.km, ZONE_MARGIN);
+  const MX = W * ZONE_MARGIN, MY = H * ZONE_MARGIN;
   const U = ([x, y]) => [((x - box[0]) / (box[2] - box[0])) * W, ((y - box[1]) / (box[3] - box[1])) * H];
   const t = [], o = [], water = [], roads = [], decor = [];
   const sites = (env.sites ?? []).map((s) => ({ ...s, u: U(s.km) }));
 
   // Eau du monde : rivières (larges) ; routes du monde (chemins de terre).
-  const riverLines = (env.rivers ?? []).flatMap((p) => clipLine(p, box, U));
+  const riverLines = (env.rivers ?? []).flatMap((p) => clipLine(p, ext, U));
   for (const l of riverLines) water.push({ pts: l.flat().map(r1), hw: r1(M(7)) });
   // Lacs du monde qui touchent la zone (la mer, elle, reste au-delà : on ne visite pas à pied le large).
   for (const poly of env.lakes ?? []) {
-    if (!poly.some(([x, y]) => x > box[0] - 1 && x < box[2] + 1 && y > box[1] - 1 && y < box[3] + 1)) continue;
+    if (!poly.some(([x, y]) => x > ext[0] - 1 && x < ext[2] + 1 && y > ext[1] - 1 && y < ext[3] + 1)) continue;
     water.push({ pts: poly.map(U).flat().map(r1), hw: 0, closed: true });
   }
-  const roadLines = (env.roads ?? []).flatMap((p) => clipLine(p, box, U));
+  const roadLines = (env.roads ?? []).flatMap((p) => clipLine(p, ext, U));
   for (const l of roadLines) roads.push({ pts: l.flat().map(r1), hw: r1(M(2.5)) });
 
   // Les petits lieux : ruisseaux qui les traversent, mares, rochers, et un sentier qui les relie au réseau.
@@ -122,7 +129,7 @@ export function generateZonePlan(z, planId, env) {
   }
   // Sentiers : chaque lieu rejoint le plus proche déjà relié (ou la route, ou le bord du plan).
   const linked = roadLines.map((l) => l[Math.floor(l.length / 2)]);
-  if (!linked.length) linked.push([W / 2, H + 10]);
+  if (!linked.length) linked.push([W / 2, H + MY + 10]);
   for (const s of [...sites].sort((a, b) => b.u[1] - a.u[1])) {
     const to = linked.map((p) => [p, Math.hypot(p[0] - s.u[0], p[1] - s.u[1])]).sort((a, b) => a[1] - b[1])[0][0];
     if (Math.hypot(to[0] - s.u[0], to[1] - s.u[1]) > M(30)) {
@@ -150,13 +157,15 @@ export function generateZonePlan(z, planId, env) {
   // Végétation : bosquets serrés en forêt, arbres épars ailleurs ; trouées autour des lieux, des sentiers et de l'eau.
   const G = M(90);
   let canopy = '';
-  for (let gy = 0; gy < H; gy += G) for (let gx = 0; gx < W; gx += G) {
+  for (let gy = -MY; gy < H + MY; gy += G) for (let gx = -MX; gx < W + MX; gx += G) {
     const cxk = box[0] + ((gx + G / 2) / W) * (box[2] - box[0]), cyk = box[1] + ((gy + G / 2) / H) * (box[3] - box[1]);
     const s = env.sample(cxk, cyk);
     if (s.water) continue;
     const f = forestAt(cxk, cyk);
     // Densité continue (pas de bord net là où la forêt passe sous un seuil), un peu de hasard par case.
-    const n = Math.floor(Math.max(0, f - 0.08) * 4 + r() * 1.4);
+    // Arbres de la banque : sur le plan et un peu au-delà (on s'approche du bord) ; plus loin, la canopée seule.
+    const near = gx > -W * 0.15 && gx < W * 1.15 && gy > -H * 0.15 && gy < H * 1.15;
+    const n = near ? Math.floor(Math.max(0, f - 0.08) * 4 + r() * 1.4) : 0;
     // Canopée vue de loin : une tache par case boisée (hors trouées), la banque dessine les arbres de près.
     const ccx = gx + G / 2 + (r() - 0.5) * G * 0.4, ccy = gy + G / 2 + (r() - 0.5) * G * 0.4, cr = G * (0.35 + 0.45 * f);
     if (f > 0.22 && !clear.some(([qx, qy, qr]) => Math.hypot(qx - ccx, qy - ccy) < qr + cr * 0.7)
@@ -175,7 +184,7 @@ export function generateZonePlan(z, planId, env) {
   }
   // Quelques rochers épars, plus nombreux en relief.
   const mid = env.sample((box[0] + box[2]) / 2, (box[1] + box[3]) / 2);
-  for (let i = 0; i < (mid.e > 900 ? 40 : 10); i++) o.push(r1(r() * W), r1(r() * H), r1(M(2 + r() * 4)), r1(M(2 + r() * 3)), Math.round(r() * 3000) / 1000);
+  for (let i = 0; i < (mid.e > 900 ? 40 : 10); i++) o.push(r1(r() * W * 1.3 - W * 0.15), r1(r() * H * 1.3 - H * 0.15), r1(M(2 + r() * 4)), r1(M(2 + r() * 3)), Math.round(r() * 3000) / 1000);
   // Tracés de repli, visibles de loin (la banque dessine les arbres et l'eau quand on s'approche) : canopée, eaux.
   if (canopy) decor.push({ kind: 'forest', d: canopy });
   for (const wl of water) {
