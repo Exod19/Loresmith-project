@@ -113,3 +113,20 @@ de densité tiré du terrain du monde, affiné par un bruit à deux échelles (7
 les sentiers, les ruisseaux, les rivières et les routes. On obtient une lisière découpée : avancées, bosquets
 détachés, clairières et corridors le long des chemins. Les clairières à l'intérieur de la forêt sont des trous du
 contour (remplissage pair-impair). Les arbres de la forêt suivent ce même champ.
+
+## Synchronisation complète du Drive (2026-11-10)
+
+- Inventaire exhaustif des dossiers de la banque (1 022 images) comparé à `scripts/banque/drive.json`.
+- **Personnages de surface** : les 136 jetons et portraits ont été remplacés sur le Drive par une série zénithale
+  nommée `ls-p-NNNN-<peuple>-<f|m>-<rôle>-…-zenith-jeton` / `-portrait` (variantes `-variante-…`, `-portrait-variante`).
+  Réimportés : 75 jetons, tous zénithaux, et 66 portraits, appariés par leur numéro de série (141 sur 141). Plus aucun
+  jeton incliné en surface.
+- **Redirection** (`src/banque/alias.json`, `bankAlias`) : une image renommée ou remplacée sur le Drive garde son
+  ancienne adresse valable ; un jeton déjà posé sur une carte affiche la nouvelle version.
+- **Textures corrigées** (2048 px, avec une version 2048 dans la banque) : 6 forêts vues de haut (canopée ≈ 200 m),
+  12 sols, 3 eaux.
+- **Retirées** (absentes du Drive) : 26 images, dont des tuiles tactiques de rivière et des fichiers hors banque. Les
+  fichiers WebP restent sur le site : les anciennes adresses ne cassent pas.
+- **Laissés de côté** : le toit `toit-l-terre-cuite-12x12-247091a6.png` (fichier tronqué sur le Drive) ; les emblèmes,
+  médaillons et filigranes de la racine de l'INBOX (décor d'interface, pas de la banque de cartes) ; les 3 images
+  `controle-*.jpg`.

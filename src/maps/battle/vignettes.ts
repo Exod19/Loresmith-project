@@ -2,7 +2,7 @@
  * Vignettes de la carte de combat (public/images/combat-map/vignettes) : jetons, portraits de créatures,
  * icônes des lieux et des éléments cachés. Une créature de la fiche SRD a son portrait ; à défaut, un jeton générique.
  */
-import { creatureToken } from '../../banque';
+import { bankAlias, creatureToken } from '../../banque';
 
 const BASE = `${import.meta.env.BASE_URL}images/combat-map/vignettes/`;
 export const vignette = (name: string) => `${BASE}${name}.webp`;
@@ -42,7 +42,7 @@ export function battleRegion(b?: { region?: WorldId | WorldId[]; local?: { surfa
 export const placeRegion = (b?: { local?: { surface?: unknown; nature?: boolean } } | null) => battleRegion(b ? { local: b.local } : b)?.[0];
 
 export function tokenImage(t: { kind: 'pc' | 'monster' | 'other'; statId?: string; image?: string; name?: string }, region?: string | string[]): string {
-  if (t.image) return t.image;
+  if (t.image) return bankAlias(t.image); // une image remplacée depuis sur le Drive mène à sa nouvelle version
   if (t.kind === 'pc') return vignette('jeton_joueur');
   // Monstre sans image : le jeton vu du dessus de la Banque Loresmith (dossiers « créatures »), s'il y en a un à son nom.
   if (t.kind === 'monster' && t.name) { const bank = creatureToken(t.name, t.statId, region); if (bank) return bank; }

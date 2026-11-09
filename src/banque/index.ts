@@ -2,6 +2,7 @@
  * Banque Loresmith dans l'application : catalogue (src/banque/catalogue.json, produit par scripts/banque/build.py),
  * retouches du MJ (gardées dans ce navigateur), adresses des images et choix cohérents pour les PNJ.
  */
+import ALIAS_JSON from './alias.json';
 import { useSyncExternalStore } from 'react';
 import catalogue from './catalogue.json';
 import { fitsGenres, GENRE_DEFAUT } from './genres';
@@ -207,7 +208,22 @@ export function npcPick({ id, role, name, desc, genre, peuple, pose, placeText, 
 export function bankImageOf(src: string | undefined): BankImage | null {
   if (!src) return null;
   const m = /\/banque\/(?:personnages|creatures)\/(.+)-\d+\.webp$/.exec(src);
-  return m ? bankById(m[1]) : own.find((i) => i.src === src) ?? null;
+  return m ? bankById(ALIAS[m[1]] ?? m[1]) : own.find((i) => i.src === src) ?? null;
+}
+
+/**
+ * Image remplacée sur le Drive (même fichier, nouvelle version : jetons de biais devenus zénithaux, alias.json) : une
+ * adresse enregistrée avant (jeton posé sur une carte, combat en cours) mène à la nouvelle version.
+ */
+/** Anciens identifiants → nouveaux (même fichier du Drive, renommé ou remplacé). */
+const ALIAS: Record<string, string> = ALIAS_JSON as Record<string, string>;
+export function bankAlias(src: string): string;
+export function bankAlias(src: string | undefined): string | undefined;
+export function bankAlias(src: string | undefined): string | undefined {
+  if (!src) return src;
+  const m = /\/banque\/(?:personnages|creatures|elements|textures)\/(.+)-(\d+)\.webp$/.exec(src);
+  const to = m && ALIAS[m[1]] ? bankById(ALIAS[m[1]]) : null;
+  return to ? bankSrc(to, Number(m![2])) : src;
 }
 
 /**

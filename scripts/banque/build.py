@@ -160,6 +160,28 @@ TEXTURES_LOT_FORET = [
 
 TEXTURES = [
     *TEXTURES_LOT_FORET,
+    # Textures corrigées en 2048 px (dossier « loresmith-textures-corrigees ») : canopées vues de haut (≈ 200 m), sols, eaux.
+    (r'^foret-automnale', dict(nom='Forêt d’automne vue de haut', cat='canopee', taille=200, milieux=['foret'], climats=[T], saisons=['automne'])),
+    (r'^foret-coniferes', dict(nom='Forêt de conifères vue de haut', cat='canopee', taille=200, milieux=['foret'], climats=[T, F])),
+    (r'^foret-enneigee', dict(nom='Forêt enneigée vue de haut', cat='canopee', taille=200, milieux=['foret'], climats=[F, T], saisons=['hiver'])),
+    (r'^foret-feuillus', dict(nom='Forêt de feuillus vue de haut', cat='canopee', taille=200, milieux=['foret'], climats=[T], saisons=['printemps', 'ete'])),
+    (r'^foret-mixte', dict(nom='Forêt mixte vue de haut', cat='canopee', taille=200, milieux=['foret'], climats=[T, F], saisons=['printemps', 'ete'])),
+    (r'^foret-tropicale', dict(nom='Forêt tropicale vue de haut', cat='canopee', taille=200, milieux=['jungle'], climats=[TR, C])),
+    (r'^sol-aiguilles', dict(nom='Aiguilles de pin', cat='humus', taille=5, milieux=['foret'], climats=[T, F])),
+    (r'^sol-feuilles', dict(nom='Feuilles mortes', cat='humus', taille=5, milieux=['foret'], climats=[T])),
+    (r'^sol-humus', dict(nom='Humus', cat='humus', taille=5, milieux=['foret'], climats=[T])),
+    (r'^sol-mousse', dict(nom='Mousse', cat='mousse', taille=4, milieux=['foret', 'marais'], climats=[T, F])),
+    (r'^sol-herbe', dict(nom='Herbe', cat='herbe', taille=4, milieux=['campagne', 'ville', 'foret'], climats=[T], saisons=['printemps', 'ete'])),
+    (r'^sol-terre', dict(nom='Terre', cat='terre', taille=5, milieux=['ville', 'campagne', 'route'])),
+    (r'^sol-gravier', dict(nom='Gravier', cat='gravier', taille=4, milieux=['route', 'riviere', 'montagne', 'campagne'])),
+    (r'^sol-calcaire', dict(nom='Calcaire', cat='roche', taille=6, milieux=['montagne', 'campagne'])),
+    (r'^sol-granite', dict(nom='Granite', cat='roche', taille=6, milieux=['montagne', 'campagne'])),
+    (r'^sol-paves', dict(nom='Pavés', cat='paves', taille=8, milieux=['ville'])),
+    (r'^sol-sable-humide', dict(nom='Sable humide', cat='sable', taille=5, milieux=['cote', 'riviere', 'lac'])),
+    (r'^sol-sable-sec', dict(nom='Sable sec', cat='sable', taille=6, milieux=['desert', 'cote'], climats=[C, A, T])),
+    (r'^eau-claire', dict(nom='Eau claire', cat='eau', taille=8, usage=['peu-profonde', 'claire'], milieux=['riviere', 'lac', 'mer'], climats=[T, C, TR])),
+    (r'^eau-profonde', dict(nom='Eau profonde', cat='eau', taille=12, usage=['profonde'], milieux=['riviere', 'lac', 'mer'])),
+    (r'^eau-trouble', dict(nom='Eau trouble', cat='eau', taille=10, usage=['peu-profonde', 'boueuse'], milieux=['riviere', 'marais', 'lac'], climats=[T, F])),
     (r'cendre volcanique', dict(nom='Cendre volcanique', cat='cendre', taille=6, milieux=['volcan'])),
     (r'cro.te volcanique', dict(nom='Croûte de lave', cat='lave', taille=6, milieux=['volcan'], region=['surface', 'outreterre'])),
     (r'dalles de pierre', dict(nom='Dalles de pierre', cat='dalles', taille=4, milieux=['interieur', 'ville', 'temple', 'caverne'], region=['surface', 'outreterre'])),
@@ -847,6 +869,14 @@ def structured(folder, title):
     stem = re.sub(r'\.(png|jpe?g|webp)$', '', stem)
     stem = re.sub(r'\s*\(\d+\)$', '', stem)  # « (2) » ajouté par le Drive à un doublon
     stem = re.sub(r'[\s_]+', '-', stem)
+    # Préfixe de série « ls-p-NNNN- » (jeu de personnages zénithaux du 2026-11-09) : il apparie jetons et portraits d'un même
+    # personnage, variantes comprises (« -variante-arc-zenith-jeton », « -portrait-variante »).
+    serie = None
+    ms = re.match(r'^ls-p-(\d+)-(.+)$', stem)
+    if ms:
+        serie, stem = f'ls-p-{ms.group(1)}', ms.group(2)
+        stem = re.sub(r'-portrait-variante(-\d+)?$', '-portrait', stem)
+        stem = re.sub(r'-variante(-[a-z]+)*-zenith-jeton$', '-zenith-jeton', stem)
     if folder == 'people':
         m = re.match(r'^(demi-elfe|demi-orque|[a-z]+)-([fm])-([a-z]+)(.*?)-(zenith-jeton|portrait)$', stem)
         if not m or m.group(1) not in PEUPLE_MOTS:
@@ -854,7 +884,7 @@ def structured(folder, title):
         rest = m.group(4)
         pose = next((p for p in ('couche', 'assis', 'agenouille') if f'-{p}' in rest), None)
         meta = dict(nom=title.rsplit('.', 1)[0], peuple=PEUPLE_MOTS[m.group(1)], genre=m.group(2), roles=[m.group(3)],
-                    paire=stem[: m.start(5) - 1], cadre_fixe=m.group(5) == 'zenith-jeton')
+                    paire=serie or stem[: m.start(5) - 1], cadre_fixe=m.group(5) == 'zenith-jeton')
         if m.group(3) == 'enfant':
             meta['roles'] = ['enfant']
         if pose:
@@ -863,6 +893,7 @@ def structured(folder, title):
     if folder == 'textures':
         m = re.match(r'^texture-(.+)-(\d+(?:\.\d+)?)m$', stem)
         return dict(nom=m.group(1).replace('-', ' '), cat='sol', taille=float(m.group(2)), milieux=[], raccorder=True) if m else None
+    stem = re.sub(r'-[0-9a-f]{8}$', '', stem)  # empreinte ajoutée au nom par le générateur (« toit-l-terre-cuite-12x12-247091a6 »)
     m = re.match(r'^toit-([a-z]+)-([a-z-]+)-(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)$', stem)
     if m:
         return dict(nom=f'Toit en {m.group(1).upper() if len(m.group(1)) == 1 else m.group(1)} ({m.group(2)})', cat='toit', forme=m.group(1).upper() if len(m.group(1)) == 1 else m.group(1),
@@ -1022,7 +1053,9 @@ def main():
         # Tous les éléments en 1024 px aussi : les plans à l'échelle zooment jusqu'à 64 px par mètre (un mouton, un arbuste, un
         # rocher y dépassent 512 px) ; sans cette version, la carte devrait les rétrécir ou les agrandir flous.
         big = kind in ('texture', 'element') or vue == 'portrait'
-        for s in SIZES if big else SIZES[:2]:
+        # Textures livrées en 2048 px : une version 2048 aussi (zoom maximal sur écran haute densité, tuiles de 8 à 12 m).
+        sizes = SIZES + ((2048,) if kind == 'texture' and max(w0, h0) >= 2048 else ())
+        for s in sizes if big else SIZES[:2]:
             k = min(1.0, s / max(w0, h0))
             # Jamais d'agrandissement : on s'arrête à la taille d'origine.
             if mips and k >= 1.0:
