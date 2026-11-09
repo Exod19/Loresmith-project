@@ -47,7 +47,10 @@ function put(ctx: CanvasRenderingContext2D, im: HTMLImageElement, x: number, y: 
   ctx.translate(x, y);
   ctx.rotate(a);
   if (flip) ctx.scale(-1, 1);
-  ctx.drawImage(im, -w / 2, -h / 2, w, h);
+  // Jamais déformée : l'image garde ses proportions dans sa place (w × h), centrée.
+  const r = im.naturalWidth && im.naturalHeight ? im.naturalWidth / im.naturalHeight : w / h;
+  const [dw, dh] = r >= w / h ? [w, w / r] : [h * r, h];
+  ctx.drawImage(im, -dw / 2, -dh / 2, dw, dh);
   ctx.restore();
 }
 
@@ -78,7 +81,7 @@ function groups(terrain: string, cols: number, rows: number, kind: string) {
  * (on abandonne alors sans rien peindre de travers).
  */
 /** `nature` : plan d'un lieu sauvage (sol d'herbe et de terre, paroi de roche ; ni pavés ni toits). */
-export async function dressBoard(canvas: HTMLCanvasElement, cols: number, rows: number, terrain: string | undefined, mode: Climate | 'interieur', C: number, alive: () => boolean, nature = false) {
+export async function dressBoard(canvas: HTMLCanvasElement, cols: number, rows: number, terrain: string | undefined, mode: Climate | 'interieur', C: number, alive: () => boolean, nature = false, furnished = false) {
   const ctx = canvas.getContext('2d');
   if (!ctx || !terrain) return;
   const images = bankImages();
@@ -99,7 +102,7 @@ export async function dressBoard(canvas: HTMLCanvasElement, cols: number, rows: 
     const out = outsideOf(terrain, cols, rows);
     under = tex(['planches'], 'sol');
     steps.push(() => fillCells(ctx, C, cols, terrain, (k, i) => (k === '.' || k === ':') && !out.has(i), under, 0.92));
-    steps.push(() => fillCells(ctx, C, cols, terrain, (k, i) => k !== '#' && out.has(i), tex(['paves'], 'rue'), 0.9));
+    // Dehors : neutre, comme la carte de navigation de l'intérieur (plus de pavés de rue autour du bâtiment).
     steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === '#', tex(['dalles'], 'mur'), 0.75));
   } else {
     // En ville (beaucoup de bâti, peu de champs), le sol libre est pavé ; à la campagne, c'est de la terre.
@@ -171,16 +174,20 @@ export async function dressBoard(canvas: HTMLCanvasElement, cols: number, rows: 
       const seed = `arbre:${i}`;
       const img = pickElement(images, { cats: ['arbre', 'arbuste'], ...ctxPick, seed });
       if (!img) continue;
-      const m = Array.isArray(img.taille) ? Math.min(img.taille[0], 7) : 4;
-      const px = Math.max(C * 1.3, Math.min(C * 2.4, (m / CELL_M) * C * 0.5));
+      // À l'échelle : un arbre garde la moitié de sa couronne réelle (sinon il couvrirait le plateau), un arbuste ou un
+      // cactus sa taille réelle. Un buisson de 1,8 m n'est plus aussi gros qu'un chêne de 12 m.
+      const m = Array.isArray(img.taille) ? Math.max(img.taille[0], img.taille[1]) : 4;
+      const cellsWide = (m / CELL_M) * (img.cat === 'arbre' ? 0.45 : 1);
+      const px = Math.max(0.6, Math.min(3.2, cellsWide)) * C;
       const im = await load(bankSrc(img, px));
       if (!alive()) return;
       if (!im) continue;
       await clear(new Set([i]));
       put(ctx, im, (i % cols + 0.5) * C, (Math.floor(i / cols) + 0.5) * C, px, px, ((hash(seed) % 360) * Math.PI) / 180);
     }
-  } else {
-    // Intérieur : un obstacle isolé devient un tonneau ou un coffre (sa case est repeinte en plancher dessous).
+  } else if (!furnished) {
+    // Intérieur sans mobilier connu : un obstacle isolé devient un tonneau ou un coffre (sa case est repeinte en plancher
+    // dessous). Avec le mobilier du plan, chaque meuble est dessiné tel qu'en navigation (BattleBoard, FurnitureLayer).
     for (let i = 0; i < terrain.length; i++) {
       if (terrain[i] !== 'I') continue;
       const x = i % cols, y = Math.floor(i / cols);

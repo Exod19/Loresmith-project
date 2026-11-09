@@ -5,7 +5,8 @@
  *    de l'univers (un contributeur ne change que les siennes).
  */
 import { useEffect, useMemo, useState } from 'react';
-import { bankAdmin, bankDeleted, bankReplacement, bankSrc, overridesOf, retireOwn, setOverride, syncBank, useBank, type BankImage } from './index';
+import { bankAdmin, bankDeleted, bankReplacement, bankSrc, overridesOf, retireOwn, setOverride, syncBank, useBank, useBankAll, type BankImage } from './index';
+import { GENRES } from './genres';
 
 type Fiche = { id: string; title: string; targetType: 'library' | 'npc' };
 type Props = {
@@ -30,7 +31,10 @@ const list = (v: string) => v.split(',').map((x) => x.trim()).filter(Boolean);
 const size = (img: BankImage) => (Array.isArray(img.taille) ? `${img.taille[0]} × ${img.taille[1]} m` : typeof img.taille === 'number' ? `tuile de ${img.taille} m` : '');
 
 export default function BanquePanel({ onBack, fiches, onAssign, onUpload, onEditOwn, onDeleteOwn, campaignTitle }: Props) {
-  const images = useBank();
+  // Par défaut, les images des genres de l'univers ouvert (et les communes) ; « tous les genres » montre tout le catalogue.
+  const [allGenres, setAllGenres] = useState(false);
+  const inGenre = useBank(), every = useBankAll();
+  const images = allGenres ? every : inGenre;
   const [mode, setMode] = useState<'partage' | 'local' | null>(null);
   useEffect(() => { void syncBank().then(setMode); }, []);
   const [type, setType] = useState<string>('');
@@ -94,6 +98,9 @@ export default function BanquePanel({ onBack, fiches, onAssign, onUpload, onEdit
           <div className="maps-seg" role="group" aria-label="Type">
             {TYPES.map(([k, l]) => <button key={k} className={type === k ? 'on' : ''} onClick={() => { setType(k); setVue(''); }}>{l}</button>)}
           </div>
+          <label className="build-check" title="Montrer aussi les images des autres genres d’univers (steampunk, moderne, science-fiction…)">
+            <input type="checkbox" checked={allGenres} onChange={(e) => setAllGenres(e.target.checked)} /> Tous les genres
+          </label>
           <div className="maps-seg" role="group" aria-label="Monde">
             {REGIONS.map(([k, l]) => <button key={k} className={region === k ? 'on' : ''} onClick={() => setRegion(k)}>{l}</button>)}
           </div>
@@ -133,13 +140,18 @@ export default function BanquePanel({ onBack, fiches, onAssign, onUpload, onEdit
       <div className="banque-body">
         <div className="banque-grid">
           {shown.map((i) => (
-            <button key={i.id} className={`banque-card${selId === i.id || picked.has(i.id) ? ' is-sel' : ''}${i.exclu ? ' is-off' : ''}`} aria-pressed={picking ? picked.has(i.id) : undefined} title={i.titre}
+            <div key={i.id} className="banque-cell">
+            {!picking && canDelete(i) && (
+              <button className="banque-del" title={`Supprimer « ${i.nom} » définitivement`} aria-label={`Supprimer ${i.nom}`} onClick={() => removeImages([i])}>🗑</button>
+            )}
+            <button className={`banque-card${selId === i.id || picked.has(i.id) ? ' is-sel' : ''}${i.exclu ? ' is-off' : ''}`} aria-pressed={picking ? picked.has(i.id) : undefined} title={i.titre}
               onClick={() => { if (!picking) { setSelId(i.id); return; } if (!canDelete(i)) return; const n = new Set(picked); if (n.has(i.id)) n.delete(i.id); else n.add(i.id); setPicked(n); }}>
               {picking && <i className="banque-check" aria-hidden>{picked.has(i.id) ? '☑' : canDelete(i) ? '☐' : '🔒'}</i>}
               <img src={bankSrc(i, 120)} alt="" loading="lazy" className={i.type === 'texture' ? 'tex' : ''} />
               <span>{i.nom}{touched[i.id] ? ' ✎' : ''}</span>
               <small>{i.type === 'personnage' ? `${i.vue} · ${i.peuple || '?'}` : i.type === 'creature' ? `${i.vue} · ${size(i)}` : `${i.cat ?? ''} · ${size(i)}`}</small>
             </button>
+            </div>
           ))}
           {!shown.length && <p className="maps-hint">Aucune image ne correspond.</p>}
           {showDeleted && (
@@ -193,6 +205,8 @@ export default function BanquePanel({ onBack, fiches, onAssign, onUpload, onEdit
             <label>Milieux <input className="maps-btn" disabled={!canEdit} key={`m-${sel.id}`} defaultValue={sel.milieux.join(', ')} onBlur={(e) => edit({ milieux: list(e.target.value) })} /></label>
             <label>Climats (vide : tous) <input className="maps-btn" disabled={!canEdit} key={`c-${sel.id}`} defaultValue={sel.climats.join(', ')} onBlur={(e) => edit({ climats: list(e.target.value) })} /></label>
             <label>Saisons (vide : toutes) <input className="maps-btn" disabled={!canEdit} key={`s-${sel.id}`} defaultValue={sel.saisons.join(', ')} onBlur={(e) => edit({ saisons: list(e.target.value) })} /></label>
+            <label>Genres d’univers <input className="maps-btn" disabled={!canEdit} key={`ge-${sel.id}`} defaultValue={(sel.genres ?? ['fantasy']).join(', ')}
+              title={`* (tous les univers), ${GENRES.map((g) => g.id).join(', ')}`} onBlur={(e) => { const g = list(e.target.value); if (g.length) edit({ genres: g }); }} /></label>
             <label>Région <input className="maps-btn" disabled={!canEdit} key={`g-${sel.id}`} defaultValue={sel.region.join(', ')} onBlur={(e) => edit({ region: list(e.target.value) })} title="surface, outreterre, mer" /></label>
             <label className="maps-row"><input type="checkbox" disabled={!canEdit} checked={!!sel.exclu} onChange={(e) => edit({ exclu: e.target.checked })} /> Exclure des choix automatiques</label>
             {admin && !sel.assetId && touched[sel.id] && <button className="maps-btn" onClick={() => { void setOverride(sel.id, null).then(setMode); }}>Rétablir les étiquettes d’origine</button>}

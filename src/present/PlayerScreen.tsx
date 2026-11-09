@@ -203,6 +203,13 @@ function PlayerMap({ board, rev, onFollow, onPick, onFork, onGoto }: { board: Ex
       )}
       {board.talk && board.talk.lines.length > 0 && <TalkBox key={board.talk.key} talk={board.talk} />}
       {board.alert && <HaltNotice key={board.alert.key} alert={board.alert} />}
+      {board.retour && !board.alert && (
+        <aside className="present-map-card present-retour" role="status" aria-label="Depuis votre dernier passage">
+          <span className="present-info-kind">Depuis votre dernier passage · il y a {board.retour.ago}</span>
+          <h3>{board.retour.title}</h3>
+          {board.retour.lines.map((l, i) => <p key={i}>{l}</p>)}
+        </aside>
+      )}
       {board.fork && !board.alert && (
         <ForkPrompt key={board.fork.key} fork={board.fork} readyAt={board.travel ? board.travel.at + journeyMs(board.travel.points, map.width, map.height) : 0} onChoose={onFork} />
       )}
@@ -384,7 +391,7 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
         ref={wrapRef} onPointerDown={down} onPointerMove={move}
       >
         <BattleBoard
-          cols={board.cols} rows={board.rows} backdrop={board.backdrop} tile={board.tile} tileRot={board.tileRot} theme={board.theme} terrain={board.terrain} elements={board.elements} tokens={tokens} fog={board.fog} exits={board.exits}
+          cols={board.cols} rows={board.rows} backdrop={board.backdrop} tile={board.tile} tileRot={board.tileRot} furniture={board.furniture} decor={board.decor} light={board.light} theme={board.theme} terrain={board.terrain} elements={board.elements} tokens={tokens} fog={board.fog} exits={board.exits}
           onElement={pick} aim={aim} ranges={ranges} hits={board.hits} ground={board.ground} surface={board.surface} aoes={board.aoes}
           path={dragPlan && dragToken ? {
             steps: dragPlan.possible ? dragPlan.steps : [from(dragToken), drag!.cur], size: dragToken.size, ok: dragPlan.ok, possible: dragPlan.possible,

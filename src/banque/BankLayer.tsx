@@ -8,7 +8,7 @@
  */
 import { useMemo } from 'react';
 import type { AtlasMap } from '../maps/atlas/types';
-import { bankSrc, fitRoof, hash, maskFromParts, MIN_PX, pickElement, pickTexture, useBank, type BankImage } from './index';
+import { bankSrc, fitRoof, hash, maskFromParts, MIN_PX, noUpscale, pickElement, pickTexture, useBank, type BankImage } from './index';
 
 type View = { x: number; y: number; w: number; h: number };
 /** Un sprite : image centrée en (x, y), de w × h avant rotation, tournée de `a`, en miroir si `flip`. Sans image : le
@@ -39,6 +39,27 @@ const rectD = (x: number, y: number, w: number, h: number, a: number) => {
   const c = Math.cos(a), sn = Math.sin(a);
   return 'M' + [[-w / 2, -h / 2], [w / 2, -h / 2], [w / 2, h / 2], [-w / 2, h / 2]].map(([u, v]) => `${(x + u * c - v * sn).toFixed(2)} ${(y + u * sn + v * c).toFixed(2)}`).join('L') + 'Z';
 };
+
+/**
+ * Image d'un objet posé (mobilier d'un intérieur, fontaine…) dans son emplacement (x, y, w × h, angle a0, dans n'importe
+ * quelle unité) : la même image, à la même taille et dans le même sens partout où l'objet est dessiné (carte de
+ * navigation et plateau de combat), pourvu que la graine soit la même (`<plan>:<type>:<x>:<y>`, en unités du plan).
+ * `img: null` : la banque n'a rien pour lui ; null : type inconnu.
+ */
+export function propSprite(images: BankImage[], k: string, x: number, y: number, w: number, h: number, a0: number, seed: string, ref: [number, number] = [x, y]) {
+  const want = PROPS[k];
+  if (!want) return null;
+  const img = pickElement(images.filter((im) => im.usage?.includes(want.usage)), { cat: want.cat ?? 'mobilier', region: 'surface', seed });
+  if (!img) return { img: null, w, h, a: a0 };
+  // L'objet garde ses proportions dans son emplacement, tourné d'un quart de tour si l'emplacement est couché.
+  const tw = Array.isArray(img.taille) ? img.taille : [1, 1];
+  const r = tw[0] / tw[1], swap = (r >= 1) !== (w >= h);
+  const [bw, bh] = swap ? [h, w] : [w, h];
+  const k2 = Math.min(bw / r, bh) || 1;
+  const [rx, ry] = ref;
+  const turn = k === 'tonneau' || k === 'fontaine' ? a0 + ((hash(`${rx}:${ry}`) % 360) * Math.PI) / 180 : a0 + (swap ? Math.PI / 2 : 0) + (hash(`${rx}:${ry}`) % 2 ? Math.PI : 0);
+  return { img, w: k2 * r, h: k2, a: turn };
+}
 
 /** Les sprites d'un plan (calculés une fois par plan et par saison : la vue ne fait que trier ce qui se voit). */
 function useSprites(map: AtlasMap, images: BankImage[]) {
@@ -79,17 +100,10 @@ function useSprites(map: AtlasMap, images: BankImage[]) {
     }
     // Objets posés (mobilier des intérieurs ; fontaine et étals de la place du marché).
     for (const [k, x, y, w, h, a0] of g.p ?? []) {
-      const want = PROPS[k];
-      if (!want) continue;
-      const img = pickElement(images.filter((im) => im.usage?.includes(want.usage)), { cat: want.cat ?? 'mobilier', region: 'surface', seed: `${map.id}:${k}:${x}:${y}` });
-      if (!img) { if (want.decor) out.push({ key: `p${k}${x}:${y}`, layer: 'dessus', img: null, x, y, w, h, a: a0, d: rectD(x, y, w, h, a0), cls: `dc-${want.decor}` }); continue; }
-      // L'objet garde ses proportions dans son emplacement, tourné d'un quart de tour si l'emplacement est couché.
-      const tw = Array.isArray(img.taille) ? img.taille : [1, 1];
-      const r = tw[0] / tw[1], swap = (r >= 1) !== (w >= h);
-      const [bw, bh] = swap ? [h, w] : [w, h];
-      const k2 = Math.min(bw / r, bh) || 1;
-      const turn = k === 'tonneau' || k === 'fontaine' ? a0 + ((hash(`${x}:${y}`) % 360) * Math.PI) / 180 : a0 + (swap ? Math.PI / 2 : 0) + (hash(`${x}:${y}`) % 2 ? Math.PI : 0);
-      out.push({ key: `p${k}${x}:${y}`, layer: 'dessus', img, x, y, w: k2 * r, h: k2, a: turn });
+      const sp = propSprite(images, String(k), x, y, w, h, a0, `${map.id}:${k}:${x}:${y}`);
+      if (!sp) continue;
+      if (!sp.img) { const want = PROPS[k]; if (want?.decor) out.push({ key: `p${k}${x}:${y}`, layer: 'dessus', img: null, x, y, w, h, a: a0, d: rectD(x, y, w, h, a0), cls: `dc-${want.decor}` }); continue; }
+      out.push({ key: `p${k}${x}:${y}`, layer: 'dessus', img: sp.img, x, y, w: sp.w, h: sp.h, a: sp.a });
     }
     return out;
   }, [map.id, map.surface, images]);
@@ -148,10 +162,13 @@ export default function BankLayer({ map, layer, pxPerUnit, view }: { map: AtlasM
   if (!shown.length || shown.length > 3000) return null;
   return (
     <g className={`am-bank am-bank-${layer}`} aria-hidden>
-      {shown.map((sp) => (sp.img ? (
-        <image key={sp.key} href={bankSrc(sp.img, Math.max(sp.w, sp.h) * pxPerUnit)} x={-sp.w / 2} y={-sp.h / 2} width={sp.w} height={sp.h} preserveAspectRatio="none"
-          transform={`translate(${sp.x} ${sp.y}) rotate(${(sp.a * 180) / Math.PI})${sp.flip ? ' scale(-1 1)' : ''}`} />
-      ) : sp.d ? <path key={sp.key} d={sp.d} className={sp.cls} /> : null))}
+      {shown.map((sp) => {
+        if (!sp.img) return sp.d ? <path key={sp.key} d={sp.d} className={sp.cls} /> : null;
+        // Jamais étirée au-delà de sa résolution d'origine (ni déformée : proportions gardées).
+        const px = Math.max(sp.w, sp.h) * pxPerUnit, k = noUpscale(sp.img, px), w = sp.w * k, h = sp.h * k;
+        return <image key={sp.key} href={bankSrc(sp.img, px * k)} x={-w / 2} y={-h / 2} width={w} height={h} preserveAspectRatio="xMidYMid meet"
+          transform={`translate(${sp.x} ${sp.y}) rotate(${(sp.a * 180) / Math.PI})${sp.flip ? ' scale(-1 1)' : ''}`} />;
+      })}
     </g>
   );
 }

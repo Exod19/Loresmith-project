@@ -14,6 +14,8 @@ import { DAY, clockLabel, elapsedLabel, stamp } from './clock.js';
 export const EVENT_KINDS = {
   incendie: { label: 'Incendie', icon: '🔥' },
   destruction: { label: 'Destruction', icon: '🏚' },
+  chantier: { label: 'Travaux, chantier', icon: '🚧' },
+  reconstruction: { label: 'Reconstruction, réparation', icon: '🏗' },
   mort: { label: 'Mort', icon: '☠' },
   cadavre: { label: 'Cadavre laissé', icon: '⚰' },
   vol: { label: 'Vol', icon: '💰' },
@@ -27,6 +29,21 @@ export const EVENT_KINDS = {
   rumeur: { label: 'Rumeur', icon: '🗣' },
   autre: { label: 'Autre', icon: '•' },
 };
+/**
+ * Nature d'un événement d'après son texte, quand le MJ ne l'a pas choisie : « le temple a été reconstruit » est une
+ * reconstruction, « l'auberge a brûlé » un incendie. Le plus récent l'emporte sur l'état du lieu (consequences.js).
+ */
+export function kindFromText(text) {
+  const t = String(text).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  if (/(re)?construi|rebati|reconstruct|repare|restaure|rouvert|reouvert/.test(t)) return 'reconstruction';
+  if (/chantier|travaux|echafaud|en reparation/.test(t)) return 'chantier';
+  if (/brul|incendi|en feu|flammes|cendres/.test(t)) return 'incendie';
+  if (/detrui|effondr|rase|ecroul|demoli/.test(t)) return 'destruction';
+  if (/\bvol(e|é)?s?\b|derob|disparu|cambriol/.test(t)) return 'vol';
+  if (/\btue|mort|assassin|decede/.test(t)) return 'mort';
+  return 'autre';
+}
+
 /** Implication des joueurs. */
 export const ROLES = { auteurs: 'Les héros en sont les auteurs', temoins: 'Les héros en ont été témoins', victimes: 'Les héros en ont été victimes', aucun: 'Sans les héros' };
 export const GRAVITY = { 1: 'Mineur', 2: 'Notable', 3: 'Grave' };
@@ -40,7 +57,7 @@ export function newEvent(clock, e, id) {
     id: id ?? `ev-${Math.round(at)}-${Math.random().toString(36).slice(2, 7)}`,
     at, title: String(e.title ?? '').trim() || 'Événement',
     ...(e.text ? { text: String(e.text).trim() } : {}),
-    kind: EVENT_KINDS[e.kind] ? e.kind : 'autre',
+    kind: EVENT_KINDS[e.kind] && e.kind !== 'autre' ? e.kind : kindFromText(`${e.title ?? ''} ${e.text ?? ''}`),
     ...(e.place ? { place: e.place } : {}),
     ...(e.npcs?.length ? { npcs: e.npcs.map((n) => String(n).trim()).filter(Boolean) } : {}),
     joueurs: ROLES[e.joueurs] ? e.joueurs : 'aucun',
@@ -71,7 +88,7 @@ export function eventsPrompt(notes, { places = [], npcs = [], now = '' } = {}) {
   const system = [
     'Tu aides un maître du jeu de Donjons et Dragons à tenir la mémoire de son monde.',
     'À partir de ses notes de séance, liste les événements qui changent le monde ou que les gens retiendront :',
-    'bâtiment incendié ou détruit, mort, cadavre abandonné, vol, effraction, agression, humiliation publique, aide rendue, accord conclu, découverte, rumeur lancée, lieu délaissé.',
+    'bâtiment incendié ou détruit, chantier ouvert, bâtiment reconstruit ou réparé, mort, cadavre abandonné, vol, effraction, agression, humiliation publique, aide rendue, accord conclu, découverte, rumeur lancée, lieu délaissé.',
     'Ignore le reste (combats sans suite, discussions, achats ordinaires). N’invente rien qui ne soit pas dans les notes.',
     `Natures permises : ${Object.keys(EVENT_KINDS).join(', ')}. Implication des héros : auteurs, temoins, victimes ou aucun. Gravité : 1 (mineur), 2 (notable), 3 (grave).`,
     'Pour le lieu et les PNJ, reprends exactement un nom de la liste fournie quand il correspond ; sinon, le nom des notes.',

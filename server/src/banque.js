@@ -10,7 +10,7 @@ import { HttpError } from './documents.js';
 
 const KEY = 'app/banque-retouches.json';
 /** Champs qu'une retouche peut changer (le reste du catalogue vient du dépôt). */
-const FIELDS = new Set(['nom', 'peuple', 'genre', 'roles', 'taille', 'longueur', 'milieux', 'climats', 'saisons', 'region', 'usage', 'forme', 'cat', 'exclu', 'supprime']);
+const FIELDS = new Set(['nom', 'peuple', 'genre', 'roles', 'taille', 'longueur', 'milieux', 'climats', 'saisons', 'region', 'usage', 'forme', 'cat', 'exclu', 'supprime', 'genres']);
 const ID = /^[a-z0-9-]{1,80}$/;
 
 async function read(env) {

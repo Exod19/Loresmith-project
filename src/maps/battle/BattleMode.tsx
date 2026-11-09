@@ -11,17 +11,20 @@ import { npcBankImage, npcToken } from '../../banque/place';
 import type { LoreEntry } from '../world/lore';
 import { terrainAt, type Relief } from '../world/terrain';
 import { boardTheme } from './theme';
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import BattleBoard, { anchorOf, type BoardElement, type BoardLabel, type BoardRange, type BoardToken } from './BattleBoard';
 import type { AtlasData, AtlasMap } from '../atlas/types';
 import {
-  DEFAULT_BATTLE, type Battle, type BattleBuild, type BattleToken, type MapMarker, type MapRecord, type PartyTrack, type PassageLink, type SearchNote,
+  DEFAULT_BATTLE, placeCoords, type Battle, type BoardFurniture, type BattleBuild, type BattleToken, type MapMarker, type MapRecord, type PartyTrack, type PassageLink, type SearchNote,
 } from '../mapStore';
 import { blocksCell, effectiveGrid, generateTerrain, seedOf, TERRAIN, type LocationHint, type TerrainKind } from './terrain';
 import { buildLocalMap, cellIn, trimPassages } from './local';
+import { outsideOf } from './groundCells';
+import { furnitureFor, PLACE_LOOK, type PlaceEtat } from './placeLook';
+import { placeStates } from '../world/consequences';
 import { attackCells, rangedCells, speedCells } from './ranges';
-import { battleRegion, tokenImage } from './vignettes';
-import TilePanel, { tileFix } from './TilePanel';
+import { battleRegion, placeRegion, tokenImage } from './vignettes';
+import TilePanel, { tileFix, WorldPicker } from './TilePanel';
 import { bankById, bankSrc, type BankImage } from '../../banque';
 import BuildPanel from './BuildPanel';
 import CombatPanel, { type Hero } from './CombatPanel';
@@ -49,6 +52,18 @@ import './battle.css';
 
 /** Niveaux de zoom du plateau (même logique que la carte de navigation). */
 const ZOOMS = [0.75, 1, 1.5, 2, 2.5, 3];
+const ZOOM_MIN = ZOOMS[0], ZOOM_MAX = ZOOMS[ZOOMS.length - 1];
+const clampZoom = (z: number) => Math.round(Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z)) * 100) / 100;
+/** Ancêtre qui fait défiler le plateau sur un axe (le plateau zoomé déborde de son cadre). */
+function scrollerOf(wrap: HTMLElement, axis: 'x' | 'y') {
+  for (let el: HTMLElement | null = wrap; el; el = el.parentElement) {
+    const st = getComputedStyle(el);
+    const ov = axis === 'x' ? st.overflowX : st.overflowY;
+    const more = axis === 'x' ? el.scrollWidth > el.clientWidth + 1 : el.scrollHeight > el.clientHeight + 1;
+    if (more && (ov === 'auto' || ov === 'scroll')) return el;
+  }
+  return null;
+}
 const uid = () => Math.random().toString(36).slice(2, 10);
 /** Même type de données que le sélecteur de créatures (src/bestiary/CreaturePicker.jsx). */
 const CREATURE_DRAG = 'application/x-loresmith-creature';
@@ -163,6 +178,28 @@ function wildObjects(plan: AtlasMap, win: { x0: number; y0: number; w: number; h
   return out;
 }
 
+/** Mobilier d'un plan d'intérieur, converti en cases du plateau (fenêtre `win`, 0–1) : les mêmes meubles qu'en navigation. */
+function furnitureOf(plan: AtlasMap, win: { x0: number; y0: number; w: number; h: number }, cols: number, rows: number): BoardFurniture[] {
+  const p = (plan.surface?.ground as { p?: [string, number, number, number, number, number][] } | undefined)?.p ?? [];
+  const W = plan.width, H = plan.height;
+  const out: BoardFurniture[] = [];
+  for (const [k, x, y, w, h, a] of p) {
+    const cx = ((x / W - win.x0) / win.w) * cols, cy = ((y / H - win.y0) / win.h) * rows;
+    if (cx < -1 || cy < -1 || cx > cols + 1 || cy > rows + 1) continue;
+    out.push({ k, x: cx, y: cy, w: (w / W / win.w) * cols, h: (h / H / win.h) * rows, a, seed: `${plan.id}:${k}:${x}:${y}`, ref: [x, y] });
+  }
+  return out;
+}
+
+/** Tracés du mobilier d'un intérieur (ceux de la carte de navigation) et leur passage du plan aux cases du plateau. */
+const FURN_KINDS = new Set(['rug', 'dais', 'stall', 'stool', 'furn', 'table', 'bed', 'hearth', 'altar', 'throne', 'tomb', 'anvil', 'trough', 'stair', 'hatch', 'barrel', 'crate', 'chest', 'bars', 'pillar']);
+function decorOf(plan: AtlasMap, win: { x0: number; y0: number; w: number; h: number }, cols: number, rows: number) {
+  const list = (plan.decor ?? []).filter((d) => FURN_KINDS.has(d.kind)).map((d) => ({ kind: d.kind, d: d.d }));
+  if (!list.length) return undefined;
+  const W = plan.width, H = plan.height;
+  return { list, tf: [cols / (win.w * W), rows / (win.h * H), -win.x0 * W, -win.y0 * H] as [number, number, number, number] };
+}
+
 function surfaceTheme(surface: NonNullable<AtlasMap['surface']>, win: { x0: number; y0: number; w: number; h: number }): 'interieur' | 'neige' | 'froid' | 'chaud' | true {
   if (surface.theme === 'interieur') return 'interieur';
   if ((surface.snow ?? 0) >= 0.1) return 'neige';
@@ -176,7 +213,7 @@ function surfaceTheme(surface: NonNullable<AtlasMap['surface']>, win: { x0: numb
 }
 
 export default function BattleMode({
-  rec, battle, onBattle, context, atlas, plan, markers, onFollow, onLink, onMarker, onReveal, heroes = [], party, onSearchNote, bestiary = [], renderCombat, onLeave, library,
+  rec, battle, onBattle, context, atlas, plan, markers, onFollow, onLink, onMarker, onReveal, onRevealMany, heroes = [], party, onSearchNote, bestiary = [], renderCombat, onLeave, library,
 }: {
   rec: MapRecord; battle: Battle; onBattle: (b: Battle) => void;
   /** Fiches de la Bibliothèque : peuples de la cité, pour choisir des jetons cohérents dans la Banque Loresmith. */
@@ -189,6 +226,8 @@ export default function BattleMode({
   onMarker: (id: string, patch: Partial<MapMarker>) => void;
   /** Révèle ou cache un élément pour les joueurs : même interrupteur que sur la carte de navigation. */
   onReveal: (featureId: string) => void;
+  /** Révèle plusieurs lieux d'un coup (sans rien cacher de ce qui l'est déjà). */
+  onRevealMany?: (featureIds: string[]) => void;
   heroes?: Hero[];
   /** Fiches de PNJ & Créatures, pour les ajouter au combat avec leur jeton. */
   bestiary?: BestiaryRef[];
@@ -307,6 +346,53 @@ export default function BattleMode({
   const placeTitle = context?.title ?? b.local?.place ?? rec.title;
 
   /**
+   * PNJ d'un intérieur posés sur le plateau : ceux qui y sont à cette heure (les mêmes qu'en navigation), chacun à sa
+   * place (comptoir, porte…), visible des joueurs sauf s'il est expressément caché. Un PNJ déjà sur le plateau n'est pas
+   * reposé. `ground` : grille du plateau ; `win` : fenêtre du plan (0–1).
+   */
+  const placeNpcs = (start: BattleToken[], ground: string, win: { x0: number; y0: number; w: number; h: number }): BattleToken[] => {
+    if (!(atlas && plan) || plan.surface?.theme !== 'interieur') return start;
+    // Bâtiment en ruine ou en chantier : ses habitants sont relogés ailleurs (cf. relocation.js), il n'y a personne.
+    const st = rec.world ? placeStates(rec.world)[plan.id.replace(/:int$/, '')] : undefined;
+    if (st && (st.etat === 'ruine' || st.etat === 'chantier')) return start;
+    let tokens = start;
+    const local = { window: win };
+    const revealed = new Set(rec.overlay?.revealed ?? []);
+    const taken = (x: number, y: number) => tokens.some((t) => x >= t.x && x < t.x + t.size && y >= t.y && y < t.y + t.size);
+    for (const f of atlas.features.filter((x) => x.id.startsWith(`${plan.id}:pnj-`))) {
+      const id = `pnj-${f.entryId ?? f.id}`;
+      if (tokens.some((t) => t.id === id)) continue;
+      const g = atlas.geometries.find((x) => x.featureId === f.id && x.type === 'point');
+      const cell = g && cellIn(local.window, b.cols, b.rows, (g.coordinates as [number, number])[0], (g.coordinates as [number, number])[1]);
+      if (cell === undefined || !g) continue;
+      const cx = cell % b.cols, cy = Math.floor(cell / b.cols);
+      // Une case de sol libre : jamais sur une table, un lit, dans l'eau ou sur des gravats (cases gênantes ou
+      // difficiles), sauf pour qui dort : il reste dans son lit. À défaut de sol libre tout près, une case praticable.
+      const asleep = f.pose === 'couche';
+      let best: { x: number; y: number } | null = null, bd = Infinity;
+      for (const strict of [true, false]) {
+        for (let y = 0; y < b.rows; y++) for (let x = 0; x < b.cols; x++) {
+          const d = Math.max(Math.abs(x - cx), Math.abs(y - cy)) + (strict ? 0 : 0.5);
+          const k = ground[y * b.cols + x];
+          const ok = asleep && x === cx && y === cy ? !taken(x, y) : !blocksCell(ground, b.cols, x, y) && !taken(x, y) && (!strict || k === '.');
+          if (d < bd && ok) { bd = d; best = { x, y }; }
+        }
+        if (best && bd <= 2) break;
+      }
+      if (!best || bd > 4) continue;
+      const ref = bestiary.find((r) => r.id === f.entryId);
+      tokens = [...tokens, {
+        id, name: f.title, kind: 'other', x: best.x, y: best.y, size: 1, visible: !f.hiddenNpc || revealed.has(f.id),
+        npcId: ref?.id, hp: ref?.hp, maxHp: ref?.hp, ac: ref?.ac,
+        // Sans jeton propre : un jeton de la Banque Loresmith, cohérent avec la cité (peuple, rôle).
+        // Même jeton que sur la carte de navigation : réparti dans la scène, sans doublon tant que la banque le permet.
+        image: ref?.token ?? npcToken(rec, plan.id, library, bestiary, f, 128, atlas.features) ?? npcBankImage(rec, plan.id, library, f),
+      }];
+    }
+        return tokens;
+  };
+
+  /**
    * Construit la carte du lieu : terrain, passages et éléments à leur place. Une rencontre place aussi ses créatures,
    * groupées (caravane) ou dispersées (mineurs) selon leur rôle. `n` change la disposition du terrain (« Régénérer »).
    */
@@ -321,56 +407,51 @@ export default function BattleMode({
     const previous = b.local?.source === source ? b.local.discovered : [];
     const ids = local.elements.map((e) => e.id);
     const ground = effectiveGrid(local.base, local.elements, [], ids);
+    // Nouveau lieu : nouvelle scène. Rien de l'ancien lieu n'est repris (créatures, PNJ, objets posés, murs, zones,
+    // corrections de cases, fond tactique, zones d'effet, tour et journal). Seuls les héros suivent, posés là où se
+    // trouve le groupe sur la carte de navigation (à défaut, au centre du lieu). « Régénérer » garde la scène.
+    const newPlace = b.local?.source !== source;
+    const sceneReset: Partial<Battle> = newPlace ? {
+      zones: undefined, objects: undefined, walls: undefined, cellFix: undefined, tile: undefined, region: undefined, aoes: undefined,
+      aoeHit: undefined, damage: undefined, aim: undefined, hits: undefined, moved: undefined, puzzle: undefined, entry: undefined,
+      encounterOf: undefined, turn: undefined, round: 1, log: [],
+    } : {};
     let tokens = b.tokens;
+    if (newPlace) {
+      const fresh: Battle = { ...b, ...sceneReset, tokens: [], terrain: { source, seed, grid: local.base },
+        local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous }, build: undefined };
+      const at = party?.at && party.at.planId === plan.id ? placeCoords(atlas, rec, party.at) : null;
+      const cell = at ? cellIn(local.window, b.cols, b.rows, at[0], at[1]) : undefined;
+      // À défaut de position du groupe sur ce plan : l'entrée du bâtiment (intérieur), sinon le centre du lieu.
+      const door = cell === undefined ? atlas.geometries.find((g) => g.featureId === `${plan.id}:entree` && g.type === 'point') : undefined;
+      const doorCell = door ? cellIn(local.window, b.cols, b.rows, (door.coordinates as [number, number])[0], (door.coordinates as [number, number])[1]) : undefined;
+      const spot = cell ?? doorCell;
+      const near = spot !== undefined ? { x: spot % b.cols, y: Math.floor(spot / b.cols) } : { x: Math.floor(b.cols / 2), y: Math.floor(b.rows / 2) };
+      // Les héros, sans leur ancienne case (placeOnBoard leur en donne une nouvelle).
+      const pcs = b.tokens.filter((t) => t.kind === 'pc').map((t) => ({ ...t, unplaced: undefined, layer: undefined }));
+      tokens = placeOnBoard(fresh, pcs, near);
+    }
     if (groups?.length) {
-      const kept = b.tokens.filter((t) => t.kind !== 'monster');
+      const kept = tokens.filter((t) => t.kind !== 'monster');
       const free = (x: number, y: number, size: 1 | 2) =>
         x >= 0 && y >= 0 && x + size <= b.cols && y + size <= b.rows
         && !Array.from({ length: size * size }).some((_, i) => blocksCell(ground, b.cols, x + (i % size), y + Math.floor(i / size)))
         && !kept.some((t) => t.x < x + size && x < t.x + t.size && t.y < y + size && y < t.y + t.size);
-      tokens = [...kept, ...placeEncounter(groups, b.cols, b.rows, free, seed)];
+      // Placement tactique : autour des héros, cavaliers dehors, garde près des portes, tireurs à couvert.
+      const heroesAt = kept.filter((t) => t.kind === 'pc').map((t) => ({ x: t.x, y: t.y }));
+      const outside = plan.surface?.theme === 'interieur' ? outsideOf(ground, b.cols, b.rows) : undefined;
+      tokens = [...kept, ...placeEncounter(groups, b.cols, b.rows, free, seed, { grid: ground, heroes: heroesAt, outside })];
     }
-    // Dans un bâtiment : ses PNJ y sont, combat ou pas. Chacun est posé à sa place (comptoir, porte…), visible des joueurs
-    // sauf s'il est expressément caché ; le MJ les déplace ensuite à sa guise. Un PNJ déjà sur le plateau n'est pas reposé.
-    if (plan.surface?.theme === 'interieur') {
-      const revealed = new Set(rec.overlay?.revealed ?? []);
-      const taken = (x: number, y: number) => tokens.some((t) => x >= t.x && x < t.x + t.size && y >= t.y && y < t.y + t.size);
-      for (const f of atlas.features.filter((x) => x.id.startsWith(`${plan.id}:pnj-`))) {
-        const id = `pnj-${f.entryId ?? f.id}`;
-        if (tokens.some((t) => t.id === id)) continue;
-        const g = atlas.geometries.find((x) => x.featureId === f.id && x.type === 'point');
-        const cell = g && cellIn(local.window, b.cols, b.rows, (g.coordinates as [number, number])[0], (g.coordinates as [number, number])[1]);
-        if (cell === undefined || !g) continue;
-        const cx = cell % b.cols, cy = Math.floor(cell / b.cols);
-        // Une case de sol libre : jamais sur une table, un lit, dans l'eau ou sur des gravats (cases gênantes ou
-        // difficiles), sauf pour qui dort : il reste dans son lit. À défaut de sol libre tout près, une case praticable.
-        const asleep = f.pose === 'couche';
-        let best: { x: number; y: number } | null = null, bd = Infinity;
-        for (const strict of [true, false]) {
-          for (let y = 0; y < b.rows; y++) for (let x = 0; x < b.cols; x++) {
-            const d = Math.max(Math.abs(x - cx), Math.abs(y - cy)) + (strict ? 0 : 0.5);
-            const k = ground[y * b.cols + x];
-            const ok = asleep && x === cx && y === cy ? !taken(x, y) : !blocksCell(ground, b.cols, x, y) && !taken(x, y) && (!strict || k === '.');
-            if (d < bd && ok) { bd = d; best = { x, y }; }
-          }
-          if (best && bd <= 2) break;
-        }
-        if (!best || bd > 4) continue;
-        const ref = bestiary.find((r) => r.id === f.entryId);
-        tokens = [...tokens, {
-          id, name: f.title, kind: 'other', x: best.x, y: best.y, size: 1, visible: !f.hiddenNpc || revealed.has(f.id),
-          npcId: ref?.id, hp: ref?.hp, maxHp: ref?.hp, ac: ref?.ac,
-          // Sans jeton propre : un jeton de la Banque Loresmith, cohérent avec la cité (peuple, rôle).
-          // Même jeton que sur la carte de navigation : réparti dans la scène, sans doublon tant que la banque le permet.
-          image: ref?.token ?? npcToken(rec, plan.id, library, bestiary, f, 128, atlas.features) ?? npcBankImage(rec, plan.id, library, f),
-        }];
-      }
-    }
+    // Dans un bâtiment : ses PNJ y sont, combat ou pas (placeNpcs).
+    tokens = placeNpcs(tokens, ground, local.window);
     set({
+      ...sceneReset,
       terrain: { source, seed, grid: local.base },
-      local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous, surface: plan.surface ? surfaceTheme(plan.surface, local.window) : undefined, trimmed: !plan.surface, nature: plan.surface?.nature || undefined },
+      local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous, surface: plan.surface ? surfaceTheme(plan.surface, local.window) : undefined, trimmed: !plan.surface, nature: plan.surface?.nature || undefined,
+        furniture: plan.surface?.theme === 'interieur' ? furnitureOf(plan, local.window, b.cols, b.rows) : undefined,
+        decor: plan.surface?.theme === 'interieur' ? decorOf(plan, local.window, b.cols, b.rows) : undefined },
       tokens,
-      encounterOf: groups?.length ? source : b.encounterOf,
+      encounterOf: groups?.length ? source : newPlace ? undefined : b.encounterOf,
       build: undefined,
       // Plan d'un lieu sauvage : ses objets (coffre, tonneau, autel, colonnes…) sont posés sur le plateau.
       ...(plan.surface?.nature ? { objects: wildObjects(plan, local.window, b.cols, b.rows) } : {}),
@@ -379,6 +460,18 @@ export default function BattleMode({
     setHistory([]);
     if (groups?.length && !renderCombat) setTab('combat');
   };
+
+  // Les gens du lieu suivent l'heure (et la saison) : quand ceux qui sont là changent en navigation (le soir, la nuit…),
+  // le plateau suit aussi. Ceux qui sont partis quittent le plateau, les nouveaux venus prennent leur place.
+  const npcKey = atlas && plan?.surface?.theme === 'interieur' ? atlas.features.filter((f) => f.id.startsWith(`${plan.id}:pnj-`)).map((f) => `pnj-${f.entryId ?? f.id}`).sort().join('|') : '';
+  useEffect(() => {
+    if (!b.local || b.local.planId !== plan?.id || plan?.surface?.theme !== 'interieur' || !b.terrain) return;
+    const present = new Set(npcKey ? npcKey.split('|') : []);
+    const kept = b.tokens.filter((t) => !(t.id.startsWith('pnj-') && t.kind === 'other' && !present.has(t.id)));
+    const next = placeNpcs(kept, baseGridOf(b) ?? b.terrain.grid, b.local.window);
+    if (next.length !== b.tokens.length || next.some((t, i) => t !== b.tokens[i])) set({ tokens: next });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [npcKey]);
 
   // Plateaux ouverts avant ce nettoyage : on retire une fois les galeries intérieures (souterrain seulement).
   useEffect(() => {
@@ -485,24 +578,119 @@ export default function BattleMode({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const panned = useRef(false);
+  const pinching = useRef(false);
+  /**
+   * Zoom ancré : le point du plateau sous le pointeur (ou au centre) reste sous le pointeur après le changement.
+   * La position est corrigée juste après la mise en page (useLayoutEffect ci-dessous).
+   */
+  const zoomAnchor = useRef<{ fx: number; fy: number; cx: number; cy: number } | null>(null);
+  const zoomTo = (z: number, at?: { x: number; y: number }) => {
+    const wrap = wrapRef.current, next = clampZoom(z);
+    if (wrap && next !== zoom) {
+      const r = (wrap.firstElementChild ?? wrap).getBoundingClientRect(); // le plateau lui-même, pas son cadre
+      const box = wrap.getBoundingClientRect();
+      const cx = at?.x ?? box.left + box.width / 2;
+      const cy = at?.y ?? box.top + box.height / 2;
+      zoomAnchor.current = { fx: (cx - r.left) / r.width, fy: (cy - r.top) / r.height, cx, cy };
+    }
+    setZoom(next);
+  };
+  useLayoutEffect(() => {
+    const a = zoomAnchor.current, wrap = wrapRef.current; zoomAnchor.current = null;
+    if (!a || !wrap) return;
+    const r = (wrap.firstElementChild ?? wrap).getBoundingClientRect();
+    const ex = scrollerOf(wrap, 'x'), ey = scrollerOf(wrap, 'y');
+    if (ex) ex.scrollLeft += r.left + a.fx * r.width - a.cx;
+    if (ey) ey.scrollTop += r.top + a.fy * r.height - a.cy;
+  }, [zoom]);
+  // Intérieur nouvellement posé : le plateau se cadre sur le bâtiment (la rue autour reste accessible en dézoomant).
+  // État du bâtiment (mémoire du monde) : ruine, chantier, délaissé… le plateau d'intérieur en porte les traces.
+  const boardSlot = b.local?.planId?.endsWith(':int') ? b.local.planId.slice(0, -4) : null;
+  const placeState = useMemo(() => (rec.world && boardSlot ? placeStates(rec.world)[boardSlot] : undefined), [rec.world, boardSlot]);
+  const shownFurniture = useMemo(() => furnitureFor(b.local?.furniture, placeState?.etat), [b.local?.furniture, placeState?.etat]);
+  const fitKey = b.local?.furniture && b.terrain ? `${b.terrain.source}:${b.terrain.seed}` : '';
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!fitKey || !wrap || !baseGrid) return;
+    const out = outsideOf(baseGrid, b.cols, b.rows);
+    let x0 = b.cols, y0 = b.rows, x1 = -1, y1 = -1;
+    for (let i = 0; i < b.cols * b.rows; i++) {
+      if (out.has(i)) continue;
+      const x = i % b.cols, y = Math.floor(i / b.cols);
+      x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+    }
+    if (x1 < 0) return;
+    const bw = x1 - x0 + 3, bh = y1 - y0 + 3; // une case de marge de chaque côté
+    // Zoomé, le plateau prend « zoom × largeur du cadre » ; le cadre montre au plus 72 % de la hauteur de l'écran.
+    // Mesuré après la mise en page (la hauteur du plateau dépend de son image), puis recentré une fois zoomé.
+    const cx = (x0 + x1 + 1) / 2 / b.cols, cy = (y0 + y1 + 1) / 2 / b.rows;
+    let id2 = 0;
+    const id = window.setTimeout(() => {
+      const frameW = wrap.clientWidth || 1, frameH = 0.72 * window.innerHeight;
+      const cell = Math.min((0.92 * frameW) / bw, (0.92 * frameH) / bh); // taille de case voulue
+      const now = (wrap.querySelector('.battle-board') ?? wrap).getBoundingClientRect().width / b.cols; // à 100 %, la hauteur bride parfois le plateau
+      // Bâtiment déjà assez grand : pas de zoom, mais on le centre quand même dans le cadre.
+      if (cell > now * 1.1) setZoom(clampZoom((cell * b.cols) / frameW));
+      id2 = window.setTimeout(() => {
+        const ex = scrollerOf(wrap, 'x'), ey = scrollerOf(wrap, 'y');
+        if (ex) ex.scrollLeft = cx * wrap.scrollWidth - ex.clientWidth / 2;
+        if (ey) ey.scrollTop = cy * wrap.scrollHeight - ey.clientHeight / 2;
+      }, 120);
+    }, 350);
+    return () => { clearTimeout(id); clearTimeout(id2); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fitKey]);
+  // Molette (sans Maj) : zoom continu sous le pointeur ; Maj + molette fait défiler. Deux doigts : pincer pour zoomer.
+  const zoomRef = useRef(zoomTo); zoomRef.current = zoomTo;
+  const zoomNow = useRef(zoom); zoomNow.current = zoom;
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    const wheel = (e: WheelEvent) => {
+      if (e.shiftKey) return;
+      e.preventDefault();
+      const step = Math.exp(-Math.max(-120, Math.min(120, e.deltaY * (e.deltaMode === 1 ? 33 : 1))) / 400);
+      zoomRef.current(zoomNow.current * step, { x: e.clientX, y: e.clientY });
+    };
+    const touches = new Map<number, { x: number; y: number }>();
+    let pinch: { d: number; z: number } | null = null;
+    const dist = () => { const [p, q] = [...touches.values()]; return Math.hypot(p.x - q.x, p.y - q.y) || 1; };
+    const mid = () => { const [p, q] = [...touches.values()]; return { x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 }; };
+    const down = (e: PointerEvent) => {
+      if (e.pointerType !== 'touch') return;
+      touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (touches.size === 2) { pinch = { d: dist(), z: zoomNow.current }; pinching.current = true; }
+    };
+    const move = (e: PointerEvent) => {
+      if (!touches.has(e.pointerId)) return;
+      touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pinch && touches.size === 2) zoomRef.current(pinch.z * dist() / pinch.d, mid());
+    };
+    const up = (e: PointerEvent) => {
+      touches.delete(e.pointerId);
+      if (touches.size < 2) pinch = null;
+      if (!touches.size) pinching.current = false;
+    };
+    wrap.addEventListener('wheel', wheel, { passive: false });
+    wrap.addEventListener('pointerdown', down, true);
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', up);
+    return () => {
+      wrap.removeEventListener('wheel', wheel); wrap.removeEventListener('pointerdown', down, true);
+      window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up);
+    };
+  }, []);
   const startPan = (e: ReactPointerEvent, onTap?: () => void) => {
     const wrap = wrapRef.current;
     if (!wrap) { onTap?.(); return; }
-    const scroller = (axis: 'x' | 'y') => {
-      for (let el: HTMLElement | null = wrap; el; el = el.parentElement) {
-        const st = getComputedStyle(el);
-        const ov = axis === 'x' ? st.overflowX : st.overflowY;
-        const more = axis === 'x' ? el.scrollWidth > el.clientWidth + 1 : el.scrollHeight > el.clientHeight + 1;
-        if (more && (ov === 'auto' || ov === 'scroll')) return el;
-      }
-      return null;
-    };
-    const ex = scroller('x'), ey = scroller('y');
+    const ex = scrollerOf(wrap, 'x'), ey = scrollerOf(wrap, 'y');
     // Rien à faire défiler : le geste est un simple clic, traité tout de suite.
     if (!ex && !ey) { onTap?.(); return; }
     const x0 = e.clientX, y0 = e.clientY, sl = ex?.scrollLeft ?? 0, sTop = ey?.scrollTop ?? 0;
     panned.current = false;
     const move = (ev: PointerEvent) => {
+      if (pinching.current) { panned.current = true; return; } // deux doigts : c'est un zoom, pas un défilement
       if (Math.abs(ev.clientX - x0) + Math.abs(ev.clientY - y0) > 6) panned.current = true;
       if (ex) ex.scrollLeft = sl - (ev.clientX - x0);
       if (ey) ey.scrollTop = sTop - (ev.clientY - y0);
@@ -700,7 +888,8 @@ export default function BattleMode({
     window.addEventListener('keydown', key);
     return () => window.removeEventListener('keydown', key);
   }, []);
-  const zoomBy = (dir: 1 | -1) => setZoom((z) => ZOOMS[Math.min(ZOOMS.length - 1, Math.max(0, ZOOMS.indexOf(z) + dir))] ?? z);
+  // Boutons : palier suivant de la liste, même depuis un zoom libre (molette, pincement).
+  const zoomBy = (dir: 1 | -1) => zoomTo(dir > 0 ? ZOOMS.find((z) => z > zoom + 0.01) ?? ZOOM_MAX : [...ZOOMS].reverse().find((z) => z < zoom - 0.01) ?? ZOOM_MIN);
 
   // Passages : tracés réels de l'Atlas, et portes posées par le MJ sur ce plan.
   const localElements = b.local?.elements ?? [];
@@ -929,6 +1118,33 @@ export default function BattleMode({
       if (m) onMarker(m.id, { revealed: !m.revealed });
     } else onReveal(id);
   };
+  /**
+   * Révéler aux joueurs, par famille : les monstres (jetons cachés), les chemins (passages, sorties) ou les éléments
+   * (lieux, objets posés, repères, points de fouille). `seenOnly` : seulement ce que les héros voient d'où ils sont
+   * (portée et ligne de vue, murs et portes fermées compris) ; sinon tout. Rien de ce qui est déjà révélé n'est caché.
+   */
+  const revealBoard = (what: 'monstres' | 'chemins' | 'elements', seenOnly: boolean) => {
+    const sight = seenOnly ? partyVision(bv, grid) : null;
+    const inView = (cells: number[]) => !sight || cells.some((c) => sight.has(c));
+    if (what === 'monstres') {
+      const tokens = b.tokens.map((t) => (t.kind !== 'pc' && !t.visible && inView(Array.from({ length: t.size * t.size }, (_, i) => (t.y + Math.floor(i / t.size)) * b.cols + t.x + (i % t.size))) ? { ...t, visible: true } : t));
+      const n = tokens.filter((t, i) => t !== b.tokens[i]).length;
+      if (n) set({ tokens });
+      setRevealNote(n ? `${n} créature${n > 1 ? 's' : ''} révélée${n > 1 ? 's' : ''}.` : seenOnly ? 'Aucune créature cachée dans le champ de vision des héros.' : 'Aucune créature cachée.');
+      return;
+    }
+    const passIds = new Set(passages.map((p) => p.id));
+    const list = boardElements.filter((e) => (what === 'chemins' ? passIds.has(e.id) : !passIds.has(e.id)) && !isShown(e.id) && inView(cellsOf(e.id)));
+    const props = list.filter((e) => e.id.startsWith('pr-')).map((e) => e.id);
+    const marks = list.filter((e) => e.id.startsWith('mk-')).map((e) => e.id.slice(3));
+    const feats = list.filter((e) => !e.id.startsWith('pr-') && !e.id.startsWith('mk-')).map((e) => e.id);
+    if (props.length) commitBuild({ ...build, props: build.props.map((p) => (props.includes(`pr-${p.id}`) ? { ...p, visible: true } : p)) });
+    for (const id of marks) onMarker(id, { revealed: true });
+    if (feats.length) { if (onRevealMany) onRevealMany(feats); else feats.forEach((id) => onReveal(id)); }
+    const n = list.length, label = what === 'chemins' ? 'chemin' : 'élément';
+    setRevealNote(n ? `${n} ${label}${n > 1 ? 's' : ''} révélé${n > 1 ? 's' : ''}.` : seenOnly ? `Aucun ${label} caché dans le champ de vision des héros.` : `Aucun ${label} caché.`);
+  };
+  const [revealNote, setRevealNote] = useState('');
   const isShown = (id: string) => (id.startsWith('pr-') ? !!build.props.find((p) => `pr-${p.id}` === id)?.visible
     : id.startsWith('mk-') ? !!markers.find((m) => `mk-${m.id}` === id)?.revealed : discovered.includes(id));
   /** Passage le plus proche d'un élément à fouiller (dans un rayon de 4 cases) : ce que la fouille peut ouvrir. */
@@ -1112,6 +1328,7 @@ export default function BattleMode({
   };
   const buildPanel = (
     <>
+    <WorldPicker value={b.region} auto={placeRegion(b)} onChange={(region) => set({ region })} />
     <TilePanel current={b.tile?.id} note={tileNote}
       onPick={(img) => applyTile(img, 0)}
       onTurn={async () => { const img = bankById(b.tile?.id); if (img) await applyTile(img, ((b.tile?.rot ?? 0) + 1) % 4); }}
@@ -1263,15 +1480,28 @@ export default function BattleMode({
               </div>
             </details>
             <div className="battle-zoom" title="Zoom du plateau">
-              <button className="maps-btn" onClick={() => zoomBy(-1)} disabled={zoom <= ZOOMS[0]} aria-label="Dézoomer">−</button>
+              <button className="maps-btn" onClick={() => zoomBy(-1)} disabled={zoom <= ZOOM_MIN} aria-label="Dézoomer">−</button>
               <span>{Math.round(zoom * 100)} %</span>
-              <button className="maps-btn" onClick={() => zoomBy(1)} disabled={zoom >= ZOOMS[ZOOMS.length - 1]} aria-label="Zoomer">+</button>
+              <button className="maps-btn" onClick={() => zoomBy(1)} disabled={zoom >= ZOOM_MAX} aria-label="Zoomer">+</button>
             </div>
             {renderCombat && selected && !building && (
               <button className={`maps-btn ${aiming ? 'gold' : ''}`} title="Attaquer : clique ensuite la cible sur le plateau (Échap pour annuler)" onClick={() => setAiming(aiming ? null : selected.id)}>🎯 Attaquer</button>
             )}
             <button className={`maps-btn ${showRanges ? 'gold' : ''}`} title="Déplacements et portées d'attaque (MJ seulement)" onClick={() => setShowRanges((v) => !v)}>◎ Portées</button>
             <button className={`maps-btn ${freeMove ? 'gold' : ''}`} title="Déplacement libre : le MJ pose un jeton où il veut, sans règles de terrain (téléportation, chute, poussée). Alt + glisser fait de même pour un seul déplacement." onClick={() => setFreeMove((v) => !v)}>{freeMove ? '🔓 Libre' : '🔒 Règles'}</button>
+            <details className="reveal-menu">
+              <summary className="maps-btn" title="Révéler aux joueurs ce que leurs héros voient, ou tout">👁 Révéler</summary>
+              <div className="reveal-pop" role="menu">
+                {([['monstres', 'Monstres'], ['chemins', 'Chemins'], ['elements', 'Éléments']] as const).map(([k, l]) => (
+                  <div key={k} className="reveal-row">
+                    <b>{l}</b>
+                    <button className="maps-btn" role="menuitem" onClick={() => revealBoard(k, true)} title={`Les ${l.toLowerCase()} que les héros voient d’où ils sont (portée et ligne de vue)`}>que les héros voient</button>
+                    <button className="maps-btn" role="menuitem" onClick={() => revealBoard(k, false)}>tous</button>
+                  </div>
+                ))}
+                {revealNote && <p className="build-hint" role="status">{revealNote}</p>}
+              </div>
+            </details>
             <button className={`maps-btn ${b.fog?.on ? 'gold' : ''}`} title="Brouillard de guerre : les joueurs ne voient que ce que voient leurs héros (portée de vue et ligne de vue). Les cases explorées restent en mémoire." onClick={() => set({ fog: { on: !b.fog?.on, source: fogSource, explored: b.fog?.source === fogSource ? b.fog.explored : [] } })}>🌫 Brouillard</button>
             {b.fog?.on && explored.length > 0 && <button className="maps-btn" title="Oublier les cases explorées" onClick={() => set({ fog: { on: true, source: fogSource, explored: [] } })}>↺</button>}
           </div>
@@ -1355,10 +1585,15 @@ export default function BattleMode({
           </div>
         )}
 
+        {placeState && PLACE_LOOK[placeState.etat as PlaceEtat] && (
+          <p className={`battle-place-state place-${placeState.etat}`}>
+            {PLACE_LOOK[placeState.etat as PlaceEtat].icon} <b>{placeState.title}</b> : {PLACE_LOOK[placeState.etat as PlaceEtat].text}
+          </p>
+        )}
         <div className="battle-stage">
           <div
-            ref={wrapRef} className={`battle-board-wrap ${building ? 'building' : ''} ${zoom !== 1 ? 'zoomed' : ''} ${drag ? 'dragging' : ''}`}
-            style={{ width: `${zoom * 100}%` }}
+            ref={wrapRef} className={`battle-board-wrap ${placeState ? `place-${placeState.etat}` : ''} ${building ? 'building' : ''} ${zoom !== 1 ? 'zoomed' : ''} ${drag ? 'dragging' : ''}`}
+            style={{ '--bz': `${zoom * 100}%` } as CSSProperties}
             onPointerDown={onBoardDown} onPointerMove={onBoardMove} onDoubleClick={() => editor.onDouble()}
             // Après un glisser de défilement, le clic qui suit ne doit pas viser une case.
             onClickCapture={(e) => { if (panned.current) { panned.current = false; e.stopPropagation(); e.preventDefault(); } }}
@@ -1380,7 +1615,7 @@ export default function BattleMode({
             }}
           >
             <BattleBoard
-              cols={b.cols} rows={b.rows} backdrop={rec.image} tile={b.tile?.src} tileRot={b.tile?.rot} terrain={baseGrid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
+              cols={b.cols} rows={b.rows} backdrop={rec.image} tile={b.tile?.src} tileRot={b.tile?.rot} furniture={shownFurniture} decor={b.local?.decor} light={b.local?.surface ? plan?.surface?.light : undefined} terrain={baseGrid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
               theme={boardTheme(b.local?.surface, b.local?.nature)}
               ground={b.ground} surface={editor.view} overlay={building && editor.overlay ? { rules, focus: editor.focus } : undefined}
               path={pathView} surfaceSelected={editor.selectedId} draft={editor.draft}

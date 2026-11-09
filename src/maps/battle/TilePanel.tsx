@@ -4,7 +4,7 @@
  * Retirer le fond rend les corrections de cases d'avant.
  */
 import { useState } from 'react';
-import { bankSrc, useBank, type BankImage } from '../../banque';
+import { bankSrc, bankUnderdark, useBank, type BankImage } from '../../banque';
 import { isFordTile, tileCells } from '../../banque/tiles';
 import type { CellFix, TerrainId } from './surface';
 
@@ -31,6 +31,27 @@ export async function tileFix(img: BankImage, cols: number, rows: number, rot = 
   const { data, w, h } = await pixels(bankSrc(img, 256), rot);
   const cells = tileCells(data, w, h, cols, rows, isFordTile(img)) as TerrainId[];
   return Object.fromEntries(cells.map((t, i) => [String(i), { t }]));
+}
+
+/** Mondes du plateau : déduits du lieu, ou choisis par le MJ (un ou plusieurs) ; la banque ne propose que des images de ces mondes. */
+type WorldId = 'surface' | 'outreterre';
+const WORLDS: [WorldId, string][] = [['surface', 'Surface'], ['outreterre', 'Outreterre (Underdark)']];
+export function WorldPicker({ value, auto, onChange }: { value?: WorldId | WorldId[]; auto?: WorldId; onChange: (v: WorldId[] | undefined) => void }) {
+  const cur = value ? (Array.isArray(value) ? value : [value]) : [];
+  const label = (r?: string) => WORLDS.find(([k]) => k === r)?.[1] ?? 'inconnu';
+  const toggle = (w: WorldId) => { const next = cur.includes(w) ? cur.filter((x) => x !== w) : [...cur, w]; onChange(next.length ? next : undefined); };
+  return (
+    <section className="maps-card build-panel">
+      <h3>Mondes du plateau</h3>
+      <p className="build-hint">
+        Les créatures et personnages de la banque ne viennent que de ces mondes. Rien de coché : {auto ? `automatique (${label(auto)}).` : 'plateau vierge, la banque ne propose rien.'}
+      </p>
+      {/* L'Outreterre n'existe que dans les univers Underdark. */}
+      {WORLDS.filter(([k]) => k !== 'outreterre' || bankUnderdark() || cur.includes(k)).map(([k, l]) => (
+        <label key={k} className="build-check"><input type="checkbox" checked={cur.includes(k)} onChange={() => toggle(k)} /> {l}</label>
+      ))}
+    </section>
+  );
 }
 
 export const isTactical = (i: BankImage) => i.type === 'texture' && !!i.usage?.includes('tactique') && !i.exclu;

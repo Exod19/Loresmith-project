@@ -53,10 +53,15 @@ import { isHiddenNpc } from './world/interior';
 import { normalizeEntity } from '../bestiary/entityGen';
 import { npcBankImage, npcToken } from '../banque/place';
 import { visibleFrom } from './world/sight';
+import { arrive } from './world/retour';
 import { DURATIONS, clockLabel, clockOf, untilPeriod } from './world/clock';
 import { ATTITUDE_LABEL, PLACE_STATE_LABEL, decide, evolve, npcMemories, passTime, pending, placeStates } from './world/consequences';
 import JournalPanel from './world/JournalPanel';
 import BreakInBox from './world/BreakInBox';
+import LockGate from './world/LockGate';
+import PlaceHistory from './world/PlaceHistory';
+import { relocationOf } from './world/relocation';
+import { lockOf } from './world/effraction';
 import { newEvent } from './world/worldEvents';
 import { rollFind } from './world/fouille';
 import { faceOf } from '../banque';
@@ -88,7 +93,7 @@ const FORK_LINES: ((side: string) => string)[] = [
   (c) => `Un écho différent, sur votre ${c} : la paroi s’ouvre sur un espace plus large. Vous allez voir, ou vous continuez ?`,
 ];
 
-export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false, onReturn, renderCombat, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [], artOf, onOpenEntry, library, onCreateNpc, onCreateEntry, loreContext, onUpdateEntry, onChronicle }: {
+export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false, onReturn, renderCombat, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [], artOf, onOpenEntry, library, onCreateNpc, onCreateEntry, loreContext, onUpdateEntry, onChronicle, hiddenEntries = [] }: {
   rec: MapRecord; atlas: AtlasData; dm: boolean; onDm: (v: boolean) => void;
   /** Illustration d'une créature par son nom, pour l'écran joueur. */
   artOf?: (name: string, id: string) => string;
@@ -112,6 +117,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   bestiary?: BestiaryRef[];
   /** Fiches de la Bibliothèque de l'univers : la carte du monde y prend ses cités et ses lieux. */
   library?: LoreEntry[];
+  /** Fiches qui n'ont pas leur place dans cet univers (l'Underdark hors des univers Underdark) : retirées des cités. */
+  hiddenEntries?: string[];
   /** Crée une fiche de PNJ (PNJ & Créatures) : un occupant anonyme devient un PNJ du lore. */
   onCreateNpc?: (npc: Record<string, unknown> & { id: string; name: string }) => void;
   /** Crée une fiche de lieu dans la Bibliothèque (mode Exploration). */
@@ -126,7 +133,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   /** L'Atlas et la carte du monde : lieux à révéler, chemins, brouillard. */
   const atlasLike = isAtlasLike(rec);
   // Carte du monde : les lieux du lore prennent leur bâtiment, avec leurs PNJ, dès qu'ils sont créés.
-  useWorldSync(rec, library, bestiary as unknown as LoreEntry[], onUpdate);
+  useWorldSync(rec, library, bestiary as unknown as LoreEntry[], onUpdate, hiddenEntries);
   // Le plan affiché d'abord : celui où se trouve le groupe, s'il est connu.
   const [planId, setPlanId] = useState(rec.overlay?.party?.at?.planId ?? (rec.kind === 'atlas' ? ATLAS_DEFAULT_PLAN : mapIdOf(rec)));
   /** Carte de combat ouverte à la place de la carte de navigation (même mise en page). */
@@ -173,6 +180,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   const shareTalk = (talk: MapOverlay['talk'] | null) => onUpdate({ overlay: { ...overlayRef.current, talk: talk ?? undefined }, updatedAt: Date.now() });
   /** Créature d'une rencontre à qui l'on parle. */
   const [talkWith, setTalkWith] = useState<{ markerId: string; name: string; stat: Stat; detail?: string } | null>(null);
+  /** Conversation avec un PNJ de la carte (clic sur lui, puis « Parler ») : il parle le premier, avec l'histoire du lieu. */
+  const [talkNpc, setTalkNpc] = useState<AtlasFeature | null>(null);
   useEffect(() => { setTalkWith(null); }, [selectedId, planId]);
   const pv = overlay.playerView ?? {};
   const map = data.maps.find((m) => m.id === planId) ?? data.maps[0];
@@ -463,8 +472,28 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
    */
   const setOverlay = (next: MapOverlay) => {
     const walked = (next.party?.walked ?? 0) - (overlay.party?.walked ?? 0);
-    onUpdate({ overlay: next, ...(rec.kind === 'monde' && rec.world && walked > 0 ? { world: passTime(rec.world, walked * 60) } : {}), updatedAt: Date.now() });
+    let world = rec.kind === 'monde' && rec.world && walked > 0 ? passTime(rec.world, walked * 60) : undefined;
+    // Le groupe change de lieu : passages notés et, s'il revient après un temps, ce qui a changé depuis.
+    if (rec.kind === 'monde' && rec.world) {
+      const arrival = withArrival(world ?? rec.world, next, overlay);
+      if (arrival) { world = arrival.world; next = arrival.overlay; }
+    }
+    onUpdate({ overlay: next, ...(world ? { world } : {}), updatedAt: Date.now() });
   };
+  /**
+   * Arrivée du groupe sur un autre plan (cité, bâtiment) : notes de passage et récit du retour (retour.js). Renvoie le
+   * monde et la superposition mis à jour, ou rien si le groupe n'a pas changé de plan.
+   */
+  function withArrival(w: World, next: MapOverlay, prev: MapOverlay) {
+    const to = next.party?.at?.planId, from = prev.party?.at?.planId;
+    if (!to || to === from) return null;
+    const a = arrive(w, to, from);
+    const title = a.retour ? (data.features.find((f) => f.id === a.retour!.key)?.title ?? data.maps.find((m) => m.id === a.retour!.key)?.title ?? 'ce lieu') : '';
+    return {
+      world: { ...w, visits: a.visits },
+      overlay: a.retour ? { ...next, retour: { key: a.retour.key, title, ago: a.retour.ago, dm: a.retour.dm, players: a.retour.players, at: Date.now() } } : next,
+    };
+  }
   /** Le temps passe : l'horloge du monde avance (repos, fouille, ou le MJ à la main). */
   const advanceTime = (minutes: number) => { if (rec.world && minutes > 0) onUpdate({ world: passTime(rec.world, minutes), updatedAt: Date.now() }); };
   // Combat sur la carte du monde : chaque round écoulé compte 6 secondes.
@@ -485,6 +514,25 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     .filter((f) => f.id.startsWith(`${slotId}:int`) && f.id.includes(':pnj-'))
     .map((f) => ({ name: f.title, role: f.subtitle ?? '', asleep: f.pose === 'couche' || /^Dort/.test(f.summary ?? '') }));
   const states = useMemo(() => (rec.world ? placeStates(rec.world) : {}), [rec.world]);
+  /** Habitants délogés par un incendie ou une destruction : où ils vivent et travaillent en attendant (relocation.js). */
+  const relocations = useMemo(() => Object.entries(states).flatMap(([fid, st]) => {
+    const b = data.features.find((x) => x.id === fid);
+    if (!b?.batiment) return [];
+    const cityPlan = data.geometries.find((g) => g.featureId === fid)?.mapId;
+    const onPlan = (id: string) => data.geometries.some((g) => g.featureId === id && g.mapId === cityPlan);
+    const sameType = data.features.filter((x) => x.batiment?.type === b.batiment!.type && x.id !== fid && !states[x.id] && onPlan(x.id)).map((x) => ({ id: x.id, title: x.title }));
+    const market = data.features.find((x) => x.id === `${cityPlan}:marche`);
+    const residents = data.features.filter((x) => x.id.startsWith(`${fid}:int:pnj-`)).map((x) => x.title);
+    const r = relocationOf({ id: fid, title: b.title, type: b.batiment.type }, st.etat, residents, { sameType, market: market && { id: market.id, title: market.title } });
+    return r ? [{ from: fid, fromTitle: b.title, planId: cityPlan, ...r }] : [];
+  }), [states, data]);
+  const relocMarks: MapMark[] = relocations.filter((r) => r.to && r.planId === map.id).flatMap((r) => {
+    const g = data.geometries.find((x) => x.featureId === r.to!.id && x.mapId === map.id && x.type === 'point');
+    // Décalé d'un souffle pour ne pas masquer le lieu qui accueille.
+    return g ? [{ id: `temp-${r.from}`, x: (g.coordinates as [number, number])[0] + 0.004, y: (g.coordinates as [number, number])[1] - 0.004, label: r.label, tone: 'temp' as const }] : [];
+  });
+  /** Intérieur affiché d'un bâtiment marqué par son histoire (incendie, chantier, abandon) : la carte en porte les traces. */
+  const interiorState = map.id.endsWith(':int') ? states[map.id.slice(0, -4)] : undefined;
   const memories = useMemo(() => (rec.world ? npcMemories(rec.world) : {}), [rec.world]);
   /**
    * Dans un intérieur, ce qui est évident se voit d'office : dès que le groupe se tient quelque part (en entrant, en
@@ -802,6 +850,18 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     const id = setTimeout(() => { if (lastBox.current) publishView(planRef.current, lastBox.current); }, 900);
     return () => clearTimeout(id);
   }, [pv.linked, projecting, planId]);
+  /** MJ : le jeton du groupe, glissé sur le plan, s'y pose ; lâché près d'un lieu ponctuel, il s'y accroche. */
+  const moveParty = (x: number, y: number) => {
+    const near = data.geometries
+      .filter((g) => g.mapId === map.id && g.type === 'point')
+      .map((g) => ({ g, d: Math.hypot((g.coordinates as [number, number])[0] - x, (g.coordinates as [number, number])[1] - y) }))
+      .sort((a, b) => a.d - b.d)[0];
+    const f = near && near.d < 0.012 ? data.features.find((ft) => ft.id === near.g.featureId) : undefined;
+    const at: [number, number] = f ? (near!.g.coordinates as [number, number]) : [x, y];
+    const place: PartyPlace = f ? { id: f.id, kind: 'feature', title: f.title, planId: map.id }
+      : { id: `spot:${x.toFixed(4)},${y.toFixed(4)}`, kind: 'spot', title: rec.kind === 'monde' ? wildernessLabel(rec, at) : 'Ici', planId: map.id, at };
+    setOverlay(withExplored(withPartyAt(overlay, place), map.id, [at]));
+  };
   const gotoRef = useRef<(at: [number, number], featureId?: string) => void>(() => {});
   gotoRef.current = (at, featureId) => {
     if (rec.kind !== 'monde' || !partyAt || party.at?.planId !== worldPlanId(rec.id)) return;
@@ -872,6 +932,47 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     setFocus({ kind: 'point', id, tick: Date.now() });
   };
   useEffect(() => onPlayerPick((id) => pickRef.current(id)), []);
+  /**
+   * Révéler aux joueurs, par famille, sur le plan affiché : les chemins (tracés), les éléments (lieux, repères) ou les
+   * monstres (rencontres posées). `seenOnly` : seulement ce que le groupe voit d'où il est : dans un bâtiment, la ligne
+   * de vue (murs compris) ; ailleurs, la portée de vue de l'écran joueur. Rien de ce qui est déjà révélé n'est caché.
+   */
+  const [navNote, setNavNote] = useState('');
+  const revealNav = (what: 'chemins' | 'elements' | 'monstres', seenOnly: boolean) => {
+    const eyes: [number, number][] = [];
+    if (seenOnly) {
+      const stopped = party.fork?.planId === map.id ? party.fork.point : party.halt?.planId === map.id ? party.halt.point : undefined;
+      const at = party.at && party.at.planId === map.id ? placeCoords(data, rec, party.at) : null;
+      if (stopped) eyes.push(stopped as [number, number]); else if (at) eyes.push(at);
+      if (!eyes.length) { setNavNote('Le groupe n’est pas sur ce plan : rien à voir d’ici.'); return; }
+    }
+    const indoor = map.surface?.theme === 'interieur';
+    const inSight = new Set(seenOnly && indoor ? eyes.flatMap((e) => visibleFrom(map, e, data.features, data.geometries)) : []);
+    const near = (pts: [number, number][]) => eyes.some(([ex, ey]) => pts.some(([x, y]) => Math.hypot(x - ex, y - ey) <= VISION_R * 1.2));
+    if (what === 'monstres') {
+      const ms = markers.filter((m) => m.kind === 'rencontre' && !m.revealed && (!seenOnly || near([[m.x, m.y]])));
+      for (const m of ms) updateMarker(m.id, { revealed: true });
+      setNavNote(ms.length ? `${ms.length} rencontre${ms.length > 1 ? 's' : ''} révélée${ms.length > 1 ? 's' : ''}.` : 'Aucune rencontre cachée à révéler.');
+      return;
+    }
+    const known = new Set(overlay.revealed);
+    const byFeature = new Map<string, { trail: boolean; pts: [number, number][] }>();
+    for (const g of data.geometries) {
+      if (g.mapId !== map.id) continue;
+      const f = data.features.find((x) => x.id === g.featureId);
+      if (!f || f.draft) continue;
+      const cur = byFeature.get(f.id) ?? { trail: false, pts: [] };
+      cur.trail ||= g.type === 'polyline' || !!f.trace;
+      cur.pts.push(...(g.type === 'point' ? [g.coordinates as [number, number]] : (g.coordinates as [number, number][])));
+      byFeature.set(f.id, cur);
+    }
+    const ids = [...byFeature].filter(([id, v]) => !known.has(id) && (what === 'chemins' ? v.trail : !v.trail)
+      && (!seenOnly || (indoor ? inSight.has(id) : near(v.pts)))).map(([id]) => id);
+    if (ids.length) setOverlay(withExplored({ ...overlay, revealed: [...overlay.revealed, ...ids] }, map.id, ids.flatMap((id) => pointsOf(id)).filter((_, i) => i % 3 === 0)));
+    const label = what === 'chemins' ? 'chemin' : 'élément';
+    setNavNote(ids.length ? `${ids.length} ${label}${ids.length > 1 ? 's' : ''} révélé${ids.length > 1 ? 's' : ''}.` : `Aucun ${label} caché à révéler${seenOnly ? ' dans le champ de vision du groupe' : ''}.`);
+  };
+
   const revealPlan = (on: boolean) => {
     const ids = new Set(overlay.revealed);
     planFeatureIds.forEach((id) => (on ? ids.add(id) : ids.delete(id)));
@@ -989,6 +1090,60 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     if (cityOfPlan) setFocus({ kind: 'point', id: cityOfPlan.id, tick: Date.now() });
   };
   /**
+   * Un objet trouvé à la fouille est emporté : la disparition entre dans la mémoire du monde (un vol, si quelqu'un vit
+   * ici) ; le propriétaire porte plainte, soupçonne les héros, et les PNJ en parlent (consequences.js, Parler).
+   */
+  const takeFound = (room: AtlasFeature, what: string, kind: string) => {
+    const w = rec.world;
+    if (!w) return;
+    const slot = map.id.endsWith(':int') ? map.id.slice(0, -4) : null;
+    const building = slot ? data.features.find((x) => x.id === slot) : undefined;
+    const cityPlan = slot ? data.geometries.find((g) => g.featureId === slot)?.mapId : undefined;
+    const residents = data.features.filter((x) => x.id.startsWith(`${map.id}:pnj-`)).map((x) => x.title);
+    const short = what.replace(/\s*[(:—].*$/, '').slice(0, 60);
+    const placeTitle = building?.title ?? room.title;
+    const draft = {
+      title: `Disparition ${atPlace(placeTitle)} : ${short.charAt(0).toLowerCase()}${short.slice(1)}`,
+      text: `Les héros ont emporté ${what.charAt(0).toLowerCase()}${what.slice(1)} (${room.title}).${residents[0] ? ` ${residents[0]} s’en apercevra tôt ou tard.` : ''}`,
+      kind: residents.length ? 'vol' as const : 'autre' as const,
+      place: slot ? { planId: cityPlan ?? map.id, featureId: slot, title: placeTitle } : { planId: map.id, featureId: room.id, title: room.title },
+      npcs: residents.slice(0, 1), joueurs: 'auteurs' as const, gravite: (kind === 'notable' ? 2 : 1) as 1 | 2, source: 'jeu' as const,
+    };
+    onUpdate({ world: evolve({ ...w, events: [...(w.events ?? []), newEvent(clockOf(w), draft)] }).world, updatedAt: Date.now() });
+  };
+  /**
+   * Serrures : un bâtiment est fermé à clé la nuit (cf. lockOf) ; le MJ peut aussi verrouiller n'importe quel lieu à
+   * toute heure (crypte, coffre-fort : world.locks), ou le déclarer ouvert même la nuit. Avant d'entrer (ou d'ouvrir),
+   * la fenêtre de crochetage (LockGate).
+   */
+  const [lockAsk, setLockAsk] = useState<{ id: string; then: 'batiment' | 'site' | 'ouvrir' } | null>(null);
+  const opened = useRef(new Set<string>());
+  const lockFor = (f: AtlasFeature) => {
+    const w = rec.world;
+    if (!w) return null;
+    const set = w.locks?.[f.id];
+    const base = f.batiment ? lockOf(f.batiment, 'nuit') : null;
+    if (set) {
+      if (!set.locked) return null;
+      const dc = set.dc ?? base?.dc ?? 15;
+      return { dc, forceDc: dc + 2, door: base?.door ?? 'une serrure solide', why: 'Fermé à clé par le MJ, à toute heure.', fixed: true };
+    }
+    if (!f.batiment || states[f.id]?.etat === 'ruine' || states[f.id]?.etat === 'chantier') return null;
+    const l = lockOf(f.batiment, w.time ?? 'jour');
+    return l.locked && !opened.current.has(`${f.id}:${clockOf(w).day}`) ? { ...l, fixed: false } : null;
+  };
+  const setLock = (id: string, v: { locked: boolean; dc?: number } | null) => {
+    const w = rec.world;
+    if (!w) return;
+    const locks = { ...(w.locks ?? {}) };
+    if (v) locks[id] = v; else delete locks[id];
+    onUpdate({ world: { ...w, locks }, updatedAt: Date.now() });
+  };
+  const tryEnter = (f: AtlasFeature, then: 'batiment' | 'site' = 'batiment') => {
+    if (lockFor(f)) setLockAsk({ id: f.id, then });
+    else if (then === 'site') enterSite(f.opens!.id); else enterBuilding(f.id);
+  };
+  /**
    * Entrer dans un bâtiment : son intérieur est généré (toujours le même) et s'ajoute à la carte. Si le groupe est devant,
    * il entre avec la vue : la première pièce, ce qu'on y voit et les PNJ qui s'y tiennent sont révélés aux joueurs.
    */
@@ -1015,7 +1170,10 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
       next = { ...next, revealed: [...new Set([...next.revealed, slotId, ...seen])] };
     }
     const interiors = (world.interiors ?? []).includes(slotId) ? world.interiors : [...(world.interiors ?? []), slotId];
-    onUpdate({ world: { ...world, interiors }, ...(next !== overlay ? { overlay: next } : {}), updatedAt: Date.now() });
+    // Entrer avec le groupe : passages notés, et ce qui a changé depuis le dernier passage dans ce bâtiment.
+    const arrival = next !== overlay ? withArrival({ ...world, interiors }, next, overlay) : null;
+    if (arrival) next = arrival.overlay;
+    onUpdate({ world: arrival ? arrival.world : { ...world, interiors }, ...(next !== overlay ? { overlay: next } : {}), updatedAt: Date.now() });
     setPlanId(ipid); setSelectedId(null); setPlacing(null);
   };
   /**
@@ -1209,6 +1367,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
           atlas={data} plan={map} markers={overlay.markers}
           onFollow={followPassage} onLink={setPassageLink} onMarker={(id, patch) => updateMarker(id, patch)} onLeave={leaveBattle}
           onReveal={(id) => toggleReveal(id)}
+          onRevealMany={(ids) => { const known = new Set(overlay.revealed); const add = ids.filter((id) => !known.has(id)); if (add.length) setOverlay({ ...overlay, revealed: [...overlay.revealed, ...add] }); }}
           onBattle={(b) => onUpdate({ battle: b, updatedAt: Date.now() })}
           heroes={heroes} party={party} bestiary={bestiary} renderCombat={renderCombat} library={library}
           onSearchNote={(id, note) => {
@@ -1219,7 +1378,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
         />
       ) : (
         <div className="maps-body">
-          <div className={`maps-canvas ${playerPick && playerPick.id === selectedId ? 'player-pick' : ''}`}>
+          <div className={`maps-canvas ${playerPick && playerPick.id === selectedId ? 'player-pick' : ''} ${interiorState ? `place-${interiorState.etat}` : ''}`}>
+            {interiorState && <div className="maps-interior-state">{PLACE_STATE_LABEL[interiorState.etat as keyof typeof PLACE_STATE_LABEL] ?? interiorState.etat} · {interiorState.title}</div>}
             <MapCanvas
               key={map.id}
               map={map}
@@ -1232,13 +1392,14 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 setSelectedId(f.id); setEnc(null); setMapFull(false);
               }}
               preview={cross?.path?.pts}
-              marks={dm ? [...partyMarks, ...avatarMarks] : playerPreview.marks}
+              marks={dm ? [...partyMarks, ...avatarMarks, ...relocMarks] : playerPreview.marks}
               fog={dm ? null : playerPreview.fog}
               journey={overlay.travel && overlay.travel.planId === map.id ? { ...overlay.travel, label: 'Groupe' } : null}
               onAnchor={(a) => { if (dm && rec.kind === 'monde') followAnchor(a.id); }}
               onPlace={dm && cross?.picking ? (x, y) => pickCross({ id: `spot:${x.toFixed(4)},${y.toFixed(4)}`, kind: 'spot', title: wildernessLabel(rec, [x, y]), planId: map.id, at: [x, y] }, [x, y])
                 : dm && (placing || moving) ? addMarker : dm && movingCity && rec.world && map.id === wid ? (x, y) => { onUpdate({ world: moveCity(rec.world!, movingCity, [x, y]), updatedAt: Date.now() }); setMovingCity(null); } : undefined}
               onMovePin={dm ? (fid: string, x: number, y: number) => { if (fid.startsWith('mk-')) updateMarker(fid.slice(3), { x, y }); } : undefined}
+              onMoveParty={dm && party.at?.planId === map.id && !party.halt && !party.fork ? moveParty : undefined}
               dataKey={`${rec.updatedAt}:${dm}:${drafts?.key ?? ''}:${drafts?.features.length ?? 0}`}
               onView={(box, remote) => {
                 if (wildOn) setWildBox(box);
@@ -1281,6 +1442,20 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                   </button>
                 ))}
               </nav>
+            )}
+            {dm && overlay.retour && (
+              <div className="maps-card retour">
+                <div className="maps-card-head"><span>🔁 Depuis votre dernier passage</span>
+                  <button className="maps-btn" aria-label="Fermer" onClick={() => setOverlay({ ...overlay, retour: undefined })}>×</button>
+                </div>
+                <h3>{overlay.retour.title} · il y a {overlay.retour.ago}</h3>
+                <ul>{overlay.retour.dm.map((l, i) => <li key={i}>{l}</li>)}</ul>
+                {overlay.retour.players.length > 0 ? (
+                  <button className={`maps-btn ${overlay.retour.shown ? '' : 'gold'}`} onClick={() => setOverlay({ ...overlay, retour: { ...overlay.retour!, shown: !overlay.retour!.shown } })}>
+                    {overlay.retour.shown ? '🙈 Retirer de l’écran des joueurs' : '👁 Montrer aux joueurs ce qui se voit et se raconte'}
+                  </button>
+                ) : <p className="maps-sub">Rien de visible sur place : les joueurs n’en sauront que ce qu’on leur dira.</p>}
+              </div>
             )}
             {dm && party.halt && (
               <div className="maps-halt" role="status">
@@ -1373,6 +1548,15 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
             {dm && overlay.talk && (
               <p className="maps-hint">📺 Conversation avec {overlay.talk.name} affichée aux joueurs. <button className="maps-link" onClick={() => shareTalk(null)}>La retirer de leur écran</button></p>
             )}
+            {dm && side === 'lieu' && !talkWith && !talkNpc && feature && /:pnj-/.test(feature.id) && !/:pnj-mj$/.test(feature.id) && (
+              <button className="maps-btn gold" onClick={() => setTalkNpc(feature)} title="L’IA joue ce PNJ ; il ouvre la conversation, selon l’heure, ce qui s’est passé ici et ce qu’il pense du groupe">💬 Parler à {feature.title}</button>
+            )}
+            {dm && talkNpc && side === 'lieu' && (
+              <div className="maps-card">
+                <TalkPanel key={talkNpc.id} rec={rec} data={data} planId={map.id} library={library ?? []} loreContext={loreContext} onCreateEntry={onCreateEntry} onUpdateEntry={onUpdateEntry} onChronicle={onChronicle}
+                  npc={talkNpc} onShare={shareTalk} onClose={() => setTalkNpc(null)} />
+              </div>
+            )}
             {dm && talkWith && side === 'lieu' && (
               <div className="maps-card">
                 <TalkPanel rec={rec} data={data} planId={map.id} library={library ?? []} loreContext={loreContext} onCreateEntry={onCreateEntry} onUpdateEntry={onUpdateEntry} onChronicle={onChronicle}
@@ -1395,10 +1579,18 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
             {(!dm || side === 'lieu') && feature && !markerId && (
               <FeaturePanel
                 f={feature} dm={dm} notes={point?.notes ?? ''} face={npcFaceOf(feature)} placeState={states[feature.id]}
-                breakIn={rec.kind === 'monde' && rec.world && feature.batiment && map.surface?.theme === 'cite' ? (
+                breakIn={rec.kind === 'monde' && rec.world && feature.batiment && map.surface?.theme === 'cite' && states[feature.id]?.etat !== 'ruine' && states[feature.id]?.etat !== 'chantier' ? (
                   <BreakInBox key={`${feature.id}:${rec.world.time}`} f={feature} period={rec.world.time ?? 'jour'} planId={map.id} known={nightKnown(feature.id)}
                     onTime={advanceTime} onEvent={(e) => onUpdate({ world: evolve({ ...rec.world!, events: [...(rec.world!.events ?? []), newEvent(clockOf(rec.world!), e)] }).world, updatedAt: Date.now() })} />
                 ) : undefined} memory={memories[feature.title.toLowerCase().trim()]} onTime={rec.kind === 'monde' ? advanceTime : undefined}
+                history={rec.kind === 'monde' && rec.world && (feature.batiment || /:b\d+$/.test(feature.id) || states[feature.id]) ? (
+                  <PlaceHistory key={feature.id} world={rec.world} featureId={feature.id} title={feature.title} loreContext={loreContext} />
+                ) : undefined}
+                relocation={[
+                  ...relocations.filter((r) => r.from === feature.id).map((r) => `Délogés : ${r.text}`),
+                  ...relocations.filter((r) => r.to?.id === feature.id).map((r) => `Provisoirement ici (${r.fromTitle}) : ${r.text}`),
+                ]}
+                onTake={rec.kind === 'monde' && rec.world ? (what, kind) => takeFound(feature, what, kind) : undefined}
                 depthLine={strates ? depthOfFeature(feature.id) : undefined}
                 defaultCtx={{ zone: point?.zone ?? (rec.kind === 'monde' ? (feature.wild || feature.area ? 'sauvage' : feature.trace ? 'transit' : 'cite') : 'sauvage'), depth: point?.depth ?? 3, place: feature.title }}
                 surface={rec.kind === 'monde'}
@@ -1427,9 +1619,33 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
             )}
             {dm && side === 'lieu' && rec.kind === 'monde' && feature && /:b\d+$/.test(feature.id) && map.surface?.theme === 'cite' && (
               <div className="maps-actions world-enter">
-                <button className="maps-btn gold" onClick={() => enterBuilding(feature.id)}>Entrer dans {feature.title}</button>
+                <button className="maps-btn gold" onClick={() => tryEnter(feature)}>Entrer dans {feature.title}</button>
               </div>
             )}
+            {lockAsk && rec.world && (() => {
+              const f = data.features.find((x) => x.id === lockAsk.id);
+              const lk = f && lockFor(f);
+              if (!f || !lk) return null;
+              return (
+                <LockGate title={f.title} batiment={f.batiment ?? {}} period={rec.world.time ?? 'jour'} onTime={advanceTime} onClose={() => setLockAsk(null)}
+                  lock={lk.fixed ? lk : undefined} verb={lockAsk.then === 'ouvrir' ? 'Ouvrir' : 'Entrer'}
+                  onEnter={(how) => {
+                    const then = lockAsk.then;
+                    setLockAsk(null);
+                    // Serrure du MJ : une fois ouverte, elle le reste (il peut la refermer) ; porte de nuit : pour la nuit.
+                    let w = rec.world!;
+                    if (lk.fixed) w = { ...w, locks: { ...(w.locks ?? {}), [f.id]: { locked: false, dc: lk.dc } } };
+                    else opened.current.add(`${f.id}:${clockOf(w).day}`);
+                    if (how === 'forcee') {
+                      // Une serrure forcée se voit : la mémoire du monde le retient.
+                      w = evolve({ ...w, events: [...(w.events ?? []), newEvent(clockOf(w), { title: `Serrure forcée ${atPlace(f.title)}`, text: 'Les héros ont forcé la serrure ; les traces se verront.', kind: 'effraction', place: { planId: map.id, featureId: f.id, title: f.title }, joueurs: 'auteurs', gravite: 1, source: 'jeu' })] }).world;
+                    }
+                    if (w !== rec.world) onUpdate({ world: w, updatedAt: Date.now() });
+                    if (then === 'site' && f.opens) enterSite(f.opens.id);
+                    else if (then === 'batiment') enterBuilding(f.id);
+                  }} />
+              );
+            })()}
             {dm && side === 'lieu' && (rec.kind === 'monde' || rec.kind === 'atlas') && feature?.wild && wildRecordFor(feature) && (
               <WildPanel key={feature.id} feature={feature} record={wildRecordFor(feature)!} draft={!!feature.draft}
                 revealed={overlay.revealed.includes(feature.id)} kinds={rec.kind === 'atlas' ? DEEP_KINDS : undefined}
@@ -1446,6 +1662,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
             {dm && side === 'lieu' && rec.kind === 'monde' && feature && !feature.wild && (
               <div className="maps-actions world-enter">
                 <button className="maps-btn" onClick={() => renameFeature(feature)} title="Donner un autre nom à ce lieu, partout sur la carte">✎ Renommer</button>
+                <LockControl lock={rec.world?.locks?.[feature.id]} night={!!feature.batiment}
+                  onSet={(v) => setLock(feature.id, v)} onPick={() => setLockAsk({ id: feature.id, then: 'ouvrir' })} />
                 {rec.world?.names?.[feature.id] && <button className="maps-btn" onClick={() => resetName(feature)} title="Revenir au nom d'origine">↺ Nom d’origine</button>}
               </div>
             )}
@@ -1456,7 +1674,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
             )}
             {dm && side === 'lieu' && rec.kind === 'monde' && feature?.opens && (
               <div className="maps-actions world-enter">
-                <button className="maps-btn gold" onClick={() => enterSite(feature.opens!.id)}>Entrer dans {feature.title}</button>
+                <button className="maps-btn gold" onClick={() => tryEnter(feature, 'site')}>Entrer dans {feature.title}</button>
               </div>
             )}
             {dm && side === 'explore' && exploring && rec.world && (
@@ -1474,7 +1692,12 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 here={feature ? { planId: map.id, featureId: feature.id, title: feature.title } : party.at ? { planId: party.at.planId, featureId: party.at.kind === 'feature' ? party.at.id : undefined, title: party.at.title } : undefined}
                 npcNames={[...new Set([...(library ?? []).filter((e) => (e as { archiveType?: string }).archiveType === 'person').map((e) => e.title), ...data.features.filter((f) => f.id.includes(':pnj-') && !f.id.includes(':pnj-gen-')).map((f) => f.title)])]}
                 onAdvance={advanceTime}
-                onEvents={(events) => onUpdate({ world: evolve({ ...rec.world!, events }).world, updatedAt: Date.now() })}
+                onEvents={(events) => {
+                  onUpdate({ world: evolve({ ...rec.world!, events }).world, updatedAt: Date.now() });
+                  // Chaque nouvel événement entre dans l'histoire de l'univers : l'IA et les PNJ le connaissent désormais.
+                  const before = new Set((rec.world!.events ?? []).map((e) => e.id));
+                  for (const e of events.filter((x) => !before.has(x.id))) onChronicle?.({ title: e.title, summary: [e.text, e.place?.title && `Lieu : ${e.place.title}`].filter(Boolean).join(' — ') || e.title });
+                }}
                 onDecide={(eventId, suiteId, status) => onUpdate({ world: decide(rec.world!, eventId, suiteId, status), updatedAt: Date.now() })}
                 onShow={(p) => { if (p.planId) setPlanId(p.planId); if (p.featureId) { setSelectedId(p.featureId); setFocus({ kind: 'point', id: p.featureId, tick: Date.now() }); } }} />
             )}
@@ -1623,7 +1846,14 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 <h3>Révélations</h3>
                 <p className="maps-sub">{overlay.revealed.length} lieu(x) visible(s) des joueurs, sur l'ensemble {rec.kind === 'monde' ? 'du monde' : 'de l’Atlas'}.</p>
                 <div className="maps-enc-ctrl">
-                  <button className="maps-btn" onClick={() => revealPlan(true)}>Tout révéler sur ce plan</button>
+                  {([['chemins', 'Chemins'], ['elements', 'Éléments'], ['monstres', 'Monstres']] as const).map(([k, l]) => (
+                    <span key={k} className="reveal-row-nav">
+                      <b>{l}</b>
+                      <button className="maps-btn" onClick={() => revealNav(k, true)} title={`Les ${l.toLowerCase()} que le groupe voit d’où il est`}>que le groupe voit</button>
+                      <button className="maps-btn" onClick={() => revealNav(k, false)}>tous</button>
+                    </span>
+                  ))}
+                  {navNote && <span className="maps-sub" role="status">{navNote}</span>}
                   <button className="maps-btn" onClick={() => revealPlan(false)}>Tout cacher sur ce plan</button>
                 </div>
               </div>
@@ -1732,9 +1962,10 @@ function PartyBar({ party, inBattle, onShow, onBattle, onClearDest, onRejoin }: 
  * Fouille d'une pièce (MJ) : son DD selon qui s'y trouve et le moment, puis le résultat d'après le jet du joueur.
  * Une réussite rapporte souvent des broutilles ; une vraie trouvaille reste rare.
  */
-function SearchBox({ f, onTime }: { f: AtlasFeature; onTime?: (minutes: number) => void }) {
+function SearchBox({ f, onTime, onTake }: { f: AtlasFeature; onTime?: (minutes: number) => void; onTake?: (what: string, kind: string) => void }) {
   const [roll, setRoll] = useState('');
   const [found, setFound] = useState<{ kind: string; text: string } | null>(null);
+  const [taken, setTaken] = useState(false);
   const s = f.fouille!;
   // Une fouille prend une dizaine de minutes de jeu.
   const go = () => { const n = Number(roll); if (Number.isFinite(n) && roll !== '') { setFound(rollFind(s.room ?? f.title, n - s.dc)); onTime?.(DURATIONS.fouille); } };
@@ -1747,17 +1978,26 @@ function SearchBox({ f, onTime }: { f: AtlasFeature; onTime?: (minutes: number) 
         <button className="maps-btn" onClick={go} disabled={roll === ''}>Fouiller</button>
       </div>
       {found && <p className={`maps-search-out k-${found.kind}`}>{found.text}</p>}
+      {found && onTake && found.kind !== 'rien' && found.kind !== 'repere' && (taken
+        ? <p className="maps-sub">Emporté : inscrit dans la mémoire du monde. Le propriétaire s’en apercevra (plainte, soupçons) et les PNJ en parleront.</p>
+        : <button className="maps-btn" onClick={() => { onTake(found.text, found.kind); setTaken(true); }} title="L'objet quitte le lieu : la disparition entre dans l'histoire et les PNJ réagissent">🎒 Les héros l’emportent</button>)}
     </div>
   );
 }
 
-function FeaturePanel({ breakIn, placeState, memory, onTime, face, f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring, partyHere, partyDest, onPartyHere, onPartyDest, passive = 10, follow, onForget, depthLine, surface }: {
+function FeaturePanel({ relocation, onTake, history, breakIn, placeState, memory, onTime, face, f, dm, notes, defaultCtx, onClose, onRoll, revealed, onToggleReveal, onBring, partyHere, partyDest, onPartyHere, onPartyDest, passive = 10, follow, onForget, depthLine, surface }: {
   /** Image de face d'un PNJ (fiche ou banque). */
   face?: string;
   /** Le temps passe (fouille) : minutes de jeu. */
   onTime?: (minutes: number) => void;
   /** Effraction nocturne d'un bâtiment (BreakInBox), déjà prête. */
   breakIn?: ReactNode;
+  /** Un objet trouvé à la fouille est emporté : la disparition entre dans la mémoire du monde. */
+  onTake?: (what: string, kind: string) => void;
+  /** « Que s'est-il passé ici ? » (PlaceHistory), déjà prêt. */
+  history?: ReactNode;
+  /** Habitants délogés (incendie…) : où ils sont partis, ou qui est accueilli ici en attendant. */
+  relocation?: string[];
   /** Mémoire du monde : l'état du lieu (en ruine…) et ce dont le PNJ se souvient. */
   placeState?: { etat: keyof typeof PLACE_STATE_LABEL; title: string };
   memory?: { attitude?: keyof typeof ATTITUDE_LABEL; souvenirs: string[] };
@@ -1800,8 +2040,10 @@ function FeaturePanel({ breakIn, placeState, memory, onTime, face, f, dm, notes,
           {memory.souvenirs.length > 0 && <p className="maps-sub">Se souvient : {memory.souvenirs.slice(-4).join(' ; ')}.</p>}
         </div>
       )}
-      {dm && f.fouille && <SearchBox f={f} onTime={onTime} />}
+      {dm && f.fouille && <SearchBox key={f.id} f={f} onTime={onTime} onTake={onTake} />}
       {dm && breakIn}
+      {relocation?.map((t, i) => <p key={i} className="maps-relocation">⛺ {t}</p>)}
+      {dm && history}
       {f.trace && (() => {
         const t = trailProfile(f, f.trace === 'secret' ? 15 : undefined);
         return (
@@ -2059,5 +2301,36 @@ function PointEditor({ rec, onUpdate, selectedId, onSelect }: {
         ))}
       </ul>
     </div>
+  );
+}
+
+/**
+ * Serrure d'un lieu (MJ) : fermer à clé à toute heure (crypte, coffre-fort) avec son DD, ou laisser ouvert même la nuit.
+ * Un lieu verrouillé se crochète depuis ici (« Crocheter… ») ou en tentant d'y entrer.
+ */
+function LockControl({ lock, night, onSet, onPick }: { lock?: { locked: boolean; dc?: number }; night: boolean; onSet: (v: { locked: boolean; dc?: number } | null) => void; onPick: () => void }) {
+  if (!lock) {
+    return (
+      <>
+        <button className="maps-btn" onClick={() => onSet({ locked: true })} title="Fermé à clé même de jour (crypte, coffre-fort, porte condamnée)">🔒 Fermer à clé</button>
+        {night && <button className="maps-btn" onClick={() => onSet({ locked: false })} title="Les héros ont la clé, ou l'occupant les attend : pas de crochetage, même la nuit">🔓 Ouvert même la nuit</button>}
+      </>
+    );
+  }
+  if (!lock.locked) {
+    return (
+      <>
+        <button className="maps-btn" onClick={() => onSet({ locked: true, dc: lock.dc })} title="Refermer à clé">🔒 Refermer</button>
+        <button className="maps-btn" onClick={() => onSet(null)} title={night ? 'Revenir à la règle : ouvert le jour, fermé la nuit' : 'Retirer la serrure'}>↺ Serrure normale</button>
+      </>
+    );
+  }
+  return (
+    <span className="maps-lockctl">
+      <button className="maps-btn gold" onClick={onPick}>🔓 Crocheter…</button>
+      <label title="DD de crochetage (forcer : + 2)">DD <input className="maps-btn" type="number" min={5} max={30} value={lock.dc ?? ''} placeholder="15"
+        onChange={(e) => onSet({ locked: true, dc: e.target.value === '' ? undefined : Number(e.target.value) })} /></label>
+      <button className="maps-btn" onClick={() => onSet({ locked: false, dc: lock.dc })} title="Les héros ont la clé, ou le MJ ouvre">Ouvrir</button>
+    </span>
   );
 }

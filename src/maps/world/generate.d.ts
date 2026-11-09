@@ -59,7 +59,10 @@ export interface Avatar {
   hidden?: { planId: string; at: [number, number] };
 }
 /** `canon` : lieux tirés au sort que le MJ a gardés tels quels (ils ne sont plus des brouillons). */
-export interface WorldSpec { seed: number; name: string; cities: CitySpec[]; bindings: Record<string, Binding>; interiors?: string[]; time?: Period; season?: Season; residents?: Record<string, Resident[]>; names?: Record<string, string>; canon?: string[]; avatar?: Avatar; climate?: WorldClimate;
+export interface WorldSpec { seed: number; name: string; cities: CitySpec[]; bindings: Record<string, Binding>; interiors?: string[]; time?: Period; season?: Season; residents?: Record<string, Resident[]>; names?: Record<string, string>;
+  /** Serrures posées par le MJ : `locked` vrai = fermé à clé à toute heure (crypte, coffre-fort) ; faux = ouvert même la nuit (clé, porte crochetée). */
+  locks?: Record<string, { locked: boolean; dc?: number }>;
+  canon?: string[]; avatar?: Avatar; climate?: WorldClimate;
   /** Mondes à l'échelle (lot 12) : version du terrain, échelle, bornes (km), latitudes du climat, mers. */
   terrain?: 2; scale?: 'region' | 'royaume' | 'continent'; bounds?: [number, number, number, number]; lat?: [number, number]; seas?: Sea[];
   /** Terres d'au-delà des mers (autres continents) : nom et point où l'écrire (km). */
@@ -71,7 +74,9 @@ export interface WorldSpec { seed: number; name: string; cities: CitySpec[]; bin
   /** Horloge du monde (clock.js) : la date du jeu, qui avance avec les actions. */
   clock?: import('./clock').Clock;
   /** Mémoire du monde (worldEvents.js) : événements datés et situés. */
-  events?: import('./worldEvents').WorldEvent[] }
+  events?: import('./worldEvents').WorldEvent[];
+  /** Derniers passages du groupe (retour.js) : instant de jeu, par cité et par bâtiment. */
+  visits?: Record<string, number> }
 
 /** Lieu sauvage enregistré : il ne bouge plus. `excluded` : écarté par le MJ (il n'apparaît plus, même en brouillon). */
 export interface WildRecord {

@@ -963,3 +963,39 @@
 .tile-pick img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px; }
 .tile-pick.on { border-color: #ecd289; box-shadow: 0 0 0 1px #ecd289; }
 .tile-pick:disabled { opacity: .6; cursor: wait; }
+/* Retour des héros (écran des joueurs) : en haut, pour ne pas cacher la fiche d'un lieu touché. */
+.present-map-card.present-retour { top: 2vmin; bottom: auto; }
+
+/* Lumière du moment, comme sur la carte de navigation : le terrain et le mobilier s'assombrissent le soir et la nuit
+   (les jetons et repères restent lisibles). */
+.battle-stack.light-soir > .battle-terrain, .battle-stack.light-soir .battle-furniture { filter: sepia(.25) saturate(.9) brightness(.82) hue-rotate(-8deg); }
+.battle-stack.light-nuit > .battle-terrain, .battle-stack.light-nuit .battle-furniture { filter: saturate(.55) brightness(.5) hue-rotate(195deg) sepia(.2); }
+/* Mobilier vectoriel d'un intérieur (le même qu'en navigation) : traits fins, quelle que soit l'échelle. */
+.battle-decor path { vector-effect: non-scaling-stroke; }
+.battle-stack.light-soir .battle-decor { filter: sepia(.25) saturate(.9) brightness(.82) hue-rotate(-8deg); }
+.battle-stack.light-nuit .battle-decor { filter: saturate(.55) brightness(.5) hue-rotate(195deg) sepia(.2); }
+
+/* Menu « Révéler » (monstres, chemins, éléments : vus des héros ou tous). */
+.reveal-menu { position: relative; display: inline-block; }
+.reveal-menu > summary { list-style: none; cursor: pointer; }
+.reveal-menu > summary::-webkit-details-marker { display: none; }
+.reveal-pop { position: absolute; right: 0; top: calc(100% + 4px); z-index: 30; display: grid; gap: 6px; padding: 10px; min-width: 300px; background: #1c1710; border: 1px solid rgba(236,210,137,.35); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.55); }
+.reveal-row { display: grid; grid-template-columns: 80px 1fr auto; gap: 6px; align-items: center; }
+/* Zoom du plateau : le cadre garde sa largeur et défile ; c'est le plateau qui grandit (--bz). */
+.battle-board-wrap{flex:1 1 auto;min-width:0}
+.battle-board-wrap > .battle-stack{width:var(--bz,100%)}
+/* Fouille d'un vaincu */
+.combat-loot{border:1px solid #5a4a2a;border-radius:6px;padding:8px 10px;margin:8px 0;background:rgba(20,16,10,.55);display:flex;flex-direction:column;gap:6px}
+.combat-loot ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+.combat-loot label{display:flex;gap:6px;align-items:baseline;font-size:14px;cursor:pointer}
+.combat-loot-harvest{margin:0;font-size:13px;color:#d9c79a}
+.combat-loot.done p{margin:0}
+/* Intérieur marqué par son histoire (placeStates) */
+.battle-place-state{margin:4px 0;font-size:13px;color:#d9c79a;background:rgba(30,20,10,.6);border-left:3px solid #8a6a34;padding:4px 8px;border-radius:4px}
+.battle-place-state.place-ruine{border-left-color:#c0492f}
+.battle-board-wrap.place-ruine .battle-terrain,.battle-board-wrap.place-ruine .battle-furniture,.battle-board-wrap.place-ruine .battle-decor{filter:brightness(.58) sepia(.5) saturate(.6) contrast(1.1)}
+.battle-board-wrap.place-ruine > .battle-stack::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 30% 40%,rgba(0,0,0,.55),transparent 35%),radial-gradient(circle at 70% 65%,rgba(0,0,0,.5),transparent 30%),radial-gradient(circle at 55% 20%,rgba(60,20,5,.35),transparent 25%)}
+.battle-board-wrap.place-chantier .battle-terrain{filter:sepia(.3) brightness(.9)}
+.battle-board-wrap.place-chantier > .battle-stack::after{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(45deg,rgba(210,170,90,.07) 0 14px,transparent 14px 40px)}
+.battle-board-wrap.place-delaisse .battle-terrain,.battle-board-wrap.place-delaisse .battle-furniture{filter:grayscale(.55) brightness(.78)}
+.battle-board-wrap.place-delaisse > .battle-stack::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(200,200,190,.12) 100%)}

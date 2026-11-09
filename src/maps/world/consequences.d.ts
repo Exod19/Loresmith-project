@@ -6,6 +6,8 @@ export interface Suite {
   id: string; at: number; text: string; big: boolean; variant?: string;
   state?: { lieu?: PlaceState; attitude?: Attitude; enquete?: boolean };
   status: 'auto' | 'propose' | 'accepte' | 'refuse';
+  /** Instant de la décision du MJ (minutes de jeu). */
+  decidedAt?: number;
 }
 type W = { clock?: import('./clock').Clock; events?: WorldEvent[] };
 export function dueSuites(ev: WorldEvent, now: number): Suite[];
@@ -21,3 +23,4 @@ export const ATTITUDE_LABEL: Record<Attitude, string>;
 export const PLACE_STATE_LABEL: Record<PlaceState, string>;
 export function the(title: string): string;
 export function ofPlace(title: string): string;
+export function atPlace(title: string): string;

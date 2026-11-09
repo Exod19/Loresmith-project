@@ -535,3 +535,21 @@ test('escales : un mouillage par jour de mer quand la terre est à portée', asy
   assert.ok(stops.length >= 2);
   for (const s of stops) assert.match(`${s.title} ${s.subtitle}`, /jour \d+/);
 });
+
+test('univers de surface : un lieu de l’Underdark déjà posé en ville en est retiré, même découvert ; la fiche reste', async () => {
+  const { scopedEntries } = await import('../../universe/underdark.js');
+  const world = { seed: 3, name: 'Monde', cities: [{ ...CITY, at: [0.5, 0.5], entryId: 'city' }], bindings: {} };
+  const porte = { id: 'porte', archiveType: 'place', title: 'La Porte souterraine (Hosten Valak · Niveau 1)', shortSummary: 'Taverne de Brumeval.', createdAt: 2 };
+  const chope = { id: 'chope', archiveType: 'place', title: 'La Chope Cassée', shortSummary: 'Taverne bruyante de Brumeval.', createdAt: 3 };
+  const all = [{ id: 'city', archiveType: 'place', title: 'Brumeval', subtitle: 'Cité', population: 1500 }, porte, chope];
+  // Avant la correction : la porte avait été posée (et découverte) dans la cité.
+  const before = syncBindings({ world, mapRecordId: 'rec', places: all });
+  assert.ok(before.bindings.porte);
+  const surface = { archives: undefined };
+  const places = scopedEntries(surface, all);
+  const hidden = new Set(all.filter((e) => !places.includes(e)).map((e) => e.id));
+  const r = syncBindings({ world: { ...world, bindings: before.bindings }, mapRecordId: 'rec', places, revealed: new Set([before.bindings.porte.slotId]), hidden });
+  assert.ok(r.changed);
+  assert.ok(!r.bindings.porte, 'plus de bâtiment pour la Porte souterraine');
+  assert.ok(r.bindings.chope, 'la taverne ordinaire reste');
+});

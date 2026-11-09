@@ -303,6 +303,10 @@ TOKEN_ALIASES = {
 # du dossier du Drive ; une règle peut l'élargir.
 O = 'outreterre'
 
+# Monde imposé par le MJ à des images rangées dans le dossier d'un autre monde (le dossier décide, sauf ici).
+# Les scorpions géants vivent dans l'Underdark (indication du MJ, 2026-11-04), même déposés avec la surface.
+MONDE_FORCE = [(r'scorpion', 'outreterre')]
+
 # Fichiers déposés par erreur (images sans rapport, maquettes d'écran) : ignorés, et signalés.
 EXCLURE = [r'investment and returns', r'planning for a stronger', r'coffee, clarity', r'empty chair, working legacy',
            r'navigation map', r'galerie basse n', r'passage from floor to ceiling']
@@ -327,8 +331,13 @@ TEXTURES_GEN = [
 # Éléments : (motif, catégorie, taille en mètres, milieux). Le premier motif qui correspond l'emporte.
 ELEMENTS_GEN = [
     (r'miniature base|socle|\bbase\b', 'socle', [1.5, 1.5], []),
+    # Avant les arbres : « Ivy-Crowned Stone Well » est un puits, « termite mound crown » une termitière.
+    (r'\bwell\b|\bpuits\b', 'monument', [2.5, 2.5], ['ville', 'campagne', 'ruine']),
+    (r'termite', 'divers', [2.5, 2.5], ['desert', 'savane']),
+    (r'shrub canopy|banana', 'arbuste', [3, 3], ['foret', 'campagne', 'jungle']),
     (r'canopy|crown|cime|couronne', 'arbre', [9, 9], ['foret', 'campagne']),
-    (r'cactus|cacti|agave|bromeliad|banana|fern|wildflower|sedge|reeds|cattail|lily|grass patch|lichen|juniper', 'arbuste', [1.8, 1.8], ['foret', 'campagne']),
+    (r'lily|nenuphar|reeds|cattail|roseau|sedge|tussock', 'plante-eau', [1.5, 1.5], ['marais', 'riviere', 'lac']),
+    (r'cactus|cacti|agave|bromeliad|fern|wildflower|grass patch|lichen|juniper', 'arbuste', [1.6, 1.6], ['foret', 'campagne']),
     (r'shrub|bramble|hazel|hawthorn|thorn', 'arbuste', [2.5, 2.5], ['foret', 'campagne']),
     (r'mushroom|fungal|fungi', 'champignon', [2.5, 2.5], ['caverne', 'foret']),
     (r'crystal|quartz|amethyst', 'cristal', [1.6, 1.6], ['caverne']),
@@ -723,6 +732,22 @@ def pair_auto(entries):
         pris.update((a, b))
 
 
+# Genres d'univers (cf. src/banque/genres.js). Une image commune (`*`) sert à tous les univers : sols, eaux, roches et
+# végétation ordinaire. Tout le reste (personnages, créatures, bâtiments, mobilier, objets) garde le genre de son dossier.
+COMMUNS_TEXTURES = {'herbe', 'champ', 'sable', 'roche', 'eau', 'neige', 'boue', 'humus', 'mousse', 'gravier', 'terre', 'glace',
+                    'cendre', 'lave', 'toundra', 'eboulis', 'vase', 'ronces', 'tuile-eau', 'tuile-roche', 'sol'}
+COMMUNS_ELEMENTS = {'arbre', 'arbuste', 'rocher', 'bois', 'plante-eau', 'flaque', 'stalagmite', 'cristal', 'sol', 'vapeur', 'paroi'}
+
+
+def genres_of(e, genre):
+    """Genres d'une image : ceux qu'une règle donne, sinon communs (nature) ou ceux de son dossier."""
+    if e.get('genres'):
+        return e['genres']
+    if (e['type'] == 'texture' and e.get('cat') in COMMUNS_TEXTURES) or (e['type'] == 'element' and e.get('cat') in COMMUNS_ELEMENTS):
+        return ['*']
+    return [genre]
+
+
 def ascii_slug(s):
     s = unicodedata.normalize('NFKD', s).encode('ascii', 'ignore').decode().lower()
     s = re.sub(r'\.(png|jpe?g|webp)$', '', s)
@@ -838,11 +863,23 @@ def main():
     if os.path.exists(CATALOGUE):
         old = {e['drive']: e for e in json.load(open(CATALOGUE, encoding='utf-8'))['images'] if e.get('drive')}
     exclues = []
+    # Doublons du Drive (même fichier, même empreinte, déposé dans plusieurs dossiers) : une seule image, dont les genres
+    # et les mondes réunissent ceux de chaque dossier.
+    jumeaux, doublons = {}, []
     for x in sorted(drive, key=lambda x: (x['folder'], x['title'])):
+        if x.get('md5'):
+            jumeaux.setdefault(x['md5'], []).append(x)
+    for x in sorted(drive, key=lambda x: (x['folder'], x['title'])):
+        if x.get('md5') and jumeaux[x['md5']][0] is not x:
+            doublons.append(x['title'])
+            continue
+        autres = jumeaux.get(x.get('md5'), [x])
+        genre = x.get('genre', 'fantasy')
         if any(re.search(p, norm(x['title'])) for p in EXCLURE):
             exclues.append(x['title'])
             continue
         region = x.get('region', 'surface')
+        region = next((r for pat, r in MONDE_FORCE if re.search(pat, norm(x['title']))), region)
         src = os.path.join(raw, x['id'] + '.png')
         if not os.path.exists(src):
             e = old.get(x['id'])
@@ -853,6 +890,7 @@ def main():
                     e['region'] = [region]  # le dossier du Drive décide : jamais un habitant des deux mondes
                 elif region not in e.get('region', ['surface']):
                     e['region'] = [*e.get('region', ['surface']), region]
+                e['genres'] = sorted({g for y in autres for g in genres_of(e, y.get('genre', 'fantasy'))})
                 entries.append(e)
                 slugs.add(e['id'])
                 by_title[norm(x['title'])] = e['id']
@@ -941,7 +979,7 @@ def main():
                 out = im if k >= 1.0 else im.resize((max(1, round(w0 * k)), max(1, round(h0 * k))), Image.LANCZOS)
                 out.save(dest, 'WEBP', quality=82 if s < 1024 else 80, method=4)
             mips.append(s)
-        e = dict(id=slug, drive=x['id'], titre=x['title'], type=kind, vue=vue, ratio=round(w0 / h0, 3), couleur=avg_color(im), mips=mips, **meta)
+        e = dict(id=slug, drive=x['id'], titre=x['title'], empreinte=(x.get('md5') or '')[:16] or None, type=kind, vue=vue, ratio=round(w0 / h0, 3), couleur=avg_color(im), mips=mips, **meta)
         if meta.get('cat') == 'toit' and has_alpha:
             # Silhouette du toit (8 × 8 cases, ligne par ligne) : pour le poser sur une emprise en L, en T, en U…
             a = im.getchannel('A').resize((8, 8), Image.BOX)
@@ -954,6 +992,13 @@ def main():
             e.setdefault('taille', [0.9, 0.9])
         if e.get('usage') == ['tactique']:
             e['vue'] = 'tuile'
+        e['genres'] = sorted({g for y in autres for g in genres_of(e, y.get('genre', 'fantasy'))})
+        # Doublon déposé dans un autre monde : l'image sert aux deux (le MJ l'a voulu en la mettant dans les deux dossiers).
+        for y in autres[1:]:
+            if y.get('region', 'surface') not in e['region']:
+                e['region'] = [*e['region'], y.get('region', 'surface')]
+        if not e['empreinte']:
+            e.pop('empreinte')
         entries.append(e)
         by_title[norm(x['title'])] = slug
     # Paires portrait ↔ jeton : on remplace l'indice textuel par l'identifiant de l'autre image.
@@ -987,6 +1032,8 @@ def main():
           sum(1 for e in entries if e['type'] == 'creature'), 'créatures ;', sum(1 for e in entries if 'outreterre' in e['region']), 'en Outreterre')
     if exclues:
         print('Ignorées (sans rapport avec la banque) :', *exclues, sep='\n  ')
+    if doublons:
+        print('Doublons réunis (même fichier dans plusieurs dossiers) :', *doublons, sep='\n  ')
     if devine:
         print('Étiquettes devinées (à vérifier) :', *devine, sep='\n  ')
 

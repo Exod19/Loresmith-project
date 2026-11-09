@@ -94,6 +94,11 @@ export interface MapOverlay {
   travel?: { key: string; planId: string; points: [number, number][]; at: number; hold?: boolean };
   /** Annonce montrée aux joueurs pendant une halte en chemin (suspense, fausse alerte, rencontre). */
   alert?: HaltAlert;
+  /**
+   * Retour des héros dans un lieu après un temps (world/retour.js) : ce qui a changé. `dm` pour le MJ ; `players`, ce qui
+   * se voit et se raconte, montré aux joueurs quand le MJ le décide (`shown`).
+   */
+  retour?: { key: string; title: string; ago: string; dm: string[]; players: string[]; shown?: boolean; at: number };
   /** Illustrations des rencontres, par titre de rencontre (fournies par le MJ). */
   encounterImages?: Record<string, string>;
   markers: MapMarker[];
@@ -200,9 +205,17 @@ export interface BattleToken {
   dying?: 'agonie' | 'stable' | 'mort';
   /** Socle sous le jeton : automatique (terrain occupé), aucun, ou choisi. Purement visuel. */
   socle?: SocleMode;
+  /** Vaincu déjà fouillé : ce que les héros ont pris (liste vide : rien). */
+  looted?: string[];
   /** Modes de déplacement accordés par le MJ (sort, objet), en plus de ceux de la fiche. */
   modes?: { vol?: boolean; nage?: boolean; escalade?: boolean };
 }
+
+/** Monde d'un lieu dans un univers (cf. src/banque/genres.js). */
+export type World = 'surface' | 'outreterre';
+
+/** Un meuble sur le plateau (cases) : type, centre, emprise, angle, et la graine de l'image (celle de la navigation). */
+export interface BoardFurniture { k: string; x: number; y: number; w: number; h: number; a: number; seed: string; ref: [number, number] }
 
 export interface Battle {
   cols: number;
@@ -215,6 +228,10 @@ export interface Battle {
   terrain?: { source: string; seed: number; grid: string };
   /** Zone locale autour du lieu : éléments de l'Atlas placés sur la grille, et ceux que le MJ a découverts. */
   local?: { source: string; planId?: string; place?: string; window: { x0: number; y0: number; w: number; h: number }; elements: LocalElement[]; discovered: string[];
+    /** Mobilier du plan (intérieurs) en cases : tables, lits, tonneaux… les mêmes qu'en navigation, à la même taille. */
+    furniture?: BoardFurniture[];
+    /** Dessin vectoriel du mobilier (le même qu'en navigation : comptoir, cheminée, tabourets, tapis…) et la mise à l'échelle plan → cases. */
+    decor?: { list: { kind: string; d: string }[]; tf: [number, number, number, number] };
     /** Plateau tiré d'un plan de surface (cité, monde) : rues et bâtiments plutôt que roche ; `interieur` : dans un bâtiment. */
     surface?: boolean | 'interieur' | 'froid' | 'chaud' | 'neige';
     /** Galeries intérieures retirées : seules restent les sorties au bord et les passages secrets à travers la roche. */
@@ -235,6 +252,11 @@ export interface Battle {
   cellFix?: Record<string, CellFix>;
   /** Fond tactique : tuile de la banque qui couvre le plateau, et corrections de cases d'avant (rendues en la retirant). */
   tile?: { id: string; src: string; rot?: number; prevFix?: Record<string, CellFix> };
+  /**
+   * Mondes du plateau choisis par le MJ (sinon déduits du lieu) : la banque n'y propose que des images de ces mondes.
+   * Plusieurs à la fois possible (l'entrée d'une caverne : surface et Outreterre). Une seule valeur : ancien format.
+   */
+  region?: World | World[];
   /** Dégâts du plateau (lave, ronces, chute) à appliquer par le module Combat, qui tient les PV. */
   damage?: { id: string; to: string; amount: number; why: string }[];
   /** Zones d'effet de sorts posées sur le plateau (cf. battle/aoe.ts). */

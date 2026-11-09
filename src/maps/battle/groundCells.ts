@@ -33,7 +33,11 @@ export function waterDepth(terrain: string, cols: number, rows: number) {
 /** Cases du dehors d'un intérieur : même règle que le plateau peint (BattleBoard, paintInterior). */
 export function outsideOf(terrain: string, cols: number, rows: number) {
   const at = (x: number, y: number) => (x < 0 || y < 0 || x >= cols || y >= rows ? '#' : terrain[y * cols + x]);
-  const doorway = (x: number, y: number) => (at(x - 1, y) === '#' && at(x + 1, y) === '#') || (at(x, y - 1) === '#' && at(x, y + 1) === '#');
+  // Embrasure : une case libre entre deux murs qui se font face, à une ou deux cases de part et d'autre (une porte de
+  // 2 m occupe deux cases ; sans cela, le dehors entrerait dans le bâtiment par la porte).
+  const wallNear = (x: number, y: number, dx: number, dy: number) => at(x + dx, y + dy) === '#' || (at(x + dx, y + dy) !== '#' && at(x + 2 * dx, y + 2 * dy) === '#');
+  const doorway = (x: number, y: number) => (wallNear(x, y, -1, 0) && wallNear(x, y, 1, 0) && (at(x - 1, y) === '#' || at(x + 1, y) === '#'))
+    || (wallNear(x, y, 0, -1) && wallNear(x, y, 0, 1) && (at(x, y - 1) === '#' || at(x, y + 1) === '#'));
   const out = new Set<number>();
   const queue: number[] = [];
   for (let i = 0; i < terrain.length; i++) {

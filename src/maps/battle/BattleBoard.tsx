@@ -4,7 +4,10 @@
  */
 import type { BoardTheme } from './theme';
 import { dressBoard } from '../../banque/boardDress';
-import { faceAngle, isBankSrc, tokenScaleOf, turnsFreely } from '../../banque';
+import { outsideOf } from './groundCells';
+import { bankSrc, faceAngle, isBankSrc, tokenScaleOf, turnsFreely, useBank } from '../../banque';
+import { propSprite } from '../../banque/BankLayer';
+import type { BoardFurniture } from '../mapStore';
 import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
 import type { AoeView, PlayerElement, PlayerToken } from '../../present/stage';
 import type { TerrainKind } from './terrain';
@@ -41,6 +44,12 @@ type Props = {
   tile?: string;
   /** Rotation du fond tactique, en quarts de tour (sens horaire). */
   tileRot?: number;
+  /** Mobilier du lieu (intérieurs) : dessiné avec les mêmes images qu'en navigation, à la même taille. */
+  furniture?: BoardFurniture[];
+  /** Tracés du mobilier (ceux de la navigation) et passage plan → cases : `scale(sx sy) translate(tx ty)`. */
+  decor?: { list: { kind: string; d: string }[]; tf: [number, number, number, number] };
+  /** Lumière du moment (comme la carte de navigation) : le soir et la nuit, le plateau s'assombrit. */
+  light?: 'soir' | 'nuit';
   /** Terrain effectif (cols × rows caractères, cf. terrain.ts). */
   terrain?: string;
   elements?: BoardElement[];
@@ -201,7 +210,7 @@ function facing(t: BoardToken, all: BoardToken[]) {
 }
 
 /** Dessine le terrain case par case dans le canevas : une texture par type, avec la couleur de base dessous. */
-async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: number, terrain: string | undefined, ground?: TerrainId, theme?: BoardTheme) {
+async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: number, terrain: string | undefined, ground?: TerrainId, theme?: BoardTheme, furnished = false) {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   canvas.width = cols * CELL_PX; canvas.height = rows * CELL_PX;
@@ -217,7 +226,7 @@ async function paintTerrain(canvas: HTMLCanvasElement, cols: number, rows: numbe
     await dressBoard(canvas, cols, rows, terrain, climate, CELL_PX, alive, nature);
     return;
   }
-  if (theme === 'interieur') { paintInterior(ctx, cols, rows, terrain); await dressBoard(canvas, cols, rows, terrain, 'interieur', CELL_PX, alive); return; }
+  if (theme === 'interieur') { paintInterior(ctx, cols, rows, terrain, furnished); await dressBoard(canvas, cols, rows, terrain, 'interieur', CELL_PX, alive, false, furnished); return; }
   const g = ground && ground !== 'sol' ? TERRAIN_DEF[ground] : undefined;
   ctx.fillStyle = g?.color ?? TILE_BASE.sol;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -319,35 +328,34 @@ function paintSurface(ctx: CanvasRenderingContext2D, cols: number, rows: number,
 }
 
 /** Plateau d'intérieur : dalles et planches, murs de pierre, gros meubles (comptoir, âtre) et meubles bas (tables, lits). */
-function paintInterior(ctx: CanvasRenderingContext2D, cols: number, rows: number, terrain: string | undefined) {
+/** Mobilier d'un intérieur, en cases : même image, même taille et même sens que sur la carte de navigation. */
+function FurnitureLayer({ list }: { list: BoardFurniture[] }) {
+  const images = useBank();
+  return (
+    <g className="battle-furniture" pointerEvents="none">
+      {list.map((f) => {
+        const sp = propSprite(images, f.k, f.x, f.y, f.w, f.h, f.a, f.seed, f.ref);
+        if (!sp?.img) return null;
+        return <image key={f.seed} href={bankSrc(sp.img, Math.max(sp.w, sp.h) * 64)} x={-sp.w / 2} y={-sp.h / 2} width={sp.w} height={sp.h} preserveAspectRatio="xMidYMid meet"
+          transform={`translate(${f.x} ${f.y}) rotate(${(sp.a * 180) / Math.PI})`} style={{ filter: 'drop-shadow(0 0.04px 0.06px rgba(0,0,0,.7))' }} />;
+      })}
+    </g>
+  );
+}
+
+function paintInterior(ctx: CanvasRenderingContext2D, cols: number, rows: number, terrain: string | undefined, furnished = false) {
   const C = CELL_PX;
   ctx.fillStyle = '#6b5a44';
   ctx.fillRect(0, 0, cols * C, rows * C);
   if (!terrain) return;
   const at = (x: number, y: number) => (x < 0 || y < 0 || x >= cols || y >= rows ? '#' : terrain[y * cols + x]);
-  // Dehors : ce qu'on atteint depuis le bord du plateau sans franchir de mur ni d'embrasure (une case libre entre
-  // deux murs qui se font face). Peint en pavés de rue ; le reste est le plancher du bâtiment.
-  const doorway = (x: number, y: number) => (at(x - 1, y) === '#' && at(x + 1, y) === '#') || (at(x, y - 1) === '#' && at(x, y + 1) === '#');
-  const outside = new Set<number>();
-  const queue: number[] = [];
-  for (let i = 0; i < terrain.length; i++) {
-    const x = i % cols, y = Math.floor(i / cols);
-    if ((x === 0 || y === 0 || x === cols - 1 || y === rows - 1) && terrain[i] !== '#') { outside.add(i); queue.push(i); }
-  }
-  while (queue.length) {
-    const i = queue.pop()!, x = i % cols, y = Math.floor(i / cols);
-    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      const nx = x + dx, ny = y + dy, j = ny * cols + nx;
-      if (nx < 0 || ny < 0 || nx >= cols || ny >= rows || outside.has(j) || terrain[j] === '#' || doorway(nx, ny)) continue;
-      outside.add(j); queue.push(j);
-    }
-  }
+  // Dehors : ce qu'on atteint depuis le bord du plateau sans franchir de mur ni d'embrasure (groundCells.outsideOf).
+  const outside = outsideOf(terrain, cols, rows);
   for (let i = 0; i < terrain.length; i++) {
     const k = terrain[i], cx = i % cols, cy = Math.floor(i / cols), x = cx * C, y = cy * C;
     if (outside.has(i) && k !== '#') {
-      ctx.fillStyle = '#5b5444'; ctx.fillRect(x, y, C, C);
-      ctx.fillStyle = 'rgba(40,36,28,.35)';
-      for (let n = 0; n < 3; n++) ctx.fillRect(x + ((i * 37 + n * 23) % (C - 8)), y + ((i * 17 + n * 41) % (C - 8)), 5, 3);
+      // Le dehors reste neutre, comme sur la carte de navigation de l'intérieur.
+      ctx.fillStyle = '#6f6656'; ctx.fillRect(x, y, C, C);
       if (k === 'I') { ctx.fillStyle = '#5a3f26'; ctx.fillRect(x + 6, y + 6, C - 12, C - 12); }
       continue;
     }
@@ -361,11 +369,11 @@ function paintInterior(ctx: CanvasRenderingContext2D, cols: number, rows: number
     ctx.fillStyle = (cx + cy) % 2 ? '#6e5c45' : '#695742'; ctx.fillRect(x, y, C, C);
     ctx.strokeStyle = 'rgba(40,30,20,.35)'; ctx.lineWidth = 1.5;
     for (let s = 0; s < C; s += 16) { ctx.beginPath(); ctx.moveTo(x, y + s); ctx.lineTo(x + C, y + s); ctx.stroke(); }
-    if (k === 'I') {
+    if (k === 'I' && !furnished) {
       ctx.fillStyle = '#5a3f26'; ctx.fillRect(x + 4, y + 4, C - 8, C - 8);
       ctx.fillStyle = '#7a5835'; ctx.fillRect(x + 8, y + 8, C - 16, (C - 16) / 3);
       if (at(cx + 1, cy) === 'I') ctx.fillRect(x + C - 6, y + 4, 6, C - 8);
-    } else if (k === ',') {
+    } else if (k === ',' && !furnished) {
       ctx.fillStyle = '#9a7a52'; ctx.fillRect(x + 6, y + 10, C - 12, C - 20);
     } else if (k === '~') {
       ctx.fillStyle = '#2f5c69'; ctx.fillRect(x + 6, y + 6, C - 12, C - 12);
@@ -451,7 +459,7 @@ function cellUnder(ev: ReactMouseEvent<SVGElement>, cols: number, rows: number) 
   return x >= 0 && y >= 0 && x < cols && y < rows ? { x, y } : undefined;
 }
 
-export default function BattleBoard({ cols, rows, backdrop, tile, tileRot = 0, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview, labels = [], highlight, fog, exits = [], aim, hits = [], ground, surface, overlay, path, surfaceSelected, draft, theme, aoes = [] }: Props) {
+export default function BattleBoard({ cols, rows, backdrop, tile, tileRot = 0, furniture, decor, light, terrain, elements = [], ranges = [], tokens, interactive, onToken, onCell, onHover, onElement, preview, labels = [], highlight, fog, exits = [], aim, hits = [], ground, surface, overlay, path, surfaceSelected, draft, theme, aoes = [] }: Props) {
   const lines: string[] = [];
   for (let x = 0; x <= cols; x++) lines.push(`M${x} 0V${rows}`);
   for (let y = 0; y <= rows; y++) lines.push(`M0 ${y}H${cols}`);
@@ -464,15 +472,15 @@ export default function BattleBoard({ cols, rows, backdrop, tile, tileRot = 0, t
   for (const h of hits) if (!seen.current.has(h.id)) seen.current.set(h.id, now);
   const shownHits = hits.filter((h) => now - (seen.current.get(h.id) ?? now) <= 4000);
   useEffect(() => {
-    if (canvasRef.current) void paintTerrain(canvasRef.current, cols, rows, terrain, ground, theme);
-  }, [cols, rows, terrain, ground, theme]);
+    if (canvasRef.current) void paintTerrain(canvasRef.current, cols, rows, terrain, ground, theme, !!(furniture?.length || decor?.list.length));
+  }, [cols, rows, terrain, ground, theme, !!(furniture?.length || decor?.list.length)]);
   const textures = texturesOf(surface ?? {}, tokens.map((t) => t.socle as TerrainId | undefined));
 
   const pick = (id: string) => (ev: ReactMouseEvent<SVGElement>) => onElement?.(id, cellUnder(ev, cols, rows));
   const isCutout = useCutouts(tokens.map((t) => t.image));
 
   return (
-    <div className="battle-stack">
+    <div className={`battle-stack${light ? ` light-${light}` : ''}`}>
       <canvas ref={canvasRef} className="battle-terrain" aria-hidden="true" />
     <svg className="battle-board" viewBox={`0 0 ${cols} ${rows}`} preserveAspectRatio="xMidYMid meet" role="img" aria-label="Plateau de combat">
       {TEXTURES}
@@ -481,6 +489,12 @@ export default function BattleBoard({ cols, rows, backdrop, tile, tileRot = 0, t
       {tile && (tileRot % 2
         ? <image href={tile} x={(cols - rows) / 2} y={(rows - cols) / 2} width={rows} height={cols} preserveAspectRatio="xMidYMid slice" transform={`rotate(${tileRot * 90} ${cols / 2} ${rows / 2})`} />
         : <image href={tile} x={0} y={0} width={cols} height={rows} preserveAspectRatio="xMidYMid slice" transform={tileRot ? `rotate(${tileRot * 90} ${cols / 2} ${rows / 2})` : undefined} />)}
+      {decor?.list.length ? (
+        <g className="am-surface battle-decor" pointerEvents="none" transform={`scale(${decor.tf[0]} ${decor.tf[1]}) translate(${decor.tf[2]} ${decor.tf[3]})`}>
+          {decor.list.map((d, i) => <path key={i} d={d.d} className={`dc-${d.kind}`} />)}
+        </g>
+      ) : null}
+      {furniture?.length ? <FurnitureLayer list={furniture} /> : null}
       {surface?.zones?.length ? <ZonesLayer zones={surface.zones} cols={cols} rows={rows} /> : null}
 
       <path d={lines.join('')} stroke="rgba(201,162,74,.22)" strokeWidth={0.03} fill="none" pointerEvents="none" />

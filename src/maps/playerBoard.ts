@@ -124,7 +124,9 @@ export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus
   const fork = f ? { key: f.key, line: f.line, out: f.out, on: f.on } : undefined;
   // Ce que le temps a fait des lieux de ce plan (ruines, chantiers) : visible de tous.
   const states = Object.fromEntries(Object.entries(rec.world ? placeStates(rec.world) : {}).filter(([fid]) => data.features.some((f) => f.id === fid)).map(([fid, st]) => [fid, { etat: st.etat }]));
-  return { mode: 'map', title: rec.title, planId, data, focus, ...(Object.keys(states).length ? { states } : {}), marks: marks.length ? marks : undefined, fog, travel, here: f ? f.point : here, alert, fork, linked: view.linked || undefined, cavernArt: rec.variant === 'strates' || undefined, ...(rec.overlay?.talk ? { talk: rec.overlay.talk } : {}) };
+  const r = rec.overlay?.retour;
+  const retour = r?.shown && r.players.length ? { title: r.title, ago: r.ago, lines: r.players } : undefined;
+  return { mode: 'map', title: rec.title, planId, data, focus, ...(Object.keys(states).length ? { states } : {}), ...(retour ? { retour } : {}), marks: marks.length ? marks : undefined, fog, travel, here: f ? f.point : here, alert, fork, linked: view.linked || undefined, cavernArt: rec.variant === 'strates' || undefined, ...(rec.overlay?.talk ? { talk: rec.overlay.talk } : {}) };
 }
 
 /** Combat tel que les joueurs le voient : jetons visibles seulement, sans points de vie ni CA. */
@@ -229,7 +231,8 @@ export function battleBoard(rec: MapRecord, artOf?: (name: string, id: string) =
     }
     : undefined;
   return {
-    mode: 'battle', title: local?.place ?? rec.title, backdrop: rec.image, tile: b.tile?.src, tileRot: b.tile?.rot, theme: boardTheme(local?.surface, local?.nature), cols: b.cols, rows: b.rows,
+    mode: 'battle', title: local?.place ?? rec.title, backdrop: rec.image, tile: b.tile?.src, tileRot: b.tile?.rot, furniture: local?.furniture, decor: local?.decor,
+    light: local?.surface && (rec.world?.time === 'nuit' || rec.world?.time === 'soir') ? rec.world.time : undefined, theme: boardTheme(local?.surface, local?.nature), cols: b.cols, rows: b.rows,
     feetPerCell: b.feetPerCell, round: b.round, tokens, terrain, elements, turn, fog, exits: exits.length ? exits : undefined,
     // Trait d'attaque : seulement si les joueurs voient l'attaquant et la cible.
     aim: b.aim && tokens.some((t) => t.id === b.aim!.from) && tokens.some((t) => t.id === b.aim!.to)

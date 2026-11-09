@@ -4,6 +4,7 @@
  */
 import { useSyncExternalStore } from 'react';
 import catalogue from './catalogue.json';
+import { fitsGenres, GENRE_DEFAUT } from './genres';
 import { bankUrl, hash, mipFor, norm, npcTraits, peoplesOf, pickPerson, replacementFor, tokenScale, withOverrides, type BankImage, type Peoples } from './banque';
 import { mapStrings } from '../store/imageRefs';
 
@@ -27,6 +28,13 @@ let admin = false;
 let pending: Record<string, Partial<BankImage> | null> = readJson(PENDING_KEY, {});
 let overrides: Overrides = {};
 let images: BankImage[] = RAW;
+/** Toutes les images communes, tous genres confondus (page Banque, « tous les genres »). */
+let allImages: BankImage[] = RAW;
+/** Genres de l'univers ouvert : seules les images de ces genres (ou communes) sont proposées d'office. */
+let genres: string[] = [GENRE_DEFAUT];
+/** L'univers ouvert est-il un univers Underdark ? Sinon, aucune image de l'Outreterre n'est proposée d'office. */
+let underdark = false;
+const inScope = (i: BankImage) => fitsGenres(i, genres) && (underdark || (i.region ?? ['surface']).some((r) => r !== 'outreterre'));
 const listeners = new Set<() => void>();
 
 /** Images communes supprimées par l'administrateur : absentes partout, remplacées là où elles étaient posées. */
@@ -41,15 +49,33 @@ function recompute() {
   }
   const all = withOverrides(RAW, overrides);
   deleted = all.filter((i) => i.supprime);
-  images = [...all.filter((i) => !i.supprime), ...own];
+  allImages = [...all.filter((i) => !i.supprime), ...own];
+  // Un univers futuriste ne voit pas de centaure : les images d'un autre genre restent au catalogue, hors des choix.
+  images = [...all.filter((i) => !i.supprime && inScope(i)), ...own];
   retiredKey = `${deleted.map((i) => i.id).join(',')}|${[...ownRetired.keys()].length}`;
   listeners.forEach((f) => f());
 }
 let retiredKey = '';
 recompute();
 
-/** Catalogue courant (retouches comprises). */
+/** Catalogue courant (retouches comprises), limité aux genres de l'univers ouvert. */
 export const bankImages = () => images;
+export const bankAllImages = () => allImages;
+/** Toutes les images, tous genres (page Banque). */
+export function useBankAll(): BankImage[] {
+  return useSyncExternalStore(subscribe, bankAllImages, bankAllImages);
+}
+/** Genres de l'univers ouvert (appelé par l'application quand l'univers change). */
+export function setBankGenres(list: string[], isUnderdark = underdark) {
+  const next = list.length ? list : [GENRE_DEFAUT];
+  if (next.join(',') === genres.join(',') && isUnderdark === underdark) return;
+  genres = next;
+  underdark = isUnderdark;
+  recompute();
+}
+/** L'univers ouvert est-il un univers Underdark (relié aux Archives de l'Underdark) ? */
+export const bankUnderdark = () => underdark;
+export const bankGenres = () => genres;
 export const overridesOf = () => overrides;
 /** Retouches pas encore partagées (compte non connecté, serveur injoignable). */
 export const pendingCount = () => Object.keys(pending).length;
@@ -229,17 +255,18 @@ const SRD_FR: Record<string, string> = {
 /**
  * Jeton de créature de la banque pour un monstre du plateau, d'après son nom (« Otyugh 2 », « Araignée géante
  * chasseuse ») ou sa fiche SRD : le nom de créature le plus long contenu dans le sien l'emporte. Toujours la même image
- * pour un même nom. `region` : le monde du plateau ('surface' ou 'outreterre') ; une créature de l'autre monde n'est
- * jamais prise, et sans monde connu, rien n'est choisi. undefined : aucune créature ne convient.
+ * pour un même nom. `region` : le ou les mondes du plateau ('surface', 'outreterre') ; une créature d'un autre monde
+ * n'est jamais prise, et sans monde connu, rien n'est choisi. undefined : aucune créature ne convient.
  */
-export function creatureToken(name: string | undefined, statId: string | undefined, region: string | undefined, px = 128, vue: 'jeton' | 'portrait' = 'jeton'): string | undefined {
-  if (!region) return undefined;
+export function creatureToken(name: string | undefined, statId: string | undefined, region: string | string[] | undefined, px = 128, vue: 'jeton' | 'portrait' = 'jeton'): string | undefined {
+  const worlds = region ? (Array.isArray(region) ? region : [region]) : [];
+  if (!worlds.length) return undefined;
   const base = norm(name ?? '').replace(/\s+\d+$/, '').trim();
   const words = ` ${base.replace(/[^a-z0-9]+/g, ' ')} `;
   const fromStat = statId ? norm(SRD_FR[statId] ?? '') : '';
   let best: BankImage[] = [], len = 0;
   for (const img of images) {
-    if (img.type !== 'creature' || img.vue !== vue || img.exclu || !(img.region ?? ['surface']).includes(region)) continue;
+    if (img.type !== 'creature' || img.vue !== vue || img.exclu || !(img.region ?? ['surface']).some((w) => worlds.includes(w))) continue;
     const n = norm(img.nom).replace(/[^a-z0-9]+/g, ' ').trim();
     if (!n) continue;
     const hit = words.includes(` ${n} `) || (fromStat && n === fromStat.replace(/[^a-z0-9]+/g, ' ').trim());
@@ -304,4 +331,15 @@ export function bankRewriteState(state: Record<string, unknown>): Record<string,
     if (next !== state[k]) patch[k] = next;
   }
   return Object.keys(patch).length ? patch : null;
+}
+
+/**
+ * Facteur (≤ 1) qui empêche d'étirer une image au-delà de sa résolution d'origine : dessinée sur `px` pixels d'écran,
+ * elle ne dépasse jamais sa plus grande version (au-delà, elle cesserait d'être nette). Image d'un MJ : pas de limite.
+ */
+export function noUpscale(img: { mips?: number[]; src?: string }, px: number): number {
+  if (img.src || !img.mips?.length) return 1;
+  const dpr = typeof window !== 'undefined' ? Math.min(2, window.devicePixelRatio || 1) : 1;
+  const native = Math.max(...img.mips) / dpr;
+  return px > native ? native / px : 1;
 }

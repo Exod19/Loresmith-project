@@ -23,11 +23,16 @@ import React, {
 import { Download, Upload, Settings, ExternalLink, Undo2, Keyboard, MonitorPlay, Trash2, Move, Square, Ruler, Grid3x3, EyeOff, Eye, Eraser, Swords, SkipForward, Dices, Pencil, RefreshCw, Users, Plus, ChevronLeft, RotateCcw } from 'lucide-react';
 import MapsPage from './maps/MapsPage';
 import TableMap, { tableMapId } from './maps/TableMap';
-import { bankRewriteState, faceOf, useBankRetired } from './banque';
+import { bankRewriteState, faceOf, setBankGenres, useBankRetired } from './banque';
+import { genresOf } from './banque/genres';
+import { isUnderdarkUniverse } from './universe/underdark';
+import UnderdarkAudit from './universe/UnderdarkAudit';
+import GenrePicker from './banque/GenrePicker';
 import { setMapIntent } from './maps/intent';
 import { placeTokens as placeOnBoard, effectiveOf } from './maps/battle/placement';
 import { tacticalNotes, profileFromStat, coverAgainst } from './maps/battle/tactics';
 import MiniBattle from './maps/battle/MiniBattle';
+import LootBox from './maps/battle/LootBox';
 import { classify as classifyAttack, selectNarration, renderNarration, displayName as narrationName, weaponKindOf, creatureOf as narrationCreature, anatomyOf, damageTypeOf, recentIds, remember, streakFacts, importanceOf } from './combat/narration/narrator.js';
 import { loadNarrations, narrationsReady, loadPrefs, savePrefs, loadHistory, saveHistory } from './combat/narration/library';
 import { sightFor } from './maps/battle/combat';
@@ -5114,6 +5119,12 @@ function Spin() {
       ========================================================================= */
 export default function App() {
   const [state, dispatch] = useReducer(reducer, null, () => null);
+  // Genres de l'univers ouvert : la banque ne propose d'office que les images de ces genres (et les communes).
+  // L'Outreterre (images de l'Underdark) n'est proposée que dans un univers Underdark.
+  const bankUniverse = state?.universes?.[state?.activeUniverseId];
+  const activeGenres = genresOf(bankUniverse).join(',');
+  const activeDeep = isUnderdarkUniverse(bankUniverse);
+  useEffect(() => { setBankGenres(activeGenres.split(','), activeDeep); }, [activeGenres, activeDeep]);
   const [hydrated, setHydrated] = useState(false);
   // Garde de parole : les créatures de faune ne parlent pas (feeds/fauna.ts).
   const { feed: faunaFeed } = useUnderdarkFeed();
@@ -5794,6 +5805,11 @@ function Dashboard({
           et colle une clé (Gemini gratuit conseillé) pour générer campagnes, scènes et PNJ.
         </div>
       )}
+      {/* Visible d'emblée : ce qui vient de l'Underdark dans un univers qui n'y est pas relié. */}
+      <UnderdarkAudit universe={universe} entries={Object.values(state.libraryEntries || {})} campaigns={Object.values(state.campaigns || {})}
+        onDelete={(id) => { dispatch({ type: 'DELETE_LIBRARY_ENTRY', id }); flash('Fiche supprimée de cet univers.'); }}
+        onUpdateEntry={(id, patch) => dispatch({ type: 'UPDATE_LIBRARY_ENTRY', id, patch: { ...patch, updatedAt: Date.now() } })}
+        onUpdateCampaign={(id, patch) => dispatch({ type: 'UPDATE_CAMPAIGN', id, patch })} />
       <details className="lsx-advanced">
         <summary>
           Canon, mémoire & sauvegardes
@@ -5834,6 +5850,9 @@ function Dashboard({
               })
             }
           />
+        </Field>
+        <Field label="Genres de l’univers">
+          <GenrePicker universe={universe} onChange={(genres) => dispatch({ type: 'UPDATE_UNIVERSE', id: universe.id, patch: { genres } })} />
         </Field>
         <Field label="Lore & canon — l’IA le relit à chaque génération">
           <textarea
@@ -6505,6 +6524,7 @@ function useUniverseFeed(universe) {
   const [feed, setFeed] = useState(null);
   useEffect(() => {
     let alive = true;
+    setFeed(null); // l'univers d'avant ne prête jamais ses Archives, même le temps d'un chargement
     feedFor(universe).then((f) => alive && setFeed(f));
     return () => {
       alive = false;
@@ -14212,6 +14232,8 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
                   onSwap={(n) => swapVariant(selectedCombatant, n)}
                   tactics={tacticsById?.[selectedCombatant.id]}
                   boardToken={boardTokens.get(selectedCombatant.id)}
+                  lootRegion={boardBattle ? battleRegion(boardBattle)[0] ?? 'surface' : 'surface'}
+                  lootSeed={boardBattle?.terrain?.source ?? c.battleKey ?? ''}
                   onBoardVisible={boardBattle ? (visible) => setBoardBattle({ ...boardBattle, tokens: boardBattle.tokens.map((q) => (q.id === selectedCombatant.id ? { ...q, visible } : q)) }) : null}
                   amount={dmg[selectedCombatant.id] || ''}
                   onAmount={(v) => setDmg((d) => ({ ...d, [selectedCombatant.id]: v }))}
@@ -14377,6 +14399,7 @@ const hpTone = (t) => {
 /** Fiche du combattant choisi (par défaut celui dont c’est le tour) : PV, défenses, états, attaques, fiche complète. */
 function WarInspector({
   t, isActive, activeName, art, sourceNpc, tactics, boardToken, onBoardVisible, amount, onAmount, lastRoll, hpPulse, ops, onInfo, onBackToTurn, variants, onSwap,
+  lootRegion = 'surface', lootSeed = '',
 }) {
   const calc = getCombatantDerivedStats(t);
   const [editing, setEditing] = useState(false);
@@ -14552,6 +14575,13 @@ function WarInspector({
           <h4>Situation sur la carte</h4>
           <TacticalChips notes={tactics} />
         </section>
+      )}
+
+      {tone === 'down' && !t.isPC && (
+        <LootBox key={t.id} t={{ id: t.id, name: t.name, statId: boardToken?.statId ?? sourceNpc?.srdId, looted: t.looted }} region={lootRegion} seed={lootSeed}
+          subject={{ meta: sourceNpc?.type || sourceNpc?.meta, cr: sourceNpc?.cr != null ? String(sourceNpc.cr) : undefined }}
+          onDone={(taken, text) => ops.update(t.id, { looted: taken }, text)}
+          onReset={() => ops.update(t.id, { looted: undefined })} />
       )}
 
       <section className="wt-sec">

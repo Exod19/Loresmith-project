@@ -7,6 +7,7 @@
  *
  * JavaScript pur, testé par effraction.test.mjs.
  */
+import { atPlace } from './consequences.js';
 
 /** Graine stable d'un texte → générateur 0–1. */
 function rngOf(text) {
@@ -144,7 +145,7 @@ export function breakInEvent({ place, woken = [], shout = false, fight = false, 
   const named = woken.map((p) => p.name).filter(Boolean);
   const seen = woken.length > 0;
   return {
-    title: `Effraction ${place?.title ? `chez ${place.title}` : 'nocturne'}${seen ? (shout ? ', les occupants ont donné l’alerte' : ', un occupant s’est réveillé') : ''}`,
+    title: `Effraction ${place?.title ? atPlace(place.title) : 'nocturne'}${seen ? (shout ? ', les occupants ont donné l’alerte' : ', un occupant s’est réveillé') : ''}`,
     text: [
       seen ? `Réveillés : ${woken.map((p) => p.name || p.role).join(', ')}.` : 'Personne ne s’est réveillé ; on découvrira l’effraction au matin.',
       fight ? 'Il y a eu lutte.' : '',

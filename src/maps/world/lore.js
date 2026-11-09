@@ -201,9 +201,11 @@ export function cityOf(place, cities, defaultCityId) {
  * `places` : fiches de lieu de l'univers ; `people` : PNJ et fiches de personnages ; `revealed` : lieux déjà découverts.
  * Renvoie les nouvelles assignations, et `changed` si elles diffèrent des précédentes.
  */
-export function syncBindings({ world, mapRecordId, places, people = [], revealed = new Set() }) {
+export function syncBindings({ world, mapRecordId, places, people = [], revealed = new Set(), hidden = new Set() }) {
   const cities = world.cities ?? [];
-  const before = world.bindings ?? {};
+  // `hidden` : fiches qui n'ont pas leur place dans cet univers (l'Underdark hors des univers Underdark) : leur
+  // emplacement est retiré de la carte, même découvert ; la fiche, elle, reste dans la bibliothèque.
+  const before = Object.fromEntries(Object.entries(world.bindings ?? {}).filter(([id]) => !hidden.has(id)));
   const out = {};
   const cityIds = new Set(cities.map((c) => c.id));
   const cityEntryIds = new Set(cities.map((c) => c.entryId).filter(Boolean));
@@ -253,5 +255,5 @@ export function syncBindings({ world, mapRecordId, places, people = [], revealed
     out[p.id] = { ...snap, cityId: city.id, slotId: slot.id, type: cls.type, district: slot.district, hint };
   }
   const clean = (o) => JSON.stringify(Object.keys(o).sort().map((k) => [k, Object.entries(o[k]).filter(([, v]) => v !== undefined).sort()]));
-  return { bindings: out, changed: clean(out) !== clean(before) };
+  return { bindings: out, changed: clean(out) !== clean(world.bindings ?? {}) };
 }

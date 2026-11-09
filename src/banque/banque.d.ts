@@ -9,6 +9,10 @@ export interface BankImage {
   /** Éléments : [largeur, hauteur] en mètres ; textures : côté d'une tuile en mètres (nombre). */
   taille?: number[] | number;
   milieux: string[]; climats: string[]; saisons: string[]; region: string[];
+  /** Genres d'univers où l'image a sa place ; `['*']` : tous (cf. genres.js). Absent : fantasy. */
+  genres?: string[];
+  /** Empreinte du fichier d'origine (doublons du Drive réunis en une seule image). */
+  empreinte?: string;
   peuple?: string; genre?: 'f' | 'm'; roles?: string[]; paire?: string | null; pose?: string;
   /** Jetons : `zenith` pris à la verticale (dessus de la tête), `incline` vu à environ 15° (visage visible). */
   angle?: 'zenith' | 'incline';

@@ -45,6 +45,13 @@ const RULES = {
     { id: 'reconstruction', after: 45 * DAY, when: isBuilding, big: true, state: { lieu: 'chantier' }, text: (ev) => `On rebâtit ${the(ev.place.title)}.` },
     { id: 'reconstruit', after: 180 * DAY, when: isBuilding, big: true, state: { lieu: 'reconstruit' }, text: (ev) => `${newName(ev.place.title)} a remplacé l’ancien bâtiment.` },
   ],
+  // Écrits par le MJ : ils remplacent l'état laissé par un incendie ou une destruction plus ancienne (voir supersededAt).
+  chantier: [
+    { id: 'chantier', after: 0, when: isBuilding, big: false, state: { lieu: 'chantier' }, text: (ev) => `Un chantier s’est ouvert sur le site ${ofPlace(ev.place.title)} : échafaudages, maçons, charrettes de pierre.` },
+  ],
+  reconstruction: [
+    { id: 'reconstruit', after: 0, when: isBuilding, big: false, state: { lieu: 'reconstruit' }, text: (ev) => `${cap(the(ev.place.title))} est debout de nouveau.` },
+  ],
   cadavre: [
     {
       id: 'sort', after: DAY, big: false,
@@ -128,7 +135,7 @@ export function ofPlace(title = '') {
   return /^le /.test(t) ? `du ${t.slice(3)}` : /^les /.test(t) ? `des ${t.slice(4)}` : /^(la |l’)/.test(t) ? `de ${t}` : `de ${t}`;
 }
 /** « au temple », « à l’église », « à la taverne », « aux halles », « à Brumeval ». */
-const atPlace = (title) => { const t = the(title); return /^le /.test(t) ? `au ${t.slice(3)}` : /^les /.test(t) ? `aux ${t.slice(4)}` : `à ${t}`; };
+export const atPlace = (title) => { const t = the(title); return /^le /.test(t) ? `au ${t.slice(3)}` : /^les /.test(t) ? `aux ${t.slice(4)}` : `à ${t}`; };
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 const at = (ev) => (ev.place?.title ? atPlace(ev.place.title) : 'là-bas');
 /** « Église de Brumeval » → « Nouvelle église de Brumeval ». */
@@ -165,12 +172,27 @@ export function dueSuites(ev, now) {
   return out;
 }
 
+/** Natures qui fixent l'état d'un bâtiment : la plus récente l'emporte sur les plus anciennes. */
+const SHAPES_PLACE = new Set(['incendie', 'destruction', 'chantier', 'reconstruction', 'abandon']);
+/**
+ * Instant où un événement est remplacé par un plus récent sur le même lieu (un incendie, puis « on l'a reconstruit ») :
+ * ses suites s'arrêtent là. Infinity : il ne l'est pas.
+ */
+export function supersededAt(world, ev) {
+  if (!SHAPES_PLACE.has(ev.kind) || !ev.place?.featureId) return Infinity;
+  const later = (world.events ?? []).filter((o) => o !== ev && o.id !== ev.id && SHAPES_PLACE.has(o.kind) && o.place?.featureId === ev.place.featureId && o.at > ev.at);
+  return later.length ? Math.min(...later.map((o) => o.at)) : Infinity;
+}
+
 /** Le monde, avec les suites dues à l'instant présent ajoutées à ses événements. Renvoie { world, fresh } (nouvelles suites). */
 export function evolve(world) {
   const now = stamp(clockOf(world));
   const fresh = [];
   const events = (world.events ?? []).map((ev) => {
-    const add = dueSuites(ev, now);
+    // Remplacé par un événement plus récent du même lieu : plus aucune suite au-delà (pas de chantier sur un temple
+    // déjà reconstruit à la main).
+    const until = supersededAt(world, ev);
+    const add = dueSuites(ev, Math.min(now, until - 1));
     if (!add.length) return ev;
     fresh.push(...add.map((s) => ({ ...s, eventId: ev.id })));
     return { ...ev, suites: [...(ev.suites ?? []), ...add] };
@@ -185,13 +207,16 @@ export function passTime(world, minutes) {
 
 /** Décision du MJ sur une suite proposée : 'accepte' ou 'refuse'. Une suite acceptée peut en débloquer d'autres. */
 export function decide(world, eventId, suiteId, status) {
-  const events = (world.events ?? []).map((ev) => (ev.id !== eventId ? ev : { ...ev, suites: (ev.suites ?? []).map((s) => (s.id === suiteId ? { ...s, status } : s)) }));
+  // L'instant de la décision compte pour le « depuis votre dernier passage » : un chantier accepté hier est une nouvelle.
+  const decidedAt = stamp(clockOf(world));
+  const events = (world.events ?? []).map((ev) => (ev.id !== eventId ? ev : { ...ev, suites: (ev.suites ?? []).map((s) => (s.id === suiteId ? { ...s, status, decidedAt } : s)) }));
   return evolve({ ...world, events }).world;
 }
 
 /** Suites en attente du MJ, de la plus ancienne à la plus récente. */
 export function pending(world) {
-  return (world.events ?? []).flatMap((ev) => (ev.suites ?? []).filter((s) => s.status === 'propose').map((s) => ({ ...s, eventId: ev.id, event: ev }))).sort((a, b) => a.at - b.at);
+  // Une suite d'un événement remplacé depuis (le temple a été reconstruit à la main) n'est plus à décider.
+  return (world.events ?? []).flatMap((ev) => { const until = supersededAt(world, ev); return (ev.suites ?? []).filter((s) => s.status === 'propose' && s.at < until).map((s) => ({ ...s, eventId: ev.id, event: ev })); }).sort((a, b) => a.at - b.at);
 }
 
 /* ——— Ce qui en découle pour la carte et pour les PNJ ——— */
@@ -204,7 +229,8 @@ export function placeStates(world) {
   for (const ev of [...(world.events ?? [])].sort((a, b) => a.at - b.at)) {
     const fid = ev.place?.featureId;
     if (!fid) continue;
-    for (const s of (ev.suites ?? []).filter((x) => applied(x) && x.state?.lieu).sort((a, b) => a.at - b.at)) {
+    const until = supersededAt(world, ev);
+    for (const s of (ev.suites ?? []).filter((x) => applied(x) && x.state?.lieu && x.at < until).sort((a, b) => a.at - b.at)) {
       out[fid] = { etat: s.state.lieu, depuis: s.at, title: ev.place.title, eventId: ev.id };
     }
   }
