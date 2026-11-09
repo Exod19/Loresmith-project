@@ -49,6 +49,19 @@ const POI = {
   'ruines-ensablees': [['Colonnade', 'Des colonnes brisées émergent du sable.', [0.5, 0.42]], ['Statue colossale', 'Seul le visage dépasse ; ses yeux sont des gemmes (Perception DD 13).', [0.34, 0.36]]],
   cairn: [['Cairn', 'Chaque voyageur y ajoute une pierre ; des runes usées.', [0.5, 0.45]]],
   trappeurs: [['Cabane des trappeurs', 'Peaux tendues, raquettes au mur.', [0.5, 0.42]], ['Pièges', 'Une ligne de collets vers la forêt (Survie DD 11).', [0.68, 0.56]]],
+  ruisseau: [['Le ruisseau', 'Eau claire et froide, buvable ; des traces de bêtes sur la berge (Survie DD 11 : lesquelles ?).', [0.5, 0.5]], ['Tronc couché', 'Un passage sur l’eau, glissant (Acrobaties DD 10).', [0.42, 0.44]]],
+  gue: [['Gué', 'Pierres plates et eau aux genoux ; le courant tire (Athlétisme DD 10 chargé).', [0.5, 0.5]]],
+  sentier: [['Embranchement', 'Une croix de bois penchée ; deux sentes repartent (Survie DD 12 : laquelle est fréquentée ?).', [0.5, 0.42]], ['Traces', 'Empreintes de sabots, de bottes, de pattes (Survie DD 12).', [0.52, 0.62]]],
+  'vieux-chene': [['Vieux chêne', 'Tronc colossal, écorce gravée de noms et de cœurs.', [0.5, 0.42]], ['Creux des racines', 'On y tient à deux à l’abri (Perception DD 13 : quelque chose y est caché).', [0.55, 0.5]]],
+  'arbre-tombe': [['Arbre tombé', 'Le tronc barre le passage ; la motte de racines forme un mur de terre.', [0.5, 0.45]], ['Sous le tronc', 'Un creux sec (Investigation DD 12).', [0.58, 0.48]]],
+  rochers: [['Rochers moussus', 'Des blocs couverts de mousse ; de petits abris entre eux.', [0.5, 0.45]], ['Pierre branlante', 'Elle oscille au moindre appui (Athlétisme DD 14 pour la faire basculer).', [0.62, 0.4]]],
+  mare: [['Mare', 'Eau sombre, joncs, grenouilles (Perception DD 12 : un reflet de métal au fond).', [0.5, 0.5]]],
+  fourre: [['Fourré', 'Ronces et aubépines : terrain difficile, les épines accrochent.', [0.5, 0.45]], ['Bauge', 'Les sangliers s’y vautrent ; la terre est fraîchement retournée.', [0.6, 0.55]]],
+  cueillette: [['Coin de cueillette', 'Baies, champignons, simples (Survie DD 10 : de quoi manger ; Nature DD 12 : les reconnaître).', [0.5, 0.48]]],
+  bosquet: [['Bosquet', 'Quelques arbres et une haie : de l’ombre et un abri du vent.', [0.5, 0.45]]],
+  eboulis: [['Éboulis', 'La pente roule sous le pied (Athlétisme DD 11).', [0.5, 0.4]], ['Replat', 'Un abri sous un bloc, des sifflements de marmottes.', [0.4, 0.55]]],
+  'sous-bois': [['Sous-bois', 'Troncs serrés, humus, fougères ; on entend chaque craquement (Perception DD 12 : on n’est pas seul).', [0.5, 0.48]]],
+  campagne: [['Alentours', 'Rien de particulier : le vent, les herbes, l’horizon (Survie DD 10 : s’orienter).', [0.5, 0.48]]],
   marais: [['Eaux noires', 'Roseaux, souches mortes ; le fond est traître (Athlétisme DD 12).', [0.5, 0.5]], ['Îlot', 'Une hutte sur pilotis, au milieu des eaux.', [0.62, 0.38]]],
 };
 
@@ -61,7 +74,7 @@ export function generateWildPlan(w, planId, seed = 1) {
   const prop = (k, x, y, wm, dm, ang = 0) => p.push([k, r1(x), r1(y), r1(M(wm)), r1(M(dm)), Math.round(ang * 1000) / 1000]);
   const kind = w.kind;
   // Une clairière plus ou moins grande autour du lieu ; un sentier y mène depuis le bas du plan.
-  const clear = M(kind === 'clairiere' || kind === 'champ-bataille' || kind === 'menhirs' ? 30 : 18);
+  const clear = M(kind === 'clairiere' || kind === 'champ-bataille' || kind === 'menhirs' ? 30 : kind === 'sous-bois' || kind === 'sentier' || kind === 'fourre' ? 6 : kind === 'campagne' || kind === 'bosquet' ? 26 : 14);
   const path = [[cx + M(6), H + 10], [cx - M(4), H * 0.78], [cx + M(3), cy + clear * 0.6]];
   roads.push({ pts: path.flat().map(r1), hw: r1(M(1.2)) });
   // Végétation : dense en forêt, clairsemée ailleurs, absente au désert et sur la haute montagne.
@@ -108,6 +121,23 @@ export function generateWildPlan(w, planId, seed = 1) {
     case 'oasis': pond(cx, cy + M(2), 11, 7); for (let i = 0; i < 7; i++) { const a = r() * Math.PI * 2; t.push(r1(cx + Math.cos(a) * M(14)), r1(cy + Math.sin(a) * M(10)), r1(M(2.4))); } break;
     case 'marais': for (let i = 0; i < 5; i++) pond(cx + (r() - 0.5) * M(50), cy + (r() - 0.5) * M(30), 4 + r() * 6, 3 + r() * 4); box(cx + M(16), cy - M(12), 4, 4, 0.2); break;
     case 'cascade': cliff(); pond(cx, cy - M(2), 9, 6); water.push({ pts: [cx, H * 0.2, cx + M(1), cy - M(6)].map(r1), hw: r1(M(1.5)) }); break;
+    case 'ruisseau': case 'gue': {
+      // Un cours d'eau traverse le plan de gauche à droite, en serpentant ; le sentier le franchit.
+      const pts = []; const amp = M(kind === 'gue' ? 3 : 6), y0 = cy + M(2);
+      for (let i = 0; i <= 12; i++) { const x = (i / 12) * W; pts.push(r1(x), r1(y0 + Math.sin(i * 0.9 + r() * 0.6) * amp)); }
+      water.push({ pts, hw: r1(M(kind === 'gue' ? 4 : 1.3)) });
+      if (kind === 'ruisseau') box(cx - M(5), y0, 9, 0.8, 0.2, o); // tronc couché en travers
+      else for (let i = 0; i < 5; i++) box(cx + M(4) - i * M(1.6), y0 - M(3) + i * M(1.5), 0.8, 0.7, r() * 3, o); // pierres de gué
+      break;
+    }
+    case 'sentier': prop('colonne', cx - M(3), cy - M(4), 0.4, 0.4, 0.2); roads.push({ pts: [cx + M(3), cy + clear * 0.6, cx - M(10), cy - M(12), cx - M(30), -10].map(r1), hw: r1(M(0.9)) }, { pts: [cx + M(3), cy + clear * 0.6, cx + M(18), cy - M(14), cx + M(36), -10].map(r1), hw: r1(M(0.9)) }); break;
+    case 'vieux-chene': t.push(r1(cx), r1(cy - M(2)), r1(M(6))); break;
+    case 'arbre-tombe': box(cx, cy, 22, 1.4, 0.35, o); box(cx + M(10), cy + M(3.5), 3, 4, 0.35, o); break;
+    case 'rochers': case 'eboulis': for (let i = 0; i < (kind === 'eboulis' ? 26 : 9); i++) { const a = r() * Math.PI * 2, d = r() * M(kind === 'eboulis' ? 26 : 12); box(cx + Math.cos(a) * d, cy - M(4) + Math.sin(a) * d * 0.7, 0.8 + r() * (kind === 'eboulis' ? 1.5 : 3), 0.8 + r() * 2.2, r() * 3, o); } if (kind === 'eboulis') cliff(); break;
+    case 'mare': pond(cx, cy, 7, 5); break;
+    case 'fourre': for (let i = 0; i < 40; i++) { const a = r() * Math.PI * 2, d = M(4) + r() * M(14); t.push(r1(cx + Math.cos(a) * d), r1(cy + Math.sin(a) * d * 0.8), r1(M(0.9 + r() * 0.6))); } break;
+    case 'cueillette': for (let i = 0; i < 18; i++) { const a = r() * Math.PI * 2, d = M(6) + r() * M(8); t.push(r1(cx + Math.cos(a) * d), r1(cy + Math.sin(a) * d * 0.8), r1(M(0.7 + r() * 0.4))); } break;
+    case 'bosquet': for (let i = 0; i < 7; i++) { const a = r() * Math.PI * 2, d = r() * M(7); t.push(r1(cx + M(8) + Math.cos(a) * d), r1(cy - M(6) + Math.sin(a) * d), r1(M(2 + r() * 1.5))); } break;
     default: break;
   }
   // Tracés : parois et murs, rochers (le sol, les arbres, les abris, les objets et l'eau sont dessinés par le moteur).

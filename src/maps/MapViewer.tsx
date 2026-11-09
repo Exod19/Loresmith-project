@@ -42,7 +42,7 @@ import { onPlayerFollow, onPlayerFork, onPlayerGoto, onPlayerPick, onPlayerView,
 import { zoneOf, inZone, trailInZone } from './zone';
 import LiveEncounters, { type LiveBestiaryRef } from './LiveEncounters';
 import { buildRoutes, distancesTo, goalNodes, judgeTrail, nodeOf, verdictText, type TrailVerdict } from './route';
-import { crossPath, cutWalk, interiorPlanId, isAtlasLike, moveCity, useWorldSync, walkKm, wildAlong, wildDrafts, wildRecordOf, wildernessLabel, worldPlanId, type CrossPath, type WildSighting } from './world';
+import { spotRecord, zoneDrafts, zoneFor, zoneOfPlan, crossPath, cutWalk, interiorPlanId, isAtlasLike, moveCity, useWorldSync, walkKm, wildAlong, wildDrafts, wildRecordOf, wildernessLabel, worldPlanId, type CrossPath, type WildSighting } from './world';
 import WildPanel from './world/WildPanel';
 import type { WildRecord } from './world/generate';
 import WorldPanel from './world/WorldPanel';
@@ -143,12 +143,13 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   /** Vue liée : dernier cadrage du MJ, et cadrage reçu d'un écran joueur. */
   const lastBox = useRef<[number, number, number, number] | null>(null);
   const [remoteView, setRemoteView] = useState<{ box: [number, number, number, number]; key: number } | null>(null);
+  const zoneOn = rec.kind === 'monde' && dm && !battleOpen && /:zone-[^:]+:plan$/.test(planId);
   const wildOn = rec.kind === 'monde' && dm && !battleOpen && planId === worldPlanId(rec.id);
   // Underdark (lot 28) : les brouillons du plan affiché, le long de ses galeries.
   const deepOn = rec.kind === 'atlas' && dm && !battleOpen;
-  const drafts = useMemo(() => (wildOn ? wildDrafts(rec, atlas, wildBox) : deepOn && atlas ? deepDrafts(atlas, planId, rec.overlay?.wilds, rec.overlay?.wildDensity) : null),
+  const drafts = useMemo(() => (zoneOn ? zoneDrafts(rec, atlas, planId) : wildOn ? wildDrafts(rec, atlas, wildBox) : deepOn && atlas ? deepDrafts(atlas, planId, rec.overlay?.wilds, rec.overlay?.wildDensity) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [wildOn, deepOn, planId, rec.world, rec.overlay?.wilds, rec.overlay?.wildDensity, atlas, wildBox?.join(',')]);
+    [zoneOn, wildOn, deepOn, planId, rec.world, rec.overlay?.wilds, rec.overlay?.wildDensity, atlas, wildBox?.join(',')]);
   const atlasX = useMemo(() => (drafts?.features.length ? { ...atlas, features: [...atlas.features, ...drafts.features], geometries: [...atlas.geometries, ...drafts.geometries] } : atlas), [atlas, drafts]);
   const data = activateMap(rec, dm, atlasX, drafts ? `${drafts.key}:${drafts.features.length}` : '');
   const [projecting, setProjecting] = useState(false);
@@ -835,6 +836,42 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     const keep = around ? exploredOf(overlay, map.id).filter(([x, y]) => !around.some(([a, b]) => Math.hypot(x - a, y - b) < 0.03)) : [];
     setOverlay({ ...overlay, explored: { ...(overlay.explored ?? {}), [map.id]: keep } });
   };
+  /**
+   * Explorer les environs : le point de pleine nature où se tient le groupe devient un lieu sauvage (sous-bois, étendue),
+   * gardé et montré aux joueurs ; le groupe y est, et l'on entre dans son plan.
+   */
+  const exploreHere = () => {
+    const at = party.at?.at ?? partyAt;
+    if (!at) return;
+    const r = spotRecord(rec, data, at);
+    if (!r) { setAskNote('Ici, c’est l’eau : rien à explorer à pied.'); return; }
+    const id = `${wildPrefix}${r.key}`;
+    const next = withExplored(withPartyAt({ ...overlay, revealed: [...new Set([...overlay.revealed, id])] }, { id, kind: 'feature', title: r.title, planId: worldPlanId(rec.id) }), worldPlanId(rec.id), [at]);
+    onUpdate({ world: { ...rec.world!, wilds: { ...(rec.world!.wilds ?? {}), [r.key]: r } }, overlay: next, updatedAt: Date.now() });
+    setEnterWild(id);
+  };
+
+  /** Distance (km) entre deux points du plan monde. */
+  const kmApart = (a: [number, number], b: [number, number]) => walkKm(rec, [a, b]);
+  /**
+   * Les environs, à pied : un plan de quelques km autour d'un point de pleine nature (zonePlan.js), créé à la première
+   * visite et gardé dans le monde. `withParty` : le groupe y descend aussi (il se tenait là).
+   */
+  const [enterZone, setEnterZone] = useState<string | null>(null);
+  const openZone = (at: [number, number], withParty = false) => {
+    const z = zoneFor(rec, data, at);
+    if (!z || !rec.world) { setAskNote('Ici, c’est l’eau : rien à visiter à pied.'); return; }
+    const pid = `${worldPlanId(rec.id)}:zone-${z.key}:plan`;
+    let next = overlay;
+    if (withParty) next = withPartyAt(overlay, { id: `spot:${z.key}`, kind: 'spot', title: z.title.replace(/ · environs$/, ''), planId: pid, at: [0.5, 0.5] });
+    if (!rec.world.zones?.[z.key] || next !== overlay) onUpdate({ world: { ...rec.world, zones: { ...(rec.world.zones ?? {}), [z.key]: z } }, overlay: next, updatedAt: Date.now() });
+    setEnterZone(pid);
+  };
+  useEffect(() => {
+    if (!enterZone || !data.maps.some((m) => m.id === enterZone)) return;
+    setEnterZone(null); setPlanId(enterZone); setSelectedId(null); setPlacing(null);
+  }, [data, enterZone]);
+
   /* ——— Hors route (carte du monde) : destination, trajet proposé, départ ——— */
   const pickCross = (to: PartyPlace, at: [number, number], by?: 'joueurs') => {
     const from = partyAt;
@@ -1086,6 +1123,12 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
       if (slotF) setFocus({ kind: 'point', id: slotF.id, tick: Date.now() });
       return;
     }
+    // Des environs : le groupe qui s'y trouvait remonte sur la carte du monde, au même endroit.
+    const zone = zoneOfPlan(rec, map.id);
+    if (zone && party.at?.planId === map.id && rec.world) {
+      const g = data.geometries.find((x) => x.featureId === `${wid}:zone-${zone.key}` && x.mapId === wid);
+      if (g) setOverlay(withPartyAt(overlay, { id: `spot:${zone.key}`, kind: 'spot', title: zone.title.replace(/ · environs$/, ''), planId: wid, at: g.coordinates as [number, number] }));
+    }
     setPlanId(wid); setSelectedId(cityOfPlan?.id ?? null); setPlacing(null);
     if (cityOfPlan) setFocus({ kind: 'point', id: cityOfPlan.id, tick: Date.now() });
   };
@@ -1279,7 +1322,9 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
       .filter((x) => x.g)
       .map((x) => ({ ...x, d: Math.hypot((x.g!.coordinates as [number, number])[0] - at[0], (x.g!.coordinates as [number, number])[1] - at[1]) }))
       .sort((a, b) => a.d - b.d)[0];
-    if (near && near.d < 0.1) enterSite(near.f.opens!.id);
+    // Une cité, un hameau ou un lieu tout proche : on y entre ; sinon, en pleine nature, on descend dans les environs.
+    if (near && kmApart(near.g!.coordinates as [number, number], at) < 5) { enterSite(near.f.opens!.id); return; }
+    openZone(at);
   } : undefined;
 
   return (
@@ -1659,6 +1704,12 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                   setEnc({ ctx, e: rollEncounter(ctx, force) });
                 }} />
             )}
+            {dm && side === 'lieu' && rec.kind === 'monde' && feature?.area && /:(foret|monts|lac|riviere)-/.test(feature.id) && map.id === worldPlanId(rec.id) && (
+              <div className="maps-actions world-enter">
+                <button className="maps-btn gold" title="Un plan de 4 km au cœur de ce lieu : bosquets, clairières, sentiers, ruisseaux et petits lieux à visiter, sans cité"
+                  onClick={() => { const g = data.geometries.find((x) => x.featureId === feature.id && x.mapId === map.id); if (g) openZone(g.coordinates as [number, number]); }}>🔍 Explorer à pied</button>
+              </div>
+            )}
             {dm && side === 'lieu' && rec.kind === 'monde' && feature && !feature.wild && (
               <div className="maps-actions world-enter">
                 <button className="maps-btn" onClick={() => renameFeature(feature)} title="Donner un autre nom à ce lieu, partout sur la carte">✎ Renommer</button>
@@ -1747,6 +1798,16 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               </div>
             )}
 
+            {dm && side === 'groupe' && rec.kind === 'monde' && party.at?.kind === 'spot' && partyAt && map.id === worldPlanId(rec.id) && !party.halt && !party.fork && (
+              <div className="maps-card cross-card">
+                <h3>🌲 {party.at.title}</h3>
+                <p className="maps-sub">Le groupe est en pleine nature. On peut descendre dans les environs (bosquets, sentiers, ruisseaux, petits lieux à visiter) ou entrer juste là où il se tient, pour décrire, fouiller ou combattre, sans cité ni lieu particulier.</p>
+                <div className="maps-actions">
+                  <button className="maps-btn gold" onClick={() => openZone((party.at?.at ?? partyAt) as [number, number], true)} title="Un plan de 4 km autour du groupe : bosquets, sentiers, ruisseaux, clairières et petits lieux à visiter">🔍 Les environs (4 km)</button>
+                  <button className="maps-btn" onClick={exploreHere} title="Un plan d'une centaine de mètres, juste là où se tient le groupe">Ici même (100 m)</button>
+                </div>
+              </div>
+            )}
             {dm && side === 'groupe' && rec.kind === 'monde' && party.at && partyAt && map.id === worldPlanId(rec.id) && !party.halt && !party.fork && (
               <div className="maps-card cross-card">
                 <h3>🧭 Hors route</h3>

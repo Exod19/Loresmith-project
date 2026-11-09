@@ -8,7 +8,7 @@ export const CATEGORIES: Record<FeatureCategory, { label: string; color: string;
   sanctuaire: { label: 'Sanctuaire', color: '#b6ad9b', glyph: '◈' },
   grotte: { label: 'Grotte / cavité', color: '#8fb6b3', glyph: '⌕' },
   voie: { label: 'Galerie / passage', color: '#bd9a74', glyph: '⋯' },
-  eau: { label: 'Eaux souterraines', color: '#85b0aa', glyph: '≋' },
+  eau: { label: 'Eaux', color: '#85b0aa', glyph: '≋' },
   danger: { label: 'Zone à risque', color: '#b57b64', glyph: '!' },
   ressource: { label: 'Ressource', color: '#c9a86a', glyph: '◇' },
   vivant: { label: 'Habitat / vivant', color: '#8fae84', glyph: '✿' },

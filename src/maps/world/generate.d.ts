@@ -62,6 +62,8 @@ export interface Avatar {
 export interface WorldSpec { seed: number; name: string; cities: CitySpec[]; bindings: Record<string, Binding>; interiors?: string[]; time?: Period; season?: Season; residents?: Record<string, Resident[]>; names?: Record<string, string>;
   /** Serrures posées par le MJ : `locked` vrai = fermé à clé à toute heure (crypte, coffre-fort) ; faux = ouvert même la nuit (clé, porte crochetée). */
   locks?: Record<string, { locked: boolean; dc?: number }>;
+  /** Environs visités à pied (zonePlan.js) : un plan de quelques km autour d'un point de pleine nature. */
+  zones?: Record<string, { key: string; km: [number, number]; title: string }>;
   canon?: string[]; avatar?: Avatar; climate?: WorldClimate;
   /** Mondes à l'échelle (lot 12) : version du terrain, échelle, bornes (km), latitudes du climat, mers. */
   terrain?: 2; scale?: 'region' | 'royaume' | 'continent'; bounds?: [number, number, number, number]; lat?: [number, number]; seas?: Sea[];
@@ -119,5 +121,6 @@ export function interiorPlanId(slotId: string): string;
 export function rasterGround(surface: Surface, W: number, H: number, win: { x0: number; y0: number; w: number; h: number }, cols: number, rows: number, seed?: number): string;
 export function seaNameOf(seed: number, id: string): string;
 export function worldLakes(relief: unknown): [number, number][][];
+export function worldRivers(relief: unknown): [number, number][][];
 export function wildFeatureOf(w: WildRecord, wid: string): Omit<AtlasFeature, 'canonStatus' | 'placementStatus'>;
 export function landNameOf(seed: number, id: string): string;

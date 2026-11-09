@@ -10,6 +10,8 @@ export interface WildSite {
   teneur: Teneur; danger: Danger; text: string; scene?: string; hook?: string;
   biome: string; e: number; road: number; forest: number;
   near?: { name: string; km: number; dir: string };
+  /** Petit lieu (coin de forêt, ruisseau…) tiré au zoom rapproché. */
+  nook?: boolean;
 }
 export type WildDensity = 'rare' | 'normale' | 'riche';
 export const DENSITY_LABEL: Record<WildDensity, string>;
@@ -27,3 +29,8 @@ export function whereLabel(s: Pick<WildSite, 'near'>): string;
 export function kindLabel(id: string): string;
 /** Ce qu'on voit d'un lieu depuis la route : distance (km), DD de Perception passive s'il est caché, phrase ({c} : côté). */
 export function sightOf(site: { key: string; kind: string; biome?: string; e?: number }, forest?: number): { km: number; dc?: number; line: string };
+export const NOOK_CELL: number;
+/** Petits lieux (ruisseaux, sentiers, vieux chênes…) des cases d'un km qui touchent la fenêtre (km). */
+export function nookSitesIn(ctx: WildContext, box: [number, number, number, number], skip?: Set<string>): WildSite[];
+/** N'importe quel point en pleine nature, pour y entrer : un sous-bois ou une étendue. */
+export function spotSite(ctx: WildContext, km: [number, number], label?: string): WildSite | null;

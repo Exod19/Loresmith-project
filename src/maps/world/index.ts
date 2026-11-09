@@ -4,9 +4,10 @@
  * identique d'une fois à l'autre, puis traité comme l'Atlas des profondeurs par le reste de l'application.
  */
 import { useEffect, useRef } from 'react';
-import { cityPlanId, citySpecDefaults, generateWorld, worldLakes, hashSeed, interiorPlanId, landNameOf, placeCity, seaNameOf, wildFeatureOf, worldPlanId, type CitySpec, type Sea, type WildRecord, type WorldSpec } from './generate';
-import { sightOf, whereLabel, wildSitesIn, type WildSite } from './wilds';
+import { cityPlanId, citySpecDefaults, generateWorld, worldLakes, worldRivers, hashSeed, interiorPlanId, landNameOf, placeCity, seaNameOf, wildFeatureOf, worldPlanId, type CitySpec, type Sea, type WildRecord, type WorldSpec } from './generate';
+import { nookSitesIn, sightOf, spotSite, whereLabel, wildSitesIn, type WildSite } from './wilds';
 import { lengthOf, project, subpath } from '../journey';
+import { generateZonePlan, zoneAt, zoneBox, zoneKey, zonePlanId } from './zonePlan';
 import { nearestEdge } from './climate';
 import { DIR_ANGLE, PACE, atDir, SCALES, cityKm, cityRadiusKm, crossCountry, dirName, elevationAt, placeOn, reliefOf, routeOn, seaBeyond, seaSideAt, terrainAt, toAt, toKm, travelGrid, worldFrame } from './terrain';
 import { norm } from './lore';
@@ -31,6 +32,7 @@ export function worldAtlas(rec: MapRecord): AtlasData {
   let d = cache.get(key);
   if (!d) {
     d = generateWorld(world as WorldSpec, rec.id) as AtlasData;
+    if (world.zones && Object.keys(world.zones).length) d = withZones(rec, d);
     cache.set(key, d);
     if (cache.size > 6) cache.delete(cache.keys().next().value!);
   }
@@ -364,6 +366,8 @@ export function portSea(world: World, c: CitySpec): Sea | undefined {
 
 /** Largeur de vue (km) en dessous de laquelle les brouillons de lieux sauvages apparaissent pour le MJ. */
 export const WILD_VIEW_KM = 90;
+/** Largeur de vue (km) en dessous de laquelle les petits lieux (ruisseaux, sentiers, vieux chênes…) apparaissent aussi. */
+export const NOOK_VIEW_KM = 14;
 const reliefCache = new Map<string, ReturnType<typeof reliefOf>>();
 /** Relief d'un monde à l'échelle (le même que celui du dessin), gardé en mémoire. */
 function worldRelief(world: World) {
@@ -407,11 +411,39 @@ export function wildDrafts(rec: MapRecord, data: AtlasData, box: [number, number
     .filter((g) => g.mapId === wid && g.type === 'polyline' && /:route|route-/.test(g.featureId))
     .map((g) => (g.coordinates as [number, number][]).map((p) => toKm(frame, p)));
   const cities = world.cities.map((c) => ({ name: c.name, km: cityKm(frame, c), r: cityRadiusKm(citySpecDefaults(c)) }));
-  const sites = wildSitesIn({ seed: world.seed, relief, cities, roads, lakes, density: world.wildDensity }, win, new Set(Object.keys(world.wilds ?? {})));
+  const ctx = { seed: world.seed, relief, cities, roads, lakes, density: world.wildDensity };
+  const skip = new Set(Object.keys(world.wilds ?? {}));
+  const sites = wildSitesIn(ctx, win, skip);
+  // Au zoom rapproché : les petits lieux, sur une fenêtre arrondie plus finement (blocs de 4 km).
+  let nookKey = '';
+  if (a1 - a0 <= NOOK_VIEW_KM) {
+    const S = 4, sn = (v: number, up: boolean) => (up ? Math.ceil(v / S) : Math.floor(v / S)) * S;
+    const nb: [number, number, number, number] = [sn(a0, false), sn(b0, false), sn(a1, true), sn(b1, true)];
+    nookKey = nb.join(',');
+    sites.push(...nookSitesIn(ctx, nb, skip));
+  }
   const base = { canonStatus: 'creation' as const, placementStatus: 'documented' as const };
-  const features = sites.map((s) => ({ ...base, ...wildFeatureOf(wildRecordOf(s), wid), draft: true, minZoom: 0, importance: 'detail' as const }));
+  const features = sites.map((s) => ({ ...base, ...wildFeatureOf(wildRecordOf(s), wid), draft: true, minZoom: 0, importance: 'detail' as const, ...(s.nook ? { nook: true } : {}) }));
   const geometries = sites.map((s) => ({ id: `g-${wid}:wild-${s.key}`, mapId: wid, featureId: `${wid}:wild-${s.key}`, type: 'point' as const, coordinates: toAt(frame, s.km) }));
-  return { key: win.join(','), sites, features, geometries };
+  return { key: `${win.join(',')}|${nookKey}`, sites, features, geometries };
+}
+
+/**
+ * Entrer n'importe où en pleine nature, sans lieu particulier : un enregistrement « sous-bois » ou « en pleine nature »
+ * au point `at` (0–1 du plan monde), que le MJ peut garder, nommer et visiter comme un lieu sauvage.
+ */
+export function spotRecord(rec: MapRecord, data: AtlasData, at: [number, number]): WildRecord | null {
+  const world = rec.world;
+  if (!world) return null;
+  const { frame, relief, lakes } = worldRelief(world);
+  if (frame.legacy) return null;
+  const wid = worldPlanId(rec.id);
+  const roads = data.geometries
+    .filter((g) => g.mapId === wid && g.type === 'polyline' && /:route|route-/.test(g.featureId))
+    .map((g) => (g.coordinates as [number, number][]).map((p) => toKm(frame, p)));
+  const cities = world.cities.map((c) => ({ name: c.name, km: cityKm(frame, c), r: cityRadiusKm(citySpecDefaults(c)) }));
+  const s = spotSite({ seed: world.seed, relief, cities, roads, lakes }, toKm(frame, at), wildernessLabel(rec, at));
+  return s ? wildRecordOf(s) : null;
 }
 
 /** Un lieu sauvage aperçu depuis la route : où (km le long du trajet), de quel côté, et s'il faut le chercher. */
@@ -516,4 +548,98 @@ export function wildernessLabel(rec: MapRecord, at: [number, number]): string {
   if (t.biome === 'steppe') return 'Steppe';
   if (t.biome === 'taiga') return 'Taïga';
   return t.e > 500 ? 'Collines' : 'Campagne';
+}
+
+/* ——— Les environs, à pied (zonePlan.js) ——— */
+
+/** Contexte des lieux sauvages d'un monde (relief, cités, routes, lacs), pour un tirage hors de la vue. */
+function wildCtx(rec: MapRecord, data: AtlasData) {
+  const world = rec.world!;
+  const { frame, relief, lakes } = worldRelief(world);
+  const wid = worldPlanId(rec.id);
+  const roads = data.geometries
+    .filter((g) => g.mapId === wid && g.type === 'polyline' && /:route|route-/.test(g.featureId))
+    .map((g) => (g.coordinates as [number, number][]).map((p) => toKm(frame, p)));
+  const cities = world.cities.map((c) => ({ name: c.name, km: cityKm(frame, c), r: cityRadiusKm(citySpecDefaults(c)) }));
+  return { frame, relief, lakes, roads, cities, ctx: { seed: world.seed, relief, cities, roads, lakes, density: world.wildDensity } };
+}
+
+/** Plans des environs visités : le terrain, et une entrée sur la carte du monde pour y revenir (zoom ou bouton). */
+function withZones(rec: MapRecord, d: AtlasData): AtlasData {
+  const world = rec.world!;
+  const { frame, relief, lakes, roads, ctx } = wildCtx(rec, d);
+  if (frame.legacy) return d;
+  const wid = worldPlanId(rec.id);
+  const rivers = worldRivers(relief);
+  const out = { ...d, maps: [...d.maps], features: [...d.features], geometries: [...d.geometries], spaces: [...d.spaces] };
+  const inLake = (x: number, y: number) => lakes.some((poly) => { let ins = false; for (let a = 0, b = poly.length - 1; a < poly.length; b = a++) { const [xa, ya] = poly[a], [xb, yb] = poly[b]; if ((ya > y) !== (yb > y) && x < ((xb - xa) * (y - ya)) / (yb - ya) + xa) ins = !ins; } return ins; });
+  for (const z of Object.values(world.zones ?? {})) {
+    const pid = zonePlanId(wid, z.key);
+    const box = zoneBox(z.km);
+    const kept = Object.values(world.wilds ?? {}).filter((w) => w.km && !w.excluded && w.km[0] > box[0] && w.km[0] < box[2] && w.km[1] > box[1] && w.km[1] < box[3]);
+    const skip = new Set(Object.keys(world.wilds ?? {}));
+    const sites = [...kept.map((w) => ({ key: w.key, km: w.km!, kind: w.kind })), ...wildSitesIn(ctx, box, skip), ...nookSitesIn(ctx, box, skip)];
+    const map = generateZonePlan(z, pid, {
+      seed: world.seed, rivers, roads, lakes, sites,
+      sample: (x, y) => { const t = terrainAt(relief, x, y); return { forest: t.forest, e: t.e, biome: t.biome, moist: t.moist, water: !!t.sea || inLake(x, y) }; },
+    });
+    out.maps.push(map);
+    out.spaces.push({ id: map.scope.id, kind: 'site', name: z.title, levelId: 'monde', stratumIds: [], mapId: pid } as AtlasData['spaces'][number]);
+    // Sur la carte du monde : un repère discret qui rouvre les environs.
+    const fid = `${wid}:zone-${z.key}`;
+    out.features.push({ id: fid, title: z.title, summary: 'Les environs, à pied : bosquets, sentiers, ruisseaux et petits lieux.', category: 'vivant', importance: 'detail', minZoom: 2,
+      canonStatus: 'creation', placementStatus: 'documented', opens: { kind: 'site', id: map.scope.id } } as AtlasData['features'][number]);
+    out.geometries.push({ id: `g-${fid}`, mapId: wid, featureId: fid, type: 'point', coordinates: toAt(frame, z.km) });
+    // Les lieux sauvages enregistrés de la zone y sont aussi (même lieu, une position de plus).
+    for (const w of kept) out.geometries.push({ id: `g-${pid}-${w.key}`, mapId: pid, featureId: `${wid}:wild-${w.key}`, type: 'point', coordinates: zoneAt(z.km, w.km!) });
+  }
+  return out;
+}
+
+/** Les environs d'un point du plan monde (0–1) : la zone existante la plus proche (moins de 1,5 km), ou une nouvelle. */
+export function zoneFor(rec: MapRecord, data: AtlasData, at: [number, number]): { key: string; km: [number, number]; title: string } | null {
+  const world = rec.world;
+  if (!world) return null;
+  const { frame, relief, lakes } = worldRelief(world);
+  if (frame.legacy) return null;
+  const km = toKm(frame, at);
+  const near = Object.values(world.zones ?? {}).map((z) => ({ z, d: Math.hypot(z.km[0] - km[0], z.km[1] - km[1]) })).sort((a, b) => a.d - b.d)[0];
+  if (near && near.d < 1.5) return near.z;
+  const t = terrainAt(relief, km[0], km[1]);
+  if (t.sea || lakes.some((poly) => { let ins = false; for (let a = 0, b = poly.length - 1; a < poly.length; b = a++) { const [xa, ya] = poly[a], [xb, yb] = poly[b]; if ((ya > km[1]) !== (yb > km[1]) && km[0] < ((xb - xa) * (km[1] - ya)) / (yb - ya) + xa) ins = !ins; } return ins; })) return null;
+  // Son nom : la forêt ou les monts dont on est au cœur, sinon le terrain (« Lisière de forêt »…).
+  const wid = worldPlanId(rec.id);
+  const landmark = data.features
+    .filter((f) => f.area && /:(foret|monts)-/.test(f.id))
+    .map((f) => ({ f, g: data.geometries.find((g) => g.featureId === f.id && g.mapId === wid) }))
+    .filter((x) => x.g)
+    .map((x) => ({ f: x.f, d: Math.hypot(...(toKm(frame, x.g!.coordinates as [number, number]).map((v, i) => v - km[i]) as [number, number])) }))
+    .sort((a, b) => a.d - b.d)[0];
+  const label = wildernessLabel(rec, at);
+  const title = landmark && landmark.d < 25 && (t.forest > 0.4 || /monts/.test(landmark.f.id)) ? `${landmark.f.title} · environs` : `${label} · environs`;
+  return { key: zoneKey(km), km: [Math.round(km[0] * 1000) / 1000, Math.round(km[1] * 1000) / 1000], title };
+}
+
+/** Zone d'un plan (`…:zone-<clé>:plan`), si c'en est un. */
+export function zoneOfPlan(rec: MapRecord, planId: string) {
+  const m = planId.match(/:zone-([^:]+):plan$/);
+  return m ? rec.world?.zones?.[m[1]] ?? null : null;
+}
+
+/**
+ * Brouillons des lieux sauvages d'une zone (petits et grands), posés sur son plan, pour le MJ seulement (comme ceux
+ * de la carte du monde, wildDrafts) : il les garde, les définit ou y entre.
+ */
+export function zoneDrafts(rec: MapRecord, data: AtlasData, planId: string) {
+  const z = zoneOfPlan(rec, planId);
+  if (!z || !rec.world) return null;
+  const { ctx } = wildCtx(rec, data);
+  const box = zoneBox(z.km);
+  const skip = new Set(Object.keys(rec.world.wilds ?? {}));
+  const sites = [...wildSitesIn(ctx, box, skip), ...nookSitesIn(ctx, box, skip)].filter((s) => s.km[0] > box[0] && s.km[0] < box[2] && s.km[1] > box[1] && s.km[1] < box[3]);
+  const wid = worldPlanId(rec.id);
+  const base = { canonStatus: 'creation' as const, placementStatus: 'documented' as const };
+  const features = sites.map((s) => ({ ...base, ...wildFeatureOf(wildRecordOf(s), wid), draft: true, minZoom: 0, importance: 'local' as const }));
+  const geometries = sites.map((s) => ({ id: `g-${planId}-${s.key}`, mapId: planId, featureId: `${wid}:wild-${s.key}`, type: 'point' as const, coordinates: zoneAt(z.km, s.km) }));
+  return { key: planId, sites, features, geometries };
 }

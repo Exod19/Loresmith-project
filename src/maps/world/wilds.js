@@ -170,6 +170,63 @@ const KINDS = [
     scene: ['Un passeur propose de guider les voyageurs à travers le marais, contre un prix qui monte à chaque pas.', 'Des hommes-lézards observent depuis les roseaux.'],
     quete: ['Une sorcière des marais retient l’âme d’un noyé ; sa veuve offre tout ce qu’elle a.', 'Un village englouti affleure à la saison sèche, avec son clocher et ses secrets.'] },
 ];
+
+/**
+ * Petits lieux (« coins ») : ce qu'on trouve en se promenant dans une forêt ou une campagne, au zoom rapproché — un
+ * ruisseau, un sentier de chevreuils, un vieux chêne, un arbre tombé… Une case d'un kilomètre en tire 0 à 2 (cf.
+ * nookSitesIn). Ils ne comptent pas dans le tirage des grands lieux (w nul) : `nw` est leur poids parmi les coins.
+ */
+const NOOKS = [
+  { id: 'ruisseau', label: 'Ruisseau', cat: 'eau', nw: (c) => (c.moist > 0.35 ? 2.5 : 1) * (c.e > 1500 ? 0.4 : 1),
+    names: ['des Mousses', 'aux Truites', 'du Moulin perdu', 'des Lavandières', 'Clairet', 'aux Cressons'],
+    amb: ['Un ruisseau clair court entre les pierres moussues ; on le passe d’un bond, ou sur un tronc couché.', 'L’eau chante sur un lit de galets ; des truites filent dans les remous à l’ombre des aulnes.', 'Un filet d’eau serpente sous les fougères ; la berge est piétinée de traces de bêtes venues boire.'],
+    scene: ['Une jeune femme lave du linge dans le ruisseau ; elle sursaute, puis demande des nouvelles de la route.', 'Un chevreuil boit ; il relève la tête et ne fuit pas. Derrière lui, un collet tendu.'] },
+  { id: 'gue', label: 'Gué', cat: 'eau', nw: (c) => (c.moist > 0.45 ? 1.4 : 0.4) + (c.road < 3 ? 1 : 0),
+    names: ['aux Pierres plates', 'du Passeur', 'des Saules', 'aux Charrettes'],
+    amb: ['Des pierres plates permettent de traverser la rivière à pied sec, si l’on a le pied sûr (Acrobaties DD 10).', 'L’eau, large et peu profonde, monte aux genoux ; des ornières de charrette entrent et sortent du courant.'],
+    scene: ['Une charrette s’est embourbée au milieu du gué ; son conducteur jure et appelle à l’aide.'] },
+  { id: 'sentier', label: 'Sentier', cat: 'indetermine', nw: (c) => (c.forest > 0.4 ? 2.5 : 1.2),
+    names: ['des Chevreuils', 'des Charbonniers', 'du Braconnier', 'des Bûcherons', 'aux Myrtilles', 'des Pèlerins'],
+    amb: ['Un sentier étroit, tracé par les bêtes plus que par les hommes, s’enfonce entre les troncs.', 'Une vieille sente de charbonniers, bordée de meules éteintes envahies de mousse.', 'Le sentier grimpe entre des racines comme des marches ; une croix de bois penchée marque un embranchement.'],
+    scene: ['Un colporteur pousse sa brouette sur le sentier ; il connaît « un raccourci » qu’il vend cher.', 'Des empreintes fraîches de bottes, nombreuses, coupent le sentier vers le fourré.'] },
+  { id: 'vieux-chene', label: 'Vieux chêne', cat: 'vivant', nw: (c) => (c.forest > 0.4 ? 1.2 : 0.5),
+    names: ['du Pendu', 'aux Corbeaux', 'des Amoureux', 'du Seigneur', 'Fendu'],
+    amb: ['Un chêne énorme, fendu par la foudre, continue de verdir d’un seul côté.', 'Un vieux chêne aux branches basses ; des initiales et des cœurs sont gravés dans l’écorce.'],
+    scene: ['Une corde usée pend à la plus haute branche. Au pied, un bouquet de fleurs fraîches.'] },
+  { id: 'arbre-tombe', label: 'Arbre tombé', cat: 'indetermine', nw: (c) => (c.forest > 0.5 ? 1.5 : 0),
+    names: ['du Grand Hêtre', 'de la Tempête', 'aux Champignons'],
+    amb: ['Un hêtre immense s’est abattu en travers du chemin ; sa motte de racines dresse un mur de terre.', 'Un tronc couché, creux, couvert de mousse et de champignons-escaliers.'],
+    scene: ['Un blaireau a fait son terrier sous la motte de racines ; il défend l’entrée avec hargne.', 'Sous le tronc creux, un sac de cuir oublié (ou caché).'] },
+  { id: 'rochers', label: 'Rochers moussus', cat: 'indetermine', nw: (c) => 0.8 + (c.slope > 0.04 ? 1.5 : 0) + (c.e > 900 ? 1 : 0),
+    names: ['du Diable', 'des Fées', 'de la Vieille', 'Branlants'],
+    amb: ['Un chaos de blocs couverts de mousse ; certains forment de petits abris où l’on tient à deux.', 'Une pierre branlante, énorme, oscille au moindre appui sans jamais tomber.'],
+    scene: ['Un serpent se chauffe sur le plus grand rocher ; dessous, quelque chose brille.'] },
+  { id: 'mare', label: 'Mare', cat: 'eau', nw: (c) => (c.moist > 0.5 ? 1.5 : 0.5),
+    names: ['aux Grenouilles', 'des Libellules', 'Noire', 'aux Nénuphars'],
+    amb: ['Une mare sombre, bordée de joncs ; les grenouilles se taisent quand on approche.', 'Des nénuphars couvrent une mare tranquille où dansent les libellules.'],
+    scene: ['Un héron pêche, immobile ; au fond de l’eau, on devine le reflet d’un objet de métal (Perception DD 12).'] },
+  { id: 'fourre', label: 'Fourré', cat: 'indetermine', nw: (c) => (c.forest > 0.3 ? 1 : 0.4),
+    names: ['aux Ronces', 'des Aubépines', 'du Sanglier'],
+    amb: ['Un roncier épais, impénétrable sans lame : terrain difficile, et les épines accrochent tout.', 'Un fourré de noisetiers et d’aubépines ; des sangliers ont creusé des bauges au milieu.'],
+    scene: ['Un sanglier surgit du fourré, furieux d’être dérangé.'] },
+  { id: 'cueillette', label: 'Coin de cueillette', cat: 'vivant', nw: (c) => (c.forest > 0.2 && c.biome !== 'desert' ? 0.5 : 0),
+    names: ['aux Myrtilles', 'aux Cèpes', 'aux Fraises des bois', 'aux Simples'],
+    amb: ['Des myrtilles à perte de vue sous les pins ; on en remplit une besace en un quart d’heure (Survie DD 10 : de quoi manger un jour).', 'Des cèpes et des girolles sous les hêtres ; d’autres champignons, moins amicaux, leur ressemblent (Nature DD 12).'],
+    scene: ['Une vieille femme ramasse des simples ; elle connaît chaque plante, et chaque rumeur.'] },
+  { id: 'bosquet', label: 'Bosquet', cat: 'vivant', nw: (c) => (c.forest < 0.4 ? 2 : 0),
+    names: ['des Trois Ormes', 'aux Pies', 'du Berger', 'des Bouleaux'],
+    amb: ['Un bosquet de bouleaux au milieu des prés offre une ombre bienvenue et un abri contre le vent.', 'Trois ormes et une haie vive ; des moutons y somnolent à l’ombre.'],
+    scene: ['Un jeune berger y a caché un agneau volé et supplie qu’on ne dise rien.'] },
+  { id: 'eboulis', label: 'Éboulis', cat: 'indetermine', nw: (c) => (c.slope > 0.05 || c.e > 1000 ? 2 : 0),
+    names: ['de la Dent', 'Gris', 'du Chamois'],
+    amb: ['Une pente d’éboulis qui roule sous le pied (Athlétisme DD 11 pour la traverser sans glisser).', 'Des blocs détachés de la falaise jonchent un replat ; des marmottes sifflent l’alerte.'],
+    scene: ['Un chamois blessé est coincé entre deux blocs ; un aigle tourne au-dessus.'] },
+  { id: 'sous-bois', label: 'Sous-bois', cat: 'vivant', nw: () => 0,
+    names: [''], amb: ['Les troncs serrés laissent passer une lumière verte ; l’humus étouffe les pas et l’on entend chaque craquement.', 'Des fougères jusqu’à la taille, des troncs moussus, un pic qui tambourine quelque part.'], scene: [] },
+  { id: 'campagne', label: 'En pleine nature', cat: 'vivant', nw: () => 0,
+    names: [''], amb: ['Des herbes hautes, quelques arbres isolés, le vent ; rien ni personne à la ronde.', 'Une étendue paisible ; au loin, une fumée, ou peut-être un nuage.'], scene: [] },
+];
+for (const n of NOOKS) KINDS.push({ ...n, w: () => 0, nook: true, quete: [] });
 const KIND = Object.fromEntries(KINDS.map((k) => [k.id, k]));
 /** Compléments de nom communs à tous les lieux. */
 const NAMES = ['des Brumes', 'du Corbeau', 'de l’Aube', 'des Murmures', 'du Vieux Roi', 'des Échos', 'du Silence', 'des Cendres', 'de la Veuve', 'aux Ronces', 'du Héron', 'des Saules', 'du Sanglier', 'de l’Ermite', 'des Larmes', 'de la Lune', 'des Chardons', 'du Givre'];
@@ -324,3 +381,81 @@ export const whereLabel = (s) => (s.near ? `à ${s.near.km} km ${atDir(s.near.di
 export const kindLabel = (id) => KIND[id]?.label ?? 'Lieu';
 /** Types connus, pour le formulaire « Définir ». */
 export const WILD_KINDS = KINDS.map((k) => ({ id: k.id, label: k.label, cat: k.cat }));
+
+/* ——— Petits lieux au zoom rapproché ——— */
+
+/** Taille (km) des cases des petits lieux. */
+export const NOOK_CELL = 1;
+/** Petits lieux d'une case d'un km : plus nombreux en forêt et au bord de l'eau, rares au désert et en haute montagne. */
+function cellNooks(ctx, i, j, skip) {
+  const r = rng(hashSeed(`${ctx.seed}:nook:${i}:${j}`));
+  const x = (i + 0.15 + r() * 0.7) * NOOK_CELL, y = (j + 0.15 + r() * 0.7) * NOOK_CELL;
+  const u = r(), x2 = (i + 0.15 + r() * 0.7) * NOOK_CELL, y2 = (j + 0.15 + r() * 0.7) * NOOK_CELL;
+  const rolls = [r(), r(), r(), r(), r(), r(), r(), r(), r(), r()];
+  const [bx0, by0, bx1, by1] = ctx.relief.bounds;
+  const out = [];
+  const t0 = terrainAt(ctx.relief, x, y);
+  if (t0.sea) return out;
+  const rich = t0.forest > 0.5 ? [0.35, 0.85] : t0.biome === 'desert' || t0.e > 1800 ? [0.85, 0.98] : [0.55, 0.92];
+  const n = u < rich[0] ? 0 : u < rich[1] ? 1 : 2;
+  [[x, y], [x2, y2]].slice(0, n).forEach(([px, py], k) => {
+    const key = `n${i}_${j}_${k}`;
+    if (skip.has(key) || px < bx0 || px > bx1 || py < by0 || py > by1) return;
+    if (ctx.cities.some((c) => Math.hypot(c.km[0] - px, c.km[1] - py) < c.r * 1.2 + 0.3)) return;
+    const t = k ? terrainAt(ctx.relief, px, py) : t0;
+    if (t.sea || (ctx.lakes ?? []).some((poly) => insidePoly(px, py, poly))) return;
+    const site = nookAt(ctx, px, py, t, key, rolls.slice(k * 5, k * 5 + 5));
+    if (site) out.push(site);
+  });
+  return out;
+}
+
+/** Un petit lieu à un point donné : type tiré selon le terrain (ou imposé), nom, texte, presque toujours calme. */
+function nookAt(ctx, x, y, t, key, roll, force) {
+  const road = Math.min(99, ...(ctx.roads ?? []).flatMap((p) => p.slice(1).map((q, m) => segDist(x, y, p[m], q))));
+  const near = ctx.cities.map((c) => ({ c, d: Math.hypot(c.km[0] - x, c.km[1] - y) })).sort((a, b) => a.d - b.d)[0];
+  const c = { biome: t.biome, forest: t.forest, e: t.e, moist: t.moist, slope: slopeAt(ctx.relief, x, y, 0.2), road, city: near ? near.d : 99 };
+  let kind = force ? KIND[force] : null;
+  if (!kind) {
+    // Les clairières (type des grands lieux) comptent aussi parmi les coins de forêt.
+    const list = [...NOOKS.map((nk) => [nk, nk.nw(c)]), [KIND.clairiere, c.forest > 0.45 ? 2.2 : 0]].filter(([, w]) => w > 0);
+    const total = list.reduce((sum, [, w]) => sum + w, 0);
+    if (!total) return null;
+    let w = roll[0] * total; kind = list[0][0];
+    for (const [nk, wt] of list) { w -= wt; if (w <= 0) { kind = nk; break; } }
+  }
+  const scene = !force && kind.scene?.length && roll[1] > 0.85;
+  const name = kind.names?.[Math.floor(roll[2] * kind.names.length) % kind.names.length] ?? '';
+  return {
+    key, km: [Math.round(x * 1000) / 1000, Math.round(y * 1000) / 1000], kind: kind.id, label: kind.label, cat: kind.cat,
+    title: force ? (ctx.label ?? kind.label) : `${kind.id === 'clairiere' ? 'Petite clairière' : kind.label}${name ? ` ${name}` : ''}`, teneur: scene ? 'scene' : 'ambiance',
+    danger: scene && Math.min(road, c.city) > 12 ? 'incertain' : 'calme',
+    text: [kind.amb[Math.floor(roll[3] * kind.amb.length) % kind.amb.length], roll[4] < 0.6 ? (TOUCH[t.biome] ?? TOUCH.sens)[Math.floor(roll[4] * 10) % (TOUCH[t.biome] ?? TOUCH.sens).length] : ''].filter(Boolean).join(' '),
+    scene: scene ? kind.scene[Math.floor(roll[1] * 100) % kind.scene.length] : undefined,
+    biome: t.biome, e: Math.round(t.e), forest: Math.round(t.forest * 100) / 100, nook: true,
+    near: near ? { name: near.c.name, km: Math.round(near.d * 10) / 10, dir: dirName(near.c.km, [x, y]) } : undefined,
+    road: Math.round(road * 10) / 10,
+  };
+}
+
+/** Petits lieux des cases d'un km qui touchent la fenêtre `[x0, y0, x1, y1]` (km), sauf ceux dont la clé est dans `skip`. */
+export function nookSitesIn(ctx, box, skip = new Set()) {
+  const [x0, y0, x1, y1] = box;
+  const out = [];
+  const i0 = Math.floor(x0 / NOOK_CELL), i1 = Math.floor(x1 / NOOK_CELL), j0 = Math.floor(y0 / NOOK_CELL), j1 = Math.floor(y1 / NOOK_CELL);
+  for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) out.push(...cellNooks(ctx, i, j, skip));
+  return out;
+}
+
+/**
+ * N'importe quel point en pleine nature, pour y entrer sans lieu particulier : un sous-bois en forêt, une étendue
+ * ailleurs. `label` : son nom (« Cœur de la forêt »…). Clé stable à 10 m près.
+ */
+export function spotSite(ctx, km, label) {
+  const [x, y] = km;
+  const t = terrainAt(ctx.relief, x, y);
+  if (t.sea) return null;
+  const key = `p${Math.round(x * 100)}_${Math.round(y * 100)}`;
+  const r = rng(hashSeed(`${ctx.seed}:spot:${key}`));
+  return nookAt({ ...ctx, label }, x, y, t, key, [r(), r(), r(), r(), r()], t.forest > 0.4 ? 'sous-bois' : 'campagne');
+}
