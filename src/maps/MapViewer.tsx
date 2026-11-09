@@ -22,7 +22,7 @@ import {
   activateMap, ATLAS_DEFAULT_PLAN, DEFAULT_BATTLE, EMPTY_OVERLAY, mapIdOf, placeCoords,
   type MapMarker, type MapOverlay, type MapRecord, type MarkerKind, type PartyPlace, type PartyTrack, type PartyFork, type PassageLink, type PointRecord, type BattleToken,
 } from './mapStore';
-import { battleBoard, mapBoard } from './playerBoard';
+import { battleBoard, mapBoard, partyMembers } from './playerBoard';
 import BattleMode, { type CombatSlot } from './battle/BattleMode';
 import type { Hero } from './battle/CombatPanel';
 import TrailsPanel, { DangerChip, trailsNear } from './TrailsPanel';
@@ -93,7 +93,10 @@ const FORK_LINES: ((side: string) => string)[] = [
   (c) => `Un écho différent, sur votre ${c} : la paroi s’ouvre sur un espace plus large. Vous allez voir, ou vous continuez ?`,
 ];
 
-export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = [], startInBattle = false, onReturn, renderCombat, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [], artOf, onOpenEntry, library, onCreateNpc, onCreateEntry, loreContext, onUpdateEntry, onChronicle, hiddenEntries = [] }: {
+/** Liste vide stable (dépendance d'effets : pas de nouvelle liste à chaque rendu). */
+const NO_HEROES: Hero[] = [];
+
+export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, heroes = NO_HEROES, startInBattle = false, onReturn, renderCombat, campaigns = [], activeCampaignId, onCampaign, onCampaignProgress, bestiary = [], artOf, onOpenEntry, library, onCreateNpc, onCreateEntry, loreContext, onUpdateEntry, onChronicle, hiddenEntries = [] }: {
   rec: MapRecord; atlas: AtlasData; dm: boolean; onDm: (v: boolean) => void;
   /** Illustration d'une créature par son nom, pour l'écran joueur. */
   artOf?: (name: string, id: string) => string;
@@ -311,7 +314,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   /** Repères du groupe sur le plan affiché (MJ) : où il est, et où il veut aller. */
   const partyMarks: MapMark[] = ([['party', party.at, 'Groupe'], ['dest', party.dest, 'Destination']] as const).flatMap(([tone, p, label]) => {
     const at = p && p.planId === map.id ? placeCoords(data, rec, p) : null;
-    return at ? [{ id: tone, x: at[0], y: at[1], label: `${label} · ${p!.title}`, tone }] : [];
+    return at ? [{ id: tone, x: at[0], y: at[1], label: `${label} · ${p!.title}`, tone, ...(tone === 'party' ? { members: partyMembers(rec, heroes) } : {}) }] : [];
   });
   // Héros séparés du groupe, regroupés par lieu sur le plan affiché.
   const apartByPlace = new Map<string, NonNullable<PartyTrack['apart']>>();
@@ -333,9 +336,9 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   /** Aperçu « Joueurs » : mêmes jetons et même brouillard que sur l'écran joueur. */
   const playerPreview = useMemo(() => {
     if (dm) return { marks: [] as MapMark[], fog: null };
-    const pb = mapBoard(rec, atlas, map.id);
+    const pb = mapBoard(rec, atlas, map.id, undefined, undefined, undefined, heroes);
     return pb.mode === 'map' ? { marks: (pb.marks ?? []) as MapMark[], fog: pb.fog ?? null } : { marks: [] as MapMark[], fog: null };
-  }, [dm, rec, atlas, map.id]);
+  }, [dm, rec, atlas, map.id, heroes]);
   /** Un héros sort seul du plateau de combat : il attend au bout de sa sortie, sur la carte de navigation. */
   const leaveBattle = (t: BattleToken, link: PassageLink | undefined) => {
     if (t.kind !== 'pc' || !link) return;
@@ -430,8 +433,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   // Projection : toute modification de la carte, du repérage ou du combat part vers l'écran joueur.
   useEffect(() => {
     if (!projecting) return;
-    publishStage({ kind: 'board', board: battleOpen ? battleBoard(rec, (name, id) => artRef.current?.(name, id) || ficheImageOf(id) || '', shownPuzzle(rec.battle, puzzleLib?.puzzles ?? [], puzzleLib?.clues ?? [])) : mapBoard(rec, atlas, map.id, focus ?? undefined, (f) => tokenRef.current(f), (f) => faceRef.current(f)) });
-  }, [projecting, battleOpen, rec, atlas, map.id, focus, puzzleLib?.puzzles, puzzleLib?.clues]);
+    publishStage({ kind: 'board', board: battleOpen ? battleBoard(rec, (name, id) => artRef.current?.(name, id) || ficheImageOf(id) || '', shownPuzzle(rec.battle, puzzleLib?.puzzles ?? [], puzzleLib?.clues ?? [])) : mapBoard(rec, atlas, map.id, focus ?? undefined, (f) => tokenRef.current(f), (f) => faceRef.current(f), heroes) });
+  }, [projecting, battleOpen, rec, atlas, map.id, focus, puzzleLib?.puzzles, puzzleLib?.clues, heroes]);
 
   /** Amène la vue joueurs sur ce lieu : le révèle si besoin, centre la carte chez eux, et démarre la projection. */
   const bringPlayers = (id: string) => {

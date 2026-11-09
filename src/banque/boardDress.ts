@@ -145,7 +145,7 @@ export async function dressBoard(canvas: HTMLCanvasElement, cols: number, rows: 
       const parts: number[][] = [];
       for (let y = g.y0; y <= g.y1; y++) for (let x = g.x0; x <= g.x1; x++) if (at(x, y) === '#') parts.push([(x - g.x0) / wC, (y - g.y0) / hC, (x - g.x0 + 1) / wC, (y - g.y0 + 1) / hC]);
       const seed = `toit:${g.x0}:${g.y0}`;
-      const fit = fitRoof(images, { mask: maskFromParts(parts), w: wC, h: hC, climat, usage: wC * hC * 2.25 > 260 ? 'civique' : 'maison', seed, min: 0.8 });
+      const fit = fitRoof(images, { mask: maskFromParts(parts), w: wC, h: hC, climat, saison, usage: wC * hC * 2.25 > 260 ? 'civique' : 'maison', seed, min: 0.8 });
       if (!fit) continue;
       const im = await load(bankSrc(fit.img, Math.max(wC, hC) * C));
       if (!alive()) return;

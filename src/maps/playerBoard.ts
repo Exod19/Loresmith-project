@@ -65,7 +65,20 @@ export function woundState(t: Pick<BattleToken, 'hp' | 'maxHp'>): string | undef
 
 /** Carte telle que les joueurs la voient, sur le plan choisi, centrée sur `focus` si le MJ l'a demandé. */
 /** `tokenOf` : jeton d'un PNJ posé sur le plan (montré aux joueurs à la place de son marqueur). */
-export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus?: { kind: 'anchor' | 'point'; id: string; tick: number }, tokenOf?: (f: AtlasFeature) => string | undefined, faceOf?: (f: AtlasFeature) => string | undefined): PlayerBoard {
+/**
+ * Héros qui marchent avec le groupe (ceux partis seuls exceptés), avec l'image de leur jeton de combat : le jeton du
+ * groupe les montre quand on zoome assez sur la carte. `heroes` : fiches du groupe ; à défaut, les jetons joueurs du plateau.
+ */
+export function partyMembers(rec: MapRecord, heroes?: { id: string; name: string }[]): { id: string; name: string; image: string }[] {
+  const pcs = (rec.battle?.tokens ?? []).filter((t) => t.kind === 'pc');
+  const apart = new Set((rec.overlay?.party?.apart ?? []).flatMap((h) => [h.id, h.heroId ?? '']));
+  const list = heroes?.length
+    ? heroes.map((h) => { const t = pcs.find((x) => x.heroId === h.id); return { id: h.id, name: h.name, image: tokenImage(t ?? { kind: 'pc', name: h.name }), tok: t?.id }; })
+    : pcs.map((t) => ({ id: t.heroId ?? t.id, name: t.name, image: tokenImage(t), tok: t.id }));
+  return list.filter((m) => !apart.has(m.id) && !(m.tok && apart.has(m.tok))).map(({ id, name, image }) => ({ id, name, image }));
+}
+
+export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus?: { kind: 'anchor' | 'point'; id: string; tick: number }, tokenOf?: (f: AtlasFeature) => string | undefined, faceOf?: (f: AtlasFeature) => string | undefined, heroes?: { id: string; name: string }[]): PlayerBoard {
   const raw = restrictToPlan(mapDataFor(rec, atlas, false), planId);
   // Rien de réservé au MJ ne part chez les joueurs (DD de fouille) ; jeton et visage des PNJ y sont ajoutés.
   const data = { ...raw, features: raw.features.map((f) => {
@@ -81,7 +94,7 @@ export function mapBoard(rec: MapRecord, atlas: AtlasData, planId: string, focus
   const at = (p?: PartyPlace) => (p && full && p.planId === planId ? placeCoords(full, rec, p) : null);
   const marks: NonNullable<Extract<PlayerBoard, { mode: 'map' }>['marks']> = [];
   const groupAt = at(party?.at);
-  if (view.party && groupAt) marks.push({ id: 'party', x: groupAt[0], y: groupAt[1], label: 'Groupe', tone: 'party' });
+  if (view.party && groupAt) marks.push({ id: 'party', x: groupAt[0], y: groupAt[1], label: 'Groupe', tone: 'party', members: partyMembers(rec, heroes) });
   if (view.heroes) {
     const byPlace = new Map<string, string[]>();
     for (const h of party?.apart ?? []) byPlace.set(h.at.id, [...(byPlace.get(h.at.id) ?? []), h.name]);

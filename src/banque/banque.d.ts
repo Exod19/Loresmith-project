@@ -48,7 +48,7 @@ export function roofAngle(img: BankImage, w: number, d: number, ang: number, see
 export function faceAngle(dx: number, dy: number): number;
 export function maskFromParts(parts: number[][], n?: number): string;
 export function turnedMask(mask: string, rot: number, flip: boolean, n?: number): string;
-export function fitRoof(images: BankImage[], o: { mask: string; w: number; h: number; climat?: string; usage?: string; seed?: string; min?: number }): { img: BankImage; rot: number; flip: boolean; iw: number; ih: number } | null;
+export function fitRoof(images: BankImage[], o: { mask: string; w: number; h: number; climat?: string; saison?: string; usage?: string; seed?: string; min?: number }): { img: BankImage; rot: number; flip: boolean; iw: number; ih: number } | null;
 export function tokenScale(img: BankImage | null | undefined): number;
 export function nameGenre(name?: string): 'f' | 'm' | undefined;
 export function npcTraits(npc?: { name?: string; role?: string; desc?: string; gender?: string; race?: string }): { genre?: 'f' | 'm'; peuple?: string };

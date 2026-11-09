@@ -45,7 +45,8 @@ export type PlayerBoard =
     /** Retour dans un lieu : ce qui se voit et se raconte depuis le dernier passage (montré par le MJ). */
     retour?: { title: string; ago: string; lines: string[] };
     /** Jetons du groupe et des héros séparés (si le MJ les montre), et brouillard de guerre. */
-    marks?: { id: string; x: number; y: number; label: string; tone: 'party' | 'dest' | 'hero' | 'dm' }[];
+    /** `members` (groupe) : les héros qui marchent ensemble, montrés quand on zoome sur le jeton du groupe. */
+    marks?: { id: string; x: number; y: number; label: string; tone: 'party' | 'dest' | 'hero' | 'dm'; members?: { id: string; name: string; image: string }[] }[];
     fog?: { vision: [number, number][]; explored: [number, number][]; r: number; er: number;
       /** Vue arrêtée par les parois, cavernes visitées, et région où la mémoire peut s'éclaircir. */
       see?: { polys: [number, number][][]; lines: [number, number][][] }; memory?: { polys: [number, number][][]; lines: [number, number][][] }; clip?: { polys: [number, number][][]; lines: [number, number][][] }; lit?: number };

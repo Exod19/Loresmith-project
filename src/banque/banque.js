@@ -180,6 +180,8 @@ function fits(img, { climat, saison, region = 'surface' }) {
   if (!(img.region ?? ['surface']).includes(region)) return false;
   if (climat && img.climats?.length && !img.climats.some((c) => (CLIMATS[climat] ?? [climat]).includes(c))) return false;
   if (saison && img.saisons?.length && !img.saisons.includes(saison)) return false;
+  // Sans saison choisie, ce n'est pas l'hiver : pas de toit enneigé ni d'arbre givré.
+  if (!saison && img.saisons?.length && img.saisons.every((x) => x === 'hiver')) return false;
   return true;
 }
 
@@ -296,10 +298,10 @@ const iou = (a, b) => { let i = 0, u = 0; for (let k = 0; k < a.length; k++) { c
  * (`min` : part commune minimale) et dont les proportions vont. Renvoie { img, rot, flip, iw, ih } : l'image se dessine
  * en iw × ih (avant rotation), tournée de rot quarts de tour, en miroir si flip ; ou null.
  */
-export function fitRoof(images, { mask, w, h, climat, usage, seed = '', min = 0.85 } = {}) {
+export function fitRoof(images, { mask, w, h, climat, saison, usage, seed = '', min = 0.85 } = {}) {
   const cands = [];
   for (const img of images) {
-    if (img.type !== 'element' || img.cat !== 'toit' || !img.masque || !fits(img, { climat })) continue;
+    if (img.type !== 'element' || img.cat !== 'toit' || !img.masque || !fits(img, { climat, saison })) continue;
     const t = Array.isArray(img.taille) ? img.taille : [img.ratio ?? 1, 1];
     const r0 = t[0] / t[1];
     let best = null;

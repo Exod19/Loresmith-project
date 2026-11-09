@@ -864,6 +864,8 @@ export function generateCity(rawSpec, planId, bindings = {}) {
     // Place du marché : la fontaine et des étals, pour la Banque Loresmith ([nature, x, y, largeur, profondeur, angle]).
     p: marketProps(),
     f: fields.flatMap(flatRect),
+    // Fermes (corps de ferme et granges) : la Banque Loresmith y pose bétail et objets de cour ([x, y, l, p, angle, façade]).
+    fm: slotOut.filter((sl) => sl.type === 'ferme').flatMap((sl) => [...U(sl.x, sl.y), r1(sl.w / scale), r1(sl.d / scale), sl.ang, sl.face]),
     t: trees.flatMap(([x, y, rr]) => [...U(x, y), r1(rr / scale)]),
     walls: [
       ...(spec.walls ? splitAtGates(wallPts, seaGate ? [...gates, seaGate] : gates, 7).map((pts) => ({ pts: pts.flatMap(([x, y]) => U(x, y)), hw: r1(1.8 / scale) })) : []),

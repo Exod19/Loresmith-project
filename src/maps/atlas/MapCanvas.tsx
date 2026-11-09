@@ -24,6 +24,11 @@ type T = { tx: number; ty: number; k: number };
 const MIN_K = 0.75;
 /** Zoom maximal à l'échelle des plans saisis (×8) ; une strate 4× plus vaste autorise donc ×32. */
 const MAX_RZ = 8;
+/** Plans à l'échelle : pixels écran par mètre au zoom maximal. */
+const DETAIL_PX = 64;
+/** Jeton du groupe : taille réelle d'un héros (m), et taille à l'écran (px) à partir de laquelle on les montre. */
+const HERO_M = 1.5;
+const HERO_MIN_PX = 22;
 /** Taille des marqueurs (écran) et des étiquettes selon l'importance : la hiérarchie se lit d'un coup d'œil. */
 const PIN_R = { landmark: 17, regional: 14, local: 10, detail: 5 } as const;
 const LBL_FS = { landmark: 15, regional: 13, local: 12, detail: 11 } as const;
@@ -113,7 +118,8 @@ function buildings(m: AtlasMap) {
 }
 
 /** Repère MJ dessiné au-dessus de la carte (position du groupe, destination), en coordonnées de plan 0–1. */
-export type MapMark = { id: string; x: number; y: number; label: string; tone: 'party' | 'dest' | 'hero' | 'dm' | 'temp' };
+/** `members` (groupe) : héros qui marchent ensemble, dessinés à leur taille réelle quand le zoom le permet. */
+export type MapMark = { id: string; x: number; y: number; label: string; tone: 'party' | 'dest' | 'hero' | 'dm' | 'temp'; members?: { id: string; name: string; image: string }[] };
 
 /** Brouillard de guerre : `vision` (cercles éclairés, rayon r), `explored` (déjà découvert, assombri, rayon er) ; le reste est noir. */
 type FogShapes = { polys: [number, number][][]; lines: [number, number][][] };
@@ -280,7 +286,10 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   const W = map.width, H = map.height;
   /** Facteur d'échelle du plan par rapport aux plans saisis (1240 de large) : les seuils de zoom en dépendent. */
   const zf = W / 1240;
-  const maxK = useRef(MAX_RZ * zf); maxK.current = MAX_RZ * zf;
+  const maxK = useRef(MAX_RZ * zf);
+  // Plans à l'échelle (cités, environs, intérieurs) : on zoome jusqu'à voir chaque objet de près (DETAIL_PX pixels par
+  // mètre : une poule, un seau, le jeton d'un héros). La carte du monde garde sa limite : au-delà, on entre dans le lieu.
+  const surfScale = map.surface && map.surface.theme !== 'monde' ? map.surface.scale : 0;
   // Sur écran vertical, le plan est agrandi pour occuper la hauteur plutôt que de flotter dans le vide.
   const boost = () => Math.pow(Math.min(1.9, Math.max(1, W / H / viewAspect)), 0.75);
   const home = () => fit(map, map.defaultViewport.x, map.defaultViewport.y, map.defaultViewport.zoom * boost());
@@ -291,6 +300,7 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   const drag = useRef({ x: 0, y: 0, pending: false });
   const [px, setPx] = useState(2); // unités de plan par pixel écran
   const [view, setView] = useState({ w: 0, h: 0 });
+  maxK.current = Math.max(MAX_RZ * zf, surfScale ? DETAIL_PX * px * surfScale : 0);
   /** Vue encore « par défaut » (ni restaurée, ni déplacée) : recadrable quand la taille est connue. */
   const fresh = useRef(!saved.has(map.id));
 
@@ -593,6 +603,17 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
     }
   }
   const s = px / t.k; // échelle des marqueurs : taille constante à l'écran
+  /**
+   * De près, le jeton du groupe s'ouvre : chaque héros à sa taille réelle (une case de 1,5 m), en cercle autour du
+   * centre. En pixels écran (le repère est dessiné à l'échelle `s`) ; null quand ils seraient trop petits pour se lire.
+   */
+  const membersLayout = (m: MapMark) => {
+    const n = m.members?.length ?? 0;
+    const hero = surfScale && n ? (HERO_M / surfScale) * (t.k / px) : 0;
+    if (hero < HERO_MIN_PX) return null;
+    const ring = n < 2 ? 0 : Math.max(hero * 0.75, (hero * 1.12) / (2 * Math.sin(Math.PI / n)));
+    return { n, hero, ring, R: ring + hero / 2 + 4 };
+  };
   const kind = map.scope.kind;
   const detailEmpty = !map.surface && rz >= 4.2 && !geos.some((g) => features.get(g.featureId)!.importance === 'detail');
   /** Plan de surface : rues dessinées à leur largeur réelle (en mètres), sinon d'un trait fin à l'échelle du monde. */
@@ -853,9 +874,33 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
               pointerEvents={drag ? 'auto' : 'none'}
               {...(drag ? { role: 'button', 'aria-label': 'Glisser le groupe ailleurs', onPointerDown: pinDown(PARTY_DRAG), onPointerMove: pinMove, onPointerUp: pinUp, onPointerCancel: pinUp } : {})}>
               {drag && <title>Glisser pour déplacer le groupe</title>}
-              <circle r={24} className="am-mark-ring" />
-              <circle r={6} className="am-mark-dot" />
-              <g transform="translate(0 -34)">
+              {(() => {
+                const lay = membersLayout(m);
+                if (!lay) return <><circle r={24} className="am-mark-ring" /><circle r={6} className="am-mark-dot" /></>;
+                const { hero, ring, R, n } = lay;
+                return (
+                  <g className="am-party-members">
+                    <circle r={R} className="am-mark-ring" />
+                    {m.members!.map((h, i) => {
+                      const a = (2 * Math.PI * i) / n - Math.PI / 2, x = Math.cos(a) * ring, y = Math.sin(a) * ring;
+                      return (
+                        <g key={h.id} transform={`translate(${x.toFixed(1)} ${y.toFixed(1)})`}>
+                          <title>{h.name}</title>
+                          <clipPath id={`am-pm-${m.id}-${i}`}><circle r={hero / 2} /></clipPath>
+                          <image href={h.image} x={-hero / 2} y={-hero / 2} width={hero} height={hero} clipPath={`url(#am-pm-${m.id}-${i})`} preserveAspectRatio="xMidYMid slice" />
+                          <circle r={hero / 2} className="am-party-member" />
+                          {/* Nom vers l'extérieur du cercle (sous le jeton quand le héros est seul) : il ne couvre aucun voisin. */}
+                          {hero >= 56 && (() => {
+                            const ox = n < 2 ? 0 : Math.cos(a), oy = n < 2 ? 1 : Math.sin(a), d = hero / 2 + 8;
+                            return <text x={ox * d} y={oy * d + 4 + oy * 6} textAnchor={Math.abs(ox) < 0.35 ? 'middle' : ox > 0 ? 'start' : 'end'} className="am-mark-text am-party-name">{h.name}</text>;
+                          })()}
+                        </g>
+                      );
+                    })}
+                  </g>
+                );
+              })()}
+              <g transform={`translate(0 ${-Math.max(34, (() => { const l = membersLayout(m); return l ? l.R + (l.hero >= 56 ? 30 : 14) : 0; })())})`}>
                 <rect x={-(m.label.length * 3.6 + 10)} y={-11} width={m.label.length * 7.2 + 20} height={20} rx={10} className="am-mark-flag" />
                 <text textAnchor="middle" y={4} className="am-mark-text">{m.label}</text>
               </g>

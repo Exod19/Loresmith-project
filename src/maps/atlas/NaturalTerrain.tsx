@@ -15,7 +15,7 @@ type View = { x: number; y: number; w: number; h: number };
 type Tile = { key: string; lvl: number; tx: number; ty: number; url: string };
 
 const TILE_PX = 256;
-const LEVELS = [0.25, 0.5, 1, 2, 4, 8]; // pixels par mètre
+const LEVELS = [0.25, 0.5, 1, 2, 4, 8, 16, 32]; // pixels par mètre
 const MAX_TILES = 96;
 
 const seedOf = (s: string) => { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return (h >>> 0) % 100000; };

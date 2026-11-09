@@ -8,12 +8,13 @@
  */
 import { useMemo } from 'react';
 import type { AtlasMap } from '../maps/atlas/types';
+import { farmyardSprites } from './farmyard';
 import { bankSrc, fitRoof, hash, maskFromParts, MIN_PX, noUpscale, pickElement, pickTexture, useBank, type BankImage } from './index';
 
 type View = { x: number; y: number; w: number; h: number };
 /** Un sprite : image centrée en (x, y), de w × h avant rotation, tournée de `a`, en miroir si `flip`. Sans image : le
  *  dessin vectoriel de repli (`d`, classe `cls`), pour qu'aucun objet ne disparaisse quand son tracé est masqué. */
-type Sprite = { key: string; layer: 'arbres' | 'dessus'; img: BankImage | null; x: number; y: number; w: number; h: number; a: number; flip?: boolean; d?: string; cls?: string };
+type Sprite = { key: string; layer: 'arbres' | 'dessus'; img: BankImage | null; x: number; y: number; w: number; h: number; a: number; flip?: boolean; d?: string; cls?: string; petit?: boolean };
 
 const SEASON_OF: Record<string, string> = { printemps: 'printemps', ete: 'ete', automne: 'automne', hiver: 'hiver' };
 /** Mobilier et objets → ce qu'on cherche dans la banque (et le tracé vectoriel qu'il remplace). */
@@ -86,18 +87,20 @@ function useSprites(map: AtlasMap, images: BankImage[]) {
         for (let k = 5; k + 3 < e.length; k += 4) parts.push(e.slice(k, k + 4));
         const seed = `${map.id}:b${i}`;
         const usage = W * D * s.scale * s.scale > 260 ? 'civique' : 'maison';
-        const fit = fitRoof(images, { mask: maskFromParts(parts), w: W, h: D, climat: ctx.climat, usage, seed });
+        const fit = fitRoof(images, { mask: maskFromParts(parts), w: W, h: D, climat: ctx.climat, saison: ctx.saison, usage, seed });
         const c = Math.cos(ang), sn = Math.sin(ang);
         if (fit) { out.push({ key: `b${i}`, layer: 'dessus', img: fit.img, x, y, w: fit.iw, h: fit.ih, a: ang + (fit.rot * Math.PI) / 2, flip: fit.flip }); return; }
         parts.forEach(([u0, v0, u1, v1], k) => {
           const pu = ((u0 + u1) / 2 - 0.5) * W, pv = ((v0 + v1) / 2 - 0.5) * D, pw = (u1 - u0) * W, pd = (v1 - v0) * D;
           const px = x + pu * c - pv * sn, py = y + pu * sn + pv * c;
-          const f = fitRoof(images, { mask: maskFromParts([[0, 0, 1, 1]]), w: pw, h: pd, climat: ctx.climat, usage, seed: `${seed}:${k}` });
+          const f = fitRoof(images, { mask: maskFromParts([[0, 0, 1, 1]]), w: pw, h: pd, climat: ctx.climat, saison: ctx.saison, usage, seed: `${seed}:${k}` });
           out.push(f ? { key: `b${i}:${k}`, layer: 'dessus', img: f.img, x: px, y: py, w: f.iw, h: f.ih, a: ang + (f.rot * Math.PI) / 2, flip: f.flip }
             : { key: `b${i}:${k}`, layer: 'dessus', img: null, x: px, y: py, w: pw, h: pd, a: ang, d: rectD(px, py, pw, pd, ang), cls: 'dc-roof' });
         });
       });
     }
+    // Cours de ferme : bétail, volailles et objets de cour, visibles seulement de près (`petit`).
+    if (s.theme === 'cite') for (const f of farmyardSprites(g, s.scale, images, ctx, map.id)) out.push({ ...f, layer: 'dessus', petit: true });
     // Objets posés (mobilier des intérieurs ; fontaine et étals de la place du marché).
     for (const [k, x, y, w, h, a0] of g.p ?? []) {
       const sp = propSprite(images, String(k), x, y, w, h, a0, `${map.id}:${k}:${x}:${y}`);
@@ -158,6 +161,7 @@ export default function BankLayer({ map, layer, pxPerUnit, view }: { map: AtlasM
   if (!sprites.length || !bankActive(map, pxPerUnit)) return null;
   const pad = 30 / Math.max(pxPerUnit, 1e-6);
   const shown = sprites.filter((sp) => sp.layer === layer
+    && (!sp.petit || Math.max(sp.w, sp.h) * pxPerUnit >= MIN_PX * 2)
     && sp.x > view.x - pad - sp.w && sp.x < view.x + view.w + pad + sp.w && sp.y > view.y - pad - sp.h && sp.y < view.y + view.h + pad + sp.h);
   if (!shown.length || shown.length > 3000) return null;
   return (
