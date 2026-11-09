@@ -137,7 +137,10 @@ const TOKEN_M = 1.41, TOKEN_MIN_PX = 14;
 /** Orientation stable d'un jeton (degrés), tirée de son identifiant : les PNJ ne regardent pas tous au nord. */
 const angleOf = (id: string) => { let h = 2166136261; for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619); return (h >>> 0) % 360; };
 
-export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, onMovePin, dataKey, dm, marks = [], fog, journey, onZoomLimit, exploring, ghosts, onView, preview, syncView, tokenOf, cavernArt, placeMarks }: {
+/** Identifiant interne du glisser du jeton de groupe. */
+const PARTY_DRAG = 'mark:party';
+
+export default function MapCanvas({ map, layers, hidden, focus, focusKey, selectedId, onSelect, onAnchor, onPlace, onMovePin, onMoveParty, dataKey, dm, marks = [], fog, journey, onZoomLimit, exploring, ghosts, onView, preview, syncView, tokenOf, cavernArt, placeMarks }: {
   map: AtlasMap; layers: Layers; hidden: Set<FeatureCategory>;
   /** Mode MJ : révèle les passages secrets. Hors MJ, la carte est une carte de lore. */
   dm: boolean;
@@ -149,6 +152,8 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   onPlace?: (x: number, y: number) => void;
   /** Mode MJ : un repère (id de caractéristique `mk-…`) glissé puis lâché renvoie sa nouvelle position normalisée (0–1). */
   onMovePin?: (featureId: string, x: number, y: number) => void;
+  /** Mode MJ : le jeton du groupe glissé puis lâché renvoie sa nouvelle position normalisée (0–1). */
+  onMoveParty?: (x: number, y: number) => void;
   dataKey?: string | number;
   marks?: MapMark[];
   /** Brouillard de guerre (vue joueurs), en coordonnées 0–1 du plan ; rayons en largeur de plan. */
@@ -430,7 +435,8 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
     return { x: Math.min(0.99, Math.max(0.01, (c.x - t.tx) / t.k / W)), y: Math.min(0.99, Math.max(0.01, (c.y - t.ty) / t.k / H)) };
   };
   const pinDown = (id: string) => (e: RPointerEvent) => {
-    if (!dm || !onMovePin || !id.startsWith('mk-')) return;
+    const ok = id === PARTY_DRAG ? !!onMoveParty : !!onMovePin && id.startsWith('mk-');
+    if (!dm || !ok) return;
     e.stopPropagation(); // le fond ne doit pas démarrer un déplacement de la vue
     (e.currentTarget as Element).setPointerCapture(e.pointerId);
     travel.current.dist = 0;
@@ -446,7 +452,7 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
     const st = pinStart.current; pinStart.current = null; if (!st) return;
     if (st.moved) {
       const p = pinAt(e.clientX, e.clientY);
-      onMovePin?.(st.id, p.x, p.y);
+      if (st.id === PARTY_DRAG) onMoveParty?.(p.x, p.y); else onMovePin?.(st.id, p.x, p.y);
       travel.current.dist = 99; // pas de clic de sélection après un glisser
     }
     setPinDrag(null);
@@ -839,8 +845,14 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
               )}
             </g>
           )}
-          {shownMarks.map((m) => (
-            <g key={m.id} className={`am-mark am-mark-${m.tone}`} transform={`translate(${m.x * W} ${m.y * H}) scale(${s})`} pointerEvents="none">
+          {shownMarks.map((m) => {
+            const drag = m.tone === 'party' && dm && !!onMoveParty;
+            const at = drag && pinDrag?.id === PARTY_DRAG ? pinDrag : m;
+            return (
+            <g key={m.id} className={`am-mark am-mark-${m.tone}${drag ? ' am-mark-drag' : ''}`} transform={`translate(${at.x * W} ${at.y * H}) scale(${s})`}
+              pointerEvents={drag ? 'auto' : 'none'}
+              {...(drag ? { role: 'button', 'aria-label': 'Glisser le groupe ailleurs', onPointerDown: pinDown(PARTY_DRAG), onPointerMove: pinMove, onPointerUp: pinUp, onPointerCancel: pinUp } : {})}>
+              {drag && <title>Glisser pour déplacer le groupe</title>}
               <circle r={24} className="am-mark-ring" />
               <circle r={6} className="am-mark-dot" />
               <g transform="translate(0 -34)">
@@ -848,7 +860,8 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
                 <text textAnchor="middle" y={4} className="am-mark-text">{m.label}</text>
               </g>
             </g>
-          ))}
+            );
+          })}
         </g>
       </svg>
       <div className="am-grain" aria-hidden style={{ backgroundImage: `url(${grain()})` }} />

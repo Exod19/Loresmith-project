@@ -331,8 +331,13 @@ TEXTURES_GEN = [
 # Éléments : (motif, catégorie, taille en mètres, milieux). Le premier motif qui correspond l'emporte.
 ELEMENTS_GEN = [
     (r'miniature base|socle|\bbase\b', 'socle', [1.5, 1.5], []),
+    # Avant les arbres : « Ivy-Crowned Stone Well » est un puits, « termite mound crown » une termitière.
+    (r'\bwell\b|\bpuits\b', 'monument', [2.5, 2.5], ['ville', 'campagne', 'ruine']),
+    (r'termite', 'divers', [2.5, 2.5], ['desert', 'savane']),
+    (r'shrub canopy|banana', 'arbuste', [3, 3], ['foret', 'campagne', 'jungle']),
     (r'canopy|crown|cime|couronne', 'arbre', [9, 9], ['foret', 'campagne']),
-    (r'cactus|cacti|agave|bromeliad|banana|fern|wildflower|sedge|reeds|cattail|lily|grass patch|lichen|juniper', 'arbuste', [1.8, 1.8], ['foret', 'campagne']),
+    (r'lily|nenuphar|reeds|cattail|roseau|sedge|tussock', 'plante-eau', [1.5, 1.5], ['marais', 'riviere', 'lac']),
+    (r'cactus|cacti|agave|bromeliad|fern|wildflower|grass patch|lichen|juniper', 'arbuste', [1.6, 1.6], ['foret', 'campagne']),
     (r'shrub|bramble|hazel|hawthorn|thorn', 'arbuste', [2.5, 2.5], ['foret', 'campagne']),
     (r'mushroom|fungal|fungi', 'champignon', [2.5, 2.5], ['caverne', 'foret']),
     (r'crystal|quartz|amethyst', 'cristal', [1.6, 1.6], ['caverne']),

@@ -2273,18 +2273,18 @@
 "couleur": "#605844",
 "mips": [
 256,
-512,
-1024
+512
 ],
 "nom": "Puits",
-"cat": "arbre",
+"cat": "monument",
 "taille": [
-9,
-9
+2.5,
+2.5
 ],
 "milieux": [
-"foret",
-"campagne"
+"ville",
+"campagne",
+"ruine"
 ],
 "region": [
 "surface"
@@ -2292,7 +2292,7 @@
 "climats": [],
 "saisons": [],
 "genres": [
-"*"
+"fantasy"
 ]
 },
 {
@@ -4298,18 +4298,18 @@
 "couleur": "#713929",
 "mips": [
 256,
-512,
-1024
+512
 ],
 "nom": "Arbuste pourpre",
-"cat": "arbre",
+"cat": "arbuste",
 "taille": [
-9,
-9
+3,
+3
 ],
 "milieux": [
 "foret",
-"campagne"
+"campagne",
+"jungle"
 ],
 "region": [
 "surface"
@@ -4813,8 +4813,8 @@
 "nom": "Poussière remuée",
 "cat": "arbuste",
 "taille": [
-1.8,
-1.8
+1.6,
+1.6
 ],
 "milieux": [
 "foret",
@@ -5972,8 +5972,8 @@
 "nom": "Herbes de savane",
 "cat": "arbuste",
 "taille": [
-1.8,
-1.8
+1.6,
+1.6
 ],
 "milieux": [
 "foret",
@@ -7390,8 +7390,8 @@
 "nom": "Fleurs sauvages",
 "cat": "arbuste",
 "taille": [
-1.8,
-1.8
+1.6,
+1.6
 ],
 "milieux": [
 "foret",
@@ -7514,14 +7514,15 @@
 512
 ],
 "nom": "Touffe de carex",
-"cat": "arbuste",
+"cat": "plante-eau",
 "taille": [
-1.8,
-1.8
+1.5,
+1.5
 ],
 "milieux": [
-"foret",
-"campagne"
+"marais",
+"riviere",
+"lac"
 ],
 "region": [
 "surface"
@@ -8605,8 +8606,8 @@
 "nom": "Broméliacées",
 "cat": "arbuste",
 "taille": [
-1.8,
-1.8
+1.6,
+1.6
 ],
 "milieux": [
 "foret",
@@ -8637,8 +8638,8 @@
 "nom": "Buissons",
 "cat": "arbuste",
 "taille": [
-1.8,
-1.8
+1.6,
+1.6
 ],
 "milieux": [
 "foret",
@@ -11692,18 +11693,18 @@
 "couleur": "#5f7c31",
 "mips": [
 256,
-512,
-1024
+512
 ],
 "nom": "Bananier",
-"cat": "arbre",
+"cat": "arbuste",
 "taille": [
-9,
-9
+3,
+3
 ],
 "milieux": [
 "foret",
-"campagne"
+"campagne",
+"jungle"
 ],
 "region": [
 "surface"
@@ -13255,18 +13256,17 @@
 "couleur": "#965236",
 "mips": [
 256,
-512,
-1024
+512
 ],
 "nom": "Termitière",
-"cat": "arbre",
+"cat": "divers",
 "taille": [
-9,
-9
+2.5,
+2.5
 ],
 "milieux": [
-"foret",
-"campagne"
+"desert",
+"savane"
 ],
 "region": [
 "surface"
@@ -13274,7 +13274,7 @@
 "climats": [],
 "saisons": [],
 "genres": [
-"*"
+"fantasy"
 ]
 },
 {

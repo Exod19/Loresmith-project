@@ -981,3 +981,6 @@
 .reveal-menu > summary::-webkit-details-marker { display: none; }
 .reveal-pop { position: absolute; right: 0; top: calc(100% + 4px); z-index: 30; display: grid; gap: 6px; padding: 10px; min-width: 300px; background: #1c1710; border: 1px solid rgba(236,210,137,.35); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.55); }
 .reveal-row { display: grid; grid-template-columns: 80px 1fr auto; gap: 6px; align-items: center; }
+/* Zoom du plateau : le cadre garde sa largeur et défile ; c'est le plateau qui grandit (--bz). */
+.battle-board-wrap{flex:1 1 auto;min-width:0}
+.battle-board-wrap > .battle-stack{width:var(--bz,100%)}

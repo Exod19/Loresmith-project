@@ -31,7 +31,7 @@ Dans le navigateur, taverne de Brumeval :
 - « Éléments : tous » révèle les deux éléments restants ;
 - sur la carte de combat, le menu « 👁 Révéler » s'ouvre avec ses trois familles et dit ce qu'il a fait.
 
-272 tests côté site et 14 côté serveur, tous au vert ; build réussi ; lint sans erreur.
+273 tests côté site et 14 côté serveur, tous au vert ; build réussi ; lint sans erreur.
 
 ## Fichiers
 

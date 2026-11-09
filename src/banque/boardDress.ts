@@ -174,8 +174,11 @@ export async function dressBoard(canvas: HTMLCanvasElement, cols: number, rows: 
       const seed = `arbre:${i}`;
       const img = pickElement(images, { cats: ['arbre', 'arbuste'], ...ctxPick, seed });
       if (!img) continue;
-      const m = Array.isArray(img.taille) ? Math.min(img.taille[0], 7) : 4;
-      const px = Math.max(C * 1.3, Math.min(C * 2.4, (m / CELL_M) * C * 0.5));
+      // À l'échelle : un arbre garde la moitié de sa couronne réelle (sinon il couvrirait le plateau), un arbuste ou un
+      // cactus sa taille réelle. Un buisson de 1,8 m n'est plus aussi gros qu'un chêne de 12 m.
+      const m = Array.isArray(img.taille) ? Math.max(img.taille[0], img.taille[1]) : 4;
+      const cellsWide = (m / CELL_M) * (img.cat === 'arbre' ? 0.45 : 1);
+      const px = Math.max(0.6, Math.min(3.2, cellsWide)) * C;
       const im = await load(bankSrc(img, px));
       if (!alive()) return;
       if (!im) continue;

@@ -827,6 +827,18 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     const id = setTimeout(() => { if (lastBox.current) publishView(planRef.current, lastBox.current); }, 900);
     return () => clearTimeout(id);
   }, [pv.linked, projecting, planId]);
+  /** MJ : le jeton du groupe, glissé sur le plan, s'y pose ; lâché près d'un lieu ponctuel, il s'y accroche. */
+  const moveParty = (x: number, y: number) => {
+    const near = data.geometries
+      .filter((g) => g.mapId === map.id && g.type === 'point')
+      .map((g) => ({ g, d: Math.hypot((g.coordinates as [number, number])[0] - x, (g.coordinates as [number, number])[1] - y) }))
+      .sort((a, b) => a.d - b.d)[0];
+    const f = near && near.d < 0.012 ? data.features.find((ft) => ft.id === near.g.featureId) : undefined;
+    const at: [number, number] = f ? (near!.g.coordinates as [number, number]) : [x, y];
+    const place: PartyPlace = f ? { id: f.id, kind: 'feature', title: f.title, planId: map.id }
+      : { id: `spot:${x.toFixed(4)},${y.toFixed(4)}`, kind: 'spot', title: rec.kind === 'monde' ? wildernessLabel(rec, at) : 'Ici', planId: map.id, at };
+    setOverlay(withExplored(withPartyAt(overlay, place), map.id, [at]));
+  };
   const gotoRef = useRef<(at: [number, number], featureId?: string) => void>(() => {});
   gotoRef.current = (at, featureId) => {
     if (rec.kind !== 'monde' || !partyAt || party.at?.planId !== worldPlanId(rec.id)) return;
@@ -1309,6 +1321,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               onPlace={dm && cross?.picking ? (x, y) => pickCross({ id: `spot:${x.toFixed(4)},${y.toFixed(4)}`, kind: 'spot', title: wildernessLabel(rec, [x, y]), planId: map.id, at: [x, y] }, [x, y])
                 : dm && (placing || moving) ? addMarker : dm && movingCity && rec.world && map.id === wid ? (x, y) => { onUpdate({ world: moveCity(rec.world!, movingCity, [x, y]), updatedAt: Date.now() }); setMovingCity(null); } : undefined}
               onMovePin={dm ? (fid: string, x: number, y: number) => { if (fid.startsWith('mk-')) updateMarker(fid.slice(3), { x, y }); } : undefined}
+              onMoveParty={dm && party.at?.planId === map.id && !party.halt && !party.fork ? moveParty : undefined}
               dataKey={`${rec.updatedAt}:${dm}:${drafts?.key ?? ''}:${drafts?.features.length ?? 0}`}
               onView={(box, remote) => {
                 if (wildOn) setWildBox(box);

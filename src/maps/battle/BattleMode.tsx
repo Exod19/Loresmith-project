@@ -11,7 +11,7 @@ import { npcBankImage, npcToken } from '../../banque/place';
 import type { LoreEntry } from '../world/lore';
 import { terrainAt, type Relief } from '../world/terrain';
 import { boardTheme } from './theme';
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import BattleBoard, { anchorOf, type BoardElement, type BoardLabel, type BoardRange, type BoardToken } from './BattleBoard';
 import type { AtlasData, AtlasMap } from '../atlas/types';
 import {
@@ -50,6 +50,18 @@ import './battle.css';
 
 /** Niveaux de zoom du plateau (même logique que la carte de navigation). */
 const ZOOMS = [0.75, 1, 1.5, 2, 2.5, 3];
+const ZOOM_MIN = ZOOMS[0], ZOOM_MAX = ZOOMS[ZOOMS.length - 1];
+const clampZoom = (z: number) => Math.round(Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z)) * 100) / 100;
+/** Ancêtre qui fait défiler le plateau sur un axe (le plateau zoomé déborde de son cadre). */
+function scrollerOf(wrap: HTMLElement, axis: 'x' | 'y') {
+  for (let el: HTMLElement | null = wrap; el; el = el.parentElement) {
+    const st = getComputedStyle(el);
+    const ov = axis === 'x' ? st.overflowX : st.overflowY;
+    const more = axis === 'x' ? el.scrollWidth > el.clientWidth + 1 : el.scrollHeight > el.clientHeight + 1;
+    if (more && (ov === 'auto' || ov === 'scroll')) return el;
+  }
+  return null;
+}
 const uid = () => Math.random().toString(36).slice(2, 10);
 /** Même type de données que le sélecteur de créatures (src/bestiary/CreaturePicker.jsx). */
 const CREATURE_DRAG = 'application/x-loresmith-creature';
@@ -561,24 +573,115 @@ export default function BattleMode({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const panned = useRef(false);
+  const pinching = useRef(false);
+  /**
+   * Zoom ancré : le point du plateau sous le pointeur (ou au centre) reste sous le pointeur après le changement.
+   * La position est corrigée juste après la mise en page (useLayoutEffect ci-dessous).
+   */
+  const zoomAnchor = useRef<{ fx: number; fy: number; cx: number; cy: number } | null>(null);
+  const zoomTo = (z: number, at?: { x: number; y: number }) => {
+    const wrap = wrapRef.current, next = clampZoom(z);
+    if (wrap && next !== zoom) {
+      const r = (wrap.firstElementChild ?? wrap).getBoundingClientRect(); // le plateau lui-même, pas son cadre
+      const box = wrap.getBoundingClientRect();
+      const cx = at?.x ?? box.left + box.width / 2;
+      const cy = at?.y ?? box.top + box.height / 2;
+      zoomAnchor.current = { fx: (cx - r.left) / r.width, fy: (cy - r.top) / r.height, cx, cy };
+    }
+    setZoom(next);
+  };
+  useLayoutEffect(() => {
+    const a = zoomAnchor.current, wrap = wrapRef.current; zoomAnchor.current = null;
+    if (!a || !wrap) return;
+    const r = (wrap.firstElementChild ?? wrap).getBoundingClientRect();
+    const ex = scrollerOf(wrap, 'x'), ey = scrollerOf(wrap, 'y');
+    if (ex) ex.scrollLeft += r.left + a.fx * r.width - a.cx;
+    if (ey) ey.scrollTop += r.top + a.fy * r.height - a.cy;
+  }, [zoom]);
+  // Intérieur nouvellement posé : le plateau se cadre sur le bâtiment (la rue autour reste accessible en dézoomant).
+  const fitKey = b.local?.furniture && b.terrain ? `${b.terrain.source}:${b.terrain.seed}` : '';
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!fitKey || !wrap || !baseGrid) return;
+    const out = outsideOf(baseGrid, b.cols, b.rows);
+    let x0 = b.cols, y0 = b.rows, x1 = -1, y1 = -1;
+    for (let i = 0; i < b.cols * b.rows; i++) {
+      if (out.has(i)) continue;
+      const x = i % b.cols, y = Math.floor(i / b.cols);
+      x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+    }
+    if (x1 < 0) return;
+    const bw = x1 - x0 + 3, bh = y1 - y0 + 3; // une case de marge de chaque côté
+    // Zoomé, le plateau prend « zoom × largeur du cadre » ; le cadre montre au plus 72 % de la hauteur de l'écran.
+    // Mesuré après la mise en page (la hauteur du plateau dépend de son image), puis recentré une fois zoomé.
+    const cx = (x0 + x1 + 1) / 2 / b.cols, cy = (y0 + y1 + 1) / 2 / b.rows;
+    let id2 = 0;
+    const id = window.setTimeout(() => {
+      const frameW = wrap.clientWidth || 1, frameH = 0.72 * window.innerHeight;
+      const cell = Math.min((0.92 * frameW) / bw, (0.92 * frameH) / bh); // taille de case voulue
+      const now = (wrap.querySelector('.battle-board') ?? wrap).getBoundingClientRect().width / b.cols; // à 100 %, la hauteur bride parfois le plateau
+      // Bâtiment déjà assez grand : pas de zoom, mais on le centre quand même dans le cadre.
+      if (cell > now * 1.1) setZoom(clampZoom((cell * b.cols) / frameW));
+      id2 = window.setTimeout(() => {
+        const ex = scrollerOf(wrap, 'x'), ey = scrollerOf(wrap, 'y');
+        if (ex) ex.scrollLeft = cx * wrap.scrollWidth - ex.clientWidth / 2;
+        if (ey) ey.scrollTop = cy * wrap.scrollHeight - ey.clientHeight / 2;
+      }, 120);
+    }, 350);
+    return () => { clearTimeout(id); clearTimeout(id2); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fitKey]);
+  // Molette (sans Maj) : zoom continu sous le pointeur ; Maj + molette fait défiler. Deux doigts : pincer pour zoomer.
+  const zoomRef = useRef(zoomTo); zoomRef.current = zoomTo;
+  const zoomNow = useRef(zoom); zoomNow.current = zoom;
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    const wheel = (e: WheelEvent) => {
+      if (e.shiftKey) return;
+      e.preventDefault();
+      const step = Math.exp(-Math.max(-120, Math.min(120, e.deltaY * (e.deltaMode === 1 ? 33 : 1))) / 400);
+      zoomRef.current(zoomNow.current * step, { x: e.clientX, y: e.clientY });
+    };
+    const touches = new Map<number, { x: number; y: number }>();
+    let pinch: { d: number; z: number } | null = null;
+    const dist = () => { const [p, q] = [...touches.values()]; return Math.hypot(p.x - q.x, p.y - q.y) || 1; };
+    const mid = () => { const [p, q] = [...touches.values()]; return { x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 }; };
+    const down = (e: PointerEvent) => {
+      if (e.pointerType !== 'touch') return;
+      touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (touches.size === 2) { pinch = { d: dist(), z: zoomNow.current }; pinching.current = true; }
+    };
+    const move = (e: PointerEvent) => {
+      if (!touches.has(e.pointerId)) return;
+      touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pinch && touches.size === 2) zoomRef.current(pinch.z * dist() / pinch.d, mid());
+    };
+    const up = (e: PointerEvent) => {
+      touches.delete(e.pointerId);
+      if (touches.size < 2) pinch = null;
+      if (!touches.size) pinching.current = false;
+    };
+    wrap.addEventListener('wheel', wheel, { passive: false });
+    wrap.addEventListener('pointerdown', down, true);
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', up);
+    return () => {
+      wrap.removeEventListener('wheel', wheel); wrap.removeEventListener('pointerdown', down, true);
+      window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up);
+    };
+  }, []);
   const startPan = (e: ReactPointerEvent, onTap?: () => void) => {
     const wrap = wrapRef.current;
     if (!wrap) { onTap?.(); return; }
-    const scroller = (axis: 'x' | 'y') => {
-      for (let el: HTMLElement | null = wrap; el; el = el.parentElement) {
-        const st = getComputedStyle(el);
-        const ov = axis === 'x' ? st.overflowX : st.overflowY;
-        const more = axis === 'x' ? el.scrollWidth > el.clientWidth + 1 : el.scrollHeight > el.clientHeight + 1;
-        if (more && (ov === 'auto' || ov === 'scroll')) return el;
-      }
-      return null;
-    };
-    const ex = scroller('x'), ey = scroller('y');
+    const ex = scrollerOf(wrap, 'x'), ey = scrollerOf(wrap, 'y');
     // Rien à faire défiler : le geste est un simple clic, traité tout de suite.
     if (!ex && !ey) { onTap?.(); return; }
     const x0 = e.clientX, y0 = e.clientY, sl = ex?.scrollLeft ?? 0, sTop = ey?.scrollTop ?? 0;
     panned.current = false;
     const move = (ev: PointerEvent) => {
+      if (pinching.current) { panned.current = true; return; } // deux doigts : c'est un zoom, pas un défilement
       if (Math.abs(ev.clientX - x0) + Math.abs(ev.clientY - y0) > 6) panned.current = true;
       if (ex) ex.scrollLeft = sl - (ev.clientX - x0);
       if (ey) ey.scrollTop = sTop - (ev.clientY - y0);
@@ -776,7 +879,8 @@ export default function BattleMode({
     window.addEventListener('keydown', key);
     return () => window.removeEventListener('keydown', key);
   }, []);
-  const zoomBy = (dir: 1 | -1) => setZoom((z) => ZOOMS[Math.min(ZOOMS.length - 1, Math.max(0, ZOOMS.indexOf(z) + dir))] ?? z);
+  // Boutons : palier suivant de la liste, même depuis un zoom libre (molette, pincement).
+  const zoomBy = (dir: 1 | -1) => zoomTo(dir > 0 ? ZOOMS.find((z) => z > zoom + 0.01) ?? ZOOM_MAX : [...ZOOMS].reverse().find((z) => z < zoom - 0.01) ?? ZOOM_MIN);
 
   // Passages : tracés réels de l'Atlas, et portes posées par le MJ sur ce plan.
   const localElements = b.local?.elements ?? [];
@@ -1367,9 +1471,9 @@ export default function BattleMode({
               </div>
             </details>
             <div className="battle-zoom" title="Zoom du plateau">
-              <button className="maps-btn" onClick={() => zoomBy(-1)} disabled={zoom <= ZOOMS[0]} aria-label="Dézoomer">−</button>
+              <button className="maps-btn" onClick={() => zoomBy(-1)} disabled={zoom <= ZOOM_MIN} aria-label="Dézoomer">−</button>
               <span>{Math.round(zoom * 100)} %</span>
-              <button className="maps-btn" onClick={() => zoomBy(1)} disabled={zoom >= ZOOMS[ZOOMS.length - 1]} aria-label="Zoomer">+</button>
+              <button className="maps-btn" onClick={() => zoomBy(1)} disabled={zoom >= ZOOM_MAX} aria-label="Zoomer">+</button>
             </div>
             {renderCombat && selected && !building && (
               <button className={`maps-btn ${aiming ? 'gold' : ''}`} title="Attaquer : clique ensuite la cible sur le plateau (Échap pour annuler)" onClick={() => setAiming(aiming ? null : selected.id)}>🎯 Attaquer</button>
@@ -1475,7 +1579,7 @@ export default function BattleMode({
         <div className="battle-stage">
           <div
             ref={wrapRef} className={`battle-board-wrap ${building ? 'building' : ''} ${zoom !== 1 ? 'zoomed' : ''} ${drag ? 'dragging' : ''}`}
-            style={{ width: `${zoom * 100}%` }}
+            style={{ '--bz': `${zoom * 100}%` } as CSSProperties}
             onPointerDown={onBoardDown} onPointerMove={onBoardMove} onDoubleClick={() => editor.onDouble()}
             // Après un glisser de défilement, le clic qui suit ne doit pas viser une case.
             onClickCapture={(e) => { if (panned.current) { panned.current = false; e.stopPropagation(); e.preventDefault(); } }}
