@@ -175,13 +175,16 @@ export function pickPerson(images, { vue = 'portrait', role = '', peoples = peop
 /** Climat de l'application ('froid' | 'tempere' | 'chaud') → climats acceptés dans la banque. */
 const CLIMATS = { froid: ['froid'], tempere: ['tempere'], chaud: ['chaud', 'aride', 'tropical'] };
 
+/** Image d'hiver (neige, givre), même si le catalogue ne le dit pas : jamais en été ni dans un climat chaud. */
+const WINTRY = /enneig|givr|neige|gel[ée]|frimas|snow|frost/i;
 function fits(img, { climat, saison, region = 'surface' }) {
   if (img.exclu) return false;
   if (!(img.region ?? ['surface']).includes(region)) return false;
   if (climat && img.climats?.length && !img.climats.some((c) => (CLIMATS[climat] ?? [climat]).includes(c))) return false;
-  if (saison && img.saisons?.length && !img.saisons.includes(saison)) return false;
-  // Sans saison choisie, ce n'est pas l'hiver : pas de toit enneigé ni d'arbre givré.
-  if (!saison && img.saisons?.length && img.saisons.every((x) => x === 'hiver')) return false;
+  // Sans saison précisée, c'est la belle saison : un arbre d'hiver ou d'automne seulement n'y a pas sa place.
+  const season = saison ?? 'ete';
+  if (img.saisons?.length && !img.saisons.includes(season)) return false;
+  if (WINTRY.test(`${img.nom ?? ''} ${img.titre ?? ''}`) && season !== 'hiver' && climat !== 'froid') return false;
   return true;
 }
 

@@ -313,6 +313,13 @@ EXCLURE = [r'investment and returns', r'planning for a stronger', r'coffee, clar
 
 # Textures : (motif, étiquettes). `tactique` : tuile de plateau dessinée (berges, gué, ravin), pas une texture répétable.
 TEXTURES_GEN = [
+    # Canopées vues de haut (forêts des plans de pleine nature) : du plus précis au plus général.
+    (r'(canop|canopy|cimes?).*(enneig|neige|snow|givr)|(enneig|neige|snow).*(canop|canopy|cimes?)', dict(nom='Canopée enneigée', cat='canopee', taille=60, milieux=['foret'], climats=[F, T], saisons=['hiver'])),
+    (r'(canop|canopy|cimes?).*(automn|autumn|fall)|(automn|autumn).*(canop|canopy)', dict(nom='Canopée d’automne', cat='canopee', taille=60, milieux=['foret'], climats=[T], saisons=['automne'])),
+    (r'(canop|canopy|cimes?).*(conif|pin|sapin|pine|spruce|fir|taiga|boreal)|(conif|pine|spruce|boreal|taiga).*(canop|canopy)', dict(nom='Canopée de conifères', cat='canopee', taille=60, milieux=['foret'], climats=[T, F])),
+    (r'(canop|canopy|cimes?).*(tropic|jungle|palm)|(jungle|tropical).*(canop|canopy)', dict(nom='Canopée tropicale', cat='canopee', taille=60, milieux=['jungle'], climats=[TR, C])),
+    (r'(canop|canopy|cimes?).*(sec|dry|savan|olive)|(dry|savanna).*(canop|canopy)', dict(nom='Canopée sèche', cat='canopee', taille=60, milieux=['foret'], climats=[C, A])),
+    (r'canop|canopy|cimes des arbres|forest from above|for.t vue du ciel', dict(nom='Canopée de feuillus', cat='canopee', taille=60, milieux=['foret'], climats=[T], saisons=['printemps', 'ete'])),
     (r'cavern floor|cave floor', dict(nom='Sol de caverne', cat='roche', taille=6, milieux=['caverne'], region=[O])),
     (r'bedrock', dict(nom='Roche-mère calcaire', cat='roche', taille=6, milieux=['caverne'], region=[O])),
     (r'silt floor', dict(nom='Limon humide', cat='vase', taille=6, milieux=['caverne', 'lac'], region=[O])),
@@ -418,8 +425,8 @@ NOMS = [
     (r'ramp into', 'Rampe vers les ténèbres'), (r'mushroom|fungal', 'Champignons'), (r'mine rails', 'Rails de mine'), (r'mining tool', 'Outils de mineur'),
     (r'crate', 'Caisse brisée'), (r'tripwire', 'Fil-piège'), (r'pressure plate', 'Dalle à pression'), (r'sandbar|silt', 'Banc de limon'),
     (r'sulfur', 'Croûte de soufre'), (r'calcite', 'Croûte de calcite'), (r'moss patch', 'Mousse et cailloux'), (r'mud patch', 'Boue piétinée'),
-    (r'dust', 'Poussière remuée'), (r'gravel', 'Gravier sombre'), (r'excavation', 'Saignée de fouille'), (r'bones', 'Ossements'),
-    (r'spring', 'Source'), (r'cairn', 'Cairn'), (r'masonry foundation', 'Fondations en ruine'), (r'scree', 'Éboulis'),
+    (r'^(?!.*frost).*dust', 'Poussière remuée'), (r'gravel', 'Gravier sombre'), (r'excavation', 'Saignée de fouille'), (r'bones', 'Ossements'),
+    (r'^(?!.*(hawthorn|blossom|canopy|crown)).*\bspring\b', 'Source'), (r'cairn', 'Cairn'), (r'masonry foundation', 'Fondations en ruine'), (r'scree', 'Éboulis'),
     (r'walkway|rock shelf', 'Corniche'), (r'boulder', 'Blocs calcaires'), (r'obsidian.*(boundary|strip)', 'Paroi d’obsidienne'),
     (r'slate.*(boundary|segment|fragment)|y-shaped slate', 'Paroi d’ardoise'), (r'basalt cave ridge', 'Crête de basalte'),
     (r'boundary|cave wall|cave edge|cave bend|ridge|spur|cavebank|limestone arc|wall segment', 'Paroi calcaire'),
@@ -637,6 +644,19 @@ def toit_nomme(title):
         meta['cote'] = cote
     return meta
 
+
+
+# Climat et saison d'une végétation d'après son titre (premier motif qui correspond).
+VEG_HINTS = [
+    (r'snow|frost|enneig|givr|neige|winter', (F, T), ('hiver',)),
+    (r'blossom|en fleurs|hawthorn|cherry|cerisier', (T,), ('printemps',)),
+    (r'autumn|automn|fall foliage', (T,), ('automne',)),
+    (r'bare|dénudé|leafless', (T, F), ('hiver', 'automne')),
+    (r'bamboo|bambou|banana|bananier|palm|palmier|tropical|mangrove|bromeliad', (TR, C), ()),
+    (r'olive|olivier|acacia|agave|cact|savanna', (C, A), ()),
+    (r'birch|bouleau|spruce|épicéa|boreal|boréal|scots pine|pin sylvestre|conifer|juniper|genévrier|lichen', (T, F), ()),
+    (r'oak|chêne|lime|tilleul|willow|saule|hazel|noisetier|maple|érable|beech|hêtre|apple|pommier|pear|poirier', (T,), ()),
+]
 
 
 def first(rules, t):
@@ -987,6 +1007,15 @@ def main():
         e.setdefault('milieux', [])
         e.setdefault('climats', [])
         e.setdefault('saisons', [])
+        # Végétation sans climat ni saison dans les règles : on les déduit du titre (un arbre enneigé l'été, un bambou
+        # dans une forêt tempérée, une aubépine en fleurs à l'automne seraient incohérents).
+        if kind == 'element' and e.get('cat') in ('arbre', 'arbuste', 'plante', 'bois'):
+            low = (x['title'] + ' ' + str(e.get('nom', ''))).lower()
+            for rx, cl, sa in VEG_HINTS:
+                if re.search(rx, low):
+                    if not e['climats'] and cl: e['climats'] = list(cl)
+                    if not e['saisons'] and sa: e['saisons'] = list(sa)
+                    break
         e.setdefault('region', ['surface'])
         if kind == 'personnage':
             e.setdefault('taille', [0.9, 0.9])

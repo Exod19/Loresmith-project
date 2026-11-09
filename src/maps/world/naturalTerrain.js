@@ -89,12 +89,12 @@ export function createTerrain({ seed, roads = [], plazas = [], palette = palette
   };
   const P = palette;
 
-  /** Couleur [r, g, b] du point (x, y) en mètres ; `detail` (0–1) atténue le grain quand on voit de loin ; au-delà de 4, un grain plus fin apparaît. `near` : segments utiles. */
-  function sample(x, y, detail = 1, near = segs, plz = plazas) {
+  /** Couleur [r, g, b] du point (x, y) en mètres ; `detail` (0–1) atténue le grain quand on voit de loin. `near` : segments utiles. */
+  function sample(x, y, detail = 1, near = segs, plz = plazas, micro = 0) {
     const macro = noise(x / 44, y / 44, seed), mid = noise(x / 9, y / 9, seed + 1), fine = noise(x / 0.7, y / 0.7, seed + 2);
-    // De très près (`detail` au-delà de 4, soit 8 px par mètre et plus) : brins et mottes, un grain d'une dizaine de cm.
-    const micro = detail > 4 ? (noise(x / 0.16, y / 0.16, seed + 7) - 0.5) * 22 * clamp01((detail - 4) / 8) : 0;
-    const grain = (fine - 0.5) * 18 * Math.min(1, detail) + micro;
+    // De très près (`micro` > 0) : touffes et brins (25 cm, 8 cm) par-dessus le grain, pour un sol net au lieu d'un flou.
+    const tuft = micro > 0 ? ((noise(x / 0.25, y / 0.25, seed + 7) - 0.5) * 16 + (noise(x / 0.08, y / 0.08, seed + 8) - 0.5) * 12) * micro : 0;
+    const grain = (fine - 0.5) * 18 * Math.min(1, detail) + tuft;
     const t = clamp01(macro * 0.8 + mid * 0.2);
     let c = [0, 1, 2].map((i) => lerp(P.grassA[i], P.grassB[i], t));
     const bare = smooth(clamp01((noise(x / 28, y / 28, seed + 6) - 0.48) * 3));
@@ -134,9 +134,10 @@ export function paintTile(terrain, plazas, x0, y0, size, px) {
   const out = new Uint8ClampedArray(px * px * 4);
   const near = terrain.segmentsNear(x0 - 8, y0 - 8, x0 + size + 8, y0 + size + 8);
   const plz = plazas.filter((p) => p.points.some(([x, y]) => x > x0 - size && x < x0 + 2 * size && y > y0 - size && y < y0 + 2 * size));
-  const detail = px / size / 2; // pixels par mètre / 2 : grain complet dès 2 px par mètre (au-delà : grain fin, cf. sample)
+  const detail = Math.min(1, px / size / 2); // pixels par mètre / 2 : grain complet dès 2 px par mètre
+  const micro = Math.max(0, Math.min(1, (px / size - 8) / 24)); // touffes et brins : à partir de 8 px par mètre, pleins vers 32
   for (let j = 0; j < px; j++) for (let i = 0; i < px; i++) {
-    const c = terrain.sample(x0 + ((i + 0.5) * size) / px, y0 + ((j + 0.5) * size) / px, detail, near, plz);
+    const c = terrain.sample(x0 + ((i + 0.5) * size) / px, y0 + ((j + 0.5) * size) / px, detail, near, plz, micro);
     const k = (j * px + i) * 4;
     out[k] = c[0]; out[k + 1] = c[1]; out[k + 2] = c[2]; out[k + 3] = 255;
   }
