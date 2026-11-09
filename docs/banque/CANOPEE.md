@@ -105,3 +105,11 @@ Importées depuis le Drive (dossier des textures de surface, index `loresmith-fo
 - **Sols de saison importés** : prairie fleurie, jeunes pousses, boue de dégel (printemps) ; steppe, sable sec, terre
   craquelée (été) ; prairie fanée, feuilles humides, feuilles de bouleau (automne) ; herbe givrée, sous-bois sous la
   neige, toundra gelée (hiver).
+
+## Orée naturelle (2026-11-09, suite)
+
+La canopée n'est plus une union de disques : c'est le contour (lignes de niveau, carrés marchants adoucis) d'un champ
+de densité tiré du terrain du monde, affiné par un bruit à deux échelles (70 m et 25 m) et creusé par les clairières,
+les sentiers, les ruisseaux, les rivières et les routes. On obtient une lisière découpée : avancées, bosquets
+détachés, clairières et corridors le long des chemins. Les clairières à l'intérieur de la forêt sont des trous du
+contour (remplissage pair-impair). Les arbres de la forêt suivent ce même champ.

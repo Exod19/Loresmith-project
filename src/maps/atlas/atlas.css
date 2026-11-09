@@ -564,7 +564,7 @@
 .am-surface .am-decor path.dc-w { vector-effect: none; }
 .am-surface .dc-plot { fill: #4b512f; stroke: #5e6438; stroke-width: .6; }
 .am-surface .dc-tree { fill: #22381f; stroke: #2c4728; stroke-width: .5; }
-.am-surface .dc-forest { fill: #25391f; stroke: #2f4728; stroke-width: 1; }
+.am-surface .dc-forest { fill: #25391f; fill-rule: evenodd; stroke: rgba(14, 24, 12, .55); stroke-width: 1.2; stroke-linejoin: round; }
 .am-surface .dc-river { fill: none; stroke: #2f5c69; stroke-linecap: round; stroke-linejoin: round; }
 .am-surface .dc-lake { fill: #2f5c69; stroke: #47788a; stroke-width: .8; }
 .am-surface .dc-hill { fill: none; stroke: #6b6347; stroke-width: 1.2; }

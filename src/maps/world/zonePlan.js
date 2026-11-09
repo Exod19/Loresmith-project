@@ -154,44 +154,131 @@ export function generateZonePlan(z, planId, env) {
     for (const dx of [-1.2, 0, 1.2]) for (const dy of [-1.2, 0, 1.2]) { const q = env.sample(x + dx, y + dy); if (!q.water) { sum += q.e > 1900 || q.biome === 'desert' ? 0 : q.forest; n++; } }
     return Math.max(0, Math.min(1, (n ? sum / n : 0) + (noise(x, y) - 0.5) * 0.45));
   };
-  // Végétation : bosquets serrés en forêt, arbres épars ailleurs ; trouées autour des lieux, des sentiers et de l'eau.
+  // Végétation. La forêt est un champ de densité : le terrain du monde (case de 90 m), affiné par un bruit à deux
+  // échelles (70 m et 25 m) pour une orée inégale, et creusé par les clairières, les sentiers, l'eau et les routes.
+  // La canopée est le contour de ce champ (lignes de niveau), tracé en courbes : pas de ronds, une vraie lisière.
   const G = M(90);
-  let canopy = '';
-  // Arbres dans la canopée (`tc`) : dessinés seulement de près, quand la canopée s'efface ; arbres isolés (`t`) : toujours
-  // seuls, jamais posés sur la canopée. Chacun à son niveau : de loin la masse de la forêt, de près les arbres.
-  const tc = [], circles = [], loose = [];
-  for (let gy = -MY; gy < H + MY; gy += G) for (let gx = -MX; gx < W + MX; gx += G) {
+  const ncx = Math.ceil((W + 2 * MX) / G), ncy = Math.ceil((H + 2 * MY) / G);
+  const coarse = new Float32Array(ncx * ncy);
+  for (let j = 0; j < ncy; j++) for (let i = 0; i < ncx; i++) {
+    const gx = -MX + i * G, gy = -MY + j * G;
     const cxk = box[0] + ((gx + G / 2) / W) * (box[2] - box[0]), cyk = box[1] + ((gy + G / 2) / H) * (box[3] - box[1]);
-    const s = env.sample(cxk, cyk);
-    if (s.water) continue;
-    const f = forestAt(cxk, cyk);
-    // Densité continue (pas de bord net là où la forêt passe sous un seuil), un peu de hasard par case.
-    // Arbres de la banque : sur le plan et un peu au-delà (on s'approche du bord) ; plus loin, la canopée seule.
-    const near = gx > -W * 0.15 && gx < W * 1.15 && gy > -H * 0.15 && gy < H * 1.15;
-    // Canopée vue de loin : une tache par case boisée (hors trouées), la banque dessine les arbres de près.
-    const ccx = gx + G / 2 + (r() - 0.5) * G * 0.4, ccy = gy + G / 2 + (r() - 0.5) * G * 0.4, cr = G * (0.35 + 0.45 * f);
-    if (f > 0.22 && !clear.some(([qx, qy, qr]) => Math.hypot(qx - ccx, qy - ccy) < qr + cr * 0.7)
-      && !trails.some((l) => nearLine(ccx, ccy, l, cr * 0.8)) && !roadLines.some((l) => nearLine(ccx, ccy, l, cr))
-      && !brooks.some((l) => nearLine(ccx, ccy, l, cr)) && !riverLines.some((l) => nearLine(ccx, ccy, l, cr + M(6)))) {
-      canopy += `M${r1(ccx - cr)} ${r1(ccy)}a${r1(cr)} ${r1(cr)} 0 1 0 ${r1(cr * 2)} 0a${r1(cr)} ${r1(cr)} 0 1 0 ${r1(-cr * 2)} 0`;
-      circles.push([ccx, ccy, cr]);
+    coarse[j * ncx + i] = env.sample(cxk, cyk).water ? -1 : forestAt(cxk, cyk);
+  }
+  const coarseAt = (x, y) => { // bilinéaire entre les centres des cases de 90 m
+    const u = Math.max(0, Math.min(ncx - 1.001, (x + MX) / G - 0.5)), v = Math.max(0, Math.min(ncy - 1.001, (y + MY) / G - 0.5));
+    const i = Math.floor(u), j = Math.floor(v), fu = u - i, fv = v - j, i1 = Math.min(ncx - 1, i + 1), j1 = Math.min(ncy - 1, j + 1);
+    const q = (a, b) => coarse[b * ncx + a];
+    return (q(i, j) * (1 - fu) + q(i1, j) * fu) * (1 - fv) + (q(i, j1) * (1 - fu) + q(i1, j1) * fu) * fv;
+  };
+  const kmOf = (x, y) => [box[0] + (x / W) * (box[2] - box[0]), box[1] + (y / H) * (box[3] - box[1])];
+  const S = M(18), T = 0.4; // maille du champ (18 m), seuil de la canopée
+  const nx = Math.ceil((W + 2 * MX) / S) + 3, ny = Math.ceil((H + 2 * MY) / S) + 3;
+  const X = (i) => -MX + (i - 1) * S, Y = (j) => -MY + (j - 1) * S;
+  const field = new Float32Array(nx * ny);
+  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+    if (i === 0 || j === 0 || i === nx - 1 || j === ny - 1) { field[j * nx + i] = -1; continue; } // bord fermé : contours bouclés
+    const [kx, ky] = kmOf(X(i), Y(j));
+    const base = coarseAt(X(i), Y(j));
+    field[j * nx + i] = base < 0 ? -1 : base + (noise(kx * 5.7, ky * 5.7) - 0.5) * 0.42 + (noise(kx * 16, ky * 16) - 0.5) * 0.14;
+  }
+  // Trouées : chaque obstacle abaisse le champ autour de lui, avec un bord progressif (le bruit fait le reste).
+  const carve = (x0, y0, x1, y1, dist) => {
+    const i0 = Math.max(1, Math.floor((x0 + MX) / S) + 1), i1 = Math.min(nx - 2, Math.ceil((x1 + MX) / S) + 1);
+    const j0 = Math.max(1, Math.floor((y0 + MY) / S) + 1), j1 = Math.min(ny - 2, Math.ceil((y1 + MY) / S) + 1);
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+      const a = dist(X(i), Y(j));
+      if (a > 0) field[j * nx + i] -= a;
     }
-    // Sous la canopée, une vraie forêt de près (une couronne tous les ~25 m) ; ailleurs, quelques arbres isolés.
-    const dense = circles.length && circles[circles.length - 1][0] === ccx;
-    const n = !near ? 0 : dense ? Math.floor(Math.max(0, f - 0.08) * 11 + r() * 2) : Math.floor(Math.max(0, f - 0.08) * 4 + r() * 1.4);
+  };
+  const fall = (d, w, soft) => Math.max(0, Math.min(1, 1 - (d - w) / soft)) * 1.6;
+  for (const [qx, qy, qr] of clear) carve(qx - qr - M(40), qy - qr - M(40), qx + qr + M(40), qy + qr + M(40), (x, y) => fall(Math.hypot(x - qx, y - qy), qr * 0.8, M(30)));
+  const carveLine = (line, w, soft) => {
+    for (let k = 1; k < line.length; k++) {
+      const a = line[k - 1], b = line[k], pad = w + soft;
+      carve(Math.min(a[0], b[0]) - pad, Math.min(a[1], b[1]) - pad, Math.max(a[0], b[0]) + pad, Math.max(a[1], b[1]) + pad, (x, y) => fall(segDist(x, y, a, b), w, soft));
+    }
+  };
+  for (const l of trails) carveLine(l, M(3), M(10));
+  for (const l of brooks) carveLine(l, M(4), M(10));
+  for (const l of roadLines) carveLine(l, M(6), M(12));
+  for (const l of riverLines) carveLine(l, M(10), M(14));
+  const fieldAt = (x, y) => {
+    const u = Math.max(0, Math.min(nx - 1.001, (x + MX) / S + 1)), v = Math.max(0, Math.min(ny - 1.001, (y + MY) / S + 1));
+    const i = Math.floor(u), j = Math.floor(v), fu = u - i, fv = v - j;
+    const q = (a, b) => field[b * nx + a];
+    return (q(i, j) * (1 - fu) + q(i + 1, j) * fu) * (1 - fv) + (q(i, j + 1) * (1 - fu) + q(i + 1, j + 1) * fu) * fv;
+  };
+
+  // Contour de la canopée (carrés marchants) : segments reliés par arête de grille, puis bouclés et adoucis.
+  const pts = new Map(), adj = new Map();
+  const edgePt = (key, xa, ya, va, xb, yb, vb) => {
+    if (!pts.has(key)) { const k = (T - va) / (vb - va || 1e-6); pts.set(key, [xa + (xb - xa) * k, ya + (yb - ya) * k]); }
+    return key;
+  };
+  const link = (p, q) => { (adj.get(p) ?? adj.set(p, []).get(p)).push(q); (adj.get(q) ?? adj.set(q, []).get(q)).push(p); };
+  for (let j = 0; j < ny - 1; j++) for (let i = 0; i < nx - 1; i++) {
+    const a = field[j * nx + i], b = field[j * nx + i + 1], c = field[(j + 1) * nx + i + 1], d = field[(j + 1) * nx + i];
+    const code = (a >= T ? 8 : 0) | (b >= T ? 4 : 0) | (c >= T ? 2 : 0) | (d >= T ? 1 : 0);
+    if (code === 0 || code === 15) continue;
+    const x0 = X(i), y0 = Y(j), x1 = X(i + 1), y1 = Y(j + 1);
+    const top = () => edgePt(`h${i},${j}`, x0, y0, a, x1, y0, b), bottom = () => edgePt(`h${i},${j + 1}`, x0, y1, d, x1, y1, c);
+    const left = () => edgePt(`v${i},${j}`, x0, y0, a, x0, y1, d), right = () => edgePt(`v${i + 1},${j}`, x1, y0, b, x1, y1, c);
+    const mid = (a + b + c + d) / 4 >= T;
+    switch (code) {
+      case 1: case 14: link(left(), bottom()); break;
+      case 2: case 13: link(bottom(), right()); break;
+      case 3: case 12: link(left(), right()); break;
+      case 4: case 11: link(top(), right()); break;
+      case 6: case 9: link(top(), bottom()); break;
+      case 7: case 8: link(left(), top()); break;
+      case 5: if (mid) { link(left(), top()); link(bottom(), right()); } else { link(top(), right()); link(left(), bottom()); } break;
+      case 10: if (mid) { link(top(), right()); link(left(), bottom()); } else { link(left(), top()); link(bottom(), right()); } break;
+      default: break;
+    }
+  }
+  let canopy = '';
+  const seen = new Set();
+  for (const startKey of adj.keys()) {
+    if (seen.has(startKey)) continue;
+    const loop = [];
+    let prev = null, cur = startKey;
+    while (cur && !seen.has(cur)) {
+      seen.add(cur); loop.push(pts.get(cur));
+      const next = (adj.get(cur) ?? []).find((q) => q !== prev && !seen.has(q));
+      prev = cur; cur = next;
+    }
+    // Miettes (moins de ~40 m de tour) : ni bosquet ni trouée, on les laisse de côté.
+    if (loop.length < 9) continue;
+    // Adoucissement (Chaikin, une passe) : la lisière ondule au lieu de suivre la grille.
+    const sm = [];
+    for (let k = 0; k < loop.length; k++) {
+      const p0 = loop[k], p1 = loop[(k + 1) % loop.length];
+      sm.push([p0[0] * 0.75 + p1[0] * 0.25, p0[1] * 0.75 + p1[1] * 0.25], [p0[0] * 0.25 + p1[0] * 0.75, p0[1] * 0.25 + p1[1] * 0.75]);
+    }
+    canopy += 'M' + sm.map(([x, y]) => `${r1(x)} ${r1(y)}`).join('L') + 'Z';
+  }
+
+  // Arbres : sous la canopée (`tc`), une vraie forêt dessinée seulement de près, quand la canopée s'efface ; ailleurs
+  // (`t`), des arbres isolés, toujours seuls, jamais posés sur la canopée. Chacun à son niveau.
+  const tc = [];
+  for (let gy = -MY; gy < H + MY; gy += G) for (let gx = -MX; gx < W + MX; gx += G) {
+    const near = gx > -W * 0.15 && gx < W * 1.15 && gy > -H * 0.15 && gy < H * 1.15;
+    if (!near) continue;
+    const f = coarseAt(gx + G / 2, gy + G / 2);
+    if (f < 0) continue;
+    const denseCell = fieldAt(gx + G / 2, gy + G / 2) >= T;
+    const n = denseCell ? Math.floor(Math.max(0, f - 0.08) * 11 + r() * 2) : Math.floor(Math.max(0, f - 0.08) * 4 + r() * 1.4);
     for (let i = 0; i < n; i++) {
       const x = gx + r() * G, y = gy + r() * G;
       const rad = M(7 + f * 10 + r() * 7), keep = rad * 1.25;
       if (clear.some(([qx, qy, qr]) => Math.hypot(qx - x, qy - y) < qr + keep * 0.5 + r() * M(8))) continue;
       if (trails.some((l) => nearLine(x, y, l, M(3) + keep * 0.6)) || roadLines.some((l) => nearLine(x, y, l, M(6) + keep))) continue;
       if (brooks.some((l) => nearLine(x, y, l, M(5) + keep)) || riverLines.some((l) => nearLine(x, y, l, M(9) + keep))) continue;
-      loose.push([x, y, rad]);
+      // Sous la canopée ou à sa lisière : arbre de la forêt ; loin d'elle : arbre isolé.
+      const v = Math.max(fieldAt(x, y), fieldAt(x + rad, y), fieldAt(x - rad, y), fieldAt(x, y + rad), fieldAt(x, y - rad));
+      (v >= T - 0.04 ? tc : t).push(r1(x), r1(y), r1(rad));
     }
-  }
-  // Un arbre qui touche une tache de canopée appartient à la forêt (de près seulement) ; les autres restent isolés.
-  for (const [x, y, rad] of loose) {
-    const inForest = circles.some(([qx, qy, qr]) => Math.abs(qx - x) < qr + rad && Math.abs(qy - y) < qr + rad && Math.hypot(qx - x, qy - y) < qr + rad * 0.8);
-    (inForest ? tc : t).push(r1(x), r1(y), r1(rad));
   }
   // Quelques rochers épars, plus nombreux en relief.
   const mid = env.sample((box[0] + box[2]) / 2, (box[1] + box[3]) / 2);
