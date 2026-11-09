@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { BattleToken, World } from '../mapStore';
 import { STATS } from '../atlas/statblocks';
 import { lootOf, type LootSubject } from './loot';
+import { usePuzzles } from '../../puzzles/context';
 
 type Ref = { name: string; loot?: string[]; ecology?: { diet?: string } };
 let refsCache: Ref[] | null = null;
@@ -42,6 +43,9 @@ export default function LootBox({ t, subject: extra, region, seed, onDone, onRes
   }, [t.id, t.name, stat, refs, region, seed, extra?.meta, extra?.ac, extra?.cr, extra?.actions]);
   // Tout est pris par défaut : on décoche ce que les héros laissent (la liste peut s'allonger quand les fiches arrivent).
   const [left, setLeft] = useState<Set<string>>(() => new Set());
+  // Ce que les héros prennent va aussi dans le Carnet du groupe (visible sur l'écran joueur).
+  const lib = usePuzzles();
+  const [toCarnet, setToCarnet] = useState(true);
   const taken = { has: (label: string) => !left.has(label) };
   const toggle = (label: string) => setLeft((s) => { const n = new Set(s); if (n.has(label)) n.delete(label); else n.add(label); return n; });
 
@@ -69,9 +73,18 @@ export default function LootBox({ t, subject: extra, region, seed, onDone, onRes
         <p className="combat-loot-harvest">🔪 À prélever sur un jet de <b>{loot.harvest.skill} DD {loot.harvest.dc}</b> (10 minutes) : {loot.harvest.items.join(', ')}.</p>
       )}
       {loot.note && <p className="maps-sub">{loot.note}</p>}
+      {lib && <label className="combat-loot-carnet"><input type="checkbox" checked={toCarnet} onChange={(e) => setToCarnet(e.target.checked)} /> 📜 Ajouter ce qui est pris au Carnet du groupe</label>}
       <button className="maps-btn gold" onClick={() => {
         const list = loot.items.map((i) => i.label).filter((l) => taken.has(l));
-        onDone(list, list.length ? `Les héros fouillent ${t.name} : ${list.join(', ')}.` : `Les héros fouillent ${t.name} : rien d’utile.`);
+        if (lib && toCarnet) {
+          const now = Date.now();
+          loot.items.filter((i) => taken.has(i.label)).forEach((i, k) => lib.saveClue({
+            id: `butin-${now.toString(36)}-${k}-${Math.random().toString(36).slice(2, 6)}`, universeId: lib.universeId,
+            title: i.label.charAt(0).toUpperCase() + i.label.slice(1), kind: i.kind === 'indice' ? 'page' : 'objet',
+            text: `Trouvé sur ${t.name}.`, held: true, gmNote: `Butin de ${t.name} (fouille après combat).`, createdAt: now,
+          }));
+        }
+        onDone(list, list.length ? `Les héros fouillent ${t.name} : ${list.join(', ')}.${lib && toCarnet ? ' (ajouté au Carnet du groupe)' : ''}` : `Les héros fouillent ${t.name} : rien d’utile.`);
       }}>Fouillé : consigner au journal</button>
     </div>
   );

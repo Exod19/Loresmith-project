@@ -14,10 +14,14 @@ type Props = {
   onEnter: (how: 'crochetee' | 'forcee' | 'mj') => void;
   onTime?: (minutes: number) => void;
   onClose: () => void;
+  /** Serrure posée par le MJ (crypte, coffre-fort…) : elle remplace celle du bâtiment, à toute heure. */
+  lock?: { dc: number; forceDc: number; door: string; why?: string };
+  /** « Ouvrir » plutôt qu'« Entrer » (un coffre, une grille). */
+  verb?: string;
 };
 
-export default function LockGate({ title, batiment, period, onEnter, onTime, onClose }: Props) {
-  const lock = lockOf(batiment, period);
+export default function LockGate({ title, batiment, period, onEnter, onTime, onClose, lock: fixed, verb = 'Entrer' }: Props) {
+  const lock = fixed ? { why: '', ...fixed } : lockOf(batiment, period);
   const [roll, setRoll] = useState('');
   const [note, setNote] = useState('');
   const [noise, setNoise] = useState(0);
@@ -57,8 +61,8 @@ export default function LockGate({ title, batiment, period, onEnter, onTime, onC
           <button className="maps-btn" disabled={!ok} onClick={() => attempt(true)}>Forcer</button>
         </div>
         <div className="lockgate-foot">
-          <button className="maps-btn" onClick={() => onEnter('mj')} title="Une clé, un occupant qui ouvre, une autre entrée : le MJ décide">Entrer quand même</button>
-          <button className="maps-btn" onClick={onClose}>Rester dehors</button>
+          <button className="maps-btn" onClick={() => onEnter('mj')} title="Une clé, un occupant qui ouvre, une autre entrée : le MJ décide">{verb} quand même</button>
+          <button className="maps-btn" onClick={onClose}>{verb === 'Entrer' ? 'Rester dehors' : 'Laisser fermé'}</button>
         </div>
       </div>
     </div>

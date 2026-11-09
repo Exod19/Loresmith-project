@@ -383,3 +383,4 @@
 .maps-history-tale{border-left:3px solid #8a6a34;padding:4px 10px;background:rgba(30,22,12,.5);font-style:italic}
 .maps-history-tale p{margin:3px 0}
 .maps-relocation{margin:4px 0;font-size:13px;color:#d9c79a;border-left:3px solid #6f8f5a;padding:2px 8px}
+.maps-lockctl{display:inline-flex;gap:6px;align-items:center}.maps-lockctl input{width:58px}

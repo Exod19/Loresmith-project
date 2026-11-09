@@ -54,3 +54,15 @@
 282 tests côté site et 14 côté serveur au vert ; build réussi ; lint sans erreur. Parcours Chromium : intérieur en
 ruine (bandeaux, aucun PNJ), fouille d'un pêcheur kuo-toa vaincu (poissons, filet, hameçons, lance de pêche), relogement
 et histoire de la taverne incendiée, porte d'échoppe verrouillée la nuit (échec, Échap, réussite puis entrée).
+
+## Complément — Serrures du MJ et butin au Carnet
+
+- **Serrures posées par le MJ** (fiche d'un lieu de la carte du monde) : « 🔒 Fermer à clé » verrouille un lieu à toute
+  heure (crypte, coffre-fort, porte condamnée), avec un DD réglable (15 par défaut, forcer : + 2) ; « 🔓 Ouvert même la
+  nuit » dispense un bâtiment de crochetage (les héros ont la clé). Un lieu verrouillé se crochète depuis sa fiche
+  (« Crocheter… ») ou en tentant d'y entrer (bâtiments et sites). Une fois ouvert, il le reste ; « Refermer » ou
+  « Serrure normale » pour revenir en arrière. Une serrure forcée s'inscrit dans la mémoire du monde. Champ
+  `world.locks` (voyage avec la carte).
+- **Butin au Carnet** : ce que les héros prennent sur un vaincu est ajouté au Carnet du groupe (case cochée par défaut),
+  un élément par objet, visible sur l'écran joueur. « Refouiller » ne retire pas ce qui est déjà au Carnet (à supprimer
+  depuis le Carnet si besoin).

@@ -1111,14 +1111,37 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     };
     onUpdate({ world: evolve({ ...w, events: [...(w.events ?? []), newEvent(clockOf(w), draft)] }).world, updatedAt: Date.now() });
   };
-  /** Porte fermée à clé (la nuit, cf. lockOf) : on passe d'abord par la fenêtre de crochetage (LockGate). */
-  const [lockAsk, setLockAsk] = useState<string | null>(null);
+  /**
+   * Serrures : un bâtiment est fermé à clé la nuit (cf. lockOf) ; le MJ peut aussi verrouiller n'importe quel lieu à
+   * toute heure (crypte, coffre-fort : world.locks), ou le déclarer ouvert même la nuit. Avant d'entrer (ou d'ouvrir),
+   * la fenêtre de crochetage (LockGate).
+   */
+  const [lockAsk, setLockAsk] = useState<{ id: string; then: 'batiment' | 'site' | 'ouvrir' } | null>(null);
   const opened = useRef(new Set<string>());
-  const tryEnter = (f: AtlasFeature) => {
+  const lockFor = (f: AtlasFeature) => {
     const w = rec.world;
-    const locked = !!w && !!f.batiment && lockOf(f.batiment, w.time ?? 'jour').locked
-      && states[f.id]?.etat !== 'ruine' && !opened.current.has(`${f.id}:${clockOf(w).day}`);
-    if (locked) setLockAsk(f.id); else enterBuilding(f.id);
+    if (!w) return null;
+    const set = w.locks?.[f.id];
+    const base = f.batiment ? lockOf(f.batiment, 'nuit') : null;
+    if (set) {
+      if (!set.locked) return null;
+      const dc = set.dc ?? base?.dc ?? 15;
+      return { dc, forceDc: dc + 2, door: base?.door ?? 'une serrure solide', why: 'Fermé à clé par le MJ, à toute heure.', fixed: true };
+    }
+    if (!f.batiment || states[f.id]?.etat === 'ruine' || states[f.id]?.etat === 'chantier') return null;
+    const l = lockOf(f.batiment, w.time ?? 'jour');
+    return l.locked && !opened.current.has(`${f.id}:${clockOf(w).day}`) ? { ...l, fixed: false } : null;
+  };
+  const setLock = (id: string, v: { locked: boolean; dc?: number } | null) => {
+    const w = rec.world;
+    if (!w) return;
+    const locks = { ...(w.locks ?? {}) };
+    if (v) locks[id] = v; else delete locks[id];
+    onUpdate({ world: { ...w, locks }, updatedAt: Date.now() });
+  };
+  const tryEnter = (f: AtlasFeature, then: 'batiment' | 'site' = 'batiment') => {
+    if (lockFor(f)) setLockAsk({ id: f.id, then });
+    else if (then === 'site') enterSite(f.opens!.id); else enterBuilding(f.id);
   };
   /**
    * Entrer dans un bâtiment : son intérieur est généré (toujours le même) et s'ajoute à la carte. Si le groupe est devant,
@@ -1600,20 +1623,28 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
               </div>
             )}
             {lockAsk && rec.world && (() => {
-              const f = data.features.find((x) => x.id === lockAsk);
-              return f?.batiment ? (
-                <LockGate title={f.title} batiment={f.batiment} period={rec.world.time ?? 'jour'} onTime={advanceTime} onClose={() => setLockAsk(null)}
+              const f = data.features.find((x) => x.id === lockAsk.id);
+              const lk = f && lockFor(f);
+              if (!f || !lk) return null;
+              return (
+                <LockGate title={f.title} batiment={f.batiment ?? {}} period={rec.world.time ?? 'jour'} onTime={advanceTime} onClose={() => setLockAsk(null)}
+                  lock={lk.fixed ? lk : undefined} verb={lockAsk.then === 'ouvrir' ? 'Ouvrir' : 'Entrer'}
                   onEnter={(how) => {
+                    const then = lockAsk.then;
                     setLockAsk(null);
-                    opened.current.add(`${f.id}:${clockOf(rec.world!).day}`);
+                    // Serrure du MJ : une fois ouverte, elle le reste (il peut la refermer) ; porte de nuit : pour la nuit.
+                    let w = rec.world!;
+                    if (lk.fixed) w = { ...w, locks: { ...(w.locks ?? {}), [f.id]: { locked: false, dc: lk.dc } } };
+                    else opened.current.add(`${f.id}:${clockOf(w).day}`);
                     if (how === 'forcee') {
-                      // Une porte enfoncée se voit au matin : la mémoire du monde le retient.
-                      const w = { ...rec.world!, events: [...(rec.world!.events ?? []), newEvent(clockOf(rec.world!), { title: `Porte enfoncée ${atPlace(f.title)}`, text: 'Les héros ont forcé la porte pendant la nuit ; on le découvrira au matin.', kind: 'effraction', place: { planId: map.id, featureId: f.id, title: f.title }, joueurs: 'auteurs', gravite: 1, source: 'jeu' })] };
-                      onUpdate({ world: evolve(w).world, updatedAt: Date.now() });
+                      // Une serrure forcée se voit : la mémoire du monde le retient.
+                      w = evolve({ ...w, events: [...(w.events ?? []), newEvent(clockOf(w), { title: `Serrure forcée ${atPlace(f.title)}`, text: 'Les héros ont forcé la serrure ; les traces se verront.', kind: 'effraction', place: { planId: map.id, featureId: f.id, title: f.title }, joueurs: 'auteurs', gravite: 1, source: 'jeu' })] }).world;
                     }
-                    enterBuilding(f.id);
+                    if (w !== rec.world) onUpdate({ world: w, updatedAt: Date.now() });
+                    if (then === 'site' && f.opens) enterSite(f.opens.id);
+                    else if (then === 'batiment') enterBuilding(f.id);
                   }} />
-              ) : null;
+              );
             })()}
             {dm && side === 'lieu' && (rec.kind === 'monde' || rec.kind === 'atlas') && feature?.wild && wildRecordFor(feature) && (
               <WildPanel key={feature.id} feature={feature} record={wildRecordFor(feature)!} draft={!!feature.draft}
@@ -1631,6 +1662,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
             {dm && side === 'lieu' && rec.kind === 'monde' && feature && !feature.wild && (
               <div className="maps-actions world-enter">
                 <button className="maps-btn" onClick={() => renameFeature(feature)} title="Donner un autre nom à ce lieu, partout sur la carte">✎ Renommer</button>
+                <LockControl lock={rec.world?.locks?.[feature.id]} night={!!feature.batiment}
+                  onSet={(v) => setLock(feature.id, v)} onPick={() => setLockAsk({ id: feature.id, then: 'ouvrir' })} />
                 {rec.world?.names?.[feature.id] && <button className="maps-btn" onClick={() => resetName(feature)} title="Revenir au nom d'origine">↺ Nom d’origine</button>}
               </div>
             )}
@@ -1641,7 +1674,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
             )}
             {dm && side === 'lieu' && rec.kind === 'monde' && feature?.opens && (
               <div className="maps-actions world-enter">
-                <button className="maps-btn gold" onClick={() => enterSite(feature.opens!.id)}>Entrer dans {feature.title}</button>
+                <button className="maps-btn gold" onClick={() => tryEnter(feature, 'site')}>Entrer dans {feature.title}</button>
               </div>
             )}
             {dm && side === 'explore' && exploring && rec.world && (
@@ -2268,5 +2301,36 @@ function PointEditor({ rec, onUpdate, selectedId, onSelect }: {
         ))}
       </ul>
     </div>
+  );
+}
+
+/**
+ * Serrure d'un lieu (MJ) : fermer à clé à toute heure (crypte, coffre-fort) avec son DD, ou laisser ouvert même la nuit.
+ * Un lieu verrouillé se crochète depuis ici (« Crocheter… ») ou en tentant d'y entrer.
+ */
+function LockControl({ lock, night, onSet, onPick }: { lock?: { locked: boolean; dc?: number }; night: boolean; onSet: (v: { locked: boolean; dc?: number } | null) => void; onPick: () => void }) {
+  if (!lock) {
+    return (
+      <>
+        <button className="maps-btn" onClick={() => onSet({ locked: true })} title="Fermé à clé même de jour (crypte, coffre-fort, porte condamnée)">🔒 Fermer à clé</button>
+        {night && <button className="maps-btn" onClick={() => onSet({ locked: false })} title="Les héros ont la clé, ou l'occupant les attend : pas de crochetage, même la nuit">🔓 Ouvert même la nuit</button>}
+      </>
+    );
+  }
+  if (!lock.locked) {
+    return (
+      <>
+        <button className="maps-btn" onClick={() => onSet({ locked: true, dc: lock.dc })} title="Refermer à clé">🔒 Refermer</button>
+        <button className="maps-btn" onClick={() => onSet(null)} title={night ? 'Revenir à la règle : ouvert le jour, fermé la nuit' : 'Retirer la serrure'}>↺ Serrure normale</button>
+      </>
+    );
+  }
+  return (
+    <span className="maps-lockctl">
+      <button className="maps-btn gold" onClick={onPick}>🔓 Crocheter…</button>
+      <label title="DD de crochetage (forcer : + 2)">DD <input className="maps-btn" type="number" min={5} max={30} value={lock.dc ?? ''} placeholder="15"
+        onChange={(e) => onSet({ locked: true, dc: e.target.value === '' ? undefined : Number(e.target.value) })} /></label>
+      <button className="maps-btn" onClick={() => onSet({ locked: false, dc: lock.dc })} title="Les héros ont la clé, ou le MJ ouvre">Ouvrir</button>
+    </span>
   );
 }
