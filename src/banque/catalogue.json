@@ -259,6 +259,31 @@
 "paire": "cloaker-en-vol-plane-jeton"
 },
 {
+"id": "cream-and-brown-grazing-goat-jeton",
+"drive": "16gFq35AQjrrMdH9CtHci6ALfm_cvcHZP",
+"titre": "Cream-and-brown grazing goat-12.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.305,
+"couleur": "#a18d79",
+"mips": [
+256,
+512
+],
+"nom": "Chèvre",
+"cat": "creature",
+"taille": [
+1.4,
+1.4
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
 "id": "crustace-predateur-sur-une-corniche",
 "drive": "164s1cY-9hhYijacOYapAHdsUOlHDKx8_",
 "titre": "Crustacé prédateur sur une corniche-18.png",
@@ -342,6 +367,31 @@
 "climats": [],
 "saisons": [],
 "paire": "cube-gelatineux-du-corridor"
+},
+{
+"id": "curled-sleeping-ginger-farm-cat-jeton",
+"drive": "1h8eHwShXyfQTwtUWvdLq9AZHPHyKZuDN",
+"titre": "Curled Sleeping Ginger Farm Cat-13.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 1.01,
+"couleur": "#a9764f",
+"mips": [
+256,
+512
+],
+"nom": "Chat",
+"cat": "creature",
+"taille": [
+0.6,
+0.6
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
 },
 {
 "id": "darkmantle-aux-huit-tentacules-jeton",
@@ -478,6 +528,31 @@
 ],
 "region": [
 "outreterre"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "dusty-pink-pig-resting-on-its-side-jeton",
+"drive": "1APPXo-OydfFkrIxWqRnIcgVH_qd4F5Pn",
+"titre": "Dusty pink pig resting on its side-17.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.489,
+"couleur": "#b99686",
+"mips": [
+256,
+512
+],
+"nom": "Cochon",
+"cat": "creature",
+"taille": [
+1.6,
+1.6
+],
+"milieux": [],
+"region": [
+"surface"
 ],
 "climats": [],
 "saisons": []
@@ -701,6 +776,31 @@
 "climats": [],
 "saisons": [],
 "paire": "top-down-black-spider-with-ash-chevron-jeton"
+},
+{
+"id": "golden-necked-rooster-from-above-jeton",
+"drive": "1AG-QoqBjg3KIwdfiPi91P1J5mQ8dWzrr",
+"titre": "Golden-necked rooster from above-13.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.379,
+"couleur": "#613d23",
+"mips": [
+256,
+512
+],
+"nom": "Coq",
+"cat": "creature",
+"taille": [
+0.6,
+0.6
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
 },
 {
 "id": "grick-en-spirale-vue-du-dessus-jeton",
@@ -1410,6 +1510,31 @@
 "saisons": []
 },
 {
+"id": "overhead-grey-donkey-cutout-jeton",
+"drive": "131Y5cwb7foCTVvKDT5_oehOL33Q8i96N",
+"titre": "Overhead grey donkey cutout-13.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.231,
+"couleur": "#72665c",
+"mips": [
+256,
+512
+],
+"nom": "Âne",
+"cat": "creature",
+"taille": [
+2.1,
+2.1
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
 "id": "overhead-striped-wolf-spider-jeton",
 "drive": "1s8U3f5dyo52a5ATISYimmi5lHMdX4ZeR",
 "titre": "Overhead striped wolf spider.png",
@@ -1550,6 +1675,56 @@
 "paire": "quaggoth-ivoire-en-foret-fongique"
 },
 {
+"id": "resting-ivory-wool-sheep-jeton",
+"drive": "1-ffg9xb3I9f8ff4ckJKcoAKVwVwEfOpp",
+"titre": "Resting Ivory Wool Sheep-9.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.52,
+"couleur": "#b09f8a",
+"mips": [
+256,
+512
+],
+"nom": "Mouton",
+"cat": "creature",
+"taille": [
+1.4,
+1.4
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "resting-black-and-tan-farm-dog-jeton",
+"drive": "1Mzy9Y8Sa_b-JX8ksbzIUNAPWDuSph5Xn",
+"titre": "Resting black-and-tan farm dog-16.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.355,
+"couleur": "#493f35",
+"mips": [
+256,
+512
+],
+"nom": "Chien",
+"cat": "creature",
+"taille": [
+1.1,
+1.1
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
 "id": "roper-rocheux-aux-six-tentacules-jeton",
 "drive": "11Ivh9bf2_jIG3DXy7BWaCZNMKj6DEw6P",
 "titre": "Roper rocheux aux six tentacules-11.png",
@@ -1607,6 +1782,31 @@
 "paire": "single-headed-overhead-centipede-token-jeton"
 },
 {
+"id": "rustic-chestnut-hen-overhead-jeton",
+"drive": "1cE20C6AqMB6p_ItP7KuNRg30zU-XCl21",
+"titre": "Rustic chestnut hen overhead-11.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.46,
+"couleur": "#804023",
+"mips": [
+256,
+512
+],
+"nom": "Poule",
+"cat": "creature",
+"taille": [
+0.5,
+0.5
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
 "id": "rodeur-stalagmitique-aux-six-tentacules",
 "drive": "18L9V9gj4J8DhWIStDt7ksxohjItDI1-K",
 "titre": "Rôdeur stalagmitique aux six tentacules-10.png",
@@ -1634,6 +1834,31 @@
 "climats": [],
 "saisons": [],
 "paire": "roper-rocheux-aux-six-tentacules-jeton"
+},
+{
+"id": "silver-gray-donkey-in-resting-view-jeton",
+"drive": "19K3Lt5-E7FTvHkQcwRzk5WzgLv9wS--D",
+"titre": "Silver-Gray Donkey in Resting View-8.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.365,
+"couleur": "#92897f",
+"mips": [
+256,
+512
+],
+"nom": "Âne",
+"cat": "creature",
+"taille": [
+2.1,
+2.1
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
 },
 {
 "id": "single-headed-overhead-centipede-token-jeton",
@@ -1664,6 +1889,131 @@
 "paire": "rustbound-giant-centipede-in-fungal-humus"
 },
 {
+"id": "speckled-brooding-farm-hen-jeton",
+"drive": "1TbzFPw6kB-PNHZpL70bx-vVvOHONuHo7",
+"titre": "Speckled Brooding Farm Hen-18.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.69,
+"couleur": "#875d41",
+"mips": [
+256,
+512
+],
+"nom": "Poule",
+"cat": "creature",
+"taille": [
+0.5,
+0.5
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "top-down-black-farm-hen-jeton",
+"drive": "1yTU_COnjOAho9iZAxwYAvz8PnZVWj5XU",
+"titre": "Top-Down Black Farm Hen-14.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.402,
+"couleur": "#282523",
+"mips": [
+256,
+512
+],
+"nom": "Poule",
+"cat": "creature",
+"taille": [
+0.5,
+0.5
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "top-down-brown-and-white-dairy-cow-jeton",
+"drive": "1nGZJ3Ifk4pl1j0AupXj-BxVs1gF4nVKk",
+"titre": "Top-Down Brown-and-White Dairy Cow-14.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.315,
+"couleur": "#87644b",
+"mips": [
+256,
+512
+],
+"nom": "Vache",
+"cat": "creature",
+"taille": [
+2.6,
+2.6
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "top-down-charcoal-wool-sheep-jeton",
+"drive": "1SjSoiRMyPhpJkYwuvfShMryoPM_-jLG-",
+"titre": "Top-Down Charcoal Wool Sheep-11.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.391,
+"couleur": "#33302e",
+"mips": [
+256,
+512
+],
+"nom": "Mouton",
+"cat": "creature",
+"taille": [
+1.4,
+1.4
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "top-down-chestnut-draft-horse-jeton",
+"drive": "1fHYF8PUEnxJf4sC5BznWSimqtthGmTbY",
+"titre": "Top-Down Chestnut Draft Horse-12.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.262,
+"couleur": "#5b321d",
+"mips": [
+256,
+512
+],
+"nom": "Cheval de trait",
+"cat": "creature",
+"taille": [
+3,
+3
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
 "id": "top-down-coiled-olive-viper-jeton",
 "drive": "1f6lR8xPcS5fgLJ1Uyw-nSY6H2m7prjR6",
 "titre": "Top-Down Coiled Olive Viper.png",
@@ -1690,6 +2040,81 @@
 "climats": [],
 "saisons": [],
 "paire": "venomous-cave-viper-in-shadow"
+},
+{
+"id": "top-down-dusty-pink-pig-jeton",
+"drive": "1E0peBRzK_BVHirSQSv-HTgiDCpsqWxmU",
+"titre": "Top-Down Dusty Pink Pig-15.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.376,
+"couleur": "#a48476",
+"mips": [
+256,
+512
+],
+"nom": "Cochon",
+"cat": "creature",
+"taille": [
+1.6,
+1.6
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "top-down-walking-donkey-token-jeton",
+"drive": "1PmR3MtsDfDRQIyYgCoKYGWhXCsfaSDly",
+"titre": "Top-Down Walking Donkey Token-10.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.221,
+"couleur": "#46372e",
+"mips": [
+256,
+512
+],
+"nom": "Âne",
+"cat": "creature",
+"taille": [
+2.1,
+2.1
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "top-down-black-farm-pig-jeton",
+"drive": "1dqD0qxQDGrTZg3hNnQuDcgjeG6g_oIdd",
+"titre": "Top-down black farm pig-7.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.316,
+"couleur": "#383431",
+"mips": [
+256,
+512
+],
+"nom": "Cochon",
+"cat": "creature",
+"taille": [
+1.6,
+1.6
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
 },
 {
 "id": "top-down-black-spider-with-ash-chevron-jeton",
@@ -1720,6 +2145,231 @@
 "paire": "giant-cave-orb-weaver"
 },
 {
+"id": "top-down-black-and-white-dairy-cow-jeton",
+"drive": "1DLm_IB71DEgMzoA9sO9B1V4QX8ypjHDo",
+"titre": "Top-down black-and-white dairy cow-2.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.276,
+"couleur": "#746c64",
+"mips": [
+256,
+512
+],
+"nom": "Vache",
+"cat": "creature",
+"taille": [
+2.6,
+2.6
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "top-down-dapple-grey-grazing-horse-jeton",
+"drive": "1-eosVxdQG715DR6fFwIRFChTDbfs-a98",
+"titre": "Top-down dapple-grey grazing horse-4.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.235,
+"couleur": "#746f6a",
+"mips": [
+256,
+512
+],
+"nom": "Cheval",
+"cat": "creature",
+"taille": [
+2.6,
+2.6
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "top-down-grazing-red-cow-token-jeton",
+"drive": "1ofOx7UQD7NQOor-YgQX8nAAZGgoyWHS4",
+"titre": "Top-down grazing red cow token-6.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.312,
+"couleur": "#743c1f",
+"mips": [
+256,
+512
+],
+"nom": "Vache",
+"cat": "creature",
+"taille": [
+2.6,
+2.6
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "top-down-male-mallard-duck-jeton",
+"drive": "1upSLeoFkJCaFrxcomVTaybGCY7fbRyu3",
+"titre": "Top-down male mallard duck-14.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.435,
+"couleur": "#676054",
+"mips": [
+256,
+512
+],
+"nom": "Canard",
+"cat": "creature",
+"taille": [
+0.6,
+0.6
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "top-down-pecking-farm-hen-jeton",
+"drive": "1vXf5nxJ2q5uyKzgPVc9S37xKnTqrI1xz",
+"titre": "Top-down pecking farm hen-15.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.422,
+"couleur": "#d0c5b7",
+"mips": [
+256,
+512
+],
+"nom": "Poule",
+"cat": "creature",
+"taille": [
+0.5,
+0.5
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "top-down-recumbent-cream-cow-jeton",
+"drive": "1lgaRQ3JyuzAA_denW4xWTBzG1rM8-LdJ",
+"titre": "Top-down recumbent cream cow-5.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.457,
+"couleur": "#c3af95",
+"mips": [
+256,
+512
+],
+"nom": "Vache",
+"cat": "creature",
+"taille": [
+2.6,
+2.6
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "top-down-recumbent-pinto-horse-jeton",
+"drive": "1UKiiKw-OmFP0Ii2DJqxqRnIjYKbwMszK",
+"titre": "Top-down recumbent pinto horse-3.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.378,
+"couleur": "#825f48",
+"mips": [
+256,
+512
+],
+"nom": "Cheval",
+"cat": "creature",
+"taille": [
+2.6,
+2.6
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "top-down-russet-grazing-sheep-jeton",
+"drive": "1fA1P0nU7NfJMMtfrn9b5N4kNHSvEEyHO",
+"titre": "Top-down russet grazing sheep-12.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.406,
+"couleur": "#74442a",
+"mips": [
+256,
+512
+],
+"nom": "Mouton",
+"cat": "creature",
+"taille": [
+1.4,
+1.4
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "top-down-spotted-pig-token-jeton",
+"drive": "1BL4shvS3_Ou80I1hj-rm7JP-elyrGI-I",
+"titre": "Top-down spotted pig token-16.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.377,
+"couleur": "#9c8878",
+"mips": [
+256,
+512
+],
+"nom": "Cochon",
+"cat": "creature",
+"taille": [
+1.6,
+1.6
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
 "id": "top-down-swarm-of-flying-bats-jeton",
 "drive": "1094amNVxlXZLhBPGJzcSHKHkLydaxCbc",
 "titre": "Top-down swarm of flying bats.png",
@@ -1746,6 +2396,81 @@
 "climats": [],
 "saisons": [],
 "paire": "cave-bat-swarm-beneath-stalactites"
+},
+{
+"id": "top-down-walking-black-draft-horse-jeton",
+"drive": "1EPw0kB7Zkt822tEya9Y8yWZODSH-UE6k",
+"titre": "Top-down walking black draft horse-1.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.231,
+"couleur": "#302b29",
+"mips": [
+256,
+512
+],
+"nom": "Cheval de trait",
+"cat": "creature",
+"taille": [
+3,
+3
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "top-down-white-goose-jeton",
+"drive": "1OlIHW69F2kJhAQxIgmICVg3TNWawqLvH",
+"titre": "Top-down white goose-15.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.355,
+"couleur": "#c1bbb5",
+"mips": [
+256,
+512
+],
+"nom": "Oie",
+"cat": "creature",
+"taille": [
+0.8,
+0.8
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "top-down-woolly-sheep-token-jeton",
+"drive": "1HHrb6cLvDn5f0J9IyU2kwzFmMZYy-9mo",
+"titre": "Top-down woolly sheep token-16.png",
+"type": "creature",
+"vue": "jeton",
+"ratio": 0.441,
+"couleur": "#a28f78",
+"mips": [
+256,
+512
+],
+"nom": "Mouton",
+"cat": "creature",
+"taille": [
+1.4,
+1.4
+],
+"milieux": [],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
 },
 {
 "id": "troglodyte-reptilien-a-la-lance-jeton",
@@ -3732,6 +4457,37 @@
 "saisons": []
 },
 {
+"id": "compact-agricultural-compost-heap",
+"drive": "19U80RyOS32TqoEsLzaEKg-8EPRVS3GFa",
+"titre": "Compact agricultural compost heap-1.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.772,
+"couleur": "#4b3526",
+"mips": [
+256,
+512
+],
+"nom": "Tas de compost",
+"cat": "ferme",
+"milieux": [
+"campagne",
+"ferme"
+],
+"usage": [
+"fumier"
+],
+"taille": [
+1.54,
+2
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
 "id": "cooled-ropey-lava-outcrop",
 "drive": "1QmVtmanI6US0u2MiNYs_HJfEa6-i3KXT",
 "titre": "Cooled ropey lava outcrop-30.png",
@@ -4102,6 +4858,38 @@
 "saisons": []
 },
 {
+"id": "dark-oak-livestock-water-trough",
+"drive": "1dqOdbGOHcB8n9UQd7P2OQRehENaZJ1uD",
+"titre": "Dark Oak Livestock Water Trough-3.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.31,
+"couleur": "#4e4534",
+"mips": [
+256,
+512
+],
+"nom": "Abreuvoir",
+"cat": "ferme",
+"milieux": [
+"campagne",
+"ferme"
+],
+"usage": [
+"ecurie",
+"bac"
+],
+"taille": [
+0.74,
+2.4
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
 "id": "dark-slate-rimmed-teal-water-base",
 "drive": "1cn0XNZngh1DObDymCKBVfnk3LfvRd9K5",
 "titre": "Dark slate rimmed teal water base.png",
@@ -4381,6 +5169,39 @@
 ],
 "climats": [],
 "saisons": []
+},
+{
+"id": "empty-medieval-farm-cart",
+"drive": "1luG-XtCKxZN1ww2rzE2LrZWrV73QZdst",
+"titre": "Empty medieval farm cart-6.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.438,
+"couleur": "#785f48",
+"mips": [
+256,
+512
+],
+"nom": "Charrette vide",
+"cat": "ferme",
+"milieux": [
+"campagne",
+"ferme",
+"route",
+"ville"
+],
+"usage": [
+"charrette"
+],
+"taille": [
+1.4,
+3.2
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
 },
 {
 "id": "enormous-tropical-stump-with-radial-roots",
@@ -5353,6 +6174,37 @@
 "saisons": []
 },
 {
+"id": "hand-tied-hay-bundle",
+"drive": "1HUrxhI53aJkLIOo7MDXkgK1dqLLg4FcA",
+"titre": "Hand-Tied Hay Bundle-8.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.448,
+"couleur": "#9b7341",
+"mips": [
+256,
+512
+],
+"nom": "Botte de foin",
+"cat": "ferme",
+"milieux": [
+"campagne",
+"ferme"
+],
+"usage": [
+"foin"
+],
+"taille": [
+0.45,
+1
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
 "id": "hollow-log-animal-den",
 "drive": "1VcPb1umeSZRUNQC7FWjbAFMvYrROrZWy",
 "titre": "Hollow Log Animal Den-19.png",
@@ -5378,6 +6230,38 @@
 ],
 "climats": [],
 "saisons": []
+},
+{
+"id": "horizontal-split-firewood-stack",
+"drive": "1pdpyqwK3-bUFzQrcY0iNkOkcM7b__7H5",
+"titre": "Horizontal split firewood stack-7.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 2.479,
+"couleur": "#795b40",
+"mips": [
+256,
+512
+],
+"nom": "Bûches empilées",
+"cat": "ferme",
+"milieux": [
+"campagne",
+"ferme",
+"ville"
+],
+"usage": [
+"bois"
+],
+"taille": [
+2.2,
+0.89
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
 },
 {
 "id": "houppier-de-poirier-vue-zenithale",
@@ -6285,6 +7169,100 @@
 ]
 },
 {
+"id": "medieval-oak-wheelbarrow",
+"drive": "1ocBki8WTPwQqwacIebRga4l51GoqhDhE",
+"titre": "Medieval Oak Wheelbarrow-5.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.345,
+"couleur": "#7e5e41",
+"mips": [
+256,
+512
+],
+"nom": "Brouette",
+"cat": "ferme",
+"milieux": [
+"campagne",
+"ferme"
+],
+"usage": [
+"outil"
+],
+"taille": [
+0.55,
+1.6
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "medieval-farm-manure-heap",
+"drive": "1RPUQ_fWn4RS3QHfH-UYyN_50nLbJWwDr",
+"titre": "Medieval farm manure heap-6.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.643,
+"couleur": "#513820",
+"mips": [
+256,
+512
+],
+"nom": "Tas de fumier",
+"cat": "ferme",
+"milieux": [
+"campagne",
+"ferme"
+],
+"usage": [
+"fumier"
+],
+"taille": [
+2.5,
+1.52
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "medieval-oak-hay-feeding-rack",
+"drive": "1x31TDIrHy-7Pq_PLUlMN8L83c9LcY9WI",
+"titre": "Medieval oak hay feeding rack-5.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 2.357,
+"couleur": "#85633b",
+"mips": [
+256,
+512
+],
+"nom": "Râtelier à foin",
+"cat": "ferme",
+"milieux": [
+"campagne",
+"ferme"
+],
+"usage": [
+"ecurie",
+"foin"
+],
+"taille": [
+2.4,
+1.02
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
 "id": "moss-rimmed-forest-floor-base",
 "drive": "1-4eTZnUul7ywkHl6xwHN-OmlncpPQMNt",
 "titre": "Moss-Rimmed Forest Floor Base.png",
@@ -6511,6 +7489,42 @@
 "saisons": []
 },
 {
+"id": "oak-hay-cart-with-loose-straw",
+"drive": "1foeNUcjkkIm4j5pjjFrWTAfYlW_KqjyE",
+"titre": "Oak Hay Cart with Loose Straw-7.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.447,
+"couleur": "#906d48",
+"mips": [
+256,
+512
+],
+"nom": "Charrette de foin",
+"cat": "ferme",
+"milieux": [
+"campagne",
+"ferme",
+"route"
+],
+"usage": [
+"charrette",
+"foin"
+],
+"saisons": [
+"ete",
+"automne"
+],
+"taille": [
+1.56,
+3.5
+],
+"climats": [],
+"region": [
+"surface"
+]
+},
+{
 "id": "obsidian-cave-boundary-strip",
 "drive": "1MoWc_2NIvNhbc0Yi0475YdfAKurIHxn9",
 "titre": "Obsidian Cave Boundary Strip-11.png",
@@ -6649,6 +7663,39 @@
 "saisons": []
 },
 {
+"id": "open-oat-filled-wooden-barrel",
+"drive": "1srd755z2VsO9pykWONTWevz2XN23Df5K",
+"titre": "Open oat-filled wooden barrel-2.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.99,
+"couleur": "#b28c60",
+"mips": [
+256,
+512
+],
+"nom": "Tonneau d’avoine",
+"cat": "ferme",
+"milieux": [
+"campagne",
+"ferme",
+"interieur",
+"marche"
+],
+"usage": [
+"tonneau"
+],
+"taille": [
+0.79,
+0.8
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
 "id": "open-wooden-hatch-to-the-underdark",
 "drive": "1hODlP2vOWYXlVRtQz6DnliSflP6hrsl1",
 "titre": "Open wooden hatch to the Underdark.png",
@@ -6674,6 +7721,37 @@
 ],
 "climats": [],
 "saisons": []
+},
+{
+"id": "overhead-rustic-timber-farm-gate",
+"drive": "1dsF1GXVDErjCAag7BmBi3nRCXRUfOZWw",
+"titre": "Overhead Rustic Timber Farm Gate-9.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 7.88,
+"couleur": "#655339",
+"mips": [
+256,
+512
+],
+"nom": "Barrière de ferme",
+"cat": "cloture",
+"milieux": [
+"campagne",
+"ferme"
+],
+"usage": [
+"barriere"
+],
+"taille": [
+3.5,
+0.44
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
 },
 {
 "id": "overhead-spruce-crown-map-asset",
@@ -7702,6 +8780,104 @@
 "saisons": []
 },
 {
+"id": "round-haystack-around-a-wooden-post",
+"drive": "1OuxOizb0iMcnrqdUBle1tlX4WQ8XEDas",
+"titre": "Round haystack around a wooden post-4.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.019,
+"couleur": "#9d713e",
+"mips": [
+256,
+512
+],
+"nom": "Meule de foin",
+"cat": "ferme",
+"milieux": [
+"campagne",
+"ferme"
+],
+"usage": [
+"foin"
+],
+"saisons": [
+"ete",
+"automne"
+],
+"taille": [
+3.5,
+3.44
+],
+"climats": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "round-medieval-wash-tub",
+"drive": "1T_WDpBZ7zzhFopNoXZMggbqgLAF6-Tac",
+"titre": "Round medieval wash tub-9.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.001,
+"couleur": "#747166",
+"mips": [
+256,
+512
+],
+"nom": "Cuve de lavage",
+"cat": "ferme",
+"milieux": [
+"campagne",
+"ferme",
+"ville"
+],
+"usage": [
+"bac"
+],
+"taille": [
+1.2,
+1.2
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "round-medieval-wooden-water-bucket",
+"drive": "1K8FUFEz_dttqBr0dfZVzT-et5iz7s62c",
+"titre": "Round medieval wooden water bucket-6.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.989,
+"couleur": "#49493d",
+"mips": [
+256,
+512
+],
+"nom": "Seau d’eau",
+"cat": "ferme",
+"milieux": [
+"campagne",
+"ferme",
+"interieur"
+],
+"usage": [
+"seau"
+],
+"taille": [
+0.45,
+0.45
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
 "id": "rugged-underdark-cavern-ridge",
 "drive": "1g4GvDRpYPpfy--fAQZwyM2dKaT2CXPOP",
 "titre": "Rugged Underdark Cavern Ridge.png",
@@ -7754,6 +8930,37 @@
 ],
 "climats": [],
 "saisons": []
+},
+{
+"id": "rustic-split-oak-rail-fence",
+"drive": "1qSp9_cOvBTRjv0vy8JpQQ3JVYwPLeeaJ",
+"titre": "Rustic Split-Oak Rail Fence-1.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 10.042,
+"couleur": "#83694d",
+"mips": [
+256,
+512
+],
+"nom": "Clôture de perches",
+"cat": "cloture",
+"milieux": [
+"campagne",
+"ferme"
+],
+"usage": [
+"cloture"
+],
+"taille": [
+3.5,
+0.35
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
 },
 {
 "id": "s-shaped-charcoal-limestone-cave-ridge",
@@ -8141,6 +9348,47 @@
 "saisons": [
 "hiver"
 ],
+"region": [
+"surface"
+]
+},
+{
+"id": "snow-dusted-horse-stable-roof",
+"drive": "1edyIxk2EH59cgQjMRu8CNR5uFbwEJr42",
+"titre": "Snow-dusted horse stable roof-9.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 2.147,
+"couleur": "#5f5245",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Écurie (toit enneigé)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "bardeaux",
+"milieux": [
+"campagne",
+"ferme"
+],
+"climats": [
+"froid",
+"tempere"
+],
+"saisons": [
+"hiver"
+],
+"usage": [
+"ferme",
+"ecurie"
+],
+"taille": [
+12,
+5.59
+],
+"masque": "1111111111111111111111111111111111111111111111111111111100011000",
 "region": [
 "surface"
 ]
@@ -8611,7 +9859,8 @@
 "tropical"
 ],
 "region": [
-"mer"
+"mer",
+"surface"
 ],
 "saisons": []
 },
@@ -9805,6 +11054,39 @@
 "saisons": []
 },
 {
+"id": "top-down-grain-laden-farm-wagon",
+"drive": "1PIygacsrhQu2HPjr7Ge6xG3SotFNLvYT",
+"titre": "Top-Down Grain-Laden Farm Wagon-2.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.434,
+"couleur": "#725d48",
+"mips": [
+256,
+512
+],
+"nom": "Chariot de grain",
+"cat": "ferme",
+"milieux": [
+"campagne",
+"ferme",
+"route",
+"ville"
+],
+"usage": [
+"charrette"
+],
+"taille": [
+1.74,
+4
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
 "id": "top-down-leafless-tree-crown",
 "drive": "1xOpkaj9z49XvuunjzJPX2tHYtOwpYODk",
 "titre": "Top-Down Leafless Tree Crown-25.png",
@@ -9836,6 +11118,68 @@
 "hiver",
 "automne"
 ],
+"region": [
+"surface"
+]
+},
+{
+"id": "top-down-medieval-timber-fence-corner",
+"drive": "1L7je95krVupWA0MC4H7zkuyo9CYp43wr",
+"titre": "Top-Down Medieval Timber Fence Corner-11.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.035,
+"couleur": "#6b5841",
+"mips": [
+256,
+512
+],
+"nom": "Angle de clôture",
+"cat": "cloture",
+"milieux": [
+"campagne",
+"ferme"
+],
+"usage": [
+"cloture"
+],
+"taille": [
+3,
+2.9
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "top-down-medieval-wooden-ard-plough",
+"drive": "1aNl90jOvmICYL5VNKKKHEcTK5-U9XGAp",
+"titre": "Top-Down Medieval Wooden Ard Plough-10.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.315,
+"couleur": "#856b53",
+"mips": [
+256,
+512
+],
+"nom": "Araire",
+"cat": "ferme",
+"milieux": [
+"campagne",
+"ferme"
+],
+"usage": [
+"outil"
+],
+"taille": [
+0.88,
+2.8
+],
+"climats": [],
+"saisons": [],
 "region": [
 "surface"
 ]
@@ -10176,6 +11520,74 @@
 ]
 },
 {
+"id": "top-down-medieval-stone-well",
+"drive": "1sZY32LUzdxV0PHIC6yJYzgvH4SIcA9Ma",
+"titre": "Top-down medieval stone well-2.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.967,
+"couleur": "#5b5a50",
+"mips": [
+256,
+512
+],
+"nom": "Puits de pierre",
+"cat": "ferme",
+"milieux": [
+"campagne",
+"ferme",
+"ville",
+"place"
+],
+"usage": [
+"puits",
+"place"
+],
+"taille": [
+1.93,
+2
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "top-down-oat-sack-opening",
+"drive": "18hmCKi-zrtMREVj-7QrpEVciqfkhSqI-",
+"titre": "Top-down oat sack opening-1.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.0,
+"couleur": "#aa7b4f",
+"mips": [
+256,
+512
+],
+"nom": "Sac d’avoine",
+"cat": "ferme",
+"milieux": [
+"campagne",
+"ferme",
+"interieur",
+"marche"
+],
+"usage": [
+"sac",
+"marche"
+],
+"taille": [
+0.7,
+0.7
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
 "id": "top-down-terracotta-coral-colony",
 "drive": "1rE11o39ndT9d-cZdQl9CnedCUjFbMRp1",
 "titre": "Top-down terracotta coral colony-22.png",
@@ -10300,6 +11712,37 @@
 ]
 },
 {
+"id": "top-down-wooden-farm-rake",
+"drive": "1cDFS20nEw2sqH8F-xK_c6mCUbgVCQAG8",
+"titre": "Top-down wooden farm rake-4.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.38,
+"couleur": "#815f3d",
+"mips": [
+256,
+512
+],
+"nom": "Râteau",
+"cat": "ferme",
+"milieux": [
+"campagne",
+"ferme"
+],
+"usage": [
+"outil"
+],
+"taille": [
+0.61,
+1.6
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
 "id": "top-down-wooden-route-marker",
 "drive": "1ae_ySfBP2DKo9SeznpdzYzsRxNQEXIoO",
 "titre": "Top-down wooden route marker.png",
@@ -10325,6 +11768,42 @@
 ],
 "climats": [],
 "saisons": []
+},
+{
+"id": "top-down-woven-straw-skep",
+"drive": "1niX28Z7995RsGRdLeTaiBDgNoDrRI9qu",
+"titre": "Top-down woven straw skep-4.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.967,
+"couleur": "#b27f3b",
+"mips": [
+256,
+512
+],
+"nom": "Ruche de paille",
+"cat": "ferme",
+"milieux": [
+"campagne",
+"ferme",
+"jardin"
+],
+"usage": [
+"ruche"
+],
+"saisons": [
+"printemps",
+"ete",
+"automne"
+],
+"taille": [
+0.58,
+0.6
+],
+"climats": [],
+"region": [
+"surface"
+]
 },
 {
 "id": "torn-leaf-banana-plant-crown",
@@ -11379,6 +12858,42 @@
 "saisons": []
 },
 {
+"id": "weathered-gabled-henhouse-roof",
+"drive": "11fiMyPkU7p23gf8MG3CMIEt5H-rQyLlH",
+"titre": "Weathered Gabled Henhouse Roof-3.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.651,
+"couleur": "#6d6359",
+"mips": [
+256,
+512
+],
+"nom": "Poulailler (toit)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "bardeaux",
+"milieux": [
+"campagne",
+"ferme"
+],
+"climats": [
+"tempere"
+],
+"usage": [
+"ferme"
+],
+"taille": [
+2.6,
+4
+],
+"masque": "0011110011111111111111111111111111111111111111111111111101111110",
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
 "id": "weathered-iron-bound-fortress-base",
 "drive": "19yhlWdXQjGp4MRmxxoSMDvkBS5SUYRIi",
 "titre": "Weathered Iron-Bound Fortress Base.png",
@@ -11534,6 +13049,44 @@
 "riviere"
 ],
 "climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "weathered-stone-cattle-barn-roof",
+"drive": "1XeXLKFBWvqDr68753OxugrYVPm4JmHLL",
+"titre": "Weathered Stone Cattle Barn Roof-10.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.66,
+"couleur": "#6e6961",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Étable (toit de lauzes)",
+"cat": "toit",
+"forme": "L",
+"materiau": "lauzes",
+"milieux": [
+"campagne",
+"ferme"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"usage": [
+"ferme"
+],
+"taille": [
+9.23,
+14
+],
+"masque": "1111110011111100111111101111111111111111111111001111110011111100",
 "saisons": [],
 "region": [
 "surface"
@@ -11862,6 +13415,42 @@
 "saisons": []
 },
 {
+"id": "willow-basket-of-ripe-apples",
+"drive": "1aWRjlYT7Tb0sgjKDIEu3IKcGTn5j2wQV",
+"titre": "Willow Basket of Ripe Apples-8.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.003,
+"couleur": "#7b5333",
+"mips": [
+256,
+512
+],
+"nom": "Panier de pommes",
+"cat": "ferme",
+"milieux": [
+"campagne",
+"ferme",
+"marche",
+"interieur"
+],
+"usage": [
+"panier",
+"marche"
+],
+"saisons": [
+"automne"
+],
+"taille": [
+0.6,
+0.6
+],
+"climats": [],
+"region": [
+"surface"
+]
+},
+{
 "id": "wind-eroded-sandstone-boulder",
 "drive": "1AdMyIILUlO53Zqu-9NwTEZ2AoF2jb6Rn",
 "titre": "Wind-Eroded Sandstone Boulder-3.png",
@@ -12059,6 +13648,38 @@
 "saisons": []
 },
 {
+"id": "worn-medieval-shovel",
+"drive": "1v73WI6Ho0yqba_8ORPXxI0fM7WXl5k1F",
+"titre": "Worn medieval shovel-5.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.209,
+"couleur": "#655141",
+"mips": [
+256,
+512
+],
+"nom": "Pelle",
+"cat": "ferme",
+"milieux": [
+"campagne",
+"ferme",
+"mine"
+],
+"usage": [
+"outil"
+],
+"taille": [
+0.27,
+1.3
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
 "id": "worn-mossy-log-crossing",
 "drive": "15o-7V0i1mGYqZeVJbomvsr2OqFlR6M1R",
 "titre": "Worn mossy log crossing-5.png",
@@ -12114,6 +13735,37 @@
 "saisons": []
 },
 {
+"id": "woven-straw-nest-with-five-ivory-eggs",
+"drive": "11VW6sMAdWWBYVCIMVRtJOx9yn59E_aVZ",
+"titre": "Woven straw nest with five ivory eggs-3.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.967,
+"couleur": "#9b774c",
+"mips": [
+256,
+512
+],
+"nom": "Nid aux œufs",
+"cat": "ferme",
+"milieux": [
+"campagne",
+"ferme"
+],
+"usage": [
+"poulailler"
+],
+"taille": [
+0.39,
+0.4
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
 "id": "y-shaped-slate-rock-boundary",
 "drive": "1rLDF5zVdZj0ELmwj3T9klxbWn3VC3Q3M",
 "titre": "Y-Shaped Slate Rock Boundary.png",
@@ -12135,6 +13787,3832 @@
 "caverne"
 ],
 "region": [
+"outreterre"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "journal-recherche-ouvert-0-32x0-24",
+"drive": "1BE6PaELav8QUkAlmZZJkZQ1jitJTfWr-",
+"titre": "journal-recherche-ouvert-0.32x0.24.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.48,
+"couleur": "#b79467",
+"mips": [
+256,
+512
+],
+"nom": "Journal ouvert",
+"cat": "objet",
+"taille": [
+0.32,
+0.24
+],
+"milieux": [
+"interieur",
+"caverne",
+"camp"
+],
+"usage": [
+"indice",
+"livre"
+],
+"region": [
+"surface",
+"outreterre"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle",
+"drive": "1OJXUAtg5sGbRf3Vz1DS8rNq7ywQFHMWK",
+"titre": "socle-01.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.025,
+"couleur": "#453d38",
+"mips": [
+256,
+512
+],
+"nom": "Socle carré de dalles (cadre de fer)",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"interieur",
+"donjon"
+],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-2",
+"drive": "1jtcm4iBagfmZUsdzZA4mX96nkKvT12aC",
+"titre": "socle-02.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.003,
+"couleur": "#46423e",
+"mips": [
+256,
+512
+],
+"nom": "Socle d’ardoise sombre",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"montagne",
+"caverne"
+],
+"region": [
+"surface",
+"outreterre"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-3",
+"drive": "1XDJIbH9K16jaa4g-LbKvtMwOk3qzsSes",
+"titre": "socle-03.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.999,
+"couleur": "#6b5c4b",
+"mips": [
+256,
+512
+],
+"nom": "Socle de dalles calcaires",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"ville",
+"ruine"
+],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-4",
+"drive": "1rxNluxtl8LrbIWUr88Tc6tOZvrh5PuBG",
+"titre": "socle-04.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.01,
+"couleur": "#383531",
+"mips": [
+256,
+512
+],
+"nom": "Socle de roche et d’éboulis",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"montagne",
+"caverne"
+],
+"region": [
+"surface",
+"outreterre"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-5",
+"drive": "1B7aDBja2tmOexceqEV2FZVkno1hjz6LL",
+"titre": "socle-05.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.011,
+"couleur": "#433222",
+"mips": [
+256,
+512
+],
+"nom": "Socle de terre et champignons",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"foret",
+"caverne"
+],
+"region": [
+"surface",
+"outreterre"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-6",
+"drive": "1qrU7c1c180DURXELrrN_i_qfUnw9g8tI",
+"titre": "socle-06.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 2.131,
+"couleur": "#554b40",
+"mips": [
+256,
+512
+],
+"nom": "Socle ovale de pierre (bordure de bronze)",
+"cat": "socle",
+"taille": [
+2.5,
+1.5
+],
+"milieux": [
+"ville",
+"interieur"
+],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-7",
+"drive": "1fUzYa4-9v5pn7uqThguX3e6NscsgRWEk",
+"titre": "socle-07.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.003,
+"couleur": "#504036",
+"mips": [
+256,
+512
+],
+"nom": "Socle de planches",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"interieur",
+"navire"
+],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-8",
+"drive": "1yNyih77-OYf_P7Z0zEO86uHucwx7tFOG",
+"titre": "socle-08.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.001,
+"couleur": "#554d45",
+"mips": [
+256,
+512
+],
+"nom": "Socle de pierre fissurée",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"ruine",
+"montagne"
+],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-9",
+"drive": "1_JtzaUgBJ_AI-ZjWSA-jCK3639qrrEl0",
+"titre": "socle-09.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.0,
+"couleur": "#473d33",
+"mips": [
+256,
+512
+],
+"nom": "Socle de fer riveté",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"interieur",
+"donjon"
+],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-10",
+"drive": "1Ekd89ozYsSZ1E84HXX4lTmWsZf2BUMON",
+"titre": "socle-10.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.002,
+"couleur": "#2f2a2d",
+"mips": [
+256,
+512
+],
+"nom": "Socle de marbre noir et d’améthystes",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"caverne"
+],
+"region": [
+"surface",
+"outreterre"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-11",
+"drive": "19XTm4n-j1d1sPNZaZBfBhZiUfyohUCmv",
+"titre": "socle-11.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.997,
+"couleur": "#594d33",
+"mips": [
+256,
+512
+],
+"nom": "Socle d’herbe et de cailloux",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"campagne",
+"foret"
+],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-12",
+"drive": "1RxREx8Rb1__WunSia4hfpdFNisW3NtjV",
+"titre": "socle-12.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.006,
+"couleur": "#352e34",
+"mips": [
+256,
+512
+],
+"nom": "Socle d’obsidienne veinée de violet",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"caverne",
+"volcan"
+],
+"region": [
+"surface",
+"outreterre"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-13",
+"drive": "1-LBXuUUDiNtSNeF6SRhUHbVdBJ_f2MOT",
+"titre": "socle-13.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.01,
+"couleur": "#b0834e",
+"mips": [
+256,
+512
+],
+"nom": "Socle de sable du désert",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"desert"
+],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-14",
+"drive": "1LR8nIf7YTSvfS63aNOOZi1aju-JgPLkJ",
+"titre": "socle-14.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.002,
+"couleur": "#98a7b3",
+"mips": [
+256,
+512
+],
+"nom": "Socle de glace",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"toundra",
+"montagne"
+],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-15",
+"drive": "1BxEpOrF9yLnNzCv_GgN63p6UMGCO8PQ0",
+"titre": "socle-15.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.009,
+"couleur": "#4c3725",
+"mips": [
+256,
+512
+],
+"nom": "Socle de terre et de feuilles mortes",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"foret"
+],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-16",
+"drive": "1L-tscXqNN_TBY9FiH06mZGvKxI4nZxDP",
+"titre": "socle-16.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.003,
+"couleur": "#b1b2b6",
+"mips": [
+256,
+512
+],
+"nom": "Socle de neige",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"toundra",
+"montagne"
+],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-17",
+"drive": "1PftG77qttJULJz95wJIMtNzBiaOeQZiO",
+"titre": "socle-17.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.998,
+"couleur": "#243e3f",
+"mips": [
+256,
+512
+],
+"nom": "Socle d’eau",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"riviere",
+"lac",
+"mer"
+],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-18",
+"drive": "1gRqv-M8fj8No9NdBLY9yI9tq87dev9jP",
+"titre": "socle-18.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.008,
+"couleur": "#b9b8b8",
+"mips": [
+256,
+512
+],
+"nom": "Socle de nuages (marbre blanc)",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"astral",
+"temple"
+],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-19",
+"drive": "1hj9rvWngirqBs8NvoI4Hb7F3dhZl35ue",
+"titre": "socle-19.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.007,
+"couleur": "#bca98d",
+"mips": [
+256,
+512
+],
+"nom": "Socle de marbre blanc (bordure dorée)",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"temple",
+"palais"
+],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-20",
+"drive": "1dz2dfR6mY4f-xOEGuXMeSmQodlZzHUdZ",
+"titre": "socle-20.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.002,
+"couleur": "#847461",
+"mips": [
+256,
+512
+],
+"nom": "Socle de sable et de galets",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"cote",
+"riviere"
+],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-21",
+"drive": "1kyaNG0MjYaykI7hWVQp247BIoEiG4WjJ",
+"titre": "socle-21.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.004,
+"couleur": "#41362c",
+"mips": [
+256,
+512
+],
+"nom": "Socle de boue et d’aiguilles de pin",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"foret",
+"marais"
+],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-22",
+"drive": "1CNBY2x2XmpkePpYSi-8ckvzx-BuuQJk-",
+"titre": "socle-22.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.004,
+"couleur": "#45342f",
+"mips": [
+256,
+512
+],
+"nom": "Socle de lave",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"volcan",
+"caverne"
+],
+"region": [
+"surface",
+"outreterre"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-23",
+"drive": "1RKi6A22Ei7Ziy-eS4B1esvRXEF7azrwh",
+"titre": "socle-23.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.001,
+"couleur": "#655950",
+"mips": [
+256,
+512
+],
+"nom": "Socle de planches claires (ponton)",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"ponton",
+"cote",
+"interieur"
+],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-24",
+"drive": "1vJqHGQbtUIxF1O6dI-uu5Ft4UGGflqem",
+"titre": "socle-24.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.005,
+"couleur": "#73675a",
+"mips": [
+256,
+512
+],
+"nom": "Socle de pavés",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"ville",
+"route"
+],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-25",
+"drive": "1DgJcUURRRWr0WSoT14TgRoLdohS59S5R",
+"titre": "socle-25.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.002,
+"couleur": "#a99c8a",
+"mips": [
+256,
+512
+],
+"nom": "Socle de marbre en damier",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"temple",
+"palais"
+],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "socle-26",
+"drive": "1OH_9RqgMcSVKm8S73qwfQKnAE8rUOTzR",
+"titre": "socle-26.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.999,
+"couleur": "#423729",
+"mips": [
+256,
+512
+],
+"nom": "Socle de briques moussues",
+"cat": "socle",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"ruine",
+"ville"
+],
+"region": [
+"surface"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "tablette-reflux-gravee-0-65x0-45",
+"drive": "1KneVjVtF79S_D2naewPF-d4fAA7sjBdR",
+"titre": "tablette-reflux-gravee-0.65x0.45.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.46,
+"couleur": "#716663",
+"mips": [
+256,
+512
+],
+"nom": "Tablette gravée",
+"cat": "repere",
+"taille": [
+0.65,
+0.45
+],
+"milieux": [
+"caverne",
+"ruine",
+"temple",
+"interieur"
+],
+"usage": [
+"indice"
+],
+"region": [
+"surface",
+"outreterre"
+],
+"climats": [],
+"saisons": []
+},
+{
+"id": "toit-atelier-bardeaux-appentis-3dcb8898",
+"drive": "1Rq48Q6-BO4awN2S6DwNyI5TcNvL9kRsV",
+"titre": "toit-atelier-bardeaux-appentis-3dcb8898.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.17,
+"couleur": "#60554c",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Atelier à appentis (bardeaux)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "bardeaux",
+"usage": [
+"atelier"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"taille": [
+12,
+10.26
+],
+"masque": "1111100011111111111111111111111111111111111111001111100011111000",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-auberge-t-terre-cuite-automne-8a69a25e",
+"drive": "1kbLjfHtjkAZu45k8BZdVVHKkIxLsnkpd",
+"titre": "toit-auberge-t-terre-cuite-automne-8a69a25e.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.264,
+"couleur": "#6c4433",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Auberge (terre cuite, automne)",
+"cat": "toit",
+"forme": "T",
+"materiau": "terre cuite",
+"usage": [
+"auberge",
+"civique"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"chaud"
+],
+"saisons": [
+"automne"
+],
+"taille": [
+16,
+12.66
+],
+"masque": "1111111111111111111111111111111100011000000110000001100000011000",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-auberge-t-terre-cuite-ete-44b61555",
+"drive": "1etd2ceLolIbb8cV2UXXaoDuriF_-ExOC",
+"titre": "toit-auberge-t-terre-cuite-ete-44b61555.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.334,
+"couleur": "#8a4930",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Auberge (terre cuite, été)",
+"cat": "toit",
+"forme": "T",
+"materiau": "terre cuite",
+"usage": [
+"auberge",
+"civique"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"chaud"
+],
+"saisons": [
+"ete"
+],
+"taille": [
+16,
+11.99
+],
+"masque": "1111111111111111111111111111111100011000000110000001100000011000",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-auberge-t-terre-cuite-hiver-411d06b4",
+"drive": "1xmMpf9ecvk1OpHCLSe5qTjOmMjK-hJmE",
+"titre": "toit-auberge-t-terre-cuite-hiver-411d06b4.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.273,
+"couleur": "#9f8f8b",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Auberge (terre cuite, hiver)",
+"cat": "toit",
+"forme": "T",
+"materiau": "terre cuite",
+"usage": [
+"auberge",
+"civique"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"chaud",
+"froid",
+"tempere"
+],
+"saisons": [
+"hiver"
+],
+"taille": [
+16,
+12.57
+],
+"masque": "1111111111111111111111111111111100111000000110000001100000011000",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-auberge-t-terre-cuite-printemps-0145e7f3",
+"drive": "1H6fV1tM9AZKicxxkwHBt7jWzyeaAL1zV",
+"titre": "toit-auberge-t-terre-cuite-printemps-0145e7f3.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.256,
+"couleur": "#6e3f2d",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Auberge (terre cuite, printemps)",
+"cat": "toit",
+"forme": "T",
+"materiau": "terre cuite",
+"usage": [
+"auberge",
+"civique"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"chaud"
+],
+"saisons": [
+"printemps"
+],
+"taille": [
+16,
+12.74
+],
+"masque": "1111111111111111111111111111111100111000001110000011100000011000",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-bains-coupoles-chaux-desert-hiver-20x16-3a8",
+"drive": "1egSivO2iCk92qafiK_M2P229XGbCPUUy",
+"titre": "toit-bains-coupoles-chaux-desert-hiver-20x16-3a89589f.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.296,
+"couleur": "#b19779",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Bains (chaux, hiver)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "chaux",
+"usage": [
+"civique"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"aride",
+"chaud",
+"froid"
+],
+"saisons": [
+"hiver"
+],
+"taille": [
+20.0,
+16.0
+],
+"masque": "0111111011111111111111111111111111111111111111111111111101111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-caravanserail-terre-desert-saison-seche-30x",
+"drive": "1ga5mMnCixsB1OE9BVK1zBFhPlg3HsHmL",
+"titre": "toit-caravanserail-terre-desert-saison-seche-30x24-ef78ec71.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.258,
+"couleur": "#bf9973",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Caravansérail (tuiles)",
+"cat": "toit",
+"forme": "cour",
+"materiau": "tuiles",
+"usage": [
+"auberge",
+"civique"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"chaud",
+"aride"
+],
+"saisons": [],
+"taille": [
+30.0,
+24.0
+],
+"masque": "1111111111111111110000011100000111000001110000111111111100011000",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-carre-chaume-6x6-61e09968",
+"drive": "1aS-PgSC0alXDN_uH7wKjEZF2mbEMEEDI",
+"titre": "toit-carre-chaume-6x6-61e09968.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.993,
+"couleur": "#926d41",
+"mips": [
+256,
+512
+],
+"nom": "Maison (chaume)",
+"cat": "toit",
+"forme": "carre",
+"materiau": "chaume",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere"
+],
+"saisons": [],
+"taille": [
+6.0,
+6.0
+],
+"masque": "1111111111111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-carre-terre-plate-6x6-d3340ef1",
+"drive": "1vRE3fYihs8OTT_lq7fL4XSQXrBLs-TFj",
+"titre": "toit-carre-terre-plate-6x6-d3340ef1.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.001,
+"couleur": "#bf9a72",
+"mips": [
+256,
+512
+],
+"nom": "Maison (terre)",
+"cat": "toit",
+"forme": "carre",
+"materiau": "terre",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"chaud",
+"aride"
+],
+"saisons": [],
+"taille": [
+6.0,
+6.0
+],
+"masque": "1111111111111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-chalet-alpin-lauzes-ete-18fe66a4",
+"drive": "1RkkPFfOIJAaZ_U_jmRuwkW_67YVlRgzy",
+"titre": "toit-chalet-alpin-lauzes-ete-18fe66a4.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.822,
+"couleur": "#76726b",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Chalet (lauzes, été)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "lauzes",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"froid",
+"tempere"
+],
+"saisons": [
+"ete"
+],
+"taille": [
+9.87,
+12
+],
+"masque": "1111100011111100111111101111111111111111111111111111110011111100",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-chateau-asymetrique-ardoise-a-verifier-3342",
+"drive": "1GVEWGF7NncRHvQLb91emzdHdVnlIPpTb",
+"titre": "toit-chateau-asymetrique-ardoise-a-verifier-3342a039.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.34,
+"couleur": "#5f5e5a",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Château (ardoise)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "ardoise",
+"usage": [
+"noble",
+"civique"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"taille": [
+26,
+19.4
+],
+"masque": "0000000011000011111111111111111011111110110101101100010001000000",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-chateau-cour-ardoise-a-verifier-9d2ae5df",
+"drive": "19M0JyHaMpWDrzcCc_zWzl5HzewDIfnTF",
+"titre": "toit-chateau-cour-ardoise-a-verifier-9d2ae5df.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.246,
+"couleur": "#575652",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Château (ardoise)",
+"cat": "toit",
+"forme": "cour",
+"materiau": "ardoise",
+"usage": [
+"noble",
+"civique"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"taille": [
+26,
+20.87
+],
+"masque": "1100001111111111111111111100001111000011110000111100001111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-demeure-noble-l-terre-cuite-22x14-a-verifie",
+"drive": "10Osy99wR0p4dNiNM1uONC9Zy0_heJ4HX",
+"titre": "toit-demeure-noble-l-terre-cuite-22x14-a-verifier-53ca4f0b.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.513,
+"couleur": "#663f37",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Demeure noble (terre cuite)",
+"cat": "toit",
+"forme": "L",
+"materiau": "terre cuite",
+"usage": [
+"noble"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"chaud"
+],
+"saisons": [],
+"taille": [
+22.0,
+14.0
+],
+"masque": "1100001011111111111111111111111111000000110000001100000011000000",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-demeure-noble-mansarde-ardoise-10x16-08b5c7",
+"drive": "1DP9uGmjMOfdJmHQry25TlRFV_edH_UAw",
+"titre": "toit-demeure-noble-mansarde-ardoise-10x16-08b5c73a.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.589,
+"couleur": "#505154",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Demeure noble (ardoise)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "ardoise",
+"usage": [
+"noble"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"taille": [
+10.0,
+16.0
+],
+"masque": "1111111111111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-donjon-ardoise-quatre-tourelles-9322bb96",
+"drive": "1McU6B7xM9qgP7Porn50fFjGhkSrJn9Dm",
+"titre": "toit-donjon-ardoise-quatre-tourelles-9322bb96.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.001,
+"couleur": "#49494a",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Donjon (ardoise)",
+"cat": "toit",
+"forme": "carre",
+"materiau": "ardoise",
+"usage": [
+"noble",
+"tour"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"taille": [
+18,
+17.99
+],
+"masque": "1100001111111111011111100111111001111110011111101111111111000011",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-echoppe-angle-bardeaux-auvents-f906f888",
+"drive": "1PUP-QPN8_VA6FLF1zkOvtJjmaSQf0NKP",
+"titre": "toit-echoppe-angle-bardeaux-auvents-f906f888.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.999,
+"couleur": "#533932",
+"mips": [
+256,
+512
+],
+"nom": "Auvent de toile",
+"cat": "marche",
+"taille": [
+4,
+3
+],
+"milieux": [
+"ville"
+],
+"usage": [
+"marche"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-echoppe-etroite-terre-cuite-auvent-2f120286",
+"drive": "1bCw_LIOQuQEPlKoZ-PhYw_wb9tIvaZLh",
+"titre": "toit-echoppe-etroite-terre-cuite-auvent-2f120286.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.368,
+"couleur": "#794b35",
+"mips": [
+256,
+512
+],
+"nom": "Auvent de toile",
+"cat": "marche",
+"taille": [
+4,
+3
+],
+"milieux": [
+"ville"
+],
+"usage": [
+"marche"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-echoppes-mitoyennes-terre-cuite-auvents-62a",
+"drive": "13Wz5FCrCn4OTxhZwRjI-abl0WJIp_N5P",
+"titre": "toit-echoppes-mitoyennes-terre-cuite-auvents-62a4a035.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.922,
+"couleur": "#815138",
+"mips": [
+256,
+512
+],
+"nom": "Auvent de toile",
+"cat": "marche",
+"taille": [
+4,
+3
+],
+"milieux": [
+"ville"
+],
+"usage": [
+"marche"
+],
+"climats": [],
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-ecuries-bardeaux-ete-55a78c49",
+"drive": "1zre7VPHJM0b8ZmC58NKyOrbriN7WEi9A",
+"titre": "toit-ecuries-bardeaux-ete-55a78c49.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 3.211,
+"couleur": "#6b5b4c",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Écuries (bardeaux, été)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "bardeaux",
+"usage": [
+"ferme",
+"ecurie"
+],
+"milieux": [
+"campagne",
+"ferme",
+"ville"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [
+"ete"
+],
+"taille": [
+18,
+5.61
+],
+"masque": "1111111111111111111111111111111111111111111111111111111100011000",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-ecuries-bardeaux-hiver-223971ca",
+"drive": "1rvFu6rit4FilTHhgzYggads2dxayMY83",
+"titre": "toit-ecuries-bardeaux-hiver-223971ca.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 3.453,
+"couleur": "#949192",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Écuries (bardeaux, hiver)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "bardeaux",
+"usage": [
+"ferme",
+"ecurie"
+],
+"milieux": [
+"campagne",
+"ferme",
+"ville"
+],
+"climats": [
+"froid",
+"tempere"
+],
+"saisons": [
+"hiver"
+],
+"taille": [
+18,
+5.21
+],
+"masque": "1111111111111111111111111111111111111111111111111111111100000000",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-ecuries-bardeaux-printemps-1d361fde",
+"drive": "1MY7dZQ8uLwZGQsZw4pdIekcDN4MATBlG",
+"titre": "toit-ecuries-bardeaux-printemps-1d361fde.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 3.201,
+"couleur": "#423b32",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Écuries (bardeaux, printemps)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "bardeaux",
+"usage": [
+"ferme",
+"ecurie"
+],
+"milieux": [
+"campagne",
+"ferme",
+"ville"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [
+"printemps"
+],
+"taille": [
+18,
+5.62
+],
+"masque": "1111111111111111111111111111111111111111111111111111111100011000",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-ecuries-bardeaux-variante-ada2ca98",
+"drive": "1aSHEScYvE93JbMdhHD4Vg3Dozsn1PgTm",
+"titre": "toit-ecuries-bardeaux-variante-ada2ca98.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 3.122,
+"couleur": "#54483e",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Écuries (bardeaux)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "bardeaux",
+"usage": [
+"ferme",
+"ecurie"
+],
+"milieux": [
+"campagne",
+"ferme",
+"ville"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"taille": [
+18,
+5.77
+],
+"masque": "1111111111111111111111111111111111111111111111110001100000011000",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-entrepot-portuaire-terre-cuite-automne-12x2",
+"drive": "1OEbGi6s-B0_BKHzvLR3rLWxcTQ3Q_-JQ",
+"titre": "toit-entrepot-portuaire-terre-cuite-automne-12x24-2e5e474f.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.476,
+"couleur": "#593b2e",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Entrepôt (terre cuite, automne)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "terre cuite",
+"usage": [
+"atelier",
+"civique"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"chaud"
+],
+"saisons": [
+"automne"
+],
+"taille": [
+12.0,
+24.0
+],
+"masque": "1111111111111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-ferme-chaume-annexe-ete-a-verifier-b99f5147",
+"drive": "1FDhj0KTNrjTxoiX_oQxTPJiH7g6Sy07M",
+"titre": "toit-ferme-chaume-annexe-ete-a-verifier-b99f5147.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 2.367,
+"couleur": "#8a6c48",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Ferme à annexe (chaume, été)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "chaume",
+"usage": [
+"ferme",
+"maison"
+],
+"milieux": [
+"campagne",
+"ferme",
+"ville"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"ete"
+],
+"taille": [
+14,
+5.91
+],
+"masque": "1111110011111100111111001111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-ferme-chaume-annexe-hiver-e4107269",
+"drive": "1_COSdy3esE3I8yRdumt6r0XmYNN8WQJG",
+"titre": "toit-ferme-chaume-annexe-hiver-e4107269.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 2.092,
+"couleur": "#a0968d",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Ferme à annexe (chaume, hiver)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "chaume",
+"usage": [
+"ferme",
+"maison"
+],
+"milieux": [
+"campagne",
+"ferme",
+"ville"
+],
+"climats": [
+"froid",
+"tempere"
+],
+"saisons": [
+"hiver"
+],
+"taille": [
+14,
+6.69
+],
+"masque": "1111110011111100111111101111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-ferme-chaume-annexe-printemps-fb84dc1e",
+"drive": "1dlReR6TNRIgINwgAC_uSCvCVN5O4oT9o",
+"titre": "toit-ferme-chaume-annexe-printemps-fb84dc1e.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.991,
+"couleur": "#6a5136",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Ferme à annexe (chaume, printemps)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "chaume",
+"usage": [
+"ferme",
+"maison"
+],
+"milieux": [
+"campagne",
+"ferme",
+"ville"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"printemps"
+],
+"taille": [
+14,
+7.03
+],
+"masque": "1111110011111100111111101111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-ferme-chaume-annexe-variante-96f6c2c3",
+"drive": "1wsP_pEz4TEyTRcy2yf8CD1IgPEc9U4BE",
+"titre": "toit-ferme-chaume-annexe-variante-96f6c2c3.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.972,
+"couleur": "#7a6142",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Ferme à annexe (chaume)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "chaume",
+"usage": [
+"ferme",
+"maison"
+],
+"milieux": [
+"campagne",
+"ferme",
+"ville"
+],
+"climats": [
+"tempere"
+],
+"saisons": [],
+"taille": [
+14,
+7.1
+],
+"masque": "1111111011111110111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-forge-terre-cuite-tropical-humide-fb730fd6",
+"drive": "10YEZb4NDJLlVrkVggdvpThiL3-j2Xay9",
+"titre": "toit-forge-terre-cuite-tropical-humide-fb730fd6.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.403,
+"couleur": "#573526",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Forge (terre cuite)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "terre cuite",
+"usage": [
+"atelier"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tropical",
+"chaud"
+],
+"saisons": [],
+"taille": [
+10,
+7.13
+],
+"masque": "1111111111111111111111111111111111111111111011110110111100001111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-forteresse-ardoise-cour-quatre-tours-15681d",
+"drive": "1LPxoz6rGVxdRp3XGBFqd9DAI21sr_RUX",
+"titre": "toit-forteresse-ardoise-cour-quatre-tours-15681d35.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.011,
+"couleur": "#4f4c4a",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Forteresse (ardoise)",
+"cat": "toit",
+"forme": "cour",
+"materiau": "ardoise",
+"usage": [
+"noble",
+"civique"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"taille": [
+30,
+29.66
+],
+"masque": "1100001111111111110000110100001001000010110000111111111111000011",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-grenier-nordique-bardeaux-hiver-7x10-0a92ac",
+"drive": "1t4nZktpajUkWGt2tiH2fnamzWWc0179P",
+"titre": "toit-grenier-nordique-bardeaux-hiver-7x10-0a92ac23.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.674,
+"couleur": "#9ca0a9",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Grenier (bardeaux, hiver)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "bardeaux",
+"usage": [
+"ferme"
+],
+"milieux": [
+"campagne",
+"ferme",
+"ville"
+],
+"climats": [
+"froid",
+"tempere"
+],
+"saisons": [
+"hiver"
+],
+"taille": [
+7.0,
+10.0
+],
+"masque": "1111111111111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-halle-terre-cuite-ete-22x14-5c2cc01e",
+"drive": "1CH_RvM7izFcDxbYY1cjArKsPIQpHwWKz",
+"titre": "toit-halle-terre-cuite-ete-22x14-5c2cc01e.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.627,
+"couleur": "#744735",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Halle (terre cuite, été)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "terre cuite",
+"usage": [
+"marche",
+"civique"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"chaud"
+],
+"saisons": [
+"ete"
+],
+"taille": [
+22.0,
+14.0
+],
+"masque": "1111111111111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-l-ardoise-14x12-9e76858f",
+"drive": "1X4NZ3ZRGIXhdZLDnP0DJln5Ouy5eBF2n",
+"titre": "toit-l-ardoise-14x12-9e76858f.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.168,
+"couleur": "#514b55",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison en L (ardoise)",
+"cat": "toit",
+"forme": "L",
+"materiau": "ardoise",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"taille": [
+14.0,
+12.0
+],
+"masque": "1111111111111111111111111110000011100000111000001110000011100000",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-l-bardeaux-12x10-41c1fa64",
+"drive": "1B8fHCI8f77EJEngK1UTH_y4sS2svINAT",
+"titre": "toit-l-bardeaux-12x10-41c1fa64.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.202,
+"couleur": "#675a4e",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison en L (bardeaux)",
+"cat": "toit",
+"forme": "L",
+"materiau": "bardeaux",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"taille": [
+12.0,
+10.0
+],
+"masque": "1111111111111111111111111111111111100000111000001110000011100000",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-l-bardeaux-hiver-12x12-f65b94a4",
+"drive": "1EP7AfbHRqljj-XD_ShYif347tlxfgd-u",
+"titre": "toit-l-bardeaux-hiver-12x12-f65b94a4.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.996,
+"couleur": "#98979d",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison en L (bardeaux, hiver)",
+"cat": "toit",
+"forme": "L",
+"materiau": "bardeaux",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"froid",
+"tempere"
+],
+"saisons": [
+"hiver"
+],
+"taille": [
+12.0,
+12.0
+],
+"masque": "1111111111111111111111111111111111100000111000001110000011100000",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-l-chaume-12x12-5529c3f1",
+"drive": "1UKTIub7gqyVP-YF7HDC5cxEsBTE3C4gC",
+"titre": "toit-l-chaume-12x12-5529c3f1.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.217,
+"couleur": "#98703c",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison en L (chaume)",
+"cat": "toit",
+"forme": "L",
+"materiau": "chaume",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere"
+],
+"saisons": [],
+"taille": [
+12.0,
+12.0
+],
+"masque": "1111111111111111111111111111111111100000111000001110000011100000",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-l-lauzes-12x12-ac792ad6",
+"drive": "1eWRkcMjUiLOPxibvLkCFfKD4bYk6u8R1",
+"titre": "toit-l-lauzes-12x12-ac792ad6.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.999,
+"couleur": "#796e61",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison en L (lauzes)",
+"cat": "toit",
+"forme": "L",
+"materiau": "lauzes",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"taille": [
+12.0,
+12.0
+],
+"masque": "1111111111111111111111111111111111100000111100001111000011100000",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-l-terre-plate-12x10-6fe275b4",
+"drive": "1ks3QFCVm8PFN-3mC4f_eWfkyElmr3_Ed",
+"titre": "toit-l-terre-plate-12x10-6fe275b4.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.194,
+"couleur": "#bd9873",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison en L (terre)",
+"cat": "toit",
+"forme": "L",
+"materiau": "terre",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"chaud",
+"aride"
+],
+"saisons": [],
+"taille": [
+12.0,
+10.0
+],
+"masque": "1111111111111111111111111111111111100000111000001110000011100000",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-longere-chaume-14x8-0f2ebf49",
+"drive": "1xllpTxFbwobUiYhZOpQtuLbnc9HBCaEc",
+"titre": "toit-longere-chaume-14x8-0f2ebf49.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.827,
+"couleur": "#8e6c42",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Longère (chaume)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "chaume",
+"usage": [
+"ferme",
+"maison"
+],
+"milieux": [
+"campagne",
+"ferme",
+"ville"
+],
+"climats": [
+"tempere"
+],
+"saisons": [],
+"taille": [
+14.0,
+8.0
+],
+"masque": "1111111011111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-longere-nordique-tourbe-ete-8x18-a8761f39",
+"drive": "1Uah3XkvZ5J2S17EtDcAsWCoC3gFnhYWh",
+"titre": "toit-longere-nordique-tourbe-ete-8x18-a8761f39.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.375,
+"couleur": "#57562b",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison de tourbe",
+"cat": "toit",
+"forme": "rect",
+"materiau": "tourbe",
+"taille": [
+10,
+6
+],
+"milieux": [
+"campagne",
+"toundra"
+],
+"climats": [
+"froid"
+],
+"usage": [
+"maison",
+"ferme"
+],
+"masque": "0011110011111111111111111111111111111111111111111111111101111110",
+"saisons": [],
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-longere-palmes-tropical-mousson-9x26-2c3c8e",
+"drive": "1muPTaNfvWsWSRoMAzlE1gmEQOiOx1cIZ",
+"titre": "toit-longere-palmes-tropical-mousson-9x26-2c3c8e31.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.288,
+"couleur": "#3e332a",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Longère (palmes)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "palmes",
+"usage": [
+"ferme",
+"maison"
+],
+"milieux": [
+"campagne",
+"ferme",
+"ville"
+],
+"climats": [
+"tropical",
+"chaud"
+],
+"saisons": [],
+"taille": [
+9.0,
+26.0
+],
+"masque": "1111111111111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-maison-commune-ardoise-printemps-b3098e55",
+"drive": "1w-9g6dFjCK6r2eOTCyXZT4WIyaS3Rj5e",
+"titre": "toit-maison-commune-ardoise-printemps-b3098e55.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.299,
+"couleur": "#404040",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison commune (ardoise, printemps)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "ardoise",
+"usage": [
+"civique"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [
+"printemps"
+],
+"taille": [
+16,
+12.32
+],
+"masque": "0011110000111100011111101111111011111111001111110011110000111100",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-maison-tropicale-terre-cuite-saison-seche-a",
+"drive": "1y6apAkXHI0cLFUJLTDLBEHxrZZATIZSh",
+"titre": "toit-maison-tropicale-terre-cuite-saison-seche-a-verifier-e2475d59.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.662,
+"couleur": "#8a533e",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison tropicale (terre cuite)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "terre cuite",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tropical",
+"chaud"
+],
+"saisons": [],
+"taille": [
+9.26,
+14
+],
+"masque": "1111111111111111111111111111111111111111001111000011110000111100",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-maison-u-terre-plate-desert-ete-16x14-a05de",
+"drive": "1ZQjENLynIvqS6-qCKvU8ixYtJFk2nbwN",
+"titre": "toit-maison-u-terre-plate-desert-ete-16x14-a05de609.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.292,
+"couleur": "#c69d76",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison en U (terre, été)",
+"cat": "toit",
+"forme": "U",
+"materiau": "terre",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"chaud",
+"aride"
+],
+"saisons": [
+"ete"
+],
+"taille": [
+16.0,
+14.0
+],
+"masque": "1111111111111111111111111111111111000011110000111100001111000011",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-manoir-h-ardoise-24x20-342a18e7",
+"drive": "1X0AvMRPaDeuHeEcMH_o9nyMorKk0lKDk",
+"titre": "toit-manoir-h-ardoise-24x20-342a18e7.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.205,
+"couleur": "#504b4f",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Manoir (ardoise)",
+"cat": "toit",
+"forme": "H",
+"materiau": "ardoise",
+"usage": [
+"noble",
+"civique"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"taille": [
+24.0,
+20.0
+],
+"masque": "1110011111100111111001111111111111111111111001111110011111100111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-monastere-terre-cuite-automne-28x24-cebc9ea",
+"drive": "1Pl5iw_mo7NJibuwTl2hEJn-BDyQaDDPS",
+"titre": "toit-monastere-terre-cuite-automne-28x24-cebc9ea2.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.065,
+"couleur": "#8f5642",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Monastère (terre cuite, automne)",
+"cat": "toit",
+"forme": "cour",
+"materiau": "terre cuite",
+"usage": [
+"temple",
+"civique"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"chaud"
+],
+"saisons": [
+"automne"
+],
+"taille": [
+28.0,
+24.0
+],
+"masque": "1111111111111111110000111100001111111111111111110000001100000011",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-pavillon-octogonal-terre-cuite-mousson-15bb",
+"drive": "14Db9L3ZwzP6WuaiQEdLWNlu3papZbkjn",
+"titre": "toit-pavillon-octogonal-terre-cuite-mousson-15bbfdf2.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.009,
+"couleur": "#6b3f2b",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Pavillon (terre cuite)",
+"cat": "toit",
+"forme": "octo",
+"materiau": "terre cuite",
+"usage": [
+"noble",
+"temple"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tropical",
+"chaud"
+],
+"saisons": [],
+"taille": [
+10,
+9.91
+],
+"masque": "0011110001111110111111111111111111111111111111110111111000111100",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-pavillon-octogonal-tuiles-vertes-9a81f23f",
+"drive": "1Zo8FBtX1FkEfyyNs-Vjtgah-EnAcz7yq",
+"titre": "toit-pavillon-octogonal-tuiles-vertes-9a81f23f.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.734,
+"couleur": "#5c5a39",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Pavillon (tuiles vertes)",
+"cat": "toit",
+"forme": "octo",
+"materiau": "tuiles vertes",
+"usage": [
+"noble",
+"temple"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"chaud"
+],
+"saisons": [],
+"taille": [
+7.34,
+10
+],
+"masque": "0011110011111111111111111111111101111110001111000011110000111100",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-rectangle-ardoise-7x9-ebd53f2a",
+"drive": "1leYuyhIlQM_CJgidQyDUKj0DAqfPujKG",
+"titre": "toit-rectangle-ardoise-7x9-ebd53f2a.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.754,
+"couleur": "#504e57",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison (ardoise)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "ardoise",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"taille": [
+7.0,
+9.0
+],
+"masque": "1111111111111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-rectangle-ardoise-lucarnes-9x13-ee9e49da",
+"drive": "12NkXiicW2a8h0SXuDbiKwyQcSTNwV3HI",
+"titre": "toit-rectangle-ardoise-lucarnes-9x13-ee9e49da.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.684,
+"couleur": "#504c56",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison (ardoise)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "ardoise",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"taille": [
+9.0,
+13.0
+],
+"masque": "1111111111111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-rectangle-ardoise-lucarnes-reprise-8c7d0b32",
+"drive": "1C-GoIiRwjxUH16WnPtuGXIJ3fq7r6nEY",
+"titre": "toit-rectangle-ardoise-lucarnes-reprise-8c7d0b32.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.683,
+"couleur": "#59555e",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison (ardoise)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "ardoise",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"taille": [
+6.83,
+10
+],
+"masque": "1111111111111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-rectangle-bardeaux-5x7-de5c0623",
+"drive": "1z-ojNf2N7JqbyfEQVsj3DvxaWE3Yw6uB",
+"titre": "toit-rectangle-bardeaux-5x7-de5c0623.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.681,
+"couleur": "#5a5148",
+"mips": [
+256,
+512
+],
+"nom": "Maison (bardeaux)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "bardeaux",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"taille": [
+5.0,
+7.0
+],
+"masque": "1111111111111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-rectangle-bardeaux-hiver-6x8-44b48e2a",
+"drive": "1blQCWOq7VEgYd0MH8stURb6hwJjdpRIZ",
+"titre": "toit-rectangle-bardeaux-hiver-6x8-44b48e2a.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.709,
+"couleur": "#96989f",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison (bardeaux, hiver)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "bardeaux",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"froid",
+"tempere"
+],
+"saisons": [
+"hiver"
+],
+"taille": [
+6.0,
+8.0
+],
+"masque": "1111111111111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-rectangle-bardeaux-hiver-8x12-a-verifier-05",
+"drive": "1RJ6K5IDMplDmazEWNOQls3FX9wohfgXy",
+"titre": "toit-rectangle-bardeaux-hiver-8x12-a-verifier-0594ff29.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.587,
+"couleur": "#9a9a9f",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison (bardeaux, hiver)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "bardeaux",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"froid",
+"tempere"
+],
+"saisons": [
+"hiver"
+],
+"taille": [
+8.0,
+12.0
+],
+"masque": "0111111011111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-rectangle-bardeaux-hiver-reprise-a-verifier",
+"drive": "14njqeX_us6DVLxdtIZYGFox0zv1lKklV",
+"titre": "toit-rectangle-bardeaux-hiver-reprise-a-verifier-662a9331.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.589,
+"couleur": "#a3a2a7",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison (bardeaux, hiver)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "bardeaux",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"froid",
+"tempere"
+],
+"saisons": [
+"hiver"
+],
+"taille": [
+5.89,
+10
+],
+"masque": "0111111011111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-rectangle-bardeaux-lucarnes-8x12-a-verifier",
+"drive": "1oEgOsE9auGA6gqzaetQhvYBgyV5vcqM3",
+"titre": "toit-rectangle-bardeaux-lucarnes-8x12-a-verifier-e3a805fb.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.641,
+"couleur": "#5f534a",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison (bardeaux)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "bardeaux",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"taille": [
+8.0,
+12.0
+],
+"masque": "1111111111111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-rectangle-bardeaux-lucarnes-reprise-a-verif",
+"drive": "1EjepoydEy_m_CBuJ1993HVYh2Am1oJni",
+"titre": "toit-rectangle-bardeaux-lucarnes-reprise-a-verifier-a4aa2d87.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.643,
+"couleur": "#66564a",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison (bardeaux)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "bardeaux",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"taille": [
+6.43,
+10
+],
+"masque": "1111111111111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-rectangle-chaume-6x11-abe496fa",
+"drive": "1j9X0HtMtfymlrCplxIapa5vcb3zDAMNb",
+"titre": "toit-rectangle-chaume-6x11-abe496fa.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.504,
+"couleur": "#8f693f",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison (chaume)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "chaume",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere"
+],
+"saisons": [],
+"taille": [
+6.0,
+11.0
+],
+"masque": "1111111111111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-rectangle-lauzes-6x8-a66771cf",
+"drive": "1--GPSdHCNQhJXiJKeUU8Tfv4E_dqrls7",
+"titre": "toit-rectangle-lauzes-6x8-a66771cf.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.717,
+"couleur": "#7f7366",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison (lauzes)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "lauzes",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"taille": [
+6.0,
+8.0
+],
+"masque": "1111111111111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-rectangle-lauzes-8x11-028a3a60",
+"drive": "1kJNy9oQpDcY5LsXYnCsTpYi6UY0AYtbH",
+"titre": "toit-rectangle-lauzes-8x11-028a3a60.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.652,
+"couleur": "#776c60",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison (lauzes)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "lauzes",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"taille": [
+8.0,
+11.0
+],
+"masque": "1111111111111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-rectangle-terre-cuite-6x9-a-verifier-7eada2",
+"drive": "1VhoabjgJhPJoMINtFJrLJsL24EDdVIGs",
+"titre": "toit-rectangle-terre-cuite-6x9-a-verifier-7eada207.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.605,
+"couleur": "#763c2b",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison (terre cuite)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "terre cuite",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"chaud"
+],
+"saisons": [],
+"taille": [
+6.0,
+9.0
+],
+"masque": "1111111111111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-rectangle-terre-cuite-8x12-a-verifier-ce69c",
+"drive": "1gqC3-x-OtfroYD09SRiupvGBmc16T4Sj",
+"titre": "toit-rectangle-terre-cuite-8x12-a-verifier-ce69cfa4.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.636,
+"couleur": "#824831",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison (terre cuite)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "terre cuite",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"chaud"
+],
+"saisons": [],
+"taille": [
+8.0,
+12.0
+],
+"masque": "1111111111111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-rectangle-terre-cuite-reprise-a-verifier-7a",
+"drive": "195iGdovS5QpYeP093DYSB2-9K0BbJ3iQ",
+"titre": "toit-rectangle-terre-cuite-reprise-a-verifier-7a05ca00.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.606,
+"couleur": "#813b24",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison (terre cuite)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "terre cuite",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"chaud"
+],
+"saisons": [],
+"taille": [
+6.06,
+10
+],
+"masque": "1111111111111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-rectangle-terre-cuite-variante-7e3dc3ce",
+"drive": "1nWl7FP_GZ0Qz1AVntCn1i_mVtROltHti",
+"titre": "toit-rectangle-terre-cuite-variante-7e3dc3ce.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.636,
+"couleur": "#874830",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison (terre cuite)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "terre cuite",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"chaud"
+],
+"saisons": [],
+"taille": [
+6.36,
+10
+],
+"masque": "1111111111111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-rectangle-terre-plate-8x12-a-verifier-2a9e6",
+"drive": "187radXez8eSSLR4pgVv0i8wxFvldiQgL",
+"titre": "toit-rectangle-terre-plate-8x12-a-verifier-2a9e608c.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.638,
+"couleur": "#bc936a",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison (terre)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "terre",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"chaud",
+"aride"
+],
+"saisons": [],
+"taille": [
+8.0,
+12.0
+],
+"masque": "1111111111111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-rectangle-terre-plate-reprise-a-verifier-ff",
+"drive": "16lAuz6RM8fyEg4XYnH_R32OWVsUR6V84",
+"titre": "toit-rectangle-terre-plate-reprise-a-verifier-ff014ede.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.64,
+"couleur": "#bf9266",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison (terre)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "terre",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"chaud",
+"aride"
+],
+"saisons": [],
+"taille": [
+6.4,
+10
+],
+"masque": "1111111111111111111111111111111111111111111111111111111111111111",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-refuge-alpin-lauzes-hiver-a-verifier-c1b74b",
+"drive": "1lr1p6mZNkMAg9ATcn5fiW0KLNJrpIkKG",
+"titre": "toit-refuge-alpin-lauzes-hiver-a-verifier-c1b74b54.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.573,
+"couleur": "#acb0b7",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Refuge alpin (lauzes, hiver)",
+"cat": "toit",
+"forme": "rect",
+"materiau": "lauzes",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"froid",
+"tempere"
+],
+"saisons": [
+"hiver"
+],
+"taille": [
+6.87,
+12
+],
+"masque": "0111111011111111111111111111111111111111111111111111111101111110",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-t-bardeaux-14x12-762308bf",
+"drive": "1bDLIJRn-RKmmfezaO_ujRb29rcNgVUlR",
+"titre": "toit-t-bardeaux-14x12-762308bf.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.165,
+"couleur": "#584c43",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison en T (bardeaux)",
+"cat": "toit",
+"forme": "T",
+"materiau": "bardeaux",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"taille": [
+14.0,
+12.0
+],
+"masque": "1111111111111111111111110111111100011000000110000001100000011000",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-t-bardeaux-hiver-16x12-2a4ec2dd",
+"drive": "1_O6_ERcFJmDUl2eC6tt0aRyfXvxjl154",
+"titre": "toit-t-bardeaux-hiver-16x12-2a4ec2dd.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.491,
+"couleur": "#96969c",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison en T (bardeaux, hiver)",
+"cat": "toit",
+"forme": "T",
+"materiau": "bardeaux",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"froid",
+"tempere"
+],
+"saisons": [
+"hiver"
+],
+"taille": [
+16.0,
+12.0
+],
+"masque": "1111111111111111111111111111111100111100000110000001100000011000",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-t-lauzes-15x12-92ae093d",
+"drive": "1VEINba1b8F9V1ZLzwvSW06-nocM_w0fq",
+"titre": "toit-t-lauzes-15x12-92ae093d.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.333,
+"couleur": "#766758",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison en T (lauzes)",
+"cat": "toit",
+"forme": "T",
+"materiau": "lauzes",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"taille": [
+15.0,
+12.0
+],
+"masque": "1111111111111111111111111111111100111100001111000011110000111100",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-temple-croix-ardoise-automne-05920bc2",
+"drive": "1XuseDR95PXN4TsA8CSvAqqIQSkqV_AMM",
+"titre": "toit-temple-croix-ardoise-automne-05920bc2.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.673,
+"couleur": "#4b4a48",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Temple (ardoise, automne)",
+"cat": "toit",
+"forme": "croix",
+"materiau": "ardoise",
+"usage": [
+"temple",
+"civique"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [
+"automne"
+],
+"taille": [
+13.47,
+20
+],
+"masque": "0001100000111100111111111111111100111100001111000011110000111100",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-temple-croix-ardoise-hiver-4080ea9b",
+"drive": "1Nn5uiyZK85h2YO29HQU3qM3TbQcxkWOY",
+"titre": "toit-temple-croix-ardoise-hiver-4080ea9b.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.689,
+"couleur": "#8b8b8f",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Temple (ardoise, hiver)",
+"cat": "toit",
+"forme": "croix",
+"materiau": "ardoise",
+"usage": [
+"temple",
+"civique"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"froid",
+"tempere"
+],
+"saisons": [
+"hiver"
+],
+"taille": [
+13.79,
+20
+],
+"masque": "0001100000111100111111111111111100111100001111000011110000111100",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-temple-croix-ardoise-printemps-745a06b5",
+"drive": "1lwDyCAjzgI5suRAt76glQc-vf84X9L8H",
+"titre": "toit-temple-croix-ardoise-printemps-745a06b5.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.696,
+"couleur": "#3d3e3f",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Temple (ardoise, printemps)",
+"cat": "toit",
+"forme": "croix",
+"materiau": "ardoise",
+"usage": [
+"temple",
+"civique"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [
+"printemps"
+],
+"taille": [
+13.92,
+20
+],
+"masque": "0001100000111100111111111111111100111100001111000011110000111100",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-temple-croix-ardoise-variante-7d189247",
+"drive": "10kqqeqEZLjHA4a12HzrKTXDjRlKCA4ph",
+"titre": "toit-temple-croix-ardoise-variante-7d189247.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 0.692,
+"couleur": "#595553",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Temple (ardoise)",
+"cat": "toit",
+"forme": "croix",
+"materiau": "ardoise",
+"usage": [
+"temple",
+"civique"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"taille": [
+13.84,
+20
+],
+"masque": "0001100000111100111111111111111100111100001111000011110000111100",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-tour-circulaire-pierre-desert-hiver-9m-d9c6",
+"drive": "1kgwygOOnObmn8ypJIeupLoA7ng-lRGTn",
+"titre": "toit-tour-circulaire-pierre-desert-hiver-9m-d9c6f35f.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.01,
+"couleur": "#a6815c",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Tour (pierre, hiver)",
+"cat": "toit",
+"forme": "rond",
+"materiau": "pierre",
+"usage": [
+"tour"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"aride",
+"chaud",
+"froid"
+],
+"saisons": [
+"hiver"
+],
+"taille": [
+9.0,
+9.0
+],
+"masque": "0011110001111110111111111111111111111111111111110111111000111100",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-u-ardoise-24x18-263f1fa9",
+"drive": "1kfGrri0Q3XBmGnbX5oiZW-KJz9qkVQYy",
+"titre": "toit-u-ardoise-24x18-263f1fa9.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.436,
+"couleur": "#4c4950",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison en U (ardoise)",
+"cat": "toit",
+"forme": "U",
+"materiau": "ardoise",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"taille": [
+24.0,
+18.0
+],
+"masque": "1111111111111111111111111100001111000011110000111100001111000011",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-u-terre-cuite-18x14-52d83514",
+"drive": "1N7MwpJX1JlLGxfvqoCfoZq4bhBl-DKJ-",
+"titre": "toit-u-terre-cuite-18x14-52d83514.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.299,
+"couleur": "#85452f",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison en U (terre cuite)",
+"cat": "toit",
+"forme": "U",
+"materiau": "terre cuite",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"tempere",
+"chaud"
+],
+"saisons": [],
+"taille": [
+18.0,
+14.0
+],
+"masque": "1111111111111111111111111111111111000011110000111100001111000011",
+"region": [
+"surface"
+]
+},
+{
+"id": "toit-u-terre-plate-18x16-2a73395a",
+"drive": "1ZnWi3xHx2T-5MRlJdZ5u_t0Qkkx2BIPD",
+"titre": "toit-u-terre-plate-18x16-2a73395a.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.149,
+"couleur": "#bb9b78",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Maison en U (terre)",
+"cat": "toit",
+"forme": "U",
+"materiau": "terre",
+"usage": [
+"maison"
+],
+"milieux": [
+"ville",
+"campagne"
+],
+"climats": [
+"chaud",
+"aride"
+],
+"saisons": [],
+"taille": [
+18.0,
+16.0
+],
+"masque": "1111111111111111111111111100001111000011110000111100001111000011",
+"region": [
+"surface"
+]
+},
+{
+"id": "trappe-obsidienne-fermee-1-5x1-5",
+"drive": "1mZNRm-f2RLtxtoJY34rEbu77JTpeUxJA",
+"titre": "trappe-obsidienne-fermee-1.5x1.5.png",
+"type": "element",
+"vue": "zenith",
+"ratio": 1.0,
+"couleur": "#453a40",
+"mips": [
+256,
+512
+],
+"nom": "Trappe d’obsidienne",
+"cat": "ouverture",
+"taille": [
+1.5,
+1.5
+],
+"milieux": [
+"caverne",
+"ruine",
+"temple"
+],
+"usage": [
+"trappe",
+"enigme"
+],
+"region": [
+"surface",
 "outreterre"
 ],
 "climats": [],
@@ -22150,6 +27628,103 @@
 "saisons": []
 },
 {
+"id": "autumn-potato-harvest-in-progress",
+"drive": "1J9IntqeiYo16krj65ko9CUGmW62KJcVG",
+"titre": "Autumn Potato Harvest in Progress-2.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#5d4128",
+"mips": [
+256,
+512
+],
+"nom": "Récolte des pommes de terre",
+"cat": "champ",
+"taille": 8,
+"usage": [
+"pomme-de-terre"
+],
+"milieux": [
+"campagne",
+"ferme"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"automne"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "autumn-apple-orchard-field-patch",
+"drive": "1KhNj7G6WtNELOKU_p2teRnc2PwmSS3bY",
+"titre": "Autumn apple orchard field patch-16.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#584e27",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Verger d’automne",
+"cat": "champ",
+"taille": 12,
+"usage": [
+"verger"
+],
+"milieux": [
+"campagne",
+"ferme"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"automne"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "autumn-cabbage-field-with-harvested-rows",
+"drive": "1EB8sM-_RK_HCXI-ENhH82FDDeCbROHRT",
+"titre": "Autumn cabbage field with harvested rows-12.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#545139",
+"mips": [
+256,
+512
+],
+"nom": "Choux récoltés",
+"cat": "champ",
+"taille": 8,
+"usage": [
+"chou"
+],
+"milieux": [
+"campagne",
+"ferme"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"automne"
+],
+"region": [
+"surface"
+]
+},
+{
 "id": "baie-concave-et-prairie-terreuse",
 "drive": "1cbu1PKtgLGehZhVzOyaos2G9cO16DMuo",
 "titre": "Baie concave et prairie terreuse.png",
@@ -22257,6 +27832,40 @@
 ],
 "climats": [],
 "saisons": []
+},
+{
+"id": "dry-season-fallow-rice-paddy",
+"drive": "1P4vQt9rO6NEa6Uy5PWtdidJDqSo9ELMw",
+"titre": "Dry-season fallow rice paddy-19.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#7c6d58",
+"mips": [
+256,
+512
+],
+"nom": "Rizière en jachère",
+"cat": "champ",
+"taille": 8,
+"usage": [
+"riz"
+],
+"milieux": [
+"campagne",
+"ferme"
+],
+"climats": [
+"chaud",
+"tropical",
+"aride"
+],
+"saisons": [
+"hiver"
+],
+"region": [
+"surface"
+]
 },
 {
 "id": "eau-claire-turquoise-peu-profonde",
@@ -22451,6 +28060,103 @@
 ]
 },
 {
+"id": "flowering-summer-potato-field",
+"drive": "1wHEIhW5EUkkGCZK4tJB37QSxPY4FS5qH",
+"titre": "Flowering summer potato field-5.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#4d4f24",
+"mips": [
+256,
+512
+],
+"nom": "Pommes de terre en fleurs",
+"cat": "champ",
+"taille": 8,
+"usage": [
+"pomme-de-terre"
+],
+"milieux": [
+"campagne",
+"ferme"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"ete"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "freshly-planted-potato-field",
+"drive": "1o1DyR23jaAgctcFSSf6YwSjl9_FRqRFL",
+"titre": "Freshly Planted Potato Field-4.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#473328",
+"mips": [
+256,
+512
+],
+"nom": "Pommes de terre plantées",
+"cat": "champ",
+"taille": 8,
+"usage": [
+"pomme-de-terre"
+],
+"milieux": [
+"campagne",
+"ferme"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"printemps"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "frosty-winter-fallow-potato-field",
+"drive": "13XTmB_C-9iVtAQneaRRlMT5Bm-H8GOXb",
+"titre": "Frosty Winter Fallow Potato Field-3.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#645449",
+"mips": [
+256,
+512
+],
+"nom": "Jachère givrée",
+"cat": "champ",
+"taille": 8,
+"usage": [
+"pomme-de-terre"
+],
+"milieux": [
+"campagne",
+"ferme"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [
+"hiver"
+],
+"region": [
+"surface"
+]
+},
+{
 "id": "glace-lacustre-givree-et-fissuree",
 "drive": "1lZX3DMHCXza-geUpBx1UoNoexMbx0vRe",
 "titre": "Glace lacustre givrée et fissurée-11.png",
@@ -22475,6 +28181,39 @@
 ],
 "saisons": [
 "hiver"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "golden-rice-paddy-with-muddy-stubble",
+"drive": "1gJ3b_NXjWZ46dKZMHem4nh04puQGSgqQ",
+"titre": "Golden rice paddy with muddy stubble-17.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#806927",
+"mips": [
+256,
+512
+],
+"nom": "Rizière dorée",
+"cat": "champ",
+"taille": 8,
+"usage": [
+"riz"
+],
+"milieux": [
+"campagne",
+"ferme"
+],
+"climats": [
+"chaud",
+"tropical"
+],
+"saisons": [
+"automne"
 ],
 "region": [
 "surface"
@@ -22600,6 +28339,104 @@
 ],
 "climats": [],
 "saisons": []
+},
+{
+"id": "late-summer-wheat-harvest-field",
+"drive": "1TYVSU0P8aKUK8SbeZlGsoe6_2wn5wveM",
+"titre": "Late-summer wheat harvest field-7.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#a67b43",
+"mips": [
+256,
+512
+],
+"nom": "Moisson du blé",
+"cat": "champ",
+"taille": 8,
+"usage": [
+"ble"
+],
+"milieux": [
+"campagne",
+"ferme"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"ete"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "lush-summer-rice-paddy",
+"drive": "1r9ErBYhNdt5yTcZaKpyavTzfSaatAnYJ",
+"titre": "Lush summer rice paddy-18.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#425e13",
+"mips": [
+256,
+512
+],
+"nom": "Rizière verdoyante",
+"cat": "champ",
+"taille": 8,
+"usage": [
+"riz"
+],
+"milieux": [
+"campagne",
+"ferme"
+],
+"climats": [
+"chaud",
+"tropical"
+],
+"saisons": [
+"ete"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "lush-summer-wheat-field",
+"drive": "1ublzUx6_ISLZKA6NpWT84BMak5QMervs",
+"titre": "Lush summer wheat field-6.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#435523",
+"mips": [
+256,
+512
+],
+"nom": "Blé en herbe",
+"cat": "champ",
+"taille": 8,
+"usage": [
+"ble"
+],
+"milieux": [
+"campagne",
+"ferme"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"printemps",
+"ete"
+],
+"region": [
+"surface"
+]
 },
 {
 "id": "mousse-forestiere-enchantee-aux-petales-delicats",
@@ -23269,6 +29106,168 @@
 ]
 },
 {
+"id": "spring-blossom-apple-orchard-field",
+"drive": "1aSsPJLrIjyhvcgR-nijvEZLvdpcCARsX",
+"titre": "Spring blossom apple orchard field-11.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#6d683c",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Verger en fleurs",
+"cat": "champ",
+"taille": 12,
+"usage": [
+"verger"
+],
+"milieux": [
+"campagne",
+"ferme"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"printemps"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "spring-cabbage-rows-in-rich-soil",
+"drive": "1BGnnerqk09dCo-yKQ6FGYLGG6s5fAmMq",
+"titre": "Spring cabbage rows in rich soil-10.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#635039",
+"mips": [
+256,
+512
+],
+"nom": "Jeunes choux",
+"cat": "champ",
+"taille": 8,
+"usage": [
+"chou"
+],
+"milieux": [
+"campagne",
+"ferme"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"printemps"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "spring-wheat-germination-field",
+"drive": "1-IEPfVHghPs0lr_O9NRZm9yQFi2d5rdq",
+"titre": "Spring wheat germination field-1.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#493828",
+"mips": [
+256,
+512
+],
+"nom": "Blé en germination",
+"cat": "champ",
+"taille": 8,
+"usage": [
+"ble"
+],
+"milieux": [
+"campagne",
+"ferme"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"printemps"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "summer-apple-orchard-field",
+"drive": "1MjAPmLL8kE-xBCxU4g0CXBgT8zLOJvh8",
+"titre": "Summer apple orchard field-15.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#4f5829",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Verger d’été",
+"cat": "champ",
+"taille": 12,
+"usage": [
+"verger"
+],
+"milieux": [
+"campagne",
+"ferme"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"ete"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "summer-cabbage-field-rows",
+"drive": "1KRF-LkqD09GveDTJOIYQxG0yf-1GwdbN",
+"titre": "Summer cabbage field rows-13.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#4c5233",
+"mips": [
+256,
+512
+],
+"nom": "Choux d’été",
+"cat": "champ",
+"taille": 8,
+"usage": [
+"chou"
+],
+"milieux": [
+"campagne",
+"ferme"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"ete"
+],
+"region": [
+"surface"
+]
+},
+{
 "id": "tapis-de-ronces-enchevetrees",
 "drive": "1iRAazDauzhhYD8KeK69bZpMfh4XynLwZ",
 "titre": "Tapis de ronces enchevêtrées-15.png",
@@ -23466,6 +29465,39 @@
 ]
 },
 {
+"id": "transplanted-rice-seedlings-in-shallow-paddy",
+"drive": "1XM0Hoz3c9_egrd1whswb5i4820Qb3N3O",
+"titre": "Transplanted rice seedlings in shallow paddy-20.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#6d6b51",
+"mips": [
+256,
+512
+],
+"nom": "Rizière repiquée",
+"cat": "champ",
+"taille": 8,
+"usage": [
+"riz"
+],
+"milieux": [
+"campagne",
+"ferme"
+],
+"climats": [
+"chaud",
+"tropical"
+],
+"saisons": [
+"printemps"
+],
+"region": [
+"surface"
+]
+},
+{
 "id": "tuile-tactique-coude-de-riviere",
 "drive": "1mhZJ24H7YrP_p5tXMFtMtR_fTcH8q9Cv",
 "titre": "Tuile tactique, coude de rivière.png",
@@ -23493,6 +29525,106 @@
 ],
 "climats": [],
 "saisons": []
+},
+{
+"id": "winter-apple-orchard-plot",
+"drive": "1WMGyVQ-qBCuMj6EmV6hom9h1a0BEajJ5",
+"titre": "Winter Apple Orchard Plot-14.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#847f79",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Verger en hiver",
+"cat": "champ",
+"taille": 12,
+"usage": [
+"verger"
+],
+"milieux": [
+"campagne",
+"ferme"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [
+"hiver"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "winter-cabbage-field-after-harvest",
+"drive": "16vQQM9b9KI1jjQkm-dAYukqo-lygNe15",
+"titre": "Winter cabbage field after harvest-9.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#5b4d45",
+"mips": [
+256,
+512
+],
+"nom": "Champ de choux en hiver",
+"cat": "champ",
+"taille": 8,
+"usage": [
+"chou"
+],
+"milieux": [
+"campagne",
+"ferme"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [
+"hiver"
+],
+"region": [
+"surface"
+]
+},
+{
+"id": "winter-wheat-stubble-under-patchy-snow",
+"drive": "1fH09I-EUmIrIADgNUJiz8M_Lp3ALENZg",
+"titre": "Winter wheat stubble under patchy snow-8.png",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#978575",
+"mips": [
+256,
+512
+],
+"nom": "Chaumes de blé sous la neige",
+"cat": "champ",
+"taille": 8,
+"usage": [
+"ble"
+],
+"milieux": [
+"campagne",
+"ferme"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [
+"hiver"
+],
+"region": [
+"surface"
+]
 },
 {
 "id": "eboulis-de-schiste-et-granite",

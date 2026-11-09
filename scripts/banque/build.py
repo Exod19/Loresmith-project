@@ -466,6 +466,169 @@ PEUPLE_FR = {'moriquendi': ('moriquendi', 'moriquendi'), 'drow': ('drow', 'drow'
              'svirfnebelin': ('svirfnebelin', 'svirfnebeline'), 'gobelin': ('', ''), 'humain': ('humain', 'humaine'),
              'nain': ('nain', 'naine'), 'halfelin': ('halfelin', 'halfeline'), 'elfe': ('elfe', 'elfe'), 'gnome': ('gnome', 'gnome')}
 
+# ——— Synchronisation du 2026-11-09 : ferme (animaux, objets, champs), toits nommés, socles, objets du Fil des mystères ———
+# `cote` : longueur réelle (m) du grand côté de l'image ; l'autre côté suit les proportions de l'image recadrée.
+# `carre` : texture livrée en rectangle, recadrée en carré au centre pour se répéter sans déformation.
+FERME = ['campagne', 'ferme']
+FERME_ELEMENTS = [
+    (r'wash tub', dict(nom='Cuve de lavage', cat='ferme', cote=1.2, milieux=FERME + ['ville'], usage=['bac'])),
+    (r'wheelbarrow', dict(nom='Brouette', cat='ferme', cote=1.6, milieux=FERME, usage=['outil'])),
+    (r'grain-laden farm wagon', dict(nom='Chariot de grain', cat='ferme', cote=4, milieux=FERME + ['route', 'ville'], usage=['charrette'])),
+    (r'livestock water trough', dict(nom='Abreuvoir', cat='ferme', cote=2.4, milieux=FERME, usage=['ecurie', 'bac'])),
+    (r'round haystack', dict(nom='Meule de foin', cat='ferme', cote=3.5, milieux=FERME, usage=['foin'], saisons=['ete', 'automne'])),
+    (r'hay cart', dict(nom='Charrette de foin', cat='ferme', cote=3.5, milieux=FERME + ['route'], usage=['charrette', 'foin'], saisons=['ete', 'automne'])),
+    (r'empty medieval farm cart', dict(nom='Charrette vide', cat='ferme', cote=3.2, milieux=FERME + ['route', 'ville'], usage=['charrette'])),
+    (r'horse stable roof', dict(nom='Écurie (toit enneigé)', cat='toit', forme='rect', materiau='bardeaux', cote=12, milieux=FERME, climats=[F, T], saisons=['hiver'], usage=['ferme', 'ecurie'])),
+    (r'hay bundle', dict(nom='Botte de foin', cat='ferme', cote=1, milieux=FERME, usage=['foin'])),
+    (r'cattle barn roof', dict(nom='Étable (toit de lauzes)', cat='toit', forme='L', materiau='lauzes', cote=14, milieux=FERME, climats=[T, F], usage=['ferme'])),
+    (r'stone well', dict(nom='Puits de pierre', cat='ferme', cote=2, milieux=FERME + ['ville', 'place'], usage=['puits', 'place'])),
+    (r'compost heap', dict(nom='Tas de compost', cat='ferme', cote=2, milieux=FERME, usage=['fumier'])),
+    (r'henhouse roof', dict(nom='Poulailler (toit)', cat='toit', forme='rect', materiau='bardeaux', cote=4, milieux=FERME, climats=[T], usage=['ferme'])),
+    (r'hay feeding rack', dict(nom='Râtelier à foin', cat='ferme', cote=2.4, milieux=FERME, usage=['ecurie', 'foin'])),
+    (r'oat sack', dict(nom='Sac d’avoine', cat='ferme', cote=0.7, milieux=FERME + ['interieur', 'marche'], usage=['sac', 'marche'])),
+    (r'straw skep', dict(nom='Ruche de paille', cat='ferme', cote=0.6, milieux=FERME + ['jardin'], usage=['ruche'], saisons=['printemps', 'ete', 'automne'])),
+    (r'manure heap', dict(nom='Tas de fumier', cat='ferme', cote=2.5, milieux=FERME, usage=['fumier'])),
+    (r'basket of ripe apples', dict(nom='Panier de pommes', cat='ferme', cote=0.6, milieux=FERME + ['marche', 'interieur'], usage=['panier', 'marche'], saisons=['automne'])),
+    (r'farm gate', dict(nom='Barrière de ferme', cat='cloture', cote=3.5, milieux=FERME, usage=['barriere'])),
+    (r'oat-filled wooden barrel', dict(nom='Tonneau d’avoine', cat='ferme', cote=0.8, milieux=FERME + ['interieur', 'marche'], usage=['tonneau'])),
+    (r'water bucket', dict(nom='Seau d’eau', cat='ferme', cote=0.45, milieux=FERME + ['interieur'], usage=['seau'])),
+    (r'split firewood stack', dict(nom='Bûches empilées', cat='ferme', cote=2.2, milieux=FERME + ['ville'], usage=['bois'])),
+    (r'nest with five', dict(nom='Nid aux œufs', cat='ferme', cote=0.4, milieux=FERME, usage=['poulailler'])),
+    (r'ard plough', dict(nom='Araire', cat='ferme', cote=2.8, milieux=FERME, usage=['outil'])),
+    (r'medieval shovel', dict(nom='Pelle', cat='ferme', cote=1.3, milieux=FERME + ['mine'], usage=['outil'])),
+    (r'fence corner', dict(nom='Angle de clôture', cat='cloture', cote=3, milieux=FERME, usage=['cloture'])),
+    (r'farm rake', dict(nom='Râteau', cat='ferme', cote=1.6, milieux=FERME, usage=['outil'])),
+    (r'rail fence', dict(nom='Clôture de perches', cat='cloture', cote=3.5, milieux=FERME, usage=['cloture'])),
+    # Fil des mystères (kit v3) : objets à leur taille réelle
+    (r'trappe-obsidienne', dict(nom='Trappe d’obsidienne', cat='ouverture', taille=[1.5, 1.5], milieux=['caverne', 'ruine', 'temple'], usage=['trappe', 'enigme'], region=['surface', 'outreterre'])),
+    (r'tablette-reflux', dict(nom='Tablette gravée', cat='repere', taille=[0.65, 0.45], milieux=['caverne', 'ruine', 'temple', 'interieur'], usage=['indice'], region=['surface', 'outreterre'])),
+    (r'journal-recherche', dict(nom='Journal ouvert', cat='objet', taille=[0.32, 0.24], milieux=['interieur', 'caverne', 'camp'], usage=['indice', 'livre'], region=['surface', 'outreterre'])),
+]
+ELEMENTS[:0] = FERME_ELEMENTS
+
+def _champ(nom, culture, saisons, taille=8, climats=(T,), carre=True, raccorder=True):
+    return dict(nom=nom, cat='champ', taille=taille, usage=[culture], milieux=list(FERME), climats=list(climats), saisons=saisons, carre=carre, raccorder=raccorder)
+
+FERME_TEXTURES = [
+    (r'spring wheat germination', _champ('Blé en germination', 'ble', ['printemps'])),
+    (r'lush summer wheat', _champ('Blé en herbe', 'ble', ['printemps', 'ete'])),
+    (r'late-summer wheat harvest', _champ('Moisson du blé', 'ble', ['ete'], raccorder=False)),
+    (r'winter wheat stubble', _champ('Chaumes de blé sous la neige', 'ble', ['hiver'], climats=(T, F))),
+    (r'freshly planted potato', _champ('Pommes de terre plantées', 'pomme-de-terre', ['printemps'])),
+    (r'flowering summer potato', _champ('Pommes de terre en fleurs', 'pomme-de-terre', ['ete'])),
+    (r'autumn potato harvest', _champ('Récolte des pommes de terre', 'pomme-de-terre', ['automne'], raccorder=False)),
+    (r'frosty winter fallow potato', _champ('Jachère givrée', 'pomme-de-terre', ['hiver'], climats=(T, F))),
+    (r'spring cabbage rows', _champ('Jeunes choux', 'chou', ['printemps'])),
+    (r'summer cabbage field', _champ('Choux d’été', 'chou', ['ete'])),
+    (r'autumn cabbage field', _champ('Choux récoltés', 'chou', ['automne'])),
+    (r'winter cabbage field', _champ('Champ de choux en hiver', 'chou', ['hiver'], climats=(T, F))),
+    (r'spring blossom apple orchard', _champ('Verger en fleurs', 'verger', ['printemps'], taille=12, raccorder=False)),
+    (r'summer apple orchard', _champ('Verger d’été', 'verger', ['ete'], taille=12, raccorder=False)),
+    (r'autumn apple orchard', _champ('Verger d’automne', 'verger', ['automne'], taille=12, raccorder=False)),
+    (r'winter apple orchard', _champ('Verger en hiver', 'verger', ['hiver'], taille=12, raccorder=False, climats=(T, F))),
+    (r'transplanted rice seedlings', _champ('Rizière repiquée', 'riz', ['printemps'], climats=(C, TR))),
+    (r'lush summer rice paddy', _champ('Rizière verdoyante', 'riz', ['ete'], climats=(C, TR))),
+    (r'golden rice paddy', _champ('Rizière dorée', 'riz', ['automne'], climats=(C, TR), raccorder=False)),
+    (r'dry-season fallow rice paddy', _champ('Rizière en jachère', 'riz', ['hiver'], climats=(C, TR, A))),
+]
+TEXTURES[:0] = FERME_TEXTURES
+
+# Animaux de ferme (jetons vus du dessus) : nommés comme une créature, pour qu'un « Cheval » du plateau prenne son image.
+CREATURES[:0] = [
+    (r'draft horse', 'Cheval de trait', 3), (r'horse', 'Cheval', 2.6), (r'cow', 'Vache', 2.6), (r'\bpig\b', 'Cochon', 1.6),
+    (r'sheep', 'Mouton', 1.4), (r'donkey', 'Âne', 2.1), (r'rooster', 'Coq', 0.6), (r'\bhen\b', 'Poule', 0.5),
+    (r'goose', 'Oie', 0.8), (r'duck', 'Canard', 0.6), (r'goat', 'Chèvre', 1.4), (r'\bcat\b', 'Chat', 0.6), (r'\bdog\b', 'Chien', 1.1),
+]
+
+# Socles de figurines du dossier « Socles » (titres sans mots : file_000…) : nommés d'après leur matière, vérifiés à l'œil.
+SOCLES = {
+    '1OJXUAtg5sGbRf3Vz1DS8rNq7ywQFHMWK': ('Socle carré de dalles (cadre de fer)', ['interieur', 'donjon'], [1.5, 1.5]),
+    '1jtcm4iBagfmZUsdzZA4mX96nkKvT12aC': ('Socle d’ardoise sombre', ['montagne', 'caverne'], None),
+    '1XDJIbH9K16jaa4g-LbKvtMwOk3qzsSes': ('Socle de dalles calcaires', ['ville', 'ruine'], None),
+    '1rxNluxtl8LrbIWUr88Tc6tOZvrh5PuBG': ('Socle de roche et d’éboulis', ['montagne', 'caverne'], None),
+    '1B7aDBja2tmOexceqEV2FZVkno1hjz6LL': ('Socle de terre et champignons', ['foret', 'caverne'], None),
+    '1qrU7c1c180DURXELrrN_i_qfUnw9g8tI': ('Socle ovale de pierre (bordure de bronze)', ['ville', 'interieur'], [2.5, 1.5]),
+    '1fUzYa4-9v5pn7uqThguX3e6NscsgRWEk': ('Socle de planches', ['interieur', 'navire'], None),
+    '1yNyih77-OYf_P7Z0zEO86uHucwx7tFOG': ('Socle de pierre fissurée', ['ruine', 'montagne'], None),
+    '1_JtzaUgBJ_AI-ZjWSA-jCK3639qrrEl0': ('Socle de fer riveté', ['interieur', 'donjon'], None),
+    '1Ekd89ozYsSZ1E84HXX4lTmWsZf2BUMON': ('Socle de marbre noir et d’améthystes', ['caverne'], None),
+    '19XTm4n-j1d1sPNZaZBfBhZiUfyohUCmv': ('Socle d’herbe et de cailloux', ['campagne', 'foret'], None),
+    '1RxREx8Rb1__WunSia4hfpdFNisW3NtjV': ('Socle d’obsidienne veinée de violet', ['caverne', 'volcan'], None),
+    '1-LBXuUUDiNtSNeF6SRhUHbVdBJ_f2MOT': ('Socle de sable du désert', ['desert'], None),
+    '1LR8nIf7YTSvfS63aNOOZi1aju-JgPLkJ': ('Socle de glace', ['toundra', 'montagne'], None),
+    '1BxEpOrF9yLnNzCv_GgN63p6UMGCO8PQ0': ('Socle de terre et de feuilles mortes', ['foret'], None),
+    '1L-tscXqNN_TBY9FiH06mZGvKxI4nZxDP': ('Socle de neige', ['toundra', 'montagne'], None),
+    '1PftG77qttJULJz95wJIMtNzBiaOeQZiO': ('Socle d’eau', ['riviere', 'lac', 'mer'], None),
+    '1gRqv-M8fj8No9NdBLY9yI9tq87dev9jP': ('Socle de nuages (marbre blanc)', ['astral', 'temple'], None),
+    '1hj9rvWngirqBs8NvoI4Hb7F3dhZl35ue': ('Socle de marbre blanc (bordure dorée)', ['temple', 'palais'], None),
+    '1dz2dfR6mY4f-xOEGuXMeSmQodlZzHUdZ': ('Socle de sable et de galets', ['cote', 'riviere'], None),
+    '1kyaNG0MjYaykI7hWVQp247BIoEiG4WjJ': ('Socle de boue et d’aiguilles de pin', ['foret', 'marais'], None),
+    '1CNBY2x2XmpkePpYSi-8ckvzx-BuuQJk-': ('Socle de lave', ['volcan', 'caverne'], None),
+    '1RKi6A22Ei7Ziy-eS4B1esvRXEF7azrwh': ('Socle de planches claires (ponton)', ['ponton', 'cote', 'interieur'], None),
+    '1vJqHGQbtUIxF1O6dI-uu5Ft4UGGflqem': ('Socle de pavés', ['ville', 'route'], None),
+    '1DgJcUURRRWr0WSoT14TgRoLdohS59S5R': ('Socle de marbre en damier', ['temple', 'palais'], None),
+    '1OH_9RqgMcSVKm8S73qwfQKnAE8rUOTzR': ('Socle de briques moussues', ['ruine', 'ville'], None),
+}
+
+# Toits nommés « toit-<bâtiment ou forme>-<matériau>-[saison|climat]-[l x p | Nm]-<empreinte> » (Drive, 2026-11-03).
+TOIT_FORMES = [('temple-croix', 'croix'), ('croix', 'croix'), ('manoir-h', 'H'), ('-h-', 'H'), ('octogonal', 'octo'), ('circulaire', 'rond'),
+               ('chateau-cour', 'cour'), ('forteresse', 'cour'), ('caravanserail', 'cour'), ('monastere', 'cour'), ('demeure-noble-l', 'L'),
+               ('-l-', 'L'), ('-t-', 'T'), ('auberge-t', 'T'), ('-u-', 'U'), ('maison-u', 'U'), ('carre', 'carre'), ('donjon', 'carre')]
+TOIT_BATIMENTS = [  # (motif, nom, usage, côté par défaut en m)
+    ('ferme-chaume-annexe', 'Ferme à annexe', ['ferme', 'maison'], 14), ('ecuries', 'Écuries', ['ferme', 'ecurie'], 18),
+    ('grenier', 'Grenier', ['ferme'], 10), ('longere', 'Longère', ['ferme', 'maison'], 14), ('forge', 'Forge', ['atelier'], 10),
+    ('atelier', 'Atelier à appentis', ['atelier'], 12), ('echoppes-mitoyennes', 'Échoppes mitoyennes', ['marche', 'atelier'], 12),
+    ('echoppe', 'Échoppe', ['marche', 'atelier'], 8), ('caravanserail', 'Caravansérail', ['auberge', 'civique'], 30),
+    ('auberge', 'Auberge', ['auberge', 'civique'], 16), ('monastere', 'Monastère', ['temple', 'civique'], 28),
+    ('temple', 'Temple', ['temple', 'civique'], 20), ('halle', 'Halle', ['marche', 'civique'], 22), ('entrepot', 'Entrepôt', ['atelier', 'civique'], 24),
+    ('maison-commune', 'Maison commune', ['civique'], 16), ('bains', 'Bains', ['civique'], 20), ('manoir', 'Manoir', ['noble', 'civique'], 24),
+    ('demeure-noble', 'Demeure noble', ['noble'], 16), ('chateau', 'Château', ['noble', 'civique'], 26), ('donjon', 'Donjon', ['noble', 'tour'], 18),
+    ('forteresse', 'Forteresse', ['noble', 'civique'], 30), ('pavillon', 'Pavillon', ['noble', 'temple'], 10), ('tour', 'Tour', ['tour'], 9),
+    ('refuge', 'Refuge alpin', ['maison'], 12), ('chalet', 'Chalet', ['maison'], 12), ('maison-tropicale', 'Maison tropicale', ['maison'], 14),
+    ('maison-u', 'Maison en U', ['maison'], 16), ('', 'Maison', ['maison'], 10),
+]
+TOIT_MATERIAUX = [('terre-cuite', 'terre cuite', [T, C]), ('terre-plate', 'terre', [C, A]), ('tuiles-vertes', 'tuiles vertes', [T, C]),
+                  ('chaume', 'chaume', [T]), ('bardeaux', 'bardeaux', [T, F]), ('ardoise', 'ardoise', [T, F]), ('lauzes', 'lauzes', [T, F]),
+                  ('tourbe', 'tourbe', [F]), ('palmes', 'palmes', [TR, C]), ('chaux', 'chaux', [C, A]), ('pierre', 'pierre', [C, A, T])]
+
+
+def toit_nomme(title):
+    """Étiquettes d'un toit au nom normalisé (avec ou sans dimensions, saison, climat, empreinte) ; None sinon."""
+    stem = unicodedata.normalize('NFKD', title).encode('ascii', 'ignore').decode().lower()
+    stem = re.sub(r'\.(png|jpe?g|webp)$', '', stem)
+    if not stem.startswith('toit-'):
+        return None
+    stem = re.sub(r'-[0-9a-f]{8}$', '', stem)
+    stem = re.sub(r'-(a-verifier|reprise|variante)', '', stem)
+    m = re.search(r'-(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)', stem)
+    rond = re.search(r'-(\d+(?:\.\d+)?)m\b', stem)
+    k = f'-{stem[5:]}-'
+    forme = next((f for pat, f in TOIT_FORMES if pat in k), 'rect')
+    nom, usage, cote = next((n, u, c) for pat, n, u, c in TOIT_BATIMENTS if pat in k)
+    mat = next(((lab, cl) for pat, lab, cl in TOIT_MATERIAUX if pat in k), ('tuiles', [T]))
+    saisons = [x for x in ('printemps', 'ete', 'automne', 'hiver') if f'-{x}-' in k]
+    climats = list(mat[1])
+    if re.search(r'tropical|mousson|saison-seche|humide', k):
+        climats = [TR, C]
+    if 'desert' in k:
+        climats = [C, A]
+    if re.search(r'nordique|alpin', k) or saisons == ['hiver']:
+        climats = sorted(set(climats) | {F})
+    if nom == 'Maison' and forme in ('L', 'T', 'U'):
+        nom = f'Maison en {forme}'
+    detail = ', '.join([mat[0], *({'printemps': 'printemps', 'ete': 'été', 'automne': 'automne', 'hiver': 'hiver'}[x] for x in saisons)])
+    meta = dict(nom=f'{nom} ({detail})', cat='toit', forme=forme, materiau=mat[0], usage=usage, milieux=['ville', 'campagne'], climats=climats, saisons=saisons)
+    if 'ferme' in usage:
+        meta['milieux'] = ['campagne', 'ferme', 'ville']
+    if m:
+        meta['taille'] = [float(m.group(1)), float(m.group(2))]
+    elif rond:
+        meta['taille'] = [float(rond.group(1))] * 2
+    else:
+        meta['cote'] = cote
+    return meta
+
+
 
 def first(rules, t):
     return next((v for pat, v in rules if re.search(pat, t)), None)
@@ -721,7 +884,10 @@ def main():
                 if meta:
                     meta.pop('pose', None)
         else:
-            kind, vue, meta = 'element', 'zenith', match(ELEMENTS, x['title']) or structured(folder, x['title'])
+            kind, vue, meta = 'element', 'zenith', match(ELEMENTS, x['title']) or toit_nomme(x['title']) or structured(folder, x['title'])
+            if x['id'] in SOCLES:
+                nom_s, mi_s, t_s = SOCLES[x['id']]
+                meta = dict(nom=nom_s, cat='socle', taille=t_s or [1.5, 1.5], milieux=mi_s, region=['surface', 'outreterre'] if 'caverne' in mi_s else ['surface'])
         meta = meta or infer(folder, region, x['title'])
         if region == 'outreterre' and 'region' not in meta:
             meta['region'] = ['outreterre']
@@ -740,6 +906,14 @@ def main():
                     meta['longueur'] = round(max(bbox[2] - bbox[0], bbox[3] - bbox[1]) * 1.5 / im.size[0], 2)
                 im = im.crop(bbox)
         meta.pop('cadre_fixe', None)
+        if meta.pop('carre', False):
+            w, h = im.size
+            c = min(w, h)
+            im = im.crop(((w - c) // 2, (h - c) // 2, (w - c) // 2 + c, (h - c) // 2 + c))
+        if 'cote' in meta:
+            # Grand côté réel (m) ; l'autre suit les proportions de ce qui est dessiné.
+            L, (w, h) = meta.pop('cote'), im.size
+            meta['taille'] = [L, round(L * h / w, 2)] if w >= h else [round(L * w / h, 2), L]
         im = im.convert('RGBA' if has_alpha else 'RGB')
         if meta.pop('raccorder', False):
             im = seamless(im)

@@ -15,7 +15,16 @@ l'**Outreterre** (Underdark). L'application n'y accède pas : elle lit `public/b
 | Personnages (Underdark) | `1oKX1izeFlQV3Ozzd6wNunsJgnx0SuzG3` | `people` / `outreterre` |
 | Créatures et monstres (Underdark) | `1qqwjlh8dzQpbhnF15-DWUBpLltDt6swM` | `creatures` / `outreterre` |
 
-Les sous-dossiers ne sont pas lus. Les fichiers des dossiers sont publics en lecture : Claude les télécharge par
+Depuis novembre 2026, le dossier racine des cartes est `1E24eF76nvUnYVQPEvZAWdpcj2mWcvhXg`. Les nouveautés arrivent
+souvent dans `00_INBOX_A_CLASSER` (`1S3Bw_pWTsgz78DyvhwwovGbqHAZuUMvQ`), rangée par thème par l'assistante « Muse »
+(règle : aucune suppression, déplacements seulement). Les socles de figurines sont dans `1gSEzzDi-CO3RozfQsW0w1_SNUbbxwnv7`
+(titres sans mots : ils sont nommés par identifiant dans `SOCLES`, cf. `build.py`).
+
+**Repérer les nouveautés.** Claude cherche dans tout le Drive les images créées après la dernière synchronisation
+(`createdTime > …`), puis écarte celles dont l'identifiant est déjà dans `drive.json`. Il n'est donc pas nécessaire de
+déplacer les images déjà intégrées. Dernière synchronisation : **2026-11-09** (ferme, champs, toits nommés, socles).
+
+Pour les huit dossiers ci-dessous, les sous-dossiers ne sont pas lus. Les fichiers des dossiers sont publics en lecture : Claude les télécharge par
 `https://drive.usercontent.google.com/download?id=<id>&export=download`.
 
 ## Ce que fait Claude quand tu demandes « synchronise la banque »
@@ -36,6 +45,9 @@ Les sous-dossiers ne sont pas lus. Les fichiers des dossiers sont publics en lec
    - étiquette chaque image d'après son titre : d'abord les règles précises (`ELEMENTS`, `TEXTURES`, `PEOPLE`), puis
      les règles générales par mots-clés (`ELEMENTS_GEN`, `TEXTURES_GEN`, `CREATURES`, `PEOPLE_GEN`, `ROLES_FR`, `NOMS`) ;
      la région vient du dossier ;
+   - `cote` : grand côté réel (m), l'autre suit les proportions de l'image recadrée ; `carre` : texture rectangulaire
+     recadrée en carré au centre ; les toits nommés « toit-<bâtiment>-<matériau>-[saison]-[l×p]-<empreinte> » sont lus
+     par `toit_nomme` ;
    - donne un nom français à chaque image (le titre du Drive reste dans `titre`) ;
    - range les créatures à part (`public/banque/creatures/`), nommées comme dans le bestiaire ;
    - ignore les fichiers sans rapport (liste `EXCLURE`) et les signale ;
