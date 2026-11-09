@@ -9548,5 +9548,113 @@
 "genre": "fantasy",
 "md5": "febbdfaf2c9e0edca7aa9176b2487930",
 "source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "1zONI6-mbCVdXZ1nZGxgcKXFMlBGJKk6K",
+"title": "texture-feuilles-bouleau-automne-5m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "e1d873d825a8599694f8bfb19e8c53c8",
+"source": "Drive 2026-11-09 (sols de saison)"
+},
+{
+"id": "1vVtLBoB1OSgNbO-UCY4HpBP3T8DRyxWb",
+"title": "texture-prairie-fanee-automne-4m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "a10d6937e77a61bb5bb9d74a12b93e25",
+"source": "Drive 2026-11-09 (sols de saison)"
+},
+{
+"id": "1N2_pbnz7K8wf6iY6i4eudJp_FsjwuVFx",
+"title": "texture-feuilles-humides-automne-5m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "e3aac20244f33b4ec474c1ffb3c4708b",
+"source": "Drive 2026-11-09 (sols de saison)"
+},
+{
+"id": "1z7qDmzzsu5-8joWW3yHjSxEkv0MifgOc",
+"title": "texture-sous-bois-neige-partielle-hiver-5m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "7de8c8ff0842fabe43559779cad07c88",
+"source": "Drive 2026-11-09 (sols de saison)"
+},
+{
+"id": "1APpZuW2oo_qddBCMnkqivmHxCRInT6ka",
+"title": "texture-toundra-gelee-hiver-6m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "c40aa6838ca58fbe57cb5e3dee62e777",
+"source": "Drive 2026-11-09 (sols de saison)"
+},
+{
+"id": "1SLDCgQizoeJIVfW5vev03BqYbfNzSxT9",
+"title": "texture-herbe-givree-hiver-4m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "35b2d82213e3f7af00cfdb5e341a77aa",
+"source": "Drive 2026-11-09 (sols de saison)"
+},
+{
+"id": "1zqHeK2NjdOGHNyCVXEmN-FOeyC3Ar3gz",
+"title": "texture-sable-sec-ete-6m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "d5a3c97c08892abaffefb3746497382e",
+"source": "Drive 2026-11-09 (sols de saison)"
+},
+{
+"id": "1FW5A7SwHrYOCh7HwViP4e6Byvfq1T0cF",
+"title": "texture-sous-bois-pousses-printemps-5m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "671e4a0a580957cc3a74b73b1992126f",
+"source": "Drive 2026-11-09 (sols de saison)"
+},
+{
+"id": "1Hr8ejnthIFtVq8V8uCS2C3RCtqa5m_g6",
+"title": "texture-terre-craquelee-ete-6m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "56b219065ddcd5203127c073326a85b6",
+"source": "Drive 2026-11-09 (sols de saison)"
+},
+{
+"id": "1SDOqeiZI_PDuMRbClZLkBp6Y7t7xQqrk",
+"title": "texture-prairie-fleurie-printemps-4m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "e2b637d1f4663df39fe4c09544ec1315",
+"source": "Drive 2026-11-09 (sols de saison)"
+},
+{
+"id": "1NPLz5HMtUXQD9VyyD1Cb5nuT6hZHU8tZ",
+"title": "texture-steppe-ete-4m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "37b5bb6f35907ac15394bfe17d2fa9a9",
+"source": "Drive 2026-11-09 (sols de saison)"
+},
+{
+"id": "1I7uXxzuhHXXUFVaBUMZZZTPN0AOfdInr",
+"title": "texture-boue-degel-printemps-5m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "18debe39f94413cac9c05ba887e3f547",
+"source": "Drive 2026-11-09 (sols de saison)"
 }
 ]

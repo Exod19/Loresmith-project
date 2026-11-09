@@ -157,6 +157,9 @@ export function generateZonePlan(z, planId, env) {
   // Végétation : bosquets serrés en forêt, arbres épars ailleurs ; trouées autour des lieux, des sentiers et de l'eau.
   const G = M(90);
   let canopy = '';
+  // Arbres dans la canopée (`tc`) : dessinés seulement de près, quand la canopée s'efface ; arbres isolés (`t`) : toujours
+  // seuls, jamais posés sur la canopée. Chacun à son niveau : de loin la masse de la forêt, de près les arbres.
+  const tc = [], circles = [], loose = [];
   for (let gy = -MY; gy < H + MY; gy += G) for (let gx = -MX; gx < W + MX; gx += G) {
     const cxk = box[0] + ((gx + G / 2) / W) * (box[2] - box[0]), cyk = box[1] + ((gy + G / 2) / H) * (box[3] - box[1]);
     const s = env.sample(cxk, cyk);
@@ -165,22 +168,30 @@ export function generateZonePlan(z, planId, env) {
     // Densité continue (pas de bord net là où la forêt passe sous un seuil), un peu de hasard par case.
     // Arbres de la banque : sur le plan et un peu au-delà (on s'approche du bord) ; plus loin, la canopée seule.
     const near = gx > -W * 0.15 && gx < W * 1.15 && gy > -H * 0.15 && gy < H * 1.15;
-    const n = near ? Math.floor(Math.max(0, f - 0.08) * 4 + r() * 1.4) : 0;
     // Canopée vue de loin : une tache par case boisée (hors trouées), la banque dessine les arbres de près.
     const ccx = gx + G / 2 + (r() - 0.5) * G * 0.4, ccy = gy + G / 2 + (r() - 0.5) * G * 0.4, cr = G * (0.35 + 0.45 * f);
     if (f > 0.22 && !clear.some(([qx, qy, qr]) => Math.hypot(qx - ccx, qy - ccy) < qr + cr * 0.7)
       && !trails.some((l) => nearLine(ccx, ccy, l, cr * 0.8)) && !roadLines.some((l) => nearLine(ccx, ccy, l, cr))
       && !brooks.some((l) => nearLine(ccx, ccy, l, cr)) && !riverLines.some((l) => nearLine(ccx, ccy, l, cr + M(6)))) {
       canopy += `M${r1(ccx - cr)} ${r1(ccy)}a${r1(cr)} ${r1(cr)} 0 1 0 ${r1(cr * 2)} 0a${r1(cr)} ${r1(cr)} 0 1 0 ${r1(-cr * 2)} 0`;
+      circles.push([ccx, ccy, cr]);
     }
+    // Sous la canopée, une vraie forêt de près (une couronne tous les ~25 m) ; ailleurs, quelques arbres isolés.
+    const dense = circles.length && circles[circles.length - 1][0] === ccx;
+    const n = !near ? 0 : dense ? Math.floor(Math.max(0, f - 0.08) * 11 + r() * 2) : Math.floor(Math.max(0, f - 0.08) * 4 + r() * 1.4);
     for (let i = 0; i < n; i++) {
       const x = gx + r() * G, y = gy + r() * G;
       const rad = M(7 + f * 10 + r() * 7), keep = rad * 1.25;
       if (clear.some(([qx, qy, qr]) => Math.hypot(qx - x, qy - y) < qr + keep * 0.5 + r() * M(8))) continue;
       if (trails.some((l) => nearLine(x, y, l, M(3) + keep * 0.6)) || roadLines.some((l) => nearLine(x, y, l, M(6) + keep))) continue;
       if (brooks.some((l) => nearLine(x, y, l, M(5) + keep)) || riverLines.some((l) => nearLine(x, y, l, M(9) + keep))) continue;
-      t.push(r1(x), r1(y), r1(rad));
+      loose.push([x, y, rad]);
     }
+  }
+  // Un arbre qui touche une tache de canopée appartient à la forêt (de près seulement) ; les autres restent isolés.
+  for (const [x, y, rad] of loose) {
+    const inForest = circles.some(([qx, qy, qr]) => Math.abs(qx - x) < qr + rad && Math.abs(qy - y) < qr + rad && Math.hypot(qx - x, qy - y) < qr + rad * 0.8);
+    (inForest ? tc : t).push(r1(x), r1(y), r1(rad));
   }
   // Quelques rochers épars, plus nombreux en relief.
   const mid = env.sample((box[0] + box[2]) / 2, (box[1] + box[3]) / 2);
@@ -199,6 +210,6 @@ export function generateZonePlan(z, planId, env) {
     id: planId, title: z.title, scope: { kind: 'site', id: `${planId}:site` }, width: W, height: H,
     defaultViewport: { x: 0.5, y: 0.5, zoom: 1 }, decor,
     surface: { scale: ZONE_SCALE, theme: 'cite', nature: true, zone: true, climate, snow: mid.biome === 'neige' ? 0.5 : undefined,
-      ground: { b: [], f: [], t, o, p: [], walls: [], water, roads } },
+      ground: { b: [], f: [], t, tc, o, p: [], walls: [], water, roads } },
   };
 }

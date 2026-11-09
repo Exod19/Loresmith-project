@@ -84,6 +84,8 @@ export interface MapSurface {
   relief?: Record<string, unknown>;
   ground: {
     b: number[]; f: number[]; t: number[];
+    /** Arbres pris dans la canopée (plans des environs) : dessinés seulement de près, quand la canopée s'efface. */
+    tc?: number[];
     /** Obstacles intérieurs (comptoir, âtre, autel…) : rectangles comme `b`, infranchissables mais pas des murs. */
     o?: number[];
     /** Ouvertures (portes, passages) que la grille de combat garde ouvertes : [x, y] à plat. */

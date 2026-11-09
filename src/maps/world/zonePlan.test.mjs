@@ -44,8 +44,9 @@ test('plan des environs : arbres partout en forêt, ruisseau et sentier pour les
     seed: 42, sites: [...sites, brook],
     sample: (x, y) => { const t = T.terrainAt(relief, x, y); return { forest: t.forest, e: t.e, biome: t.biome, moist: t.moist, water: !!t.sea }; },
   });
-  const t = map.surface.ground.t;
-  assert.ok(t.length / 3 > 800, `arbres : ${t.length / 3}`);
+  // Arbres de la forêt (sous la canopée, dessinés de près) et arbres isolés (jamais posés sur la canopée).
+  const t = [...map.surface.ground.t, ...map.surface.ground.tc];
+  assert.ok(map.surface.ground.tc.length / 3 > 800, `arbres de forêt : ${map.surface.ground.tc.length / 3}`);
   assert.ok(Math.max(...t.filter((_, i) => i % 3 === 0)) > ZONE_W * 0.9, 'les arbres couvrent toute la largeur');
   assert.ok(map.surface.ground.water.some((w) => !w.closed), 'un ruisseau');
   assert.ok(map.surface.ground.roads.length >= 1, 'des sentiers');

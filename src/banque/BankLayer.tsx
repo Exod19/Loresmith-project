@@ -14,7 +14,7 @@ import { bankSrc, fitRoof, hash, maskFromParts, MIN_PX, noUpscale, pickElement, 
 type View = { x: number; y: number; w: number; h: number };
 /** Un sprite : image centrée en (x, y), de w × h avant rotation, tournée de `a`, en miroir si `flip`. Sans image : le
  *  dessin vectoriel de repli (`d`, classe `cls`), pour qu'aucun objet ne disparaisse quand son tracé est masqué. */
-type Sprite = { key: string; layer: 'arbres' | 'dessus'; img: BankImage | null; x: number; y: number; w: number; h: number; a: number; flip?: boolean; d?: string; cls?: string; petit?: boolean };
+type Sprite = { key: string; layer: 'arbres' | 'dessus'; img: BankImage | null; x: number; y: number; w: number; h: number; a: number; flip?: boolean; d?: string; cls?: string; petit?: boolean; dense?: boolean };
 
 const SEASON_OF: Record<string, string> = { printemps: 'printemps', ete: 'ete', automne: 'automne', hiver: 'hiver' };
 /** Mobilier et objets → ce qu'on cherche dans la banque (et le tracé vectoriel qu'il remplace). */
@@ -77,6 +77,13 @@ function useSprites(map: AtlasMap, images: BankImage[]) {
         const d = t[i + 2] * 2.3; // la couronne déborde le tronc posé par le plan
         out.push({ key: `t${i}`, layer: 'arbres', img, x: t[i], y: t[i + 1], w: d, h: d, a: ((hash(`${map.id}:ta${i}`) % 360) * Math.PI) / 180,
           d: img ? undefined : `M${t[i] - t[i + 2]} ${t[i + 1]}a${t[i + 2]} ${t[i + 2]} 0 1 0 ${t[i + 2] * 2} 0a${t[i + 2]} ${t[i + 2]} 0 1 0 ${-t[i + 2] * 2} 0`, cls: 'dc-tree' });
+      }
+      // Arbres de la forêt (sous la canopée) : mêmes images, dessinés seulement de près (voir canopyFade).
+      const tc = g.tc ?? [];
+      for (let i = 0; i + 2 < tc.length; i += 3) {
+        const img = pickElement(images, { cat: 'arbre', ...ctx, milieu: 'foret', seed: `${map.id}:tc${i}` });
+        const d = tc[i + 2] * 2.3;
+        if (img) out.push({ key: `tc${i}`, layer: 'arbres', img, x: tc[i], y: tc[i + 1], w: d, h: d, a: ((hash(`${map.id}:tca${i}`) % 360) * Math.PI) / 180, dense: true });
       }
       // Bâtiments : l'emprise entière (corps et ailes) reçoit un toit qui l'épouse ; à défaut, un toit par partie.
       const bx: number[][] = g.bx ?? [];
@@ -160,6 +167,14 @@ export function GroundPatterns({ tex }: { tex: ReturnType<typeof useGroundTextur
  * par unité de plan ; `view` : partie visible, en unités de plan. Rien sous le seuil de netteté (bankActive) : le dessin
  * vectoriel suffit et reste affiché.
  */
+/**
+ * Passage de la canopée aux arbres, selon les pixels par mètre à l'écran : la canopée (texture de forêt) est pleine
+ * en dessous de 2,3 px/m et disparaît à 2,9 px/m ; les arbres de la forêt font l'inverse. Une courte bande de
+ * fondu, jamais d'arbres posés sur la canopée. Renvoie l'opacité de la canopée (0–1).
+ */
+export const CANOPY_SWAP: [number, number] = [2.3, 2.9];
+export const canopyFade = (ppm: number) => Math.max(0, Math.min(1, (CANOPY_SWAP[1] - ppm) / (CANOPY_SWAP[1] - CANOPY_SWAP[0])));
+
 export default function BankLayer({ map, layer, pxPerUnit, view }: { map: AtlasMap; layer: 'arbres' | 'dessus'; pxPerUnit: number; view: View }) {
   const images = useBank();
   const sprites = useSprites(map, images);
@@ -169,13 +184,16 @@ export default function BankLayer({ map, layer, pxPerUnit, view }: { map: AtlasM
     && (!sp.petit || Math.max(sp.w, sp.h) * pxPerUnit >= MIN_PX * 2)
     && sp.x > view.x - pad - sp.w && sp.x < view.x + view.w + pad + sp.w && sp.y > view.y - pad - sp.h && sp.y < view.y + view.h + pad + sp.h);
   if (!shown.length || shown.length > 3000) return null;
+  const treesIn = 1 - canopyFade(pxPerUnit / (map.surface?.scale || 1)); // arbres de la forêt : visibles quand la canopée s'efface
   return (
     <g className={`am-bank am-bank-${layer}`} aria-hidden>
       {shown.map((sp) => {
         if (!sp.img) return sp.d ? <path key={sp.key} d={sp.d} className={sp.cls} /> : null;
+        if (sp.dense && treesIn <= 0.01) return null;
         // Jamais étirée au-delà de sa résolution d'origine (ni déformée : proportions gardées).
         const px = Math.max(sp.w, sp.h) * pxPerUnit, k = noUpscale(sp.img, px), w = sp.w * k, h = sp.h * k;
         return <image key={sp.key} href={bankSrc(sp.img, px * k)} x={-w / 2} y={-h / 2} width={w} height={h} preserveAspectRatio="xMidYMid meet"
+          opacity={sp.dense && treesIn < 1 ? treesIn : undefined}
           transform={`translate(${sp.x} ${sp.y}) rotate(${(sp.a * 180) / Math.PI})${sp.flip ? ' scale(-1 1)' : ''}`} />;
       })}
     </g>

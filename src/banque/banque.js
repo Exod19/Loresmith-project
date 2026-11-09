@@ -219,7 +219,9 @@ export function pickElement(images, { cat, cats, climat, saison, region = 'surfa
 /** Texture cohérente : `cat` ou `cats` (premier trouvé dans l'ordre donné), climat, saison, région. */
 export function pickTexture(images, { cat, cats, climat, saison, region = 'surface', seed = '' } = {}) {
   for (const c of cats ?? [cat]) {
-    const cands = images.filter((img) => img.type === 'texture' && img.cat === c && fits(img, { climat, saison, region })).map((img) => ({ img, w: 1 }));
+    // Une matière propre à la saison (prairie fleurie au printemps, feuilles mortes à l'automne) passe devant celle de toute saison.
+    const cands = images.filter((img) => img.type === 'texture' && img.cat === c && fits(img, { climat, saison, region }))
+      .map((img) => ({ img, w: (saison ?? 'ete') && img.saisons?.includes(saison ?? 'ete') ? 3 : 1 }));
     const got = weighted(cands, seed);
     if (got) return got;
   }

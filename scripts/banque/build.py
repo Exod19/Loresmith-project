@@ -143,6 +143,19 @@ TEXTURES_LOT_FORET = [
     (r'texture-sous-bois-aiguilles', dict(nom='Sous-bois d’aiguilles de pin', cat='humus', taille=5, milieux=['foret'], climats=[T, F], raccorder=False)),
     (r'texture-sous-bois-feuilles', dict(nom='Sous-bois de feuilles mortes', cat='humus', taille=5, milieux=['foret'], climats=[T], raccorder=False)),
     (r'texture-terre-forestiere', dict(nom='Terre forestière', cat='humus', taille=5, milieux=['foret'], climats=[T], raccorder=False)),
+    # Sols de saison (2e envoi du 2026-11-09).
+    (r'texture-feuilles-bouleau-automne', dict(nom='Feuilles de bouleau d’automne', cat='humus', taille=5, milieux=['foret'], climats=[T, F], saisons=['automne'], raccorder=False)),
+    (r'texture-feuilles-humides-automne', dict(nom='Feuilles humides d’automne', cat='humus', taille=5, milieux=['foret'], climats=[T], saisons=['automne'], raccorder=False)),
+    (r'texture-sous-bois-pousses-printemps', dict(nom='Sous-bois de jeunes pousses', cat='humus', taille=5, milieux=['foret'], climats=[T], saisons=['printemps'], raccorder=False)),
+    (r'texture-sous-bois-neige-partielle', dict(nom='Sous-bois sous la neige', cat='humus', taille=5, milieux=['foret'], climats=[T, F], saisons=['hiver'], raccorder=False)),
+    (r'texture-prairie-fleurie-printemps', dict(nom='Prairie fleurie', cat='herbe', taille=4, milieux=['campagne', 'foret'], climats=[T], saisons=['printemps'], raccorder=False)),
+    (r'texture-prairie-fanee-automne', dict(nom='Prairie fanée', cat='herbe', taille=4, milieux=['campagne'], climats=[T], saisons=['automne'], raccorder=False)),
+    (r'texture-herbe-givree-hiver', dict(nom='Herbe givrée', cat='herbe', taille=4, milieux=['campagne', 'foret'], climats=[T, F], saisons=['hiver'], raccorder=False)),
+    (r'texture-steppe-ete', dict(nom='Steppe', cat='herbe', taille=4, milieux=['steppe', 'campagne'], climats=[C, A, T], saisons=['ete', 'automne'], raccorder=False)),
+    (r'texture-toundra-gelee-hiver', dict(nom='Toundra gelée', cat='toundra', taille=6, milieux=['toundra'], climats=[F], saisons=['hiver'], raccorder=False)),
+    (r'texture-sable-sec-ete', dict(nom='Sable sec', cat='sable', taille=6, milieux=['desert', 'cote'], climats=[C, A, T], raccorder=False)),
+    (r'texture-terre-craquelee-ete', dict(nom='Terre craquelée', cat='terre', taille=6, milieux=['desert', 'savane'], climats=[C, A], raccorder=False)),
+    (r'texture-boue-degel-printemps', dict(nom='Boue de dégel', cat='boue', taille=5, milieux=['campagne', 'foret', 'route'], climats=[T, F], saisons=['printemps'], raccorder=False)),
 ]
 
 TEXTURES = [
@@ -1006,8 +1019,9 @@ def main():
         os.makedirs(os.path.join(OUT, folder_out), exist_ok=True)
         w0, h0 = im.size
         mips = []
-        # 1024 px seulement là où un zoom l'exige (textures, portraits, grands éléments) : la banque reste légère.
-        big = kind == 'texture' or vue == 'portrait' or (kind == 'element' and isinstance(meta.get('taille'), list) and max(meta['taille']) >= 8)
+        # Tous les éléments en 1024 px aussi : les plans à l'échelle zooment jusqu'à 64 px par mètre (un mouton, un arbuste, un
+        # rocher y dépassent 512 px) ; sans cette version, la carte devrait les rétrécir ou les agrandir flous.
+        big = kind in ('texture', 'element') or vue == 'portrait'
         for s in SIZES if big else SIZES[:2]:
             k = min(1.0, s / max(w0, h0))
             # Jamais d'agrandissement : on s'arrête à la taille d'origine.

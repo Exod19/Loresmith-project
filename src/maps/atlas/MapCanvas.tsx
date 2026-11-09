@@ -8,7 +8,7 @@ import { useReliefDetail, useReliefImage } from '../world/reliefImage';
 import NaturalTerrain, { naturalTerrainOn } from './NaturalTerrain';
 import WaterLayer, { setWaterMotion, useWaterMotion, WATER_COVERS, waterLayerOn } from './WaterLayer';
 import { poseOf, tokenScaleOf, turnsFreely } from '../../banque';
-import BankLayer, { BANK_COVERS, bankActive, GroundPatterns, useGroundTextures } from '../../banque/BankLayer';
+import BankLayer, { canopyFade, BANK_COVERS, bankActive, GroundPatterns, useGroundTextures } from '../../banque/BankLayer';
 import { CaveDecor, CavePatterns, fineOpacity, useCaveTextures } from '../../banque/CaveArt';
 import type { Relief } from '../world/terrain';
 import { CityEmblem, paintedEmblem, peopleOf } from './emblems';
@@ -639,9 +639,13 @@ export default function MapCanvas({ map, layers, hidden, focus, focusKey, select
   // (Un plan d'avant la banque, sans liste d'objets, garde sa fontaine et ses meubles vectoriels.)
   const bankHide = bankOn && bankActive(map, pxPerUnit)
     ? new Set([...BANK_COVERS[surf!.theme]].filter((k) => surf!.ground.p?.length || !['fountain', ...BANK_COVERS.interieur].includes(k))) : undefined;
+  // Pleine nature : la canopée s'efface de près, les arbres de la forêt (banque) prennent le relais (canopyFade).
+  const canopyOp = surf?.nature ? canopyFade(pxPerUnit / surf.scale) : 1;
   const decorPath = (x: NonNullable<AtlasMap['decor']>[number], i: number) => {
     if (bankHide?.has(x.kind) || (waterOn && WATER_COVERS.has(x.kind))) return null;
+    if (x.kind === 'forest' && canopyOp <= 0.01) return null;
     const tex = groundTex[x.kind];
+    if (x.kind === 'forest' && canopyOp < 1) return <path key={i} d={x.d} className="dc-forest" style={{ opacity: canopyOp, ...(tex ? { fill: `url(#${tex.id})` } : {}) }} />;
     return <path key={i} d={x.d} className={`dc-${x.kind}${x.w ? ' dc-w' : ''}`} style={x.w || tex ? { ...(x.w ? { strokeWidth: x.w } : {}), ...(tex ? { fill: `url(#${tex.id})` } : {}) } : undefined} />;
   };
   /** Lit (mobilier de la banque) sous un point du plan : son axe long ('v' ou 'h') et son angle en degrés. */

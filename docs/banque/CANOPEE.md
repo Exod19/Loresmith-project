@@ -93,3 +93,15 @@ Importées depuis le Drive (dossier des textures de surface, index `loresmith-fo
 - 7 sols : herbe verte (4 m), herbe sèche (4 m), mousse (4 m), neige (6 m), sous-bois d'aiguilles, sous-bois de
   feuilles mortes et terre forestière (5 m).
 - Images natives de 1254 px (pas d'agrandissement : versions 256, 512 et 1024 px).
+
+## Niveaux de détail (2026-11-09, suite)
+
+- **Canopée et arbres, chacun à son niveau** : de loin, la canopée seule (texture de forêt) ; entre 2,3 et 2,9 px par
+  mètre, elle s'efface et les arbres de la forêt apparaissent (`ground.tc`, plus serrés : une couronne tous les ~25 m).
+  Jamais d'arbre posé sur la canopée. Les arbres isolés (clairières, lisières, campagne) restent seuls à tout zoom.
+- **Résolution** : tous les éléments de la banque existent maintenant en 1024 px (le zoom va jusqu'à 64 px par mètre) ;
+  le sol calculé monte jusqu'à 128 px par mètre (écrans haute densité) ; les sols de saison sont préférés à ceux de
+  toute saison.
+- **Sols de saison importés** : prairie fleurie, jeunes pousses, boue de dégel (printemps) ; steppe, sable sec, terre
+  craquelée (été) ; prairie fanée, feuilles humides, feuilles de bouleau (automne) ; herbe givrée, sous-bois sous la
+  neige, toundra gelée (hiver).

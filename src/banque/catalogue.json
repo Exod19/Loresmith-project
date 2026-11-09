@@ -3023,7 +3023,8 @@
 "couleur": "#4e443e",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Foyer éteint",
 "cat": "campement",
@@ -3054,7 +3055,8 @@
 "couleur": "#7b634f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Nid abandonné",
 "cat": "bois",
@@ -3085,7 +3087,8 @@
 "couleur": "#605844",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Puits de pierre",
 "cat": "ferme",
@@ -3123,7 +3126,8 @@
 "couleur": "#50443c",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Campement abandonné",
 "cat": "campement",
@@ -3154,7 +3158,8 @@
 "couleur": "#43382f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paquetage abandonné",
 "cat": "campement",
@@ -3185,7 +3190,8 @@
 "couleur": "#4f3f34",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paquetage abandonné",
 "cat": "campement",
@@ -3247,7 +3253,8 @@
 "couleur": "#483d35",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Campement abandonné",
 "cat": "campement",
@@ -3278,7 +3285,8 @@
 "couleur": "#5f4e3e",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Terrier",
 "cat": "mine",
@@ -3310,7 +3318,8 @@
 "couleur": "#746152",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Terrier",
 "cat": "mine",
@@ -3342,7 +3351,8 @@
 "couleur": "#72472e",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Lit",
 "cat": "mobilier",
@@ -3376,7 +3386,8 @@
 "couleur": "#714d3d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Lit",
 "cat": "mobilier",
@@ -3409,7 +3420,8 @@
 "couleur": "#6d4540",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Lit",
 "cat": "mobilier",
@@ -3509,7 +3521,8 @@
 "couleur": "#5c564c",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Amas de rochers",
 "cat": "rocher",
@@ -3542,7 +3555,8 @@
 "couleur": "#554d45",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -3571,7 +3585,8 @@
 "couleur": "#595148",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Borne de piste",
 "cat": "repere",
@@ -3602,7 +3617,8 @@
 "couleur": "#6b583d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Souche creuse",
 "cat": "bois",
@@ -3637,7 +3653,8 @@
 "couleur": "#695f48",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Autel",
 "cat": "repere",
@@ -3670,7 +3687,8 @@
 "couleur": "#37322c",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Escalier taillé",
 "cat": "ouverture",
@@ -3701,7 +3719,8 @@
 "couleur": "#a99c8a",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -3763,7 +3782,8 @@
 "couleur": "#928671",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Rochers",
 "cat": "rocher",
@@ -3795,7 +3815,8 @@
 "couleur": "#5c5146",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Autel basaltique",
 "cat": "mobilier",
@@ -3832,7 +3853,8 @@
 "couleur": "#804f2f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Tas de feuilles",
 "cat": "bois",
@@ -3866,7 +3888,8 @@
 "couleur": "#a9824b",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Auvent de toile",
 "cat": "marche",
@@ -3899,7 +3922,8 @@
 "couleur": "#6f6e54",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Bac d’eau",
 "cat": "mobilier",
@@ -3935,7 +3959,8 @@
 "couleur": "#796453",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Tonneau",
 "cat": "mobilier",
@@ -3970,7 +3995,8 @@
 "couleur": "#614d3c",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Barricade en bois hérissée de pieux",
 "cat": "ruine",
@@ -4002,7 +4028,8 @@
 "couleur": "#68523f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Barrage de castors",
 "cat": "bois",
@@ -4033,7 +4060,8 @@
 "couleur": "#433222",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -4062,7 +4090,8 @@
 "couleur": "#8e7d6d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Racines",
 "cat": "bois",
@@ -4092,7 +4121,8 @@
 "couleur": "#484e39",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Genévrier alpin",
 "cat": "arbuste",
@@ -4127,7 +4157,8 @@
 "couleur": "#3c3834",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Crevasse",
 "cat": "ouverture",
@@ -4158,7 +4189,8 @@
 "couleur": "#554b40",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -4187,7 +4219,8 @@
 "couleur": "#4e3e30",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Pont de corde",
 "cat": "paroi",
@@ -4218,7 +4251,8 @@
 "couleur": "#524a41",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Dalle d’offrandes",
 "cat": "repere",
@@ -4249,7 +4283,8 @@
 "couleur": "#4a382b",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Wagonnet de mine",
 "cat": "mine",
@@ -4280,7 +4315,8 @@
 "couleur": "#574a3e",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Passerelle",
 "cat": "paroi",
@@ -4311,7 +4347,8 @@
 "couleur": "#4b4a4a",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Orgues basaltiques",
 "cat": "rocher",
@@ -4345,7 +4382,8 @@
 "couleur": "#3d332d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Étais effondrés",
 "cat": "bois",
@@ -4376,7 +4414,8 @@
 "couleur": "#7b5031",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Champignons",
 "cat": "champignon",
@@ -4407,7 +4446,8 @@
 "couleur": "#414025",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Ronces",
 "cat": "arbuste",
@@ -4441,7 +4481,8 @@
 "couleur": "#80644f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Bûches empilées",
 "cat": "mobilier",
@@ -4477,7 +4518,8 @@
 "couleur": "#8a705a",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Caisse en bois à renfort diagonal",
 "cat": "campement",
@@ -4510,7 +4552,8 @@
 "couleur": "#7c766f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Croûte de calcite",
 "cat": "ouverture",
@@ -4541,7 +4584,8 @@
 "couleur": "#36413f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Vasque calcaire",
 "cat": "flaque",
@@ -4607,7 +4651,8 @@
 "couleur": "#80634d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Bois de chauffage bâché",
 "cat": "campement",
@@ -4640,7 +4685,8 @@
 "couleur": "#644f41",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Chaise médiévale en bois, vue du dessus",
 "cat": "mobilier",
@@ -4671,7 +4717,8 @@
 "couleur": "#6f6659",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Passerelle",
 "cat": "paroi",
@@ -4702,7 +4749,8 @@
 "couleur": "#413e3a",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paroi calcaire",
 "cat": "paroi",
@@ -4733,7 +4781,8 @@
 "couleur": "#453f37",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paroi calcaire",
 "cat": "paroi",
@@ -4764,7 +4813,8 @@
 "couleur": "#413e3a",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paroi calcaire",
 "cat": "paroi",
@@ -4795,7 +4845,8 @@
 "couleur": "#453d39",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Souche creuse",
 "cat": "bois",
@@ -4929,7 +4980,8 @@
 "couleur": "#755843",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Coffre",
 "cat": "mobilier",
@@ -4963,7 +5015,8 @@
 "couleur": "#524033",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Coffre médiéval en chêne vieilli",
 "cat": "campement",
@@ -4996,7 +5049,8 @@
 "couleur": "#493b2f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Étais effondrés",
 "cat": "mine",
@@ -5027,7 +5081,8 @@
 "couleur": "#463b32",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Éboulement",
 "cat": "rocher",
@@ -5058,7 +5113,8 @@
 "couleur": "#5a4f42",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Campement abandonné",
 "cat": "campement",
@@ -5088,7 +5144,8 @@
 "couleur": "#4b3526",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Tas de compost",
 "cat": "ferme",
@@ -5123,7 +5180,8 @@
 "couleur": "#3e3e40",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Lave refroidie",
 "cat": "rocher",
@@ -5156,7 +5214,8 @@
 "couleur": "#713929",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Arbuste pourpre",
 "cat": "arbuste",
@@ -5189,7 +5248,8 @@
 "couleur": "#4f4840",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Dalle veinée de métal",
 "cat": "rocher",
@@ -5220,7 +5280,8 @@
 "couleur": "#352e34",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -5248,7 +5309,8 @@
 "couleur": "#4b512f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Pin",
 "cat": "arbre",
@@ -5282,7 +5344,8 @@
 "couleur": "#3f492e",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Sapin",
 "cat": "arbre",
@@ -5354,7 +5417,8 @@
 "couleur": "#45342f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -5383,7 +5447,8 @@
 "couleur": "#51573b",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Genévrier alpin",
 "cat": "arbuste",
@@ -5418,7 +5483,8 @@
 "couleur": "#4b4743",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paroi calcaire",
 "cat": "paroi",
@@ -5449,7 +5515,8 @@
 "couleur": "#6c6055",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Gravier sombre",
 "cat": "paroi",
@@ -5480,7 +5547,8 @@
 "couleur": "#3d3934",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paroi d’ardoise",
 "cat": "paroi",
@@ -5511,7 +5579,8 @@
 "couleur": "#363430",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paroi calcaire",
 "cat": "paroi",
@@ -5541,7 +5610,8 @@
 "couleur": "#4e4534",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Abreuvoir",
 "cat": "ferme",
@@ -5577,7 +5647,8 @@
 "couleur": "#243e3f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -5606,7 +5677,8 @@
 "couleur": "#8e9474",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Nappe de vapeur",
 "cat": "vapeur",
@@ -5637,7 +5709,8 @@
 "couleur": "#4d502b",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Buissons",
 "cat": "arbuste",
@@ -5669,7 +5742,8 @@
 "couleur": "#776d57",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Buissons",
 "cat": "arbuste",
@@ -5701,7 +5775,8 @@
 "couleur": "#686f65",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Poussière remuée",
 "cat": "arbuste",
@@ -5736,7 +5811,8 @@
 "couleur": "#6a635c",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Toiles d’araignée",
 "cat": "toile",
@@ -5767,7 +5843,8 @@
 "couleur": "#473d33",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -5839,7 +5916,8 @@
 "couleur": "#5d5c2f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Noisetiers",
 "cat": "arbuste",
@@ -5873,7 +5951,8 @@
 "couleur": "#73675a",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -5901,7 +5980,8 @@
 "couleur": "#785f48",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Charrette vide",
 "cat": "ferme",
@@ -5938,7 +6018,8 @@
 "couleur": "#6d5d45",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Souche creuse",
 "cat": "bois",
@@ -5973,7 +6054,8 @@
 "couleur": "#594f43",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Piliers calcaires",
 "cat": "stalagmite",
@@ -6004,7 +6086,8 @@
 "couleur": "#524d48",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paroi calcaire",
 "cat": "paroi",
@@ -6035,7 +6118,8 @@
 "couleur": "#312b25",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Doline",
 "cat": "ouverture",
@@ -6066,7 +6150,8 @@
 "couleur": "#6b5e52",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Foyer éteint",
 "cat": "campement",
@@ -6099,7 +6184,8 @@
 "couleur": "#493c2f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Lanterne tombée",
 "cat": "campement",
@@ -6130,7 +6216,8 @@
 "couleur": "#5e5043",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Squelette d’aventurier",
 "cat": "ossements",
@@ -6161,7 +6248,8 @@
 "couleur": "#4d423a",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Carcasse de rothé",
 "cat": "ossements",
@@ -6192,7 +6280,8 @@
 "couleur": "#968270",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Tronc couché",
 "cat": "bois",
@@ -6226,7 +6315,8 @@
 "couleur": "#7c6b51",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Poteau indicateur",
 "cat": "repere",
@@ -6290,7 +6380,8 @@
 "couleur": "#716255",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Tronc couché",
 "cat": "bois",
@@ -6322,7 +6413,8 @@
 "couleur": "#7e7e68",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Fontaine",
 "cat": "monument",
@@ -6355,7 +6447,8 @@
 "couleur": "#757a6e",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Fontaine octogonale",
 "cat": "monument",
@@ -6389,7 +6482,8 @@
 "couleur": "#72523b",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Racines",
 "cat": "bois",
@@ -6451,7 +6545,8 @@
 "couleur": "#685749",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Piton et corde",
 "cat": "piege",
@@ -6482,7 +6577,8 @@
 "couleur": "#5a4d42",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Traces de pas",
 "cat": "sol",
@@ -6513,7 +6609,8 @@
 "couleur": "#646360",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Éboulis",
 "cat": "rocher",
@@ -6546,7 +6643,8 @@
 "couleur": "#564f48",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Dalle veinée de métal",
 "cat": "rocher",
@@ -6576,7 +6674,8 @@
 "couleur": "#96aab9",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Bloc de glace",
 "cat": "rocher",
@@ -6613,7 +6712,8 @@
 "couleur": "#4f473d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paroi calcaire",
 "cat": "paroi",
@@ -6644,7 +6744,8 @@
 "couleur": "#45403a",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paroi d’ardoise",
 "cat": "paroi",
@@ -6675,7 +6776,8 @@
 "couleur": "#6f5c4a",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Corde abandonnée",
 "cat": "piege",
@@ -6706,7 +6808,8 @@
 "couleur": "#987653",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Souche creuse",
 "cat": "bois",
@@ -6741,7 +6844,8 @@
 "couleur": "#7e7268",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Tronc couché",
 "cat": "bois",
@@ -6777,7 +6881,8 @@
 "couleur": "#68605d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Arbuste givré",
 "cat": "arbuste",
@@ -6814,7 +6919,8 @@
 "couleur": "#98a7b3",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -6880,7 +6986,8 @@
 "couleur": "#4b493e",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Statue de bronze",
 "cat": "monument",
@@ -6916,7 +7023,8 @@
 "couleur": "#917243",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Herbes de savane",
 "cat": "arbuste",
@@ -6990,7 +7098,8 @@
 "couleur": "#8a6c63",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Champignons luminescents",
 "cat": "souterrain",
@@ -7002,8 +7111,7 @@
 "caverne"
 ],
 "region": [
-"outreterre",
-"surface"
+"outreterre"
 ],
 "climats": [],
 "saisons": [],
@@ -7021,7 +7129,8 @@
 "couleur": "#5d4946",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Améthystes",
 "cat": "souterrain",
@@ -7053,7 +7162,8 @@
 "couleur": "#9b7341",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Botte de foin",
 "cat": "ferme",
@@ -7088,7 +7198,8 @@
 "couleur": "#665238",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Tronc couché",
 "cat": "bois",
@@ -7118,7 +7229,8 @@
 "couleur": "#795b40",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Bûches empilées",
 "cat": "ferme",
@@ -7153,7 +7265,8 @@
 "couleur": "#5a602f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Poirier",
 "cat": "arbre",
@@ -7227,7 +7340,8 @@
 "couleur": "#4e4640",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Piliers calcaires",
 "cat": "stalagmite",
@@ -7258,7 +7372,8 @@
 "couleur": "#4a453d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paroi calcaire",
 "cat": "paroi",
@@ -7289,7 +7404,8 @@
 "couleur": "#473d35",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Stalagmites",
 "cat": "stalagmite",
@@ -7357,7 +7473,8 @@
 "couleur": "#2e3633",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Flaque",
 "cat": "flaque",
@@ -7419,7 +7536,8 @@
 "couleur": "#4b453e",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Éboulement",
 "cat": "rocher",
@@ -7450,7 +7568,8 @@
 "couleur": "#464039",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paroi calcaire",
 "cat": "paroi",
@@ -7481,7 +7600,8 @@
 "couleur": "#bca98d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -7510,7 +7630,8 @@
 "couleur": "#36302a",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Crevasse",
 "cat": "ouverture",
@@ -7541,7 +7662,8 @@
 "couleur": "#2d2a26",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Puits",
 "cat": "ouverture",
@@ -7572,7 +7694,8 @@
 "couleur": "#45413d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paroi calcaire",
 "cat": "paroi",
@@ -7603,7 +7726,8 @@
 "couleur": "#2b2a26",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Puits",
 "cat": "ouverture",
@@ -7633,7 +7757,8 @@
 "couleur": "#2a2725",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Obsidienne",
 "cat": "rocher",
@@ -7666,7 +7791,8 @@
 "couleur": "#655b46",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Corniche rocheuse",
 "cat": "rocher",
@@ -7699,7 +7825,8 @@
 "couleur": "#4c463f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paroi calcaire",
 "cat": "paroi",
@@ -7730,7 +7857,8 @@
 "couleur": "#292622",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Puits",
 "cat": "ouverture",
@@ -7761,7 +7889,8 @@
 "couleur": "#4b443d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paroi calcaire",
 "cat": "paroi",
@@ -7792,7 +7921,8 @@
 "couleur": "#423e35",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paroi calcaire",
 "cat": "paroi",
@@ -7823,7 +7953,8 @@
 "couleur": "#484740",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Source",
 "cat": "flaque",
@@ -7885,7 +8016,8 @@
 "couleur": "#53493f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Fondations en ruine",
 "cat": "ruine",
@@ -7917,7 +8049,8 @@
 "couleur": "#665f4f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Affleurement rocheux",
 "cat": "rocher",
@@ -7949,7 +8082,8 @@
 "couleur": "#706d59",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Bloc alpin à lichens",
 "cat": "rocher",
@@ -7984,7 +8118,8 @@
 "couleur": "#3d3731",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Rampe vers les ténèbres",
 "cat": "ouverture",
@@ -8015,7 +8150,8 @@
 "couleur": "#403a33",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Puits",
 "cat": "ouverture",
@@ -8045,7 +8181,8 @@
 "couleur": "#6e3f3c",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Lit",
 "cat": "mobilier",
@@ -8079,7 +8216,8 @@
 "couleur": "#573c37",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Lit",
 "cat": "mobilier",
@@ -8113,7 +8251,8 @@
 "couleur": "#554534",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Racines de palétuvier",
 "cat": "bois",
@@ -8186,7 +8325,8 @@
 "couleur": "#7e5e41",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Brouette",
 "cat": "ferme",
@@ -8220,7 +8360,8 @@
 "couleur": "#513820",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Tas de fumier",
 "cat": "ferme",
@@ -8254,7 +8395,8 @@
 "couleur": "#85633b",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Râtelier à foin",
 "cat": "ferme",
@@ -8290,7 +8432,8 @@
 "couleur": "#4c3725",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -8319,7 +8462,8 @@
 "couleur": "#6c5740",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Tronc couché",
 "cat": "bois",
@@ -8352,7 +8496,8 @@
 "couleur": "#6c6550",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Blocs calcaires",
 "cat": "rocher",
@@ -8384,7 +8529,8 @@
 "couleur": "#5c4f34",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Souche creuse",
 "cat": "bois",
@@ -8419,7 +8565,8 @@
 "couleur": "#534932",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Souche creuse",
 "cat": "bois",
@@ -8454,7 +8601,8 @@
 "couleur": "#6a634a",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Muret en ruine",
 "cat": "ruine",
@@ -8486,7 +8634,8 @@
 "couleur": "#615636",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Tronc couché",
 "cat": "bois",
@@ -8517,7 +8666,8 @@
 "couleur": "#676a2e",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Fleurs sauvages",
 "cat": "arbuste",
@@ -8548,7 +8698,8 @@
 "couleur": "#906d48",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Charrette de foin",
 "cat": "ferme",
@@ -8588,7 +8739,8 @@
 "couleur": "#2e2d2c",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paroi d’obsidienne",
 "cat": "paroi",
@@ -8619,7 +8771,8 @@
 "couleur": "#2f2a2d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -8682,7 +8835,8 @@
 "couleur": "#6c6d2c",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Touffe de carex",
 "cat": "plante-eau",
@@ -8715,7 +8869,8 @@
 "couleur": "#4b4640",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Trappe",
 "cat": "ouverture",
@@ -8745,7 +8900,8 @@
 "couleur": "#b28c60",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Tonneau d’avoine",
 "cat": "ferme",
@@ -8782,7 +8938,8 @@
 "couleur": "#3f3328",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Trappe",
 "cat": "ouverture",
@@ -8812,7 +8969,8 @@
 "couleur": "#655339",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Barrière de ferme",
 "cat": "cloture",
@@ -8883,7 +9041,8 @@
 "couleur": "#393e38",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Siphon",
 "cat": "ouverture",
@@ -8914,7 +9073,8 @@
 "couleur": "#9e7c5d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Virevoltant",
 "cat": "divers",
@@ -8946,7 +9106,8 @@
 "couleur": "#8e887e",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Corniche rocheuse",
 "cat": "rocher",
@@ -8979,7 +9140,8 @@
 "couleur": "#696037",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Roseaux",
 "cat": "plante-eau",
@@ -9013,7 +9175,8 @@
 "couleur": "#736b39",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Roseaux",
 "cat": "plante-eau",
@@ -9047,7 +9210,8 @@
 "couleur": "#aaafb8",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Rocher enneigé",
 "cat": "rocher",
@@ -9082,7 +9246,8 @@
 "couleur": "#524430",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Racines tropicales",
 "cat": "bois",
@@ -9117,7 +9282,8 @@
 "couleur": "#89794d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Cactus",
 "cat": "arbuste",
@@ -9186,7 +9352,8 @@
 "couleur": "#816853",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Terrier",
 "cat": "mine",
@@ -9218,7 +9385,8 @@
 "couleur": "#847461",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -9247,7 +9415,8 @@
 "couleur": "#605244",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Champignons",
 "cat": "champignon",
@@ -9278,7 +9447,8 @@
 "couleur": "#574a3c",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Passerelle",
 "cat": "pont",
@@ -9310,7 +9480,8 @@
 "couleur": "#b9b8b8",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -9338,7 +9509,8 @@
 "couleur": "#74513c",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Feu de camp",
 "cat": "feu",
@@ -9372,7 +9544,8 @@
 "couleur": "#4f5b2b",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Pommier",
 "cat": "arbre",
@@ -9409,7 +9582,8 @@
 "couleur": "#725f4d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Charrette",
 "cat": "mobilier",
@@ -9486,7 +9660,8 @@
 "couleur": "#685543",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Tas de branches",
 "cat": "bois",
@@ -9552,7 +9727,8 @@
 "couleur": "#3f3b36",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paroi calcaire",
 "cat": "paroi",
@@ -9616,7 +9792,8 @@
 "couleur": "#6c5f40",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Abri de branchages",
 "cat": "campement",
@@ -9648,7 +9825,8 @@
 "couleur": "#604434",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Coffre ferré",
 "cat": "mobilier",
@@ -9682,7 +9860,8 @@
 "couleur": "#41362c",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -9710,7 +9889,8 @@
 "couleur": "#645946",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Puits de village",
 "cat": "monument",
@@ -9744,7 +9924,8 @@
 "couleur": "#665c4e",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Puits rustique",
 "cat": "monument",
@@ -9779,7 +9960,8 @@
 "couleur": "#505833",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Fougères",
 "cat": "arbuste",
@@ -9814,7 +9996,8 @@
 "couleur": "#7f7870",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Croûte de calcite",
 "cat": "sol",
@@ -9845,7 +10028,8 @@
 "couleur": "#825f35",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Broméliacées",
 "cat": "arbuste",
@@ -9880,7 +10064,8 @@
 "couleur": "#887560",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Buissons",
 "cat": "arbuste",
@@ -9914,7 +10099,8 @@
 "couleur": "#645c4f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Rocher de granit",
 "cat": "rocher",
@@ -9947,7 +10133,8 @@
 "couleur": "#655c43",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Doline",
 "cat": "ouverture",
@@ -9978,7 +10165,8 @@
 "couleur": "#352e25",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Puits",
 "cat": "ouverture",
@@ -10008,7 +10196,8 @@
 "couleur": "#9d713e",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Meule de foin",
 "cat": "ferme",
@@ -10045,7 +10234,8 @@
 "couleur": "#747166",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Cuve de lavage",
 "cat": "ferme",
@@ -10080,7 +10270,8 @@
 "couleur": "#49493d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Seau d’eau",
 "cat": "ferme",
@@ -10116,7 +10307,8 @@
 "couleur": "#46433e",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paroi calcaire",
 "cat": "paroi",
@@ -10147,7 +10339,8 @@
 "couleur": "#47382f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Rails de mine",
 "cat": "mine",
@@ -10177,7 +10370,8 @@
 "couleur": "#83694d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Clôture de perches",
 "cat": "cloture",
@@ -10212,7 +10406,8 @@
 "couleur": "#48423b",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paroi calcaire",
 "cat": "paroi",
@@ -10242,7 +10437,8 @@
 "couleur": "#544a3d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Sarcophage",
 "cat": "mobilier",
@@ -10398,7 +10594,8 @@
 "couleur": "#686055",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Muret en ruine",
 "cat": "ruine",
@@ -10430,7 +10627,8 @@
 "couleur": "#423c32",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Flaque",
 "cat": "flaque",
@@ -10492,7 +10690,8 @@
 "couleur": "#483d3b",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Améthystes",
 "cat": "cristal",
@@ -10523,7 +10722,8 @@
 "couleur": "#4e4b48",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Quartz fumé",
 "cat": "cristal",
@@ -10554,7 +10754,8 @@
 "couleur": "#433838",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Champignons",
 "cat": "champignon",
@@ -10585,7 +10786,8 @@
 "couleur": "#9499a1",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Rocher enneigé",
 "cat": "rocher",
@@ -10620,7 +10822,8 @@
 "couleur": "#6e706a",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Sapin enneigé",
 "cat": "arbre",
@@ -10738,7 +10941,8 @@
 "couleur": "#b1b2b6",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -10767,7 +10971,8 @@
 "couleur": "#827e78",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -10796,7 +11001,8 @@
 "couleur": "#4f4926",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -10825,7 +11031,8 @@
 "couleur": "#342a35",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -10854,7 +11061,8 @@
 "couleur": "#5d4432",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -10882,7 +11090,8 @@
 "couleur": "#a39f98",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Colonne brisée",
 "cat": "ruine",
@@ -10917,7 +11126,8 @@
 "couleur": "#635648",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Base de colonne",
 "cat": "ruine",
@@ -10952,7 +11162,8 @@
 "couleur": "#3b3732",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Gravier sombre",
 "cat": "sol",
@@ -11018,7 +11229,8 @@
 "couleur": "#4d3e34",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Caisse brisée",
 "cat": "campement",
@@ -11049,7 +11261,8 @@
 "couleur": "#5d5041",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Racines",
 "cat": "bois",
@@ -11117,7 +11330,8 @@
 "couleur": "#39342c",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Fosse piégée",
 "cat": "ouverture",
@@ -11179,7 +11393,8 @@
 "couleur": "#42402e",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Croûte de soufre",
 "cat": "sol",
@@ -11210,7 +11425,8 @@
 "couleur": "#d1c1ac",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Corail",
 "cat": "plante-eau",
@@ -11244,7 +11460,8 @@
 "couleur": "#9c8367",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Squelette",
 "cat": "ossements",
@@ -11276,7 +11493,8 @@
 "couleur": "#624734",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Table de chêne",
 "cat": "mobilier",
@@ -11310,7 +11528,8 @@
 "couleur": "#5e421e",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Varech",
 "cat": "plante-eau",
@@ -11343,7 +11562,8 @@
 "couleur": "#585132",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Ronces",
 "cat": "arbuste",
@@ -11374,7 +11594,8 @@
 "couleur": "#664817",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Varech",
 "cat": "plante-eau",
@@ -11407,7 +11628,8 @@
 "couleur": "#88735c",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Tente médiévale en toile patinée",
 "cat": "campement",
@@ -11440,7 +11662,8 @@
 "couleur": "#524b40",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Varech",
 "cat": "plante-eau",
@@ -11473,7 +11696,8 @@
 "couleur": "#94bfd3",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Bloc de glace",
 "cat": "rocher",
@@ -11510,7 +11734,8 @@
 "couleur": "#3f413a",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Flaque",
 "cat": "flaque",
@@ -11541,7 +11766,8 @@
 "couleur": "#403a35",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paroi calcaire",
 "cat": "paroi",
@@ -11612,7 +11838,8 @@
 "couleur": "#515357",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Tour (ardoise)",
 "cat": "toit",
@@ -12425,7 +12652,8 @@
 "couleur": "#3e3a34",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Crête de basalte",
 "cat": "paroi",
@@ -12455,7 +12683,8 @@
 "couleur": "#484644",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Orgues basaltiques",
 "cat": "rocher",
@@ -12555,7 +12784,8 @@
 "couleur": "#725d48",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Chariot de grain",
 "cat": "ferme",
@@ -12630,7 +12860,8 @@
 "couleur": "#6b5841",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Angle de clôture",
 "cat": "cloture",
@@ -12664,7 +12895,8 @@
 "couleur": "#856b53",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Araire",
 "cat": "ferme",
@@ -12800,7 +13032,8 @@
 "couleur": "#45552a",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Fougères",
 "cat": "arbuste",
@@ -12835,7 +13068,8 @@
 "couleur": "#67574a",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Charrette",
 "cat": "mine",
@@ -12910,7 +13144,8 @@
 "couleur": "#695c4d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Squelette de rothé",
 "cat": "ossements",
@@ -12977,7 +13212,8 @@
 "couleur": "#2b2724",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Crevasse",
 "cat": "ouverture",
@@ -13045,7 +13281,8 @@
 "couleur": "#6b7c25",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Nénuphars",
 "cat": "plante-eau",
@@ -13083,7 +13320,8 @@
 "couleur": "#5b5a50",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Puits de pierre",
 "cat": "ferme",
@@ -13120,7 +13358,8 @@
 "couleur": "#aa7b4f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Sac d’avoine",
 "cat": "ferme",
@@ -13157,7 +13396,8 @@
 "couleur": "#9a5640",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Corail",
 "cat": "plante-eau",
@@ -13173,8 +13413,7 @@
 "tropical"
 ],
 "region": [
-"mer",
-"surface"
+"mer"
 ],
 "saisons": [],
 "genres": [
@@ -13191,7 +13430,8 @@
 "couleur": "#6d6342",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Cactus",
 "cat": "arbuste",
@@ -13224,7 +13464,8 @@
 "couleur": "#40522b",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Palmier éventail",
 "cat": "arbre",
@@ -13260,7 +13501,8 @@
 "couleur": "#465327",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Fougères",
 "cat": "arbuste",
@@ -13294,7 +13536,8 @@
 "couleur": "#815f3d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Râteau",
 "cat": "ferme",
@@ -13329,7 +13572,8 @@
 "couleur": "#816545",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Borne de piste",
 "cat": "repere",
@@ -13359,7 +13603,8 @@
 "couleur": "#b27f3b",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Ruche de paille",
 "cat": "ferme",
@@ -13399,7 +13644,8 @@
 "couleur": "#5f7c31",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Bananier",
 "cat": "arbuste",
@@ -13435,7 +13681,8 @@
 "couleur": "#4f4e3a",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Nappe de vapeur",
 "cat": "vapeur",
@@ -13465,7 +13712,8 @@
 "couleur": "#6f5d48",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Stalagmites",
 "cat": "souterrain",
@@ -13477,8 +13725,7 @@
 "caverne"
 ],
 "region": [
-"outreterre",
-"surface"
+"outreterre"
 ],
 "climats": [],
 "saisons": [],
@@ -13496,7 +13743,8 @@
 "couleur": "#887761",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Stalagmites",
 "cat": "souterrain",
@@ -13508,8 +13756,7 @@
 "caverne"
 ],
 "region": [
-"outreterre",
-"surface"
+"outreterre"
 ],
 "climats": [],
 "saisons": [],
@@ -13527,7 +13774,8 @@
 "couleur": "#606b3d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Arbustes fleuris",
 "cat": "arbuste",
@@ -13564,7 +13812,8 @@
 "couleur": "#68533d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Tronc mort",
 "cat": "bois",
@@ -13633,7 +13882,8 @@
 "couleur": "#3f3c36",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paroi calcaire",
 "cat": "paroi",
@@ -13664,7 +13914,8 @@
 "couleur": "#9d9188",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Bois flotté",
 "cat": "bois",
@@ -13696,7 +13947,8 @@
 "couleur": "#574732",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Racines de palétuvier",
 "cat": "bois",
@@ -13730,7 +13982,8 @@
 "couleur": "#413d38",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Nappe de vapeur",
 "cat": "ouverture",
@@ -13761,7 +14014,8 @@
 "couleur": "#5a4e44",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Poussière remuée",
 "cat": "sol",
@@ -13792,7 +14046,8 @@
 "couleur": "#61564b",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Poussière remuée",
 "cat": "sol",
@@ -13823,7 +14078,8 @@
 "couleur": "#5b5044",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Fil-piège",
 "cat": "piege",
@@ -13854,7 +14110,8 @@
 "couleur": "#595248",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Blocs calcaires",
 "cat": "rocher",
@@ -13885,7 +14142,8 @@
 "couleur": "#555048",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Éboulement",
 "cat": "rocher",
@@ -13916,7 +14174,8 @@
 "couleur": "#423930",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Traces de pas",
 "cat": "sol",
@@ -13978,7 +14237,8 @@
 "couleur": "#55554b",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Vasque calcaire",
 "cat": "flaque",
@@ -14009,7 +14269,8 @@
 "couleur": "#4f3e2f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Pont de corde",
 "cat": "paroi",
@@ -14040,7 +14301,8 @@
 "couleur": "#8c7e73",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Toiles d’araignée",
 "cat": "toile",
@@ -14071,7 +14333,8 @@
 "couleur": "#463e36",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Éboulement",
 "cat": "paroi",
@@ -14102,7 +14365,8 @@
 "couleur": "#4c4641",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Gravier sombre",
 "cat": "sol",
@@ -14164,7 +14428,8 @@
 "couleur": "#544a42",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Traces de sabots",
 "cat": "sol",
@@ -14195,7 +14460,8 @@
 "couleur": "#51433b",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Outils de mineur",
 "cat": "mine",
@@ -14226,7 +14492,8 @@
 "couleur": "#3e3820",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Mousse et cailloux",
 "cat": "sol",
@@ -14257,7 +14524,8 @@
 "couleur": "#4e453d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Éboulis",
 "cat": "paroi",
@@ -14288,7 +14556,8 @@
 "couleur": "#3a3630",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Puits",
 "cat": "ouverture",
@@ -14319,7 +14588,8 @@
 "couleur": "#544c45",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Saignée de fouille",
 "cat": "sol",
@@ -14350,7 +14620,8 @@
 "couleur": "#695b4d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Banc de limon",
 "cat": "flaque",
@@ -14381,7 +14652,8 @@
 "couleur": "#968f7c",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Nappe de vapeur",
 "cat": "sol",
@@ -14412,7 +14684,8 @@
 "couleur": "#664c36",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Arbre déraciné",
 "cat": "bois",
@@ -14443,7 +14716,8 @@
 "couleur": "#656f3b",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Nénuphars",
 "cat": "plante-eau",
@@ -14482,7 +14756,8 @@
 "couleur": "#58493c",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Ossements",
 "cat": "ossements",
@@ -14513,7 +14788,8 @@
 "couleur": "#46423e",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -14542,7 +14818,8 @@
 "couleur": "#785f49",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Squelette",
 "cat": "ossements",
@@ -14575,7 +14852,8 @@
 "couleur": "#b0834e",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -14603,7 +14881,8 @@
 "couleur": "#6d6359",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Poulailler (toit)",
 "cat": "toit",
@@ -14643,7 +14922,8 @@
 "couleur": "#453d38",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -14672,7 +14952,8 @@
 "couleur": "#8b6543",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Tronc couché",
 "cat": "champignon",
@@ -14704,7 +14985,8 @@
 "couleur": "#504036",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -14733,7 +15015,8 @@
 "couleur": "#4a3629",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paquetage abandonné",
 "cat": "campement",
@@ -14764,7 +15047,8 @@
 "couleur": "#877667",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Bois flotté",
 "cat": "bois",
@@ -14795,7 +15079,8 @@
 "couleur": "#7d756f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Bois flotté",
 "cat": "bois",
@@ -14868,7 +15153,8 @@
 "couleur": "#897a6c",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Crâne de rothé",
 "cat": "ossements",
@@ -14899,7 +15185,8 @@
 "couleur": "#383531",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -14927,7 +15214,8 @@
 "couleur": "#4a4845",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Dalles de basalte",
 "cat": "rocher",
@@ -14961,7 +15249,8 @@
 "couleur": "#655950",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -14990,7 +15279,8 @@
 "couleur": "#6b5c4b",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -15019,7 +15309,8 @@
 "couleur": "#594d33",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -15048,7 +15339,8 @@
 "couleur": "#965236",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Termitière",
 "cat": "divers",
@@ -15080,7 +15372,8 @@
 "couleur": "#5b4c42",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Passerelle",
 "cat": "paroi",
@@ -15111,7 +15404,8 @@
 "couleur": "#685947",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Passerelle",
 "cat": "paroi",
@@ -15142,7 +15436,8 @@
 "couleur": "#322f2c",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paroi calcaire",
 "cat": "paroi",
@@ -15173,7 +15468,8 @@
 "couleur": "#3e3731",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Grève de galets",
 "cat": "flaque",
@@ -15204,7 +15500,8 @@
 "couleur": "#5d5c24",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Framboisiers",
 "cat": "arbuste",
@@ -15235,7 +15532,8 @@
 "couleur": "#7b5333",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Panier de pommes",
 "cat": "ferme",
@@ -15274,7 +15572,8 @@
 "couleur": "#9b5837",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Rocher de grès",
 "cat": "rocher",
@@ -15309,7 +15608,8 @@
 "couleur": "#cfcfd2",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Congère",
 "cat": "rocher",
@@ -15342,7 +15642,8 @@
 "couleur": "#a76f59",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Rocher de grès",
 "cat": "rocher",
@@ -15377,7 +15678,8 @@
 "couleur": "#443c35",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Corniche",
 "cat": "paroi",
@@ -15408,7 +15710,8 @@
 "couleur": "#615d57",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Corniche",
 "cat": "paroi",
@@ -15470,7 +15773,8 @@
 "couleur": "#423729",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de figurine",
 "cat": "socle",
@@ -15498,7 +15802,8 @@
 "couleur": "#655141",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Pelle",
 "cat": "ferme",
@@ -15534,7 +15839,8 @@
 "couleur": "#856e54",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Tronc-passerelle",
 "cat": "pont",
@@ -15566,7 +15872,8 @@
 "couleur": "#604f3f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Corde abandonnée",
 "cat": "piege",
@@ -15596,7 +15903,8 @@
 "couleur": "#9b774c",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Nid aux œufs",
 "cat": "ferme",
@@ -15631,7 +15939,8 @@
 "couleur": "#413e39",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Paroi d’ardoise",
 "cat": "paroi",
@@ -15661,7 +15970,8 @@
 "couleur": "#b79467",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Journal ouvert",
 "cat": "objet",
@@ -15698,7 +16008,8 @@
 "couleur": "#453d38",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle carré de dalles (cadre de fer)",
 "cat": "socle",
@@ -15729,7 +16040,8 @@
 "couleur": "#46423e",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle d’ardoise sombre",
 "cat": "socle",
@@ -15761,7 +16073,8 @@
 "couleur": "#6b5c4b",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de dalles calcaires",
 "cat": "socle",
@@ -15792,7 +16105,8 @@
 "couleur": "#383531",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de roche et d’éboulis",
 "cat": "socle",
@@ -15824,7 +16138,8 @@
 "couleur": "#433222",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de terre et champignons",
 "cat": "socle",
@@ -15856,7 +16171,8 @@
 "couleur": "#554b40",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle ovale de pierre (bordure de bronze)",
 "cat": "socle",
@@ -15887,7 +16203,8 @@
 "couleur": "#504036",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de planches",
 "cat": "socle",
@@ -15918,7 +16235,8 @@
 "couleur": "#554d45",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de pierre fissurée",
 "cat": "socle",
@@ -15949,7 +16267,8 @@
 "couleur": "#473d33",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de fer riveté",
 "cat": "socle",
@@ -15980,7 +16299,8 @@
 "couleur": "#2f2a2d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de marbre noir et d’améthystes",
 "cat": "socle",
@@ -16011,7 +16331,8 @@
 "couleur": "#594d33",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle d’herbe et de cailloux",
 "cat": "socle",
@@ -16042,7 +16363,8 @@
 "couleur": "#352e34",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle d’obsidienne veinée de violet",
 "cat": "socle",
@@ -16074,7 +16396,8 @@
 "couleur": "#b0834e",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de sable du désert",
 "cat": "socle",
@@ -16104,7 +16427,8 @@
 "couleur": "#98a7b3",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de glace",
 "cat": "socle",
@@ -16135,7 +16459,8 @@
 "couleur": "#4c3725",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de terre et de feuilles mortes",
 "cat": "socle",
@@ -16165,7 +16490,8 @@
 "couleur": "#b1b2b6",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de neige",
 "cat": "socle",
@@ -16196,7 +16522,8 @@
 "couleur": "#243e3f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle d’eau",
 "cat": "socle",
@@ -16228,7 +16555,8 @@
 "couleur": "#b9b8b8",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de nuages (marbre blanc)",
 "cat": "socle",
@@ -16259,7 +16587,8 @@
 "couleur": "#bca98d",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de marbre blanc (bordure dorée)",
 "cat": "socle",
@@ -16290,7 +16619,8 @@
 "couleur": "#847461",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de sable et de galets",
 "cat": "socle",
@@ -16321,7 +16651,8 @@
 "couleur": "#41362c",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de boue et d’aiguilles de pin",
 "cat": "socle",
@@ -16352,7 +16683,8 @@
 "couleur": "#45342f",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de lave",
 "cat": "socle",
@@ -16384,7 +16716,8 @@
 "couleur": "#655950",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de planches claires (ponton)",
 "cat": "socle",
@@ -16416,7 +16749,8 @@
 "couleur": "#73675a",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de pavés",
 "cat": "socle",
@@ -16447,7 +16781,8 @@
 "couleur": "#a99c8a",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de marbre en damier",
 "cat": "socle",
@@ -16478,7 +16813,8 @@
 "couleur": "#423729",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Socle de briques moussues",
 "cat": "socle",
@@ -16509,7 +16845,8 @@
 "couleur": "#716663",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Tablette gravée",
 "cat": "repere",
@@ -16850,7 +17187,8 @@
 "couleur": "#926d41",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Maison (chaume)",
 "cat": "toit",
@@ -16889,7 +17227,8 @@
 "couleur": "#bf9a72",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Maison (terre)",
 "cat": "toit",
@@ -17180,7 +17519,8 @@
 "couleur": "#533932",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Auvent de toile",
 "cat": "marche",
@@ -17213,7 +17553,8 @@
 "couleur": "#794b35",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Auvent de toile",
 "cat": "marche",
@@ -17246,7 +17587,8 @@
 "couleur": "#815138",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Auvent de toile",
 "cat": "marche",
@@ -18640,7 +18982,8 @@
 "couleur": "#5a5148",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Maison (bardeaux)",
 "cat": "toit",
@@ -19768,7 +20111,8 @@
 "couleur": "#453a40",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Trappe d’obsidienne",
 "cat": "ouverture",
@@ -19805,7 +20149,8 @@
 "couleur": "#94685b",
 "mips": [
 256,
-512
+512,
+1024
 ],
 "nom": "Étal de marché",
 "cat": "marche",
@@ -33759,6 +34104,144 @@
 ]
 },
 {
+"id": "texture-boue-degel-printemps-5m",
+"drive": "1I7uXxzuhHXXUFVaBUMZZZTPN0AOfdInr",
+"titre": "texture-boue-degel-printemps-5m.png",
+"empreinte": "18debe39f94413ca",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#493a2c",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Boue de dégel",
+"cat": "boue",
+"taille": 5,
+"milieux": [
+"campagne",
+"foret",
+"route"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [
+"printemps"
+],
+"region": [
+"surface"
+],
+"genres": [
+"*"
+]
+},
+{
+"id": "texture-feuilles-bouleau-automne-5m",
+"drive": "1zONI6-mbCVdXZ1nZGxgcKXFMlBGJKk6K",
+"titre": "texture-feuilles-bouleau-automne-5m.png",
+"empreinte": "e1d873d825a85996",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#724c2c",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Feuilles de bouleau d’automne",
+"cat": "humus",
+"taille": 5,
+"milieux": [
+"foret"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [
+"automne"
+],
+"region": [
+"surface"
+],
+"genres": [
+"*"
+]
+},
+{
+"id": "texture-feuilles-humides-automne-5m",
+"drive": "1N2_pbnz7K8wf6iY6i4eudJp_FsjwuVFx",
+"titre": "texture-feuilles-humides-automne-5m.png",
+"empreinte": "e3aac20244f33b4e",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#4e2d1e",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Feuilles humides d’automne",
+"cat": "humus",
+"taille": 5,
+"milieux": [
+"foret"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"automne"
+],
+"region": [
+"surface"
+],
+"genres": [
+"*"
+]
+},
+{
+"id": "texture-herbe-givree-hiver-4m",
+"drive": "1SLDCgQizoeJIVfW5vev03BqYbfNzSxT9",
+"titre": "texture-herbe-givree-hiver-4m.png",
+"empreinte": "35b2d82213e3f7af",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#717262",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Herbe givrée",
+"cat": "herbe",
+"taille": 4,
+"milieux": [
+"campagne",
+"foret"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [
+"hiver"
+],
+"region": [
+"surface"
+],
+"genres": [
+"*"
+]
+},
+{
 "id": "texture-herbe-seche-dry-grass-seamless-4m",
 "drive": "1Oge5BA2zIVDC0FwSv8oOj5x32LapRbyV",
 "titre": "texture-herbe-seche-dry-grass-seamless-4m.png",
@@ -33902,6 +34385,107 @@
 ]
 },
 {
+"id": "texture-prairie-fanee-automne-4m",
+"drive": "1vVtLBoB1OSgNbO-UCY4HpBP3T8DRyxWb",
+"titre": "texture-prairie-fanee-automne-4m.png",
+"empreinte": "a10d6937e77a61bb",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#705c35",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Prairie fanée",
+"cat": "herbe",
+"taille": 4,
+"milieux": [
+"campagne"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"automne"
+],
+"region": [
+"surface"
+],
+"genres": [
+"*"
+]
+},
+{
+"id": "texture-prairie-fleurie-printemps-4m",
+"drive": "1SDOqeiZI_PDuMRbClZLkBp6Y7t7xQqrk",
+"titre": "texture-prairie-fleurie-printemps-4m.png",
+"empreinte": "e2b637d1f4663df3",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#5a7413",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Prairie fleurie",
+"cat": "herbe",
+"taille": 4,
+"milieux": [
+"campagne",
+"foret"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"printemps"
+],
+"region": [
+"surface"
+],
+"genres": [
+"*"
+]
+},
+{
+"id": "texture-sable-sec-ete-6m",
+"drive": "1zqHeK2NjdOGHNyCVXEmN-FOeyC3Ar3gz",
+"titre": "texture-sable-sec-ete-6m.png",
+"empreinte": "d5a3c97c08892aba",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#d5ae80",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Sable sec",
+"cat": "sable",
+"taille": 6,
+"milieux": [
+"desert",
+"cote"
+],
+"climats": [
+"chaud",
+"aride",
+"tempere"
+],
+"saisons": [],
+"region": [
+"surface"
+],
+"genres": [
+"*"
+]
+},
+{
 "id": "texture-sous-bois-aiguilles-pine-needles-seamles",
 "drive": "1xNQH_2nTIFwZGimdPhX_vRkpGVkStxom",
 "titre": "texture-sous-bois-aiguilles-pine-needles-seamless-5m.png",
@@ -33965,6 +34549,143 @@
 ]
 },
 {
+"id": "texture-sous-bois-neige-partielle-hiver-5m",
+"drive": "1z7qDmzzsu5-8joWW3yHjSxEkv0MifgOc",
+"titre": "texture-sous-bois-neige-partielle-hiver-5m.png",
+"empreinte": "7de8c8ff0842fabe",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#76635b",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Sous-bois sous la neige",
+"cat": "humus",
+"taille": 5,
+"milieux": [
+"foret"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [
+"hiver"
+],
+"region": [
+"surface"
+],
+"genres": [
+"*"
+]
+},
+{
+"id": "texture-sous-bois-pousses-printemps-5m",
+"drive": "1FW5A7SwHrYOCh7HwViP4e6Byvfq1T0cF",
+"titre": "texture-sous-bois-pousses-printemps-5m.png",
+"empreinte": "671e4a0a580957cc",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#453023",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Sous-bois de jeunes pousses",
+"cat": "humus",
+"taille": 5,
+"milieux": [
+"foret"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"printemps"
+],
+"region": [
+"surface"
+],
+"genres": [
+"*"
+]
+},
+{
+"id": "texture-steppe-ete-4m",
+"drive": "1NPLz5HMtUXQD9VyyD1Cb5nuT6hZHU8tZ",
+"titre": "texture-steppe-ete-4m.png",
+"empreinte": "37b5bb6f35907ac1",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#91764a",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Steppe",
+"cat": "herbe",
+"taille": 4,
+"milieux": [
+"steppe",
+"campagne"
+],
+"climats": [
+"chaud",
+"aride",
+"tempere"
+],
+"saisons": [
+"ete",
+"automne"
+],
+"region": [
+"surface"
+],
+"genres": [
+"*"
+]
+},
+{
+"id": "texture-terre-craquelee-ete-6m",
+"drive": "1Hr8ejnthIFtVq8V8uCS2C3RCtqa5m_g6",
+"titre": "texture-terre-craquelee-ete-6m.png",
+"empreinte": "56b219065ddcd520",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#917558",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Terre craquelée",
+"cat": "terre",
+"taille": 6,
+"milieux": [
+"desert",
+"savane"
+],
+"climats": [
+"chaud",
+"aride"
+],
+"saisons": [],
+"region": [
+"surface"
+],
+"genres": [
+"*"
+]
+},
+{
 "id": "texture-terre-forestiere-humus-seamless-5m",
 "drive": "1hqHRqleVAS_vteaOzJYA3inpVasmCAaA",
 "titre": "texture-terre-forestiere-humus-seamless-5m.png",
@@ -33988,6 +34709,39 @@
 "tempere"
 ],
 "saisons": [],
+"region": [
+"surface"
+],
+"genres": [
+"*"
+]
+},
+{
+"id": "texture-toundra-gelee-hiver-6m",
+"drive": "1APpZuW2oo_qddBCMnkqivmHxCRInT6ka",
+"titre": "texture-toundra-gelee-hiver-6m.png",
+"empreinte": "c40aa6838ca58fbe",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#5b564e",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Toundra gelée",
+"cat": "toundra",
+"taille": 6,
+"milieux": [
+"toundra"
+],
+"climats": [
+"froid"
+],
+"saisons": [
+"hiver"
+],
 "region": [
 "surface"
 ],

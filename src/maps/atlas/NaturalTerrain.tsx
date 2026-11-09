@@ -19,7 +19,7 @@ type Tile = { key: string; lvl: number; tx: number; ty: number; url: string };
 const TILE_PX = 256;
 // Pixels par mètre. Les niveaux fins (16 à 64) servent au zoom rapproché d'un petit plan (lieu sauvage, ruelle) :
 // sans eux, une tuile de 8 px/m agrandie six fois montrait des pavés flous.
-const LEVELS = [0.25, 0.5, 1, 2, 4, 8, 16, 32, 64];
+const LEVELS = [0.25, 0.5, 1, 2, 4, 8, 16, 32, 64, 128];
 const MAX_TILES = 96;
 
 const seedOf = (s: string) => { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return (h >>> 0) % 100000; };
@@ -112,7 +112,7 @@ export default function NaturalTerrain({ map, pxPerUnit, view }: { map: AtlasMap
   const matter = useMemo(() => {
     if (!s.nature) return null;
     const snow = (s.snow ?? 0) >= 0.3, clim = s.climate ?? 'tempere';
-    const cats = snow ? ['neige'] : clim === 'chaud' ? ['terre', 'sable'] : clim === 'tropical' ? ['humus'] : ['humus', 'mousse', 'herbe'];
+    const cats = snow ? ['neige'] : clim === 'chaud' ? ['herbe', 'terre', 'sable'] : clim === 'tropical' ? ['humus'] : clim === 'froid' ? ['humus', 'toundra', 'mousse'] : ['humus', 'herbe', 'mousse'];
     return pickTexture(images, { cats, climat: clim, saison: s.season, seed: `${map.id}:sol` });
   }, [images, map.id, s.nature, s.snow, s.climate, s.season]);
   const matterOp = matter ? Math.max(0, Math.min(1, (near - 10) / 20)) * 0.8 : 0;
