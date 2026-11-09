@@ -126,7 +126,27 @@ ELEMENTS = [
     (r'souche de colonne', dict(nom='Base de colonne', cat='ruine', taille=[1.4, 1.4], milieux=['ruine', 'temple'], usage=['colonne'])),
 ]
 
+# Canopées et sols du lot « forest-ground » (index du 2026-11-09) : canopée = tuile de 60 m, sols de 4 à 6 m.
+CANOPEES = {'birch-aspen': ('Canopée de bouleaux et trembles', [T, F]), 'conifer-pine': ('Canopée de conifères', [T, F]),
+            'deciduous': ('Canopée de feuillus', [T]), 'mixed': ('Canopée mixte', [T, F])}
+SAISON_EN = {'spring': ('printemps', 'au printemps'), 'summer': ('ete', 'en été'), 'autumn': ('automne', 'en automne'), 'winter-snow': ('hiver', 'enneigée')}
+TEXTURES_LOT_FORET = [
+    *[(rf'forest-canopy-{k}-{sa}-seamless', dict(nom=f'{nom} {lab}', cat='canopee', taille=60, milieux=['foret'],
+       climats=[F, T] if sa == 'winter-snow' else cl, saisons=[fr], raccorder=False))
+      for k, (nom, cl) in CANOPEES.items() for sa, (fr, lab) in SAISON_EN.items()],
+    (r'forest-canopy-dry-olive', dict(nom='Canopée sèche (oliviers)', cat='canopee', taille=60, milieux=['foret', 'savane'], climats=[C, A], raccorder=False)),
+    (r'forest-canopy-tropical', dict(nom='Canopée tropicale', cat='canopee', taille=60, milieux=['jungle'], climats=[TR, C], raccorder=False)),
+    (r'texture-herbe-seche', dict(nom='Herbe sèche', cat='herbe', taille=4, milieux=['campagne', 'savane'], climats=[T, C, A], saisons=['ete', 'automne'], raccorder=False)),
+    (r'texture-herbe-verte', dict(nom='Herbe verte', cat='herbe', taille=4, milieux=['campagne', 'ville', 'foret'], climats=[T], saisons=['printemps', 'ete'], raccorder=False)),
+    (r'texture-mousse', dict(nom='Mousse', cat='mousse', taille=4, milieux=['foret', 'marais'], climats=[T, F], raccorder=False)),
+    (r'texture-neige', dict(nom='Neige', cat='neige', taille=6, milieux=['campagne', 'foret', 'montagne', 'toundra'], climats=[F, T], saisons=['hiver'], raccorder=False)),
+    (r'texture-sous-bois-aiguilles', dict(nom='Sous-bois d’aiguilles de pin', cat='humus', taille=5, milieux=['foret'], climats=[T, F], raccorder=False)),
+    (r'texture-sous-bois-feuilles', dict(nom='Sous-bois de feuilles mortes', cat='humus', taille=5, milieux=['foret'], climats=[T], raccorder=False)),
+    (r'texture-terre-forestiere', dict(nom='Terre forestière', cat='humus', taille=5, milieux=['foret'], climats=[T], raccorder=False)),
+]
+
 TEXTURES = [
+    *TEXTURES_LOT_FORET,
     (r'cendre volcanique', dict(nom='Cendre volcanique', cat='cendre', taille=6, milieux=['volcan'])),
     (r'cro.te volcanique', dict(nom='Croûte de lave', cat='lave', taille=6, milieux=['volcan'], region=['surface', 'outreterre'])),
     (r'dalles de pierre', dict(nom='Dalles de pierre', cat='dalles', taille=4, milieux=['interieur', 'ville', 'temple', 'caverne'], region=['surface', 'outreterre'])),

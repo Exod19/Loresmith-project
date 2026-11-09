@@ -127,7 +127,10 @@ export function useGroundTextures(map: AtlasMap, pxPerUnit: number) {
         // Pleine nature : la canopée vue de haut (texture « canopee » de la banque), à la place des taches vertes.
         ...(s.nature ? { forest: ['canopee'] } : {}) };
     for (const [kind, cats] of Object.entries(wants)) {
-      const img = pickTexture(images, { cats, ...ctx, seed: `${map.id}:${kind}` });
+      // Canopée : l'essence suit le climat (conifères et bouleaux au froid, feuillus et forêt mixte en climat tempéré).
+      const prefer = kind === 'forest' ? (ctx.climat === 'froid' ? /conif|bouleau/i : ctx.climat === 'tempere' ? /feuillus|mixte|bouleau/i : null) : null;
+      const pool = prefer ? images.filter((i) => i.type !== 'texture' || i.cat !== 'canopee' || prefer.test(i.nom)) : images;
+      const img = pickTexture(pool, { cats, ...ctx, seed: `${map.id}:${kind}` }) ?? pickTexture(images, { cats, ...ctx, seed: `${map.id}:${kind}` });
       if (!img) continue;
       const tileM = typeof img.taille === 'number' ? img.taille : 5;
       const tile = tileM / s.scale; // unités de plan

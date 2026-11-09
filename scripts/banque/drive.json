@@ -9323,5 +9323,230 @@
 "size": 0,
 "modified": "2026-10-30",
 "genre": "fantasy"
+},
+{
+"id": "1drcA_H0yPvdD44ICtSSrjTrryaGgWrf_",
+"title": "forest-canopy-birch-aspen-autumn-seamless-60m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "baf92a7a3c4747786a45e9f604a949ba",
+"source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "1g_IOj10KXTBa9Sg4shqKSSs7W5ATNItu",
+"title": "forest-canopy-birch-aspen-spring-seamless-60m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "6eeb423212960da1551901f62fba20f4",
+"source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "1CRBezK6KO9JW3wrKGKwgZRKax1RvGov8",
+"title": "forest-canopy-birch-aspen-summer-seamless-60m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "29f9ccf4bb20cf3ef8667a6e00a556d1",
+"source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "10r5Um6AprI2yUZXdB3iYsQLCHiLlyz66",
+"title": "forest-canopy-birch-aspen-winter-snow-seamless-60m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "383e86df579ba59ad28e2aeda6aca2d0",
+"source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "1IuGMPlD5w7xtPg72Cm9dRA7BMhnaKGVo",
+"title": "forest-canopy-conifer-pine-autumn-seamless-60m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "ad1223e1f78012aeda540156d53f70e3",
+"source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "151aH_aoEYJKz9oIBF0TrMlzywyxaYVBD",
+"title": "forest-canopy-conifer-pine-spring-seamless-60m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "4fdcbb6a3e423e12820df2af7521eb24",
+"source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "1cTuCTlFQRPA3YgmosNinPZfULbX04SjK",
+"title": "forest-canopy-conifer-pine-summer-seamless-60m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "00cb95631a7fa7aaf5083f4191672e39",
+"source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "1WPBaa_D_P1nJxrN8jcEV-WQWspz8F1qe",
+"title": "forest-canopy-conifer-pine-winter-snow-seamless-60m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "e4bf44d46edee19995567f66f64efb7c",
+"source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "1d-3nJT29-c7-t3RtRAouWEP9Ubw7s6RH",
+"title": "forest-canopy-deciduous-autumn-seamless-60m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "e904da0293296578a9c8f6545e7d0140",
+"source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "1mqRDu7fPQxybNvyIsUJ8c2YXUSaRV4y9",
+"title": "forest-canopy-deciduous-spring-seamless-60m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "368b99cf70cbeaac5b34cec3eb0430f3",
+"source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "1jhirHpdFHdvyEiNOqIRh_FOZqM5H_xi3",
+"title": "forest-canopy-deciduous-summer-seamless-60m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "7153051c4e1b6b9e07ac0a9f71a4dc73",
+"source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "1VWkFz3ubTsAEn1N3CCA9hv0z5MGTDkFm",
+"title": "forest-canopy-deciduous-winter-snow-seamless-60m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "7b5dd5ec653107b3efad3e26a2503c4f",
+"source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "17NKprVFHDeboqeVfsOgO8R1GhKW00ju-",
+"title": "forest-canopy-dry-olive-savanna-seamless-60m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "2c727e1a8b1c5e38d52272471c9325c4",
+"source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "1HzxXkcEkKbrqJloFInXYnkvdwaYNTYxK",
+"title": "forest-canopy-mixed-autumn-seamless-60m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "f4b1ee5fbdfdbde8673120990ac057c1",
+"source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "14iaLH2hOzNwPkgZkjqOFfM-ZwM1ZUQr5",
+"title": "forest-canopy-mixed-spring-seamless-60m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "f2c7d49013e8756fd848c41bbcf1200a",
+"source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "1Fp3y_w7iNjXJlSkDlL8RXOv4mU0xOTjV",
+"title": "forest-canopy-mixed-summer-seamless-60m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "ecbda29ef68ff399be1585a3092aaacb",
+"source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "12sxsrShEnrKUlLysWJhv8M4YtH648WSQ",
+"title": "forest-canopy-mixed-winter-snow-seamless-60m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "2281d50ab443a5f741f09c6dea192a23",
+"source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "1SFcbSpv_OApXSKQrQODGGvu5L2WfuYXw",
+"title": "forest-canopy-tropical-jungle-seamless-60m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "c266a8cc5cb7e35e627bce3d9113497d",
+"source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "1Oge5BA2zIVDC0FwSv8oOj5x32LapRbyV",
+"title": "texture-herbe-seche-dry-grass-seamless-4m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "a902e0bf2f34ed4cbadd4e6bc15dda96",
+"source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "1eff2Vsd6ic2RV7tm-xLbHZlELF3hUghN",
+"title": "texture-herbe-verte-grass-seamless-4m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "12b19421671b1a9ffc1c14a188f8490e",
+"source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "13Mv7QbRJR6O-iwoCQruJbVD0-6CQPehh",
+"title": "texture-mousse-moss-seamless-4m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "d0161ca3b228516da0856fc722024e46",
+"source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "1NHom--a7GSUZmMVf62sdRCh78v-8VFXP",
+"title": "texture-neige-snow-seamless-6m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "cd94691c030ac2f5e33be71b96519a84",
+"source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "1xNQH_2nTIFwZGimdPhX_vRkpGVkStxom",
+"title": "texture-sous-bois-aiguilles-pine-needles-seamless-5m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "8a403c6051e40f1f1032469170a9ccb5",
+"source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "1lkpjCoZSIinWOiX0Yb-Cw_gDFewdjAZ3",
+"title": "texture-sous-bois-feuilles-leaf-litter-seamless-5m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "50eaf7246a0c8e3a592a8511f10ec1ce",
+"source": "Drive 2026-11-09 (lot forest-ground)"
+},
+{
+"id": "1hqHRqleVAS_vteaOzJYA3inpVasmCAaA",
+"title": "texture-terre-forestiere-humus-seamless-5m.png",
+"folder": "textures",
+"region": "surface",
+"genre": "fantasy",
+"md5": "febbdfaf2c9e0edca7aa9176b2487930",
+"source": "Drive 2026-11-09 (lot forest-ground)"
 }
 ]

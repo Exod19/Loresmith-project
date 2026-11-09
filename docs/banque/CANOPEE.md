@@ -82,3 +82,14 @@ Pour enrichir ce rendu, d'autres textures de sol peuvent être générées avec 
 Invite type : « Seamless tileable texture, strict top-down view of a temperate forest floor, fallen leaves, twigs and
 moss, about 4 meters across, soft diffuse light, no shadows of objects, muted natural colors, painted realistic style
 for a tabletop RPG battle map, no text, no border. »
+
+## Synchronisation du 2026-11-09 (lot « forest-ground »)
+
+Importées depuis le Drive (dossier des textures de surface, index `loresmith-forest-ground-index-2026-11-09.json`) :
+
+- 18 canopées (tuile de 60 m) : bouleaux et trembles, conifères, feuillus, forêt mixte, chacune au printemps, en été,
+  en automne et enneigée ; une canopée sèche (oliviers) et une tropicale. L'essence suit le climat du plan
+  (conifères et bouleaux au froid, feuillus et mixte en tempéré), la saison suit celle du monde.
+- 7 sols : herbe verte (4 m), herbe sèche (4 m), mousse (4 m), neige (6 m), sous-bois d'aiguilles, sous-bois de
+  feuilles mortes et terre forestière (5 m).
+- Images natives de 1254 px (pas d'agrandissement : versions 256, 512 et 1024 px).

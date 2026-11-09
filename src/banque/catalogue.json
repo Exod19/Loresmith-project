@@ -33153,6 +33153,849 @@
 ]
 },
 {
+"id": "forest-canopy-birch-aspen-autumn-seamless-60m",
+"drive": "1drcA_H0yPvdD44ICtSSrjTrryaGgWrf_",
+"titre": "forest-canopy-birch-aspen-autumn-seamless-60m.png",
+"empreinte": "baf92a7a3c474778",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#9a7c28",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Canopée de bouleaux et trembles en automne",
+"cat": "canopee",
+"taille": 60,
+"milieux": [
+"foret"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [
+"automne"
+],
+"region": [
+"surface"
+],
+"genres": [
+"fantasy"
+]
+},
+{
+"id": "forest-canopy-birch-aspen-spring-seamless-60m",
+"drive": "1g_IOj10KXTBa9Sg4shqKSSs7W5ATNItu",
+"titre": "forest-canopy-birch-aspen-spring-seamless-60m.png",
+"empreinte": "6eeb423212960da1",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#788642",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Canopée de bouleaux et trembles au printemps",
+"cat": "canopee",
+"taille": 60,
+"milieux": [
+"foret"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [
+"printemps"
+],
+"region": [
+"surface"
+],
+"genres": [
+"fantasy"
+]
+},
+{
+"id": "forest-canopy-birch-aspen-summer-seamless-60m",
+"drive": "1CRBezK6KO9JW3wrKGKwgZRKax1RvGov8",
+"titre": "forest-canopy-birch-aspen-summer-seamless-60m.png",
+"empreinte": "29f9ccf4bb20cf3e",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#4a7d1b",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Canopée de bouleaux et trembles en été",
+"cat": "canopee",
+"taille": 60,
+"milieux": [
+"foret"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [
+"ete"
+],
+"region": [
+"surface"
+],
+"genres": [
+"fantasy"
+]
+},
+{
+"id": "forest-canopy-birch-aspen-winter-snow-seamless-6",
+"drive": "10r5Um6AprI2yUZXdB3iYsQLCHiLlyz66",
+"titre": "forest-canopy-birch-aspen-winter-snow-seamless-60m.png",
+"empreinte": "383e86df579ba59a",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#70685f",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Canopée de bouleaux et trembles enneigée",
+"cat": "canopee",
+"taille": 60,
+"milieux": [
+"foret"
+],
+"climats": [
+"froid",
+"tempere"
+],
+"saisons": [
+"hiver"
+],
+"region": [
+"surface"
+],
+"genres": [
+"fantasy"
+]
+},
+{
+"id": "forest-canopy-conifer-pine-autumn-seamless-60m",
+"drive": "1IuGMPlD5w7xtPg72Cm9dRA7BMhnaKGVo",
+"titre": "forest-canopy-conifer-pine-autumn-seamless-60m.png",
+"empreinte": "ad1223e1f78012ae",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#40461d",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Canopée de conifères en automne",
+"cat": "canopee",
+"taille": 60,
+"milieux": [
+"foret"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [
+"automne"
+],
+"region": [
+"surface"
+],
+"genres": [
+"fantasy"
+]
+},
+{
+"id": "forest-canopy-conifer-pine-spring-seamless-60m",
+"drive": "151aH_aoEYJKz9oIBF0TrMlzywyxaYVBD",
+"titre": "forest-canopy-conifer-pine-spring-seamless-60m.png",
+"empreinte": "4fdcbb6a3e423e12",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#354720",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Canopée de conifères au printemps",
+"cat": "canopee",
+"taille": 60,
+"milieux": [
+"foret"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [
+"printemps"
+],
+"region": [
+"surface"
+],
+"genres": [
+"fantasy"
+]
+},
+{
+"id": "forest-canopy-conifer-pine-summer-seamless-60m",
+"drive": "1cTuCTlFQRPA3YgmosNinPZfULbX04SjK",
+"titre": "forest-canopy-conifer-pine-summer-seamless-60m.png",
+"empreinte": "00cb95631a7fa7aa",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#325115",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Canopée de conifères en été",
+"cat": "canopee",
+"taille": 60,
+"milieux": [
+"foret"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [
+"ete"
+],
+"region": [
+"surface"
+],
+"genres": [
+"fantasy"
+]
+},
+{
+"id": "forest-canopy-conifer-pine-winter-snow-seamless-",
+"drive": "1WPBaa_D_P1nJxrN8jcEV-WQWspz8F1qe",
+"titre": "forest-canopy-conifer-pine-winter-snow-seamless-60m.png",
+"empreinte": "e4bf44d46edee199",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#627269",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Canopée de conifères enneigée",
+"cat": "canopee",
+"taille": 60,
+"milieux": [
+"foret"
+],
+"climats": [
+"froid",
+"tempere"
+],
+"saisons": [
+"hiver"
+],
+"region": [
+"surface"
+],
+"genres": [
+"fantasy"
+]
+},
+{
+"id": "forest-canopy-deciduous-autumn-seamless-60m",
+"drive": "1d-3nJT29-c7-t3RtRAouWEP9Ubw7s6RH",
+"titre": "forest-canopy-deciduous-autumn-seamless-60m.png",
+"empreinte": "e904da0293296578",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#77541b",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Canopée de feuillus en automne",
+"cat": "canopee",
+"taille": 60,
+"milieux": [
+"foret"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"automne"
+],
+"region": [
+"surface"
+],
+"genres": [
+"fantasy"
+]
+},
+{
+"id": "forest-canopy-deciduous-spring-seamless-60m",
+"drive": "1mqRDu7fPQxybNvyIsUJ8c2YXUSaRV4y9",
+"titre": "forest-canopy-deciduous-spring-seamless-60m.png",
+"empreinte": "368b99cf70cbeaac",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#557028",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Canopée de feuillus au printemps",
+"cat": "canopee",
+"taille": 60,
+"milieux": [
+"foret"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"printemps"
+],
+"region": [
+"surface"
+],
+"genres": [
+"fantasy"
+]
+},
+{
+"id": "forest-canopy-deciduous-summer-seamless-60m",
+"drive": "1jhirHpdFHdvyEiNOqIRh_FOZqM5H_xi3",
+"titre": "forest-canopy-deciduous-summer-seamless-60m.png",
+"empreinte": "7153051c4e1b6b9e",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#275612",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Canopée de feuillus en été",
+"cat": "canopee",
+"taille": 60,
+"milieux": [
+"foret"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"ete"
+],
+"region": [
+"surface"
+],
+"genres": [
+"fantasy"
+]
+},
+{
+"id": "forest-canopy-deciduous-winter-snow-seamless-60m",
+"drive": "1VWkFz3ubTsAEn1N3CCA9hv0z5MGTDkFm",
+"titre": "forest-canopy-deciduous-winter-snow-seamless-60m.png",
+"empreinte": "7b5dd5ec653107b3",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#6c6157",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Canopée de feuillus enneigée",
+"cat": "canopee",
+"taille": 60,
+"milieux": [
+"foret"
+],
+"climats": [
+"froid",
+"tempere"
+],
+"saisons": [
+"hiver"
+],
+"region": [
+"surface"
+],
+"genres": [
+"fantasy"
+]
+},
+{
+"id": "forest-canopy-dry-olive-savanna-seamless-60m",
+"drive": "17NKprVFHDeboqeVfsOgO8R1GhKW00ju-",
+"titre": "forest-canopy-dry-olive-savanna-seamless-60m.png",
+"empreinte": "2c727e1a8b1c5e38",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#73633c",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Canopée sèche (oliviers)",
+"cat": "canopee",
+"taille": 60,
+"milieux": [
+"foret",
+"savane"
+],
+"climats": [
+"chaud",
+"aride"
+],
+"saisons": [],
+"region": [
+"surface"
+],
+"genres": [
+"fantasy"
+]
+},
+{
+"id": "forest-canopy-mixed-autumn-seamless-60m",
+"drive": "1HzxXkcEkKbrqJloFInXYnkvdwaYNTYxK",
+"titre": "forest-canopy-mixed-autumn-seamless-60m.png",
+"empreinte": "f4b1ee5fbdfdbde8",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#694e1d",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Canopée mixte en automne",
+"cat": "canopee",
+"taille": 60,
+"milieux": [
+"foret"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [
+"automne"
+],
+"region": [
+"surface"
+],
+"genres": [
+"fantasy"
+]
+},
+{
+"id": "forest-canopy-mixed-spring-seamless-60m",
+"drive": "14iaLH2hOzNwPkgZkjqOFfM-ZwM1ZUQr5",
+"titre": "forest-canopy-mixed-spring-seamless-60m.png",
+"empreinte": "f2c7d49013e8756f",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#526928",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Canopée mixte au printemps",
+"cat": "canopee",
+"taille": 60,
+"milieux": [
+"foret"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [
+"printemps"
+],
+"region": [
+"surface"
+],
+"genres": [
+"fantasy"
+]
+},
+{
+"id": "forest-canopy-mixed-summer-seamless-60m",
+"drive": "1Fp3y_w7iNjXJlSkDlL8RXOv4mU0xOTjV",
+"titre": "forest-canopy-mixed-summer-seamless-60m.png",
+"empreinte": "ecbda29ef68ff399",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#274c15",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Canopée mixte en été",
+"cat": "canopee",
+"taille": 60,
+"milieux": [
+"foret"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [
+"ete"
+],
+"region": [
+"surface"
+],
+"genres": [
+"fantasy"
+]
+},
+{
+"id": "forest-canopy-mixed-winter-snow-seamless-60m",
+"drive": "12sxsrShEnrKUlLysWJhv8M4YtH648WSQ",
+"titre": "forest-canopy-mixed-winter-snow-seamless-60m.png",
+"empreinte": "2281d50ab443a5f7",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#5e5e59",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Canopée mixte enneigée",
+"cat": "canopee",
+"taille": 60,
+"milieux": [
+"foret"
+],
+"climats": [
+"froid",
+"tempere"
+],
+"saisons": [
+"hiver"
+],
+"region": [
+"surface"
+],
+"genres": [
+"fantasy"
+]
+},
+{
+"id": "forest-canopy-tropical-jungle-seamless-60m",
+"drive": "1SFcbSpv_OApXSKQrQODGGvu5L2WfuYXw",
+"titre": "forest-canopy-tropical-jungle-seamless-60m.png",
+"empreinte": "c266a8cc5cb7e35e",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#30491f",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Canopée tropicale",
+"cat": "canopee",
+"taille": 60,
+"milieux": [
+"jungle"
+],
+"climats": [
+"tropical",
+"chaud"
+],
+"saisons": [],
+"region": [
+"surface"
+],
+"genres": [
+"fantasy"
+]
+},
+{
+"id": "texture-herbe-seche-dry-grass-seamless-4m",
+"drive": "1Oge5BA2zIVDC0FwSv8oOj5x32LapRbyV",
+"titre": "texture-herbe-seche-dry-grass-seamless-4m.png",
+"empreinte": "a902e0bf2f34ed4c",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#8e7436",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Herbe sèche",
+"cat": "herbe",
+"taille": 4,
+"milieux": [
+"campagne",
+"savane"
+],
+"climats": [
+"tempere",
+"chaud",
+"aride"
+],
+"saisons": [
+"ete",
+"automne"
+],
+"region": [
+"surface"
+],
+"genres": [
+"*"
+]
+},
+{
+"id": "texture-herbe-verte-grass-seamless-4m",
+"drive": "1eff2Vsd6ic2RV7tm-xLbHZlELF3hUghN",
+"titre": "texture-herbe-verte-grass-seamless-4m.png",
+"empreinte": "12b19421671b1a9f",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#49601a",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Herbe verte",
+"cat": "herbe",
+"taille": 4,
+"milieux": [
+"campagne",
+"ville",
+"foret"
+],
+"climats": [
+"tempere"
+],
+"saisons": [
+"printemps",
+"ete"
+],
+"region": [
+"surface"
+],
+"genres": [
+"*"
+]
+},
+{
+"id": "texture-mousse-moss-seamless-4m",
+"drive": "13Mv7QbRJR6O-iwoCQruJbVD0-6CQPehh",
+"titre": "texture-mousse-moss-seamless-4m.png",
+"empreinte": "d0161ca3b228516d",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#464b08",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Mousse",
+"cat": "mousse",
+"taille": 4,
+"milieux": [
+"foret",
+"marais"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"region": [
+"surface"
+],
+"genres": [
+"*"
+]
+},
+{
+"id": "texture-neige-snow-seamless-6m",
+"drive": "1NHom--a7GSUZmMVf62sdRCh78v-8VFXP",
+"titre": "texture-neige-snow-seamless-6m.png",
+"empreinte": "cd94691c030ac2f5",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#d8d8db",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Neige",
+"cat": "neige",
+"taille": 6,
+"milieux": [
+"campagne",
+"foret",
+"montagne",
+"toundra"
+],
+"climats": [
+"froid",
+"tempere"
+],
+"saisons": [
+"hiver"
+],
+"region": [
+"surface"
+],
+"genres": [
+"*"
+]
+},
+{
+"id": "texture-sous-bois-aiguilles-pine-needles-seamles",
+"drive": "1xNQH_2nTIFwZGimdPhX_vRkpGVkStxom",
+"titre": "texture-sous-bois-aiguilles-pine-needles-seamless-5m.png",
+"empreinte": "8a403c6051e40f1f",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#5b3b25",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Sous-bois d’aiguilles de pin",
+"cat": "humus",
+"taille": 5,
+"milieux": [
+"foret"
+],
+"climats": [
+"tempere",
+"froid"
+],
+"saisons": [],
+"region": [
+"surface"
+],
+"genres": [
+"*"
+]
+},
+{
+"id": "texture-sous-bois-feuilles-leaf-litter-seamless-",
+"drive": "1lkpjCoZSIinWOiX0Yb-Cw_gDFewdjAZ3",
+"titre": "texture-sous-bois-feuilles-leaf-litter-seamless-5m.png",
+"empreinte": "50eaf7246a0c8e3a",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#6e462e",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Sous-bois de feuilles mortes",
+"cat": "humus",
+"taille": 5,
+"milieux": [
+"foret"
+],
+"climats": [
+"tempere"
+],
+"saisons": [],
+"region": [
+"surface"
+],
+"genres": [
+"*"
+]
+},
+{
+"id": "texture-terre-forestiere-humus-seamless-5m",
+"drive": "1hqHRqleVAS_vteaOzJYA3inpVasmCAaA",
+"titre": "texture-terre-forestiere-humus-seamless-5m.png",
+"empreinte": "febbdfaf2c9e0edc",
+"type": "texture",
+"vue": "tuile",
+"ratio": 1.0,
+"couleur": "#3b281b",
+"mips": [
+256,
+512,
+1024
+],
+"nom": "Terre forestière",
+"cat": "humus",
+"taille": 5,
+"milieux": [
+"foret"
+],
+"climats": [
+"tempere"
+],
+"saisons": [],
+"region": [
+"surface"
+],
+"genres": [
+"*"
+]
+},
+{
 "id": "eboulis-de-schiste-et-granite",
 "drive": "1RgOFVtCsfPEHp1t4CBdk28mTYb8PJVgR",
 "titre": "Éboulis de schiste et granite-14.png",
