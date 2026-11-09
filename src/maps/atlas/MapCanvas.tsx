@@ -113,7 +113,7 @@ function buildings(m: AtlasMap) {
 }
 
 /** Repère MJ dessiné au-dessus de la carte (position du groupe, destination), en coordonnées de plan 0–1. */
-export type MapMark = { id: string; x: number; y: number; label: string; tone: 'party' | 'dest' | 'hero' | 'dm' };
+export type MapMark = { id: string; x: number; y: number; label: string; tone: 'party' | 'dest' | 'hero' | 'dm' | 'temp' };
 
 /** Brouillard de guerre : `vision` (cercles éclairés, rayon r), `explored` (déjà découvert, assombri, rayon er) ; le reste est noir. */
 type FogShapes = { polys: [number, number][][]; lines: [number, number][][] };

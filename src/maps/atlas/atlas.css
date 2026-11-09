@@ -539,6 +539,7 @@
 .am-mark-flag { stroke-width: 1.5; }
 .am-mark-text { font: 600 12px Cinzel, serif; letter-spacing: .04em; }
 .am-mark-party .am-mark-ring { stroke: #7fe0d0; } .am-mark-party .am-mark-dot { fill: #7fe0d0; }
+.am-mark-temp .am-mark-ring { stroke: #b9d98a; stroke-dasharray: 3 4; } .am-mark-temp .am-mark-dot { fill: #b9d98a; }
 .am-mark-drag { cursor: grab; } .am-mark-drag:active { cursor: grabbing; } .am-mark-drag .am-mark-ring { fill: rgba(0, 0, 0, 0.001); pointer-events: all; }
 .am-mark-party .am-mark-flag { fill: rgba(8,30,28,.92); stroke: #7fe0d0; } .am-mark-party .am-mark-text { fill: #c9fff6; }
 .am-mark-dest .am-mark-ring { stroke: #f0c867; stroke-dasharray: 6 5; } .am-mark-dest .am-mark-dot { fill: #f0c867; }

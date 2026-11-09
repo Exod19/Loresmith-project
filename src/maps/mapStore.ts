@@ -205,6 +205,8 @@ export interface BattleToken {
   dying?: 'agonie' | 'stable' | 'mort';
   /** Socle sous le jeton : automatique (terrain occupé), aucun, ou choisi. Purement visuel. */
   socle?: SocleMode;
+  /** Vaincu déjà fouillé : ce que les héros ont pris (liste vide : rien). */
+  looted?: string[];
   /** Modes de déplacement accordés par le MJ (sort, objet), en plus de ceux de la fiche. */
   modes?: { vol?: boolean; nage?: boolean; escalade?: boolean };
 }

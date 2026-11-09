@@ -32,6 +32,7 @@ import { setMapIntent } from './maps/intent';
 import { placeTokens as placeOnBoard, effectiveOf } from './maps/battle/placement';
 import { tacticalNotes, profileFromStat, coverAgainst } from './maps/battle/tactics';
 import MiniBattle from './maps/battle/MiniBattle';
+import LootBox from './maps/battle/LootBox';
 import { classify as classifyAttack, selectNarration, renderNarration, displayName as narrationName, weaponKindOf, creatureOf as narrationCreature, anatomyOf, damageTypeOf, recentIds, remember, streakFacts, importanceOf } from './combat/narration/narrator.js';
 import { loadNarrations, narrationsReady, loadPrefs, savePrefs, loadHistory, saveHistory } from './combat/narration/library';
 import { sightFor } from './maps/battle/combat';
@@ -14231,6 +14232,8 @@ function Encounter({ dispatch, state, party, npcs, flash, embedded, onOpenBattle
                   onSwap={(n) => swapVariant(selectedCombatant, n)}
                   tactics={tacticsById?.[selectedCombatant.id]}
                   boardToken={boardTokens.get(selectedCombatant.id)}
+                  lootRegion={boardBattle ? battleRegion(boardBattle)[0] ?? 'surface' : 'surface'}
+                  lootSeed={boardBattle?.terrain?.source ?? c.battleKey ?? ''}
                   onBoardVisible={boardBattle ? (visible) => setBoardBattle({ ...boardBattle, tokens: boardBattle.tokens.map((q) => (q.id === selectedCombatant.id ? { ...q, visible } : q)) }) : null}
                   amount={dmg[selectedCombatant.id] || ''}
                   onAmount={(v) => setDmg((d) => ({ ...d, [selectedCombatant.id]: v }))}
@@ -14396,6 +14399,7 @@ const hpTone = (t) => {
 /** Fiche du combattant choisi (par défaut celui dont c’est le tour) : PV, défenses, états, attaques, fiche complète. */
 function WarInspector({
   t, isActive, activeName, art, sourceNpc, tactics, boardToken, onBoardVisible, amount, onAmount, lastRoll, hpPulse, ops, onInfo, onBackToTurn, variants, onSwap,
+  lootRegion = 'surface', lootSeed = '',
 }) {
   const calc = getCombatantDerivedStats(t);
   const [editing, setEditing] = useState(false);
@@ -14571,6 +14575,13 @@ function WarInspector({
           <h4>Situation sur la carte</h4>
           <TacticalChips notes={tactics} />
         </section>
+      )}
+
+      {tone === 'down' && !t.isPC && (
+        <LootBox key={t.id} t={{ id: t.id, name: t.name, statId: boardToken?.statId ?? sourceNpc?.srdId, looted: t.looted }} region={lootRegion} seed={lootSeed}
+          subject={{ meta: sourceNpc?.type || sourceNpc?.meta, cr: sourceNpc?.cr != null ? String(sourceNpc.cr) : undefined }}
+          onDone={(taken, text) => ops.update(t.id, { looted: taken }, text)}
+          onReset={() => ops.update(t.id, { looted: undefined })} />
       )}
 
       <section className="wt-sec">

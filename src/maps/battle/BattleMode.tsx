@@ -11,7 +11,7 @@ import { npcBankImage, npcToken } from '../../banque/place';
 import type { LoreEntry } from '../world/lore';
 import { terrainAt, type Relief } from '../world/terrain';
 import { boardTheme } from './theme';
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import BattleBoard, { anchorOf, type BoardElement, type BoardLabel, type BoardRange, type BoardToken } from './BattleBoard';
 import type { AtlasData, AtlasMap } from '../atlas/types';
 import {
@@ -20,6 +20,8 @@ import {
 import { blocksCell, effectiveGrid, generateTerrain, seedOf, TERRAIN, type LocationHint, type TerrainKind } from './terrain';
 import { buildLocalMap, cellIn, trimPassages } from './local';
 import { outsideOf } from './groundCells';
+import { furnitureFor, PLACE_LOOK, type PlaceEtat } from './placeLook';
+import { placeStates } from '../world/consequences';
 import { attackCells, rangedCells, speedCells } from './ranges';
 import { battleRegion, placeRegion, tokenImage } from './vignettes';
 import TilePanel, { tileFix, WorldPicker } from './TilePanel';
@@ -350,6 +352,9 @@ export default function BattleMode({
    */
   const placeNpcs = (start: BattleToken[], ground: string, win: { x0: number; y0: number; w: number; h: number }): BattleToken[] => {
     if (!(atlas && plan) || plan.surface?.theme !== 'interieur') return start;
+    // Bâtiment en ruine ou en chantier : ses habitants sont relogés ailleurs (cf. relocation.js), il n'y a personne.
+    const st = rec.world ? placeStates(rec.world)[plan.id.replace(/:int$/, '')] : undefined;
+    if (st && (st.etat === 'ruine' || st.etat === 'chantier')) return start;
     let tokens = start;
     const local = { window: win };
     const revealed = new Set(rec.overlay?.revealed ?? []);
@@ -599,6 +604,10 @@ export default function BattleMode({
     if (ey) ey.scrollTop += r.top + a.fy * r.height - a.cy;
   }, [zoom]);
   // Intérieur nouvellement posé : le plateau se cadre sur le bâtiment (la rue autour reste accessible en dézoomant).
+  // État du bâtiment (mémoire du monde) : ruine, chantier, délaissé… le plateau d'intérieur en porte les traces.
+  const boardSlot = b.local?.planId?.endsWith(':int') ? b.local.planId.slice(0, -4) : null;
+  const placeState = useMemo(() => (rec.world && boardSlot ? placeStates(rec.world)[boardSlot] : undefined), [rec.world, boardSlot]);
+  const shownFurniture = useMemo(() => furnitureFor(b.local?.furniture, placeState?.etat), [b.local?.furniture, placeState?.etat]);
   const fitKey = b.local?.furniture && b.terrain ? `${b.terrain.source}:${b.terrain.seed}` : '';
   useEffect(() => {
     const wrap = wrapRef.current;
@@ -1576,9 +1585,14 @@ export default function BattleMode({
           </div>
         )}
 
+        {placeState && PLACE_LOOK[placeState.etat as PlaceEtat] && (
+          <p className={`battle-place-state place-${placeState.etat}`}>
+            {PLACE_LOOK[placeState.etat as PlaceEtat].icon} <b>{placeState.title}</b> : {PLACE_LOOK[placeState.etat as PlaceEtat].text}
+          </p>
+        )}
         <div className="battle-stage">
           <div
-            ref={wrapRef} className={`battle-board-wrap ${building ? 'building' : ''} ${zoom !== 1 ? 'zoomed' : ''} ${drag ? 'dragging' : ''}`}
+            ref={wrapRef} className={`battle-board-wrap ${placeState ? `place-${placeState.etat}` : ''} ${building ? 'building' : ''} ${zoom !== 1 ? 'zoomed' : ''} ${drag ? 'dragging' : ''}`}
             style={{ '--bz': `${zoom * 100}%` } as CSSProperties}
             onPointerDown={onBoardDown} onPointerMove={onBoardMove} onDoubleClick={() => editor.onDouble()}
             // Après un glisser de défilement, le clic qui suit ne doit pas viser une case.
@@ -1601,7 +1615,7 @@ export default function BattleMode({
             }}
           >
             <BattleBoard
-              cols={b.cols} rows={b.rows} backdrop={rec.image} tile={b.tile?.src} tileRot={b.tile?.rot} furniture={b.local?.furniture} decor={b.local?.decor} light={b.local?.surface ? plan?.surface?.light : undefined} terrain={baseGrid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
+              cols={b.cols} rows={b.rows} backdrop={rec.image} tile={b.tile?.src} tileRot={b.tile?.rot} furniture={shownFurniture} decor={b.local?.decor} light={b.local?.surface ? plan?.surface?.light : undefined} terrain={baseGrid} elements={boardElements} ranges={ranges} tokens={boardTokens} interactive={!building}
               theme={boardTheme(b.local?.surface, b.local?.nature)}
               ground={b.ground} surface={editor.view} overlay={building && editor.overlay ? { rules, focus: editor.focus } : undefined}
               path={pathView} surfaceSelected={editor.selectedId} draft={editor.draft}

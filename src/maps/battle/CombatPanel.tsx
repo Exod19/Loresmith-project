@@ -16,6 +16,7 @@ import { speedCells } from './ranges';
 import { battleRegion, tokenImage } from './vignettes';
 import { faceOf } from '../../banque';
 import { iconFor } from './encounter';
+import LootBox from './LootBox';
 import type { BestiaryRef } from '../CampaignGuide';
 
 /** Personnage du groupe (fiche de l'application) : seuls les champs utiles au combat. */
@@ -318,6 +319,11 @@ export default function CombatPanel({ b, grid, place, selectedId, onSelect, set,
                   </button>
                 ))}
             </div>
+          )}
+          {isOut(sheet) && (
+            <LootBox key={sheet.id} t={sheet} region={battleRegion(b)[0] ?? 'surface'} seed={b.terrain?.source ?? ''}
+              onDone={(taken, text) => set({ log: log(text, 'info'), tokens: b.tokens.map((x) => (x.id === sheet.id ? { ...x, looted: taken } : x)) })}
+              onReset={() => patch(sheet.id, { looted: undefined })} />
           )}
           {(sheetStat?.traits?.length || sheetStat?.reactions?.length) ? (
             <details className="combat-traits">

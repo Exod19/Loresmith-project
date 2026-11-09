@@ -88,6 +88,14 @@ export default function TalkPanel({ rec, data, planId, npc, library, loreContext
     rumors.length ? `CE QUI SE DIT EN VILLE (tu peux en parler, à ta manière) : ${rumors.map((r) => r.text).join(' ')}` : '',
     // L'histoire du lieu et de la cité : ce qui s'y est passé, et l'état des bâtiments touchés (ruine, chantier…).
     cityPlan && eventsOf(world, [cityPlan]).length ? `CE QUI S'EST PASSÉ ICI (c'est ton histoire, tu l'as vécue) : ${eventsOf(world, [cityPlan]).slice(0, 6).map((e) => e.title).join(' ; ')}.` : '',
+    // Son propre bâtiment a brûlé ou est en chantier : il vit et travaille ailleurs en attendant, et ça le travaille.
+    (() => {
+      const home = npc.id.match(/^(.*):int:pnj-/)?.[1];
+      const st = home ? placeStates(world)[home] : undefined;
+      return st && (st.etat === 'ruine' || st.etat === 'chantier')
+        ? `TA SITUATION : ${st.title} est ${PLACE_STATE_LABEL[st.etat as keyof typeof PLACE_STATE_LABEL]} ; tu en as été délogé et tu vis, travailles (ou célèbres) ailleurs en attendant, dans un lieu de fortune. Tu en parles volontiers : la perte, l'entraide, ce que tu feras ensuite.`
+        : '';
+    })(),
     (() => { const st = Object.entries(placeStates(world)).filter(([fid]) => cityPlan && fid.startsWith(cityPlan)).map(([, x]) => x); return st.length ? `ÉTAT DES LIEUX : ${st.slice(0, 6).map((x) => `${x.title} est ${PLACE_STATE_LABEL[x.etat as keyof typeof PLACE_STATE_LABEL] ?? x.etat}`).join(' ; ')}.` : ''; })(),
   ].filter(Boolean).join('\n');
 
