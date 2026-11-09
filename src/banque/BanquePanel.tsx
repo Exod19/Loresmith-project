@@ -140,13 +140,18 @@ export default function BanquePanel({ onBack, fiches, onAssign, onUpload, onEdit
       <div className="banque-body">
         <div className="banque-grid">
           {shown.map((i) => (
-            <button key={i.id} className={`banque-card${selId === i.id || picked.has(i.id) ? ' is-sel' : ''}${i.exclu ? ' is-off' : ''}`} aria-pressed={picking ? picked.has(i.id) : undefined} title={i.titre}
+            <div key={i.id} className="banque-cell">
+            {!picking && canDelete(i) && (
+              <button className="banque-del" title={`Supprimer « ${i.nom} » définitivement`} aria-label={`Supprimer ${i.nom}`} onClick={() => removeImages([i])}>🗑</button>
+            )}
+            <button className={`banque-card${selId === i.id || picked.has(i.id) ? ' is-sel' : ''}${i.exclu ? ' is-off' : ''}`} aria-pressed={picking ? picked.has(i.id) : undefined} title={i.titre}
               onClick={() => { if (!picking) { setSelId(i.id); return; } if (!canDelete(i)) return; const n = new Set(picked); if (n.has(i.id)) n.delete(i.id); else n.add(i.id); setPicked(n); }}>
               {picking && <i className="banque-check" aria-hidden>{picked.has(i.id) ? '☑' : canDelete(i) ? '☐' : '🔒'}</i>}
               <img src={bankSrc(i, 120)} alt="" loading="lazy" className={i.type === 'texture' ? 'tex' : ''} />
               <span>{i.nom}{touched[i.id] ? ' ✎' : ''}</span>
               <small>{i.type === 'personnage' ? `${i.vue} · ${i.peuple || '?'}` : i.type === 'creature' ? `${i.vue} · ${size(i)}` : `${i.cat ?? ''} · ${size(i)}`}</small>
             </button>
+            </div>
           ))}
           {!shown.length && <p className="maps-hint">Aucune image ne correspond.</p>}
           {showDeleted && (

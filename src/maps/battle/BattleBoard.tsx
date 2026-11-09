@@ -336,7 +336,7 @@ function FurnitureLayer({ list }: { list: BoardFurniture[] }) {
       {list.map((f) => {
         const sp = propSprite(images, f.k, f.x, f.y, f.w, f.h, f.a, f.seed, f.ref);
         if (!sp?.img) return null;
-        return <image key={f.seed} href={bankSrc(sp.img, Math.max(sp.w, sp.h) * 64)} x={-sp.w / 2} y={-sp.h / 2} width={sp.w} height={sp.h} preserveAspectRatio="none"
+        return <image key={f.seed} href={bankSrc(sp.img, Math.max(sp.w, sp.h) * 64)} x={-sp.w / 2} y={-sp.h / 2} width={sp.w} height={sp.h} preserveAspectRatio="xMidYMid meet"
           transform={`translate(${f.x} ${f.y}) rotate(${(sp.a * 180) / Math.PI})`} style={{ filter: 'drop-shadow(0 0.04px 0.06px rgba(0,0,0,.7))' }} />;
       })}
     </g>

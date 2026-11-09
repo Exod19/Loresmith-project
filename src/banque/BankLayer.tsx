@@ -8,7 +8,7 @@
  */
 import { useMemo } from 'react';
 import type { AtlasMap } from '../maps/atlas/types';
-import { bankSrc, fitRoof, hash, maskFromParts, MIN_PX, pickElement, pickTexture, useBank, type BankImage } from './index';
+import { bankSrc, fitRoof, hash, maskFromParts, MIN_PX, noUpscale, pickElement, pickTexture, useBank, type BankImage } from './index';
 
 type View = { x: number; y: number; w: number; h: number };
 /** Un sprite : image centrée en (x, y), de w × h avant rotation, tournée de `a`, en miroir si `flip`. Sans image : le
@@ -162,10 +162,13 @@ export default function BankLayer({ map, layer, pxPerUnit, view }: { map: AtlasM
   if (!shown.length || shown.length > 3000) return null;
   return (
     <g className={`am-bank am-bank-${layer}`} aria-hidden>
-      {shown.map((sp) => (sp.img ? (
-        <image key={sp.key} href={bankSrc(sp.img, Math.max(sp.w, sp.h) * pxPerUnit)} x={-sp.w / 2} y={-sp.h / 2} width={sp.w} height={sp.h} preserveAspectRatio="none"
-          transform={`translate(${sp.x} ${sp.y}) rotate(${(sp.a * 180) / Math.PI})${sp.flip ? ' scale(-1 1)' : ''}`} />
-      ) : sp.d ? <path key={sp.key} d={sp.d} className={sp.cls} /> : null))}
+      {shown.map((sp) => {
+        if (!sp.img) return sp.d ? <path key={sp.key} d={sp.d} className={sp.cls} /> : null;
+        // Jamais étirée au-delà de sa résolution d'origine (ni déformée : proportions gardées).
+        const px = Math.max(sp.w, sp.h) * pxPerUnit, k = noUpscale(sp.img, px), w = sp.w * k, h = sp.h * k;
+        return <image key={sp.key} href={bankSrc(sp.img, px * k)} x={-w / 2} y={-h / 2} width={w} height={h} preserveAspectRatio="xMidYMid meet"
+          transform={`translate(${sp.x} ${sp.y}) rotate(${(sp.a * 180) / Math.PI})${sp.flip ? ' scale(-1 1)' : ''}`} />;
+      })}
     </g>
   );
 }

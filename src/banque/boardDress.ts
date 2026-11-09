@@ -47,7 +47,10 @@ function put(ctx: CanvasRenderingContext2D, im: HTMLImageElement, x: number, y: 
   ctx.translate(x, y);
   ctx.rotate(a);
   if (flip) ctx.scale(-1, 1);
-  ctx.drawImage(im, -w / 2, -h / 2, w, h);
+  // Jamais déformée : l'image garde ses proportions dans sa place (w × h), centrée.
+  const r = im.naturalWidth && im.naturalHeight ? im.naturalWidth / im.naturalHeight : w / h;
+  const [dw, dh] = r >= w / h ? [w, w / r] : [h * r, h];
+  ctx.drawImage(im, -dw / 2, -dh / 2, dw, dh);
   ctx.restore();
 }
 

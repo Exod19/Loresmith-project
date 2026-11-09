@@ -258,7 +258,7 @@ export default function MapsPage({ universe, maps, dispatch, flash, heroes = [],
           onChronicle={(m) => {
             const memory = { id: Math.random().toString(36).slice(2, 10), createdAt: Date.now(), title: m.title, summary: m.summary, consequences: [], futureSeeds: [], nostalgicEchoes: [] };
             dispatch({ type: 'UPDATE_UNIVERSE', id: universe.id, patch: { memoryLog: [memory, ...((universe as { memoryLog?: unknown[] }).memoryLog ?? [])].slice(0, 80) } });
-            flash('Conversation gardée dans la mémoire de l’univers');
+            flash('Gardé dans la mémoire de l’univers');
           }}
           dm={dm}
           onDm={setDm}

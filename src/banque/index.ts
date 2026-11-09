@@ -332,3 +332,14 @@ export function bankRewriteState(state: Record<string, unknown>): Record<string,
   }
   return Object.keys(patch).length ? patch : null;
 }
+
+/**
+ * Facteur (≤ 1) qui empêche d'étirer une image au-delà de sa résolution d'origine : dessinée sur `px` pixels d'écran,
+ * elle ne dépasse jamais sa plus grande version (au-delà, elle cesserait d'être nette). Image d'un MJ : pas de limite.
+ */
+export function noUpscale(img: { mips?: number[]; src?: string }, px: number): number {
+  if (img.src || !img.mips?.length) return 1;
+  const dpr = typeof window !== 'undefined' ? Math.min(2, window.devicePixelRatio || 1) : 1;
+  const native = Math.max(...img.mips) / dpr;
+  return px > native ? native / px : 1;
+}

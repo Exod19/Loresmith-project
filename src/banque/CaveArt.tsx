@@ -12,7 +12,7 @@
  */
 import { useMemo } from 'react';
 import type { Cavity } from '../maps/atlas/types';
-import { bankSrc, hash, useBank, type BankImage } from './index';
+import { bankSrc, hash, noUpscale, useBank, type BankImage } from './index';
 
 type View = { x: number; y: number; w: number; h: number };
 type Tex = { id: string; src: string; tile: number; px: number };
@@ -132,9 +132,9 @@ export function CaveDecor({ mapId, cavities, W, H, pxPerUnit, view, on }: { mapI
   return (
     <g className="am-cave-decor" aria-hidden pointerEvents="none">
       {list.map((s) => {
-        const px = Math.max(s.w, s.h) * pxPerUnit;
+        const px0 = Math.max(s.w, s.h) * pxPerUnit, k = noUpscale(s.img, px0), px = px0 * k, w = s.w * k, h = s.h * k;
         return (
-          <image key={s.key} href={bankSrc(s.img, px)} x={-s.w / 2} y={-s.h / 2} width={s.w} height={s.h} preserveAspectRatio="none" opacity={revealOf(px) * (s.flat ? 0.7 : 1)}
+          <image key={s.key} href={bankSrc(s.img, px)} x={-w / 2} y={-h / 2} width={w} height={h} preserveAspectRatio="xMidYMid meet" opacity={revealOf(px) * (s.flat ? 0.7 : 1)}
             transform={`translate(${s.x} ${s.y}) rotate(${s.a})${s.flip ? ' scale(-1 1)' : ''}`} />
         );
       })}

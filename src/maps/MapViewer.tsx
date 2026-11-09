@@ -1514,7 +1514,12 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 here={feature ? { planId: map.id, featureId: feature.id, title: feature.title } : party.at ? { planId: party.at.planId, featureId: party.at.kind === 'feature' ? party.at.id : undefined, title: party.at.title } : undefined}
                 npcNames={[...new Set([...(library ?? []).filter((e) => (e as { archiveType?: string }).archiveType === 'person').map((e) => e.title), ...data.features.filter((f) => f.id.includes(':pnj-') && !f.id.includes(':pnj-gen-')).map((f) => f.title)])]}
                 onAdvance={advanceTime}
-                onEvents={(events) => onUpdate({ world: evolve({ ...rec.world!, events }).world, updatedAt: Date.now() })}
+                onEvents={(events) => {
+                  onUpdate({ world: evolve({ ...rec.world!, events }).world, updatedAt: Date.now() });
+                  // Chaque nouvel événement entre dans l'histoire de l'univers : l'IA et les PNJ le connaissent désormais.
+                  const before = new Set((rec.world!.events ?? []).map((e) => e.id));
+                  for (const e of events.filter((x) => !before.has(x.id))) onChronicle?.({ title: e.title, summary: [e.text, e.place?.title && `Lieu : ${e.place.title}`].filter(Boolean).join(' — ') || e.title });
+                }}
                 onDecide={(eventId, suiteId, status) => onUpdate({ world: decide(rec.world!, eventId, suiteId, status), updatedAt: Date.now() })}
                 onShow={(p) => { if (p.planId) setPlanId(p.planId); if (p.featureId) { setSelectedId(p.featureId); setFocus({ kind: 'point', id: p.featureId, tick: Date.now() }); } }} />
             )}

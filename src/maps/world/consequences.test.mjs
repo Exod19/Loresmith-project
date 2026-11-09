@@ -1,7 +1,7 @@
 /** Le monde réagit au temps qui passe : petites suites seules, grosses suites proposées au MJ. */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { passTime, pending, decide, placeStates, npcMemories, rumorsIn, newName, dueSuites } from './consequences.js';
+import { evolve, passTime, pending, decide, placeStates, npcMemories, rumorsIn, newName, dueSuites } from './consequences.js';
 import { newEvent } from './worldEvents.js';
 
 const DAY = 1440;
@@ -78,4 +78,21 @@ test('articles devant les noms de lieux', async () => {
   assert.equal(the('Brumeval'), 'Brumeval');
   assert.equal(ofPlace('Temple'), 'du temple');
   assert.equal(ofPlace('Halles'), 'des halles');
+});
+
+test('un événement plus récent remplace le précédent : le temple brûlé puis reconstruit à la main est debout', async () => {
+  const { newEvent, kindFromText } = await import('./worldEvents.js');
+  assert.equal(kindFromText('Le temple a été reconstruit'), 'reconstruction');
+  assert.equal(kindFromText('Le temple a brûlé'), 'incendie');
+  const place = { planId: 'map-w-c-x', featureId: 'map-w-c-x:b2', title: 'Le temple' };
+  let world = { clock: { day: 1, minute: 600 }, events: [] };
+  world = evolve({ ...world, events: [newEvent(world.clock, { title: 'Le temple a brûlé', place })] }).world;
+  assert.equal(placeStates(world)['map-w-c-x:b2'].etat, 'ruine');
+  world = passTime(world, 2 * 24 * 60);
+  world = evolve({ ...world, events: [...world.events, newEvent(world.clock, { title: 'On a reconstruit le temple', place })] }).world;
+  assert.equal(placeStates(world)['map-w-c-x:b2'].etat, 'reconstruit');
+  // Le temps passe : les suites de l'incendie (déblaiement, chantier) ne reviennent pas.
+  world = passTime(world, 60 * 24 * 60);
+  assert.equal(placeStates(world)['map-w-c-x:b2'].etat, 'reconstruit');
+  assert.equal(pending(world).length, 0);
 });
