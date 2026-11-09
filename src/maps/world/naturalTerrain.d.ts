@@ -5,7 +5,7 @@ export interface Road { points: number[][]; width: number }
 export interface Plaza { points: number[][] }
 export type Segment = [number, number, number, number, number];
 export interface Terrain {
-  sample(x: number, y: number, detail?: number, near?: Segment[], plazas?: Plaza[]): Rgb;
+  sample(x: number, y: number, detail?: number, near?: Segment[], plazas?: Plaza[], micro?: number): Rgb;
   segmentsNear(x0: number, y0: number, x1: number, y1: number): Segment[];
   segments: Segment[];
 }

@@ -10,12 +10,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { AtlasMap } from './types';
 import { createTerrain, paintTile, paletteOf } from '../world/naturalTerrain';
+import { bankSrc, useBank } from '../../banque';
+import { pickTexture } from '../../banque/banque';
 
 type View = { x: number; y: number; w: number; h: number };
 type Tile = { key: string; lvl: number; tx: number; ty: number; url: string };
 
 const TILE_PX = 256;
-const LEVELS = [0.25, 0.5, 1, 2, 4, 8]; // pixels par mètre
+// Pixels par mètre. Les niveaux fins (16 à 64) servent au zoom rapproché d'un petit plan (lieu sauvage, ruelle) :
+// sans eux, une tuile de 8 px/m agrandie six fois montrait des pavés flous.
+const LEVELS = [0.25, 0.5, 1, 2, 4, 8, 16, 32, 64];
 const MAX_TILES = 96;
 
 const seedOf = (s: string) => { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return (h >>> 0) % 100000; };
@@ -101,6 +105,20 @@ export default function NaturalTerrain({ map, pxPerUnit, view }: { map: AtlasMap
     return () => { stop = true; clearTimeout(t); };
   }, [wantedKey, scene]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // De très près, en pleine nature : une vraie matière de la banque (humus, mousse, herbe, terre craquelée…) se fond
+  // par-dessus le sol calculé, qui garde ses couleurs et ses chemins ; elle apparaît à partir de ~10 px par mètre.
+  const images = useBank();
+  const near = ppm / dpr;
+  const matter = useMemo(() => {
+    if (!s.nature) return null;
+    const snow = (s.snow ?? 0) >= 0.3, clim = s.climate ?? 'tempere';
+    const cats = snow ? ['neige'] : clim === 'chaud' ? ['terre', 'sable'] : clim === 'tropical' ? ['humus'] : ['humus', 'mousse', 'herbe'];
+    return pickTexture(images, { cats, climat: clim, saison: s.season, seed: `${map.id}:sol` });
+  }, [images, map.id, s.nature, s.snow, s.climate, s.season]);
+  const matterOp = matter ? Math.max(0, Math.min(1, (near - 10) / 20)) * 0.8 : 0;
+  const matterTile = matter ? (typeof matter.taille === 'number' ? matter.taille : 4) / scale : 0;
+  const matterId = `nt-m-${map.id.replace(/[^a-z0-9]/gi, '').slice(-14)}`;
+
   // Dessous : les tuiles plus grossières déjà prêtes qui recouvrent la vue ; dessus : celles du niveau courant.
   const shown = [...cache.current.values()].filter((t) => {
     const size = TILE_PX / t.lvl;
@@ -113,6 +131,16 @@ export default function NaturalTerrain({ map, pxPerUnit, view }: { map: AtlasMap
         // Un soupçon de recouvrement évite le filet de jointure entre tuiles voisines.
         return <image key={t.key} href={t.url} x={t.tx * sizeU} y={t.ty * sizeU} width={sizeU * 1.004} height={sizeU * 1.004} preserveAspectRatio="none" />;
       })}
+      {matterOp > 0.01 && matter && (
+        <>
+          <defs>
+            <pattern id={matterId} patternUnits="userSpaceOnUse" width={matterTile} height={matterTile}>
+              <image href={bankSrc(matter, matterTile * pxPerUnit)} x={0} y={0} width={matterTile} height={matterTile} preserveAspectRatio="none" />
+            </pattern>
+          </defs>
+          <rect x={view.x - view.w} y={view.y - view.h} width={view.w * 3} height={view.h * 3} fill={`url(#${matterId})`} opacity={matterOp} style={{ mixBlendMode: 'soft-light' }} />
+        </>
+      )}
     </g>
   );
 }

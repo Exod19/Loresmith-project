@@ -59,3 +59,26 @@ utilisées automatiquement.
 Les bords de la forêt restent faits de taches rondes. Pour les adoucir, on pourra ajouter des **bosquets détourés** :
 PNG à fond transparent, vue zénithale, un groupe de 3 à 6 couronnes (environ 25 m de large), titre contenant
 `tree clump top-down`. Me prévenir quand il y en a : il faudra une petite règle pour les poser le long des lisières.
+
+# Textures de sol (zoom rapproché)
+
+Le sol des plans de pleine nature est calculé (herbe, terre, chemins), en tuiles jusqu'à 64 pixels par mètre : il
+reste net de près. À partir d'environ 10 px par mètre, une matière de la banque se fond par-dessus (mode « lumière
+douce »), choisie selon le climat et la saison : humus, mousse ou prairie en climat tempéré, terre craquelée ou sable
+au chaud, sol de jungle sous les tropiques, neige en hiver enneigé.
+
+Pour enrichir ce rendu, d'autres textures de sol peuvent être générées avec le même cahier des charges que la canopée
+(vue zénithale, raccordable, carré 2048 px, lumière douce), mais à une échelle de **4 m de côté** :
+
+| Matière | Titre conseillé |
+| --- | --- |
+| Herbe courte | `herbe dense prairie seamless` |
+| Humus et feuilles | `humus forest floor leaves seamless` |
+| Mousse | `moss carpet seamless` |
+| Aiguilles de pin | `pine needle forest floor seamless` |
+| Terre craquelée | `cracked dry earth seamless` |
+| Neige | `neige ivoire fresh snow seamless` |
+
+Invite type : « Seamless tileable texture, strict top-down view of a temperate forest floor, fallen leaves, twigs and
+moss, about 4 meters across, soft diffuse light, no shadows of objects, muted natural colors, painted realistic style
+for a tabletop RPG battle map, no text, no border. »
