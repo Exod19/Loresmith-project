@@ -11,7 +11,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const dir = mkdtempSync(join(tmpdir(), 'combatmove-'));
 const out = join(dir, 'bundle.mjs');
 await build({
-  stdin: { contents: "export * from './surface'; export * from './movement'; export * from './placement'; export * from './aoe'; export { trimPassages } from './local'; export { coverAgainst } from './tactics';", resolveDir: here, loader: 'ts' },
+  stdin: { contents: "export * from './surface'; export * from './movement'; export * from './placement'; export * from './aoe'; export { trimPassages } from './local'; export { coverAgainst } from './tactics'; export { placeEncounter, postureOf } from './encounter';", resolveDir: here, loader: 'ts' },
   bundle: true, format: 'esm', platform: 'neutral', outfile: out, logLevel: 'silent', define: { 'import.meta.env': '{"BASE_URL":"/"}' },
 });
 const S = await import(pathToFileURL(out).href);
@@ -125,4 +125,31 @@ test('fond tactique : un jeton tombé dans un gouffre ou en eau profonde va sur 
   assert.deepEqual(at.b, [6, 6]); // sur la rive la plus proche
   assert.deepEqual(at.c, [1, 1]); // rien à changer
   assert.equal(tokens.find((t) => t.id === 'c'), b.tokens.find((t) => t.id === 'c'));
+});
+
+test('rencontre placée avec sens : cavaliers dehors devant l’entrée, garde près de la porte, archers à distance', () => {
+  const C = 20, R = 14;
+  // Bâtiment de x 5..14, y 3..10 ; porte au milieu du mur du bas (x 9-10, y 10).
+  const g = Array.from({ length: C * R }, (_, i) => {
+    const x = i % C, y = Math.floor(i / C);
+    const wall = (x === 5 || x === 14) && y >= 3 && y <= 10 || (y === 3 || y === 10) && x >= 5 && x <= 14;
+    return wall && !(y === 10 && (x === 9 || x === 10)) ? '#' : '.';
+  }).join('');
+  const outside = new Set(); // dehors : tout ce qui n'est pas strictement dans les murs
+  for (let i = 0; i < C * R; i++) { const x = i % C, y = Math.floor(i / C); if (!(x > 5 && x < 14 && y > 3 && y < 10) && g[i] !== '#') outside.add(i); }
+  const free = (x, y) => x >= 0 && y >= 0 && x < C && y < R && g[y * C + x] !== '#';
+  const groups = [
+    { stat: 'Cavalier', role: 'patrouille à cheval', n: 2, detail: '' },
+    { stat: 'guard', role: 'garde', n: 1, detail: '' },
+    { stat: 'Archer', role: 'archers', n: 2, detail: '' },
+  ];
+  assert.equal(S.postureOf(groups[0]), 'monte');
+  assert.equal(S.postureOf(groups[2]), 'distance');
+  const t = S.placeEncounter(groups, C, R, free, 7, { grid: g, heroes: [{ x: 8, y: 6 }, { x: 9, y: 6 }], outside });
+  assert.equal(t.length, 5);
+  const [c1, c2, garde, a1, a2] = t;
+  for (const c of [c1, c2]) assert.ok(outside.has(c.y * C + c.x), `cavalier dehors (${c.x},${c.y})`);
+  assert.ok(!outside.has(garde.y * C + garde.x) && Math.abs(garde.y - 9) <= 2 && garde.x >= 7 && garde.x <= 12, `garde près de la porte (${garde.x},${garde.y})`);
+  for (const a of [a1, a2]) assert.ok(Math.max(Math.abs(a.x - 8), Math.abs(a.y - 6)) >= 4, `archer à distance (${a.x},${a.y})`);
+  for (const x of t) assert.ok(Math.max(Math.abs(x.x - 8), Math.abs(x.y - 6)) >= 2, 'personne collé aux héros');
 });

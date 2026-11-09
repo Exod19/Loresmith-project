@@ -176,6 +176,8 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   const shareTalk = (talk: MapOverlay['talk'] | null) => onUpdate({ overlay: { ...overlayRef.current, talk: talk ?? undefined }, updatedAt: Date.now() });
   /** Créature d'une rencontre à qui l'on parle. */
   const [talkWith, setTalkWith] = useState<{ markerId: string; name: string; stat: Stat; detail?: string } | null>(null);
+  /** Conversation avec un PNJ de la carte (clic sur lui, puis « Parler ») : il parle le premier, avec l'histoire du lieu. */
+  const [talkNpc, setTalkNpc] = useState<AtlasFeature | null>(null);
   useEffect(() => { setTalkWith(null); }, [selectedId, planId]);
   const pv = overlay.playerView ?? {};
   const map = data.maps.find((m) => m.id === planId) ?? data.maps[0];
@@ -1412,6 +1414,15 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
 
             {dm && overlay.talk && (
               <p className="maps-hint">📺 Conversation avec {overlay.talk.name} affichée aux joueurs. <button className="maps-link" onClick={() => shareTalk(null)}>La retirer de leur écran</button></p>
+            )}
+            {dm && side === 'lieu' && !talkWith && !talkNpc && feature && /:pnj-/.test(feature.id) && !/:pnj-mj$/.test(feature.id) && (
+              <button className="maps-btn gold" onClick={() => setTalkNpc(feature)} title="L’IA joue ce PNJ ; il ouvre la conversation, selon l’heure, ce qui s’est passé ici et ce qu’il pense du groupe">💬 Parler à {feature.title}</button>
+            )}
+            {dm && talkNpc && side === 'lieu' && (
+              <div className="maps-card">
+                <TalkPanel key={talkNpc.id} rec={rec} data={data} planId={map.id} library={library ?? []} loreContext={loreContext} onCreateEntry={onCreateEntry} onUpdateEntry={onUpdateEntry} onChronicle={onChronicle}
+                  npc={talkNpc} onShare={shareTalk} onClose={() => setTalkNpc(null)} />
+              </div>
             )}
             {dm && talkWith && side === 'lieu' && (
               <div className="maps-card">

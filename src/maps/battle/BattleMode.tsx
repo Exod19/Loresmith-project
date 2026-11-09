@@ -19,6 +19,7 @@ import {
 } from '../mapStore';
 import { blocksCell, effectiveGrid, generateTerrain, seedOf, TERRAIN, type LocationHint, type TerrainKind } from './terrain';
 import { buildLocalMap, cellIn, trimPassages } from './local';
+import { outsideOf } from './groundCells';
 import { attackCells, rangedCells, speedCells } from './ranges';
 import { battleRegion, placeRegion, tokenImage } from './vignettes';
 import TilePanel, { tileFix, WorldPicker } from './TilePanel';
@@ -402,7 +403,11 @@ export default function BattleMode({
         local: { source, planId: plan.id, place: hint.title, window: local.window, elements: local.elements, discovered: previous }, build: undefined };
       const at = party?.at && party.at.planId === plan.id ? placeCoords(atlas, rec, party.at) : null;
       const cell = at ? cellIn(local.window, b.cols, b.rows, at[0], at[1]) : undefined;
-      const near = cell !== undefined ? { x: cell % b.cols, y: Math.floor(cell / b.cols) } : { x: Math.floor(b.cols / 2), y: Math.floor(b.rows / 2) };
+      // À défaut de position du groupe sur ce plan : l'entrée du bâtiment (intérieur), sinon le centre du lieu.
+      const door = cell === undefined ? atlas.geometries.find((g) => g.featureId === `${plan.id}:entree` && g.type === 'point') : undefined;
+      const doorCell = door ? cellIn(local.window, b.cols, b.rows, (door.coordinates as [number, number])[0], (door.coordinates as [number, number])[1]) : undefined;
+      const spot = cell ?? doorCell;
+      const near = spot !== undefined ? { x: spot % b.cols, y: Math.floor(spot / b.cols) } : { x: Math.floor(b.cols / 2), y: Math.floor(b.rows / 2) };
       // Les héros, sans leur ancienne case (placeOnBoard leur en donne une nouvelle).
       const pcs = b.tokens.filter((t) => t.kind === 'pc').map((t) => ({ ...t, unplaced: undefined, layer: undefined }));
       tokens = placeOnBoard(fresh, pcs, near);
@@ -413,7 +418,10 @@ export default function BattleMode({
         x >= 0 && y >= 0 && x + size <= b.cols && y + size <= b.rows
         && !Array.from({ length: size * size }).some((_, i) => blocksCell(ground, b.cols, x + (i % size), y + Math.floor(i / size)))
         && !kept.some((t) => t.x < x + size && x < t.x + t.size && t.y < y + size && y < t.y + t.size);
-      tokens = [...kept, ...placeEncounter(groups, b.cols, b.rows, free, seed)];
+      // Placement tactique : autour des héros, cavaliers dehors, garde près des portes, tireurs à couvert.
+      const heroesAt = kept.filter((t) => t.kind === 'pc').map((t) => ({ x: t.x, y: t.y }));
+      const outside = plan.surface?.theme === 'interieur' ? outsideOf(ground, b.cols, b.rows) : undefined;
+      tokens = [...kept, ...placeEncounter(groups, b.cols, b.rows, free, seed, { grid: ground, heroes: heroesAt, outside })];
     }
     // Dans un bâtiment : ses PNJ y sont, combat ou pas (placeNpcs).
     tokens = placeNpcs(tokens, ground, local.window);

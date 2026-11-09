@@ -15,7 +15,8 @@ import type { World } from './index';
 import { canSpeak, creatureVoice } from './speech';
 import { npcBankImage, npcToken } from '../../banque/place';
 import { faceOf } from '../../banque';
-import { ATTITUDE_LABEL, npcMemories, rumorsIn } from './consequences';
+import { ATTITUDE_LABEL, npcMemories, placeStates, PLACE_STATE_LABEL, rumorsIn } from './consequences';
+import { eventsOf } from './worldEvents';
 
 type Props = {
   rec: MapRecord;
@@ -85,6 +86,9 @@ export default function TalkPanel({ rec, data, planId, npc, library, loreContext
     mem?.attitude ? `CE QUE TU RESSENS : tu ${ATTITUDE_LABEL[mem.attitude]} ; ça se sent dans ta façon de leur parler.` : '',
     mem?.souvenirs.length ? `CE DONT TU TE SOUVIENS (récent) : ${mem.souvenirs.slice(-5).join(' ; ')}.` : '',
     rumors.length ? `CE QUI SE DIT EN VILLE (tu peux en parler, à ta manière) : ${rumors.map((r) => r.text).join(' ')}` : '',
+    // L'histoire du lieu et de la cité : ce qui s'y est passé, et l'état des bâtiments touchés (ruine, chantier…).
+    cityPlan && eventsOf(world, [cityPlan]).length ? `CE QUI S'EST PASSÉ ICI (c'est ton histoire, tu l'as vécue) : ${eventsOf(world, [cityPlan]).slice(0, 6).map((e) => e.title).join(' ; ')}.` : '',
+    (() => { const st = Object.entries(placeStates(world)).filter(([fid]) => cityPlan && fid.startsWith(cityPlan)).map(([, x]) => x); return st.length ? `ÉTAT DES LIEUX : ${st.slice(0, 6).map((x) => `${x.title} est ${PLACE_STATE_LABEL[x.etat as keyof typeof PLACE_STATE_LABEL] ?? x.etat}`).join(' ; ')}.` : ''; })(),
   ].filter(Boolean).join('\n');
 
   const send = async () => {
@@ -107,6 +111,28 @@ export default function TalkPanel({ rec, data, planId, npc, library, loreContext
       setSaid(msg);
     } finally { setBusy(false); }
   };
+
+  // Le PNJ parle le premier : à l'ouverture, une réplique d'accueil (salut, interpellation, réaction à l'arrivée des
+  // héros), selon son humeur, l'heure, ce qu'il sait et ce qu'il ressent. Le MJ n'a plus qu'à répondre.
+  const opened = useRef(false);
+  useEffect(() => {
+    if (opened.current || history.length || !aiReady()) return;
+    opened.current = true;
+    setBusy(true);
+    (async () => {
+      try {
+        const lore = loreContext?.([npc.title, subtitle, place?.title, city?.name].filter(Boolean).join(' ')) ?? '';
+        const system = npcSystemPrompt({ npc: { name: npc.title, role: subtitle, summary: npc.summary }, fiche: [fiche, memory, creature ? creatureVoice(creature.stat, canSpeak(creature.stat)) : ''].filter(Boolean).join('\n\n'), place, city, ctx, avatar, mode, lore });
+        const who = avatar.name || 'Les voyageurs';
+        const user = `${who} s'approche${who === 'Le groupe' || who === 'Les voyageurs' ? 'nt' : ''} de toi. Tu prends la parole le premier : salue, interpelle ou réagis à leur arrivée, en une ou deux phrases, selon ton humeur, l'heure, ce que tu sais d'eux et ce qui s'est passé ici. Réponds dans le même format que d'habitude.`;
+        const reply = parseNpcReply(await askAI(system, user));
+        if (reply.say) { const first: TalkLine[] = [{ from: 'npc', text: reply.say }]; setHistory(first); share(first); }
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e));
+      } finally { setBusy(false); }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /** Accepter : un lieu ou un PNJ devient une fiche ; une rumeur aussi ; un fait complète la fiche du PNJ (ou du lieu). */
   const accept = (p: Proposal & { id: string }) => {
