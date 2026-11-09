@@ -897,6 +897,47 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
     setFocus({ kind: 'point', id, tick: Date.now() });
   };
   useEffect(() => onPlayerPick((id) => pickRef.current(id)), []);
+  /**
+   * Révéler aux joueurs, par famille, sur le plan affiché : les chemins (tracés), les éléments (lieux, repères) ou les
+   * monstres (rencontres posées). `seenOnly` : seulement ce que le groupe voit d'où il est : dans un bâtiment, la ligne
+   * de vue (murs compris) ; ailleurs, la portée de vue de l'écran joueur. Rien de ce qui est déjà révélé n'est caché.
+   */
+  const [navNote, setNavNote] = useState('');
+  const revealNav = (what: 'chemins' | 'elements' | 'monstres', seenOnly: boolean) => {
+    const eyes: [number, number][] = [];
+    if (seenOnly) {
+      const stopped = party.fork?.planId === map.id ? party.fork.point : party.halt?.planId === map.id ? party.halt.point : undefined;
+      const at = party.at && party.at.planId === map.id ? placeCoords(data, rec, party.at) : null;
+      if (stopped) eyes.push(stopped as [number, number]); else if (at) eyes.push(at);
+      if (!eyes.length) { setNavNote('Le groupe n’est pas sur ce plan : rien à voir d’ici.'); return; }
+    }
+    const indoor = map.surface?.theme === 'interieur';
+    const inSight = new Set(seenOnly && indoor ? eyes.flatMap((e) => visibleFrom(map, e, data.features, data.geometries)) : []);
+    const near = (pts: [number, number][]) => eyes.some(([ex, ey]) => pts.some(([x, y]) => Math.hypot(x - ex, y - ey) <= VISION_R * 1.2));
+    if (what === 'monstres') {
+      const ms = markers.filter((m) => m.kind === 'rencontre' && !m.revealed && (!seenOnly || near([[m.x, m.y]])));
+      for (const m of ms) updateMarker(m.id, { revealed: true });
+      setNavNote(ms.length ? `${ms.length} rencontre${ms.length > 1 ? 's' : ''} révélée${ms.length > 1 ? 's' : ''}.` : 'Aucune rencontre cachée à révéler.');
+      return;
+    }
+    const known = new Set(overlay.revealed);
+    const byFeature = new Map<string, { trail: boolean; pts: [number, number][] }>();
+    for (const g of data.geometries) {
+      if (g.mapId !== map.id) continue;
+      const f = data.features.find((x) => x.id === g.featureId);
+      if (!f || f.draft) continue;
+      const cur = byFeature.get(f.id) ?? { trail: false, pts: [] };
+      cur.trail ||= g.type === 'polyline' || !!f.trace;
+      cur.pts.push(...(g.type === 'point' ? [g.coordinates as [number, number]] : (g.coordinates as [number, number][])));
+      byFeature.set(f.id, cur);
+    }
+    const ids = [...byFeature].filter(([id, v]) => !known.has(id) && (what === 'chemins' ? v.trail : !v.trail)
+      && (!seenOnly || (indoor ? inSight.has(id) : near(v.pts)))).map(([id]) => id);
+    if (ids.length) setOverlay(withExplored({ ...overlay, revealed: [...overlay.revealed, ...ids] }, map.id, ids.flatMap((id) => pointsOf(id)).filter((_, i) => i % 3 === 0)));
+    const label = what === 'chemins' ? 'chemin' : 'élément';
+    setNavNote(ids.length ? `${ids.length} ${label}${ids.length > 1 ? 's' : ''} révélé${ids.length > 1 ? 's' : ''}.` : `Aucun ${label} caché à révéler${seenOnly ? ' dans le champ de vision du groupe' : ''}.`);
+  };
+
   const revealPlan = (on: boolean) => {
     const ids = new Set(overlay.revealed);
     planFeatureIds.forEach((id) => (on ? ids.add(id) : ids.delete(id)));
@@ -1237,6 +1278,7 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
           atlas={data} plan={map} markers={overlay.markers}
           onFollow={followPassage} onLink={setPassageLink} onMarker={(id, patch) => updateMarker(id, patch)} onLeave={leaveBattle}
           onReveal={(id) => toggleReveal(id)}
+          onRevealMany={(ids) => { const known = new Set(overlay.revealed); const add = ids.filter((id) => !known.has(id)); if (add.length) setOverlay({ ...overlay, revealed: [...overlay.revealed, ...add] }); }}
           onBattle={(b) => onUpdate({ battle: b, updatedAt: Date.now() })}
           heroes={heroes} party={party} bestiary={bestiary} renderCombat={renderCombat} library={library}
           onSearchNote={(id, note) => {
@@ -1679,7 +1721,14 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
                 <h3>Révélations</h3>
                 <p className="maps-sub">{overlay.revealed.length} lieu(x) visible(s) des joueurs, sur l'ensemble {rec.kind === 'monde' ? 'du monde' : 'de l’Atlas'}.</p>
                 <div className="maps-enc-ctrl">
-                  <button className="maps-btn" onClick={() => revealPlan(true)}>Tout révéler sur ce plan</button>
+                  {([['chemins', 'Chemins'], ['elements', 'Éléments'], ['monstres', 'Monstres']] as const).map(([k, l]) => (
+                    <span key={k} className="reveal-row-nav">
+                      <b>{l}</b>
+                      <button className="maps-btn" onClick={() => revealNav(k, true)} title={`Les ${l.toLowerCase()} que le groupe voit d’où il est`}>que le groupe voit</button>
+                      <button className="maps-btn" onClick={() => revealNav(k, false)}>tous</button>
+                    </span>
+                  ))}
+                  {navNote && <span className="maps-sub" role="status">{navNote}</span>}
                   <button className="maps-btn" onClick={() => revealPlan(false)}>Tout cacher sur ce plan</button>
                 </div>
               </div>

@@ -974,3 +974,10 @@
 .battle-decor path { vector-effect: non-scaling-stroke; }
 .battle-stack.light-soir .battle-decor { filter: sepia(.25) saturate(.9) brightness(.82) hue-rotate(-8deg); }
 .battle-stack.light-nuit .battle-decor { filter: saturate(.55) brightness(.5) hue-rotate(195deg) sepia(.2); }
+
+/* Menu « Révéler » (monstres, chemins, éléments : vus des héros ou tous). */
+.reveal-menu { position: relative; display: inline-block; }
+.reveal-menu > summary { list-style: none; cursor: pointer; }
+.reveal-menu > summary::-webkit-details-marker { display: none; }
+.reveal-pop { position: absolute; right: 0; top: calc(100% + 4px); z-index: 30; display: grid; gap: 6px; padding: 10px; min-width: 300px; background: #1c1710; border: 1px solid rgba(236,210,137,.35); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.55); }
+.reveal-row { display: grid; grid-template-columns: 80px 1fr auto; gap: 6px; align-items: center; }

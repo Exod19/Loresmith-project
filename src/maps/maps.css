@@ -361,3 +361,5 @@
 .banque-deleted-row { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 13px; }
 .banque-deleted-row img { width: 40px; height: 40px; object-fit: contain; background: #2a2620; border-radius: 4px; }
 .banque-deleted-row span { flex: 1; }
+/* Révéler par famille (carte de navigation) : chemins, éléments, monstres — vus du groupe ou tous. */
+.reveal-row-nav { display: inline-flex; gap: 6px; align-items: center; margin-right: 10px; }

@@ -199,7 +199,7 @@ function surfaceTheme(surface: NonNullable<AtlasMap['surface']>, win: { x0: numb
 }
 
 export default function BattleMode({
-  rec, battle, onBattle, context, atlas, plan, markers, onFollow, onLink, onMarker, onReveal, heroes = [], party, onSearchNote, bestiary = [], renderCombat, onLeave, library,
+  rec, battle, onBattle, context, atlas, plan, markers, onFollow, onLink, onMarker, onReveal, onRevealMany, heroes = [], party, onSearchNote, bestiary = [], renderCombat, onLeave, library,
 }: {
   rec: MapRecord; battle: Battle; onBattle: (b: Battle) => void;
   /** Fiches de la Bibliothèque : peuples de la cité, pour choisir des jetons cohérents dans la Banque Loresmith. */
@@ -212,6 +212,8 @@ export default function BattleMode({
   onMarker: (id: string, patch: Partial<MapMarker>) => void;
   /** Révèle ou cache un élément pour les joueurs : même interrupteur que sur la carte de navigation. */
   onReveal: (featureId: string) => void;
+  /** Révèle plusieurs lieux d'un coup (sans rien cacher de ce qui l'est déjà). */
+  onRevealMany?: (featureIds: string[]) => void;
   heroes?: Hero[];
   /** Fiches de PNJ & Créatures, pour les ajouter au combat avec leur jeton. */
   bestiary?: BestiaryRef[];
@@ -1003,6 +1005,33 @@ export default function BattleMode({
       if (m) onMarker(m.id, { revealed: !m.revealed });
     } else onReveal(id);
   };
+  /**
+   * Révéler aux joueurs, par famille : les monstres (jetons cachés), les chemins (passages, sorties) ou les éléments
+   * (lieux, objets posés, repères, points de fouille). `seenOnly` : seulement ce que les héros voient d'où ils sont
+   * (portée et ligne de vue, murs et portes fermées compris) ; sinon tout. Rien de ce qui est déjà révélé n'est caché.
+   */
+  const revealBoard = (what: 'monstres' | 'chemins' | 'elements', seenOnly: boolean) => {
+    const sight = seenOnly ? partyVision(bv, grid) : null;
+    const inView = (cells: number[]) => !sight || cells.some((c) => sight.has(c));
+    if (what === 'monstres') {
+      const tokens = b.tokens.map((t) => (t.kind !== 'pc' && !t.visible && inView(Array.from({ length: t.size * t.size }, (_, i) => (t.y + Math.floor(i / t.size)) * b.cols + t.x + (i % t.size))) ? { ...t, visible: true } : t));
+      const n = tokens.filter((t, i) => t !== b.tokens[i]).length;
+      if (n) set({ tokens });
+      setRevealNote(n ? `${n} créature${n > 1 ? 's' : ''} révélée${n > 1 ? 's' : ''}.` : seenOnly ? 'Aucune créature cachée dans le champ de vision des héros.' : 'Aucune créature cachée.');
+      return;
+    }
+    const passIds = new Set(passages.map((p) => p.id));
+    const list = boardElements.filter((e) => (what === 'chemins' ? passIds.has(e.id) : !passIds.has(e.id)) && !isShown(e.id) && inView(cellsOf(e.id)));
+    const props = list.filter((e) => e.id.startsWith('pr-')).map((e) => e.id);
+    const marks = list.filter((e) => e.id.startsWith('mk-')).map((e) => e.id.slice(3));
+    const feats = list.filter((e) => !e.id.startsWith('pr-') && !e.id.startsWith('mk-')).map((e) => e.id);
+    if (props.length) commitBuild({ ...build, props: build.props.map((p) => (props.includes(`pr-${p.id}`) ? { ...p, visible: true } : p)) });
+    for (const id of marks) onMarker(id, { revealed: true });
+    if (feats.length) { if (onRevealMany) onRevealMany(feats); else feats.forEach((id) => onReveal(id)); }
+    const n = list.length, label = what === 'chemins' ? 'chemin' : 'élément';
+    setRevealNote(n ? `${n} ${label}${n > 1 ? 's' : ''} révélé${n > 1 ? 's' : ''}.` : seenOnly ? `Aucun ${label} caché dans le champ de vision des héros.` : `Aucun ${label} caché.`);
+  };
+  const [revealNote, setRevealNote] = useState('');
   const isShown = (id: string) => (id.startsWith('pr-') ? !!build.props.find((p) => `pr-${p.id}` === id)?.visible
     : id.startsWith('mk-') ? !!markers.find((m) => `mk-${m.id}` === id)?.revealed : discovered.includes(id));
   /** Passage le plus proche d'un élément à fouiller (dans un rayon de 4 cases) : ce que la fouille peut ouvrir. */
@@ -1347,6 +1376,19 @@ export default function BattleMode({
             )}
             <button className={`maps-btn ${showRanges ? 'gold' : ''}`} title="Déplacements et portées d'attaque (MJ seulement)" onClick={() => setShowRanges((v) => !v)}>◎ Portées</button>
             <button className={`maps-btn ${freeMove ? 'gold' : ''}`} title="Déplacement libre : le MJ pose un jeton où il veut, sans règles de terrain (téléportation, chute, poussée). Alt + glisser fait de même pour un seul déplacement." onClick={() => setFreeMove((v) => !v)}>{freeMove ? '🔓 Libre' : '🔒 Règles'}</button>
+            <details className="reveal-menu">
+              <summary className="maps-btn" title="Révéler aux joueurs ce que leurs héros voient, ou tout">👁 Révéler</summary>
+              <div className="reveal-pop" role="menu">
+                {([['monstres', 'Monstres'], ['chemins', 'Chemins'], ['elements', 'Éléments']] as const).map(([k, l]) => (
+                  <div key={k} className="reveal-row">
+                    <b>{l}</b>
+                    <button className="maps-btn" role="menuitem" onClick={() => revealBoard(k, true)} title={`Les ${l.toLowerCase()} que les héros voient d’où ils sont (portée et ligne de vue)`}>que les héros voient</button>
+                    <button className="maps-btn" role="menuitem" onClick={() => revealBoard(k, false)}>tous</button>
+                  </div>
+                ))}
+                {revealNote && <p className="build-hint" role="status">{revealNote}</p>}
+              </div>
+            </details>
             <button className={`maps-btn ${b.fog?.on ? 'gold' : ''}`} title="Brouillard de guerre : les joueurs ne voient que ce que voient leurs héros (portée de vue et ligne de vue). Les cases explorées restent en mémoire." onClick={() => set({ fog: { on: !b.fog?.on, source: fogSource, explored: b.fog?.source === fogSource ? b.fog.explored : [] } })}>🌫 Brouillard</button>
             {b.fog?.on && explored.length > 0 && <button className="maps-btn" title="Oublier les cases explorées" onClick={() => set({ fog: { on: true, source: fogSource, explored: [] } })}>↺</button>}
           </div>
