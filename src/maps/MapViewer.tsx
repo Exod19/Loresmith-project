@@ -38,7 +38,7 @@ import { journeyMs } from './atlas/MapCanvas';
 import { detectLabel, noticedPassively, passiveOf, trailProfile } from './atlas/trails';
 import Interactables from './Interactables';
 import CampaignGuide, { type BestiaryRef, type GuideCampaign, type GuidePlace } from './CampaignGuide';
-import { onPlayerFollow, onPlayerFork, onPlayerGoto, onPlayerPick, onPlayerView, publishStage, publishView } from '../present/stage';
+import { onPlayerFollow, onPlayerFork, onPlayerGoto, onPlayerPick, onPlayerView, onPlayerZoom, publishStage, publishView } from '../present/stage';
 import { zoneOf, inZone, trailInZone } from './zone';
 import LiveEncounters, { type LiveBestiaryRef } from './LiveEncounters';
 import { buildRoutes, distancesTo, goalNodes, judgeTrail, nodeOf, verdictText, type TrailVerdict } from './route';
@@ -430,11 +430,44 @@ export default function MapViewer({ rec, atlas, dm, onDm, onUpdate, onBack, hero
   const artRef = useRef(artOf);
   artRef.current = artOf;
 
+  /**
+   * Plan montré aux joueurs quand ils sont descendus d'eux-mêmes en zoomant sur la carte du monde (cité, hameau, lieu,
+   * ou les environs à pied) : le MJ reste sur son plan. Revient au plan du MJ dès qu'il en change.
+   */
+  const [playerPlan, setPlayerPlan] = useState<string | null>(null);
+  const [playerPending, setPlayerPending] = useState<string | null>(null);
+  useEffect(() => { setPlayerPlan(null); setPlayerPending(null); }, [map.id]);
+  useEffect(() => {
+    if (playerPending && atlas.maps.some((m) => m.id === playerPending)) { setPlayerPlan(playerPending); setPlayerPending(null); }
+  }, [atlas, playerPending]);
+  const shownPlan = playerPlan && atlas.maps.some((m) => m.id === playerPlan) ? playerPlan : map.id;
+  const playerZoomRef = useRef<(planId: string, dir: 'in' | 'out', at: [number, number]) => void>(() => {});
+  playerZoomRef.current = (planId, dir, at) => {
+    if (!projecting || battleOpen || rec.kind !== 'monde' || !rec.world || planId !== shownPlan) return;
+    const wid = worldPlanId(rec.id);
+    if (dir === 'out') { if (shownPlan !== wid && shownPlan !== map.id) setPlayerPlan(map.id === wid ? null : wid); return; }
+    if (shownPlan !== wid) return; // dans une cité ou les environs : les intérieurs s'ouvrent par le MJ
+    const near = atlas.features
+      .filter((f) => f.opens)
+      .map((f) => ({ f, g: atlas.geometries.find((g) => g.featureId === f.id && g.mapId === wid) }))
+      .filter((x) => x.g)
+      .map((x) => ({ ...x, d: walkKm(rec, [x.g!.coordinates as [number, number], at]) }))
+      .sort((a, b) => a.d - b.d)[0];
+    const siteMap = near && near.d < 5 ? atlas.spaces.find((sp) => sp.id === near.f.opens!.id)?.mapId : undefined;
+    if (siteMap) { setPlayerPlan(siteMap); return; }
+    const z = zoneFor(rec, atlas, at);
+    if (!z) return;
+    const pid = `${wid}:zone-${z.key}:plan`;
+    if (!rec.world.zones?.[z.key]) onUpdate({ world: { ...rec.world, zones: { ...(rec.world.zones ?? {}), [z.key]: z } }, updatedAt: Date.now() });
+    setPlayerPending(pid);
+  };
+  useEffect(() => onPlayerZoom((planId, dir, at) => playerZoomRef.current(planId, dir, at)), []);
+
   // Projection : toute modification de la carte, du repérage ou du combat part vers l'écran joueur.
   useEffect(() => {
     if (!projecting) return;
-    publishStage({ kind: 'board', board: battleOpen ? battleBoard(rec, (name, id) => artRef.current?.(name, id) || ficheImageOf(id) || '', shownPuzzle(rec.battle, puzzleLib?.puzzles ?? [], puzzleLib?.clues ?? [])) : mapBoard(rec, atlas, map.id, focus ?? undefined, (f) => tokenRef.current(f), (f) => faceRef.current(f), heroes) });
-  }, [projecting, battleOpen, rec, atlas, map.id, focus, puzzleLib?.puzzles, puzzleLib?.clues, heroes]);
+    publishStage({ kind: 'board', board: battleOpen ? battleBoard(rec, (name, id) => artRef.current?.(name, id) || ficheImageOf(id) || '', shownPuzzle(rec.battle, puzzleLib?.puzzles ?? [], puzzleLib?.clues ?? [])) : mapBoard(rec, atlas, shownPlan, shownPlan === map.id ? focus ?? undefined : undefined, (f) => tokenRef.current(f), (f) => faceRef.current(f), heroes) });
+  }, [projecting, battleOpen, rec, atlas, map.id, shownPlan, focus, puzzleLib?.puzzles, puzzleLib?.clues, heroes]);
 
   /** Amène la vue joueurs sur ce lieu : le révèle si besoin, centre la carte chez eux, et démarre la projection. */
   const bringPlayers = (id: string) => {

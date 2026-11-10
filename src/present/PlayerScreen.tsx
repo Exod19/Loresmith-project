@@ -101,7 +101,7 @@ function Scene({ stage, rev }: { stage: Stage; rev: number }) {
   }
   if (stage.kind === 'board') {
     return stage.board.mode === 'map'
-      ? <PlayerMap board={stage.board} rev={rev} onFollow={(featureId, dir) => sendToHost?.({ type: 'follow', featureId, dir })} onPick={(featureId) => sendToHost?.({ type: 'pick', featureId })} onFork={(key, choice) => sendToHost?.({ type: 'fork', key, choice })} onGoto={(at, featureId) => sendToHost?.({ type: 'goto', at, featureId })} />
+      ? <PlayerMap board={stage.board} rev={rev} onFollow={(featureId, dir) => sendToHost?.({ type: 'follow', featureId, dir })} onPick={(featureId) => sendToHost?.({ type: 'pick', featureId })} onFork={(key, choice) => sendToHost?.({ type: 'fork', key, choice })} onGoto={(at, featureId) => sendToHost?.({ type: 'goto', at, featureId })} onZoomLimit={(planId, dir, at) => sendToHost?.({ type: 'zoom', planId, dir, at })} />
       : <PlayerBattle board={stage.board} onAim={(from, to) => sendToHost?.({ type: 'aim', from, to })} onMove={(id, x, y) => sendToHost?.({ type: 'move', id, x, y })} />;
   }
   return (
@@ -111,7 +111,7 @@ function Scene({ stage, rev }: { stage: Stage; rev: number }) {
   );
 }
 
-function PlayerMap({ board, rev, onFollow, onPick, onFork, onGoto }: { board: Extract<PlayerBoard, { mode: 'map' }>; rev: number; onFollow?: (featureId: string, dir?: 'a' | 'b') => void; onPick?: (featureId: string) => void; onFork?: (key: string, choice: 'out' | 'on') => void; onGoto?: (at: [number, number], featureId?: string) => void }) {
+function PlayerMap({ board, rev, onFollow, onPick, onFork, onGoto, onZoomLimit }: { board: Extract<PlayerBoard, { mode: 'map' }>; rev: number; onZoomLimit?: (planId: string, dir: 'in' | 'out', at: [number, number]) => void; onFollow?: (featureId: string, dir?: 'a' | 'b') => void; onPick?: (featureId: string) => void; onFork?: (key: string, choice: 'out' | 'on') => void; onGoto?: (at: [number, number], featureId?: string) => void }) {
   setAtlasData(board.data as AtlasData);
   // Un lieu ou un chemin touché : sa fiche ; un chemin peut être suivi (le MJ valide, ou fait passer l'épreuve).
   const [picked, setPicked] = useState<AtlasFeature | null>(null);
@@ -146,6 +146,7 @@ function PlayerMap({ board, rev, onFollow, onPick, onFork, onGoto }: { board: Ex
         onPlace={world ? (x, y) => { setPicked(null); setSpot([x, y]); } : undefined}
         syncView={board.linked ? sync : null}
         cavernArt={board.cavernArt}
+        onZoomLimit={onZoomLimit ? (dir, at) => onZoomLimit(board.planId, dir, at) : undefined}
         onView={board.linked ? (box, remote) => { if (!remote && Date.now() - touchedAt.current < 2500) sendToHost?.({ type: 'view', planId: board.planId, box, from: 'joueurs' }); } : undefined}
       />
       {world && spot && !picked && (

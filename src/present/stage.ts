@@ -99,6 +99,8 @@ export type Stage =
 /** `follow` : depuis la carte de navigation des joueurs, le groupe demande à suivre un chemin (le MJ valide ou fait l'épreuve). */
 export type StageMessage = { type: 'hello' } | { type: 'stage'; stage: Stage; at?: number } | { type: 'aim'; from: string; to: string } | { type: 'move'; id: string; x: number; y: number } | { type: 'follow'; featureId: string; dir?: 'a' | 'b' } | { type: 'pick'; featureId: string } | { type: 'fork'; key: string; choice: 'out' | 'on' } | { type: 'goto'; at: [number, number]; featureId?: string }
   | { type: 'view'; planId: string; box: [number, number, number, number]; from: 'mj' | 'joueurs' }
+  /** Les joueurs zooment au-delà de la limite de leur plan : descendre dans le lieu sous le pointeur, ou remonter. */
+  | { type: 'zoom'; planId: string; dir: 'in' | 'out'; at: [number, number] }
   | { type: 'puzzle'; action: import('../puzzles/types').PuzzleAction };
 
 const CHANNEL = 'loresmith:stage:v1';
@@ -132,6 +134,7 @@ const forkListeners = new Set<(key: string, choice: 'out' | 'on') => void>();
 const puzzleListeners = new Set<(action: import('../puzzles/types').PuzzleAction) => void>();
 const gotoListeners = new Set<(at: [number, number], featureId?: string) => void>();
 const viewListeners = new Set<(planId: string, box: [number, number, number, number]) => void>();
+const zoomListeners = new Set<(planId: string, dir: 'in' | 'out', at: [number, number]) => void>();
 
 /** À appeler une fois dans la console MJ : répond aux écrans joueurs qui se connectent. */
 export function hostStage() {
@@ -142,6 +145,7 @@ export function hostStage() {
     if (e.data?.type === 'move') { const { id, x, y } = e.data; moveListeners.forEach((f) => f(id, x, y)); return; }
     if (e.data?.type === 'follow') { const { featureId, dir } = e.data; followListeners.forEach((f) => f(featureId, dir)); return; }
     if (e.data?.type === 'view') { if (e.data.from === 'joueurs') { const { planId, box } = e.data; viewListeners.forEach((f) => f(planId, box)); } return; }
+    if (e.data?.type === 'zoom') { const { planId, dir, at } = e.data; zoomListeners.forEach((f) => f(planId, dir, at)); return; }
     if (e.data?.type === 'goto') { const { at, featureId } = e.data; gotoListeners.forEach((f) => f(at, featureId)); return; }
     if (e.data?.type === 'fork') { const { key, choice } = e.data; forkListeners.forEach((f) => f(key, choice)); return; }
     if (e.data?.type === 'puzzle') { const { action } = e.data; puzzleListeners.forEach((f) => f(action)); return; }
@@ -232,4 +236,11 @@ export function onPlayerView(listener: (planId: string, box: [number, number, nu
   hostStage();
   viewListeners.add(listener);
   return () => { viewListeners.delete(listener); };
+}
+
+/** Préviens quand les joueurs zooment au-delà de la limite du plan projeté (descendre dans un lieu, ou remonter). */
+export function onPlayerZoom(listener: (planId: string, dir: 'in' | 'out', at: [number, number]) => void) {
+  hostStage();
+  zoomListeners.add(listener);
+  return () => { zoomListeners.delete(listener); };
 }
