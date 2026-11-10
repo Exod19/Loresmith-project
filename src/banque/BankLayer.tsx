@@ -26,7 +26,7 @@ const PROPS: Record<string, { usage: string; cat?: string; decor: string }> = {
 };
 /** Tracés vectoriels que la banque remplace, quand elle dessine. */
 export const BANK_COVERS: Record<string, Set<string>> = {
-  cite: new Set(['roof', 'roof-farm', 'roof-noble', 'roof-civic', 'keep', 'tree', 'fountain']),
+  cite: new Set(['roof', 'roof-farm', 'roof-noble', 'roof-civic', 'keep', 'tree', 'fountain', 'plot']),
   interieur: new Set(['table', 'bed', 'barrel', 'chest', 'altar', 'tomb', 'pillar', 'trough']),
 };
 /** La banque dessine-t-elle à ce zoom ? (une maison de 6 m, un meuble de 80 cm, doivent faire au moins MIN_PX pixels). */
@@ -62,6 +62,35 @@ export function propSprite(images: BankImage[], k: string, x: number, y: number,
   return { img, w: k2 * r, h: k2, a: turn };
 }
 
+/**
+ * Champs : chaque lanière (`ground.f` : x, y, longueur, largeur, angle) est découpée en parcelles presque carrées,
+ * chacune couverte par UNE image entière de la banque (cat « champ »), jamais répétée en carrelage : les images de champ
+ * sont des vues uniques, pas des motifs raccordables. Une étroite bande d'herbe sépare les parcelles (sentier, haie).
+ * Même culture dans tout le champ ; la saison choisit l'image. Sans image qui convienne : le tracé vectoriel.
+ */
+function fieldSprites(mapId: string, f: number[], scale: number, images: BankImage[], ctx: { climat: string; saison?: string; region: string }): Sprite[] {
+  const out: Sprite[] = [];
+  const gap = 1.4 / scale; // bande d'herbe entre parcelles (m → unités)
+  for (let i = 0; i + 4 < f.length; i += 5) {
+    const [x, y, w, d, ang] = f.slice(i, i + 5);
+    const lead = pickTexture(images, { cats: ['champ'], ...ctx, seed: `${mapId}:f${i}` });
+    const crop = lead?.usage?.[0];
+    const pool = crop ? images.filter((im) => im.type !== 'texture' || im.cat !== 'champ' || im.usage?.includes(crop)) : images;
+    const n = Math.max(1, Math.round(w / d));
+    const pw = w / n, c = Math.cos(ang), sn = Math.sin(ang);
+    for (let k = 0; k < n; k++) {
+      const u = -w / 2 + pw * (k + 0.5), px = x + u * c, py = y + u * sn;
+      const img = lead ? pickTexture(pool, { cats: ['champ'], ...ctx, seed: `${mapId}:f${i}:${k}` }) ?? lead : null;
+      // Sillons dans le même sens d'une parcelle à l'autre : retournée d'un demi-tour au plus, ou en miroir.
+      const h = hash(`${mapId}:f${i}:${k}:o`);
+      out.push(img
+        ? { key: `f${i}:${k}`, layer: 'arbres', img, x: px, y: py, w: pw - gap, h: d - gap, a: ang + (h % 2 ? Math.PI : 0), flip: (h >> 1) % 2 === 1, couvre: true }
+        : { key: `f${i}:${k}`, layer: 'arbres', img: null, x: px, y: py, w: pw - gap, h: d - gap, a: ang, d: rectD(px, py, pw - gap, d - gap, ang), cls: 'dc-plot' });
+    }
+  }
+  return out;
+}
+
 /** Les sprites d'un plan (calculés une fois par plan et par saison : la vue ne fait que trier ce qui se voit). */
 function useSprites(map: AtlasMap, images: BankImage[]) {
   return useMemo(() => {
@@ -71,6 +100,8 @@ function useSprites(map: AtlasMap, images: BankImage[]) {
     const ctx = { climat: s.climate ?? 'tempere', saison: s.season ? SEASON_OF[s.season] : undefined, region: 'surface' };
     const g = s.ground;
     if (s.theme === 'cite') {
+      // Sol enneigé : les champs sont ceux de l'hiver, quelle que soit la saison réglée.
+      out.push(...fieldSprites(map.id, g.f ?? [], s.scale, images, (s.snow ?? 0) >= 0.3 ? { ...ctx, saison: 'hiver' } : ctx));
       const t = g.t ?? [];
       for (let i = 0; i + 2 < t.length; i += 3) {
         const img = pickElement(images, { cat: 'arbre', ...ctx, milieu: 'ville', seed: `${map.id}:t${i}` });
@@ -127,10 +158,10 @@ export function useGroundTextures(map: AtlasMap, pxPerUnit: number) {
     const out: Record<string, { id: string; img: BankImage; tile: number; src: string }> = {};
     if (!s || s.theme === 'monde') return out;
     const ctx = { climat: s.climate ?? 'tempere', saison: s.season, region: 'surface' };
-    const snowy = (s.snow ?? 0) >= 0.3;
     const wants: Record<string, string[]> = s.theme === 'interieur'
       ? { floor: ['planches'], 'floor-stone': ['dalles'] }
-      : { plot: snowy ? ['neige'] : s.season === 'printemps' ? ['herbe', 'champ'] : ['champ', 'herbe', 'sable'], square: ['paves'], court: ['paves', 'dalles'],
+      // Les champs (plot) ont leurs propres images, une par parcelle (fieldSprites) : pas de motif répété.
+      : { square: ['paves'], court: ['paves', 'dalles'],
         // Pleine nature : la canopée vue de haut (texture « canopee » de la banque), à la place des taches vertes.
         ...(s.nature ? { forest: ['canopee'] } : {}) };
     for (const [kind, cats] of Object.entries(wants)) {
@@ -191,8 +222,9 @@ export default function BankLayer({ map, layer, pxPerUnit, view }: { map: AtlasM
         if (!sp.img) return sp.d ? <path key={sp.key} d={sp.d} className={sp.cls} /> : null;
         if (sp.dense && treesIn <= 0.01) return null;
         // Jamais étirée au-delà de sa résolution d'origine (ni déformée : proportions gardées).
-        const px = Math.max(sp.w, sp.h) * pxPerUnit, k = noUpscale(sp.img, px), w = sp.w * k, h = sp.h * k;
-        return <image key={sp.key} href={bankSrc(sp.img, px * k)} x={-w / 2} y={-h / 2} width={w} height={h} preserveAspectRatio="xMidYMid meet"
+        // Parcelle de champ (`couvre`) : l'image remplit exactement son emplacement (rognée au besoin, jamais déformée).
+        const px = Math.max(sp.w, sp.h) * pxPerUnit, k = sp.couvre ? 1 : noUpscale(sp.img, px), w = sp.w * k, h = sp.h * k;
+        return <image key={sp.key} href={bankSrc(sp.img, px * k)} x={-w / 2} y={-h / 2} width={w} height={h} preserveAspectRatio={sp.couvre ? 'xMidYMid slice' : 'xMidYMid meet'}
           opacity={sp.dense && treesIn < 1 ? treesIn : undefined}
           transform={`translate(${sp.x} ${sp.y}) rotate(${(sp.a * 180) / Math.PI})${sp.flip ? ' scale(-1 1)' : ''}`} />;
       })}
