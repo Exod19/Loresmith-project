@@ -41,6 +41,57 @@ async function fillCells(ctx: CanvasRenderingContext2D, C: number, cols: number,
   ctx.restore();
 }
 
+/** Côté d'une parcelle de champ (m) : une image de champ couvre une parcelle entière, comme sur la carte de navigation. */
+const PARCEL_M = 20;
+/** Bande d'herbe entre deux parcelles (m). */
+const PARCEL_GAP_M = 1;
+
+/**
+ * Champs du plateau (cases ','). Chaque champ (cases reliées) est découpé en parcelles d'environ PARCEL_M mètres ;
+ * chacune reçoit UNE image entière de la banque (cat « champ »), qui la remplit (rognée, jamais déformée), sans
+ * carrelage. Une bande d'herbe étroite sépare les parcelles. Même culture dans tout le champ. Sans image de champ
+ * (neige…) : `fallback` (texture répétée).
+ */
+async function fieldParcels(ctx: CanvasRenderingContext2D, C: number, cols: number, rows: number, terrain: string, images: BankImage[],
+  pick: { climat: string; saison?: string; region: string }, fallback: () => Promise<void>) {
+  const fields = groups(terrain, cols, rows, ',');
+  if (!fields.length) return;
+  if (!pickTexture(images, { cats: ['champ'], ...pick, seed: 'champ' })) { await fallback(); return; }
+  const per = PARCEL_M / CELL_M, gap = (PARCEL_GAP_M / CELL_M) * C;
+  for (const f of fields) {
+    const seed = `champ:${f.x0}:${f.y0}`;
+    const lead = pickTexture(images, { cats: ['champ'], ...pick, seed });
+    const crop = lead?.usage?.[0];
+    const pool = crop ? images.filter((im) => im.type !== 'texture' || im.cat !== 'champ' || im.usage?.includes(crop)) : images;
+    const bw = f.x1 - f.x0 + 1, bh = f.y1 - f.y0 + 1;
+    const nx = Math.max(1, Math.round(bw / per)), ny = Math.max(1, Math.round(bh / per));
+    for (let py = 0; py < ny; py++) for (let px = 0; px < nx; px++) {
+      const img = pickTexture(pool, { cats: ['champ'], ...pick, seed: `${seed}:${px}:${py}` }) ?? lead;
+      if (!img) continue;
+      // Parcelle (pixels), en retrait d'une demi-bande de chaque côté intérieur.
+      const x0 = (f.x0 + (bw * px) / nx) * C + (px > 0 ? gap / 2 : 0), x1 = (f.x0 + (bw * (px + 1)) / nx) * C - (px < nx - 1 ? gap / 2 : 0);
+      const y0 = (f.y0 + (bh * py) / ny) * C + (py > 0 ? gap / 2 : 0), y1 = (f.y0 + (bh * (py + 1)) / ny) * C - (py < ny - 1 ? gap / 2 : 0);
+      const w = x1 - x0, h = y1 - y0;
+      const im = await load(bankSrc(img, Math.max(w, h)));
+      if (!im) continue;
+      ctx.save();
+      // Seules les cases de ce champ, dans la parcelle.
+      ctx.beginPath();
+      for (let y = f.y0; y <= f.y1; y++) for (let x = f.x0; x <= f.x1; x++) if (terrain[y * cols + x] === ',') ctx.rect(x * C, y * C, C, C);
+      ctx.clip();
+      ctx.beginPath(); ctx.rect(x0, y0, w, h); ctx.clip();
+      // Remplit la parcelle (rognée au centre) ; un demi-tour au plus, ou un miroir, pour varier sans croiser les sillons.
+      const hh = hash(`${seed}:${px}:${py}:o`);
+      ctx.translate(x0 + w / 2, y0 + h / 2);
+      if (hh % 2) ctx.rotate(Math.PI);
+      if ((hh >> 1) % 2) ctx.scale(-1, 1);
+      const r = im.naturalWidth / im.naturalHeight || 1, side = Math.max(w, h * r);
+      ctx.drawImage(im, -side / 2, -side / r / 2, side, side / r);
+      ctx.restore();
+    }
+  }
+}
+
 /** Dessine une image centrée en (x, y), de w × h pixels, tournée de `a` radians. */
 function put(ctx: CanvasRenderingContext2D, im: HTMLImageElement, x: number, y: number, w: number, h: number, a: number, flip = false) {
   ctx.save();
@@ -110,7 +161,9 @@ export async function dressBoard(canvas: HTMLCanvasElement, cols: number, rows: 
     const sol = mode === 'neige' ? ['neige'] : mode === 'chaud' ? ['sable', 'terre'] : urban ? ['paves', 'terre'] : mode === 'froid' ? ['toundra', 'terre'] : nature ? ['herbe', 'terre'] : ['terre'];
     under = tex(sol, 'sol');
     steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === '.', under, 0.9));
-    steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === ',', tex(mode === 'neige' ? ['neige'] : ['champ', 'herbe'], 'champ'), 0.95));
+    // Champs : une image entière par parcelle (comme sur la carte de navigation), jamais un motif répété.
+    steps.push(() => fieldParcels(ctx, C, cols, rows, terrain, images, { climat, saison: mode === 'neige' ? 'hiver' : saison, region: 'surface' },
+      () => fillCells(ctx, C, cols, terrain, (k) => k === ',', tex(mode === 'neige' ? ['neige'] : ['champ', 'herbe'], 'champ'), 0.95)));
     // Eau : peu profonde près des berges, profonde au large (distance en cases à la terre) ; berges de terre mouillée.
     if (mode === 'neige') steps.push(() => fillCells(ctx, C, cols, terrain, (k) => k === '~', tex(['glace', 'eau'], 'eau'), 0.9));
     else {
