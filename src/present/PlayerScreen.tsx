@@ -2,7 +2,7 @@
  * Écran joueur : la fenêtre à partager. Plein écran, sans menus ; elle affiche ce que la console MJ projette.
  * Les données reçues sont déjà filtrées (cf. maps/playerBoard.ts) : aucune note ni repère secret n'arrive ici.
  */
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import MapCanvas, { journeyMs, type Layers } from '../maps/atlas/MapCanvas';
 import { setAtlasData } from '../maps/atlas/model';
 import type { AtlasData, AtlasFeature, FeatureCategory } from '../maps/atlas/types';
@@ -292,6 +292,38 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
   const wrapRef = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<{ id: string; dx: number; dy: number; cur: { x: number; y: number }; moved: boolean } | null>(null);
   const dragged = useRef(false);
+  // Zoom des joueurs sur le plateau (molette, pincement à deux doigts, boutons) et déplacement de la vue zoomée en
+  // glissant le fond : le plateau grandit dans son cadre (transformation CSS ; la case visée suit, cf. cellAt).
+  const [zoom, setZoom] = useState({ k: 1, x: 0, y: 0 });
+  const zoomRef = useRef(zoom); zoomRef.current = zoom;
+  const stackOf = () => wrapRef.current?.querySelector<HTMLElement>('.battle-stack') ?? null;
+  const zoomAt = (k2: number, cx?: number, cy?: number) => {
+    const st = stackOf(); const z = zoomRef.current;
+    const k = Math.max(1, Math.min(6, k2));
+    if (!st || k === 1) { setZoom({ k: 1, x: 0, y: 0 }); return; }
+    const r = st.getBoundingClientRect();
+    const ox = r.left - z.x, oy = r.top - z.y; // coin du plateau sans zoom
+    const px = cx ?? r.left + r.width / 2, py = cy ?? r.top + r.height / 2;
+    const lx = (px - ox - z.x) / z.k, ly = (py - oy - z.y) / z.k;
+    setZoom({ k, x: px - ox - lx * k, y: py - oy - ly * k });
+  };
+  useLayoutEffect(() => {
+    const st = stackOf();
+    if (!st) return;
+    st.style.transformOrigin = '0 0';
+    st.style.transform = zoom.k === 1 ? '' : `translate(${zoom.x}px, ${zoom.y}px) scale(${zoom.k})`;
+  });
+  const pan = useRef<{ x: number; y: number; zx: number; zy: number } | null>(null);
+  const touches = useRef(new Map<number, { x: number; y: number }>());
+  const pinch = useRef<{ d: number; k: number } | null>(null);
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const wheel = (e: WheelEvent) => { e.preventDefault(); zoomAt(zoomRef.current.k * Math.exp(-Math.max(-120, Math.min(120, e.deltaY)) / 300), e.clientX, e.clientY); };
+    el.addEventListener('wheel', wheel, { passive: false });
+    return () => el.removeEventListener('wheel', wheel);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const card = openId ? cardFor(board, openId) : null;
   const pick = (id: string) => {
     if (dragged.current) { dragged.current = false; return; }
@@ -321,14 +353,37 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
   const dragToken = drag ? board.tokens.find((t) => t.id === drag.id) : undefined;
   const dragPlan: MovePlan | null = drag?.moved && dragToken && board.rules ? planMove(board.rules, moverFor(dragToken), from(dragToken), drag.cur, leftOf(dragToken)) : null;
   const down = (e: ReactPointerEvent) => {
-    if (aimer || !onMove || e.button !== 0) return;
+    if (e.pointerType === 'touch') {
+      touches.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (touches.current.size === 2) {
+        const [p1, p2] = [...touches.current.values()];
+        pinch.current = { d: Math.hypot(p1.x - p2.x, p1.y - p2.y) || 1, k: zoomRef.current.k }; pan.current = null; setDrag(null);
+        return;
+      }
+    }
+    if (e.button !== 0) return;
     const c = cellAt(e.clientX, e.clientY);
     const t = c && tokenAt(c);
+    // Fond du plateau zoomé : on déplace la vue.
+    if ((!t || !onMove || aimer) && zoomRef.current.k > 1) { pan.current = { x: e.clientX, y: e.clientY, zx: zoomRef.current.x, zy: zoomRef.current.y }; return; }
+    if (aimer || !onMove) return;
     if (!c || !t) return;
     dragged.current = false;
     setDrag({ id: t.id, dx: c.x - t.x, dy: c.y - t.y, cur: { x: t.x, y: t.y }, moved: false });
   };
   const move = (e: ReactPointerEvent) => {
+    if (touches.current.has(e.pointerId)) touches.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch.current && touches.current.size === 2) {
+      const [p1, p2] = [...touches.current.values()];
+      zoomAt(pinch.current.k * Math.hypot(p1.x - p2.x, p1.y - p2.y) / pinch.current.d, (p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
+      return;
+    }
+    if (pan.current) {
+      const pc = pan.current;
+      if (Math.abs(e.clientX - pc.x) + Math.abs(e.clientY - pc.y) > 4) dragged.current = true;
+      setZoom((z) => ({ ...z, x: pc.zx + e.clientX - pc.x, y: pc.zy + e.clientY - pc.y }));
+      return;
+    }
     if (!drag) return;
     const c = cellAt(e.clientX, e.clientY);
     if (!c) return;
@@ -347,6 +402,15 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
     window.addEventListener('pointercancel', up);
     return () => { window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up); };
   }, [drag, onMove, dragPlan]);
+  useEffect(() => {
+    const end = (e: PointerEvent) => {
+      touches.current.delete(e.pointerId);
+      if (touches.current.size < 2) pinch.current = null;
+      if (pan.current) { pan.current = null; setTimeout(() => { dragged.current = false; }, 0); }
+    };
+    window.addEventListener('pointerup', end); window.addEventListener('pointercancel', end);
+    return () => { window.removeEventListener('pointerup', end); window.removeEventListener('pointercancel', end); };
+  }, []);
   const tokens = drag?.moved ? board.tokens.map((t) => (t.id === drag.id ? { ...t, ...drag.cur } : t)) : board.tokens;
 
   // Héros dont on montre le déplacement et la portée : celui qu'on glisse, sinon celui dont c'est le tour, sinon la fiche ouverte.
@@ -382,6 +446,11 @@ function PlayerBattle({ board, onAim, onMove }: { board: BattleBoardData; onAim?
           <button type="button" aria-pressed={showReach} data-on={showReach ? 1 : undefined} onClick={() => setShowReach(!showReach)}>
             ⚔ Portée{showReach && reach ? ` · ${reach.weapon ?? 'arme'} : ${reach.short ? `${reach.short * board.feetPerCell}/${reach.long * board.feetPerCell} pi` : `allonge ${(reach.melee || 1) * board.feetPerCell} pi`}` : ''}
           </button>
+        </span>
+        <span className="present-zoom" role="group" aria-label="Zoom du plateau">
+          <button type="button" onClick={() => zoomAt(zoom.k / 1.4)} disabled={zoom.k <= 1} aria-label="Dézoomer">−</button>
+          <button type="button" onClick={() => setZoom({ k: 1, x: 0, y: 0 })} disabled={zoom.k <= 1} title="Plateau entier">{Math.round(zoom.k * 100)} %</button>
+          <button type="button" onClick={() => zoomAt(zoom.k * 1.4)} disabled={zoom.k >= 6} aria-label="Zoomer">+</button>
         </span>
         <span>Round {board.round}</span>
       </header>

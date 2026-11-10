@@ -999,3 +999,8 @@
 .battle-board-wrap.place-chantier > .battle-stack::after{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(45deg,rgba(210,170,90,.07) 0 14px,transparent 14px 40px)}
 .battle-board-wrap.place-delaisse .battle-terrain,.battle-board-wrap.place-delaisse .battle-furniture{filter:grayscale(.55) brightness(.78)}
 .battle-board-wrap.place-delaisse > .battle-stack::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(200,200,190,.12) 100%)}
+/* Écran joueur : zoom du plateau */
+.present-zoom{display:inline-flex;gap:.3vw;align-items:center}
+.present-zoom button{background:rgba(20,16,10,.7);border:1px solid #6b5630;color:#ecd289;border-radius:6px;min-width:2.4em;padding:.15em .5em;cursor:pointer;font:inherit}
+.present-zoom button:disabled{opacity:.4;cursor:default}
+.present-battle-body{overflow:hidden}

@@ -859,7 +859,8 @@ def guess(folder, title):
 #   arbre    : <espèce>-<saison>-<diamètre> ; texture : texture-<matière>-<taille>m
 PEUPLE_MOTS = {'humain': 'humain', 'humaine': 'humain', 'elfe': 'elfe', 'demi-elfe': 'demi-elfe', 'nain': 'nain', 'naine': 'nain',
                'halfelin': 'halfelin', 'halfeline': 'halfelin', 'gnome': 'gnome', 'demi-orque': 'demi-orque', 'tieffelin': 'tieffelin',
-               'tieffeline': 'tieffelin', 'drow': 'drow', 'duergar': 'duergar', 'svirfnebelin': 'svirfnebelin'}
+               'tieffeline': 'tieffelin', 'drow': 'drow', 'duergar': 'duergar', 'svirfnebelin': 'svirfnebelin',
+               'moriquendi': 'moriquendi', 'moriquendie': 'moriquendi', 'gobelin': 'gobelin', 'gobeline': 'gobelin'}
 SAISONS = {'printemps', 'ete', 'automne', 'hiver'}
 
 
@@ -872,9 +873,11 @@ def structured(folder, title):
     # Préfixe de série « ls-p-NNNN- » (jeu de personnages zénithaux du 2026-11-09) : il apparie jetons et portraits d'un même
     # personnage, variantes comprises (« -variante-arc-zenith-jeton », « -portrait-variante »).
     serie = None
-    ms = re.match(r'^ls-p-(\d+)-(.+)$', stem)
+    # « ls-u-NNNN- » : jetons zénithaux de l'Outreterre qui remplacent les anciens jetons inclinés (scripts/banque/
+    # outreterre-zenith.json donne, pour chaque numéro, l'ancien jeton et le portrait auquel l'apparier).
+    ms = re.match(r'^(ls-[pu])-(\d+)-(.+)$', stem)
     if ms:
-        serie, stem = f'ls-p-{ms.group(1)}', ms.group(2)
+        serie, stem = f'{ms.group(1)}-{ms.group(2)}', ms.group(3)
         stem = re.sub(r'-portrait-variante(-\d+)?$', '-portrait', stem)
         stem = re.sub(r'-variante(-[a-z]+)*-zenith-jeton$', '-zenith-jeton', stem)
     if folder == 'people':
@@ -1097,9 +1100,37 @@ def main():
             e.pop('empreinte')
         entries.append(e)
         by_title[norm(x['title'])] = slug
+    # Jetons zénithaux de l'Outreterre (série ls-u) : ils prennent le nom, les rôles et le portrait de l'ancien jeton
+    # qu'ils remplacent ; l'ancien est écarté (jamais supprimé), et son adresse mène au nouveau (alias.json).
+    remplaces = {}
+    ou_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'outreterre-zenith.json')
+    ou = json.load(open(ou_path, encoding='utf-8')) if os.path.exists(ou_path) else {}
+    by_slug = {e['id']: e for e in entries}
+    for e in entries:
+        k = e.get('paire')
+        if e['type'] != 'personnage' or not isinstance(k, str) or not k.startswith('ls-u-') or k not in ou:
+            continue
+        m = ou[k]
+        e['nom'], e['roles'], e['peuple'], e['angle'] = m['nom'], m['roles'] or e.get('roles'), m['peuple'] or e.get('peuple'), 'zenith'
+        e['region'] = ['outreterre']
+        portrait = by_slug.get(m.get('portrait') or '')
+        e['paire'] = portrait['id'] if portrait else None
+        if portrait and not portrait.get('_ls_u'):
+            portrait['paire'], portrait['_ls_u'] = e['id'], True
+        old = by_slug.get(m['ancien'])
+        if old and old is not e:
+            old['exclu'], old['remplace_par'] = True, e['id']
+            remplaces[old['id']] = e['id']
+    for e in entries:
+        e.pop('_ls_u', None)
+    if remplaces:
+        alias_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'src', 'banque', 'alias.json')
+        alias = json.load(open(alias_path, encoding='utf-8')) if os.path.exists(alias_path) else {}
+        alias.update(remplaces)
+        open(alias_path, 'w', encoding='utf-8').write(json.dumps(alias, ensure_ascii=False, indent=0, sort_keys=True))
     # Paires portrait ↔ jeton : on remplace l'indice textuel par l'identifiant de l'autre image.
     for e in entries:
-        if e['type'] != 'personnage' or not e.get('paire'):
+        if e['type'] != 'personnage' or not e.get('paire') or str(e.get('paire')).startswith('ls-u-') or e.get('paire') in by_slug:
             continue
         key = e['paire']
         want = 'portrait' if e['vue'] == 'jeton' else 'jeton'

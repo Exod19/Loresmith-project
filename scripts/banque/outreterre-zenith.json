@@ -1,0 +1,698 @@
+{
+ "ls-u-0001": {
+  "ancien": "austere-locksmith-with-an-iron-key-jeton",
+  "ancien_drive": "1osERgkCeKr13wYVFjtpXt-eJI2TrtrmP",
+  "portrait": "moriquendi-locksmith-with-an-iron-key",
+  "peuple": "moriquendi",
+  "roles": [
+   "artisan"
+  ],
+  "nom": "Serrurier moriquendi"
+ },
+ "ls-u-0002": {
+  "ancien": "black-painted-potter-with-clay-bowl-jeton",
+  "ancien_drive": "1SEAj-xKz1hYSPZffZi3O3Vf12T6a9vf5",
+  "portrait": "pale-moriquendi-potter-in-crystal-workshop",
+  "peuple": "moriquendi",
+  "roles": [
+   "artisan"
+  ],
+  "nom": "Potier moriquendi"
+ },
+ "ls-u-0003": {
+  "ancien": "braided-archmage-with-amethyst-staff-jeton",
+  "ancien_drive": "1xzjKQvgyBdHv-YZzft2H1jwQrfRlulgP",
+  "portrait": "pale-archmage-beneath-violet-crystal-light",
+  "peuple": "moriquendi",
+  "roles": [
+   "mage"
+  ],
+  "nom": "Mage moriquendi"
+ },
+ "ls-u-0004": {
+  "ancien": "braided-bayou-fisher-with-reed-creel-jeton",
+  "ancien_drive": "1nW7T_4uGeyngAytB6fMJ7fm7Q4ZHqa7A",
+  "portrait": "moriquendi-bayou-fisher-with-ritual-paint",
+  "peuple": "moriquendi",
+  "roles": [
+   "batelier",
+   "pecheur"
+  ],
+  "nom": "Pêcheur moriquendi"
+ },
+ "ls-u-0005": {
+  "ancien": "braided-cook-with-spider-face-paint-jeton",
+  "ancien_drive": "1CrXwjZfd2j4c5MEn1Z7LW2MLexgxGi71",
+  "portrait": "pale-moriquendi-cook-with-spider-leg-paint",
+  "peuple": "moriquendi",
+  "roles": [
+   "cuisinier"
+  ],
+  "nom": "Cuisinier moriquendi"
+ },
+ "ls-u-0006": {
+  "ancien": "cave-rescue-tracker-token-jeton",
+  "ancien_drive": "1CbcZqxT6CkTQd4xkVDuROeOq-44fgYML",
+  "portrait": "underground-rescue-tracker-beneath-crystal-lamps",
+  "peuple": "moriquendi",
+  "roles": [
+   "chasseur",
+   "eclaireur"
+  ],
+  "nom": "Pisteur moriquendi"
+ },
+ "ls-u-0007": {
+  "ancien": "charcoal-coated-administrator-with-document-case-jeton",
+  "ancien_drive": "1APb23XGgv0RxEPFJz8EQ7FjmNZm-oQQN",
+  "portrait": null,
+  "peuple": "moriquendi",
+  "roles": [
+   "erudit",
+   "scribe"
+  ],
+  "nom": "Intendant moriquendi"
+ },
+ "ls-u-0008": {
+  "ancien": "charcoal-robed-high-priestess-token-jeton",
+  "ancien_drive": "10TXibhYnQWeF3fi-upOrhjRIyuKh0V1t",
+  "portrait": "wrinkled-high-priestess-in-crystal-chamber",
+  "peuple": "moriquendi",
+  "roles": [
+   "clerc",
+   "pretre"
+  ],
+  "nom": "Grande prêtresse moriquendi"
+ },
+ "ls-u-0009": {
+  "ancien": "clan-painted-registrar-with-registry-and-keys-jeton",
+  "ancien_drive": "1n4nb6R-Xtx730VT64zjw2c9JqbNhNCBo",
+  "portrait": "silver-haired-superintendent-of-the-crystal-regi",
+  "peuple": "moriquendi",
+  "roles": [
+   "erudit",
+   "scribe"
+  ],
+  "nom": "Greffier moriquendi"
+ },
+ "ls-u-0010": {
+  "ancien": "copper-haired-dancer-with-ochre-sash-jeton",
+  "ancien_drive": "1Oq0ghxVyJlQvcdQf8s-1Y1kECCoBADp4",
+  "portrait": null,
+  "peuple": "moriquendi",
+  "roles": [
+   "artiste"
+  ],
+  "nom": "Danseuse moriquendi"
+ },
+ "ls-u-0011": {
+  "ancien": "deep-gnome-scout-battlemap-token-jeton",
+  "ancien_drive": "18nFR84KPLO0DEXVgrEoaIyLVa58F5Aqk",
+  "portrait": null,
+  "peuple": "svirfnebelin",
+  "roles": [
+   "chasseur",
+   "eclaireur"
+  ],
+  "nom": "Éclaireur svirfnebelin"
+ },
+ "ls-u-0012": {
+  "ancien": "elder-high-priest-with-driftwood-staff-jeton",
+  "ancien_drive": "1oBtbQvrU0agPM1J2cuHMSKNOF1nwPGoa",
+  "portrait": "moriquendi-high-priest-in-a-crystal-lit-sanctuar",
+  "peuple": "moriquendi",
+  "roles": [
+   "clerc",
+   "pretre"
+  ],
+  "nom": "Grand prêtre moriquendi"
+ },
+ "ls-u-0013": {
+  "ancien": "elder-teacher-with-geometric-face-paint-jeton",
+  "ancien_drive": "1VdN084zNpMx-4TBGNfHN6QPQiVm1mV4H",
+  "portrait": "pale-moriquendi-teacher-in-a-crystal-lit-classro",
+  "peuple": "moriquendi",
+  "roles": [
+   "erudit",
+   "scribe"
+  ],
+  "nom": "Professeur moriquendi"
+ },
+ "ls-u-0014": {
+  "ancien": "lanky-curio-dealer-with-a-wooden-box-jeton",
+  "ancien_drive": "1n9O32anEKWSvZiTW4oHMoi9xrtfjBHml",
+  "portrait": null,
+  "peuple": "moriquendi",
+  "roles": [
+   "marchand"
+  ],
+  "nom": "Marchand de curiosités moriquendi"
+ },
+ "ls-u-0015": {
+  "ancien": "moriquendi-woman-with-a-folding-fan-jeton",
+  "ancien_drive": "18XWiioEL22WH3izqUJuqM1BzTzsdnw_h",
+  "portrait": null,
+  "peuple": "moriquendi",
+  "roles": [
+   "villageois"
+  ],
+  "nom": "Habitante moriquendi"
+ },
+ "ls-u-0016": {
+  "ancien": "moriquendi-womans-overhead-character-token-jeton",
+  "ancien_drive": "1aKCMnAXwzaPKMbXCm5bkOcSic3DROtbF",
+  "portrait": null,
+  "peuple": "moriquendi",
+  "roles": [
+   "villageois"
+  ],
+  "nom": "Habitante moriquendi"
+ },
+ "ls-u-0017": {
+  "ancien": "moss-green-cave-goblin-breeder-jeton",
+  "ancien_drive": "1y4tDo0KU7slYMqdeichLcQEv5o8K3F6E",
+  "portrait": "curious-goblin-cave-breeder",
+  "peuple": "gobelin",
+  "roles": [
+   "eleveur",
+   "fermier"
+  ],
+  "nom": "Éleveur"
+ },
+ "ls-u-0018": {
+  "ancien": "norrianiss-prophetess-overhead-token-jeton",
+  "ancien_drive": "1CzipUZzIfz3ZRvsTjJxrB5yay5Z0bK5Z",
+  "portrait": "pale-norrianiss-prophetess-in-crystal-light",
+  "peuple": "moriquendi",
+  "roles": [
+   "clerc",
+   "pretre"
+  ],
+  "nom": "Prophétesse moriquendi"
+ },
+ "ls-u-0019": {
+  "ancien": "northern-storykeeper-with-eightfold-eye-paint-jeton",
+  "ancien_drive": "1iUxZH73bkEiI0FLH7-vvrC745oS2TKY2",
+  "portrait": "moriquendi-keeper-of-northern-memories",
+  "peuple": "moriquendi",
+  "roles": [
+   "erudit",
+   "scribe"
+  ],
+  "nom": "Gardien des mémoires moriquendi"
+ },
+ "ls-u-0020": {
+  "ancien": "overhead-access-guard-with-iron-key-jeton",
+  "ancien_drive": "1cBnyz0_NFkTysS0gXRGw51Ou6J_kwTrM",
+  "portrait": "moriquendi-gate-guard-with-black-face-paint",
+  "peuple": "moriquendi",
+  "roles": [
+   "garde",
+   "soldat"
+  ],
+  "nom": "Garde moriquendi"
+ },
+ "ls-u-0021": {
+  "ancien": "overhead-alchemy-apprentice-with-amber-flask-jeton",
+  "ancien_drive": "1Q8bpvpH9IX5Cz4REb2aI5V-DmOVXL3Ms",
+  "portrait": "alchemist-apprentice-beneath-crystal-caverns",
+  "peuple": "moriquendi",
+  "roles": [
+   "guerisseur",
+   "herboriste"
+  ],
+  "nom": "Apprenti alchimiste moriquendi"
+ },
+ "ls-u-0022": {
+  "ancien": "overhead-archive-priestess-token-jeton",
+  "ancien_drive": "1l4c6VIg3y8CKsMhH8d7GBIoybs8QVpKo",
+  "portrait": null,
+  "peuple": "moriquendi",
+  "roles": [
+   "clerc",
+   "pretre"
+  ],
+  "nom": "Prêtresse moriquendi"
+ },
+ "ls-u-0023": {
+  "ancien": "overhead-crystal-merchant-token-jeton",
+  "ancien_drive": "1oKY-u_RASl01bcAutln8iq4FPEku8M96",
+  "portrait": "crystal-merchant-in-the-underground-reagent-shop",
+  "peuple": "moriquendi",
+  "roles": [
+   "marchand"
+  ],
+  "nom": "Marchand de cristaux moriquendi"
+ },
+ "ls-u-0024": {
+  "ancien": "overhead-dark-fantasy-envoy-token-jeton",
+  "ancien_drive": "1FMcY3JsNjnzDaWMZlqiRphn4X2vmIemZ",
+  "portrait": "pale-moriquendi-envoy-in-the-crystal-hall",
+  "peuple": "moriquendi",
+  "roles": [
+   "diplomate",
+   "messager"
+  ],
+  "nom": "Diplomate moriquendi"
+ },
+ "ls-u-0025": {
+  "ancien": "overhead-deep-gnome-mushroom-farmer-jeton",
+  "ancien_drive": "1sY7Hy7aEwgvSJ7vDyGNNEw2D3xjb04UI",
+  "portrait": "weathered-deep-gnome-mushroom-farmer",
+  "peuple": "svirfnebelin",
+  "roles": [
+   "eleveur",
+   "fermier"
+  ],
+  "nom": "Cultivateur de champignons svirfnebelin"
+ },
+ "ls-u-0026": {
+  "ancien": "overhead-drow-priestess-battle-token-jeton",
+  "ancien_drive": "1TC_mJm-UliLZnpezwE3SwJIp28ZbLM4Z",
+  "portrait": "amethyst-robed-drow-priestess",
+  "peuple": "drow",
+  "roles": [
+   "clerc",
+   "pretre"
+  ],
+  "nom": "Prêtresse drow"
+ },
+ "ls-u-0027": {
+  "ancien": "overhead-duergar-blacksmith-token-jeton",
+  "ancien_drive": "16PayOIopY7E_nW0Yw9JHgCmhlW2x2HgM",
+  "portrait": "ash-gray-duergar-blacksmith-portrait",
+  "peuple": "duergar",
+  "roles": [
+   "artisan",
+   "forgeron"
+  ],
+  "nom": "Forgeron duergar"
+ },
+ "ls-u-0028": {
+  "ancien": "overhead-garrison-commander-in-blackened-steel-jeton",
+  "ancien_drive": "14aksz4-1vcCcYldS-g7JR-dc1YwOtemi",
+  "portrait": "iron-gray-commander-of-the-underdark",
+  "peuple": "moriquendi",
+  "roles": [
+   "garde",
+   "soldat"
+  ],
+  "nom": "Commandant moriquendi"
+ },
+ "ls-u-0029": {
+  "ancien": "overhead-midwife-with-linen-roll-jeton",
+  "ancien_drive": "1Hi_lYANt42oJhGggGkwYUivH3SckcLNL",
+  "portrait": "norrianiss-midwife-in-the-crystal-care-room",
+  "peuple": "moriquendi",
+  "roles": [
+   "guerisseur",
+   "herboriste"
+  ],
+  "nom": "Sage-femme moriquendi"
+ },
+ "ls-u-0030": {
+  "ancien": "overhead-pale-moriquendi-map-token-jeton",
+  "ancien_drive": "1d1f7K6gyLPNARw9oFhaepacuy9_XWa3w",
+  "portrait": null,
+  "peuple": "moriquendi",
+  "roles": [
+   "villageois"
+  ],
+  "nom": "Habitant moriquendi"
+ },
+ "ls-u-0031": {
+  "ancien": "overhead-patrol-corporal-with-sheathed-sword-jeton",
+  "ancien_drive": "1fM8l_Lus1nW9ewPWI1JIxYEvKoeMZpJB",
+  "portrait": "pale-moriquendi-patrol-at-crystal-junction",
+  "peuple": "moriquendi",
+  "roles": [
+   "garde",
+   "soldat"
+  ],
+  "nom": "Patrouilleur moriquendi"
+ },
+ "ls-u-0032": {
+  "ancien": "overhead-pawnbroker-with-a-ring-box-jeton",
+  "ancien_drive": "1W259xn-DOQAYSexQpUkf_VyeLRzT6oM6",
+  "portrait": "crystal-lit-underground-pawnbroker",
+  "peuple": "moriquendi",
+  "roles": [
+   "marchand"
+  ],
+  "nom": "Prêteur sur gages moriquendi"
+ },
+ "ls-u-0033": {
+  "ancien": "overhead-provisions-seller-with-ration-bundle-jeton",
+  "ancien_drive": "16YVfLAnVe_CEsLG6YBPbbVdCy0wkYs3-",
+  "portrait": null,
+  "peuple": "moriquendi",
+  "roles": [
+   "marchand"
+  ],
+  "nom": "Vendeur de vivres moriquendi"
+ },
+ "ls-u-0034": {
+  "ancien": "overhead-white-haired-drover-token-jeton",
+  "ancien_drive": "1AiDG7hS90-j4jPfcIG0khGyCgFJEe2e0",
+  "portrait": "pale-pack-drover-beneath-crystal-light",
+  "peuple": "moriquendi",
+  "roles": [
+   "eleveur",
+   "fermier"
+  ],
+  "nom": "Bouvier moriquendi"
+ },
+ "ls-u-0035": {
+  "ancien": "painted-night-watchkeeper-jeton",
+  "ancien_drive": "1oP5JxNGip4u_BSjvsEcfRThGh3VKTeen",
+  "portrait": "moriquendi-night-watchkeeper-with-black-face-pai",
+  "peuple": "moriquendi",
+  "roles": [
+   "garde",
+   "soldat"
+  ],
+  "nom": "Veilleur de nuit moriquendi"
+ },
+ "ls-u-0036": {
+  "ancien": "pale-enchantment-lecturer-with-arachnid-paint-jeton",
+  "ancien_drive": "1R0B7TBlSR6DFBX6_pY-ZtEWnDfIY64kM",
+  "portrait": "black-painted-lecturer-in-the-underdark",
+  "peuple": "moriquendi",
+  "roles": [
+   "erudit",
+   "mage",
+   "scribe"
+  ],
+  "nom": "Professeur moriquendi"
+ },
+ "ls-u-0037": {
+  "ancien": "pale-herbal-caregiver-rpg-token-jeton",
+  "ancien_drive": "19MRVInI3Msnw1fx2KnuMVEnWPgpju88T",
+  "portrait": null,
+  "peuple": "moriquendi",
+  "roles": [
+   "guerisseur",
+   "herboriste"
+  ],
+  "nom": "Herboriste moriquendi"
+ },
+ "ls-u-0038": {
+  "ancien": "pale-quartermaster-with-towels-jeton",
+  "ancien_drive": "1kKoCj2WCVmHXWrQjbWfw7BeIjzZj9WAc",
+  "portrait": "black-painted-linen-quartermaster-in-crystal-lau",
+  "peuple": "moriquendi",
+  "roles": [
+   "artisan"
+  ],
+  "nom": "Intendant moriquendi"
+ },
+ "ls-u-0039": {
+  "ancien": "pale-braided-moriquendi-character-token-jeton",
+  "ancien_drive": "1DDxUxM3-D2aKqUFZRT2Zcz1k0Cj2j7XF",
+  "portrait": null,
+  "peuple": "moriquendi",
+  "roles": [
+   "villageois"
+  ],
+  "nom": "Habitant moriquendi"
+ },
+ "ls-u-0040": {
+  "ancien": "plum-coated-superintendent-token-jeton",
+  "ancien_drive": "185bCEVRukxcCqmdg12bK7qb8Fb_ApOEO",
+  "portrait": null,
+  "peuple": "moriquendi",
+  "roles": [
+   "erudit",
+   "scribe"
+  ],
+  "nom": "Intendant moriquendi"
+ },
+ "ls-u-0041": {
+  "ancien": "river-priestess-with-charms-jeton",
+  "ancien_drive": "1nNkys3ULf4CZpyhG9C7_XX3a3lziCF6c",
+  "portrait": "teal-robed-priestess-by-the-underdark-river",
+  "peuple": "moriquendi",
+  "roles": [
+   "clerc",
+   "pretre"
+  ],
+  "nom": "Prêtresse moriquendi"
+ },
+ "ls-u-0042": {
+  "ancien": "silver-haired-diplomat-with-forked-face-paint-jeton",
+  "ancien_drive": "1OwV9hZSI29AFSeE4N_tFlM_XhHtjZ9sZ",
+  "portrait": "pale-moriquendi-diplomat-in-a-crystal-cavern-emb",
+  "peuple": "moriquendi",
+  "roles": [
+   "diplomate",
+   "messager"
+  ],
+  "nom": "Diplomate moriquendi"
+ },
+ "ls-u-0043": {
+  "ancien": "silver-haired-moriquendi-map-token-jeton",
+  "ancien_drive": "1LO4GJ3qEi4i528Svt0a2vh4c7XQEFoHQ",
+  "portrait": null,
+  "peuple": "moriquendi",
+  "roles": [
+   "villageois"
+  ],
+  "nom": "Habitant moriquendi"
+ },
+ "ls-u-0044": {
+  "ancien": "silver-haired-toll-clerk-overhead-token-jeton",
+  "ancien_drive": "1NJjS9h1O85PEMLg99Pxq0ksOAo0agntW",
+  "portrait": "black-marked-checkpoint-clerk-beneath-violet-cry",
+  "peuple": "moriquendi",
+  "roles": [
+   "erudit",
+   "scribe"
+  ],
+  "nom": "Greffier moriquendi"
+ },
+ "ls-u-0045": {
+  "ancien": "standing-moriquendi-noble-character-token-jeton",
+  "ancien_drive": "15ON6zdYyXYjY3eW5zNodxAZWe53JLgzk",
+  "portrait": null,
+  "peuple": "moriquendi",
+  "roles": [
+   "noble"
+  ],
+  "nom": "Noble moriquendi"
+ },
+ "ls-u-0046": {
+  "ancien": "top-down-ash-blond-militia-sergeant-jeton",
+  "ancien_drive": "1NZ5nk6l7i_6pTVrVTOJxTbSwopXEMVct",
+  "portrait": null,
+  "peuple": "humain",
+  "roles": [
+   "garde",
+   "soldat"
+  ],
+  "nom": "Sergent humain"
+ },
+ "ls-u-0047": {
+  "ancien": "top-down-black-painted-courier-token-jeton",
+  "ancien_drive": "1GRga1AFfC-y7YboAnah_xrxmAVx_Un3z",
+  "portrait": "pale-moriquendi-courier-with-angular-black-paint",
+  "peuple": "moriquendi",
+  "roles": [
+   "diplomate",
+   "messager"
+  ],
+  "nom": "Messager moriquendi"
+ },
+ "ls-u-0048": {
+  "ancien": "top-down-drow-merchant-token-jeton",
+  "ancien_drive": "10ql2F2VMkkOth-aPc2LggKFifUsDHtIk",
+  "portrait": "drow-merchant-in-chiaroscuro",
+  "peuple": "drow",
+  "roles": [
+   "marchand"
+  ],
+  "nom": "Marchand drow"
+ },
+ "ls-u-0049": {
+  "ancien": "top-down-duergar-innkeeper-token-jeton",
+  "ancien_drive": "1pWKnw1kzSJ8agVoqfzOLt06qqauf7vNr",
+  "portrait": "ash-gray-duergar-innkeeper-portrait",
+  "peuple": "duergar",
+  "roles": [
+   "aubergiste",
+   "tavernier"
+  ],
+  "nom": "Aubergiste duergar"
+ },
+ "ls-u-0050": {
+  "ancien": "top-down-face-painted-bookseller-jeton",
+  "ancien_drive": "1pUTuQS8rFyMFbDnYDAhb5heLj0GMIyfZ",
+  "portrait": "pale-moriquendi-bookseller-with-question-mark-pa",
+  "peuple": "moriquendi",
+  "roles": [
+   "erudit",
+   "marchand",
+   "scribe"
+  ],
+  "nom": "Libraire moriquendi"
+ },
+ "ls-u-0051": {
+  "ancien": "top-down-goblin-apothecary-token-jeton",
+  "ancien_drive": "19LndVmIoADiNxQGiMFqDynzSVVjHzxA2",
+  "portrait": "thoughtful-goblin-apothecary-portrait",
+  "peuple": "gobelin",
+  "roles": [
+   "guerisseur",
+   "herboriste"
+  ],
+  "nom": "Apothicaire"
+ },
+ "ls-u-0052": {
+  "ancien": "top-down-gray-robed-archmage-with-brass-frame-jeton",
+  "ancien_drive": "13_Mmn9cwPgTvQC_F3bZ41uclneJfOVMO",
+  "portrait": "ward-archmage-in-the-crystal-workshop",
+  "peuple": "moriquendi",
+  "roles": [
+   "mage"
+  ],
+  "nom": "Mage moriquendi"
+ },
+ "ls-u-0053": {
+  "ancien": "top-down-infirmary-attendant-with-bandages-jeton",
+  "ancien_drive": "1FnOSkYH0zNoLwFVinWTJQKvjS54bc7Mu",
+  "portrait": "pale-moriquendi-infirmary-attendant",
+  "peuple": "moriquendi",
+  "roles": [
+   "guerisseur",
+   "herboriste"
+  ],
+  "nom": "Infirmier moriquendi"
+ },
+ "ls-u-0054": {
+  "ancien": "top-down-innkeeper-with-question-mark-face-paint-jeton",
+  "ancien_drive": "1VGEoFOAl7WS2knHgCvyEVNfVKTyh_69z",
+  "portrait": "pale-moriquendi-innkeeper-at-the-crystal-bar",
+  "peuple": "moriquendi",
+  "roles": [
+   "aubergiste",
+   "tavernier"
+  ],
+  "nom": "Aubergiste moriquendi"
+ },
+ "ls-u-0055": {
+  "ancien": "top-down-lantern-repairer-with-unlit-lantern-jeton",
+  "ancien_drive": "1DHsAVoLdd9EXvLBAnnoVnXmrkN1MluaP",
+  "portrait": "lantern-repairer-in-the-deep",
+  "peuple": "moriquendi",
+  "roles": [
+   "artisan"
+  ],
+  "nom": "Réparateur moriquendi"
+ },
+ "ls-u-0056": {
+  "ancien": "top-down-mourning-officiant-token-jeton",
+  "ancien_drive": "1u05E_1vfIUnZ2Fvzf-xT2A2TuKv-HUZG",
+  "portrait": "moriquendi-funeral-officiant-in-the-underdark",
+  "peuple": "moriquendi",
+  "roles": [
+   "clerc",
+   "pretre"
+  ],
+  "nom": "Prêtre moriquendi"
+ },
+ "ls-u-0057": {
+  "ancien": "top-down-painted-defense-instructor-token-jeton",
+  "ancien_drive": "1lOcPBmLxg4Igtn0Xbwtf1fR8cl8sQGgL",
+  "portrait": "underdark-defense-instructor-with-question-mark-",
+  "peuple": "moriquendi",
+  "roles": [
+   "garde",
+   "soldat"
+  ],
+  "nom": "Professeur moriquendi"
+ },
+ "ls-u-0058": {
+  "ancien": "top-down-priestess-with-stone-offering-bowl-jeton",
+  "ancien_drive": "1vR9JyzZ-VGlMnYHm8RB5xa9d2fSlk4ZL",
+  "portrait": null,
+  "peuple": "moriquendi",
+  "roles": [
+   "clerc",
+   "pretre"
+  ],
+  "nom": "Prêtresse moriquendi"
+ },
+ "ls-u-0059": {
+  "ancien": "top-down-river-cartographer-with-brass-dividers-jeton",
+  "ancien_drive": "1NLrqiJ9pZv0JCbpAiVsE4H8LUjvB4ATu",
+  "portrait": "underground-river-cartographer",
+  "peuple": "moriquendi",
+  "roles": [
+   "erudit",
+   "scribe"
+  ],
+  "nom": "Cartographe moriquendi"
+ },
+ "ls-u-0060": {
+  "ancien": "top-down-rope-maker-with-spider-paint-jeton",
+  "ancien_drive": "1oECYSscxtIzPVPfKdG-bYLy5MPdvnMH1",
+  "portrait": "moriquendi-rope-maker-beneath-crystal-lamps",
+  "peuple": "moriquendi",
+  "roles": [
+   "artisan"
+  ],
+  "nom": "Cordier moriquendi"
+ },
+ "ls-u-0061": {
+  "ancien": "top-down-underground-relay-guide-jeton",
+  "ancien_drive": "10XY690QqzSXTZVa4oqzs2gYGvNRNWTNQ",
+  "portrait": null,
+  "peuple": "moriquendi",
+  "roles": [
+   "diplomate",
+   "messager"
+  ],
+  "nom": "Messager moriquendi"
+ },
+ "ls-u-0062": {
+  "ancien": "true-overhead-deep-gnome-scout-jeton",
+  "ancien_drive": "1qgyvormE41_Sf-OmamHnC-qZ_NxDf-do",
+  "portrait": "white-haired-deep-gnome-scout",
+  "peuple": "svirfnebelin",
+  "roles": [
+   "chasseur",
+   "eclaireur"
+  ],
+  "nom": "Éclaireur svirfnebelin"
+ },
+ "ls-u-0063": {
+  "ancien": "weathered-canal-ferryperson-with-boat-hook-jeton",
+  "ancien_drive": "1ivRIbDDgq39AhHerRk1MEN4r5mptuD2v",
+  "portrait": "pale-ferryperson-at-the-crystal-lit-canal",
+  "peuple": "moriquendi",
+  "roles": [
+   "batelier",
+   "pecheur"
+  ],
+  "nom": "Passeur moriquendi"
+ },
+ "ls-u-0064": {
+  "ancien": "weathered-nordic-expeditioner-top-down-token-jeton",
+  "ancien_drive": "1_hOh_gnVTlmXunjcuQpgdSrH2GZf5ujj",
+  "portrait": null,
+  "peuple": "humain",
+  "roles": [
+   "voyageur"
+  ],
+  "nom": "Voyageur humain"
+ },
+ "ls-u-0065": {
+  "ancien": "white-braided-priestess-with-ritual-box-jeton",
+  "ancien_drive": "1xAnz69Q6r9wJUWU1fhOPVtYUhQBCRtw8",
+  "portrait": "moriquendi-priestess-beneath-amethyst-lamps",
+  "peuple": "moriquendi",
+  "roles": [
+   "clerc",
+   "pretre"
+  ],
+  "nom": "Prêtresse moriquendi"
+ }
+}
